@@ -60,6 +60,25 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(plan(['audit', '--three-lane-check'])[0][-1], 'check')
         self.assertEqual(plan(['sat-skip', '--checked'])[0][-2:], ['32', 'check'])
         self.assertEqual(plan(['sat-skip'])[0][-2:], ['512', 'time'])
+        self.assertEqual(plan(['parameterized'])[0], ['/repo/target/analyzer/release/examples/parameterized_cell', '/new-out'])
+
+    def test_parameterized_gate_requires_both_graphs_and_counts(self):
+        phase = dict(same_submit=dict(exact_rows_values_equivalence_visibility=True),
+                     fused_native=dict(exact_rows_values_equivalence_visibility=True),
+                     same_per_rule_binding_counts=True, mirror_rows_checked=9)
+        r = dict(passed=True, phases=[phase])
+        self.assertTrue(B.parameterized_gate(r))
+        for key in phase:
+            changed=copy.deepcopy(r); changed['phases'][0].pop(key)
+            self.assertFalse(B.parameterized_gate(changed))
+        self.assertFalse(B.parameterized_gate(dict(passed=True, phases=[])))
+
+    def test_parameterized_dry_run_does_not_build_or_require_gpu(self):
+        with patch.object(B.subprocess,'run',side_effect=AssertionError('executed')), contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(B.main(['--dry-run','parameterized']),0)
+        text=output.getvalue()
+        self.assertIn('--example parameterized_cell',text)
+        self.assertNotIn('swiftc',text)
 
     def test_failed_graph_can_extract_but_keeps_failed_exit(self):
         with tempfile.TemporaryDirectory() as tmp:

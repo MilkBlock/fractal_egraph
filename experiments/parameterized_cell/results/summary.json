@@ -1,0 +1,937 @@
+{
+  "passed": true,
+  "scope": "Actual native effects, parameterized fixed wiring, CPU correctness experiment. No concrete closure catalog, no GPU performance or whole-saturation-skip claim.",
+  "cell_spine_templates": 1,
+  "rule_kernels": 7,
+  "runtime": {
+    "stats": {
+      "program_compilations": 1,
+      "ruleset_runs": 244,
+      "keyed_reads": 1553,
+      "committed_row_events": 354,
+      "union_events": 70,
+      "bootstrap_rows": 9,
+      "native_fallback_runs": 0
+    },
+    "programs": [
+      {
+        "ruleset": "terms",
+        "rule": "bop",
+        "seed": "Bop",
+        "accesses": [
+          {
+            "table": "ExtractedExpr",
+            "access": "Key"
+          },
+          {
+            "table": "TCPair",
+            "access": "Output"
+          },
+          {
+            "table": "ExtractedExpr",
+            "access": "Key"
+          },
+          {
+            "table": "TCPair",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 52,
+        "emitted_bindings": 39,
+        "live_seed_instances": 4
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "init",
+        "seed": "PotentialExtractedExpr",
+        "accesses": [],
+        "seed_evaluations": 33,
+        "emitted_bindings": 33,
+        "live_seed_instances": 33
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "improve",
+        "seed": "PotentialExtractedExpr",
+        "accesses": [
+          {
+            "table": "TCPair",
+            "access": "Output"
+          },
+          {
+            "table": "ExtractedExpr",
+            "access": "Key"
+          },
+          {
+            "table": "TCPair",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 164,
+        "emitted_bindings": 29,
+        "live_seed_instances": 33
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "negative",
+        "seed": "PotentialExtractedExpr",
+        "accesses": [
+          {
+            "table": "TCPair",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 33,
+        "emitted_bindings": 0,
+        "live_seed_instances": 33
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "less",
+        "seed": "Smaller",
+        "accesses": [
+          {
+            "table": "TCPair",
+            "access": "Output"
+          },
+          {
+            "table": "TCPair",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 185,
+        "emitted_bindings": 40,
+        "live_seed_instances": 60
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "greater",
+        "seed": "Smaller",
+        "accesses": [
+          {
+            "table": "TCPair",
+            "access": "Output"
+          },
+          {
+            "table": "TCPair",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 185,
+        "emitted_bindings": 63,
+        "live_seed_instances": 60
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "tie",
+        "seed": "Smaller",
+        "accesses": [
+          {
+            "table": "TCPair",
+            "access": "Output"
+          },
+          {
+            "table": "TCPair",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 185,
+        "emitted_bindings": 18,
+        "live_seed_instances": 60
+      }
+    ],
+    "watched_rows": 154,
+    "dependency_edges": 502,
+    "concrete_closure_catalog_entries": 0,
+    "scope": "Parameterized keyed update program. Native effects and original schedule, no original LHS queries on admitted runs. Committed canonical row deltas handle unions. Not a precomputed whole-saturation skip or GPU benchmark."
+  },
+  "phases": [
+    {
+      "phase": 0,
+      "label": "initial",
+      "input": "",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 30,
+        "eclass_mapping": 23,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 5,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 2,
+          "Smaller": 2,
+          "TCPair": 6,
+          "TermBop": 2,
+          "TermLeaf": 3,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 30,
+        "eclass_mapping": 23,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 5,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 2,
+          "Smaller": 2,
+          "TCPair": 6,
+          "TermBop": 2,
+          "TermLeaf": 3,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 18,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 1,
+      "label": "improved-cost-and-term",
+      "input": "(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 20) 30))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 43,
+        "eclass_mapping": 31,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 5,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4,
+          "Smaller": 7,
+          "TCPair": 9,
+          "TermBop": 4,
+          "TermLeaf": 4,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 43,
+        "eclass_mapping": 31,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 5,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4,
+          "Smaller": 7,
+          "TCPair": 9,
+          "TermBop": 4,
+          "TermLeaf": 4,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 28,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 2,
+      "label": "equal-cost-new-term",
+      "input": "(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 21) 30))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 46,
+        "eclass_mapping": 33,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 5,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4,
+          "Smaller": 8,
+          "TCPair": 10,
+          "TermBop": 4,
+          "TermLeaf": 5,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 46,
+        "eclass_mapping": 33,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 5,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4,
+          "Smaller": 8,
+          "TCPair": 10,
+          "TermBop": 4,
+          "TermLeaf": 5,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 30,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 3,
+      "label": "worse-external-candidate",
+      "input": "(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 22) 80))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 49,
+        "eclass_mapping": 35,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 5,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4,
+          "Smaller": 9,
+          "TCPair": 11,
+          "TermBop": 4,
+          "TermLeaf": 6,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 49,
+        "eclass_mapping": 35,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 5,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4,
+          "Smaller": 9,
+          "TCPair": 11,
+          "TermBop": 4,
+          "TermLeaf": 6,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 32,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 4,
+      "label": "late-missing-port",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 13) 7))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 57,
+        "eclass_mapping": 40,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 5,
+          "Smaller": 10,
+          "TCPair": 13,
+          "TermBop": 5,
+          "TermLeaf": 7,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 57,
+        "eclass_mapping": 40,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 5,
+          "Smaller": 10,
+          "TCPair": 13,
+          "TermBop": 5,
+          "TermLeaf": 7,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 38,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 5,
+      "label": "union-input-ports",
+      "input": "(union (V 0) (V 1))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 67,
+        "eclass_mapping": 45,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 6,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 7,
+          "Smaller": 15,
+          "TCPair": 15,
+          "TermBop": 7,
+          "TermLeaf": 7,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 67,
+        "eclass_mapping": 45,
+        "tables": {
+          "Add": 1,
+          "Bop": 3,
+          "ExtractedExpr": 6,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 7,
+          "Smaller": 15,
+          "TCPair": 15,
+          "TermBop": 7,
+          "TermLeaf": 7,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 46,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 6,
+      "label": "new-cell-same-template",
+      "input": "(Bop (Mul) (V 0) (V 3))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 73,
+        "eclass_mapping": 49,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 8,
+          "Smaller": 16,
+          "TCPair": 16,
+          "TermBop": 8,
+          "TermLeaf": 7,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 73,
+        "eclass_mapping": 49,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 8,
+          "Smaller": 16,
+          "TCPair": 16,
+          "TermBop": 8,
+          "TermLeaf": 7,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 51,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 7,
+      "label": "alias-term-pairs",
+      "input": "(union (TCPair (TermLeaf 11) 9) (TCPair (TermLeaf 99) 9))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 89,
+        "eclass_mapping": 62,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 12,
+          "Smaller": 18,
+          "TCPair": 21,
+          "TermBop": 12,
+          "TermLeaf": 8,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 89,
+        "eclass_mapping": 62,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 12,
+          "Smaller": 18,
+          "TCPair": 21,
+          "TermBop": 12,
+          "TermLeaf": 8,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 62,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 8,
+      "label": "repeated-update",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 107) 7))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 92,
+        "eclass_mapping": 64,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 12,
+          "Smaller": 19,
+          "TCPair": 22,
+          "TermBop": 12,
+          "TermLeaf": 9,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 92,
+        "eclass_mapping": 64,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 12,
+          "Smaller": 19,
+          "TCPair": 22,
+          "TermBop": 12,
+          "TermLeaf": 9,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 64,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 9,
+      "label": "repeated-update",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 106) 6))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 108,
+        "eclass_mapping": 75,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 15,
+          "Smaller": 24,
+          "TCPair": 26,
+          "TermBop": 15,
+          "TermLeaf": 10,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 108,
+        "eclass_mapping": 75,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 15,
+          "Smaller": 24,
+          "TCPair": 26,
+          "TermBop": 15,
+          "TermLeaf": 10,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 76,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 10,
+      "label": "repeated-update",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 105) 5))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 125,
+        "eclass_mapping": 86,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 18,
+          "Smaller": 30,
+          "TCPair": 30,
+          "TermBop": 18,
+          "TermLeaf": 11,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 125,
+        "eclass_mapping": 86,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 18,
+          "Smaller": 30,
+          "TCPair": 30,
+          "TermBop": 18,
+          "TermLeaf": 11,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 89,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 11,
+      "label": "repeated-update",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 104) 4))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 142,
+        "eclass_mapping": 97,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 21,
+          "Smaller": 36,
+          "TCPair": 34,
+          "TermBop": 21,
+          "TermLeaf": 12,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 142,
+        "eclass_mapping": 97,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 21,
+          "Smaller": 36,
+          "TCPair": 34,
+          "TermBop": 21,
+          "TermLeaf": 12,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 102,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 12,
+      "label": "repeated-update",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 103) 3))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 159,
+        "eclass_mapping": 108,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 24,
+          "Smaller": 42,
+          "TCPair": 38,
+          "TermBop": 24,
+          "TermLeaf": 13,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 159,
+        "eclass_mapping": 108,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 24,
+          "Smaller": 42,
+          "TCPair": 38,
+          "TermBop": 24,
+          "TermLeaf": 13,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 115,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 13,
+      "label": "repeated-update",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 102) 2))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 176,
+        "eclass_mapping": 119,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 27,
+          "Smaller": 48,
+          "TCPair": 42,
+          "TermBop": 27,
+          "TermLeaf": 14,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 176,
+        "eclass_mapping": 119,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 27,
+          "Smaller": 48,
+          "TCPair": 42,
+          "TermBop": 27,
+          "TermLeaf": 14,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 128,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 14,
+      "label": "repeated-update",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 101) 1))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 193,
+        "eclass_mapping": 130,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 30,
+          "Smaller": 54,
+          "TCPair": 46,
+          "TermBop": 30,
+          "TermLeaf": 15,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 193,
+        "eclass_mapping": 130,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 30,
+          "Smaller": 54,
+          "TCPair": 46,
+          "TermBop": 30,
+          "TermLeaf": 15,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 141,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 15,
+      "label": "repeated-update",
+      "input": "(set (ExtractedExpr (V 3)) (TCPair (TermLeaf 100) 0))",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 210,
+        "eclass_mapping": 141,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 33,
+          "Smaller": 60,
+          "TCPair": 50,
+          "TermBop": 33,
+          "TermLeaf": 16,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 210,
+        "eclass_mapping": 141,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 33,
+          "Smaller": 60,
+          "TCPair": 50,
+          "TermBop": 33,
+          "TermLeaf": 16,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 154,
+      "same_per_rule_binding_counts": true
+    },
+    {
+      "phase": 16,
+      "label": "quiescent",
+      "input": "",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 210,
+        "eclass_mapping": 141,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 33,
+          "Smaller": 60,
+          "TCPair": 50,
+          "TermBop": 33,
+          "TermLeaf": 16,
+          "V": 4
+        }
+      },
+      "same_submit_error": null,
+      "fused_native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 210,
+        "eclass_mapping": 141,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 7,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 33,
+          "Smaller": 60,
+          "TCPair": 50,
+          "TermBop": 33,
+          "TermLeaf": 16,
+          "V": 4
+        }
+      },
+      "fused_error": null,
+      "mirror_rows_checked": 154,
+      "same_per_rule_binding_counts": true
+    }
+  ],
+  "native_query_bindings": {
+    "bop": 39,
+    "init": 33,
+    "improve": 29,
+    "negative": 0,
+    "less": 40,
+    "greater": 63,
+    "tie": 18
+  },
+  "quiescent_keyed_reads_added": 0,
+  "provenance": {
+    "base_commit": "4b48133ab18cd67a29a4a0d11c33910203a67425",
+    "command": "bench.py parameterized --output out/parameterized-cell-verified",
+    "profile": "release",
+    "timing_claim": false,
+    "source_sha256": {
+      "cell-assisted-egglog/src/parameterized_cell.rs": "4ed8d9567404e3ddc4698685ef80c0d49c8bf90d308fd0f20d661847bc60aa75",
+      "examples/parameterized_cell.rs": "58f36ca9e6f8a2c000b4498f349153b8931d6042910cfb3b7c110c68eeeceac7",
+      "experiments/parameterized_cell/terms.egg": "61849191d3f90e032996d97146caea5c914f9e35d283b56533099e8b53245172"
+    },
+    "binary_sha256": "90431fd057bbf41ad5b1caa03d1cb49517b5deab9fb0d0473c83b12cf5ef5181"
+  }
+}

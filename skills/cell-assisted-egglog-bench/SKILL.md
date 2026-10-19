@@ -23,6 +23,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 | 原策略 CPU 自对照 | `cpu-pair --output out/新目录` |
 | 原策略首次差异定位 | `diff --output out/新目录` |
 | Math 的认证饱和跳过实验 | `sat-skip --output out/新目录` |
+| 参数化 terms 更新、union 与完整图一致性 | `parameterized --output out/新目录` |
 | 相关正确性回归 | `test` |
 
 ```sh
@@ -42,6 +43,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 - 真正的提取质量检查调用生产 Tiger，再比较它输出的选定 DAG。不能把 TCPair 或树大小称为实际 extraction 质量。若加上 Tiger 计算比值，说明仍不含序列化/诊断，并单列共享初始化。
 - `audit` 检查同一执行状态上的增量查询，既会扰动引擎，也不证明独立运行的最终图相等。当前这个入口检查**原策略**；它不是稳定策略完整运行的替代认证。
 - Sat skip 只有真实认证边界才记收益。Math sat-skip 原型不等于 raytrace 已认证；不把普通 GPU 收益算到 Cell，也不把逻辑 match 算成提交的 mutation。
+- `parameterized` 是实际原生提交上的 CPU 正确性实验：一份 Bop spine 接线及七个规则程序复用不同 Term/代价，逐阶段核对两条 CPU 对照的完整图和同提交协议的匹配计数。它不使用 GPU，不构建具体闭包目录，也未证明整个 terms 族的饱和跳过或性能收益。失败与有限 Run 语义由 `test` 中的 `parameterized_cell` 回归检查。
 - 保留失败的报告、输入/worker/binary 指纹和实际命令。看保存结果必须说“未重新测量”。不部署网站、不采集大 trace、不自动重新 Bake。
 
 差异定位、sat-skip 小样例和报告字段的细节只在需要时读 [references/modes.md](references/modes.md)。交付给用户以结果、限制、报告链接为主；复现时给这个统一入口即可，不再反复展开整段底层命令。
