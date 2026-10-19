@@ -1,0 +1,86 @@
+{
+  "scope": "Actual native analyze, math mini3, one clean run per version; DOT/SVG/profiling disabled; compilation excluded",
+  "platform": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "base_head": "8e66e2d",
+  "baseline": "Saved working-tree executable; pre-existing local changes retained; not pristine egglog",
+  "source": "experiments/math_mini3/source.egg",
+  "source_sha256": "ac498b753752adb472a536f01a1f8411fc193a982516513c90eefb4585194015",
+  "ripen_limits": {
+    "milliseconds": 50,
+    "facts": 200000,
+    "sweep_steps": 4
+  },
+  "external_process_guard": {
+    "seconds": 15,
+    "group_rss_bytes": 4294967296
+  },
+  "runs": {
+    "before": {
+      "elapsed_seconds": 15.091552041999421,
+      "time_real_seconds": null,
+      "exit_code": -9,
+      "stop_reason": "external_time_guard",
+      "sampled_peak_group_rss_bytes": 2525593600,
+      "time_peak_process_rss_bytes": null,
+      "binary_sha256": "6a81398efd72d7c1ef6e0da54211df9a80dac96bc2058db0951c19b73f8276e4"
+    },
+    "after": {
+      "elapsed_seconds": 7.001797582999643,
+      "time_real_seconds": 6.98,
+      "exit_code": 0,
+      "stop_reason": null,
+      "sampled_peak_group_rss_bytes": 1979826176,
+      "time_peak_process_rss_bytes": 1992392704,
+      "binary_sha256": "d0e805979f413878f9e3acc69d9f4e15f0701b4eb261c015e1e700577404dcf4"
+    }
+  },
+  "after_summary": {
+    "applications": 129,
+    "equality_sorts": [
+      "Math"
+    ],
+    "excluded": 0,
+    "logical_matches": 129,
+    "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+  },
+  "after_ripen_counts": {
+    "ObservedUnfinished": 31,
+    "Rejected": 23,
+    "Saturated": 167
+  },
+  "timed_completed_state_check": {
+    "before_completed": 165,
+    "equal_after_ignoring_local_ids": 165,
+    "different": [],
+    "missing": []
+  },
+  "fixed_work": {
+    "scope": "actual native pipeline; 80-fact ripen prefixes, 60000ms safety bound; not the default-limit timing benchmark",
+    "comparisons": {
+      "tier0": true,
+      "counts": true,
+      "states": true,
+      "weak": true,
+      "structural": true,
+      "bucket_matches": true,
+      "unresolved": true
+    },
+    "state_files": 194,
+    "weak_decisions": 1871,
+    "counts": {
+      "ObservedUnfinished": 66,
+      "Rejected": 23,
+      "Saturated": 132
+    },
+    "all_equal": true,
+    "witness_scope": "existence/freshness and exported graph states; one valid witness may differ with query evaluation order"
+  },
+  "limitations": [
+    "Old run is censored; no exact complete speedup ratio or old peak RSS.",
+    "Timed unfinished prefixes can differ. The 80-fact comparison is separate correctness evidence.",
+    "No pristine-engine or eggcc speedup is claimed."
+  ]
+}

@@ -2,8 +2,10 @@
 //! cached native joins; probes never insert result rows or run user rules.
 use super::*;
 use crate::saturated_rule_composition::SaturatedRuleComposition as State;
+#[path = "native_factored_query.rs"]
+mod factored;
 pub(super) struct CachedQuery {
-    query: egglog::CompiledFactQuery,
+    query: factored::Query,
     initial: Vec<Vec<Value>>,
     pub executions: usize,
     initial_scans: usize,
@@ -15,7 +17,7 @@ pub(super) fn observe(
     task: &mut ripen::Session,
     pattern: &State,
     marker: &str,
-    _key: usize,
+    target_key: usize,
     erase_payload: bool,
 ) -> Result<Json> {
     let Some(source) = (if erase_payload {
@@ -118,16 +120,15 @@ pub(super) fn observe(
         // or scan is needed. This is an exact negative test, not sampling.
         let initial_scans = usize::from(atoms.iter().all(|(op, _)| task.before.get_size(op) != 0));
         let initial = if initial_scans != 0 {
-            let initial_query = task
-                .before
-                .compile_fact_query(&values, &atoms, &projection)?;
-            let result = task.before.run_fact_query(&initial_query);
-            task.before.free_fact_query(initial_query);
+            let initial_query =
+                factored::Query::compile(&mut task.before, &values, &atoms, &projection)?;
+            let result = initial_query.all(&mut task.before);
+            initial_query.free(&mut task.before);
             result?
         } else {
             vec![]
         };
-        let query = task.eg.compile_fact_query(&values, &atoms, &projection)?;
+        let query = factored::Query::compile(&mut task.eg, &values, &atoms, &projection)?;
         task.weak_queries.insert(
             key.clone(),
             CachedQuery {
@@ -153,8 +154,20 @@ pub(super) fn observe(
         .as_ref()
         .is_none_or(|(epoch, _)| *epoch != task.query_epoch)
     {
+        let profile = std::env::var_os("EGG_LAYOUT_PROFILE_WEAK").is_some();
+        let started = profile.then(std::time::Instant::now);
+        if profile {
+            eprintln!(
+                "[perf-weak-start] source={} target={target_key} erased={erase_payload} epoch={} atoms={} variables={} excluded={}",
+                task.report["source"],
+                task.query_epoch,
+                atoms.len(),
+                projection.len(),
+                cached.initial.len()
+            );
+        }
         let rows = if std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1") {
-            task.eg.run_fact_query(&cached.query)?
+            cached.query.all(&mut task.eg)?
         } else {
             let excluded = cached
                 .initial
@@ -166,9 +179,17 @@ pub(super) fn observe(
                         .collect()
                 })
                 .collect();
-            let (matched, fresh) = task.eg.run_fact_query_difference(&cached.query, excluded)?;
+            let (matched, fresh) = cached.query.difference(&mut task.eg, excluded)?;
             matched.into_iter().chain(fresh).collect()
         };
+        if profile {
+            eprintln!(
+                "[perf-weak-end] source={} target={target_key} erased={erase_payload} seconds={:.6} witnesses={}",
+                task.report["source"],
+                started.unwrap().elapsed().as_secs_f64(),
+                rows.len()
+            );
+        }
         cached.current = Some((task.query_epoch, rows));
         cached.executions += 1;
     } else {
@@ -195,7 +216,7 @@ pub(super) fn observe(
         .collect();
     let reentries: Vec<_> = now.difference(&initial).cloned().collect();
     Ok(
-        json!({"bindings_complete":std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1"),"binding_semantics":"existence and freshness witnesses; enable EGG_LAYOUT_FULL_TRACE=1 for all bindings","erased_payload":erase_payload,"query_cache":{"compilations":1+cached.initial_scans,"initial_scans":cached.initial_scans,"current_scans":cached.executions,"result_cache_hits":cached.cache_hits,"per_check_engine_clones":0},"status":if now.is_empty(){"not_matched"}else{"matched"},"pattern_variables":vars,"trigger_rows":rows,"typed_values":pattern.values,"initial_bindings":initial,"bindings":now,"new_bindings":reentries,"new_effects":task.has_effects,"scope":if task.done{"saturated local body"}else{"running prefix"},"classification":"observation only; no termination or dissipativity inference"}),
+        json!({"bindings_complete":std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1"),"binding_semantics":"existence and freshness witnesses; enable EGG_LAYOUT_FULL_TRACE=1 for all bindings","erased_payload":erase_payload,"query_cache":{"compilations":(1+cached.initial_scans)*cached.query.parts(),"factor_count":cached.query.parts(),"initial_scans":cached.initial_scans,"current_scans":cached.executions,"result_cache_hits":cached.cache_hits,"per_check_engine_clones":0},"status":if now.is_empty(){"not_matched"}else{"matched"},"pattern_variables":vars,"trigger_rows":rows,"typed_values":pattern.values,"initial_bindings":initial,"bindings":now,"new_bindings":reentries,"new_effects":task.has_effects,"scope":if task.done{"saturated local body"}else{"running prefix"},"classification":"observation only; no termination or dissipativity inference"}),
     )
 }
 

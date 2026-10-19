@@ -1,0 +1,21 @@
+{
+  "scope": "actual native pipeline; 80-fact ripen prefixes, 60000ms safety bound; not the default-limit timing benchmark",
+  "comparisons": {
+    "tier0": true,
+    "counts": true,
+    "states": true,
+    "weak": true,
+    "structural": true,
+    "bucket_matches": true,
+    "unresolved": true
+  },
+  "state_files": 194,
+  "weak_decisions": 1871,
+  "counts": {
+    "ObservedUnfinished": 66,
+    "Rejected": 23,
+    "Saturated": 132
+  },
+  "all_equal": true,
+  "witness_scope": "existence/freshness and exported graph states; one valid witness may differ with query evaluation order"
+}

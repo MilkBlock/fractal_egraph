@@ -110,9 +110,12 @@ impl Condition {
             return Ok(None);
         }
         let query = self.eg.compile_fact_query(&values, &atoms, &small.used)?;
-        let matches = self.eg.run_fact_query(&query);
+        // Cover needs one mapping, not every automorphism of the condition.
+        let matches = self
+            .eg
+            .run_fact_query_difference(&query, Default::default());
         self.eg.free_fact_query(query);
-        Ok(matches?.first().map(|row| {
+        Ok(matches?.0.as_ref().map(|row| {
             json!(
                 small
                     .used
