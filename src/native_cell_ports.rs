@@ -453,14 +453,134 @@ fn components(edges: &[Json], instances: &[Instance], width: usize, shift: usize
     out
 }
 
+// This contract describes a recognizer over captured evidence, not a complete
+// matcher over tier0. One outcome per record; the first failed gate is retained.
+fn discovery_contract() -> Json {
+    let outcomes = [
+        (
+            "no committed effect",
+            0,
+            "outside-scope",
+            "没有已提交的状态变化",
+            "这条记录不能证明状态转移；查看产生新事实、union 或更新的实际 apply。",
+        ),
+        (
+            "visibility effects lack port lineage",
+            1,
+            "outside-scope",
+            "可见性变化的来源证据尚不支持",
+            "该 apply 含 subsume/delete；增加 fact 或 rounds 不能补齐这项实现能力。",
+        ),
+        (
+            "consumer does not have two reads",
+            2,
+            "outside-scope",
+            "不是两次读取的交互",
+            "当前只识别双来源窗口；单次读取不是窗口拼接，多来源需要扩展识别器。",
+        ),
+        (
+            "no completed exact closure catalog",
+            3,
+            "missing-evidence",
+            "尚无认证闭包目录",
+            "先检查本轮 ripen 是否完成、是否仅有观察结果；不能用后续快照补本轮证据。",
+        ),
+        (
+            "two certified producer interfaces unavailable",
+            4,
+            "missing-evidence",
+            "来源读取或闭包接口证据不完整",
+            "查看下方每个 read 的来源：缺 producer、未登记、未认证或端口无法对应，处理方法不同。",
+        ),
+        (
+            "source interface has fewer than two ports",
+            5,
+            "outside-scope",
+            "来源接口不足两个端口",
+            "当前窗口需要至少两个可区分的位置；hashcons 已合并的重复位置不会被重新猜出。",
+        ),
+        (
+            "source closures not certified equivalent",
+            5,
+            "incompatible",
+            "两个来源没有认证为同一闭包",
+            "查看两份来源闭包的差异；当前要求整个主体相同，仅外形或触点相似不够。",
+        ),
+        (
+            "overlap is not a complete port translation",
+            6,
+            "incompatible",
+            "端口没有形成完整平移重叠",
+            "对照实际共享端口；若要测试窗口推进，让相邻实例按相同位置重叠并真实触发 consumer。",
+        ),
+        (
+            "target closure not certified",
+            7,
+            "missing-evidence",
+            "目标闭包或接口尚未认证",
+            "检查目标 unit 的 ripen 状态及端口映射；已有 match 本身不能代替闭包认证。",
+        ),
+        (
+            "target has unresolved or extra external parameters",
+            7,
+            "outside-scope",
+            "目标有额外或无法唯一定位的参数",
+            "保留这些外部输入和别名义务；当前双来源模型不能隐藏它们，需要扩展接口表示。",
+        ),
+        (
+            "target closure does not retain source bodies",
+            8,
+            "incompatible",
+            "不能验证目标保留两份来源结构",
+            "查看内部事实、等价关系及可见性；端口对齐不等于闭包内部也得到保留。",
+        ),
+        (
+            "branching",
+            9,
+            "outside-scope",
+            "交互形成分叉",
+            "接线证据已保留；当前只生成线性坐标，增加轮次不保证消除分叉。",
+        ),
+        (
+            "cyclic",
+            9,
+            "outside-scope",
+            "交互形成环或没有唯一链首",
+            "当前不把环当作有限线性窗口；需要环形或递归表示。",
+        ),
+        (
+            "inconsistent-overlap",
+            9,
+            "incompatible",
+            "重叠位置的元素身份冲突",
+            "检查对应位置的版本化 token 与别名，不按数字标签或 match 时间强行排列。",
+        ),
+        (
+            "indexed",
+            10,
+            "recognized",
+            "已识别有限窗口交互",
+            "可查看坐标与原始 binding；继续提供按同一接线真实交互的实例，可检验更长的有限链。",
+        ),
+    ];
+    json!({"schema":"port-discovery-contract/v1",
+        "gates":["存在已提交 effect","无未支持的可见性变化","consumer 恰有两次读取","存在认证闭包目录","两次读取均有完整来源与接口证据","来源为同一闭包且至少两个端口","共享端口是完整平移","目标接口唯一且无额外参数","目标保留两份来源内部结构","交互组成无分叉、无环且一致的链"],
+        "outcomes":outcomes.into_iter().map(|(reason,gate,category,label,next)|
+            (reason.to_owned(),json!({"gate":gate,"category":category,"label":label,"next_experiment":next}))).collect::<BTreeMap<_,_>>(),
+        "scope":"每条 Captured 记录都有一个结果；首个失败条件之后的检查尚未执行。未采集的匹配不在此保证内。",
+        "guarantee":"在本轮已有证据及所列条件内，逐条检查并归类；有限坐标不是任意长度递归、终止性或完整模式发现的证明。",
+        "environment":"保证相对于认证目录使用的规则环境；不额外保证原 Multi ruleset 调度等价。",
+        "example":{"positive":"L(a,b), R(b,c), L(c,d)，且实际执行 Pair(a,b)+Pair(b,c) 与 Pair(b,c)+Pair(c,d) 两次交互。L/R 的闭包必须认证相同，目标必须保留来源。",
+            "negative":"L(a,b), L(c,d), L(e,f) 可复用同一主体，但没有相邻交互证据，不能据此生成窗口顺序。"}})
+}
+
 pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) -> Json {
     let mut reasons = BTreeMap::<String, usize>::new();
     let mut reject = |s: &str| {
         *reasons.entry(s.to_owned()).or_default() += 1;
     };
-    let Some(cat) = catalog else {
-        return json!({"schema":"closure-port-progressions/v1","families":[],"reason":"no completed exact closure catalog"});
-    };
+    let empty = json!({"states":[],"catalog":{"triggers":[]}});
+    let cat = catalog.unwrap_or(&empty);
     let states = cat["states"].as_array().unwrap();
     let mut indexes = BTreeMap::new();
     let triggers: BTreeMap<_, _> = cat["catalog"]["triggers"]
@@ -478,8 +598,10 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
     let mut instances = vec![];
     let mut instance_keys = BTreeMap::new();
     let mut by_record = BTreeMap::new();
+    let mut interface_errors = BTreeMap::new();
     for (&record, &unit) in &entries {
         let Some(t) = triggers.get(&unit) else {
+            interface_errors.insert(record, "closure not certified");
             continue;
         };
         let class = t["saturated_rule_composition"].as_u64().unwrap() as usize;
@@ -488,6 +610,7 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
             .or_insert_with(|| CertificateIndex::new(&states[class]));
         let Some(ps) = ports(t, index) else {
             reject("unresolved certified port frame");
+            interface_errors.insert(record, "unresolved certified port frame");
             continue;
         };
         let key = json!([
@@ -522,38 +645,95 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
         by_record.insert(record, i);
     }
     let mut groups = BTreeMap::<String, Json>::new();
+    let mut outcomes = Vec::with_capacity(c.records.len());
     for (r, record) in c.records.iter().enumerate() {
-        if record.produced.is_empty() && record.unions.is_empty() && !record.updated_rows {
-            continue;
-        }
         let read_slots: Vec<_> = record
             .inputs
             .iter()
             .enumerate()
             .filter_map(|(i, x)| matches!(x, Input::Read(_)).then_some(i))
             .collect();
+        outcomes.push(
+            json!({"record":r,"event":record.id,"rule":c.rules[record.rule].rule.name,
+            "target_unit":entries.get(&r),"read_count":read_slots.len()}),
+        );
+        macro_rules! stop {
+            ($reason:expr, $detail:expr) => {{
+                reject($reason);
+                outcomes[r]["reason"] = json!($reason);
+                outcomes[r]["detail"] = $detail;
+                continue;
+            }};
+        }
+        if record.produced.is_empty() && record.unions.is_empty() && !record.updated_rows {
+            stop!("no committed effect", Json::Null);
+        }
+        if c.rules[record.rule]
+            .rule
+            .head
+            .0
+            .iter()
+            .any(|a| matches!(a, Action::Change(..)))
+        {
+            stop!("visibility effects lack port lineage", Json::Null);
+        }
         if read_slots.len() != 2 {
-            continue;
+            stop!(
+                "consumer does not have two reads",
+                json!({"read_slots":read_slots})
+            );
+        }
+        if states.is_empty() {
+            stop!("no completed exact closure catalog", Json::Null);
         }
         let mut reads = vec![];
+        let mut read_evidence = vec![];
         for &slot in &read_slots {
-            let v = parent(c, r, slot)
+            let p = parent(c, r, slot);
+            let producer = p.as_ref().map(|p| p.producer);
+            let mut evidence = json!({"slot":slot,"fact_token":record.wanted[slot],
+                "producer_record":producer,"source_unit":producer.and_then(|p|entries.get(&p))});
+            let v = p
                 .and_then(|p| by_record.get(&p.producer).copied())
                 .and_then(|i| read(c, r, slot, i, &instances, &indexes[&instances[i].class]));
+            evidence["status"] = json!(if v.is_some() {
+                "verified"
+            } else if let Some(p) = producer {
+                interface_errors
+                    .get(&p)
+                    .copied()
+                    .unwrap_or(if entries.contains_key(&p) {
+                        "read row or port mapping not verified"
+                    } else {
+                        "producer has no registered apply entry"
+                    })
+            } else {
+                "missing recorded producer"
+            });
+            read_evidence.push(evidence);
             if let Some(v) = v {
                 reads.push(v)
             }
         }
+        outcomes[r]["reads"] = json!(read_evidence);
         if reads.len() != 2 {
-            reject("two certified producer interfaces unavailable");
-            continue;
+            stop!("two certified producer interfaces unavailable", Json::Null);
         }
         let a = &reads[0];
         let b = &reads[1];
         let width = instances[a.instance].ports.len();
-        if width < 2 || instances[a.instance].class != instances[b.instance].class {
-            reject("source closures not certified equivalent");
-            continue;
+        if width < 2 {
+            stop!(
+                "source interface has fewer than two ports",
+                json!({"width":width})
+            );
+        }
+        if instances[a.instance].class != instances[b.instance].class {
+            stop!(
+                "source closures not certified equivalent",
+                json!({"width":width,
+                "source_closures":[instances[a.instance].class,instances[b.instance].class]})
+            );
         }
         let pairs: Vec<_> = a
             .variables
@@ -566,12 +746,16 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
         } else if let Some(d) = displacement(width, &reverse) {
             (b, a, d)
         } else {
-            reject("overlap is not a complete port translation");
-            continue;
+            stop!(
+                "overlap is not a complete port translation",
+                json!({"width":width,"overlap":pairs})
+            );
         };
         let Some(&target) = by_record.get(&r) else {
-            reject("target closure not certified");
-            continue;
+            stop!(
+                "target closure not certified",
+                json!({"interface":interface_errors.get(&r).copied().unwrap_or("no registered apply entry")})
+            );
         };
         let dst = &instances[target];
         let mut target_map = vec![];
@@ -596,8 +780,10 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
         }
         let covered: BTreeSet<_> = target_map.iter().flatten().copied().collect();
         if !good || covered.len() != dst.ports.len() {
-            reject("target has unresolved or extra external parameters");
-            continue;
+            stop!(
+                "target has unresolved or extra external parameters",
+                json!({"target_port_count":dst.ports.len(),"covered_ports":covered,"unique":good})
+            );
         }
         let descriptor = json!({"source_closure":instances[left.instance].class,"target_closure":dst.class,
             "width":width,"shift":shift,"read_columns":[left.columns,right.columns],"target_port_maps":target_map,
@@ -622,8 +808,10 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
                 })
                 .collect();
             let Some(body_maps) = body_maps else {
-                reject("target closure does not retain source bodies");
-                continue;
+                stop!(
+                    "target closure does not retain source bodies",
+                    json!({"source_closure":instances[left.instance].class,"target_closure":dst.class})
+                );
             };
             let id = groups.len();
             groups.insert(
@@ -632,6 +820,7 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
             );
         }
         let g = groups.get_mut(&key).unwrap();
+        outcomes[r]["family"] = g["id"].clone();
         g["witnesses"].as_array_mut().unwrap().push(json!({"record":r,"event":record.id,"rule":c.rules[record.rule].rule.name,
             "from":left.instance,"to":right.instance,"target":target,
             "producer_records":[left.record,right.record],"read_slots":[left.read,right.read],
@@ -672,6 +861,25 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
             f["contract"]["width"].as_u64().unwrap() as usize,
             shift,
         );
+        let component_status: BTreeMap<_, _> = chains
+            .iter()
+            .flat_map(|chain| {
+                let status = if chain["status"] == "observed-indexed-chain" {
+                    "indexed"
+                } else {
+                    chain["status"].as_str().unwrap()
+                };
+                chain["instances"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(move |n| (n.as_u64().unwrap(), status))
+            })
+            .collect();
+        for w in witnesses {
+            let record = w["record"].as_u64().unwrap() as usize;
+            outcomes[record]["reason"] = json!(component_status[&w["from"].as_u64().unwrap()]);
+        }
         let mut target_accesses = BTreeMap::<usize, BTreeSet<usize>>::new();
         for (side, map) in f["contract"]["target_port_maps"]
             .as_array()
@@ -700,7 +908,23 @@ pub(super) fn report(c: &Captured, store: &cs::Store, catalog: Option<&Json>) ->
             "source and target classes require exact completed RipSat certificates; target retains both source bodies under explicit port transport; adjacency requires actual versioned producer reads; coordinates cover only observed interactions"
         );
     }
+    let contract = discovery_contract();
+    let mut counts = BTreeMap::<String, usize>::new();
+    let mut by_reason = BTreeMap::<String, usize>::new();
+    for outcome in &outcomes {
+        let reason = outcome["reason"]
+            .as_str()
+            .expect("every captured record has an outcome");
+        let category = contract["outcomes"][reason]["category"]
+            .as_str()
+            .expect("known discovery outcome");
+        *counts.entry(category.to_owned()).or_default() += 1;
+        *by_reason.entry(reason.to_owned()).or_default() += 1;
+    }
+    assert_eq!(outcomes.len(), c.records.len());
     json!({"schema":"closure-port-progressions/v1","families":families,"unsupported":reasons,
+        "discovery":{"contract":contract,"total_records":c.records.len(),"accounted_records":outcomes.len(),
+            "counts":counts,"by_reason":by_reason,"outcomes":outcomes},
         "instances":instances.iter().enumerate().map(|(i,x)|json!({"id":i,"catalog_state":x.class,"units":x.units,
             "ports":x.ports.iter().enumerate().map(|(j,p)|json!({"port":j,"token":p.token,"sort":p.sort,"closure_value":p.value,"marker":p.marker,"marker_index":p.marker_index})).collect::<Vec<_>>()})).collect::<Vec<_>>(),
         "source":"analyze history plus its completed exact RipSat catalog; no source-file matching",

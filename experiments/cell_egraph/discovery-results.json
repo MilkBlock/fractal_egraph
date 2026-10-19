@@ -1,0 +1,50 @@
+{
+  "scope": "actual native analyze; finite snapshot-local port recognition",
+  "cases": {
+    "positive": {
+      "total_records": 14,
+      "counts": {
+        "outside-scope": 12,
+        "recognized": 2
+      },
+      "by_reason": {
+        "consumer does not have two reads": 6,
+        "indexed": 2,
+        "no committed effect": 6
+      }
+    },
+    "different-closures": {
+      "total_records": 10,
+      "counts": {
+        "incompatible": 2,
+        "outside-scope": 8
+      },
+      "by_reason": {
+        "consumer does not have two reads": 5,
+        "no committed effect": 3,
+        "source closures not certified equivalent": 2
+      }
+    },
+    "disconnected": {
+      "total_records": 12,
+      "counts": {
+        "outside-scope": 12
+      },
+      "by_reason": {
+        "consumer does not have two reads": 6,
+        "no committed effect": 6
+      }
+    },
+    "branch": {
+      "total_records": 19,
+      "counts": {
+        "outside-scope": 19
+      },
+      "by_reason": {
+        "branching": 3,
+        "consumer does not have two reads": 8,
+        "no committed effect": 8
+      }
+    }
+  }
+}

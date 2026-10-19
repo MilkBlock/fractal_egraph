@@ -15,13 +15,16 @@ class CellTests(unittest.TestCase):
             family={'id':0,'units':[0],'occurrences':[{'start_event':1,'end_event':3}]}
             registry['repetition_families']={'source':'analyze captured committed applications','families':[family]}
             port_family={'id':0,'units':[0],'contract':{'width':2,'shift':1}}
-            registry['repetition_families']['port_progressions']={'families':[port_family]}
+            discovery={'contract':{'schema':'port-discovery-contract/v1'},'total_records':1,
+                       'outcomes':[{'record':0,'event':7,'reason':'branching'}]}
+            registry['repetition_families']['port_progressions']={'families':[port_family],'discovery':discovery}
             (run/'analysis.json').write_text(json.dumps({'saturated_rule_composition':{'cell_egraph':registry}}))
             data=overview(root,'out/run')
             self.assertEqual(data['reuse_value'],reuse)
             self.assertEqual(data['graft_interfaces'],[edge])
             self.assertEqual(data['nodes'][0]['history_windows'],[window])
             self.assertEqual(data['repetition_families']['families'],[family])
+            self.assertEqual(data['repetition_families']['port_progressions']['discovery'],discovery)
             detail=state_detail(root,'out/run',0)
             self.assertEqual(detail['reuse_value']['interface_instances'],2)
             self.assertFalse(detail['guarantee']['certified_body'])

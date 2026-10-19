@@ -1,3 +1,4 @@
+import {renderDiscovery} from './cell-discovery.mjs';
 // AND/OR construction choices, not an enumeration of all possible rewrite histories.
 export function model(data) {
   const units=new Map(data.nodes.map(n=>[n.unit,n])),classes=new Map(),routes=new Map();
@@ -98,6 +99,7 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
     <details open><summary>复用价值 · 按去重接口绑定数排序</summary><p>绑定数保留历史版本，不消除对称性与后续 union 别名。不同 Cell 的覆盖可能重叠，不能直接相加。参考收益是假设实例各自存储完整闭包的描述模型，不是实测内存收益。</p><div data-role="reuse-table" style="overflow:auto"></div></details>
     <details open data-role="family-panel"><summary>Fractal 候选族 · 仅 analyze 历史证据</summary><p>紫色关系表示已观察到的重复依赖路径，不表示 Cell 判等、已证明无限展开或饱和。点击族可查看原始 binding、参数表达式及外部义务。</p><div data-role="families"></div><button data-role="family-focus" hidden>图中只看本族成员</button><button data-role="family-all" hidden>恢复完整图</button><div data-role="family-members"></div><div data-role="family-samples"></div><details><summary>完整事件、binding 与 effect 证据</summary><pre data-role="family-evidence" style="white-space:pre-wrap"></pre></details></details>
     <details open data-role="port-panel"><summary>闭包端口族 · 从接线恢复坐标</summary><p>仅使用已认证 RipSat 闭包和实际 producer 读取。坐标描述已观察到的有限结构，不声明任意长度数组或内存布局。</p><div data-role="port-families"></div><div data-role="port-summary"></div><button data-role="port-focus" hidden>查看端口推进图</button><button data-role="port-all" hidden>恢复完整 Cell 图</button><div data-role="port-elements"></div><details><summary>闭包证据、版本化读取与仿射访问</summary><pre data-role="port-evidence" style="white-space:pre-wrap"></pre></details></details>
+    <details open data-role="discovery-panel"><summary>端口推进发现 · 为什么识别／为什么没识别</summary><div data-role="discovery"></div></details>
     <label>当前构造路径 <select data-role="unit"></select></label>
     <p data-role="guarantee" style="padding:10px;background:#edf1f7;color:#182338;border-radius:6px"></p>
     <details><summary>整个 Cell egraph（点击节点跳转）</summary><div data-role="overview"></div></details>
@@ -229,6 +231,9 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
     el('port-focus').hidden=true;el('port-all').hidden=true;
     for(const f of m.portFamilies.values()){const b=document.createElement('button');b.dataset.portFamily=String(f.id);b.textContent=`P${f.id} · 宽 ${f.contract.width} / 步进 ${f.contract.shift} · ${f.witnesses.length} 次交互`;b.onclick=()=>selectPortFamily(f.id);el('port-families').append(b);}
     if(!m.portFamilies.size)el('port-families').textContent='本轮没有足够的认证闭包与端口接线证据。';
+    renderDiscovery(el('discovery'),data.repetition_families?.port_progressions?.discovery,{
+      selectUnit:u=>{panel.dataset.focus='body';el('body').closest('details').open=true;selectUnit(u);},
+      selectFamily:selectPortFamily});
   }
   function reuseTable(){
     const host=el('reuse-table');host.replaceChildren();

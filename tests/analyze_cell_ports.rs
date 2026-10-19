@@ -1,4 +1,46 @@
 use serde_json::Value;
+
+fn audit(report: &Value, history: &Value) {
+    let d = &report["discovery"];
+    let outcomes = d["outcomes"].as_array().unwrap();
+    let records = history["records"].as_array().unwrap();
+    assert_eq!(
+        outcomes.len(),
+        records.len(),
+        "no silently omitted capture records"
+    );
+    assert_eq!(d["total_records"], records.len());
+    assert_eq!(d["accounted_records"], records.len());
+    let mut counts = std::collections::BTreeMap::<String, usize>::new();
+    let mut reasons = std::collections::BTreeMap::<String, usize>::new();
+    for (i, (o, r)) in outcomes.iter().zip(records).enumerate() {
+        assert_eq!(o["record"], i);
+        assert_eq!(o["event"], r["id"]);
+        let reason = o["reason"].as_str().unwrap();
+        let result = &d["contract"]["outcomes"][reason];
+        let category = result["category"].as_str().expect("known outcome");
+        assert!(!result["next_experiment"].as_str().unwrap().is_empty());
+        assert!(
+            result["gate"].as_u64().unwrap()
+                <= d["contract"]["gates"].as_array().unwrap().len() as u64
+        );
+        *counts.entry(category.into()).or_default() += 1;
+        *reasons.entry(reason.into()).or_default() += 1;
+        if category == "recognized" {
+            assert_eq!(reason, "indexed");
+            assert!(report["families"].as_array().unwrap().iter().any(|f| {
+                f["id"] == o["family"]
+                    && f["witnesses"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|w| w["record"] == o["record"])
+            }));
+        }
+    }
+    assert_eq!(d["counts"], serde_json::to_value(counts).unwrap());
+    assert_eq!(d["by_reason"], serde_json::to_value(reasons).unwrap());
+}
 #[test]
 fn certified_closure_identity_enables_observed_port_coordinates() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
@@ -25,10 +67,19 @@ fn certified_closure_identity_enables_observed_port_coordinates() {
             "{}",
             String::from_utf8_lossy(&result.stderr)
         );
-        serde_json::from_slice(&std::fs::read(out.join("cell-egraph.json")).unwrap()).unwrap()
+        let report: Value =
+            serde_json::from_slice(&std::fs::read(out.join("cell-egraph.json")).unwrap()).unwrap();
+        let history: Value =
+            serde_json::from_slice(&std::fs::read(out.join("history.json")).unwrap()).unwrap();
+        audit(
+            &report["repetition_families"]["port_progressions"],
+            &history,
+        );
+        report
     };
     let full = run("full", &source);
     let report = &full["repetition_families"]["port_progressions"];
+    assert_eq!(report["discovery"]["counts"]["recognized"], 2);
     assert_eq!(report["families"].as_array().unwrap().len(), 1);
     let f = &report["families"][0];
     assert_eq!(
@@ -94,6 +145,64 @@ fn certified_closure_identity_enables_observed_port_coordinates() {
         bad["unsupported"]["source closures not certified equivalent"], 2,
         "both actual overlaps remain, but neither has the required source closure equality"
     );
+    let rejected: Vec<_> = bad["discovery"]["outcomes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|o| o["reason"] == "source closures not certified equivalent")
+        .collect();
+    assert_eq!(rejected.len(), 2);
+    assert!(rejected.iter().all(|o| {
+        o["target_unit"].is_number()
+            && o["reads"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|r| r["status"] == "verified")
+    }));
+    let disconnected = run(
+        "disconnected",
+        &source.replace("(R (Atom 17) (Atom 2))", "(R (Atom 51) (Atom 64))"),
+    );
+    let disconnected = &disconnected["repetition_families"]["port_progressions"];
+    assert!(disconnected["families"].as_array().unwrap().is_empty());
+    assert!(
+        disconnected["discovery"]["outcomes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|o| o["read_count"] != 2),
+        "independent repeated bodies do not invent adjacency"
+    );
+    let branch = run(
+        "branch",
+        &source.replace("(run 4)", "(R (Atom 17) (Atom 99))\n(run 4)"),
+    );
+    let branch = &branch["repetition_families"]["port_progressions"];
+    assert!(
+        branch["discovery"]["by_reason"]["branching"]
+            .as_u64()
+            .unwrap_or(0)
+            > 0
+    );
+    for o in branch["discovery"]["outcomes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|o| o["reason"] == "branching")
+    {
+        assert!(
+            o["family"].is_number(),
+            "nonlinear overlap evidence must remain inspectable"
+        );
+    }
+    let early = run("early", &source.replace("(run 4)", "(run 1)"));
+    let early = &early["repetition_families"]["port_progressions"]["discovery"];
+    assert!(
+        early["total_records"].as_u64().unwrap()
+            < report["discovery"]["total_records"].as_u64().unwrap()
+    );
+    assert_eq!(early["counts"]["recognized"].as_u64().unwrap_or(0), 0);
     std::fs::remove_file(temp.join("full.egg")).unwrap();
     let replay = temp.join("replay");
     let result = std::process::Command::new(env!("CARGO_BIN_EXE_egg_layout"))

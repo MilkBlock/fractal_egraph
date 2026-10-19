@@ -8,6 +8,63 @@ The new result is a finite **indexed view** inferred from interaction wiring.
 It is not a predefined Array constructor, an arbitrary-length recurrence proof,
 a memory-layout guarantee, or a complete polyhedral compiler.
 
+## What a user can rely on
+
+This detector recognizes **two-read, fixed-width, complete-overlap translations**.
+It now emits `discovery.contract` and one `discovery.outcomes` entry for **every
+Captured record in this snapshot**, including records outside that class. The
+ordered gates are: committed effect, supported visibility, exactly two reads,
+completed catalog, verified producers/interfaces, equal source closures with at
+least two ports, complete translation, fully accounted target ports, retained
+source bodies, and a consistent nonbranching acyclic component.
+
+If all gates pass, the interaction receives an `indexed` outcome and appears in
+the finite coordinate view. Otherwise its first failing gate is recorded; later
+gates are **not checked**, not silently considered failures. Branching/cyclic
+overlaps remain in their family with evidence, but receive no linear coordinates.
+Every outcome has a stable reason, category, record/event references, a target
+unit when registered, and a next-experiment explanation. Two-read source checks
+also identify read slots, fact tokens, producer records and source units. No
+additional matching, ripening, whole-graph search or candidate limit is involved.
+
+The accounting identity is:
+
+```text
+captured records = recognized + missing evidence + outside scope + incompatible
+```
+
+This is **not** completeness over all tier0 matches, all graph patterns, or all
+possible producer choices. Capture exclusions, apply-entry registration and exact
+closure certification still bound the evidence. No coverage of unrecorded
+matches is inferred from this accounting. Nor does this contract establish Multi-ruleset schedule equivalence: its
+closure checks are relative to the catalog's actual rule environment.
+
+The viewer's “端口推进发现” panel presents the contract, positive/negative examples,
+reason counts and every record with links back to source/target Cells. It defaults
+to two-read interactions; all records are available. Pagination is display-only.
+Old snapshots without an audit explicitly say so and never borrow final results.
+
+### Designing facts
+
+Start with three instances `L(a,b), R(b,c), L(c,d)` of an equivalent closed body.
+Let the actual consumer read neighboring `Pair` rows and change state twice. The
+small test then exercises the same positional connection twice; it does not
+require teaching the detector an Array constructor or a numeric index.
+
+Compare these controls, generated from the same fixture in `analyze_cell_ports`:
+
+| Change | Expected meaning |
+|---|---|
+| Original shuffled L/R fixture | Two indexed interactions; three windows, four positions |
+| Remove `Pair -> L` | Interactions still occur, but source closures differ; no shared port family |
+| Replace `R(17,2)` with `R(51,64)` | Three independent instances; no two-read consumer, no invented adjacency |
+| Add `R(17,99)` | Branching evidence retained; the component is not labeled a linear array |
+
+The advice distinguishes missing experiment evidence from unsupported machinery.
+It never recommends erasing a real external input, dropping a branch, or adding
+arbitrary facts merely to force acceptance. More rounds alone do not repair a
+missing provenance channel or an unsupported interface.
+
 ## Example
 
 `port-progression.egg` declares Atom, L, R, Pair and Out. There is no array, index,
@@ -117,6 +174,26 @@ search/depth budget is added.
 
 ## Reproduce and view
 
+Generate all four native cases (including round snapshots and saved replay data):
+
+```sh
+cargo build --offline --release --bin egg_layout
+python3 experiments/cell_egraph/discovery_examples.py --output out/discovery-contract-verified
+python3 tools/egglog_debugger/server.py --port 8080 --binary target/release/egg_layout
+```
+
+Open `http://127.0.0.1:8080/cell-viewer.html?layer_run=out/discovery-contract-verified/positive`.
+Use the directory selector for `different-closures`, `disconnected`, and `branch`.
+The example runner requires a fresh output directory and keeps each exact input.
+The two browser regressions accept these output paths as arguments:
+
+```sh
+node tools/egglog_debugger/test_cell_ports_browser.cjs out/discovery-contract-verified/positive
+node tools/egglog_debugger/test_cell_discovery_browser.cjs out/discovery-contract-verified
+```
+
+To run just the original example:
+
 ```sh
 cargo build --offline --release --bin egg_layout
 target/release/egg_layout analyze \
@@ -135,5 +212,6 @@ is retained. Round snapshots never borrow later certificates or coordinates.
 cargo test --offline --release --lib cell_egraph
 cargo test --offline --release --test analyze_cell_ports --test analyze_cell_families --test cell_egraph_pipeline
 node tools/egglog_debugger/test_cell_egraph.mjs
+node tools/egglog_debugger/test_cell_discovery.mjs
 python3 -m unittest discover -s tools/egglog_debugger -p test_cell_egraph.py
 ```
