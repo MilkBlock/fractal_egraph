@@ -9,19 +9,22 @@ use egglog::{
     cell_events::{CellCommitBatch, CellCommitFeed},
 };
 use egglog_numeric_id::NumericId;
+use rustc_hash::{FxHashMap, FxHashSet};
 use serde::Serialize;
 use serde_json::{Value as Json, json};
+use smallvec::{SmallVec, smallvec};
 use std::collections::{BTreeMap, BTreeSet};
 pub mod joint;
 mod scalar;
 
-type Key = Vec<Value>;
-type Binding = Vec<Option<Value>>;
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+type Key = SmallVec<[Value; 4]>;
+type Binding = SmallVec<[Option<Value>; 16]>;
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Read {
     Key(usize, Key),
     Output(usize, Value),
 }
+type Reads = SmallVec<[Read; 4]>;
 #[derive(Clone, PartialEq, Eq)]
 struct Row {
     values: Vec<Value>,
@@ -29,12 +32,24 @@ struct Row {
 }
 #[derive(Default, PartialEq, Eq)]
 struct Rows {
-    keys: BTreeMap<(usize, Key), Row>,
-    outputs: BTreeMap<(usize, Value), BTreeSet<Key>>,
+    keys: FxHashMap<(usize, Key), Row>,
+    outputs: FxHashMap<(usize, Value), BTreeSet<Key>>,
     hidden: BTreeSet<(usize, Key)>,
     reverse: BTreeSet<usize>,
 }
 impl Rows {
+    // Traversals used for closure construction retain their previous exact
+    // order. Hot keyed reads use one hash lookup, not a tree walk.
+    fn table(&self, table: usize) -> Vec<(&(usize, Key), &Row)> {
+        let mut rows = self
+            .keys
+            .iter()
+            .filter(|((t, _), _)| *t == table)
+            .collect::<Vec<_>>();
+        rows.sort_unstable_by(|a, b| a.0.cmp(b.0));
+        rows
+    }
+
     fn change(&mut self, table: usize, key: Key, row: Option<Row>) -> Vec<Read> {
         let id = (table, key.clone());
         if self.keys.get(&id) == row.as_ref() {
@@ -76,13 +91,15 @@ struct Kernel {
     seed: usize,
     steps: Vec<(usize, Access)>,
     dirty: BTreeSet<Key>,
-    dependencies: BTreeMap<Key, BTreeSet<Read>>,
-    subscribers: BTreeMap<Read, BTreeSet<Key>>,
+    dependencies: FxHashMap<Key, Reads>,
+    subscribers: FxHashMap<Read, FxHashSet<Key>>,
     executions: usize,
     bindings: usize,
     watch: bool,
     slot_count: usize,
-    linear: bool,
+    retire_guard_failures: bool,
+    retired: BTreeSet<Key>,
+    retired_total: usize,
 }
 fn known(o: &CellOperand, b: &[bool]) -> bool {
     match o {
@@ -170,20 +187,21 @@ impl Kernel {
         }
         let (seed, steps) = plans.pop().unwrap();
         let slot_count = sink.slots().len();
-        let linear = steps.iter().all(|(_, a)| matches!(a, Access::Key));
         Ok(Self {
             sink,
             tables,
             seed,
             steps,
             dirty: BTreeSet::new(),
-            dependencies: BTreeMap::new(),
-            subscribers: BTreeMap::new(),
+            dependencies: FxHashMap::default(),
+            subscribers: FxHashMap::default(),
             executions: 0,
             bindings: 0,
             watch: true,
             slot_count,
-            linear,
+            retire_guard_failures: false,
+            retired: BTreeSet::new(),
+            retired_total: 0,
         })
     }
     fn wake(&mut self, read: &Read) {
@@ -204,102 +222,89 @@ impl Kernel {
         b: Binding,
         stamp: u32,
         watermark: u32,
-        deps: &mut BTreeSet<Read>,
+        deps: &mut Reads,
         out: &mut Vec<Vec<Value>>,
         lookups: &mut usize,
+        rejections: &mut usize,
     ) -> Result<()> {
-        if step == 0 && self.linear && !self.steps.is_empty() {
-            let mut b = b;
-            let mut stamp = stamp;
-            for (i, _) in &self.steps {
-                let atom = &self.sink.atoms[*i];
-                let table = self.tables[*i];
-                let key = atom.columns[..atom.columns.len() - 1]
-                    .iter()
-                    .map(|x| value(x, &b))
-                    .collect::<Vec<_>>();
-                deps.insert(Read::Key(table, key.clone()));
-                *lookups += 1;
-                let Some(row) = rows.keys.get(&(table, key)) else {
-                    return Ok(());
-                };
-                if !unify(&atom.columns, &row.values, &mut b) {
-                    return Ok(());
+        let mut b = b;
+        let mut stamp = stamp;
+        let mut step = step;
+        loop {
+            if step == self.steps.len() {
+                if stamp >= watermark {
+                    let b = b
+                        .into_iter()
+                        .collect::<Option<Vec<_>>>()
+                        .ok_or("unbound interface")?;
+                    if self.sink.native_residuals || eg.cell_guards_hold(&self.sink, &b)? {
+                        out.push(b)
+                    } else {
+                        *rejections += 1
+                    }
                 }
-                stamp = stamp.max(row.stamp);
+                return Ok(());
             }
-            return self.read_program(
-                eg,
-                rows,
-                self.steps.len(),
-                b,
-                stamp,
-                watermark,
-                deps,
-                out,
-                lookups,
-            );
-        }
-        if step == self.steps.len() {
-            if stamp >= watermark {
-                let b = b
-                    .into_iter()
-                    .collect::<Option<Vec<_>>>()
-                    .ok_or("unbound interface")?;
-                if self.sink.native_residuals || eg.cell_guards_hold(&self.sink, &b)? {
-                    out.push(b)
+            let (i, access) = self.steps[step];
+            let a = &self.sink.atoms[i];
+            let table = self.tables[i];
+            let n = a.columns.len() - 1;
+            let read = match access {
+                Access::Key => {
+                    Read::Key(table, a.columns[..n].iter().map(|x| value(x, &b)).collect())
                 }
-            }
-            return Ok(());
-        }
-        let (i, access) = self.steps[step];
-        let a = &self.sink.atoms[i];
-        let table = self.tables[i];
-        let n = a.columns.len() - 1;
-        let read = match access {
-            Access::Key => Read::Key(table, a.columns[..n].iter().map(|x| value(x, &b)).collect()),
-            Access::Output => Read::Output(table, value(&a.columns[n], &b)),
-        };
-        deps.insert(read.clone());
-        *lookups += 1;
-        let keys = match read {
-            Read::Key(_, k) => vec![k],
-            Read::Output(_, v) => rows
-                .outputs
-                .get(&(table, v))
-                .into_iter()
-                .flatten()
-                .cloned()
-                .collect(),
-        };
-        for key in keys {
-            if let Some(row) = rows.keys.get(&(table, key)) {
-                let mut next = b.clone();
-                if unify(&a.columns, &row.values, &mut next) {
-                    self.read_program(
-                        eg,
-                        rows,
-                        step + 1,
-                        next,
-                        stamp.max(row.stamp),
-                        watermark,
-                        deps,
-                        out,
-                        lookups,
-                    )?;
+                Access::Output => Read::Output(table, value(&a.columns[n], &b)),
+            };
+            deps.push(read.clone());
+            *lookups += 1;
+            let row = match read {
+                Read::Key(_, k) => rows.keys.get(&(table, k)),
+                Read::Output(_, v) => {
+                    let Some(keys) = rows.outputs.get(&(table, v)) else {
+                        return Ok(());
+                    };
+                    if keys.len() == 1 {
+                        rows.keys.get(&(table, keys.first().unwrap().clone()))
+                    } else {
+                        for key in keys {
+                            let row = &rows.keys[&(table, key.clone())];
+                            let mut next = b.clone();
+                            if unify(&a.columns, &row.values, &mut next) {
+                                self.read_program(
+                                    eg,
+                                    rows,
+                                    step + 1,
+                                    next,
+                                    stamp.max(row.stamp),
+                                    watermark,
+                                    deps,
+                                    out,
+                                    lookups,
+                                    rejections,
+                                )?;
+                            }
+                        }
+                        return Ok(());
+                    }
                 }
+            };
+            let Some(row) = row else { return Ok(()) };
+            if !unify(&a.columns, &row.values, &mut b) {
+                return Ok(());
             }
+            stamp = stamp.max(row.stamp);
+            step += 1;
         }
-        Ok(())
     }
-    fn install_dependencies(&mut self, seed: Key, deps: Option<BTreeSet<Read>>) {
+
+    fn install_dependencies(&mut self, seed: Key, deps: Option<Reads>) {
         if self.dependencies.get(&seed) == deps.as_ref() {
             return;
         }
         let old = self.dependencies.remove(&seed).unwrap_or_default();
-        let empty = BTreeSet::new();
+        let empty = Reads::new();
         let new = deps.as_ref().unwrap_or(&empty);
-        for d in old.difference(new) {
+        for d in old.iter().filter(|d| new.binary_search(d).is_err()) {
             if let Some(s) = self.subscribers.get_mut(d) {
                 s.remove(&seed);
                 if s.is_empty() {
@@ -307,7 +312,7 @@ impl Kernel {
                 }
             }
         }
-        for d in new.difference(&old) {
+        for d in new.iter().filter(|d| old.binary_search(d).is_err()) {
             self.subscribers
                 .entry(d.clone())
                 .or_default()
@@ -331,15 +336,33 @@ impl Kernel {
                 self.install_dependencies(seed, None);
                 continue;
             };
-            let mut b = vec![None; self.slot_count];
+            let mut b = smallvec![None; self.slot_count];
             if !unify(&self.sink.atoms[self.seed].columns, &row.values, &mut b) {
                 self.install_dependencies(seed, None);
                 continue;
             }
-            let mut deps = BTreeSet::new();
+            let mut deps = Reads::new();
+            let before = out.len();
+            let mut rejections = 0;
             self.read_program(
-                eg, rows, 0, b, row.stamp, watermark, &mut deps, &mut out, lookups,
+                eg,
+                rows,
+                0,
+                b,
+                row.stamp,
+                watermark,
+                &mut deps,
+                &mut out,
+                lookups,
+                &mut rejections,
             )?;
+            if self.retire_guard_failures && out.len() == before && rejections > 0 {
+                deps.clear();
+                self.retired.insert(seed.clone());
+                self.retired_total += 1;
+            }
+            deps.sort_unstable();
+            deps.dedup();
             self.install_dependencies(seed, Some(deps));
         }
         out.sort_unstable();
@@ -359,6 +382,9 @@ pub struct Stats {
     pub union_events: usize,
     pub bootstrap_rows: usize,
     pub native_fallback_runs: usize,
+    pub frontier_seconds: f64,
+    pub effect_seconds: f64,
+    pub ingest_seconds: f64,
 }
 pub struct Runtime {
     eg: EGraph,
@@ -524,7 +550,7 @@ impl Runtime {
         }
         for delta in batch.rows {
             let t = delta.table;
-            let key = (t, delta.key.clone());
+            let key = (t, delta.key.clone().into());
             hidden_changed |= if delta.row.is_some() && !delta.visible {
                 self.rows.hidden.insert(key)
             } else {
@@ -541,7 +567,7 @@ impl Runtime {
             } else {
                 None
             };
-            changed.extend(self.rows.change(t, delta.key, row));
+            changed.extend(self.rows.change(t, delta.key.into(), row));
         }
         if has_union || hidden_changed || !changed.is_empty() {
             self.epoch = self
@@ -565,11 +591,14 @@ impl Runtime {
         Ok(())
     }
     fn sync(&mut self) -> Result<()> {
+        let started = std::time::Instant::now();
         let batch = self.eg.drain_cell_commits(&mut self.feed)?;
         // Native rebuild journals contain old-key removals and canonical row
         // replacements. Those changes also wake bindings that previously missed
         // a key/output lookup; no new concrete Cell or whole-table rescan.
-        self.ingest(batch)
+        let result = self.ingest(batch);
+        self.stats.ingest_seconds += started.elapsed().as_secs_f64();
+        result
     }
     /// Independent diagnostic only, outside the update path. Includes row
     /// timestamps, visibility and every reverse-index entry, not just counts.
@@ -582,13 +611,15 @@ impl Runtime {
             let n = self.feed.tables[i].keys;
             self.eg.function_for_each(name, |r| {
                 if r.subsumed {
-                    expected.hidden.insert((i, r.vals[..n].to_vec()));
+                    expected
+                        .hidden
+                        .insert((i, SmallVec::from_slice(&r.vals[..n])));
                 }
                 if !r.subsumed {
                     let values = r.vals[..n + 1].to_vec();
                     expected.change(
                         i,
-                        values[..n].to_vec(),
+                        SmallVec::from_slice(&values[..n]),
                         Some(Row {
                             values,
                             stamp: r.timestamp.rep(),
@@ -633,6 +664,7 @@ impl Runtime {
                 if self.sets.contains_key(&r.ruleset) && r.until.is_none() =>
             {
                 self.sync()?;
+                let started = std::time::Instant::now();
                 let ids = self.sets[&r.ruleset].clone();
                 let mut matches = vec![];
                 for id in &ids {
@@ -647,7 +679,10 @@ impl Runtime {
                     .zip(&matches)
                     .map(|(i, b)| (&self.kernels[*i].sink, b.as_slice()))
                     .collect::<Vec<_>>();
+                self.stats.frontier_seconds += started.elapsed().as_secs_f64();
+                let started = std::time::Instant::now();
                 let report = self.eg.apply_completed_cell_ruleset(&batches)?;
+                self.stats.effect_seconds += started.elapsed().as_secs_f64();
                 self.stats.ruleset_runs += 1;
                 self.sync()?;
                 Ok(report.updated)
@@ -702,16 +737,7 @@ impl Runtime {
                         if let Some(updated) = proof.try_close(self)? {
                             return Ok(updated);
                         }
-                        let mut changed = false;
-                        loop {
-                            let updated = self.step(x)?;
-                            changed |= updated;
-                            if !updated {
-                                break;
-                            }
-                        }
-                        proof.complete(self)?;
-                        Ok(changed)
+                        proof.run_dataflow(self, x)
                     })();
                     self.joint = Some(proof);
                     return result;
@@ -751,6 +777,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len()})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(BTreeSet::len).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
+        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len(),"retired_guard_seeds":k.retired_total})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

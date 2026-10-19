@@ -36,6 +36,20 @@ impl Pair {
         assert_eq!(updated, self.cell.last_updated, "{s}");
         compare::equal(&self.base, &self.native, self.cell.engine()).unwrap();
     }
+    // The production gate uses the same sorted native commit protocol. A
+    // fused native Run can create a different orientation of Smaller records,
+    // even with retirement disabled; it is not the oracle for this optimization.
+    fn run_ordered(&mut self, s: &str) {
+        let commands = self.native.parse_program(None, s).unwrap();
+        let mut ordered =
+            cell_assisted_egglog::table_live::Runtime::new_cpu(self.native.clone(), &commands)
+                .unwrap();
+        ordered.run(&commands).unwrap();
+        self.native = ordered.into_engine();
+        self.cell.run(&commands).unwrap();
+        self.cell.audit_mirror().unwrap();
+        compare::equal(&self.base, &self.native, self.cell.engine()).unwrap();
+    }
     fn emitted(&self) -> u64 {
         self.cell.report()["programs"]
             .as_array()
@@ -238,6 +252,14 @@ fn shared_cpu_and_gpu_receive_joint_macro_rows_and_handback() {
             "{}",
             r.report()
         );
+        assert!(
+            r.report()["saturation_diagnostics"]["joint"]["stats"]["dataflow_boundaries"]
+                .as_u64()
+                .unwrap()
+                > 0,
+            "{}",
+            r.report()
+        );
         let mut handed = r.into_engine();
         for set in ["terms", "terms-helpers", "terms-helpers-helpers"] {
             assert_eq!(
@@ -251,4 +273,58 @@ fn shared_cpu_and_gpu_receive_joint_macro_rows_and_handback() {
             );
         }
     }
+}
+
+#[test]
+fn dominated_candidates_reopen_after_external_delete_or_cost_alias() {
+    for alias in [false, true] {
+        let mut p = Pair::new();
+        p.input("(set (ExtractedExpr (V 9)) (TCPair (TermLeaf 9) 3)) (PotentialExtractedExpr (V 9) (TCPair (TermLeaf 8) 5))");
+        p.run_ordered(SCHEDULE);
+        let report = p.cell.report();
+        let retired: u64 = report["programs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| p["retired_guard_seeds"].as_u64().unwrap())
+            .sum();
+        assert!(retired > 0, "{report}");
+        let uniform = report["joint"]["stats"]["uniform_cost_boundaries"]
+            .as_u64()
+            .unwrap();
+        if alias {
+            p.input("(union (TCPair (TermLeaf 9) 3) (TCPair (TermLeaf 19) 9))");
+        } else {
+            p.input("(delete (ExtractedExpr (V 9))) (PotentialExtractedExpr (V 9) (TCPair (TermLeaf 7) 7))");
+        }
+        let before = p.emitted();
+        p.run_ordered(SCHEDULE);
+        assert!(p.emitted() > before);
+        if alias {
+            assert_eq!(
+                p.cell.report()["joint"]["stats"]["uniform_cost_boundaries"],
+                uniform
+            );
+        } else {
+            p.cell
+                .engine()
+                .clone()
+                .parse_and_run_program(
+                    None,
+                    "(check (= (ExtractedExpr (V 9)) (TCPair (TermLeaf 8) 5)))",
+                )
+                .unwrap();
+        }
+    }
+}
+
+#[test]
+fn a_pending_smaller_alias_cannot_certify_an_immutable_cost() {
+    let mut p = Pair::new();
+    p.input("(set (ExtractedExpr (V 9)) (TCPair (TermLeaf 3) 3)) (union (TCPair (TermLeaf 3) 3) (Smaller (TCPair (TermLeaf 8) 8) (TCPair (TermLeaf 10) 10))) (PotentialExtractedExpr (V 9) (TCPair (TermLeaf 5) 5))");
+    p.run_ordered(SCHEDULE);
+    assert_eq!(
+        p.cell.report()["joint"]["stats"]["uniform_cost_boundaries"],
+        0
+    );
 }

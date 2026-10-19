@@ -26,10 +26,15 @@ pub struct Counters {
     pub macro_instances: usize,
     pub macro_waves: usize,
     pub fallback_boundaries: usize,
+    pub dataflow_boundaries: usize,
+    pub dataflow_ruleset_runs: usize,
+    pub uniform_cost_boundaries: usize,
     pub reasons: BTreeMap<String, usize>,
 }
 pub(super) struct Joint {
     producers: Vec<Producer>,
+    improve_rule: String,
+    cost_universe_closed: bool,
     body: String,
     stable: BTreeSet<Value>,
     extendable: bool,
@@ -142,6 +147,7 @@ impl Joint {
         {
             return Err("joint contract requires distinct Expr, Term and TermAndCost sorts".into());
         }
+        let cost_sort = tc_schema.output.name().to_string();
         let expected = eg.parse_program(None, include_str!("joint_helpers.egg"))?;
         let want = expected
             .iter()
@@ -181,6 +187,26 @@ impl Joint {
         if !commands.iter().any(|c|matches!(c,Command::Function{name,merge:Some(m),..} if name=="ExtractedExpr" && m.to_string()=="(Smaller old new)")){
             return Err("joint contract requires the original Smaller merge".into())
         }
+        let improve_signature = expected
+            .iter()
+            .find_map(|c| {
+                if let Command::Rule { rule } = c {
+                    (rule.name == "improve").then(|| signature(rule))
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+        let improve_rule = commands
+            .iter()
+            .find_map(|c| {
+                if let Command::Rule { rule } = c {
+                    (signature(rule) == improve_signature).then(|| rule.name.clone())
+                } else {
+                    None
+                }
+            })
+            .unwrap();
         let init = expected
             .iter()
             .find_map(|c| {
@@ -198,6 +224,10 @@ impl Joint {
         let Expr::Lit(_, Literal::Int(sentinel)) = sentinel_args[1] else {
             unreachable!()
         };
+        let cost_universe_closed = eg.get_function_names().iter().all(|name| {
+            eg.get_function(name).unwrap().schema().output.name() != cost_sort
+                || matches!(name.as_str(), "TCPair" | "Smaller" | "ExtractedExpr")
+        });
         let mut producers = vec![];
         for c in commands {
             let Command::Rule { rule } = c else { continue };
@@ -351,6 +381,8 @@ impl Joint {
         }
         Ok(Self {
             producers,
+            improve_rule,
+            cost_universe_closed,
             body: schedule_key(body(schedule)),
             stable: BTreeSet::new(),
             extendable: true,
@@ -367,7 +399,7 @@ impl Joint {
             let name = &r.names[d.table];
             if !d.visible
                 || d.row.is_none()
-                || r.rows.keys.contains_key(&(d.table, d.key.clone()))
+                || r.rows.keys.contains_key(&(d.table, d.key.clone().into()))
                 || name == "PotentialExtractedExpr"
                 || name == "Smaller"
             {
@@ -384,7 +416,7 @@ impl Joint {
     fn selected_cost(&self, r: &Runtime, root: Value) -> Option<(i64, u32)> {
         let f = Self::table(r, "ExtractedExpr");
         let tc = Self::table(r, "TCPair");
-        let row = r.rows.keys.get(&(f, vec![root]))?;
+        let row = r.rows.keys.get(&(f, smallvec![root]))?;
         let value = *row.values.last()?;
         let keys = r.rows.outputs.get(&(tc, value))?;
         if keys.len() != 1 {
@@ -441,12 +473,12 @@ impl Joint {
         let f = Self::table(r, "ExtractedExpr");
         for (i, p) in self.producers.iter().enumerate() {
             let table = Self::table(r, &p.constructor);
-            for ((_, key), row) in r.rows.keys.range((table, vec![])..(table + 1, vec![])) {
+            for ((_, key), row) in r.rows.table(table) {
                 let root = *row.values.last().unwrap();
                 if !roots.insert(root) {
                     return Ok(self.decline("multiple producers for one Expr"));
                 }
-                if r.rows.keys.contains_key(&(f, vec![root])) {
+                if r.rows.keys.contains_key(&(f, smallvec![root])) {
                     if !self.stable.contains(&root) {
                         return Ok(self.decline("existing result needs incremental update"));
                     }
@@ -518,7 +550,7 @@ impl Joint {
                     })
                     .ok_or("missing producer kernel")?;
                 let row = &r.rows.keys[&(kernel.tables[kernel.seed], key.clone())];
-                let mut b = vec![None; kernel.sink.slots().len()];
+                let mut b = smallvec![None; kernel.sink.slots().len()];
                 if !unify(&kernel.sink.atoms[kernel.seed].columns, &row.values, &mut b) {
                     return Err("joint preflight disagrees with seed".into());
                 }
@@ -530,9 +562,10 @@ impl Joint {
                     b,
                     0,
                     0,
-                    &mut BTreeSet::new(),
+                    &mut Reads::new(),
                     &mut bindings,
                     &mut r.stats.keyed_reads,
+                    &mut 0,
                 )?;
                 if bindings.len() != 1 {
                     return Err("joint proof lost unique producer binding".into());
@@ -574,6 +607,127 @@ impl Joint {
         self.counters.skipped_joint_saturations += 1;
         Ok(Some(updated))
     }
+    // Under the checked helper contract, a resolved TCPair class keeps its
+    // unique cost: comparison only joins a Smaller result with its minimum
+    // argument; equal-cost ties and term congruence cannot mix distinct costs.
+    // Therefore resolved ExtractedExpr costs can only decrease in this scope.
+    fn uniform_costs(&self, r: &Runtime) -> bool {
+        if !self.cost_universe_closed {
+            return false;
+        }
+        let t = Self::table(r, "TCPair");
+        let smaller = Self::table(r, "Smaller");
+        if r.rows
+            .hidden
+            .iter()
+            .any(|(table, _)| *table == t || *table == smaller)
+        {
+            return false;
+        }
+        let mut costs = FxHashMap::default();
+        for (_, row) in r.rows.table(t) {
+            let c = r.eg.value_to_base::<i64>(row.values[1]);
+            let root = *row.values.last().unwrap();
+            if costs.insert(root, c).is_some_and(|old| old != c) {
+                return false;
+            }
+        }
+        // Existing unresolved Smaller aliases are obligations too. Do not
+        // assume that today's uniform TCPair rows alone make future costs
+        // immutable: an old union could conceal a conflicting pending minimum.
+        let edges = r
+            .rows
+            .table(Self::table(r, "Smaller"))
+            .into_iter()
+            .map(|(_, row)| (row.values[0], row.values[1], row.values[2]))
+            .collect::<Vec<_>>();
+        let mut waiting = FxHashMap::<Value, Vec<usize>>::default();
+        let mut queue = std::collections::VecDeque::new();
+        let mut done = vec![false; edges.len()];
+        for (i, (a, b, _)) in edges.iter().enumerate() {
+            waiting.entry(*a).or_default().push(i);
+            if a != b {
+                waiting.entry(*b).or_default().push(i)
+            }
+        }
+        let mut ready = (0..edges.len()).collect::<std::collections::VecDeque<_>>();
+        while let Some(i) = ready.pop_front() {
+            if done[i] {
+                continue;
+            }
+            let (a, b, out) = edges[i];
+            let (Some(a), Some(b)) = (costs.get(&a).copied(), costs.get(&b).copied()) else {
+                continue;
+            };
+            let c = a.min(b);
+            done[i] = true;
+            if let Some(old) = costs.get(&out) {
+                if *old != c {
+                    return false;
+                }
+            } else {
+                costs.insert(out, c);
+                queue.push_back(out);
+            }
+            while let Some(v) = queue.pop_front() {
+                if let Some(users) = waiting.get(&v) {
+                    ready.extend(users)
+                }
+            }
+        }
+        // Unseeded cyclic components cannot acquire a TCPair using these rules.
+        // New constructors have new classes (or an already checked TCPair key).
+        true
+    }
+    pub(super) fn run_dataflow(&mut self, r: &mut Runtime, s: &Schedule) -> Result<bool> {
+        // The general precompiled port program preserves each original
+        // Run and merge/rebuild wave, including multiple producers,
+        // missing ports, aliases and mutable function outputs. No
+        // original relational query or GPU round-trip is required.
+        for ids in r.sets.values() {
+            for id in ids {
+                let k = &mut r.kernels[*id];
+                if !k.watch {
+                    k.watch = true;
+                    let table = k.tables[k.seed];
+                    k.dirty.extend(
+                        r.rows
+                            .table(table)
+                            .into_iter()
+                            .map(|((_, key), _)| key.clone()),
+                    );
+                }
+            }
+        }
+        let improve = r.sets["terms-helpers"]
+            .iter()
+            .copied()
+            .find(|id| r.kernels[*id].sink.name == self.improve_rule)
+            .unwrap();
+        let uniform = self.uniform_costs(r);
+        r.kernels[improve].retire_guard_failures = uniform;
+        self.counters.uniform_cost_boundaries += usize::from(uniform);
+        let before = r.stats.ruleset_runs;
+        let run = (|| {
+            let mut updated = false;
+            loop {
+                let changed = r.step(s)?;
+                updated |= changed;
+                if !changed {
+                    break;
+                }
+            }
+            Ok::<_, Box<dyn std::error::Error>>(updated)
+        })();
+        let k = &mut r.kernels[improve];
+        k.retire_guard_failures = false;
+        k.dirty.append(&mut k.retired);
+        let updated = run?;
+        self.complete(r)?;
+        self.counters.dataflow_boundaries += 1;
+        self.counters.dataflow_ruleset_runs += r.stats.ruleset_runs - before;
+        Ok(updated)
+    }
     pub(super) fn complete(&mut self, r: &mut Runtime) -> Result<()> {
         for set in SETS {
             r.eg.certify_cell_saturation(set)?;
@@ -582,10 +736,10 @@ impl Joint {
         self.stable.clear();
         for p in &self.producers {
             let table = Self::table(r, &p.constructor);
-            for (_, row) in r.rows.keys.range((table, vec![])..(table + 1, vec![])) {
+            for (_, row) in r.rows.table(table) {
                 if r.rows
                     .keys
-                    .contains_key(&(f, vec![*row.values.last().unwrap()]))
+                    .contains_key(&(f, smallvec![*row.values.last().unwrap()]))
                 {
                     self.stable.insert(*row.values.last().unwrap());
                 }
@@ -596,7 +750,7 @@ impl Joint {
         Ok(())
     }
     pub(super) fn report(&self) -> Json {
-        json!({"contract":"fresh single-candidate producer DAG plus exact terms helpers/v1","stats":self.counters,"producer_templates":self.producers.len(),"macro_source":self.producers.iter().map(|p|p.code.clone()).collect::<Vec<_>>(),"concrete_closure_entries":0})
+        json!({"contract":"parameterized terms dataflow with fresh DAG shortcut/v2","closed_cost_producer_universe":self.cost_universe_closed,"stats":self.counters,"producer_templates":self.producers.len(),"macro_source":self.producers.iter().map(|p|p.code.clone()).collect::<Vec<_>>(),"concrete_closure_entries":0})
     }
 }
 
@@ -696,8 +850,15 @@ impl crate::table_live::SaturationHook for Observer {
             r.sync()?;
             if r.enter_scalar_scope(s){return Ok(None)}
             if !r.joint.as_ref().is_some_and(|j|j.accepts(s)){return Ok(None)}
-            let mut j=r.joint.take().unwrap();let result=j.try_close(r);r.joint=Some(j);
-            Ok(result?.map(|updated|json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"fresh parameterized terms joint closure"})))
+            let mut j=r.joint.take().unwrap();
+            let result=(||{
+                if let Some(updated)=j.try_close(r)? {
+                    return Ok(json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"fresh parameterized terms joint closure"}));
+                }
+                let updated=j.run_dataflow(r,s)?;
+                Ok(json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"exact parameterized terms dataflow closure; original effect waves retained"}))
+            })();
+            r.joint=Some(j);result.map(Some)
         })
     }
     fn after_boundary(&mut self, eg: &mut EGraph, s: &Schedule) -> Result<()> {

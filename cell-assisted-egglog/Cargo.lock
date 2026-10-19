@@ -107,8 +107,10 @@ dependencies = [
  "egglog",
  "egglog-numeric-id",
  "egglog-reports",
+ "rustc-hash",
  "serde",
  "serde_json",
+ "smallvec",
 ]
 
 [[package]]

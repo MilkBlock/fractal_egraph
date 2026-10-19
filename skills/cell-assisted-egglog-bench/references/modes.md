@@ -20,3 +20,5 @@
 稳定策略的私有 key 行是额外存储。公开整图比较不会把这些辅助字段当成原程序事实；原程序的 `to-hoist` 始终在严格比较内。不要把隐藏辅助字段说成压缩收益。
 
 历史与协议说明：`experiments/raytrace_pass3_gpu/STABLE_CHOICE.md`、`FIRST_DIVERGENCE.md`、`experiments/sat_skip/README.md`。这些文档是证据和口径，不是保证未来加速比的常数。先读脚本生成的当前结果，无须每次重读所有旧实验。
+
+完整 Pass-3 的联合 handler 现有两条路径：fresh DAG 宏，以及保留原生 effect waves 的参数化 CPU Cell dataflow。`skipped_saturations` 包含后者，不能当成已复用的具体闭包数量。要同时报告 `macro_instances`、`dataflow_boundaries` 和 `uniform_cost_boundaries`。当前 dataflow 不调用 GPU；因此其收益属于 Cell 接线和局部证书，不能称为 GPU 内核加速。见 `experiments/joint_sat/DATAFLOW.md`。

@@ -284,7 +284,7 @@ impl Runtime {
                         && cost.is_some_and(|c| {
                             self.rows
                                 .keys
-                                .get(&(table, vec![b[plan.root]]))
+                                .get(&(table, smallvec![b[plan.root]]))
                                 .is_some_and(|row| {
                                     self.eg.value_to_base::<i64>(*row.values.last().unwrap()) <= c
                                 })

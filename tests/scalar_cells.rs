@@ -218,3 +218,36 @@ fn same_batch_min_candidates_share_one_destination_without_losing_other_rules() 
             > 0
     );
 }
+
+#[test]
+fn wide_keys_and_bindings_spill_without_an_arity_limit() {
+    let args = (0..20)
+        .map(|i| format!("x{i}"))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let types = vec!["Expr"; 20].join(" ");
+    let src = format!(
+        "{BASE} (constructor Wide ({types}) Expr) (function Size (Expr) i64 :merge (min old new)) (ruleset work) (rule ((= e (Wide {args})) (= n (Size x0))) ((set (Size e) (+ n 1))) :ruleset work :name \"wide\")"
+    );
+    let mut r = Runtime::new_joint(&src).unwrap();
+    let base = r.engine().clone();
+    let mut native = base.clone();
+    let actual = (0..20)
+        .map(|i| format!("(V {i})"))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let commands = native
+        .parse_program(None, "(run-schedule (saturate work))")
+        .unwrap();
+    for input in [
+        format!("(Wide {actual}) (set (Size (V 0)) 10)"),
+        "(set (Size (V 0)) 2) (union (V 0) (V 1))".into(),
+    ] {
+        native.parse_and_run_program(None, &input).unwrap();
+        r.input(&input).unwrap();
+        native.run_program(commands.clone()).unwrap();
+        r.run(&commands).unwrap();
+        compare::equal(&base, &native, r.engine()).unwrap();
+        r.audit_mirror().unwrap();
+    }
+}

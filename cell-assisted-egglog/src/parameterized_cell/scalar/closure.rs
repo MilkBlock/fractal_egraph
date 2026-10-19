@@ -262,7 +262,7 @@ impl Model {
             .map(|(t, v)| {
                 r.rows
                     .keys
-                    .get(&(*t, vec![*v]))
+                    .get(&(*t, smallvec![*v]))
                     .map(|row| r.eg.value_to_base::<i64>(*row.values.last().unwrap()))
             })
             .collect()
@@ -285,8 +285,8 @@ impl Model {
             let k = &r.kernels[*kernel];
             let table = k.tables[k.seed];
             let dest = r.names.iter().position(|n| *n == plan.field).unwrap();
-            for (_, row) in r.rows.keys.range((table, vec![])..(table + 1, vec![])) {
-                let mut b = vec![None; k.slot_count];
+            for (_, row) in r.rows.table(table) {
+                let mut b = smallvec![None; k.slot_count];
                 if !unify(&k.sink.atoms[k.seed].columns, &row.values, &mut b) {
                     continue;
                 }
@@ -359,7 +359,7 @@ impl Model {
         if self
             .nodes
             .iter()
-            .any(|(t, k)| r.rows.hidden.contains(&(*t, vec![*k])))
+            .any(|(t, k)| r.rows.hidden.contains(&(*t, smallvec![*k])))
         {
             stats.deferred_hidden += 1;
             return Ok(vec![]);
@@ -380,7 +380,7 @@ impl Model {
             let mut stamp = e.stamp;
             for p in &e.ports {
                 let (t, k) = self.nodes[*p];
-                if let Some(row) = r.rows.keys.get(&(t, vec![k])) {
+                if let Some(row) = r.rows.keys.get(&(t, smallvec![k])) {
                     stamp = stamp.max(row.stamp)
                 }
             }

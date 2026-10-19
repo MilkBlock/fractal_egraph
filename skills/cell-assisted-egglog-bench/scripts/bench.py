@@ -78,7 +78,7 @@ def report(path, fresh=False):
         if m['inference_plus_tiger_speedup'] is not None:
             print(f"推理＋Tiger：{m['inference_plus_tiger_speedup']:.4f}x")
         print('以上不含序列化、诊断、共享输入准备；worker setup 见原始报告。当前 fork，不是 pristine。')
-        print('认证跳过次数：', r['gpu']['runtime'].get('skipped_saturations', 0))
+        print('由 Cell handler 完成的饱和边界（含显式 dataflow 推进）：', r['gpu']['runtime'].get('skipped_saturations', 0))
         if r.get('gpu_without_joint'):
             print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '未通过整图门槛')
             print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
