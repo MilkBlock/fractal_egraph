@@ -628,7 +628,9 @@ impl EGraph {
                 }
             });
         }
-        self.backend.flush_updates();
+        let mut worklists=Vec::new();
+        for (sink,_) in &prepared{if !worklists.contains(&sink.decided){worklists.push(sink.decided)}}
+        if trace.is_none(){self.backend.flush_worklist_updates(&worklists)}else{self.backend.flush_updates();}
         let actions = if let Some((_,ids))=mixed {
             ids.iter().filter_map(|id|{
                 if let Some((s,rows))=batches.iter().find(|(s,_)|s.original==*id){
@@ -645,27 +647,24 @@ impl EGraph {
                 }
             })
             .collect::<Vec<_>>()};
+        // Only the current action reads these rows. Rebuilding their keys
+        // after its unions cannot change a public effect, and they are cleared
+        // below before any subsequent action can observe them.
+        let mut excluded=vec![];
+        if trace.is_none(){
+            for (sink,_) in &prepared{
+                if !excluded.iter().any(|(table,_)|*table==sink.decided){
+                    let old=self.backend.set_worklist_rebuild(sink.decided,false);
+                    excluded.push((sink.decided,old));
+                }
+            }
+        }
         let result = match trace {
             Some(t) => self.backend.run_rules_with_trace(&actions, t),
             None => self.backend.run_rules(&actions),
         };
-        if trace.is_none() {
-            // Union/rebuild may have canonicalized private keys. Read their current
-            // keys, rather than trying to delete stale pre-RHS bindings.
-            for (sink, _) in &prepared {
-                let mut keys = Vec::new();
-                self.backend.for_each(sink.decided, |r| {
-                    keys.push(r.vals[..sink.vars.len()].to_vec())
-                });
-                let table = TableAction::new(&self.backend, sink.decided);
-                self.backend.with_execution_state(|state| {
-                    for key in &keys {
-                        table.remove(state, key);
-                    }
-                });
-            }
-            self.backend.flush_updates();
-        }
+        if trace.is_none(){self.backend.clear_worklists(&worklists);}
+        for (table,old) in excluded{self.backend.set_worklist_rebuild(table,old);}
         let report = result.map_err(|e| Error::BackendError(e.to_string()))?;
         Ok(RunReport::singleton(mixed.map(|m|m.0).unwrap_or("cell-assisted"), report))
     }

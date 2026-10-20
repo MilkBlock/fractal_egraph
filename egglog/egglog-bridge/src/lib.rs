@@ -462,6 +462,25 @@ impl EGraph {
         self.db.shared_row_storage()
     }
     /// Engine-local table identity for diagnostic source-read plans.
+    /// Temporarily exclude an optimizer worklist from rebuild. These Unit
+    /// tables are private input buffers, never persistent facts. The caller
+    /// must clear every row before restoring the previous mode, on errors too.
+    pub fn flush_worklist_updates(&mut self,functions:&[FunctionId]){
+        let tables=functions.iter().map(|f|self.funcs[*f].table).collect::<Vec<_>>();
+        if self.db.try_merge_worklists(&tables){self.inc_ts()}else{self.flush_updates();}
+    }
+    pub fn clear_worklists(&mut self,functions:&[FunctionId]){
+        for f in functions{self.db.clear_worklist(self.funcs[*f].table)}
+        // Keep the original submission protocol's timestamp boundary.
+        self.inc_ts();
+    }
+    pub fn set_worklist_rebuild(&mut self,func:FunctionId,enabled:bool)->bool{
+        let info=&mut self.funcs[func];
+        assert_eq!(info.ret_ty(),ColumnTy::Base(self.db.base_values().get_ty::<()>()));
+        assert!(matches!(info.default_val,DefaultVal::Const(v) if v==self.db.base_values().get(())));
+        std::mem::replace(&mut info.rebuild_enabled,enabled)
+    }
+
     pub fn function_table_id(&self, func: FunctionId) -> TableId {
         self.funcs[func].table
     }
@@ -642,6 +661,7 @@ impl EGraph {
         );
 
         let res = self.funcs.push(FunctionInfo {
+            rebuild_enabled: true,
             table: table_id,
             schema: schema.clone(),
             incremental_rebuild_rules: Default::default(),
@@ -756,7 +776,7 @@ impl EGraph {
             // The UF implementation supports "native"  rebuilding.
             let mut tables = Vec::with_capacity(self.funcs.next_id().index());
             for (_, func) in self.funcs.iter() {
-                tables.push(func.table);
+                if func.rebuild_enabled {tables.push(func.table);}
             }
             loop {
                 // Order matters here: we need to rebuild containers first and then rebuild the
@@ -820,7 +840,7 @@ impl EGraph {
             // should look only at the latest updates.
             self.inc_ts();
             let ts = self.next_ts();
-            for (_, info) in self.funcs.iter_mut() {
+            for (_, info) in self.funcs.iter_mut().filter(|(_,info)|info.rebuild_enabled) {
                 let last_rebuilt_at = self.rules[info.nonincremental_rebuild_rule].last_run_at;
                 let table_size = self.db.estimate_size(info.table, None);
                 let uf_size = self.db.estimate_size(
@@ -902,7 +922,7 @@ impl EGraph {
             self.inc_ts();
             // First, figure out which functions will be rebuilt nonincrementally,
             // vs. incrementally. Group them together.
-            for (func, info) in self.funcs.iter_mut() {
+            for (func, info) in self.funcs.iter_mut().filter(|(_,info)|info.rebuild_enabled) {
                 let last_rebuilt_at = self.rules[info.nonincremental_rebuild_rule].last_run_at;
                 let table_size = self.db.estimate_size(info.table, None);
                 let uf_size = self.db.estimate_size(
@@ -1115,6 +1135,7 @@ struct CachedPlanInfo {
 
 #[derive(Clone)]
 struct FunctionInfo {
+    rebuild_enabled: bool,
     table: TableId,
     schema: Vec<ColumnTy>,
     incremental_rebuild_rules: Vec<RuleId>,
@@ -1832,4 +1853,42 @@ impl EGraph {
     pub fn compact_cell_table(&self,f:FunctionId)->TableId{self.funcs[f].table}
     pub fn compact_cells(&mut self,batches:&[Arc<core_relations::NativeCellBatch>])->std::result::Result<(),String>{self.db.install_compact_cells(batches)}
     pub fn compact_cell_stats(&self,f:FunctionId)->Option<core_relations::NativeCellStats>{self.db.get_table(self.funcs[f].table).compact_cell_stats()}
+}
+
+#[cfg(test)]
+mod cell_worklist_tests {
+    use super::*;
+    fn table(eg:&mut EGraph,name:&str)->FunctionId {
+        eg.base_values_mut().register_type::<()>();
+        let unit=eg.base_values().get(());
+        eg.add_table(FunctionConfig{schema:vec![ColumnTy::Id,ColumnTy::Base(eg.base_values().get_ty::<()>())],default:DefaultVal::Const(unit),merge:MergeFn::AssertEq,name:name.into(),can_subsume:false})
+    }
+    #[test]
+    fn worklist_flush_preserves_foreign_pending_writes() {
+        let mut eg=EGraph::default();let work=table(&mut eg,"private");let public=table(&mut eg,"public");
+        let a=eg.fresh_id();let b=eg.fresh_id();let unit=eg.base_values().get(());
+        let w=TableAction::new(&eg,work);let p=TableAction::new(&eg,public);
+        eg.with_execution_state(|s|{w.insert(s,[a,unit].into_iter());p.insert(s,[a,unit].into_iter());});
+        eg.flush_worklist_updates(&[work]);
+        assert_eq!(eg.table_size(work),1);assert_eq!(eg.table_size(public),1);
+        eg.with_execution_state(|s|p.insert(s,[b,unit].into_iter()));
+        eg.clear_worklists(&[work]);eg.flush_updates();
+        assert_eq!(eg.table_size(work),0);assert_eq!(eg.table_size(public),2);
+        eg.with_execution_state(|s|w.insert(s,[b,unit].into_iter()));eg.flush_worklist_updates(&[work]);
+        assert_eq!(eg.lookup_id(work,&[b]),Some(unit));assert_eq!(eg.lookup_id(work,&[a]),None);
+    }
+    #[test]
+    fn only_private_worklists_can_avoid_canonical_rebuild() {
+        let mut eg=EGraph::default();let work=table(&mut eg,"private");let public=table(&mut eg,"public");
+        let a=eg.fresh_id();let b=eg.fresh_id();let unit=eg.base_values().get(());
+        let w=TableAction::new(&eg,work);let p=TableAction::new(&eg,public);
+        eg.with_execution_state(|s|{for x in [a,b]{w.insert(s,[x,unit].into_iter());p.insert(s,[x,unit].into_iter());}});
+        eg.flush_updates();let old=eg.set_worklist_rebuild(work,false);
+        let union=UnionAction::new(&eg);eg.with_execution_state(|s|union.union(s,a,b));eg.flush_updates();
+        assert_eq!(eg.table_size(public),1);assert_eq!(eg.table_size(work),2);
+        eg.clear_worklists(&[work]);eg.set_worklist_rebuild(work,old);
+        let root=eg.get_canon_in_uf(a);
+        eg.with_execution_state(|s|w.insert(s,[root,unit].into_iter()));eg.flush_worklist_updates(&[work]);
+        assert_eq!(eg.table_size(work),1);assert_eq!(eg.lookup_id(work,&[root]),Some(unit));
+    }
 }

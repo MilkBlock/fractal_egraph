@@ -795,6 +795,32 @@ impl Database {
         table_changed.added
     }
 
+    /// Merge only private, side-effect-free worklists. If any other table has
+    /// pending writes, preserve its notification order and use the normal path.
+    pub fn try_merge_worklists(&mut self, tables:&[TableId])->bool {
+        let pending=self.notification_list.reset();
+        if pending.iter().any(|id|!tables.contains(id)){
+            for id in pending{self.notification_list.notify(id)}
+            return false
+        }
+        for id in pending {
+            self.merge_table(id);
+            let info=&mut self.tables[id];
+            info.column_indexes.update(|_,index|Arc::get_mut(index).unwrap().reset());
+            info.indexes.update(|_,index|Arc::get_mut(index).unwrap().reset());
+        }
+        true
+    }
+    /// The owner proves that this table is an exclusively owned transient
+    /// input buffer and all actions consuming it have completed.
+    pub fn clear_worklist(&mut self,id:TableId){
+        let info=&mut self.tables[id];
+        self.total_size_estimate=self.total_size_estimate.wrapping_sub(info.table.len());
+        info.table.clear();
+        info.column_indexes.update(|_,index|Arc::get_mut(index).unwrap().reset());
+        info.indexes.update(|_,index|Arc::get_mut(index).unwrap().reset());
+    }
+
     /// Get id of the next table to be added to the database.
     ///
     /// This can be useful for "knot tying", when tables need to reference their
