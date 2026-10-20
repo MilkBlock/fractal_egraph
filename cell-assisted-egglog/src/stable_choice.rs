@@ -14,6 +14,9 @@ use std::{
     hash::{Hash, Hasher},
     sync::Arc,
 };
+mod full;
+pub use full::{coverage, rewrite_ties, schedule_full, setup_full};
+
 pub const RULESET: &str = "cell-stable-keys";
 const SORT: &str = "CellStructuralKey";
 const PREFIX: &str = "CellStructuralKey-";
@@ -107,6 +110,7 @@ impl BaseSort for KeySort {
 #[derive(Clone)]
 enum Op {
     Min,
+    Compare,
     Choose,
     Anchor,
     Node(String),
@@ -131,6 +135,11 @@ impl PurePrim for Prim {
         let b = s.base_values();
         let key = |v| b.unwrap::<Stored>(v);
         match &self.op {
+            Op::Compare => Some(b.get(match key(a[0]).cmp(&key(a[1])) {
+                Ordering::Less => -1i64,
+                Ordering::Equal => 0,
+                Ordering::Greater => 1,
+            })),
             Op::Min => Some(if key(a[0]) <= key(a[1]) { a[0] } else { a[1] }),
             Op::Anchor => Some(b.get(Stored::new((*key(a[0])).clone().anchor()))),
             Op::Choose => {
@@ -190,6 +199,16 @@ fn key_function(sort: &str) -> String {
     format!("{PREFIX}{sort}")
 }
 fn declare_key(eg: &mut EGraph, sort: &str) -> Result<()> {
+    if let Some(f) = eg.get_function(&key_function(sort)) {
+        if !f.is_let_binding()
+            || f.schema().input.len() != 1
+            || f.schema().input[0].name() != sort
+            || f.schema().output.name() != SORT
+        {
+            return Err(format!("structural-key helper name collision for {sort}").into());
+        }
+        return Ok(());
+    }
     private(
         eg,
         &format!(
@@ -201,6 +220,12 @@ fn declare_key(eg: &mut EGraph, sort: &str) -> Result<()> {
 /// Execute the original setup, replacing only the merge of `to-hoist`.
 /// Adds the same auxiliary rules to all backends. No core engine modification.
 pub fn setup(eg: &mut EGraph, commands: &[Command]) -> Result<()> {
+    setup_impl(eg, commands, false)
+}
+fn setup_impl(eg: &mut EGraph, commands: &[Command], full: bool) -> Result<()> {
+    if full {
+        full::install_base(eg)?;
+    }
     let mut found = false;
     for c in commands {
         let mut c = c.clone();
@@ -210,26 +235,30 @@ pub fn setup(eg: &mut EGraph, commands: &[Command]) -> Result<()> {
                     return Err("duplicate to-hoist declaration".into());
                 }
                 found = true;
-                add_base_sort(eg, KeySort, Span::Panic)?;
+                if !full {
+                    add_base_sort(eg, KeySort, Span::Panic)?;
+                }
                 let key = eg.get_sort_by_name(SORT).unwrap().clone();
                 let expr = eg.get_sort_by_name("Expr").ok_or("missing Expr")?.clone();
                 let int = eg.get_sort_by_name("i64").unwrap().clone();
-                eg.add_pure_primitive(
-                    Prim {
-                        name: "cell-key-min".into(),
-                        types: vec![key.clone(); 3],
-                        op: Op::Min,
-                    },
-                    None,
-                );
-                eg.add_pure_primitive(
-                    Prim {
-                        name: "cell-key-anchor".into(),
-                        types: vec![key.clone(); 2],
-                        op: Op::Anchor,
-                    },
-                    None,
-                );
+                if !full {
+                    eg.add_pure_primitive(
+                        Prim {
+                            name: "cell-key-min".into(),
+                            types: vec![key.clone(); 3],
+                            op: Op::Min,
+                        },
+                        None,
+                    );
+                    eg.add_pure_primitive(
+                        Prim {
+                            name: "cell-key-anchor".into(),
+                            types: vec![key.clone(); 2],
+                            op: Op::Anchor,
+                        },
+                        None,
+                    );
+                }
                 eg.add_pure_primitive(
                     Prim {
                         name: "cell-hoist-best".into(),
@@ -250,12 +279,22 @@ pub fn setup(eg: &mut EGraph, commands: &[Command]) -> Result<()> {
                 *merge=Some(egglog::ast::Parser::default().get_expr_from_string(None,"(cell-hoist-best old new (Expr-size old) (Expr-size new) (CellStructuralKey-Expr old) (CellStructuralKey-Expr new))")?);
             }
         }
-        eg.run_program(vec![c])?;
+        if full && matches!(c, Command::Rule { .. }) {
+            for sort in ["Term", "IVTRes"] {
+                if eg.get_sort_by_name(sort).is_some() {
+                    declare_key(eg, sort)?;
+                }
+            }
+            let (cs, _) = full::rewrite_ties(&[c])?;
+            eg.run_program(cs)?;
+        } else {
+            eg.run_program(vec![c])?;
+        }
     }
     if !found {
         return Err("missing to-hoist declaration".into());
     }
-    install_rules(eg)?;
+    install_rules(eg, full)?;
     // Freeze the current input's structural keys once. Subsequent alternatives
     // do not recursively rename the entire input; union still merges keys by min.
     eg.parse_and_run_program(
@@ -264,7 +303,7 @@ pub fn setup(eg: &mut EGraph, commands: &[Command]) -> Result<()> {
     )?;
     Ok(())
 }
-fn install_rules(eg: &mut EGraph) -> Result<()> {
+fn install_rules(eg: &mut EGraph, full: bool) -> Result<()> {
     let functions = eg
         .get_function_names()
         .into_iter()
@@ -274,7 +313,14 @@ fn install_rules(eg: &mut EGraph) -> Result<()> {
                 .then(|| (n, (f.schema().input.clone(), f.schema().output.clone())))
         })
         .collect::<BTreeMap<_, _>>();
-    let mut reachable = BTreeSet::from(["Expr".to_string()]);
+    let mut reachable = if full {
+        functions
+            .values()
+            .map(|(_, output)| output.name().to_string())
+            .collect()
+    } else {
+        BTreeSet::from(["Expr".to_string()])
+    };
     loop {
         let before = reachable.len();
         for (inputs, output) in functions.values() {
@@ -305,6 +351,20 @@ fn install_rules(eg: &mut EGraph) -> Result<()> {
     let mut bases = BTreeSet::new();
     for (name, (inputs, output)) in functions {
         if !reachable.contains(output.name()) {
+            continue;
+        }
+        if full
+            && inputs.iter().any(|s| {
+                !s.is_eq_sort() && !["i64", "f64", "String", "bool", "Unit"].contains(&s.name())
+            })
+        {
+            // An unused declaration is harmless. Never substitute allocation
+            // IDs for unknown container structure if an instance appears.
+            let args = (0..inputs.len())
+                .map(|i| format!("x{i}"))
+                .collect::<Vec<_>>()
+                .join(" ");
+            eg.parse_and_run_program(None,&format!("(rule (({name} {args})) ((panic \"structural-key unsupported instantiated constructor: {name}\")) :ruleset {RULESET})"))?;
             continue;
         }
         let mut conditions = Vec::new();
