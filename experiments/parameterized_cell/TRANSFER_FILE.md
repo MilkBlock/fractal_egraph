@@ -91,3 +91,37 @@ Pass-3 speedup result. The checked artifact is
 This is an end-to-end Bake artifact for the admitted parameterized terms
 program. It is not a universal automatic Cell-family discovery algorithm,
 a termination proof, or a summary which erases intermediate helper effects.
+
+## First release timing comparison
+
+`bench.py transfer-bench --output out/NEW` runs the existing artifact, without
+re-Bake or a GPU worker. The fixture is expanded to 512 independent instances
+using egglog AST traversal: only V/TermLeaf identities change, not costs or
+guards. Each of the seven update phases is executed once per lane. Input
+generation, checks, full-graph comparison, serialization, drop and compilation
+are outside timing; parsing/committing incoming facts is measured separately.
+
+| Lane | Setup ms | Input ms | Inference ms | Sum ms |
+|---|---:|---:|---:|---:|
+| Source-compiled port dataflow | 3.013 | 534.574 | 181.164 | 718.751 |
+| Loaded port dataflow | 2.630 | 532.263 | 185.200 | 720.093 |
+| Existing source joint path | 3.770 | 526.821 | 197.683 | 728.274 |
+
+Loaded versus the equivalent source dataflow is +0.19% in the sum and +2.23%
+in inference. This single measurement shows no large aggregate regression; it
+does not establish a statistical bound or prove that the inference difference
+is noise. Both perform 293,376 port-index reads and submit 51,712 bindings.
+The joint path has additional certificates and skips some no-op work; it is
+not a pure serialization control.
+
+All seven boundaries match the native same-submit query reference as complete
+public graphs (rows, literal values, equality and visibility). The final graph
+has 56,836 public rows, including functions as well as constructors. Auxiliary
+shared-row handle counts are 112,128 for both dataflow variants versus 50,688
+for joint. These are counts, not RSS measurements.
+
+Evidence: `out/transfer-bench-512-v1`, retained as
+[results/transfer-bench512.json](results/transfer-bench512.json).
+This measures the actual CPU runtime on the small terms family, not full
+raytrace or a new GPU speedup. The historical full Pass-3 measurements were
+not repeated or relabeled as this file-loading experiment.

@@ -142,6 +142,8 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(plan(['sat-skip'])[0][-2:], ['512', 'time'])
         self.assertEqual(plan(['parameterized'])[0], ['/repo/target/analyzer/release/examples/parameterized_cell', '/new-out'])
         self.assertEqual(plan(['transition'])[0], ['/repo/target/analyzer/release/examples/cell_transition', '/new-out'])
+        self.assertEqual(plan(['transfer-bench'])[0], ['/repo/target/analyzer/release/examples/transfer_bench',
+            '/repo/experiments/parameterized_cell/results/transfers.egg', '/new-out', '512'])
         self.assertEqual(plan(['joint-sat'])[0], ['/repo/target/analyzer/release/examples/joint_sat_bench', '/worker', '/new-out'])
         self.assertEqual(plan(['joint-sat','--snapshot','/input.egg'])[0][-1],'/input.egg')
 
@@ -205,6 +207,20 @@ class WorkflowTests(unittest.TestCase):
                 B.report(path)
             self.assertIn('不是独立原生整图对照', text.getvalue())
             self.assertNotIn('差异定位', text.getvalue())
+
+    def test_transfer_timing_requires_all_three_graph_checks_and_no_gpu_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder=Path(tmp)
+            proof=dict(exact_rows_values_equivalence_visibility=True)
+            r=dict(transfer_bench_verified=True,verification=[dict(native=proof,loaded=proof,joint=proof)])
+            (folder/'results.json').write_text(json.dumps(r))
+            self.assertTrue(B.saved_gate('transfer-bench',folder))
+            r['verification'][0]['native']=None
+            (folder/'results.json').write_text(json.dumps(r))
+            self.assertFalse(B.saved_gate('transfer-bench',folder))
+        with patch.object(B.subprocess,'run',side_effect=AssertionError('executed')), contextlib.redirect_stdout(io.StringIO()) as text:
+            self.assertEqual(B.main(['--dry-run','transfer-bench']),0)
+        self.assertNotIn('swiftc',text.getvalue())
 
     def test_failed_graph_can_extract_but_keeps_failed_exit(self):
         with tempfile.TemporaryDirectory() as tmp:

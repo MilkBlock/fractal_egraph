@@ -1,0 +1,636 @@
+{
+  "transfer_bench_verified": true,
+  "instances": 512,
+  "scope": "Release actual native runtime, seven update phases, one execution per lane. Setup and input separate; checks, generation, comparison, serialization and drop excluded. Same workload, complete public graphs checked. CPU microbenchmark, not raytrace Pass 3 or GPU speedup.",
+  "lanes": [
+    {
+      "lane": "source_dataflow",
+      "setup_seconds": 0.003012875,
+      "input_seconds": 0.5345743759999999,
+      "run_seconds": 0.181163874,
+      "total_seconds": 0.7187511249999999,
+      "phases": [
+        {
+          "phase": 0,
+          "input_seconds": 0.178228,
+          "run_seconds": 0.0244355
+        },
+        {
+          "phase": 1,
+          "input_seconds": 0.015097792,
+          "run_seconds": 0.034853833
+        },
+        {
+          "phase": 2,
+          "input_seconds": 0.014564417,
+          "run_seconds": 0.00571225
+        },
+        {
+          "phase": 3,
+          "input_seconds": 0.014055667,
+          "run_seconds": 0.039169333
+        },
+        {
+          "phase": 4,
+          "input_seconds": 0.170175583,
+          "run_seconds": 0.046373292
+        },
+        {
+          "phase": 5,
+          "input_seconds": 0.142447375,
+          "run_seconds": 0.030614
+        },
+        {
+          "phase": 6,
+          "input_seconds": 5.542e-06,
+          "run_seconds": 5.666e-06
+        }
+      ],
+      "counters": {
+        "program_compilations": 1,
+        "loaded_programs": 0,
+        "ruleset_runs": 111,
+        "keyed_reads": 293376,
+        "submitted_bindings": 51712
+      },
+      "port_reuse": {
+        "reused_reads": 53248,
+        "resumed_seed_evaluations": 38400,
+        "stored_paths": 56320,
+        "shared_row_handles": 112128
+      },
+      "joint": null
+    },
+    {
+      "lane": "loaded_dataflow",
+      "setup_seconds": 0.002630375,
+      "input_seconds": 0.532262998,
+      "run_seconds": 0.185200125,
+      "total_seconds": 0.720093498,
+      "phases": [
+        {
+          "phase": 0,
+          "input_seconds": 0.178313458,
+          "run_seconds": 0.028098875
+        },
+        {
+          "phase": 1,
+          "input_seconds": 0.015226166,
+          "run_seconds": 0.036508459
+        },
+        {
+          "phase": 2,
+          "input_seconds": 0.013391583,
+          "run_seconds": 0.006863
+        },
+        {
+          "phase": 3,
+          "input_seconds": 0.013353666,
+          "run_seconds": 0.034663875
+        },
+        {
+          "phase": 4,
+          "input_seconds": 0.16541925,
+          "run_seconds": 0.044791708
+        },
+        {
+          "phase": 5,
+          "input_seconds": 0.146557167,
+          "run_seconds": 0.034271375
+        },
+        {
+          "phase": 6,
+          "input_seconds": 1.708e-06,
+          "run_seconds": 2.833e-06
+        }
+      ],
+      "counters": {
+        "program_compilations": 0,
+        "loaded_programs": 7,
+        "ruleset_runs": 111,
+        "keyed_reads": 293376,
+        "submitted_bindings": 51712
+      },
+      "port_reuse": {
+        "reused_reads": 53248,
+        "resumed_seed_evaluations": 38400,
+        "stored_paths": 56320,
+        "shared_row_handles": 112128
+      },
+      "joint": null
+    },
+    {
+      "lane": "source_joint",
+      "setup_seconds": 0.003770125,
+      "input_seconds": 0.526820792,
+      "run_seconds": 0.19768316600000002,
+      "total_seconds": 0.728274083,
+      "phases": [
+        {
+          "phase": 0,
+          "input_seconds": 0.172652084,
+          "run_seconds": 0.026902542
+        },
+        {
+          "phase": 1,
+          "input_seconds": 0.012098958,
+          "run_seconds": 0.031727666
+        },
+        {
+          "phase": 2,
+          "input_seconds": 0.014976542,
+          "run_seconds": 0.015332125
+        },
+        {
+          "phase": 3,
+          "input_seconds": 0.01439575,
+          "run_seconds": 0.034164375
+        },
+        {
+          "phase": 4,
+          "input_seconds": 0.164550833,
+          "run_seconds": 0.050331333
+        },
+        {
+          "phase": 5,
+          "input_seconds": 0.148140625,
+          "run_seconds": 0.039221667
+        },
+        {
+          "phase": 6,
+          "input_seconds": 6e-06,
+          "run_seconds": 3.458e-06
+        }
+      ],
+      "counters": {
+        "program_compilations": 1,
+        "loaded_programs": 0,
+        "ruleset_runs": 108,
+        "keyed_reads": 290304,
+        "submitted_bindings": 37888
+      },
+      "port_reuse": {
+        "reused_reads": 41984,
+        "resumed_seed_evaluations": 30720,
+        "stored_paths": 28672,
+        "shared_row_handles": 50688
+      },
+      "joint": {
+        "boundaries": 7,
+        "skipped_joint_saturations": 1,
+        "quiescent_skips": 1,
+        "macro_instances": 0,
+        "macro_waves": 0,
+        "fallback_boundaries": 6,
+        "dataflow_boundaries": 6,
+        "dataflow_ruleset_runs": 108,
+        "port_reusing_boundaries": 6,
+        "uniform_cost_boundaries": 6,
+        "reasons": {
+          "changed existing state or external helper work": 5,
+          "multiple producers for one Expr": 1
+        }
+      }
+    }
+  ],
+  "verification": [
+    {
+      "phase": 0,
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 24068,
+        "eclass_mapping": 16900,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 2048,
+          "Smaller": 2048,
+          "TCPair": 5121,
+          "TermBop": 2048,
+          "TermLeaf": 3072,
+          "V": 3072
+        }
+      },
+      "loaded": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 24068,
+        "eclass_mapping": 16900,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 2048,
+          "Smaller": 2048,
+          "TCPair": 5121,
+          "TermBop": 2048,
+          "TermLeaf": 3072,
+          "V": 3072
+        }
+      },
+      "joint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 24068,
+        "eclass_mapping": 16900,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 2048,
+          "Smaller": 2048,
+          "TCPair": 5121,
+          "TermBop": 2048,
+          "TermLeaf": 3072,
+          "V": 3072
+        }
+      }
+    },
+    {
+      "phase": 1,
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 31748,
+        "eclass_mapping": 21508,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 3584,
+          "Smaller": 5120,
+          "TCPair": 6657,
+          "TermBop": 3072,
+          "TermLeaf": 3584,
+          "V": 3072
+        }
+      },
+      "loaded": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 31748,
+        "eclass_mapping": 21508,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 3584,
+          "Smaller": 5120,
+          "TCPair": 6657,
+          "TermBop": 3072,
+          "TermLeaf": 3584,
+          "V": 3072
+        }
+      },
+      "joint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 31748,
+        "eclass_mapping": 21508,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 3584,
+          "Smaller": 5120,
+          "TCPair": 6657,
+          "TermBop": 3072,
+          "TermLeaf": 3584,
+          "V": 3072
+        }
+      }
+    },
+    {
+      "phase": 2,
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 33796,
+        "eclass_mapping": 23044,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4096,
+          "Smaller": 5632,
+          "TCPair": 7169,
+          "TermBop": 3072,
+          "TermLeaf": 4096,
+          "V": 3072
+        }
+      },
+      "loaded": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 33796,
+        "eclass_mapping": 23044,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4096,
+          "Smaller": 5632,
+          "TCPair": 7169,
+          "TermBop": 3072,
+          "TermLeaf": 4096,
+          "V": 3072
+        }
+      },
+      "joint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 33796,
+        "eclass_mapping": 23044,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4096,
+          "Smaller": 5632,
+          "TCPair": 7169,
+          "TermBop": 3072,
+          "TermLeaf": 4096,
+          "V": 3072
+        }
+      }
+    },
+    {
+      "phase": 3,
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 40964,
+        "eclass_mapping": 27652,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 5632,
+          "Smaller": 8192,
+          "TCPair": 8705,
+          "TermBop": 4096,
+          "TermLeaf": 4608,
+          "V": 3072
+        }
+      },
+      "loaded": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 40964,
+        "eclass_mapping": 27652,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 5632,
+          "Smaller": 8192,
+          "TCPair": 8705,
+          "TermBop": 4096,
+          "TermLeaf": 4608,
+          "V": 3072
+        }
+      },
+      "joint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 40964,
+        "eclass_mapping": 27652,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4608,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 5632,
+          "Smaller": 8192,
+          "TCPair": 8705,
+          "TermBop": 4096,
+          "TermLeaf": 4608,
+          "V": 3072
+        }
+      }
+    },
+    {
+      "phase": 4,
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 48644,
+        "eclass_mapping": 31748,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 7168,
+          "Smaller": 11776,
+          "TCPair": 10241,
+          "TermBop": 5632,
+          "TermLeaf": 4608,
+          "V": 3072
+        }
+      },
+      "loaded": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 48644,
+        "eclass_mapping": 31748,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 7168,
+          "Smaller": 11776,
+          "TCPair": 10241,
+          "TermBop": 5632,
+          "TermLeaf": 4608,
+          "V": 3072
+        }
+      },
+      "joint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 48644,
+        "eclass_mapping": 31748,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 7168,
+          "Smaller": 11776,
+          "TCPair": 10241,
+          "TermBop": 5632,
+          "TermLeaf": 4608,
+          "V": 3072
+        }
+      }
+    },
+    {
+      "phase": 5,
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 56836,
+        "eclass_mapping": 38404,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 9216,
+          "Smaller": 12800,
+          "TCPair": 12801,
+          "TermBop": 7680,
+          "TermLeaf": 5120,
+          "V": 3072
+        }
+      },
+      "loaded": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 56836,
+        "eclass_mapping": 38404,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 9216,
+          "Smaller": 12800,
+          "TCPair": 12801,
+          "TermBop": 7680,
+          "TermLeaf": 5120,
+          "V": 3072
+        }
+      },
+      "joint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 56836,
+        "eclass_mapping": 38404,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 9216,
+          "Smaller": 12800,
+          "TCPair": 12801,
+          "TermBop": 7680,
+          "TermLeaf": 5120,
+          "V": 3072
+        }
+      }
+    },
+    {
+      "phase": 6,
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 56836,
+        "eclass_mapping": 38404,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 9216,
+          "Smaller": 12800,
+          "TCPair": 12801,
+          "TermBop": 7680,
+          "TermLeaf": 5120,
+          "V": 3072
+        }
+      },
+      "loaded": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 56836,
+        "eclass_mapping": 38404,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 9216,
+          "Smaller": 12800,
+          "TCPair": 12801,
+          "TermBop": 7680,
+          "TermLeaf": 5120,
+          "V": 3072
+        }
+      },
+      "joint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 56836,
+        "eclass_mapping": 38404,
+        "tables": {
+          "Add": 1,
+          "Bop": 2048,
+          "ExtractedExpr": 4096,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 9216,
+          "Smaller": 12800,
+          "TCPair": 12801,
+          "TermBop": 7680,
+          "TermLeaf": 5120,
+          "V": 3072
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "mode": "transfer-bench",
+    "policy": null,
+    "commands": [
+      [
+        "cargo",
+        "build",
+        "--offline",
+        "--release",
+        "--target-dir",
+        "target/analyzer",
+        "--example",
+        "transfer_bench"
+      ],
+      [
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/transfer_bench",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/parameterized_cell/results/transfers.egg",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/transfer-bench-512-v1",
+        "512"
+      ]
+    ],
+    "returncode": 0,
+    "repo": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout",
+    "source_head": "603f1f838f2c00ec24cd5355cc5d548fd77ae81f",
+    "dirty_files": " M cell-assisted-egglog/resident.swift\n M skills/cell-assisted-egglog-bench/scripts/bench.py\n?? examples/transfer_bench.rs\n",
+    "no_build": false,
+    "worker_sha256": "63e94ed38d4e8e921201dc3b233cd714e837781ffd3308e6071f5cbf80c235c3",
+    "snapshot_sha256": null,
+    "binary_sha256": {
+      "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/transfer_bench": "ae3c077c13796991667923582a3cb64613f1e87adb701983e2ce41c5129c6333"
+    },
+    "library_sha256": "d686facc8b7d05ce679a2f318486ca66cdd25ef231d576f4bce6b049ca5ca6c4",
+    "instances": 512,
+    "fixture_sha256": {
+      "terms.egg": "61849191d3f90e032996d97146caea5c914f9e35d283b56533099e8b53245172",
+      "competing_updates.egg": "4c91a5c2bbcab646ca34b5433952f152cc1ea2f92d0bb10737ce2028d4f08a3c"
+    }
+  },
+  "original_report": "out/transfer-bench-512-v1/results.json"
+}
