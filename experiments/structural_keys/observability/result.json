@@ -1,0 +1,41 @@
+{
+  "schema": "semantic-continuation/v1",
+  "status": "counterexample",
+  "cell_replacement": "rejected_for_this_continuation",
+  "counterexample": {
+    "command": 2,
+    "query": "(check (SeenLeft (Leaf 1)))",
+    "left": true,
+    "right": false,
+    "distinguishes": true
+  },
+  "observations": [
+    {
+      "command": 0,
+      "query": "(check (= result a))",
+      "left": true,
+      "right": true,
+      "distinguishes": false
+    },
+    {
+      "command": 2,
+      "query": "(check (SeenLeft (Leaf 1)))",
+      "left": true,
+      "right": false,
+      "distinguishes": true
+    },
+    {
+      "command": 3,
+      "query": "(check (SeenLeft (Leaf 2)))",
+      "left": false,
+      "right": true,
+      "distinguishes": true
+    }
+  ],
+  "errors": [],
+  "executed_commands": [
+    "(run-schedule (repeat 1 (run observe)))"
+  ],
+  "scope": "these two concrete states and these queries under exactly this continuation",
+  "all_continuations_proved": false
+}

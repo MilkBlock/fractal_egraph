@@ -3,6 +3,18 @@ use std::path::{Path, PathBuf};
 fn main() -> Result {
     let args: Vec<_> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
+        Some("analyze-continuation") => {
+            if args.len()!=4 {return Err("usage: analyze-continuation LEFT.egg RIGHT.egg CONTINUATION.egg".into());}
+            let r=egg_layout::semantic_audit::compare_continuation(
+                &std::fs::read_to_string(&args[1])?,
+                &std::fs::read_to_string(&args[2])?,
+                &std::fs::read_to_string(&args[3])?,
+            )?;
+            println!("{}",serde_json::to_string_pretty(&r)?);
+            if r["status"] == "counterexample" {return Err("continuation distinguishes these states; replacement rejected".into());}
+            if r["status"] == "unknown" {return Err("continuation audit is inconclusive".into());}
+            Ok(())
+        }
         #[cfg(not(target_arch = "wasm32"))]
         Some("analyze-transfer") if args.len()==3 => {
             let r=native_analyze::transfer::export_file(Path::new(&args[1]),Path::new(&args[2]))?;

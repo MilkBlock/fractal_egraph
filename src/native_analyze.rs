@@ -1159,7 +1159,16 @@ fn execute(
     let mut manifest = vec![];
     let mut emitted = 0;
     let mut boundary = 0;
+    let mut semantic_audit = Json::Null;
     let mut boundary_emit = |c: &mut Captured| -> Result {
+        if semantic_audit.is_null() && structural_keys::enabled(&c.preview_source) {
+            semantic_audit = crate::semantic_audit::risks(
+                &c.preview_source, &["Smaller", "IVTMin", "to-hoist", "ExtractedExpr"],
+            )?;
+            std::fs::write(out.join("semantic-audit.json"), serde_json::to_vec_pretty(&semantic_audit)?)?;
+            eprintln!("[semantic warning] structural keys stabilize choices, not intermediate graphs; Cell replacement is not certified. See semantic-audit.json.");
+            emit(json!({"kind":"semantic_warning","audit":semantic_audit}))?;
+        }
         update_layers(c)?;
         boundary += 1;
         for r in c.records[emitted..].iter().filter(|_| detailed_trace) {
@@ -1294,6 +1303,7 @@ fn execute(
     let finish_started = Instant::now();
     let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"equality_sorts":c.datatype_names,"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
     report["structural_keys"]=json!({"enabled":structural_keys::enabled(&c.preview_source),"policy":"eggcc-v1","acceptance":"selected_program_equivalence","whole_graph_deterministic":false});
+    report["semantic_audit"] = semantic_audit;
     report["reuse_plan"] = c.reuse_plan.clone();
     report["saturated_rule_composition"] = pipeline.take_report();
     // Opt-in through the graph-output switch: leave graphless native timing alone.

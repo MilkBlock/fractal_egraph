@@ -41,6 +41,10 @@ fn cli_records_normalized_policy_and_replays_key_literals() {
         result["structural_keys"]["whole_graph_deterministic"],
         false
     );
+    assert_eq!(result["semantic_audit"]["status"], "potentially_observable");
+    assert_eq!(result["semantic_audit"]["cell_replacement"], "not_certified");
+    assert!(out.join("semantic-audit.json").exists());
+    assert!(String::from_utf8_lossy(&r.stderr).contains("[semantic warning]"));
     assert!(result["summary"]["applications"].as_u64().unwrap() > 0);
     let text = std::fs::read_to_string(out.join("normalized.egg")).unwrap();
     assert!(text.contains("stable-equal-cost"));
@@ -118,6 +122,7 @@ fn cli_records_normalized_policy_and_replays_key_literals() {
     let restored: Value =
         serde_json::from_slice(&std::fs::read(replay.join("analysis.json")).unwrap()).unwrap();
     assert_eq!(restored["structural_keys"]["enabled"], true);
+    assert_eq!(restored["semantic_audit"], result["semantic_audit"]);
     assert_eq!(
         restored["summary"]["applications"],
         result["summary"]["applications"]

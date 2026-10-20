@@ -128,3 +128,60 @@ as successful complete analyses. The smaller real `add` snapshot and a staged
 same-cost regression exercise complete analysis, local ripen and history replay.
 The optional environment variable `EGG_LAYOUT_KEY_AUDIT_GRAPH` saves the final
 native graph for this validation; ordinary analysis does not export it.
+
+## Observability warning and native counterexamples
+
+`analyze --structural-keys` now writes `semantic-audit.json`, embeds it in
+`analysis.json`, and emits a warning during capture (also during history replay).
+The report treats `Smaller`, `IVTMin`, `to-hoist`, and `ExtractedExpr` as
+**potential** differences introduced or exposed by the selection policy. It does
+not claim to have measured a difference in this particular run.
+
+It lists their consuming rules, rulesets, effects and transitive table paths.
+RHS lookups and function merge expressions are included. A reachable union
+conservatively propagates to all tables because rebuild can change keys and
+invoke merges. This deliberately broad, schedule-insensitive diagnostic does
+not prove that guards can be satisfied, that all paths run, or that an external
+extractor observes a difference. Unsupported constructs remain unresolved.
+Absence of a reported path is not a safety certificate.
+
+The three different conclusions must not be confused:
+
+| Evidence | Conclusion |
+| --- | --- |
+| Static dependency path | Potentially observable; warn |
+| A native query returns different answers after the same continuation | Concrete counterexample; reject this replacement |
+| All queries agree in a tested continuation | No counterexample in that test; arbitrary future reuse remains unproved |
+
+`cell_replacement: not_certified` is explicit. Final-output equivalence is marked
+`not_checked_by_this_run`; running the analyzer does not itself rerun production
+Tiger. Existing exact local Cell equivalence gates remain unchanged.
+
+Run the small native counterexample:
+
+```sh
+target/keys/release/egg_layout analyze-continuation \
+  experiments/structural_keys/observability/left.egg \
+  experiments/structural_keys/observability/right.egg \
+  experiments/structural_keys/observability/continuation.egg
+```
+
+Both states select `(TCPair (Leaf 1) 2)`. After an identical later `observe`
+ruleset, only the left state contains `(SeenLeft (Leaf 1))`, and only the right
+contains `(SeenLeft (Leaf 2))`. This is an executable model of the risk, **not a
+claim that eggcc contains this extra observer**. Static auditing of the real
+`add-pass3.egg` separately finds the existing Smaller-reading union rules.
+
+The command prints JSON and exits nonzero on a counterexample or an inconclusive
+audit. `check` commands are probes on clones, so false queries do not stop later
+observations or change either state. Actual execution/type errors are unresolved,
+not interpreted as false facts. Schedules and intervening actions retain their
+original order. No extra saturation is inserted. A successful exit only covers
+the supplied queries. Execution is explicit and can run as long as the supplied
+schedule; this diagnostic is never started automatically by normal analysis.
+
+The CLI accepts plain flat native replay sources. The Rust `compare_states` API
+also accepts already prepared engines, including structural-key environments,
+with their exact continuation and key-maintenance schedule supplied by the
+caller. It does not reconstruct engines from serialized graph dumps. This is
+actual native egglog execution, not a symbolic simulation or GPU benchmark.

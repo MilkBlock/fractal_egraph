@@ -1,0 +1,5 @@
+; First observation agrees; a subsequent rule observes the stored history.
+(check (= result a))
+(run observe 1)
+(check (SeenLeft (Leaf 1)))
+(check (SeenLeft (Leaf 2)))
