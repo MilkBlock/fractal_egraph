@@ -828,3 +828,5 @@ mod projection_tests {
         assert_eq!(eg.audit_cell_matches(&sink).unwrap().len(), 1);
     }
 }
+
+mod query_sharing;

@@ -34,6 +34,8 @@ pub struct Stats {
     pub roundtrip_seconds: f64,
     pub decode_seconds: f64,
     pub device_seconds: f64,
+    pub gpu_maintenance_seconds: Option<f64>,
+    pub gpu_matching_seconds: Option<f64>,
     pub native_query_seconds: f64,
     pub audit_seconds: f64,
     pub dispatches: usize,
@@ -53,6 +55,8 @@ pub struct Stats {
     pub cell_query_rules: usize,
     pub cell_query_bindings: usize,
     pub cell_query_seconds: f64,
+    pub shared_query_requests: usize,
+    pub shared_query_bindings: usize,
     pub native_only_runs: usize,
     pub native_only_seconds: f64,
 }
@@ -60,8 +64,12 @@ pub struct Stats {
 struct QueryCost {
     runs: usize,
     bindings: usize,
+    cell_bindings: usize,
+    shared_bindings: usize,
     query_seconds: f64,
     device_seconds: f64,
+    maintenance_seconds: f64,
+    matching_seconds: f64,
 }
 #[derive(Default, Serialize)]
 struct NativeStats {
@@ -104,6 +112,8 @@ struct QueryStats {
     audit_queries: usize,
     cell_queries: usize,
     cell_bindings: usize,
+    shared_queries: usize,
+    shared_bindings: usize,
 }
 struct Row {
     table: usize,
@@ -143,6 +153,8 @@ pub struct Options<'a> {
 pub struct Runtime {
     eg: EGraph,
     sinks: Vec<CellActionSink>,
+    sharing:crate::query_sharing::Queries,
+    share_queries:bool,
     reference: Vec<CellQuery>,
     sets: BTreeMap<String, Vec<usize>>,
     native_sets: BTreeSet<String>,
@@ -204,6 +216,7 @@ fn collect(
 }
 impl Runtime {
     /// Reuse a certified complete query frontier without changing any effect.
+    pub fn set_query_sharing(&mut self,enabled:bool){self.share_queries=enabled;}
     pub fn set_cell_query_reuse(&mut self, enabled: bool) {self.cell_queries_enabled=enabled;}
     /// Diagnose only Cell-supplied frontiers with cached native queries.
     /// This is an oracle run, never a timing result.
@@ -355,9 +368,12 @@ impl Runtime {
                 reference.push(eg.prepare_cell_query(s)?);
             }
         }
+        let sharing=crate::query_sharing::Queries::compile(&sinks);
         let mut runtime = Self {
             eg,
             sinks,
+            sharing,
+            share_queries:std::env::var("CELL_SHARE_IDENTICAL_QUERIES").as_deref()==Ok("1"),
             reference,
             sets,
             native_sets,
@@ -449,11 +465,13 @@ impl Runtime {
                 !options.plan_only,
                 !options.cache_only,
             )?;
+            config["phase_timing"]=json!(runtime.query_timing);
             config["port_locality"] = json!(options.port_locality as u32);
             config["query_routing"] = json!(options.query_routing as u32);
             runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
+            if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
             if installed["family_layout"] != json!(9) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
@@ -617,7 +635,29 @@ impl Runtime {
         }
         Ok(result)
     }
-    fn gpu_matches(&mut self, ids: &[usize]) -> Result<Vec<Vec<Vec<Value>>>> {
+    fn gpu_matches(&mut self,ids:&[usize])->Result<Vec<Vec<Vec<Value>>>> {
+        if !self.share_queries{return self.gpu_matches_unshared(ids)}
+        let mut groups=BTreeMap::new();let mut leaders=vec![];let mut source=vec![];
+        for id in ids {
+            let key=(self.sharing.groups[*id],self.eg.cell_query_watermark(&self.sinks[*id]));
+            let next=leaders.len();let slot=*groups.entry(key).or_insert_with(||{leaders.push(*id);next});source.push(slot);
+        }
+        let mut result=self.gpu_matches_unshared(&leaders)?.into_iter().map(Some).collect::<Vec<_>>();
+        let mut outputs=vec![vec![];ids.len()];
+        // Copy followers before moving the leader's buffer. No result survives
+        // this native Run, and no consumer's action or cursor is omitted.
+        for (i,id) in ids.iter().enumerate(){let slot=source[i];let leader=leaders[slot];
+            if *id!=leader {
+                outputs[i]=self.sharing.transport(leader,*id,result[slot].as_ref().unwrap());
+                outputs[i].sort_unstable();
+                self.qstats[*id].shared_queries+=1;self.qstats[*id].shared_bindings+=outputs[i].len();
+                self.stats.shared_query_requests+=1;self.stats.shared_query_bindings+=outputs[i].len();
+            }
+        }
+        for (i,id) in ids.iter().enumerate(){if *id==leaders[source[i]]{outputs[i]=result[source[i]].take().unwrap();}}
+        Ok(outputs)
+    }
+    fn gpu_matches_unshared(&mut self, ids: &[usize]) -> Result<Vec<Vec<Vec<Value>>>> {
         let t = Instant::now();
         let active = ids
             .iter()
@@ -685,6 +725,10 @@ impl Runtime {
             .family_step(&words, self.epoch)?;
         self.stats.roundtrip_seconds += t.elapsed().as_secs_f64();
         self.stats.device_seconds += r["gpu_seconds"].as_f64().ok_or("missing device timer")?;
+        if self.query_timing {
+            *self.stats.gpu_maintenance_seconds.get_or_insert(0.0)+=r["gpu_maintenance_seconds"].as_f64().ok_or("missing maintenance timer")?;
+            *self.stats.gpu_matching_seconds.get_or_insert(0.0)+=r["gpu_matching_seconds"].as_f64().ok_or("missing matching timer")?;
+        }
         if r["epoch"].as_u64() != Some((self.epoch + 1) as u64) || r["retained_matches"] != 0 {
             return Err("invalid family receipt".into());
         }
@@ -767,6 +811,9 @@ impl Runtime {
         let remaining=ids.iter().enumerate().filter(|(i,_)|!provided.contains(i)).map(|(i,id)|(i,*id)).collect::<Vec<_>>();
         let pending=remaining.iter().map(|(_,id)|*id).collect::<Vec<_>>();
         let started=self.query_timing.then(Instant::now);let device_before=self.stats.device_seconds;
+        let shared_before=self.stats.shared_query_bindings;
+        let maintenance_before=self.stats.gpu_maintenance_seconds.unwrap_or(0.0);
+        let matching_before=self.stats.gpu_matching_seconds.unwrap_or(0.0);
         let ordinary=if pending.is_empty(){vec![]}else if self.cpu {
             let t=Instant::now();let r=self.native_matches(&pending)?;
             self.stats.native_query_seconds+=t.elapsed().as_secs_f64();r
@@ -775,7 +822,11 @@ impl Runtime {
         if let Some(started)=started {
             let cost=self.query_costs.entry(set.to_string()).or_default();
             cost.runs+=1;cost.bindings+=matches.iter().map(Vec::len).sum::<usize>();
+            cost.cell_bindings+=provided.iter().map(|i|matches[*i].len()).sum::<usize>();
+            cost.shared_bindings+=self.stats.shared_query_bindings-shared_before;
             cost.query_seconds+=started.elapsed().as_secs_f64();cost.device_seconds+=self.stats.device_seconds-device_before;
+            cost.maintenance_seconds+=self.stats.gpu_maintenance_seconds.unwrap_or(0.0)-maintenance_before;
+            cost.matching_seconds+=self.stats.gpu_matching_seconds.unwrap_or(0.0)-matching_before;
         }
         if self.audit || self.audit_cell_queries {
             let t = Instant::now();
@@ -1004,6 +1055,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

@@ -114,7 +114,7 @@ def metrics(r, quality=None, extraction=None):
     gpu = r['gpu']['runtime']['run_seconds']
     control=r.get('gpu_without_joint')
     joint_ok=not control or exact(r.get('joint_verification'))
-    eligible = ok and joint_ok and r.get('benchmark_finished') is True and audit is False and cpu > 0 and gpu > 0
+    eligible = ok and joint_ok and r.get('benchmark_finished') is True and audit is False and not r.get('gpu',{}).get('query_timing_profile',False) and cpu > 0 and gpu > 0
     result = dict(exact_cpu_gpu=ok, exact_fused_native_gpu=exact(r.get('verification')),
                   timing_eligible=eligible, inference_speedup=cpu / gpu if eligible else None,
                   extraction_passed=bool(quality and quality.get('passed') is True),
@@ -150,7 +150,7 @@ def report(path, fresh=False):
         pair = path.parent / 'extraction/cpu-gpu-quality.json'
         if pair.is_file(): print('Tiger same-commit CPU/GPU:', load(pair).get('passed'))
         print('实际 Tiger 选定 DAG 检查：', m['extraction_passed'] if qpath.is_file() else '尚未运行')
-        print('有效推理加速比：', f"{m['inference_speedup']:.4f}x" if m['timing_eligible'] else '不报告（整图门槛失败或这是 audit）')
+        print('有效推理加速比：', f"{m['inference_speedup']:.4f}x" if m['timing_eligible'] else '不报告（检查未通过，或这是 audit/阶段计时）')
         if m['inference_plus_tiger_speedup'] is not None:
             print(f"推理＋Tiger：{m['inference_plus_tiger_speedup']:.4f}x")
         if r.get('reused_controls'): print('复用历史对照：', r['reused_controls']['directory'], '；本次仅运行 GPU 候选并重新核对完整图。')
@@ -158,7 +158,7 @@ def report(path, fresh=False):
         print('由 Cell handler 完成的饱和边界（含显式 dataflow 推进）：', r['gpu']['runtime'].get('skipped_saturations', 0))
         print('Cell supplied queries/bindings:', r['gpu']['runtime'].get('cell_query_rules', 0), r['gpu']['runtime'].get('cell_query_bindings', 0))
         if r.get('gpu_without_joint'):
-            print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '未通过整图门槛')
+            print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '当前检查或计时模式不报告')
             print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
         if not m['exact_cpu_gpu']:
             print('失败原因：', r.get('same_commit_verification_error'))

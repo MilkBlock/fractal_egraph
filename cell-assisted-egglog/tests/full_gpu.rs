@@ -128,3 +128,36 @@ fn unrelated_tables_do_not_multiply_index_storage_and_query_shapes_stay_exact() 
     let dense=d["events"].as_u64().unwrap()*d["index_count"].as_u64().unwrap();
     assert!(d["index_link_words"].as_u64().unwrap()*8<dense,"{d}");
 }
+
+#[test]
+fn shared_queries_preserve_wiring_predicates_and_independent_watermarks() {
+    let Some(worker)=worker()else{return};
+    let mut eg=EGraph::default();
+    eg.parse_and_run_program(None,r#"
+      (datatype E (N i64)) (relation P (E E))
+      (function A (E E) i64 :merge (+ old new))
+      (function B (E E) i64 :merge (+ old new))
+      (relation Same (E)) (relation Different (E E))
+      (ruleset a) (ruleset b) (unstable-combined-ruleset ab a b)
+      (rule ((P x y)) ((set (A x y) 1)) :ruleset a :name "left")
+      (rule ((P v u)) ((set (B u v) 1)) :ruleset b :name "right")
+      (rule ((P z z)) ((Same z)) :ruleset b :name "alias")
+      (rule ((P x y) (!= x y)) ((Different x y)) :ruleset b :name "neq")
+      (P (N 0) (N 1))
+    "#).unwrap();
+    let commands=eg.parse_program(None,"(run a 1) (run ab 1)").unwrap();
+    let mut r=Runtime::new_full(eg,&commands,Some(&worker),true,None).unwrap();
+    r.set_query_sharing(true);
+    r.run(&commands).unwrap();
+    check(&r,"(check (= (A (N 0) (N 1)) 1)) (check (= (B (N 1) (N 0)) 1)) (fail (check (Same (N 0))))");
+    r.input("(P (N 2) (N 3))").unwrap();r.run(&commands[1..]).unwrap();
+    check(&r,"(check (= (A (N 2) (N 3)) 1)) (check (= (B (N 3) (N 2)) 1)) (fail (check (Same (N 2))))");
+    r.input("(union (N 2) (N 3))").unwrap();r.run(&commands[1..]).unwrap();check(&r,"(check (Same (N 2)))");
+    assert!(r.report()["runtime"]["shared_query_bindings"].as_u64().unwrap()>0);
+    let report=r.report();
+    if report["query_timing_profile"]==true {
+        let s=&report["runtime"];
+        let delta=s["device_seconds"].as_f64().unwrap()-s["gpu_matching_seconds"].as_f64().unwrap()-s["gpu_maintenance_seconds"].as_f64().unwrap();
+        assert!(delta.abs()<1e-6,"stage timers do not add up: {s}");
+    }
+}

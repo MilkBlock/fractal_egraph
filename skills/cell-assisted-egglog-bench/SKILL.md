@@ -77,4 +77,6 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 差异定位、sat-skip 小样例和报告字段的细节只在需要时读 [references/modes.md](references/modes.md)。交付给用户以结果、限制、报告链接为主；复现时给这个统一入口即可，不再反复展开整段底层命令。
 
-仅在 `CELL_QUERY_TIMINGS=1` 诊断模式下，查询耗时按 ruleset 保存在 `gpu.query_costs_by_ruleset`：`query_seconds` 包含交接和解码，`device_seconds` 来自 worker；两者不能相加。用这份分解决定下一项优化，不从逻辑 match 次数推算 probe 成本。
+仅在 `CELL_QUERY_TIMINGS=1` 诊断模式下，查询耗时按 ruleset 保存在 `gpu.query_costs_by_ruleset`：`query_seconds` 包含交接和解码，`device_seconds` 来自 worker；两者不能相加。此诊断还将 GPU command buffer 拆开测量 `maintenance_seconds` 与 `matching_seconds`，分别是表/索引维护和匹配阶段（含候选路由）；不以这个模式的总时间发布加速比。维护时间记在随后消费数据的 ruleset 下，不代表该 ruleset 制造了这些更新。用这份分解决定下一项优化，不从逻辑 match 次数推算 probe 成本。
+
+`CELL_SHARE_IDENTICAL_QUERIES=1` 是默认关闭的整条 LHS 查询共享实验；只有完整条件、binding 接线和原生增量游标一致才共享，RHS 不合并。其当前测量并未证明净加速，不把 `shared_query_requests`（含空结果）当作 kernel 启动数或写入数。

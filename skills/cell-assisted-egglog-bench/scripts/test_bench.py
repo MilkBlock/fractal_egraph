@@ -132,6 +132,12 @@ class WorkflowTests(unittest.TestCase):
             changed = copy.deepcopy(r); changed['gpu']['audit'] = audit
             self.assertIsNone(B.metrics(changed)['inference_speedup'])
 
+    def test_phase_profile_is_not_reported_as_a_timing_speedup(self):
+        r=fixture();r['gpu']['query_timing_profile']=True
+        m=B.metrics(r)
+        self.assertTrue(m['exact_cpu_gpu']);self.assertFalse(m['timing_eligible'])
+        self.assertIsNone(m['inference_speedup'])
+
     def test_extraction_ratio_requires_actual_successful_extraction(self):
         r = fixture(); t = dict(runs=[dict(lane='cpu', seconds=2, returncode=0), dict(lane='gpu', seconds=1, returncode=0)])
         self.assertIsNone(B.metrics(r, None, t)['inference_plus_tiger_speedup'])
