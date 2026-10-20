@@ -139,6 +139,26 @@ fn invalid_guard_cannot_reach_the_native_rhs() {
 }
 
 #[test]
+fn batch_preflight_validates_every_row_before_writing_any_worklist() {
+    let mut e = engine(
+        "(relation P (i64)) (relation Q (i64)) \
+         (rule ((P x) (> x 0)) ((Q x)) :name \"guard\") (P 1)",
+    );
+    let sink = e.prepare_cell_action("", "guard").unwrap();
+    let valid = e.audit_cell_matches(&sink).unwrap();
+    let mut invalid = valid[0].clone();
+    for (i, (_, sort)) in sink.slots().iter().enumerate() {
+        if *sort == "i64" { invalid[i] = e.base_to_value(-1i64); }
+    }
+    assert!(e.apply_cell_bindings(&sink, &[valid[0].clone(), invalid]).is_err());
+    assert_eq!(e.get_size("Q"), 0);
+    e.apply_cell_bindings(&sink, &[]).unwrap();
+    assert_eq!(e.get_size("Q"), 0);
+    e.apply_cell_bindings(&sink, &valid).unwrap();
+    check(&e, "(check (Q 1))");
+}
+
+#[test]
 fn analyzed_cell_with_custom_function_inputs_and_updates_runs_on_device() {
     use cell_assisted_egglog::Part;
     let Some(worker) = std::env::var_os("CELL_RESIDENT_WORKER") else {

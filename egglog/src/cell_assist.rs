@@ -67,6 +67,7 @@ pub struct CellQuery {
     rows: Arc<std::sync::Mutex<Vec<Vec<Value>>>>,
 }
 impl CellActionSink {
+    pub fn slot_count(&self) -> usize { self.vars.len() }
     pub fn device_slots(&self)->usize { self.vars.len()+self.primitive_slots }
     pub fn slots(&self) -> Vec<(&str, &str)> {
         self.vars
@@ -75,14 +76,20 @@ impl CellActionSink {
             .collect()
     }
     pub fn canonicalize(&self, eg: &EGraph, binding: &[Value]) -> Result<Vec<Value>, Error> {
+        Ok(self.canonical_binding(eg, binding)?.into_owned())
+    }
+    /// Borrow the usual, already canonical frontier. Allocate only when union
+    /// actually changed a slot. Validation still precedes every worklist write.
+    fn canonical_binding<'a>(&self, eg: &EGraph, binding: &'a [Value]) -> Result<std::borrow::Cow<'a, [Value]>, Error> {
         if binding.len() != self.vars.len() {
             return Err(Error::BackendError("Cell binding arity mismatch".into()));
         }
-        Ok(binding
-            .iter()
-            .zip(&self.vars)
-            .map(|(v, s)| eg.get_canonical_value(*v, &s.sort))
-            .collect())
+        let mut row = std::borrow::Cow::Borrowed(binding);
+        for (i, (v, s)) in binding.iter().zip(&self.vars).enumerate() {
+            let canonical = eg.get_canonical_value(*v, &s.sort);
+            if canonical != *v { row.to_mut()[i] = canonical; }
+        }
+        Ok(row)
     }
 }
 
@@ -646,7 +653,7 @@ impl EGraph {
             }
             let rows = bindings
                 .iter()
-                .map(|b| sink.canonicalize(self, b))
+                .map(|b| sink.canonical_binding(self, b))
                 .collect::<Result<Vec<_>, _>>()?;
             for row in rows.iter().filter(|_|mixed.is_none()) {
                 if !self.cell_guards_hold(sink, row)? {
