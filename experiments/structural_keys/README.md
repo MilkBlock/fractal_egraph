@@ -1,7 +1,11 @@
 # Full structural keys: a small real eggcc case
 
-**Result: final choices stabilized in this case; complete graph order-independence
-was not established. No analyzer determinism option was added.**
+**Accepted contract (user decision): final selected-program equivalence.**
+Full intermediate graph equality remains a diagnostic and is not claimed.
+The original, key-enabled and perturbed `fact` executions have identical Tiger
+outputs; the actual analyzer output was also compared to the original for
+`fact` and the smaller `add` case. See [observable-acceptance.json](observable-acceptance.json).
+The opt-in analyzer flag is `--structural-keys`; it is off by default.
 
 Input is the complete `fact` Pass-3 snapshot exported from production eggcc
 `ae80f82a`, with all its original declarations, rules and main schedule. This is
@@ -52,14 +56,17 @@ availability at every intermediate point or support for every declared container
 Production Tiger selected identical constructor DAGs for `fact` and `main` in
 all four full-key variants (61 serialized rows before reconstruction). A separate
 strict graph diagnostic finds that excluding `Smaller` makes the reverse-order
-comparison pass. This projection is diagnostic only: **Smaller is a real table
-read by rules, so we do not remove it from the acceptance gate.**
+comparison pass. This projection is diagnostic only: **Smaller is a real table read by rules.**
+The strict graph result stays failed; the user explicitly chose final selected
+program equivalence as the acceptance gate for this feature instead.
 
 The difference demonstrates the distinction between choosing a stable winner
 and constructing a stable history of intermediate merge nodes. Structural keys
 do not automatically canonicalize `(Smaller a b)` versus other merge histories.
 We have not implemented normalization of that history, and do not claim a
 universal graph-determinism guarantee from successful replay or extraction.
+The new acceptance packet preserves that strict failure rather than rewriting
+it as a passed full-graph check.
 
 ## Reproduce
 
@@ -71,11 +78,53 @@ python3 skills/cell-assisted-egglog-bench/scripts/bench.py structural-keys \
 
 Use Python 3.9+. The skill builds the example and the existing Tiger output
 checker, runs five isolated processes and production Tiger, and saves raw graphs
-and exact controls under `out/`. It returns nonzero when the strict determinism
-gate fails, even if extraction succeeds. No analysis, trace capture or GPU worker
+and exact controls under `out/`. It returns nonzero if execution/key coverage or
+actual Tiger selected-DAG equality fails; strict graph differences are retained
+as diagnostics. No analysis, trace capture or GPU worker
 is started. Read `results.json` here to reuse the recorded result.
 
 Focused tests cover late same-cost choices, IVT ties, extra constructor sorts,
 unsupported instantiated containers and the existing stable-hoist behavior.
-The primary runtime and analyzer are unchanged. The implementation is exposed
-only as an experimental library helper and benchmark, in an isolated worktree.
+The ordinary analyzer behavior is unchanged unless `--structural-keys` is used.
+This branch is isolated from the main thread worktree.
+
+## Analyzer option
+
+```sh
+EGG_LAYOUT_GRAPHS=0 cargo run --offline --release --target-dir target/keys -- \
+  analyze --source experiments/structural_keys/add-pass3.egg \
+  --output out/analyze-add-keys --structural-keys --save-history
+```
+
+`add-pass3.egg` is another complete production snapshot, from eggcc's own
+`tests/passing/small/add.bril`; its entire ruleset and schedule are retained.
+The normalizer writes `normalized.egg`, records the rewritten rule history and
+marks `analysis.json` with policy `eggcc-v1`, acceptance
+`selected_program_equivalence`, and `whole_graph_deterministic: false`.
+This is a selection policy, not an automatic equivalence proof for arbitrary
+inputs. Declarations and rules must precede inference; the profile requires the
+eggcc `to-hoist` schema. Supported examples are checked separately with production Tiger.
+
+A verified one-shot empty-LHS initialization is executed before freezing keys
+and treated as input construction, not as a giant coarse composition. Other
+Run/Saturate boundaries are retained. Key-maintenance matches are excluded from
+user rule history. Exact key payloads have a native `cell-key-decode` replay
+representation; the policy header travels with history and extracted entries.
+Offline history replay restores it automatically; do not pass the flag again.
+
+Local ripen uses the same policy environment. Synthetic RipenInput constructors
+are explicitly opaque: keys are not invented from their placeholder names or
+slot indexes. Recorded boundary-key evidence remains available. Parent snapshot graft reuse and
+symbolic Expr-size lowering are deferred for this policy; concrete preparation
+remains available. Planner reuse/transfer export with an unversioned library is
+rejected explicitly. Unknown instantiated containers still fail rather than
+using allocation IDs as structural keys. Full-graph equality checks in other
+benchmark modes and local Cell certification are not relaxed by this option.
+
+Final native graph validation passed for `fact` with analyzer tracing enabled.
+The full `fact` composition-discovery runs were not completed: large histories
+used substantial memory, and one run hit a stack overflow. They are not reported
+as successful complete analyses. The smaller real `add` snapshot and a staged
+same-cost regression exercise complete analysis, local ripen and history replay.
+The optional environment variable `EGG_LAYOUT_KEY_AUDIT_GRAPH` saves the final
+native graph for this validation; ordinary analysis does not export it.

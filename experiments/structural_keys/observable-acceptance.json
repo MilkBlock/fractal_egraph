@@ -1,0 +1,364 @@
+{
+  "acceptance": "selected_program_equivalence",
+  "user_authorized_relaxation": true,
+  "whole_graph_deterministic": false,
+  "old_strict_result_preserved_in": "results.json",
+  "fact_original_and_all_key_variants": {
+    "passed": true,
+    "outputs": [
+      {
+        "file": "out/structural-keys-accepted/extraction/original.egg",
+        "reconstruction_seconds": 0.010916458,
+        "selected_rows": 61,
+        "functions": [
+          "fact",
+          "main"
+        ],
+        "function_count": 2
+      },
+      {
+        "file": "out/structural-keys-accepted/extraction/full.egg",
+        "reconstruction_seconds": 0.003191416,
+        "selected_rows": 61,
+        "functions": [
+          "fact",
+          "main"
+        ],
+        "function_count": 2
+      },
+      {
+        "file": "out/structural-keys-accepted/extraction/repeat.egg",
+        "reconstruction_seconds": 0.002747417,
+        "selected_rows": 61,
+        "functions": [
+          "fact",
+          "main"
+        ],
+        "function_count": 2
+      },
+      {
+        "file": "out/structural-keys-accepted/extraction/threads4.egg",
+        "reconstruction_seconds": 0.002670417,
+        "selected_rows": 61,
+        "functions": [
+          "fact",
+          "main"
+        ],
+        "function_count": 2
+      },
+      {
+        "file": "out/structural-keys-accepted/extraction/reverse-rules.egg",
+        "reconstruction_seconds": 0.002581083,
+        "selected_rows": 61,
+        "functions": [
+          "fact",
+          "main"
+        ],
+        "function_count": 2
+      }
+    ],
+    "checks": [
+      {
+        "candidate": "out/structural-keys-accepted/extraction/full.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 60,
+          "eclass_mapping": 60,
+          "tables": {
+            "Arg": 1,
+            "Bop": 7,
+            "Call": 1,
+            "Concat": 7,
+            "Const": 2,
+            "DumC": 1,
+            "Eq": 1,
+            "Function": 2,
+            "Get": 10,
+            "If": 4,
+            "Int": 2,
+            "IntT": 1,
+            "Mul": 1,
+            "Print": 1,
+            "Single": 11,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 3
+          }
+        },
+        "error": null
+      },
+      {
+        "candidate": "out/structural-keys-accepted/extraction/repeat.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 60,
+          "eclass_mapping": 60,
+          "tables": {
+            "Arg": 1,
+            "Bop": 7,
+            "Call": 1,
+            "Concat": 7,
+            "Const": 2,
+            "DumC": 1,
+            "Eq": 1,
+            "Function": 2,
+            "Get": 10,
+            "If": 4,
+            "Int": 2,
+            "IntT": 1,
+            "Mul": 1,
+            "Print": 1,
+            "Single": 11,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 3
+          }
+        },
+        "error": null
+      },
+      {
+        "candidate": "out/structural-keys-accepted/extraction/threads4.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 60,
+          "eclass_mapping": 60,
+          "tables": {
+            "Arg": 1,
+            "Bop": 7,
+            "Call": 1,
+            "Concat": 7,
+            "Const": 2,
+            "DumC": 1,
+            "Eq": 1,
+            "Function": 2,
+            "Get": 10,
+            "If": 4,
+            "Int": 2,
+            "IntT": 1,
+            "Mul": 1,
+            "Print": 1,
+            "Single": 11,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 3
+          }
+        },
+        "error": null
+      },
+      {
+        "candidate": "out/structural-keys-accepted/extraction/reverse-rules.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 60,
+          "eclass_mapping": 60,
+          "tables": {
+            "Arg": 1,
+            "Bop": 7,
+            "Call": 1,
+            "Concat": 7,
+            "Const": 2,
+            "DumC": 1,
+            "Eq": 1,
+            "Function": 2,
+            "Get": 10,
+            "If": 4,
+            "Int": 2,
+            "IntT": 1,
+            "Mul": 1,
+            "Print": 1,
+            "Single": 11,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 3
+          }
+        },
+        "error": null
+      }
+    ],
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  },
+  "fact_analyzer_native_output": {
+    "passed": true,
+    "outputs": [
+      {
+        "file": "out/structural-keys-analyzer-output/extraction/original.egg",
+        "reconstruction_seconds": 0.011798208,
+        "selected_rows": 61,
+        "functions": [
+          "fact",
+          "main"
+        ],
+        "function_count": 2
+      },
+      {
+        "file": "out/structural-keys-analyzer-output/extraction/full.egg",
+        "reconstruction_seconds": 0.002987167,
+        "selected_rows": 61,
+        "functions": [
+          "fact",
+          "main"
+        ],
+        "function_count": 2
+      },
+      {
+        "file": "out/structural-keys-analyzer-output/extraction/analyzer.egg",
+        "reconstruction_seconds": 0.002696292,
+        "selected_rows": 61,
+        "functions": [
+          "fact",
+          "main"
+        ],
+        "function_count": 2
+      }
+    ],
+    "checks": [
+      {
+        "candidate": "out/structural-keys-analyzer-output/extraction/full.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 60,
+          "eclass_mapping": 60,
+          "tables": {
+            "Arg": 1,
+            "Bop": 7,
+            "Call": 1,
+            "Concat": 7,
+            "Const": 2,
+            "DumC": 1,
+            "Eq": 1,
+            "Function": 2,
+            "Get": 10,
+            "If": 4,
+            "Int": 2,
+            "IntT": 1,
+            "Mul": 1,
+            "Print": 1,
+            "Single": 11,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 3
+          }
+        },
+        "error": null
+      },
+      {
+        "candidate": "out/structural-keys-analyzer-output/extraction/analyzer.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 60,
+          "eclass_mapping": 60,
+          "tables": {
+            "Arg": 1,
+            "Bop": 7,
+            "Call": 1,
+            "Concat": 7,
+            "Const": 2,
+            "DumC": 1,
+            "Eq": 1,
+            "Function": 2,
+            "Get": 10,
+            "If": 4,
+            "Int": 2,
+            "IntT": 1,
+            "Mul": 1,
+            "Print": 1,
+            "Single": 11,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 3
+          }
+        },
+        "error": null
+      }
+    ],
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  },
+  "fact_full_composition_analysis_completed": false,
+  "fact_analysis_limitation": "Large composition discovery remained expensive; one diagnostic run aborted with stack overflow. These runs are not complete-analysis successes.",
+  "add_fixture_sha256": "0e7c5499810c1b28ed54aad26dcb9af0c494dacfcc0c928cd92af511915aef35",
+  "add_production_source": "check_statewalk/tests/passing/small/add.bril",
+  "add_production_revision": "ae80f82a",
+  "add_native_vs_analyzer_output": {
+    "passed": true,
+    "outputs": [
+      {
+        "file": "out/keys-add-accepted-output/extraction/original.egg",
+        "reconstruction_seconds": 0.010223417,
+        "selected_rows": 15,
+        "functions": [
+          "main"
+        ],
+        "function_count": 1
+      },
+      {
+        "file": "out/keys-add-accepted-output/extraction/analyzer.egg",
+        "reconstruction_seconds": 0.0013795,
+        "selected_rows": 15,
+        "functions": [
+          "main"
+        ],
+        "function_count": 1
+      }
+    ],
+    "checks": [
+      {
+        "candidate": "out/keys-add-accepted-output/extraction/analyzer.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 14,
+          "eclass_mapping": 14,
+          "tables": {
+            "Arg": 1,
+            "Bop": 1,
+            "Const": 1,
+            "DumC": 1,
+            "Function": 1,
+            "Get": 1,
+            "Int": 1,
+            "Print": 1,
+            "Single": 1,
+            "StateT": 1,
+            "TCons": 1,
+            "TNil": 1,
+            "TupleT": 2
+          }
+        },
+        "error": null
+      }
+    ],
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  },
+  "add_pipeline": {
+    "cli_completed": true,
+    "status": "observed_unfinished",
+    "policy": {
+      "enabled": true,
+      "policy": "eggcc-v1",
+      "acceptance": "selected_program_equivalence",
+      "whole_graph_deterministic": false
+    },
+    "accepted_application_records": 99,
+    "logical_matches": 181,
+    "ripen_counts": {
+      "ObservedUnfinished": 4,
+      "Rejected": 35,
+      "Saturated": 121
+    },
+    "counts_note": "Saturated refers to local execution reaching a fixed point; it is not a claim that every state has a reusable semantic certificate."
+  },
+  "analyzer_option": "--structural-keys",
+  "default_enabled": false,
+  "supported_scope": "Native flat eggcc source, declarations before inference; exact recorded key payloads and policy-preserving replay. No new guarantee for arbitrary inputs."
+}

@@ -86,4 +86,4 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 以全量键路径为参照，核对完整事实/值/等价关系/可见性；复用生产 Tiger 和现有 DAG 检查器比较实际提取结果。结构键覆盖率统计终态有构造器行的 e-class，不宣称所有中间状态或未实例化 schema 都已验证。未知容器声明可保留，实际实例出现时明确失败。`Smaller` 投影仅用于定位差异，不替代严格整图门槛。
 
-判等失败保留非零退出码。即使 Tiger 输出相同也不能自动启用 analyzer 的确定性选项。当前已知反例和成本见 `experiments/structural_keys/README.md`；原生短样例控制不替换为 raytrace 大基准。生成的 `policy-rules.egg` 是选择策略改写记录，需要 runner 的结构键类型、primitive 和维护调度，不是 pristine egglog 可独立执行的完整程序。
+此模式按用户明确同意的“最终选定程序一致”验收：要求原始、加键、重复进程、4 线程配置、反转规则声明的 Tiger 选定 DAG 一致，执行与终态键覆盖检查通过；整图差异只保留诊断。其它 benchmark 模式的整图门槛保持不变。原反例不改写成整图通过。analyzer 的 `--structural-keys` 是默认关闭的选择策略选项，不是任意程序确定性的证明。当前已知反例和成本见 `experiments/structural_keys/README.md`；原生短样例控制不替换为 raytrace 大基准。生成的 `policy-rules.egg` 是选择策略改写记录，需要 runner 的结构键类型、primitive 和维护调度，不是 pristine egglog 可独立执行的完整程序。

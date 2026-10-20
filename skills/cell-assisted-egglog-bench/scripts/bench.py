@@ -163,7 +163,9 @@ def report(path, fresh=False):
         if not m['exact_cpu_gpu']:
             print('失败原因：', r.get('same_commit_verification_error'))
     elif 'determinism_checks_passed' in r:
-        print('结构键确定性扰动检查：', r['determinism_checks_passed'])
+        print('整图一致性（诊断，不再作为此模式门槛）：', r['determinism_checks_passed'])
+        quality=path.parent/'extraction/quality.json'
+        print('最终 Tiger 程序一致性：',load(quality).get('passed') if quality.is_file() else '尚未检查')
         for lane in r['lanes']:
             x=lane['result']
             print(lane['lane'], 'run s=', x.get('run_seconds'), 'all keys=', x.get('all_constructor_classes_keyed'), 'exact=', bool(x.get('comparison')), 'error=', x.get('error') or x.get('comparison_error'))
@@ -302,7 +304,7 @@ def commands(a, repo, worker, out):
         if a.instances < 1: raise ValueError('instances must be positive')
         c = [[binary('transfer_bench'), str(resolve(a.library)), str(out), str(a.instances)]]
     elif a.mode == 'structural-keys':
-        c = [[binary('structural_key_audit'), source, str(out)], [sys.executable,str(repo/'experiments/raytrace_pass3_gpu/extract.py'),str(out),'--tiger',str(resolve(a.tiger)),'--lanes','full','repeat','threads4','reverse-rules']]
+        c = [[binary('structural_key_audit'), source, str(out)], [sys.executable,str(repo/'experiments/raytrace_pass3_gpu/extract.py'),str(out),'--tiger',str(resolve(a.tiger)),'--lanes','original','full','repeat','threads4','reverse-rules']]
     elif a.mode == 'joint-sat':
         c = [[binary('joint_sat_bench'), str(worker), str(out)] + ([source] if source else [])]
     elif a.mode == 'test':
@@ -334,7 +336,12 @@ def saved_gate(mode, out, three_lane=False):
         r = load(out/'results.json')
         return (r.get('port_transition_verified') is True and r.get('passed') is True
                 and bool(r.get('phases')) and all(exact(p.get('same_submit')) and exact(p.get('reuse_off_on')) for p in r['phases']))
-    if mode == 'structural-keys': return load(out/'results.json').get('determinism_checks_passed') is True
+    if mode == 'structural-keys':
+        r=load(out/'results.json'); q=load(out/'extraction/quality.json')
+        lanes=r.get('lanes',[])
+        return (len(lanes)==5 and all(x['result'].get('error') is None and not x['result'].get('failed') for x in lanes)
+                and all(x['result'].get('all_constructor_classes_keyed') is True for x in lanes if x['lane']!='original')
+                and q.get('passed') is True and len(q.get('checks',[]))==4)
     if mode == 'transfer-bench':
         r=load(out/'results.json')
         return r.get('transfer_bench_verified') is True and bool(r.get('verification')) and all(

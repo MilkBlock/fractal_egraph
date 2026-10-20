@@ -167,11 +167,15 @@ class WorkflowTests(unittest.TestCase):
         a=B.parser().parse_args(['structural-keys','--snapshot','/input.egg'])
         plan=B.commands(a,Path('/repo'),Path('/worker'),Path('/out'))
         self.assertEqual(plan[0],['/repo/target/analyzer/release/examples/structural_key_audit','/input.egg','/out'])
-        self.assertEqual(plan[1][-5:],['--lanes','full','repeat','threads4','reverse-rules'])
+        self.assertEqual(plan[1][-6:],['--lanes','original','full','repeat','threads4','reverse-rules'])
         with tempfile.TemporaryDirectory() as tmp:
             out=Path(tmp)
-            (out/'results.json').write_text(json.dumps({'determinism_checks_passed':False}))
+            (out/'results.json').write_text(json.dumps({'determinism_checks_passed':False,'lanes':[{'lane':lane,'result':{'error':None,'all_constructor_classes_keyed':lane!='original'}} for lane in ['original','full','repeat','threads4','reverse-rules']]}))
+            (out/'extraction').mkdir()
+            (out/'extraction/quality.json').write_text(json.dumps({'passed':False,'checks':[{}]*4}))
             self.assertFalse(B.saved_gate('structural-keys',out))
+            (out/'extraction/quality.json').write_text(json.dumps({'passed':True,'checks':[{}]*4}))
+            self.assertTrue(B.saved_gate('structural-keys',out))
 
     def test_joint_gate_requires_every_lane_and_boundary(self):
         with tempfile.TemporaryDirectory() as tmp:
