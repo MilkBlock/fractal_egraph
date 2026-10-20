@@ -1,5 +1,16 @@
 # Current optimization priority after Cell query reuse
 
+Follow-up: all eight pools were addressed in
+[the individual optimization report](INDIVIDUAL_OPTIMIZATIONS.md).
+Current inference is 21.265 s; device time is 6.280 s. Keep the next priorities
+as cross-rule partial-query sharing, native rebuild (2.689 s), and joint
+closure dataflow (3.849 s). Compact binding workspaces and staged guards are
+implemented; cross-rule fragment materialization is still open. Worker
+encoder batching and index-buffer reuse did not demonstrate a net gain and
+were reverted. Cold shader setup is an additional separate issue.
+
+The investigation and timing pools below describe the previous baseline.
+
 These priorities replace the older pre-Cell ranking. The current ordinary
 run took 22.718 s. A separate diagnostic split GPU command buffers to distinguish
 maintenance from matching. That diagnostic is not a speed benchmark. Saved

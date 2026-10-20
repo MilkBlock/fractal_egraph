@@ -80,3 +80,5 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 仅在 `CELL_QUERY_TIMINGS=1` 诊断模式下，查询耗时按 ruleset 保存在 `gpu.query_costs_by_ruleset`：`query_seconds` 包含交接和解码，`device_seconds` 来自 worker；两者不能相加。此诊断还将 GPU command buffer 拆开测量 `maintenance_seconds` 与 `matching_seconds`，分别是表/索引维护和匹配阶段（含候选路由）；不以这个模式的总时间发布加速比。维护时间记在随后消费数据的 ruleset 下，不代表该 ruleset 制造了这些更新。用这份分解决定下一项优化，不从逻辑 match 次数推算 probe 成本。
 
 `CELL_SHARE_IDENTICAL_QUERIES=1` 是默认关闭的整条 LHS 查询共享实验；只有完整条件、binding 接线和原生增量游标一致才共享，RHS 不合并。其当前测量并未证明净加速，不把 `shared_query_requests`（含空结果）当作 kernel 启动数或写入数。
+
+完整 GPU 路径现在默认按 Join 层次执行数值条件，并让同一搜索路径复用一份 binding。`CELL_COMPACT_BINDINGS=0` 只关闭紧凑工作区；`CELL_STAGED_CONSTRAINTS=0` 恢复动态条件检查，并对含 primitive 的程序关闭紧凑工作区。用同一个二进制进行消融，记录 `gpu.cells.staged_constraints` 和 `compact_binding_workspace`。这是匹配器工作区优化，不是新增 Cell 覆盖或图存储压缩。新 shader 的冷初始化可能很慢，必须同时报告 `setup_seconds`，不要把排除初始化的推理收益说成冷启动总收益。分项实验与拒绝采用的改动见 [INDIVIDUAL_OPTIMIZATIONS.md](../../experiments/pass3_full_gpu/INDIVIDUAL_OPTIMIZATIONS.md)。

@@ -1,0 +1,50 @@
+diff --git a/cell-assisted-egglog/matrix.swift b/cell-assisted-egglog/matrix.swift
+index ea8f6af..c0db328 100644
+--- a/cell-assisted-egglog/matrix.swift
++++ b/cell-assisted-egglog/matrix.swift
+@@ -493,6 +493,8 @@ final class TableExecutor {
+ // One device/queue/store for a whole family. Output is scoped to one frozen
+ // ruleset boundary; native row timestamps replace historical match receipts.
+ final class FamilyExecutor {
++ let batchEncoders=ProcessInfo.processInfo.environment["CELL_BATCH_ENCODERS"]=="1"
++ var computeEncoder:MTLComputeCommandEncoder?,encodingBuffer:MTLCommandBuffer?
+  let d:MTLDevice,q:MTLCommandQueue,code:MTLBuffer,c:Int,p:Int,s:Int,ni:Int,nq:Int,rs:Int,nc:Int,cs:Int,ck:Int,ec:Bool,locality:Int,routingMode:Int
+  let cellTables:Set<UInt32>,portMeta:[UInt32],portJoinGroup:[UInt32],phaseTiming:Bool
+  var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!,cells:MTLBuffer!,watches:MTLBuffer!,wheads:MTLBuffer!,dirty:MTLBuffer!,state:MTLBuffer!,ports:MTLBuffer!,previous:MTLBuffer!,seedQueue:MTLBuffer!,orderedSeeds:MTLBuffer!,routing:MTLBuffer!,rowCells:MTLBuffer!,instanceMeta:MTLBuffer!,freeCells:MTLBuffer!,registry:MTLBuffer!
+@@ -537,13 +539,24 @@ final class FamilyExecutor {
+  }
+  func alloc(_ n:Int)throws->MTLBuffer{try require(n>=0 && n<Int(UInt32.max),"family address space exhausted");guard let b=d.makeBuffer(length:max(1,n)*4,options:.storageModeShared)else{throw NSError(domain:"family allocation",code:1)};return b}
+  func pow2(_ n:Int)throws->Int{try require(n>0 && n<Int(UInt32.max)/2,"family capacity exhausted");var k=1;while k<n{k*=2};return k}
+- func submit(_ b:MTLCommandBuffer)throws{b.commit();b.waitUntilCompleted();if let e=b.error{throw e};if b.gpuEndTime>b.gpuStartTime{gpu+=b.gpuEndTime-b.gpuStartTime}}
++ func endCompute(){computeEncoder?.endEncoding();computeEncoder=nil;encodingBuffer=nil}
++ func submit(_ b:MTLCommandBuffer)throws{endCompute();b.commit();b.waitUntilCompleted();if let e=b.error{throw e};if b.gpuEndTime>b.gpuStartTime{gpu+=b.gpuEndTime-b.gpuStartTime}}
+  func grow(_ old:MTLBuffer,_ words:Int,_ preserve:Int)throws->MTLBuffer{
+   if old.length>=max(1,words)*4{return old};let next=try alloc(words)
+   if preserve>0{let cb=q.makeCommandBuffer()!,e=cb.makeBlitCommandEncoder()!;e.copy(from:old,sourceOffset:0,to:next,destinationOffset:0,size:preserve*4);e.endEncoding();try submit(cb)};return next
+  }
+  func encode(_ name:String,_ n:Int,_ cb:MTLCommandBuffer,_ indirect:Int?=nil){
+-  if n==0{return};let e=cb.makeComputeCommandEncoder()!,k=kernels[name]!
++  if n==0{return}
++  let e:MTLComputeCommandEncoder
++  if batchEncoders {
++   if let current=computeEncoder,encodingBuffer === cb {
++    // Preserve the visibility formerly supplied by separate encoders.
++    current.memoryBarrier(scope:.buffers);e=current
++   }else{
++    endCompute();e=cb.makeComputeCommandEncoder()!;computeEncoder=e;encodingBuffer=cb
++   }
++  }else{e=cb.makeComputeCommandEncoder()!}
++  let k=kernels[name]!
+   e.setComputePipelineState(k)
+   for (i,b) in [code,rows!,events!,links!,heads!,output!,counts!].enumerated(){e.setBuffer(b,offset:0,index:i)}
+   args.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:7)};e.setBuffer(packet,offset:0,index:8);e.setBuffer(cells,offset:0,index:9)
+@@ -551,7 +564,8 @@ final class FamilyExecutor {
+   for(i,b) in [seedQueue!,orderedSeeds!,routing!].enumerated(){e.setBuffer(b,offset:0,index:16+i)}
+   for(i,b) in [rowCells!,instanceMeta!,freeCells!,registry!].enumerated(){e.setBuffer(b,offset:0,index:19+i)}
+   if let off=indirect {e.dispatchThreadgroups(indirectBuffer:(name=="family_routed_join" || name.hasPrefix("family_shape_")) ? routing : state,indirectBufferOffset:off,threadsPerThreadgroup:MTLSize(width:name=="family_port_locality" ? k.threadExecutionWidth : 128,height:1,depth:1))}
+-  else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,k.maxTotalThreadsPerThreadgroup),height:1,depth:1))};e.endEncoding()
++  else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,k.maxTotalThreadsPerThreadgroup),height:1,depth:1))}
++  if !batchEncoders{e.endEncoding()}
+  }
+  // The host only sizes buffers from GPU counts. It does not inspect bindings
+  // or maintain the Cell registry. Returned work publishes dependencies before
