@@ -84,3 +84,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 完整 GPU 路径现在默认按 Join 层次执行数值条件，并让同一搜索路径复用一份 binding。`CELL_COMPACT_BINDINGS=0` 只关闭紧凑工作区；`CELL_STAGED_CONSTRAINTS=0` 恢复动态条件检查，并对含 primitive 的程序关闭紧凑工作区。用同一个二进制进行消融，记录 `gpu.cells.staged_constraints` 和 `compact_binding_workspace`。这是匹配器工作区优化，不是新增 Cell 覆盖或图存储压缩。新 shader 的冷初始化可能很慢，必须同时报告 `setup_seconds`，不要把排除初始化的推理收益说成冷启动总收益。分项实验与拒绝采用的改动见 [INDIVIDUAL_OPTIMIZATIONS.md](../../experiments/pass3_full_gpu/INDIVIDUAL_OPTIMIZATIONS.md)。
 
 联合 Cell 现在默认在已验证的 uniform-cost 条件下，批量关闭内部 `Smaller` 比较 Saturate。普通 Run 不变；外部 merge、容器键或代价别名不满足证明时回退。`CELL_COMPARISON_CLOSURE=0` 做同二进制消融。报告 `gpu.saturation_diagnostics.joint.comparison_closure` 的实际使用次数、`native_batches` 和 `union_proposals`；后者不是新增事实数。不能因外层 12 次仍显示 dataflow、fresh-DAG 宏为零而漏报内层闭包，也不能把内层收益宣称为整个 Cell 一次回放。结果见 [SAT_COMPARISON.md](../../experiments/pass3_full_gpu/SAT_COMPARISON.md)。
+
+紧凑 GPU Join 默认使用自动证否 lookahead；`CELL_REFUTATION=0` 关闭。编译器只选择已有 tuple index，提前检测未访问 atom 的必要键，空哈希桶才能拒绝整条后继搜索。碰撞及退休行只可能多保留候选；union/rebuild 仍使用原生完整增量维护，不以 Cell 库未覆盖作为证否。它不是新增 Cell 闭包证明。
+
+比较 search 必须用同输入、同调度、同二进制开关消融。`CELL_QUERY_TIMINGS=1` 分离 `gpu_matching_seconds`（含证否和候选路由）与 `gpu_maintenance_seconds`；不要把该诊断的总推理时间作为正常运行加速比。另用普通 `run` 报告完整推理耗时。`CELL_SEARCH_COUNTERS=1` 在全规则路径开启诊断计数，报告 `join_probes`（实际进入的索引 Join 层）、`refutation_checks`（额外的必要键检查）、`refuted_branches`、`join_link_visits`（含退休行）和 `join_live_row_visits`（实际候选访问）；不是新事实或唯一行数。计数器含 atomic 开销，不作为无插桩时间证据。修改证否后须跑 `audit --all-rules --joint-sat`，并检查新增事实、union、删除重插和精确整数键。见 [自动证否实验](../../experiments/automatic_refutation/README.md)。

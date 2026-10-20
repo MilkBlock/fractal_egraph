@@ -261,7 +261,7 @@ impl Runtime {
     /// selected rule is an error, never silently moved to the CPU.
     pub fn new_full(eg:EGraph,commands:&[Command],worker:Option<&Path>,audit:bool,selected:Option<&[String]>)->Result<Self>{
         let sets=selected.map(|s|s.iter().cloned().collect());
-        Self::create(eg,commands,worker,audit,Options {query_routing:QueryRouting::TableAnchors,..Options::default()},sets.as_ref(),true)
+        Self::create(eg,commands,worker,audit,Options {query_routing:QueryRouting::TableAnchors,profile:std::env::var("CELL_SEARCH_COUNTERS").as_deref()==Ok("1"),..Options::default()},sets.as_ref(),true)
     }
     /// Optional analyze-backed projections. The complete query remains the
     /// fallback for every uncertified occurrence, including new union aliases.
@@ -468,11 +468,11 @@ impl Runtime {
             config["phase_timing"]=json!(runtime.query_timing);
             config["port_locality"] = json!(options.port_locality as u32);
             config["query_routing"] = json!(options.query_routing as u32);
-            runtime.cell_evidence = json!({"staged_constraints":config["staged_constraints"],"compact_binding_workspace":config["compact_binding_workspace"]==true && matches!(options.query_routing,QueryRouting::TableAnchors),"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
+            runtime.cell_evidence = json!({"refutation":config["refutation"],"refutation_checks":config["refutation_checks"],"staged_constraints":config["staged_constraints"],"compact_binding_workspace":config["compact_binding_workspace"]==true && matches!(options.query_routing,QueryRouting::TableAnchors),"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
             if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
-            if installed["family_layout"] != json!(9) {
+            if installed["family_layout"] != json!(10) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0

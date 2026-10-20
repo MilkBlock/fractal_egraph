@@ -10,6 +10,8 @@ use serde_json::{Value as Json, json};
 use std::collections::{BTreeMap, BTreeSet};
 #[path = "constraint_schedule.rs"]
 mod constraint_schedule;
+#[path = "refutation.rs"]
+mod refutation;
 pub fn compile(
     eg: &EGraph,
     sinks: &[CellActionSink],
@@ -555,6 +557,22 @@ pub fn compile(
             }
         }
     }
+    let mut refutation_stages = vec![];
+    let mut refutation_checks = vec![];
+    for (qi, q) in sinks.iter().enumerate() {
+        for anchor in 0..p {
+            let checks = if anchor < q.atoms.len() {
+                refutation::compile(q, &orders[qi*p+anchor], &tids, &specs)
+            } else { vec![] };
+            for depth in 0..p {
+                let stage = checks.get(depth).map(Vec::as_slice).unwrap_or(&[]);
+                refutation_stages.extend([(refutation_checks.len()/2) as u32, stage.len() as u32]);
+                refutation_checks.extend(stage.iter().flatten().copied());
+            }
+        }
+    }
+    let refutation_enabled = std::env::var("CELL_REFUTATION").as_deref()!=Ok("0");
+    let refutation_count = refutation_checks.len()/2;
     let mut code = vec![];
     let mut shader = format!(
         "#include <metal_stdlib>\nusing namespace metal;\n#define C {c}\n#define P {p}\n#define S {s}\n#define G {g}\n#define NP {np}\n#define HAS_PRIMITIVES {}\n#define NQ {}\n#define NI {}\n",
@@ -575,6 +593,7 @@ pub fn compile(
         (staged_constraints || !computed) &&
         std::env::var("CELL_COMPACT_BINDINGS").as_deref()!=Ok("0");
     shader += &format!("#define COMPACT_BINDINGS {}\n#define BW {bw}\n", u32::from(compact_bindings));
+    shader += &format!("#define REFUTATION {}\n", u32::from(refutation_enabled));
     let cell_header = 8; // Common revision header for sparse instance reuse.
     shader += &format!(
         "#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n#define CH {cell_header}\n"
@@ -635,6 +654,8 @@ pub fn compile(
         ("PSTAGE",primitive_stages),
         ("POPS",staged_ops),
         ("BSTATE",binding_states),
+        ("REFUTE_STAGE",refutation_stages),
+        ("REFUTE_CHECK",refutation_checks),
         ("ATOM_LITERAL",literals),
         ("TABLE_I64",tables.iter().flat_map(|t|(0..c).map(|i|u32::from(t.i64_columns.get(i).copied().unwrap_or(false)))).collect()),
         ("CELL_ROUTE", route),
@@ -671,6 +692,6 @@ pub fn compile(
         shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n if(COMPACT_BINDINGS)family_execute_compact<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2]);else family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
     }
     Ok(
-        json!({"version":2,"family_layout":9,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":10,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

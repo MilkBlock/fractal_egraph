@@ -138,6 +138,11 @@ class WorkflowTests(unittest.TestCase):
         self.assertTrue(m['exact_cpu_gpu']);self.assertFalse(m['timing_eligible'])
         self.assertIsNone(m['inference_speedup'])
 
+    def test_search_atomics_are_not_reported_as_uninstrumented_timing(self):
+        r = fixture(); r['gpu']['cells'] = {'profile': True}
+        self.assertFalse(B.metrics(r)['timing_eligible'])
+        self.assertIsNone(B.metrics(r)['inference_speedup'])
+
     def test_extraction_ratio_requires_actual_successful_extraction(self):
         r = fixture(); t = dict(runs=[dict(lane='cpu', seconds=2, returncode=0), dict(lane='gpu', seconds=1, returncode=0)])
         self.assertIsNone(B.metrics(r, None, t)['inference_plus_tiger_speedup'])

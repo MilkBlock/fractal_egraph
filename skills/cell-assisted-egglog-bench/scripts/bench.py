@@ -114,7 +114,7 @@ def metrics(r, quality=None, extraction=None):
     gpu = r['gpu']['runtime']['run_seconds']
     control=r.get('gpu_without_joint')
     joint_ok=not control or exact(r.get('joint_verification'))
-    eligible = ok and joint_ok and r.get('benchmark_finished') is True and audit is False and not r.get('gpu',{}).get('query_timing_profile',False) and cpu > 0 and gpu > 0
+    eligible = ok and joint_ok and r.get('benchmark_finished') is True and audit is False and not r.get('gpu',{}).get('query_timing_profile',False) and not r.get('gpu',{}).get('cells',{}).get('profile',False) and cpu > 0 and gpu > 0
     result = dict(exact_cpu_gpu=ok, exact_fused_native_gpu=exact(r.get('verification')),
                   timing_eligible=eligible, inference_speedup=cpu / gpu if eligible else None,
                   extraction_passed=bool(quality and quality.get('passed') is True),

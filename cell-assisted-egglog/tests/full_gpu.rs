@@ -11,6 +11,54 @@ fn worker() -> Option<std::path::PathBuf> {
     std::env::var_os("CELL_MATRIX_WORKER").map(Into::into)
 }
 #[test]
+fn refutation_is_invalidated_by_insert_union_rebuild_and_reinsert() {
+    let Some(worker) = worker() else { return };
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(None, r#"
+      (datatype E (N i64))
+      (relation P (E)) (relation Q (E E)) (relation R (E E))
+      (relation Hit (E E E)) (ruleset s)
+      (rule ((P x) (Q x y) (R x z)) ((Hit x y z)) :ruleset s)
+      (P (N 1)) (Q (N 1) (N 2))
+    "#).unwrap();
+    let commands = eg.parse_program(None, "(run s 1)").unwrap();
+    // Audit checks complete incremental binding sets at every original Run.
+    let mut r = Runtime::new_full(eg, &commands, Some(&worker), true, None).unwrap();
+    r.run(&commands).unwrap();
+    check(&r, "(fail (check (Hit (N 1) (N 2) (N 3))))");
+    r.input("(R (N 4) (N 3))").unwrap();
+    r.run(&commands).unwrap();
+    r.input("(union (N 1) (N 4))").unwrap();
+    r.run(&commands).unwrap();
+    check(&r, "(check (Hit (N 1) (N 2) (N 3)))");
+    r.input("(delete (R (N 1) (N 3))) (Q (N 1) (N 5))").unwrap();
+    r.run(&commands).unwrap();
+    check(&r, "(fail (check (Hit (N 1) (N 5) (N 3))))");
+    r.input("(R (N 1) (N 3))").unwrap();
+    r.run(&commands).unwrap();
+    check(&r, "(check (Hit (N 1) (N 5) (N 3)))");
+}
+#[test]
+fn refutation_uses_exact_computed_integer_keys_not_interned_ids() {
+    let Some(worker) = worker() else { return };
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(None, r#"
+      (relation P (i64)) (relation Q (i64 i64)) (relation R (i64 i64))
+      (relation Hit (i64 i64 i64)) (ruleset s)
+      (rule ((P x) (Q x y) (R (+ x 1) z)) ((Hit x y z)) :ruleset s)
+      (P 4294967296) (Q 4294967296 17) (R 4294967297 18)
+      (P -4294967296) (Q -4294967296 19)
+    "#).unwrap();
+    let commands = eg.parse_program(None, "(run s 1)").unwrap();
+    let mut r = Runtime::new_full(eg, &commands, Some(&worker), true, None).unwrap();
+    assert!(r.report()["cells"]["refutation_checks"].as_u64().unwrap() > 0);
+    r.run(&commands).unwrap();
+    check(&r, "(check (Hit 4294967296 17 18))");
+    r.input("(R -4294967295 20)").unwrap();
+    r.run(&commands).unwrap();
+    check(&r, "(check (Hit -4294967296 19 20))");
+}
+#[test]
 fn backtracking_restores_bound_slots_after_failed_and_successful_siblings() {
     let Some(worker) = worker() else { return };
     let mut eg = EGraph::default();
