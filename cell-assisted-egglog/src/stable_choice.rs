@@ -24,12 +24,15 @@ struct Key(Arc<Node>);
 struct Node {
     anchor: bool,
     height: usize,
-    label: String,
+    label: Arc<str>,
     children: Vec<Key>,
     hash: u64,
 }
 impl Key {
     fn new(label: String, children: Vec<Key>) -> Self {
+        Self::with_label(label.into(), children)
+    }
+    fn with_label(label: Arc<str>, children: Vec<Key>) -> Self {
         let height = children.iter().map(|k| k.0.height + 1).max().unwrap_or(0);
         let mut hash = 0xcbf29ce484222325u64;
         for byte in label
@@ -109,7 +112,7 @@ enum Op {
     Min,
     Choose,
     Anchor,
-    Node(String),
+    Node(Arc<str>),
     Literal(String),
 }
 #[derive(Clone)]
@@ -131,7 +134,7 @@ impl PurePrim for Prim {
         let b = s.base_values();
         let key = |v| b.unwrap::<Stored>(v);
         match &self.op {
-            Op::Min => Some(if key(a[0]) <= key(a[1]) { a[0] } else { a[1] }),
+            Op::Min => Some(if a[0] == a[1] || key(a[0]) <= key(a[1]) { a[0] } else { a[1] }),
             Op::Anchor => Some(b.get(Stored::new((*key(a[0])).clone().anchor()))),
             Op::Choose => {
                 let c0 = b.unwrap::<i64>(a[2]);
@@ -142,7 +145,7 @@ impl PurePrim for Prim {
                     a[1]
                 })
             }
-            Op::Node(label) => Some(b.get(Stored::new(Key::new(
+            Op::Node(label) => Some(b.get(Stored::new(Key::with_label(
                 label.clone(),
                 a.iter().map(|v| (*key(*v)).clone()).collect(),
             )))),
@@ -340,7 +343,7 @@ fn install_rules(eg: &mut EGraph) -> Result<()> {
             Prim {
                 name: p.clone(),
                 types: vec![key.clone(); inputs.len() + 1],
-                op: Op::Node(format!("{}:{name}", output.name())),
+                op: Op::Node(format!("{}:{name}", output.name()).into()),
             },
             None,
         );
