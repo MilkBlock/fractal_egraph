@@ -86,3 +86,38 @@ as did 19 benchmark-script tests. Final gating of the experimental Run path has
 additional targeted tests. Compact metrics and input/binary fingerprints are in
 [results.json](results.json); reproducible tests are in `tests/joint_sat.rs`,
 `tests/scalar_cells.rs` and `cell-assisted-egglog/tests/full_gpu.rs`.
+
+## Layout optimization follow-up
+
+The ordered implementation list is [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md).
+Items 1, 2 and the concrete readback/output-packing parts of 4 and 5 are now
+implemented. Items 3 and 6 remain proof work; no failed shortcut was re-enabled.
+
+| Metric | Previous validated run | Compact layout timing run |
+|---|---:|---:|
+| Inference | 32.658 s | 22.585 s |
+| Device execution | 15.171 s | 8.652 s |
+| Metal buffers allocated | 7.391 GB | 0.726 GB |
+| Returned bindings | 420.862 MB | 65.637 MB |
+
+A subsequent per-ruleset timing/control-cache validation took 24.863 s; it is
+also retained, not discarded in favor of the faster number. Exact same-commit
+CPU/GPU graphs, Cell-on/off graphs and production Tiger CPU/GPU selected DAGs
+passed in both runs. The earlier differences from fused native remain.
+
+The new layout has 69 exact query shapes and 399 shared tuple indexes. Links
+are allocated only for the indexes of each event's table. Their size is
+O(sum_t E_t I_t), instead of O(E sum_t I_t); hash buckets are also table-sized.
+Thread scratch space follows each query's atom/slot dimensions. Output records
+contain only their native slots. Queue overflow still triggers exact retries.
+No candidate cap, sampling or semantic weakening was introduced.
+
+The added benefit here comes from storage and dispatch layout, not newly baked
+Cell coverage. In the timing run, Cell-on/off remained 22.585/24.046 s.
+[optimized-results.json](optimized-results.json) includes stage times, the
+ruleset diagnostic, fingerprints and all pass/fail outcomes.
+
+Full runs now save exact typed control facts and initial anchors. Subsequent
+`--reuse-controls` runs execute only the new GPU candidate and re-run graph
+checks; unchanged native/CPU Tiger outputs are reused only after fingerprint
+validation. A real full Pass-3 reuse run and small negative cache tests passed.
