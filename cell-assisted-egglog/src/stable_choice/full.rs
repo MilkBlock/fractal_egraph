@@ -1,20 +1,81 @@
-//! Experimental whole-schema structural choice. No analyzer option is exposed
-//! until full-graph, coverage and order-perturbation gates pass.
+//! Whole-schema choice policy. Acceptance is selected-program equivalence;
+//! full intermediate graph determinism is explicitly not guaranteed.
 use super::*;
 use egglog::ast::{Expr, Fact};
 use serde_json::{Value as Json, json};
 
 pub fn setup_full(eg: &mut EGraph, commands: &[Command]) -> Result<()> {
-    super::setup_impl(eg, commands, true)
+    super::setup_impl(eg, commands, true, true, &BTreeSet::new())
+}
+pub const POLICY_HEADER: &str = "; egg-layout structural-keys/eggcc-v1";
+/// Install a program that has already passed rewrite_ties. Do not duplicate
+/// equal-cost improvement rules when replaying recorded normalized source.
+pub fn setup_prepared_full(eg: &mut EGraph, commands: &[Command]) -> Result<()> {
+    super::setup_impl(eg, commands, true, false, &BTreeSet::new())
+}
+/// Synthetic boundary constructors are unknown input ports, not real program
+/// shapes. Do not synthesize keys from their names or parameter indexes.
+pub fn setup_prepared_with_opaque(
+    eg: &mut EGraph,
+    commands: &[Command],
+    opaque: &BTreeSet<String>,
+) -> Result<()> {
+    super::setup_impl(eg, commands, true, false, opaque)
+}
+fn encode_key(k: &Key) -> Json {
+    json!([
+        k.0.anchor,
+        k.0.label,
+        k.0.children.iter().map(encode_key).collect::<Vec<_>>()
+    ])
+}
+pub(super) fn decode_key(text: &str) -> Option<Key> {
+    fn decode(j: &Json) -> Option<Key> {
+        let xs = j.as_array()?;
+        if xs.len() != 3 {
+            return None;
+        }
+        let anchor = xs[0].as_bool()?;
+        let label = xs[1].as_str()?.to_owned();
+        let children = xs[2]
+            .as_array()?
+            .iter()
+            .map(decode)
+            .collect::<Option<Vec<_>>>()?;
+        if anchor && (label != "\0input-anchor" || children.len() != 1) {
+            return None;
+        }
+        let mut key = Key::new(label, children);
+        if anchor {
+            let n = Arc::get_mut(&mut key.0)?;
+            n.anchor = true;
+            n.height = 0;
+        }
+        Some(key)
+    }
+    decode(&serde_json::from_str::<Json>(text).ok()?)
+}
+pub fn key_literal(eg: &EGraph, value: Value) -> String {
+    let k = eg.value_to_base::<Stored>(value);
+    format!(
+        "(cell-key-decode {})",
+        serde_json::to_string(&encode_key(&k).to_string()).unwrap()
+    )
 }
 pub(super) fn install_base(eg: &mut EGraph) -> Result<()> {
     add_base_sort(eg, KeySort, Span::Panic)?;
     let key = eg.get_sort_by_name(SORT).unwrap().clone();
     let int = eg.get_sort_by_name("i64").unwrap().clone();
+    let string = eg.get_sort_by_name("String").unwrap().clone();
     for (name, op, types) in [
         ("cell-key-min", Op::Min, vec![key.clone(); 3]),
         ("cell-key-anchor", Op::Anchor, vec![key.clone(); 2]),
-        ("cell-key-cmp", Op::Compare, vec![key.clone(), key, int]),
+        (
+            "cell-key-cmp",
+            Op::Compare,
+            vec![key.clone(), key.clone(), int],
+        ),
+        ("cell-key-decode", Op::Decode, vec![string, key]),
     ] {
         eg.add_pure_primitive(
             Prim {

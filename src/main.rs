@@ -32,7 +32,7 @@ fn main() -> Result {
         }
         None | Some("--help" | "help" | "-h") => {
             println!(
-                "egg_layout: analyze-transfer SOURCE.egg TRANSFERS.egg\n  run-transfer TRANSFERS.egg INPUTS.egg OUTPUT_DIR\n  analyze --source SOURCE.egg --output DIR [--bake-transfers]\n  whole-cell-auto-check ENV.egg PLAN.json INPUTS.egg GRAFTS.egg OUTPUT_DIR\n  whole-cell-check ENV.egg PLAN.json INPUTS.egg OUTPUT_DIR\n  reuse-adaptive MODE SOURCE.egg OUTPUT_DIR [LIBRARY.json]\n  reuse-virtualize SOURCE.egg LIBRARY.json [AFTER.egg]\n  reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json] [--read-profile]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
+                "egg_layout: analyze-transfer SOURCE.egg TRANSFERS.egg\n  run-transfer TRANSFERS.egg INPUTS.egg OUTPUT_DIR\n  analyze --source SOURCE.egg --output DIR [--bake-transfers]\n  whole-cell-auto-check ENV.egg PLAN.json INPUTS.egg GRAFTS.egg OUTPUT_DIR\n  whole-cell-check ENV.egg PLAN.json INPUTS.egg OUTPUT_DIR\n  reuse-adaptive MODE SOURCE.egg OUTPUT_DIR [LIBRARY.json]\n  reuse-virtualize SOURCE.egg LIBRARY.json [AFTER.egg]\n  reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json] [--read-profile]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --structural-keys (eggcc-v1 selected-program equivalence, not whole-graph determinism); --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
             );
             Ok(())
         }
@@ -137,11 +137,13 @@ fn main() -> Result {
             let mut reuse_library=None;
             let mut optimize=false;
             let mut bake_transfers=false;
+            let mut structural_keys=false;
             let mut observation = egg_layout::ripen_observation::Limits::from_env()?;
             let mut i = 1;
             while i < args.len() {
                 match args[i].as_str() {
                     "--bake-transfers" => bake_transfers=true,
+                    "--structural-keys" => structural_keys=true,
                     "--reuse-plan" => optimize=true,
                     "--reuse-library" => {i+=1;reuse_library=Some(PathBuf::from(args.get(i).ok_or("missing reuse library")?));}
                     "--source" => {
@@ -196,7 +198,7 @@ fn main() -> Result {
             if replay.is_none() && source.as_os_str().is_empty() {
                 return Err("--source is required".into());
             }
-            let r = native_analyze::run_configured_export(
+            let r = native_analyze::run_configured_export_policy(
                 &source,
                 &out.ok_or("--output is required")?,
                 rounds,
@@ -206,6 +208,7 @@ fn main() -> Result {
                 reuse_library.as_deref(),
                 optimize,
                 bake_transfers,
+                structural_keys,
             )?;
             println!("{}", r["summary"]);
             Ok(())

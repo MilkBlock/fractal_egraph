@@ -79,9 +79,8 @@ fn literal(c: &Captured, id: usize) -> Result<Expr> {
         .ok_or("set witness needs a scalar literal or an existing symbolic binding")?;
     let mut eg = super::measured_engine();
     let commands = eg.parse_program(None, &format!("(let __old_value {text})"))?;
-    let [Command::Action(Action::Let(_, _, value @ Expr::Lit(..)))] = commands.as_slice() else {
-        return Err("invalid set witness literal".into());
-    };
+    let [Command::Action(Action::Let(_, _, value))] = commands.as_slice() else {return Err("invalid set witness literal".into())};
+    if !matches!(value,Expr::Lit(..)) && !matches!(value,Expr::Call(_,op,args) if op=="cell-key-decode" && args.len()==1 && matches!(&args[0],Expr::Lit(_,Literal::String(_)))) {return Err("invalid set witness literal".into())}
     Ok(value.clone())
 }
 // An observed external function row has an output as well as its key.
@@ -222,7 +221,7 @@ impl Environment {
             .collect::<Vec<_>>()
             .join("\n");
         let mut base = super::measured_engine();
-        base.run_program(entry.clone())?;
+        if structural_keys::enabled(&c.preview_source){let mut opaque=structural_keys::opaque(&c.preview_source)?;opaque.extend(holes.values().cloned());structural_keys::setup_opaque(&mut base,&entry,&opaque)?;}else{base.run_program(entry.clone())?;}
         Ok(Self {
             export_error: super::export_schema(c, true).err().map(|e| e.to_string()),
             base,
@@ -914,7 +913,7 @@ fn extract(
         tables
     };
     let output_tick = std::time::Instant::now();
-    let seed_text = encode(&entry);
+    let seed_text = if structural_keys::enabled(&c.preview_source){let mut opaque=structural_keys::opaque(&c.preview_source)?;opaque.extend(environment.holes.values().cloned());structural_keys::with_opaque(&encode(&entry),&opaque)}else{encode(&entry)};
     let parameter_end = entry.len();
     let mut replay_stages = vec![];
     for (record, _, _, commands, _) in &stages {
@@ -929,10 +928,11 @@ fn extract(
         replay_stages.push(json!({"record":record,"start":start,"end":entry.len()}));
     }
     entry.extend(final_checks);
-    let text = format!(
+    let mut text = format!(
         "; Extracted symbolic interface. Boundary constructors are opaque, not recovered original terms.\n{}\n",
         encode(&entry)
     );
+    if structural_keys::enabled(&c.preview_source){let mut opaque=structural_keys::opaque(&c.preview_source)?;opaque.extend(environment.holes.values().cloned());text=structural_keys::with_opaque(&text,&opaque);}
     cache
         .prepared_commands
         .entry(text.clone())
@@ -991,6 +991,11 @@ fn extract(
         .as_array()
         .is_some_and(|p| !p.is_empty())
     {
+        if structural_keys::enabled(&c.preview_source) {
+            provenance["symbolic_lowering"]=json!({"status":"deferred","reason":"structural-key policy retains concrete numeric inputs; symbolic-size lowering has a different initialization contract","execution":"concrete replay retained"});
+            elapsed!("encode_result_provenance", output_tick);
+            return Ok((text,validation,provenance));
+        }
         match symbolic_egg::compile(&entry, analysis) {
             Ok((symbolic_text, commands, lowering)) => {
                 provenance["symbolic_lowering"] = lowering;

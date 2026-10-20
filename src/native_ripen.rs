@@ -6,6 +6,7 @@ mod entry;
 mod graft;
 pub(super) use graft::Plan as GraftPlan;
 pub(super) fn graft_plan(cache: &PreparationCache, parent: &str, po: &Json, child: &str, co: &Json) -> Result<GraftPlan> {
+    if structural_keys::enabled(parent)||structural_keys::enabled(child){return Err("structural-key policy uses cold preparation; parent snapshot reuse requires policy-aware validation".into());}
     if parent.starts_with("; ripsat-symbolic-size/v1") || child.starts_with("; ripsat-symbolic-size/v1") {return Err("symbolic-size environments require their own initialization".into());}
     graft::plan(cache.prepared_commands.get(parent).ok_or("missing parent preparation")?,po,cache.prepared_commands.get(child).ok_or("missing child preparation")?,co)
 }
@@ -186,13 +187,16 @@ impl Session {
             setup.push(command);
         }
         let datatype_names = sorts::equality_sorts(&setup);
-        let datatype = setup
+        let mut datatype = setup
             .iter()
             .filter(|c| sorts::is_declaration(c))
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join("\n");
-        let rulesets: Vec<_> = rulesets.into_iter().collect();
+        let key_policy=structural_keys::enabled(&text);
+        if key_policy{datatype=structural_keys::prefix(&datatype);}
+        let mut rulesets: Vec<_> = rulesets.into_iter().collect();
+        if key_policy{rulesets.insert(0,"cell-stable-keys".into());}
         if let Some(environment) = environment {
             let code = setup
                 .iter()
@@ -210,7 +214,7 @@ impl Session {
                     .cloned()
                     .collect()))?;
         } else {
-            eg.run_program(setup.clone())?;
+            if key_policy{structural_keys::setup_opaque(&mut eg,&setup,&structural_keys::opaque(&text)?)?;}else{eg.run_program(setup.clone())?;}
         }
         let mut port_values = vec![];
         for cmd in &setup {

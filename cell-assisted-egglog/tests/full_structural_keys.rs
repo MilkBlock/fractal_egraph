@@ -112,3 +112,37 @@ fn unused_container_declaration_is_allowed_but_actual_instances_fail_closed() {
             .contains("unsupported instantiated constructor: Items")
     );
 }
+#[test]
+fn structural_key_literal_roundtrips_in_a_fresh_environment() {
+    let mut a = setup();
+    let (_, value) = a
+        .eval_expr(
+            &egglog::ast::Parser::default()
+                .get_expr_from_string(None, "(CellStructuralKey-Term (TermLeaf 1))")
+                .unwrap(),
+        )
+        .unwrap();
+    let text = stable_choice::key_literal(&a, value);
+    let mut b = setup();
+    b.parse_and_run_program(
+        None,
+        &format!("(check (= (cell-key-cmp {text} (CellStructuralKey-Term (TermLeaf 1))) 0))"),
+    )
+    .unwrap();
+}
+#[test]
+fn synthetic_ports_do_not_get_keys_from_their_placeholder_names() {
+    let mut eg = EGraph::default();
+    let source = format!(
+        "{BASE} (function Expr-size (Expr) i64 :merge (min old new)) (function to-hoist (Expr Expr) Expr :merge new) (constructor Hole (i64) Expr)"
+    );
+    let cs = eg.parse_program(None, &source).unwrap();
+    let (cs, _) = stable_choice::rewrite_ties(&cs).unwrap();
+    stable_choice::setup_prepared_with_opaque(
+        &mut eg,
+        &cs,
+        &["Hole".to_string()].into_iter().collect(),
+    )
+    .unwrap();
+    eg.parse_and_run_program(None,"(Hole 9) (V 1) (run-schedule (saturate cell-stable-keys)) (check (CellStructuralKey-Expr (V 1))) (fail (check (CellStructuralKey-Expr (Hole 9))))").unwrap();
+}

@@ -30,6 +30,7 @@ pub fn bake_text(name: &str, text: &str) -> Result<Bundle> {
     from_capture(&c)
 }
 pub(super) fn from_capture(c: &Captured) -> Result<Bundle> {
+    if structural_keys::enabled(&c.preview_source){return Err("structural-key history needs a policy-aware transfer exporter".into())}
     let effects = c
         .records
         .iter()

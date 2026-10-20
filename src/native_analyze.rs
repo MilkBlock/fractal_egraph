@@ -31,6 +31,8 @@ pub mod ripen;
 mod saturated_rule_composition_pipeline;
 #[path = "native_sorts.rs"]
 mod sorts;
+#[path = "native_structural_keys.rs"]
+mod structural_keys;
 #[path = "native_weak_dominate.rs"]
 mod weak_dominate;
 #[cfg(not(target_arch = "wasm32"))]
@@ -141,6 +143,7 @@ fn observed_value(
             &eg.value_to_base::<egglog::sort::S>(value).to_string(),
         )?),
         "bool" => Some(eg.value_to_base::<bool>(value).to_string()),
+        "CellStructuralKey" if eg.get_sort_by_name("CellStructuralKey").is_some_and(|s|!s.is_eq_sort()&&!s.is_container_sort()) => Some(structural_keys::literal(eg,value)?),
         "f64" => Some(
             Expr::Lit(
                 sp(),
@@ -244,7 +247,7 @@ fn capture_text_with_planner(
         .cloned()
         .collect();
     let datatype_names = sorts::equality_sorts(&declarations);
-    let datatype = declarations
+    let mut datatype = declarations
         .iter()
         .map(ToString::to_string)
         .collect::<Vec<_>>()
@@ -295,6 +298,14 @@ fn capture_text_with_planner(
                 calls,
             });
         }
+    }
+    let key_policy=structural_keys::enabled(text);
+    if key_policy {
+        if library.is_some(){return Err("structural-key policy cannot reuse an unversioned planner library".into())}
+        let first=structural_keys::setup_end(&commands)?;
+        structural_keys::setup(&mut eg,&commands[..first])?;
+        commands=commands.split_off(first);
+        datatype=structural_keys::prefix(&datatype);
     }
     let trace = TraceSession::with_dependencies();
     trace.set_rhs_lookup_reads(true);
@@ -349,10 +360,9 @@ fn capture_text_with_planner(
                     if let Some(p) = &planner {
                         p.refresh(&mut eg)?;
                     }
-                    eg.run_program_with_trace(
-                        vec![Command::RunSchedule((**inner).clone())],
-                        &trace,
-                    )?;
+                    let step=vec![Command::RunSchedule((**inner).clone())];
+                    let step=if key_policy{structural_keys::schedule(&mut eg,&step)?}else{step};
+                    eg.run_program_with_trace(step,&trace)?;
                     let tier0_seconds = round_start.elapsed().as_secs_f64();
                     let collect_start = Instant::now();
                     count += 1;
@@ -418,7 +428,9 @@ fn capture_text_with_planner(
                     .install(&mut eg, rule, Some(&trace))?
             }
             command => {
-                eg.run_program_with_trace(vec![command], &trace)?;
+                let step=vec![command];
+                let step=if key_policy&&schedule{structural_keys::schedule(&mut eg,&step)?}else{step};
+                eg.run_program_with_trace(step, &trace)?;
             }
         }
         if let Some((reset, tables)) = external_change {
@@ -430,6 +442,7 @@ fn capture_text_with_planner(
             });
         }
         if schedule {
+            if key_policy{structural_keys::audit_graph(&eg)?;}
             collect_with_planner(&eg, &trace, &mut c, &mut producers, planner.as_mut())?;
             c.boundaries.push(CaptureBoundary {
                 ripen: None,
@@ -459,6 +472,7 @@ fn capture_text_with_planner(
         sink(&mut c)?;
     }
     c.rounds = known.then_some(count);
+    if key_policy{structural_keys::audit_graph(&eg)?;}
     c.trace_seconds = started.elapsed().as_secs_f64();
     Ok(c)
 }
@@ -506,7 +520,7 @@ fn collect_with_planner(
     }
     let raw_unions = batch.unions.clone();
     let invalidations = batch.invalidations.clone();
-    let matches = batch.matches;
+    let matches = batch.matches.into_iter().filter(|m| !structural_keys::enabled(&c.preview_source) || names.contains_key(m.rule.as_ref())).collect::<Vec<_>>();
     let events = c.events + matches.len();
     let resets = trace.scope_resets();
     let scope = |id| resets.partition_point(|r| *r < id);
@@ -687,6 +701,7 @@ fn collect_with_planner(
                     &eg.value_to_base::<egglog::sort::S>(*v).to_string(),
                 )?),
                 "bool" => Some(eg.value_to_base::<bool>(*v).to_string()),
+                "CellStructuralKey" if structural_keys::enabled(&c.preview_source) => Some(structural_keys::literal(eg,*v)?),
                 "f64" => Some(
                     Expr::Lit(
                         sp(),
@@ -1123,6 +1138,7 @@ fn execute(
     bake_transfers: bool,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
+    if structural_keys::enabled(text){std::fs::write(out.join("normalized.egg"),text)?;}
     let render_batch = crate::graph_render::Batch::start()?;
     let detailed_trace = crate::graph_render::graphs_enabled()
         && std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1");
@@ -1277,6 +1293,7 @@ fn execute(
     }
     let finish_started = Instant::now();
     let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"equality_sorts":c.datatype_names,"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
+    report["structural_keys"]=json!({"enabled":structural_keys::enabled(&c.preview_source),"policy":"eggcc-v1","acceptance":"selected_program_equivalence","whole_graph_deterministic":false});
     report["reuse_plan"] = c.reuse_plan.clone();
     report["saturated_rule_composition"] = pipeline.take_report();
     // Opt-in through the graph-output switch: leave graphless native timing alone.
@@ -1399,6 +1416,13 @@ pub fn run_configured_export(
     save_history: bool, observation: crate::ripen_observation::Limits,
     reuse_library: Option<&Path>, optimize: bool, bake_transfers: bool,
 ) -> Result<Json> {
+    run_configured_export_policy(source,out,rounds,replay,save_history,observation,reuse_library,optimize,bake_transfers,false)
+}
+pub fn run_configured_export_policy(
+    source:&Path,out:&Path,rounds:Option<usize>,replay:Option<&Path>,save_history:bool,
+    observation:crate::ripen_observation::Limits,reuse_library:Option<&Path>,optimize:bool,bake_transfers:bool,structural_key_policy:bool,
+)->Result<Json>{
+    if structural_key_policy && (replay.is_some()||optimize||bake_transfers){return Err("--structural-keys currently supports fresh capture; replay reads the saved policy automatically; planner reuse and transfer export require a policy-aware library".into())}
     if optimize && (reuse_library.is_none() || replay.is_some()) {
         return Err(
             "planned capture requires a source and reuse library, not history replay".into(),
@@ -1408,11 +1432,14 @@ pub fn run_configured_export(
     if out.exists() {
         return Err("analysis output already exists".into());
     }
-    let text = if replay.is_some() {
-        String::new()
-    } else {
-        std::fs::read_to_string(source)?
-    };
+    let mut text = if replay.is_some() {String::new()} else {std::fs::read_to_string(source)?};
+    if structural_key_policy {
+        #[cfg(not(target_arch="wasm32"))]
+        {text=structural_keys::normalize(&source.to_string_lossy(),&text)?;}
+        #[cfg(target_arch="wasm32")]
+        return Err("structural keys currently require native analysis".into());
+    }
+    if structural_keys::enabled(&text)&&(optimize||bake_transfers){return Err("normalized structural-key source needs policy-aware planner/transfer export".into())}
     execute(
         &source.to_string_lossy(),
         &text,

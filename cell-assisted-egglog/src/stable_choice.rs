@@ -15,7 +15,10 @@ use std::{
     sync::Arc,
 };
 mod full;
-pub use full::{coverage, rewrite_ties, schedule_full, setup_full};
+pub use full::{
+    POLICY_HEADER, coverage, key_literal, rewrite_ties, schedule_full, setup_full,
+    setup_prepared_full, setup_prepared_with_opaque,
+};
 
 pub const RULESET: &str = "cell-stable-keys";
 const SORT: &str = "CellStructuralKey";
@@ -111,6 +114,7 @@ impl BaseSort for KeySort {
 enum Op {
     Min,
     Compare,
+    Decode,
     Choose,
     Anchor,
     Node(String),
@@ -135,6 +139,9 @@ impl PurePrim for Prim {
         let b = s.base_values();
         let key = |v| b.unwrap::<Stored>(v);
         match &self.op {
+            Op::Decode => {
+                full::decode_key(b.unwrap::<S>(a[0]).as_str()).map(|k| b.get(Stored::new(k)))
+            }
             Op::Compare => Some(b.get(match key(a[0]).cmp(&key(a[1])) {
                 Ordering::Less => -1i64,
                 Ordering::Equal => 0,
@@ -220,9 +227,15 @@ fn declare_key(eg: &mut EGraph, sort: &str) -> Result<()> {
 /// Execute the original setup, replacing only the merge of `to-hoist`.
 /// Adds the same auxiliary rules to all backends. No core engine modification.
 pub fn setup(eg: &mut EGraph, commands: &[Command]) -> Result<()> {
-    setup_impl(eg, commands, false)
+    setup_impl(eg, commands, false, false, &BTreeSet::new())
 }
-fn setup_impl(eg: &mut EGraph, commands: &[Command], full: bool) -> Result<()> {
+fn setup_impl(
+    eg: &mut EGraph,
+    commands: &[Command],
+    full: bool,
+    rewrite: bool,
+    opaque: &BTreeSet<String>,
+) -> Result<()> {
     if full {
         full::install_base(eg)?;
     }
@@ -285,8 +298,12 @@ fn setup_impl(eg: &mut EGraph, commands: &[Command], full: bool) -> Result<()> {
                     declare_key(eg, sort)?;
                 }
             }
-            let (cs, _) = full::rewrite_ties(&[c])?;
-            eg.run_program(cs)?;
+            if rewrite {
+                let (cs, _) = full::rewrite_ties(&[c])?;
+                eg.run_program(cs)?;
+            } else {
+                eg.run_program(vec![c])?;
+            }
         } else {
             eg.run_program(vec![c])?;
         }
@@ -294,7 +311,7 @@ fn setup_impl(eg: &mut EGraph, commands: &[Command], full: bool) -> Result<()> {
     if !found {
         return Err("missing to-hoist declaration".into());
     }
-    install_rules(eg, full)?;
+    install_rules(eg, full, opaque)?;
     // Freeze the current input's structural keys once. Subsequent alternatives
     // do not recursively rename the entire input; union still merges keys by min.
     eg.parse_and_run_program(
@@ -303,7 +320,7 @@ fn setup_impl(eg: &mut EGraph, commands: &[Command], full: bool) -> Result<()> {
     )?;
     Ok(())
 }
-fn install_rules(eg: &mut EGraph, full: bool) -> Result<()> {
+fn install_rules(eg: &mut EGraph, full: bool, opaque: &BTreeSet<String>) -> Result<()> {
     let functions = eg
         .get_function_names()
         .into_iter()
@@ -350,7 +367,7 @@ fn install_rules(eg: &mut EGraph, full: bool) -> Result<()> {
     let key = eg.get_sort_by_name(SORT).unwrap().clone();
     let mut bases = BTreeSet::new();
     for (name, (inputs, output)) in functions {
-        if !reachable.contains(output.name()) {
+        if opaque.contains(&name) || !reachable.contains(output.name()) {
             continue;
         }
         if full
