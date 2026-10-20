@@ -39,7 +39,7 @@ pub use hash_index::TupleIndex;
 pub use offsets::{OffsetRange, RowId, Subset, SubsetRef};
 pub use pool::{Pool, PoolSet, Pooled};
 pub use query::{
-    CachedPlan, QueryBuilder, QueryError, RuleBuilder, RuleId, RuleSet, RuleSetBuilder,
+    CachedPlan, CellEffectCheck, CellEffectPrefix, QueryBuilder, QueryError, RuleBuilder, RuleId, RuleSet, RuleSetBuilder,
 };
 pub use row_buffer::TaggedRowBuffer;
 pub use table::virtual_rows::{
@@ -79,6 +79,8 @@ pub mod probe_counters {
         }
     }
 
+    pub static EFFECT_PREFIX_CHECKS: AtomicUsize = AtomicUsize::new(0);
+    pub static EFFECT_PREFIX_EARLY_REJECTIONS: AtomicUsize = AtomicUsize::new(0);
     pub static PROBES: AtomicUsize = AtomicUsize::new(0);
     pub static SPARSE_COLUMN: AtomicUsize = AtomicUsize::new(0);
     pub static CACHED_TUPLE: AtomicUsize = AtomicUsize::new(0);
@@ -119,6 +121,8 @@ pub mod probe_counters {
         let g = |c: &AtomicUsize| c.load(Ordering::Relaxed);
         vec![
             ("probes", g(&PROBES)),
+            ("effect_prefix_checks",g(&EFFECT_PREFIX_CHECKS)),
+            ("effect_prefix_early_rejections",g(&EFFECT_PREFIX_EARLY_REJECTIONS)),
             ("sparse_column", g(&SPARSE_COLUMN)),
             ("cached_tuple", g(&CACHED_TUPLE)),
             ("cached_column", g(&CACHED_COLUMN)),

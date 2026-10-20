@@ -834,6 +834,25 @@ impl Runtime {
         }
         r.joint = Some(joint);
         r.configure_scalar_closure(&commands)?;
+        let sets = commands
+            .iter()
+            .filter_map(|c| {
+                if let Command::Rule { rule } = c {
+                    Some(rule.ruleset.clone())
+                } else {
+                    None
+                }
+            })
+            .collect::<BTreeSet<_>>();
+        for set in sets {
+            if SETS.contains(&set.as_str()) {
+                continue;
+            }
+            let prefix = true;
+            if let Some(plan) = r.eg.prepare_cell_effect_ruleset_with_prefix(&set, prefix)? {
+                r.effect_guards.insert(set, plan);
+            }
+        }
         Ok(r)
     }
     pub fn detach_joint(mut self) -> Result<(EGraph, Observer)> {
@@ -856,6 +875,12 @@ impl Runtime {
 /// owns a second live graph; it borrows the original engine at each boundary.
 pub struct Observer(Runtime);
 impl Observer {
+    pub fn effect_only(&self) -> EffectObserver {
+        EffectObserver {
+            environment: self.0.identity,
+            plans: self.0.effect_guards.clone(),
+        }
+    }
     fn with<T>(&mut self, eg: &mut EGraph, f: impl FnOnce(&mut Runtime) -> Result<T>) -> Result<T> {
         std::mem::swap(&mut self.0.eg, eg);
         let result = f(&mut self.0);
@@ -865,14 +890,19 @@ impl Observer {
 }
 impl crate::table_live::SaturationHook for Observer {
     fn try_run(&mut self, eg: &mut EGraph, set: &str) -> Result<Option<egglog_reports::RunReport>> {
-        if !self.0.scalar.contains_key(set) {
-            return Ok(None);
-        }
         self.with(eg, |r| {
             if r.eg.cell_rule_environment_stamp() != r.identity {
                 return Ok(None);
             }
-            r.run_scalar(set).map(Some)
+            if r.scalar.contains_key(set) {
+                r.run_scalar(set).map(Some)
+            } else if let Some(plan) = r.effect_guards.get(set) {
+                r.eg.step_rules_with_cell_effects(plan)
+                    .map(Some)
+                    .map_err(Into::into)
+            } else {
+                Ok(None)
+            }
         })
     }
     fn handles(&self, s: &Schedule) -> bool {
@@ -922,5 +952,34 @@ impl crate::table_live::SaturationHook for Observer {
                 std::mem::take(r.forwarded.as_mut().unwrap()),
             ))
         })
+    }
+}
+
+/// Independent ablation: effect guards without any closure/dataflow sat-skip.
+pub struct EffectObserver {
+    environment: u64,
+    plans: BTreeMap<String, CellEffectRuleset>,
+}
+impl crate::table_live::SaturationHook for EffectObserver {
+    fn handles(&self, _: &Schedule) -> bool {
+        false
+    }
+    fn try_boundary(&mut self, _: &mut EGraph, _: &Schedule) -> Result<Option<Json>> {
+        Ok(None)
+    }
+    fn try_run(&mut self, eg: &mut EGraph, set: &str) -> Result<Option<egglog_reports::RunReport>> {
+        if eg.cell_rule_environment_stamp() != self.environment {
+            return Ok(None);
+        }
+        match self.plans.get(set) {
+            Some(p) => Ok(Some(eg.step_rules_with_cell_effects(p)?)),
+            None => Ok(None),
+        }
+    }
+    fn take_commits(&mut self, _: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)> {
+        Ok((vec![], vec![]))
+    }
+    fn diagnostics(&self) -> Json {
+        json!({"effect_guard_only":true,"effect_guard_placement":"prefix_with_late_fallback; exact_LHS_activity_probe","effect_prefix_rules":self.plans.iter().map(|(set,p)|(set,p.prefix_rules().len())).collect::<BTreeMap<_,_>>(),"effect_guard_rules":self.plans.iter().map(|(n,p)|(n,p.guarded_rules().len())).collect::<BTreeMap<_,_>>()})
     }
 }

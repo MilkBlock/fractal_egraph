@@ -788,6 +788,9 @@ impl EGraph {
             backend_id,
         };
 
+        // A new table/merge can participate in rebuild of an existing Cell.
+        // Internal zero-argument let bindings carry data, not a new contract.
+        if !decl.internal_let {self.cell_environment_stamp=cell_assist::next_cell_environment_stamp();}
         let old = self.functions.insert(decl.name.clone(), function);
         if old.is_some() {
             panic!(

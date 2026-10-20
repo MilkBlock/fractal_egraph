@@ -16,6 +16,9 @@ pub(crate) fn next_cell_environment_stamp()->u64{
 #[path = "cell_assist_check.rs"]
 mod check;
 pub use check::{CellI64Check, CellI64CheckReport, CellI64Group, CellI64Proposal};
+#[path = "cell_assist_effects.rs"]
+mod effects;
+pub use effects::CellEffectRuleset;
 
 #[derive(Clone, Debug)]
 pub enum CellOperand {
@@ -594,6 +597,27 @@ impl EGraph {
         let result=self.apply_cell_batches_impl(batches,None,Some((ruleset,&ids)))?;
         self.backend.complete_external_queries(&originals,epoch);
         Ok(result)
+    }
+    /// Scalar complete-frontier actions and effect-filtered native queries
+    /// still execute in ONE frozen native batch. Their original rules must be
+    /// disjoint; a guard cannot change the meaning of a supplied candidate.
+    pub fn step_cell_mixed_candidates_with_effects(&mut self,plan:&CellEffectRuleset,batches:&[(&CellActionSink,&[Vec<Value>])])->Result<(RunReport,Option<bool>),Error>{
+        if self.cell_environment_stamp!=plan.environment{return Err(Error::BackendError("Cell effect environment changed".into()))}
+        if self.program_trace.is_some(){return self.step_rules(&plan.name).map(|r|(r,Some(true)))}
+        let original=batches.iter().map(|(s,_)|s.original).collect::<Vec<_>>();
+        if original.iter().collect::<std::collections::HashSet<_>>().len()!=original.len() || original.iter().any(|id|!plan.original.contains(id)) || plan.original.iter().zip(&plan.actual).any(|(old,new)|old!=new && original.contains(old)){
+            return Err(Error::BackendError("foreign, duplicate or overlapping Cell effect candidate".into()))
+        }
+        let observations=self.backend.read_cell_observation_counter(plan.observations);
+        let early=self.backend.read_cell_observation_counter(plan.early_observations);
+        self.sync_effect_inputs(plan);
+        let epoch=self.backend.external_query_epoch();
+        let result=self.apply_cell_batches_impl(batches,None,Some((&plan.name,&plan.actual)));
+        self.finish_effect_inputs(plan);
+        self.backend.complete_external_queries(&original,epoch);
+        let raw_match=self.backend.read_cell_observation_counter(plan.observations)!=observations;
+        let activity=if raw_match{Some(true)}else if self.backend.read_cell_observation_counter(plan.early_observations)!=early{None}else{Some(false)};
+        result.map(|report|(report,activity))
     }
     fn apply_cell_batches_impl(
         &mut self,batches:&[(&CellActionSink,&[Vec<Value>])],trace:Option<&TraceSession>,mixed:Option<(&str,&[RuleId])>

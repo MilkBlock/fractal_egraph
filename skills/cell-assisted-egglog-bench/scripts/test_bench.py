@@ -83,6 +83,19 @@ class WorkflowTests(unittest.TestCase):
         r['joint_verification']=dict(exact_rows_values_equivalence_visibility=True)
         self.assertEqual(B.metrics(r)['joint_speedup'],1.25)
 
+    def test_effect_only_control_is_an_independent_graph_gate(self):
+        r=fixture();proof=dict(exact_rows_values_equivalence_visibility=True)
+        r['gpu_without_joint']=dict(audit=False,runtime=dict(run_seconds=8));r['joint_verification']=proof
+        r['gpu_effect_only']=dict(audit=False,runtime=dict(run_seconds=6))
+        self.assertIsNone(B.metrics(r)['inference_speedup'])
+        r['effect_control_verification']=proof
+        self.assertIsNone(B.metrics(r)['sat_after_effect_guards_speedup'])
+        r['joint_effect_verification']=proof
+        self.assertEqual(B.metrics(r)['joint_speedup'],2)
+        self.assertEqual(B.metrics(r)['sat_after_effect_guards_speedup'],1.5)
+        r['effect_control_verification']={}
+        self.assertIsNone(B.metrics(r)['joint_speedup'])
+
     def test_parameterized_gate_requires_both_graphs_and_counts(self):
         phase = dict(same_submit=dict(exact_rows_values_equivalence_visibility=True),
                      fused_native=dict(exact_rows_values_equivalence_visibility=True),

@@ -214,6 +214,10 @@ impl EGraph {
         self.db.column_cardinality()
     }
 
+    /// Private optimizer observations, cloned independently with the engine.
+    pub fn new_cell_observation_counter(&mut self)->CounterId{self.db.add_counter()}
+    pub fn read_cell_observation_counter(&self,id:CounterId)->usize{self.db.read_counter(id)}
+
     fn next_ts(&self) -> Timestamp {
         Timestamp::from_usize(self.db.read_counter(self.timestamp_counter))
     }

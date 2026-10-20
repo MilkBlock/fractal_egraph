@@ -325,6 +325,7 @@ pub fn benchmark_hybrid_export_joint(
     selected: &[String],
     exports: &Path,
     hook: Box<dyn cell_assisted_egglog::table_live::SaturationHook>,
+    effect_control: Box<dyn cell_assisted_egglog::table_live::SaturationHook>,
 ) -> Result<()> {
     benchmark_impl(
         base,
@@ -336,7 +337,7 @@ pub fn benchmark_hybrid_export_joint(
         Some(selected),
         false,
         Some(exports),
-        Some(hook),
+        Some((hook,effect_control)),
     )
 }
 fn benchmark_impl(
@@ -349,8 +350,9 @@ fn benchmark_impl(
     selected: Option<&[String]>,
     fixed_point: bool,
     exports: Option<&Path>,
-    hook: Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>,
+    hooks: Option<(Box<dyn cell_assisted_egglog::table_live::SaturationHook>,Box<dyn cell_assisted_egglog::table_live::SaturationHook>)>,
 ) -> Result<()> {
+    let (hook,effect_control)=match hooks{Some((h,c))=>(Some(h),Some(c)),None=>(None,None)};
     let t = Instant::now();
     let mut native = base.clone();
     let native_clone = t.elapsed().as_secs_f64();
@@ -384,6 +386,11 @@ fn benchmark_impl(
     } else {
         None
     };
+    let gpu_effect_only=if let Some(hook)=effect_control{
+        let mut r=Runtime::new_hybrid(base.clone(),commands,Some(worker),false,selected.ok_or("effect control requires selected rulesets")?)?;
+        r.set_saturation_hook(hook);r.run(commands)?;
+        Some((r.report(),r.into_engine()))
+    }else{None};
     let t = Instant::now();
     let copy = base.clone();
     let gpu_clone = t.elapsed().as_secs_f64();
@@ -404,6 +411,9 @@ fn benchmark_impl(
         .as_ref()
         .map(|(_, eg)| equal(base, eg, runtime.engine()));
     let gpu_without_joint_report = gpu_without_joint.as_ref().map(|(report, _)| report);
+    let effect_control_verification=gpu_effect_only.as_ref().map(|(_,eg)|equal(base,ordered.engine(),eg));
+    let joint_effect_verification=gpu_effect_only.as_ref().map(|(_,eg)|equal(base,eg,runtime.engine()));
+
     let costs = extraction_costs(base, &native, runtime.engine());
     let same_commit_costs = extraction_costs(base, ordered.engine(), runtime.engine());
     let projected = equal_projected(base, &native, runtime.engine(), true);
@@ -428,6 +438,9 @@ fn benchmark_impl(
   "native_per_rule":report.search_and_apply_time_per_rule.iter().map(|(s,t)|json!({"rule":s,"search_apply_seconds":t.as_secs_f64(),"matches":report.num_matches_per_rule.get(s).copied().unwrap_or(0)})).collect::<Vec<_>>(),
   "sorted_commit_cpu":sorted_stats,"same_commit_verification":same_commit_verification.as_ref().ok(),"same_commit_verification_error":same_commit_verification.as_ref().err().map(ToString::to_string),
   "gpu_without_joint":gpu_without_joint_report,"joint_verification":joint_verification.as_ref().and_then(|r|r.as_ref().ok()),"joint_verification_error":joint_verification.as_ref().and_then(|r|r.as_ref().err()).map(ToString::to_string),
+  "gpu_effect_only":gpu_effect_only.as_ref().map(|(r,_)|r),
+  "effect_control_verification":effect_control_verification.as_ref().and_then(|r|r.as_ref().ok()),"effect_control_error":effect_control_verification.as_ref().and_then(|r|r.as_ref().err()).map(ToString::to_string),
+  "joint_effect_verification":joint_effect_verification.as_ref().and_then(|r|r.as_ref().ok()),"joint_effect_error":joint_effect_verification.as_ref().and_then(|r|r.as_ref().err()).map(ToString::to_string),
   "gpu":stats,"native_clone_seconds_excluded":native_clone,"gpu_clone_seconds_excluded":gpu_clone,
   "projection_without_smaller":projected.as_ref().ok(),"projection_error":projected.as_ref().err().map(ToString::to_string),"native_graph":graph_sizes(&native)?,"gpu_graph":graph_sizes(runtime.engine())?,"verification":verification.as_ref().ok(),"quality":costs.as_ref().ok(),"quality_error":costs.as_ref().err().map(ToString::to_string),"same_commit_quality":same_commit_costs.as_ref().ok(),"same_commit_quality_error":same_commit_costs.as_ref().err().map(ToString::to_string),
         "native_continuation_unchanged":closure,"continuation_error":continuation_error,"continuation_seconds_excluded":closure_seconds,"verification_error":verification.as_ref().err().map(ToString::to_string),

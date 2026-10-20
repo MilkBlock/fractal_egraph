@@ -5,7 +5,7 @@ use crate::Result;
 use egglog::{
     EGraph, Value,
     ast::{Command, GenericSchedule, Schedule},
-    cell_assist::{CellActionSink, CellOperand},
+    cell_assist::{CellActionSink, CellEffectRuleset, CellOperand},
     cell_events::{CellCommitBatch, CellCommitFeed},
 };
 use egglog_numeric_id::NumericId;
@@ -413,6 +413,7 @@ pub struct Runtime {
     epoch: u64,
     joint: Option<joint::Joint>,
     scalar: BTreeMap<String, scalar::Group>,
+    effect_guards: BTreeMap<String, CellEffectRuleset>,
     forwarded: Option<Vec<CellCommitBatch>>,
     pub last_updated: bool,
     pub stats: Stats,
@@ -520,6 +521,7 @@ impl Runtime {
             epoch: 0,
             joint: None,
             scalar,
+            effect_guards: BTreeMap::new(),
             forwarded: None,
             last_updated: false,
             stats: Stats {
@@ -791,6 +793,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len(),"retired_guard_seeds":k.retired_total,"identity_noop_seeds":k.identity_noops})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
+        json!({"stats":self.stats,"effect_guard_placement":"prefix_with_late_fallback; exact_LHS_activity_probe","effect_prefix_rules":self.effect_guards.iter().map(|(set,p)|(set,p.prefix_rules().len())).collect::<BTreeMap<_,_>>(),"effect_guard_rules":self.effect_guards.iter().map(|(set,p)|(set,p.guarded_rules().len())).collect::<BTreeMap<_,_>>(),"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len(),"retired_guard_seeds":k.retired_total,"identity_noop_seeds":k.identity_noops})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

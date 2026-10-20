@@ -320,9 +320,17 @@ impl Runtime {
                 .collect::<Vec<_>>();
             group.stats.prepare_seconds += started.elapsed().as_secs_f64();
             let started = std::time::Instant::now();
-            let mut report = self.eg.step_cell_mixed_candidates(set, &batches)?;
+            let (mut report, raw_guard_match) = if let Some(guard) = self.effect_guards.get(set) {
+                self.eg
+                    .step_cell_mixed_candidates_with_effects(guard, &batches)?
+            } else {
+                (
+                    self.eg.step_cell_mixed_candidates(set, &batches)?,
+                    Some(false),
+                )
+            };
             group.stats.commit_seconds += started.elapsed().as_secs_f64();
-            let quiet = group.others.iter().all(|n| {
+            let quiet_peers = group.others.iter().all(|n| {
                 report
                     .num_matches_per_rule
                     .get(n.as_str())
@@ -330,6 +338,17 @@ impl Runtime {
                     .unwrap_or(0)
                     == 0
             });
+            let raw_guard_match = if quiet_peers {
+                match raw_guard_match {
+                    Some(v) => v,
+                    None => self
+                        .eg
+                        .cell_effect_had_lhs_match(&self.effect_guards[set])?,
+                }
+            } else {
+                true
+            };
+            let quiet = quiet_peers && !raw_guard_match;
             if quiet {
                 group.stats.other_quiet_runs += 1;
                 group.stats.quiet_structural_candidates +=

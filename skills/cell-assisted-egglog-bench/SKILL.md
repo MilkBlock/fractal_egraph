@@ -41,7 +41,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 - 单次运行每条路径，不自动取平均。不要同时编译、audit、做图或运行其它 benchmark。
 - `run` 的稳定策略在 CPU/GPU 共用同一原生 merge；主计时包含结构键维护，输入锚点准备和 worker setup 单列。脚本在整图失败后仍可做 Tiger 检查，但保留失败退出码。
-- `run --joint-sat` 顺序跑原生融合、CPU 同提交协议、GPU 关闭 joint、GPU 开启 joint 四条完整主调度。只有 GPU 开启 joint 装载联合闭包 observer。报告 CPU/GPU 比值及 GPU 关闭÷开启的单独增益；后者必须通过 `joint_verification` 整图门槛，并展示实际 macro 实例数、空转跳过数和回退原因。不能把普通 GPU 收益算成 Cell 收益。控制 GPU worker 在 joint lane 开始前释放。
+- `run --joint-sat` 顺序跑原生融合、CPU 同提交协议、GPU 关闭 joint、GPU 仅开启 RHS 检查、GPU 开启 joint 五条完整主调度。仅 RHS 检查的对照不做 Cell 闭包；GPU 开启 joint 装载联合闭包 observer。两个新增的 effect 图门槛也必须通过；分别报告总收益和保留相同 RHS 检查后的 sat-skip 独立收益。报告 CPU/GPU 比值及 GPU 关闭÷开启的单独增益；后者必须通过 `joint_verification` 整图门槛，并展示实际 macro 实例数、空转跳过数和回退原因。不能把普通 GPU 收益算成 Cell 收益。控制 GPU worker 在 joint lane 开始前释放。
 - 加速比默认用**同提交协议的 CPU vs GPU**，且要求完整原始事实、值、等价关系、可见性检查通过；失败时不打印有效加速比。Expr 数量、match 数量、TCPair 代价相同都不能替代这一门槛。
 - 真正的提取质量检查调用生产 Tiger，再比较它输出的选定 DAG。不能把 TCPair 或树大小称为实际 extraction 质量。若加上 Tiger 计算比值，说明仍不含序列化/诊断，并单列共享初始化。
 - `audit` 检查同一执行状态上的增量查询，既会扰动引擎，也不证明独立运行的最终图相等。当前这个入口检查**原策略**；它不是稳定策略完整运行的替代认证。

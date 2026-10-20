@@ -67,8 +67,21 @@ impl CachedPlan {
     }
 }
 
+/// Trusted effect-only rejection on a current join prefix. This is not a
+/// general database-reading LHS primitive: the compiler must prove that true
+/// means every completion of this prefix has no required effect.
+pub type CellEffectCheck = dyn for<'db> Fn(&crate::ExecutionState<'db>, &[crate::Value]) -> bool + Send + Sync;
+#[derive(Clone)]
+pub struct CellEffectPrefix {
+    pub(crate) inputs: Vec<crate::QueryEntry>,
+    pub(crate) check: Arc<CellEffectCheck>,
+}
+impl std::fmt::Debug for CellEffectPrefix {
+    fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result{f.debug_struct("CellEffectPrefix").field("inputs",&self.inputs).finish_non_exhaustive()}
+}
 #[derive(Debug, Clone)]
 pub(crate) struct ActionInfo {
+    pub(crate) effect_prefix: Option<Arc<CellEffectPrefix>>,
     pub(crate) used_vars: SmallVec<[Variable; 4]>,
     pub(crate) instrs: Arc<Pooled<Vec<Instr>>>,
     pub(crate) trace_rule: Arc<str>,
@@ -162,6 +175,7 @@ impl<'outer> RuleSetBuilder<'outer> {
     pub fn new_rule<'a>(&'a mut self) -> QueryBuilder<'outer, 'a> {
         let instrs = with_pool_set(PoolSet::get);
         QueryBuilder {
+            effect_prefix:None,
             trace_sources: HashMap::default(),
             rsb: self,
             instrs,
@@ -330,6 +344,7 @@ impl<'outer> RuleSetBuilder<'outer> {
 /// Queries specify scans or joins over the database that bind variables that
 /// are accessible to rules.
 pub struct QueryBuilder<'outer, 'a> {
+    effect_prefix:Option<Arc<CellEffectPrefix>>,
     trace_sources: HashMap<AtomId, Arc<str>>,
     rsb: &'a mut RuleSetBuilder<'outer>,
     query: Query,
@@ -654,6 +669,7 @@ impl RuleBuilder<'_, '_> {
         }
         let desc: Arc<str> = Arc::from(desc.into());
         let action_id = self.qb.rsb.rule_set.actions.push(ActionInfo {
+            effect_prefix:self.qb.effect_prefix,
             instrs: Arc::new(self.qb.instrs),
             used_vars,
             trace_rule: desc.clone(),
@@ -807,6 +823,14 @@ impl RuleBuilder<'_, '_> {
         });
         self.qb.mark_used(args);
         Ok(())
+    }
+
+    /// Attach an optimizer-certified prefix test. A late action-side guard
+    /// must remain as fallback for decomposed plans or RHS-defined arguments.
+    pub fn set_cell_effect_prefix(&mut self,check:Arc<CellEffectCheck>,inputs:&[QueryEntry]){
+        if inputs.iter().any(|x|matches!(x,QueryEntry::Var(v) if self.qb.query.var_info[*v].defined_in_rhs)){return}
+        self.qb.mark_used(inputs);
+        self.qb.effect_prefix=Some(Arc::new(CellEffectPrefix{inputs:inputs.to_vec(),check}));
     }
 
     /// Apply the given external function to the specified arguments.

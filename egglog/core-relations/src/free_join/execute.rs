@@ -451,7 +451,7 @@ impl Database {
                     let match_counter = match_counter.clone();
                     scope.spawn(move |rule_scope| {
                         let join_state = JoinState::new(db, exec_state.clone(), trace, query_stop);
-                        let mut binding_info = join_state.initial_bindings(plan, &desc, symbol_map);
+                        let mut binding_info = join_state.initial_bindings(plan, &desc, symbol_map, rule_set.actions[plan.actions()].effect_prefix.as_ref());
                         let mut action_buf = ScopedActionBuffer::new(
                             rule_scope,
                             rule_set,
@@ -598,7 +598,7 @@ impl Database {
                         keep.then(|| plan.to_report(symbol_map))
                     }
                 };
-                let mut binding_info = join_state.initial_bindings(plan, &desc, symbol_map);
+                let mut binding_info = join_state.initial_bindings(plan, &desc, symbol_map, rule_set.actions[plan.actions()].effect_prefix.as_ref());
 
                 let search_and_apply_timer = Instant::now();
                 'eval: {
@@ -912,8 +912,27 @@ impl CompletionCursor {
     }
 }
 
+// The same depth discipline as completion keys: values left over from a
+// different branch must never form a new no-effect certificate.
+#[derive(Clone)]
+struct EffectCursor {
+    proof:Arc<crate::CellEffectPrefix>,
+    variables:SmallVec<[(Variable,Option<usize>);8]>,
+    checked_at:Option<usize>,
+}
+impl EffectCursor {
+    fn enter(&mut self,depth:usize){
+        for (_,d) in &mut self.variables{if d.is_some_and(|x|x>=depth){*d=None}}
+        if self.checked_at.is_some_and(|x|x>=depth){self.checked_at=None}
+    }
+    fn bind(&mut self,var:Variable,depth:usize){
+        for (v,d) in &mut self.variables{if *v==var{*d=Some(depth);self.checked_at=None}}
+    }
+}
+
 #[derive(Default, Clone)]
 struct BindingInfo {
+    effect:Option<Box<EffectCursor>>,
     completion: Option<Box<CompletionCursor>>,
     bindings: DenseIdMap<Variable, Value>,
     subsets: DenseIdMap<AtomId, Arc<TrieNode>>,
@@ -983,8 +1002,15 @@ impl<'a> JoinState<'a> {
         plan: &Plan,
         rule: &str,
         names: &crate::query::SymbolMap,
+        effect: Option<&Arc<crate::CellEffectPrefix>>,
     ) -> BindingInfo {
         let mut bindings = BindingInfo::default();
+        if matches!(plan,Plan::SinglePlan(_)){
+            if let Some(proof)=effect{
+                let variables=proof.inputs.iter().filter_map(|x|if let crate::QueryEntry::Var(v)=x{Some((*v,None))}else{None}).collect();
+                bindings.effect=Some(Box::new(EffectCursor{proof:proof.clone(),variables,checked_at:None}));
+            }
+        }
         if let Some((table, params)) = self.db.completed_cells.get(rule) {
             let variables = params
                 .iter()
@@ -1131,6 +1157,18 @@ impl<'a> JoinState<'a> {
         }
         bindings.insert_subset(*id, Subset::Sparse(sink.rows));
         bindings
+    }
+
+    fn effect_complete(&self,info:&mut BindingInfo,depth:usize,early:bool)->bool{
+        let Some(c)=info.effect.as_mut() else{return false};
+        if c.checked_at.is_some() || c.variables.iter().any(|(_,d)|d.is_none()){return false}
+        let values=c.proof.inputs.iter().map(|x|match x{crate::QueryEntry::Var(v)=>info.bindings[*v],crate::QueryEntry::Const(v)=>*v}).collect::<SmallVec<[Value;16]>>();
+        crate::probe_counters::bump(&crate::probe_counters::EFFECT_PREFIX_CHECKS);
+        if (c.proof.check)(&self.exec_state,&values){
+            if early{crate::probe_counters::bump(&crate::probe_counters::EFFECT_PREFIX_EARLY_REJECTIONS)}
+            return true
+        }
+        c.checked_at=Some(depth);false
     }
 
     fn completed(&self, info: &mut BindingInfo, depth: usize) -> bool {
@@ -1418,9 +1456,9 @@ impl<'a> JoinState<'a> {
             return;
         }
 
-        if let Some(c) = binding_info.completion.as_mut() {
-            c.enter(cur);
-        }
+        if let Some(c) = binding_info.completion.as_mut() {c.enter(cur);}
+        if let Some(c) = binding_info.effect.as_mut() {c.enter(cur);}
+        if self.effect_complete(binding_info,cur,cur<instr_order.len()){return}
         if self.completed(binding_info, cur) || self.already_queued(binding_info) {
             return;
         }
@@ -1457,6 +1495,7 @@ impl<'a> JoinState<'a> {
                         UpdateInstr::PushBinding(var, val) => {
                             binding_info.bindings.insert(var, val);
                             if let Some(c)=binding_info.completion.as_mut() {c.bind(var,cur);}
+                            if let Some(c)=binding_info.effect.as_mut() {c.bind(var,cur);}
                         }
                         UpdateInstr::RefineAtom(atom, subset) => {
                             binding_info.insert_node(atom, subset);
@@ -1471,7 +1510,7 @@ impl<'a> JoinState<'a> {
                             // a recursive run_plan call, avoiding function call
                             // overhead + an extra should_stop() check.
                             if cur + 1 >= instr_order.len() {
-                                if self.completed(binding_info,cur+1) || self.claim_cell(binding_info) {return;}
+                                if self.effect_complete(binding_info,cur+1,false) || self.completed(binding_info,cur+1) || self.claim_cell(binding_info) {return;}
                                 action_buf.push_bindings(action, &binding_info.bindings, || {
                                     self.exec_state.clone()
                                 });
@@ -1517,9 +1556,8 @@ impl<'a> JoinState<'a> {
                         updates.drain(|update| match update {
                             UpdateInstr::PushBinding(var, val) => {
                                 binding_info.bindings.insert(var, val);
-                                if let Some(c) = binding_info.completion.as_mut() {
-                                    c.bind(var, cur);
-                                }
+                                if let Some(c) = binding_info.completion.as_mut() {c.bind(var, cur);}
+                                if let Some(c) = binding_info.effect.as_mut() {c.bind(var, cur);}
                             }
                             UpdateInstr::RefineAtom(atom, subset) => {
                                 binding_info.insert_node(atom, subset);

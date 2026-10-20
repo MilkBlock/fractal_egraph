@@ -476,6 +476,15 @@ impl RuleBuilder<'_> {
         ))
     }
 
+    /// Install a trusted no-effect predicate at the earliest complete prefix.
+    pub fn cell_effect_prefix(&mut self,check:std::sync::Arc<crate::core_relations::CellEffectCheck>,entries:&[QueryEntry]){
+        let entries=entries.to_vec();
+        self.query.add_rule.push(Box::new(move |inner,rb|{
+            let args=inner.convert_all(&entries);
+            rb.set_cell_effect_prefix(check.clone(),&args);Ok(())
+        }));
+    }
+
     /// Add the given primitive atom to query. As elsewhere in the crate, the last
     /// argument is the "return value" of the function.
     pub fn query_prim(

@@ -40,13 +40,18 @@ def metrics(r, quality=None, extraction=None):
     gpu = r['gpu']['runtime']['run_seconds']
     control=r.get('gpu_without_joint')
     joint_ok=not control or exact(r.get('joint_verification'))
+    effect=r.get('gpu_effect_only')
+    effect_ok=not effect or (exact(r.get('effect_control_verification')) and exact(r.get('joint_effect_verification')))
+    joint_ok=joint_ok and effect_ok
     eligible = ok and joint_ok and r.get('benchmark_finished') is True and audit is False and cpu > 0 and gpu > 0
     result = dict(exact_cpu_gpu=ok, exact_fused_native_gpu=exact(r.get('verification')),
                   timing_eligible=eligible, inference_speedup=cpu / gpu if eligible else None,
                   extraction_passed=bool(quality and quality.get('passed') is True),
-                  inference_plus_tiger_speedup=None, joint_speedup=None)
+                  inference_plus_tiger_speedup=None, joint_speedup=None, sat_after_effect_guards_speedup=None)
     if eligible and control and control.get('audit') is False:
         result['joint_speedup']=control['runtime']['run_seconds']/gpu
+    if eligible and effect and effect.get('audit') is False:
+        result['sat_after_effect_guards_speedup']=effect['runtime']['run_seconds']/gpu
     if eligible and result['extraction_passed'] and extraction:
         times = {v['lane']: v['seconds'] for v in extraction['runs'] if v['returncode'] == 0}
         if 'cpu' in times and 'gpu' in times:
@@ -72,6 +77,8 @@ def report(path, fresh=False):
             print(f'| {name} | {sec:.6f} |')
         if r.get('gpu_without_joint'):
             print(f"| GPU 关闭 joint sat-skip | {r['gpu_without_joint']['runtime']['run_seconds']:.6f} |")
+        if r.get('gpu_effect_only'):
+            print(f"| GPU＋RHS 无效检查，关闭 sat-skip | {r['gpu_effect_only']['runtime']['run_seconds']:.6f} |")
         print('\nCPU/GPU 整图：', m['exact_cpu_gpu'], '；融合原生/GPU 整图：', m['exact_fused_native_gpu'])
         print('实际 Tiger 选定 DAG 检查：', m['extraction_passed'] if qpath.is_file() else '尚未运行')
         print('有效推理加速比：', f"{m['inference_speedup']:.4f}x" if m['timing_eligible'] else '不报告（整图门槛失败或这是 audit）')
@@ -80,7 +87,10 @@ def report(path, fresh=False):
         print('以上不含序列化、诊断、共享输入准备；worker setup 见原始报告。当前 fork，不是 pristine。')
         print('由 Cell handler 完成的饱和边界（含显式 dataflow 推进）：', r['gpu']['runtime'].get('skipped_saturations', 0))
         if r.get('gpu_without_joint'):
-            print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '未通过整图门槛')
+            print('联合路径相对原始 GPU 的收益：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '未通过整图门槛')
+            if r.get('gpu_effect_only'):
+                value=m['sat_after_effect_guards_speedup']
+                print('保留同样 RHS 检查后的 sat-skip 独立收益：',f"{value:.4f}x" if value is not None else '未通过全部整图门槛')
             print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
         if not m['exact_cpu_gpu']:
             print('失败原因：', r.get('same_commit_verification_error'))
@@ -177,7 +187,7 @@ def commands(a, repo, worker, out):
     elif a.mode == 'test':
         c = [['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--lib', 'stable_choice::tests', '--target-dir', 'target/analyzer'],
-             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
+             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'effect_guards', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
     else: c = []
     if getattr(a, 'reference_output', None): c[-1] += ['--reference-output', str(resolve(a.reference_output))]
     return c
@@ -193,7 +203,7 @@ def saved_gate(mode, out, three_lane=False):
     """Some old diagnostic binaries save a failed check but still return zero."""
     if mode == 'run' or (mode == 'audit' and three_lane):
         r=load(out/'report.json')
-        return exact(r.get('same_commit_verification')) and (not r.get('gpu_without_joint') or exact(r.get('joint_verification')))
+        return exact(r.get('same_commit_verification')) and (not r.get('gpu_without_joint') or exact(r.get('joint_verification'))) and (not r.get('gpu_effect_only') or (exact(r.get('effect_control_verification')) and exact(r.get('joint_effect_verification'))))
     if mode == 'cpu-pair': return exact(load(out/'cpu-pair.json').get('exact_graph'))
     if mode == 'audit': return load(out/'audit.json').get('complete') is True
     if mode == 'extract': return load(out/'extraction/quality.json').get('passed') is True

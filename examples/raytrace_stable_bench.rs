@@ -31,6 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let joint = a[3..].iter().any(|s| s == "--joint-sat");
     let start = Instant::now();
     let mut hook = None;
+    let mut effect_control = None;
     let commands = if joint {
         let r = if stable {
             cell_assisted_egglog::parameterized_cell::Runtime::new_joint_stable_commands(
@@ -43,6 +44,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
         let (engine, observer) = r.detach_joint()?;
         eg = engine;
+        effect_control = Some(Box::new(observer.effect_only())
+            as Box<dyn cell_assisted_egglog::table_live::SaturationHook>);
         hook =
             Some(Box::new(observer) as Box<dyn cell_assisted_egglog::table_live::SaturationHook>);
         if stable {
@@ -79,6 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &selected,
             &out.join("graphs"),
             hook,
+            effect_control.take().unwrap(),
         )?;
     } else {
         bench::benchmark_hybrid_export(
@@ -106,6 +110,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     if !r["same_commit_verification"].is_object() {
         return Err("strict same-commit graph gate failed; exports retained".into());
+    }
+    if joint
+        && (!r["effect_control_verification"].is_object()
+            || !r["joint_effect_verification"].is_object())
+    {
+        return Err("effect-only ablation graph mismatch; exports retained".into());
     }
     if joint && !r["joint_verification"].is_object() {
         return Err("joint hook differs from GPU control; exports retained".into());

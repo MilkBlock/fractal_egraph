@@ -280,3 +280,28 @@ fn a_finite_run_after_a_closure_stays_one_step() {
         )
         .unwrap();
 }
+
+#[test]
+fn filtered_noop_matches_do_not_advance_numeric_closure_admission() {
+    let src = format!(
+        "{} (rule ((Copy x)) ((Copy x)) :ruleset work :name \"noop\")",
+        source(false)
+    );
+    let mut r = Runtime::new_joint(&src).unwrap();
+    r.input(&chain(8, 1000)).unwrap();
+    let mut native = r.engine().clone();
+    let base = native.clone();
+    let commands = native
+        .parse_program(None, "(run-schedule (saturate work))")
+        .unwrap();
+    native.run_program(commands.clone()).unwrap();
+    r.run(&commands).unwrap();
+    compare::equal(&base, &native, r.engine()).unwrap();
+    assert_eq!(r.report()["effect_guard_rules"]["work"], 1);
+    assert_eq!(
+        r.report()["scalar_cells"][0]["stats"]["runs"],
+        3,
+        "{}",
+        r.report()
+    );
+}
