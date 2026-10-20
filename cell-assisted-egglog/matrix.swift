@@ -501,6 +501,16 @@ final class FamilyExecutor {
  var watchCount=0,watchCap=0,watchBuckets=1,portCount=0,portCap=0,watchGCs=0,portGCs=0,cellCap=1,cellSlotsReused=0
  var pcursors:[Int],pendingPortEnd=0
  var cursors:[Int],pending:[Int]=[],pendingEnd=0,compactions=0,gpu=0.0,compileSeconds=0.0
+ var packetCap=0
+ // Diagnostic only: where the host round trip actually goes. Not part of the protocol ABI.
+ var submitSeconds=0.0,submitCount=0,advanceSeconds=0.0,advanceCount=0,sendSeconds=0.0
+ func writeStats(){
+  let o:[String:Any]=["submit_seconds":submitSeconds,"submit_count":submitCount,
+    "advance_seconds":advanceSeconds,"advance_count":advanceCount,"send_seconds":sendSeconds,
+    "gpu_seconds":gpu,"epoch":epoch,"dispatches":advanceCount]
+  let p=FileManager.default.currentDirectoryPath+"/out/cell-locality-worker/roundtrip-stats.json"
+  if let d=try? JSONSerialization.data(withJSONObject:o,options:[.sortedKeys]){try? d.write(to:URL(fileURLWithPath:p))}
+ }
  init(_ x:[String:Any])throws{
   try require(x["version"] as? Int==2 && x["family_layout"] as? Int==6,"family layout: rebuild both Rust and Swift")
   c=x["columns"] as! Int;p=x["parts"] as! Int;s=x["slots"] as! Int;ni=x["indexes"] as! Int;nq=x["queries"] as! Int;rs=4+3*c;nc=x["cell_plans"] as? Int ?? 0;cs=x["cell_stride"] as? Int ?? 1;ck=x["cell_steps"] as! Int;ec=(x["event_cells"] as? Bool ?? false) && nc>0
@@ -523,7 +533,7 @@ final class FamilyExecutor {
  }
  func alloc(_ n:Int)throws->MTLBuffer{try require(n>=0 && n<Int(UInt32.max),"family address space exhausted");guard let b=d.makeBuffer(length:max(1,n)*4,options:.storageModeShared)else{throw NSError(domain:"family allocation",code:1)};return b}
  func pow2(_ n:Int)throws->Int{try require(n>0 && n<Int(UInt32.max)/2,"family capacity exhausted");var k=1;while k<n{k*=2};return k}
- func submit(_ b:MTLCommandBuffer)throws{b.commit();b.waitUntilCompleted();if let e=b.error{throw e};if b.gpuEndTime>b.gpuStartTime{gpu+=b.gpuEndTime-b.gpuStartTime}}
+ func submit(_ b:MTLCommandBuffer)throws{let t=ProcessInfo.processInfo.systemUptime;b.commit();b.waitUntilCompleted();submitSeconds+=ProcessInfo.processInfo.systemUptime-t;submitCount+=1;if let e=b.error{throw e};if b.gpuEndTime>b.gpuStartTime{gpu+=b.gpuEndTime-b.gpuStartTime}}
  func grow(_ old:MTLBuffer,_ words:Int,_ preserve:Int)throws->MTLBuffer{
   if old.length>=max(1,words)*4{return old};let next=try alloc(words)
   if preserve>0{let cb=q.makeCommandBuffer()!,e=cb.makeBlitCommandEncoder()!;e.copy(from:old,sourceOffset:0,to:next,destinationOffset:0,size:preserve*4);e.endEncoding();try submit(cb)};return next
@@ -544,7 +554,7 @@ final class FamilyExecutor {
  // matching; the caller commits every query result at the original boundary.
  func prepareCells(_ relevant:Bool,_ cellRelevant:Bool,_ changes:Int,_ compact:Bool)throws->MTLCommandBuffer {
   let ctrl=state.contents().assumingMemoryBound(to:UInt32.self),reg=registry.contents().assumingMemoryBound(to:UInt32.self)
-  let first=q.makeCommandBuffer()!
+  let first=q.makeCommandBufferWithUnretainedReferences()!
   if relevant{encode("family_wake",changes,first)}
   encode("family_patch",changes,first)
   if cellRelevant{encode("family_cell_retire_count",changes,first)}
@@ -563,14 +573,14 @@ final class FamilyExecutor {
   }
   dirty=try grow(dirty,cellCap,Int(ctrl[1]));args[22]=UInt32(cellCap)
   cellSlotsReused+=min(available,needed)
-  let evaluate=q.makeCommandBuffer()!
+  let evaluate=q.makeCommandBufferWithUnretainedReferences()!
   if needed>0{encode("family_cell_allocate",changes,evaluate)}
   encode("family_registry_finish",1,evaluate)
   if ec{encode("family_cell_dispatch",1,evaluate);encode("family_cell_events",1,evaluate,16)}
   else{encode("family_cells",newSize,evaluate)}
   try submit(evaluate);try require(counts.contents().assumingMemoryBound(to:UInt32.self)[1]==0,"Cell evaluation failed")
   try require(Int(reg[0])==newSize && reg[0]==reg[1]+reg[4],"sparse Cell registry accounting")
-  let publish=q.makeCommandBuffer()!
+  let publish=q.makeCommandBufferWithUnretainedReferences()!
   if !ec{return publish}
   let needWatch=Int(reg[6]),needPort=Int(reg[7]),retired=Int(reg[5])
   let wgc=watchCount+needWatch>watchCap || (retired>0 && watchCount>0)
@@ -578,7 +588,7 @@ final class FamilyExecutor {
   let oldWatch=watches!,oldPorts=ports!,oldWatchCount=watchCount,oldPortCount=portCount
   var liveWatch=watchCount,livePort=portCount
   if wgc || pgc {
-   let count=q.makeCommandBuffer()!
+   let count=q.makeCommandBufferWithUnretainedReferences()!
    if wgc{encode("family_watch_count",watchCount,count)}
    if pgc{encode("family_port_count",portCount,count)}
    try submit(count)
@@ -642,7 +652,11 @@ final class FamilyExecutor {
   reg[2]=0;reg[3]=0;for i in 5..<10{reg[i]=0}
   rowSlots=total;rowCap=newRowCap;epoch=nextEpoch
   var expanded=data;expanded.append(Data(count:n*8))
-  packet=expanded.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
+  // Reuse the transfer buffer: a fresh MTLBuffer per dispatch paid an allocation
+  // and a copy on each of the ~3200 serial round trips.
+  let needWords=expanded.count/4
+  if packetCap<needWords{packet=try alloc(needWords);packetCap=needWords}
+  _=expanded.withUnsafeBytes{memcpy(packet.contents(),$0.baseAddress!,expanded.count)}
   args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),UInt32(locality),UInt32(routingMode),0,UInt32(seedCap),0,UInt32(max(1,watchCap)),UInt32(max(1,portCap)),UInt32(cellCap),0]
   memset(counts.contents(),0,counts.length)
   let maintenance=try prepareCells(relevant,cellRelevant,changes,compact)
@@ -665,7 +679,7 @@ final class FamilyExecutor {
   var retries=0,count=0,routeRetries=0,routedCount=0
   while true{
    memset(counts.contents(),0,5*4);memset(counts.contents().advanced(by:13*4),0,3*4);args[5]=UInt32(outCap)
-   let cb=retries==0 ? maintenance : q.makeCommandBuffer()!
+   let cb=retries==0 ? maintenance : q.makeCommandBufferWithUnretainedReferences()!
    var work=cb
    if routingMode>0 {
     if retries==0 {
@@ -674,12 +688,12 @@ final class FamilyExecutor {
      routedCount=Int(routing.contents().assumingMemoryBound(to:UInt32.self)[0])
      if routedCount>seedCap {
       routeRetries+=1;seedCap=try pow2(routedCount);seedQueue=try alloc(seedCap*(8+p));orderedSeeds=try alloc(seedCap*(8+p));args[18]=UInt32(seedCap)
-      memset(routing.contents(),0,routing.length);work=q.makeCommandBuffer()!;encode("family_classify",span*p*n,work);try submit(work)
+      memset(routing.contents(),0,routing.length);work=q.makeCommandBufferWithUnretainedReferences()!;encode("family_classify",span*p*n,work);try submit(work)
      }
      try require(routing.contents().assumingMemoryBound(to:UInt32.self)[7]==0,"routing capacity changed within immutable snapshot")
      let rc=routing.contents().assumingMemoryBound(to:UInt32.self)
      try require(rc[0]==rc[1]+rc[2]+rc[3] && rc[24]==rc[0]+rc[4]+rc[5]+rc[27],"partial-query routing lost or duplicated a seed")
-     work=q.makeCommandBuffer()!;encode("family_route_dispatch",1,work);encode("family_route_scatter",routedCount,work)
+     work=q.makeCommandBufferWithUnretainedReferences()!;encode("family_route_dispatch",1,work);encode("family_route_scatter",routedCount,work)
     }
     // Each tier reads the same immutable snapshot; effects still commit together.
     memset(counts.contents().advanced(by:29*4),0,12*4)
@@ -762,8 +776,13 @@ do {
           try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1,"family_layout":6,"port_locality":family!.locality])
         case "family_step":
           guard let f=family else{throw NSError(domain:"no family",code:1)}
+          let advStart=ProcessInfo.processInfo.systemUptime
           let (report,body)=try f.advance(readFrame(),ack:message["ack"] as! Int)
+          f.advanceSeconds+=ProcessInfo.processInfo.systemUptime-advStart;f.advanceCount+=1
+          let sendStart=ProcessInfo.processInfo.systemUptime
           try sendFrame(report);sendBinary(body)
+          f.sendSeconds+=ProcessInfo.processInfo.systemUptime-sendStart
+          if f.advanceCount%400==0{f.writeStats()}
         case "table_init":
           try require(tables == nil && current == nil,"table plan already installed")
           tables=try TableExecutor(message["config"] as! [String:Any])
@@ -775,7 +794,7 @@ do {
         case "table_ack":
           guard let t=tables else{throw NSError(domain:"missing table plan",code:1)}
           try t.ack(message["epoch"] as! Int);try sendFrame(["acknowledged":true])
-        case "close": try sendFrame(["closed":true]); exit(0)
+        case "close": family?.writeStats();try sendFrame(["closed":true]); exit(0)
         default: throw NSError(domain:"unknown live matrix operation",code:1)
         }
       } catch { try sendFrame(["error":String(describing:error)]) }
