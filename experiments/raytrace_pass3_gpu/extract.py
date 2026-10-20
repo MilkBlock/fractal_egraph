@@ -22,6 +22,7 @@ def main():
     p.add_argument('run', type=Path)
     p.add_argument('--tiger', type=Path, default=Path('/Users/mineralsteins/Repos/egg_related/check_statewalk/target/release/tiger'))
     p.add_argument('--reference-output', type=Path)
+    p.add_argument('--lanes', nargs='+', default=['native','cpu','gpu'], help='First lane is the reference; existing defaults are unchanged')
     a = p.parse_args()
     output = a.run / 'extraction'
     output.mkdir(exist_ok=False)
@@ -32,7 +33,7 @@ def main():
     old = Path(old) / 'extraction' if old else None
     timing = json.loads((old / 'timing.json').read_text()) if old and (old / 'timing.json').is_file() else {}
     tiger_hash = sha(a.tiger)
-    for lane in ['native', 'cpu', 'gpu']:
+    for lane in a.lanes:
         graph = a.run / 'graphs' / (lane + '.json')
         target = output / (lane + '.egg')
         cached = next((r for r in timing.get('runs', []) if r['lane'] == lane), None)
@@ -60,17 +61,18 @@ def main():
         result.check_returncode()
         pretty.unlink()
     checker = ROOT / 'target/analyzer/release/examples/tiger_output_check'
-    command = [str(checker), str(output / 'quality.json'), str(output / 'native.egg'),
-               str(output / 'cpu.egg'), str(output / 'gpu.egg')]
+    command = [str(checker), str(output / 'quality.json')] + [str(output / (lane+'.egg')) for lane in a.lanes]
     if a.reference_output:
         command.append(str(a.reference_output))
     primary = subprocess.run(command)
     # Keep the original fused-native gate, but always record the independent
     # same-commit CPU/GPU gate too; a known fused difference must not hide it.
-    pair = subprocess.run([str(checker), str(output / 'cpu-gpu-quality.json'),
-                           str(output / 'cpu.egg'), str(output / 'gpu.egg')])
+    pair = None
+    if 'cpu' in a.lanes and 'gpu' in a.lanes:
+        pair = subprocess.run([str(checker), str(output / 'cpu-gpu-quality.json'),
+                               str(output / 'cpu.egg'), str(output / 'gpu.egg')])
     primary.check_returncode()
-    pair.check_returncode()
+    if pair is not None: pair.check_returncode()
     print(json.dumps(records, indent=2))
     print(output / 'quality.json')
 

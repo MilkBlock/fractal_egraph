@@ -163,6 +163,16 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(plan(['joint-sat'])[0], ['/repo/target/analyzer/release/examples/joint_sat_bench', '/worker', '/new-out'])
         self.assertEqual(plan(['joint-sat','--snapshot','/input.egg'])[0][-1],'/input.egg')
 
+    def test_structural_key_audit_keeps_failed_determinism_gate(self):
+        a=B.parser().parse_args(['structural-keys','--snapshot','/input.egg'])
+        plan=B.commands(a,Path('/repo'),Path('/worker'),Path('/out'))
+        self.assertEqual(plan[0],['/repo/target/analyzer/release/examples/structural_key_audit','/input.egg','/out'])
+        self.assertEqual(plan[1][-5:],['--lanes','full','repeat','threads4','reverse-rules'])
+        with tempfile.TemporaryDirectory() as tmp:
+            out=Path(tmp)
+            (out/'results.json').write_text(json.dumps({'determinism_checks_passed':False}))
+            self.assertFalse(B.saved_gate('structural-keys',out))
+
     def test_joint_gate_requires_every_lane_and_boundary(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder=Path(tmp)

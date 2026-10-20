@@ -1,0 +1,1083 @@
+{
+  "scope": "Independent replays of one complete frozen eggcc Pass input and schedule; not a new three-pass production chain. Different runs are correctness perturbations, not samples for a timing average.",
+  "source": "fact-pass3.egg",
+  "source_sha256": "84615f276c5968cadaec53abf228a9acab66dd6c1597e902e9af1a8cab6ed149",
+  "production_revision": "ae80f82a",
+  "execution": "actual local egglog fork, original complete Pass-3 main schedule plus structural-key maintenance, no GPU, no analyze",
+  "policy": "full reachable constructor schema keys; stable to-hoist, Smaller and IVTMin ties; late equal-cost Term updates",
+  "lanes": [
+    {
+      "lane": "original",
+      "setup_seconds": 0.100552667,
+      "run_seconds": 0.0176215,
+      "runtime_error": null,
+      "exact_graph_check_passed": false,
+      "exact_graph_error": null,
+      "final_constructor_eclasses_all_keyed": false,
+      "final_constructor_eclass_coverage": null
+    },
+    {
+      "lane": "full",
+      "setup_seconds": 0.13482375,
+      "run_seconds": 0.096059625,
+      "runtime_error": null,
+      "exact_graph_check_passed": false,
+      "exact_graph_error": "different final table counts: [(\"ExtractedExprCache\", Some(22), Some(24)), (\"Smaller\", Some(23), Some(25))]",
+      "final_constructor_eclasses_all_keyed": true,
+      "final_constructor_eclass_coverage": [
+        {
+          "sort": "Assumption",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "BaseType",
+          "constructor_eclasses": 4,
+          "keyed_eclasses": 4,
+          "missing": 0
+        },
+        {
+          "sort": "BinaryOp",
+          "constructor_eclasses": 31,
+          "keyed_eclasses": 31,
+          "missing": 0
+        },
+        {
+          "sort": "Bound",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "Constant",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "Expr",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "Term",
+          "constructor_eclasses": 32,
+          "keyed_eclasses": 32,
+          "missing": 0
+        },
+        {
+          "sort": "TermAndCost",
+          "constructor_eclasses": 32,
+          "keyed_eclasses": 32,
+          "missing": 0
+        },
+        {
+          "sort": "TernaryOp",
+          "constructor_eclasses": 1,
+          "keyed_eclasses": 1,
+          "missing": 0
+        },
+        {
+          "sort": "Type",
+          "constructor_eclasses": 8,
+          "keyed_eclasses": 8,
+          "missing": 0
+        },
+        {
+          "sort": "TypeList",
+          "constructor_eclasses": 5,
+          "keyed_eclasses": 5,
+          "missing": 0
+        },
+        {
+          "sort": "UnaryOp",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___AccumBopSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___AddAllGetsSort",
+          "constructor_eclasses": 21,
+          "keyed_eclasses": 21,
+          "missing": 0
+        },
+        {
+          "sort": "___AddGetsSort",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "___BinaryOpIsPureSort",
+          "constructor_eclasses": 28,
+          "keyed_eclasses": 28,
+          "missing": 0
+        },
+        {
+          "sort": "___BodyContainsExprSort",
+          "constructor_eclasses": 104,
+          "keyed_eclasses": 104,
+          "missing": 0
+        },
+        {
+          "sort": "___ContextOfSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___ExpectTypeSort",
+          "constructor_eclasses": 15,
+          "keyed_eclasses": 15,
+          "missing": 0
+        },
+        {
+          "sort": "___ExprIsPureSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        },
+        {
+          "sort": "___ExprIsResolvedSort",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "___ExtractedExprCacheSort",
+          "constructor_eclasses": 24,
+          "keyed_eclasses": 24,
+          "missing": 0
+        },
+        {
+          "sort": "___FunctionHasTypeSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___HasArgTypeSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___HasTypeSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___NotJustConcatSort",
+          "constructor_eclasses": 14,
+          "keyed_eclasses": 14,
+          "missing": 0
+        },
+        {
+          "sort": "___PotentialExtractedExprSort",
+          "constructor_eclasses": 40,
+          "keyed_eclasses": 40,
+          "missing": 0
+        },
+        {
+          "sort": "___PureBaseTypeSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___PureTypeListSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___PureTypeSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___TernaryOpIsPureSort",
+          "constructor_eclasses": 1,
+          "keyed_eclasses": 1,
+          "missing": 0
+        },
+        {
+          "sort": "___UnaryOpIsPureSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___bop>stringSort",
+          "constructor_eclasses": 24,
+          "keyed_eclasses": 24,
+          "missing": 0
+        },
+        {
+          "sort": "___bopoftypeSort",
+          "constructor_eclasses": 13,
+          "keyed_eclasses": 13,
+          "missing": 0
+        },
+        {
+          "sort": "___bpredoftypeSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        },
+        {
+          "sort": "___leadingExprSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        }
+      ]
+    },
+    {
+      "lane": "repeat",
+      "setup_seconds": 0.131234792,
+      "run_seconds": 0.091260333,
+      "runtime_error": null,
+      "exact_graph_check_passed": true,
+      "exact_graph_error": null,
+      "final_constructor_eclasses_all_keyed": true,
+      "final_constructor_eclass_coverage": [
+        {
+          "sort": "Assumption",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "BaseType",
+          "constructor_eclasses": 4,
+          "keyed_eclasses": 4,
+          "missing": 0
+        },
+        {
+          "sort": "BinaryOp",
+          "constructor_eclasses": 31,
+          "keyed_eclasses": 31,
+          "missing": 0
+        },
+        {
+          "sort": "Bound",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "Constant",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "Expr",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "Term",
+          "constructor_eclasses": 32,
+          "keyed_eclasses": 32,
+          "missing": 0
+        },
+        {
+          "sort": "TermAndCost",
+          "constructor_eclasses": 32,
+          "keyed_eclasses": 32,
+          "missing": 0
+        },
+        {
+          "sort": "TernaryOp",
+          "constructor_eclasses": 1,
+          "keyed_eclasses": 1,
+          "missing": 0
+        },
+        {
+          "sort": "Type",
+          "constructor_eclasses": 8,
+          "keyed_eclasses": 8,
+          "missing": 0
+        },
+        {
+          "sort": "TypeList",
+          "constructor_eclasses": 5,
+          "keyed_eclasses": 5,
+          "missing": 0
+        },
+        {
+          "sort": "UnaryOp",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___AccumBopSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___AddAllGetsSort",
+          "constructor_eclasses": 21,
+          "keyed_eclasses": 21,
+          "missing": 0
+        },
+        {
+          "sort": "___AddGetsSort",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "___BinaryOpIsPureSort",
+          "constructor_eclasses": 28,
+          "keyed_eclasses": 28,
+          "missing": 0
+        },
+        {
+          "sort": "___BodyContainsExprSort",
+          "constructor_eclasses": 104,
+          "keyed_eclasses": 104,
+          "missing": 0
+        },
+        {
+          "sort": "___ContextOfSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___ExpectTypeSort",
+          "constructor_eclasses": 15,
+          "keyed_eclasses": 15,
+          "missing": 0
+        },
+        {
+          "sort": "___ExprIsPureSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        },
+        {
+          "sort": "___ExprIsResolvedSort",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "___ExtractedExprCacheSort",
+          "constructor_eclasses": 24,
+          "keyed_eclasses": 24,
+          "missing": 0
+        },
+        {
+          "sort": "___FunctionHasTypeSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___HasArgTypeSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___HasTypeSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___NotJustConcatSort",
+          "constructor_eclasses": 14,
+          "keyed_eclasses": 14,
+          "missing": 0
+        },
+        {
+          "sort": "___PotentialExtractedExprSort",
+          "constructor_eclasses": 40,
+          "keyed_eclasses": 40,
+          "missing": 0
+        },
+        {
+          "sort": "___PureBaseTypeSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___PureTypeListSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___PureTypeSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___TernaryOpIsPureSort",
+          "constructor_eclasses": 1,
+          "keyed_eclasses": 1,
+          "missing": 0
+        },
+        {
+          "sort": "___UnaryOpIsPureSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___bop>stringSort",
+          "constructor_eclasses": 24,
+          "keyed_eclasses": 24,
+          "missing": 0
+        },
+        {
+          "sort": "___bopoftypeSort",
+          "constructor_eclasses": 13,
+          "keyed_eclasses": 13,
+          "missing": 0
+        },
+        {
+          "sort": "___bpredoftypeSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        },
+        {
+          "sort": "___leadingExprSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        }
+      ]
+    },
+    {
+      "lane": "threads4",
+      "setup_seconds": 0.1367395,
+      "run_seconds": 0.098830334,
+      "runtime_error": null,
+      "exact_graph_check_passed": true,
+      "exact_graph_error": null,
+      "final_constructor_eclasses_all_keyed": true,
+      "final_constructor_eclass_coverage": [
+        {
+          "sort": "Assumption",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "BaseType",
+          "constructor_eclasses": 4,
+          "keyed_eclasses": 4,
+          "missing": 0
+        },
+        {
+          "sort": "BinaryOp",
+          "constructor_eclasses": 31,
+          "keyed_eclasses": 31,
+          "missing": 0
+        },
+        {
+          "sort": "Bound",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "Constant",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "Expr",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "Term",
+          "constructor_eclasses": 32,
+          "keyed_eclasses": 32,
+          "missing": 0
+        },
+        {
+          "sort": "TermAndCost",
+          "constructor_eclasses": 32,
+          "keyed_eclasses": 32,
+          "missing": 0
+        },
+        {
+          "sort": "TernaryOp",
+          "constructor_eclasses": 1,
+          "keyed_eclasses": 1,
+          "missing": 0
+        },
+        {
+          "sort": "Type",
+          "constructor_eclasses": 8,
+          "keyed_eclasses": 8,
+          "missing": 0
+        },
+        {
+          "sort": "TypeList",
+          "constructor_eclasses": 5,
+          "keyed_eclasses": 5,
+          "missing": 0
+        },
+        {
+          "sort": "UnaryOp",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___AccumBopSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___AddAllGetsSort",
+          "constructor_eclasses": 21,
+          "keyed_eclasses": 21,
+          "missing": 0
+        },
+        {
+          "sort": "___AddGetsSort",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "___BinaryOpIsPureSort",
+          "constructor_eclasses": 28,
+          "keyed_eclasses": 28,
+          "missing": 0
+        },
+        {
+          "sort": "___BodyContainsExprSort",
+          "constructor_eclasses": 104,
+          "keyed_eclasses": 104,
+          "missing": 0
+        },
+        {
+          "sort": "___ContextOfSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___ExpectTypeSort",
+          "constructor_eclasses": 15,
+          "keyed_eclasses": 15,
+          "missing": 0
+        },
+        {
+          "sort": "___ExprIsPureSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        },
+        {
+          "sort": "___ExprIsResolvedSort",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "___ExtractedExprCacheSort",
+          "constructor_eclasses": 24,
+          "keyed_eclasses": 24,
+          "missing": 0
+        },
+        {
+          "sort": "___FunctionHasTypeSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___HasArgTypeSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___HasTypeSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___NotJustConcatSort",
+          "constructor_eclasses": 14,
+          "keyed_eclasses": 14,
+          "missing": 0
+        },
+        {
+          "sort": "___PotentialExtractedExprSort",
+          "constructor_eclasses": 40,
+          "keyed_eclasses": 40,
+          "missing": 0
+        },
+        {
+          "sort": "___PureBaseTypeSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___PureTypeListSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___PureTypeSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___TernaryOpIsPureSort",
+          "constructor_eclasses": 1,
+          "keyed_eclasses": 1,
+          "missing": 0
+        },
+        {
+          "sort": "___UnaryOpIsPureSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___bop>stringSort",
+          "constructor_eclasses": 24,
+          "keyed_eclasses": 24,
+          "missing": 0
+        },
+        {
+          "sort": "___bopoftypeSort",
+          "constructor_eclasses": 13,
+          "keyed_eclasses": 13,
+          "missing": 0
+        },
+        {
+          "sort": "___bpredoftypeSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        },
+        {
+          "sort": "___leadingExprSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        }
+      ]
+    },
+    {
+      "lane": "reverse-rules",
+      "setup_seconds": 0.3253595,
+      "run_seconds": 0.110395917,
+      "runtime_error": null,
+      "exact_graph_check_passed": false,
+      "exact_graph_error": "missing final fact Smaller [Eq(\"TermAndCost\", 834), Eq(\"TermAndCost\", 814)]",
+      "final_constructor_eclasses_all_keyed": true,
+      "final_constructor_eclass_coverage": [
+        {
+          "sort": "Assumption",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "BaseType",
+          "constructor_eclasses": 4,
+          "keyed_eclasses": 4,
+          "missing": 0
+        },
+        {
+          "sort": "BinaryOp",
+          "constructor_eclasses": 31,
+          "keyed_eclasses": 31,
+          "missing": 0
+        },
+        {
+          "sort": "Bound",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "Constant",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "Expr",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "Term",
+          "constructor_eclasses": 32,
+          "keyed_eclasses": 32,
+          "missing": 0
+        },
+        {
+          "sort": "TermAndCost",
+          "constructor_eclasses": 32,
+          "keyed_eclasses": 32,
+          "missing": 0
+        },
+        {
+          "sort": "TernaryOp",
+          "constructor_eclasses": 1,
+          "keyed_eclasses": 1,
+          "missing": 0
+        },
+        {
+          "sort": "Type",
+          "constructor_eclasses": 8,
+          "keyed_eclasses": 8,
+          "missing": 0
+        },
+        {
+          "sort": "TypeList",
+          "constructor_eclasses": 5,
+          "keyed_eclasses": 5,
+          "missing": 0
+        },
+        {
+          "sort": "UnaryOp",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___AccumBopSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___AddAllGetsSort",
+          "constructor_eclasses": 21,
+          "keyed_eclasses": 21,
+          "missing": 0
+        },
+        {
+          "sort": "___AddGetsSort",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "___BinaryOpIsPureSort",
+          "constructor_eclasses": 28,
+          "keyed_eclasses": 28,
+          "missing": 0
+        },
+        {
+          "sort": "___BodyContainsExprSort",
+          "constructor_eclasses": 104,
+          "keyed_eclasses": 104,
+          "missing": 0
+        },
+        {
+          "sort": "___ContextOfSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___ExpectTypeSort",
+          "constructor_eclasses": 15,
+          "keyed_eclasses": 15,
+          "missing": 0
+        },
+        {
+          "sort": "___ExprIsPureSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        },
+        {
+          "sort": "___ExprIsResolvedSort",
+          "constructor_eclasses": 60,
+          "keyed_eclasses": 60,
+          "missing": 0
+        },
+        {
+          "sort": "___ExtractedExprCacheSort",
+          "constructor_eclasses": 24,
+          "keyed_eclasses": 24,
+          "missing": 0
+        },
+        {
+          "sort": "___FunctionHasTypeSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___HasArgTypeSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___HasTypeSort",
+          "constructor_eclasses": 58,
+          "keyed_eclasses": 58,
+          "missing": 0
+        },
+        {
+          "sort": "___NotJustConcatSort",
+          "constructor_eclasses": 14,
+          "keyed_eclasses": 14,
+          "missing": 0
+        },
+        {
+          "sort": "___PotentialExtractedExprSort",
+          "constructor_eclasses": 40,
+          "keyed_eclasses": 40,
+          "missing": 0
+        },
+        {
+          "sort": "___PureBaseTypeSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___PureTypeListSort",
+          "constructor_eclasses": 2,
+          "keyed_eclasses": 2,
+          "missing": 0
+        },
+        {
+          "sort": "___PureTypeSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___TernaryOpIsPureSort",
+          "constructor_eclasses": 1,
+          "keyed_eclasses": 1,
+          "missing": 0
+        },
+        {
+          "sort": "___UnaryOpIsPureSort",
+          "constructor_eclasses": 3,
+          "keyed_eclasses": 3,
+          "missing": 0
+        },
+        {
+          "sort": "___bop>stringSort",
+          "constructor_eclasses": 24,
+          "keyed_eclasses": 24,
+          "missing": 0
+        },
+        {
+          "sort": "___bopoftypeSort",
+          "constructor_eclasses": 13,
+          "keyed_eclasses": 13,
+          "missing": 0
+        },
+        {
+          "sort": "___bpredoftypeSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        },
+        {
+          "sort": "___leadingExprSort",
+          "constructor_eclasses": 12,
+          "keyed_eclasses": 12,
+          "missing": 0
+        }
+      ]
+    }
+  ],
+  "strict_determinism_checks_passed": false,
+  "actual_tiger_same_selected_dag": true,
+  "tiger_outputs": [
+    {
+      "file": "out/fact-structural-keys-v2/extraction/full.egg",
+      "reconstruction_seconds": 0.004433041,
+      "selected_rows": 61,
+      "functions": [
+        "fact",
+        "main"
+      ],
+      "function_count": 2
+    },
+    {
+      "file": "out/fact-structural-keys-v2/extraction/repeat.egg",
+      "reconstruction_seconds": 0.00301275,
+      "selected_rows": 61,
+      "functions": [
+        "fact",
+        "main"
+      ],
+      "function_count": 2
+    },
+    {
+      "file": "out/fact-structural-keys-v2/extraction/threads4.egg",
+      "reconstruction_seconds": 0.003051084,
+      "selected_rows": 61,
+      "functions": [
+        "fact",
+        "main"
+      ],
+      "function_count": 2
+    },
+    {
+      "file": "out/fact-structural-keys-v2/extraction/reverse-rules.egg",
+      "reconstruction_seconds": 0.002845458,
+      "selected_rows": 61,
+      "functions": [
+        "fact",
+        "main"
+      ],
+      "function_count": 2
+    }
+  ],
+  "tiger_checks": [
+    {
+      "candidate": "out/fact-structural-keys-v2/extraction/repeat.egg",
+      "exact_selected_dag": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 60,
+        "eclass_mapping": 60,
+        "tables": {
+          "Arg": 1,
+          "Bop": 7,
+          "Call": 1,
+          "Concat": 7,
+          "Const": 2,
+          "DumC": 1,
+          "Eq": 1,
+          "Function": 2,
+          "Get": 10,
+          "If": 4,
+          "Int": 2,
+          "IntT": 1,
+          "Mul": 1,
+          "Print": 1,
+          "Single": 11,
+          "StateT": 1,
+          "Sub": 1,
+          "TCons": 2,
+          "TNil": 1,
+          "TupleT": 3
+        }
+      },
+      "error": null
+    },
+    {
+      "candidate": "out/fact-structural-keys-v2/extraction/threads4.egg",
+      "exact_selected_dag": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 60,
+        "eclass_mapping": 60,
+        "tables": {
+          "Arg": 1,
+          "Bop": 7,
+          "Call": 1,
+          "Concat": 7,
+          "Const": 2,
+          "DumC": 1,
+          "Eq": 1,
+          "Function": 2,
+          "Get": 10,
+          "If": 4,
+          "Int": 2,
+          "IntT": 1,
+          "Mul": 1,
+          "Print": 1,
+          "Single": 11,
+          "StateT": 1,
+          "Sub": 1,
+          "TCons": 2,
+          "TNil": 1,
+          "TupleT": 3
+        }
+      },
+      "error": null
+    },
+    {
+      "candidate": "out/fact-structural-keys-v2/extraction/reverse-rules.egg",
+      "exact_selected_dag": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 60,
+        "eclass_mapping": 60,
+        "tables": {
+          "Arg": 1,
+          "Bop": 7,
+          "Call": 1,
+          "Concat": 7,
+          "Const": 2,
+          "DumC": 1,
+          "Eq": 1,
+          "Function": 2,
+          "Get": 10,
+          "If": 4,
+          "Int": 2,
+          "IntT": 1,
+          "Mul": 1,
+          "Print": 1,
+          "Single": 11,
+          "StateT": 1,
+          "Sub": 1,
+          "TCons": 2,
+          "TNil": 1,
+          "TupleT": 3
+        }
+      },
+      "error": null
+    }
+  ],
+  "reverse_rules_diagnostic_without_smaller": {
+    "passed": true,
+    "error": null,
+    "not_a_correctness_gate": true
+  },
+  "analyzer_option_added": false,
+  "analyzer_option_reason": "Reverse declaration-order run does not have the same complete graph. Final selected DAG equality is a weaker property and not substituted for this gate.",
+  "binary_sha256": {
+    "/Users/mineralsteins/.codex/worktrees/eggcc-structural-keys/egg_layout/target/analyzer/release/examples/structural_key_audit": "aa65d4f48333f209ad1a1cf5ff9191b3b94d55e8dacde2a11663fd0781ae6eb1"
+  },
+  "limitations": [
+    "These finite perturbations do not prove determinism for all inputs or schedules.",
+    "Four-thread configuration does not prove the tiny workload triggered parallel execution.",
+    "Coverage is for constructor output eclasses present at the final state, not every intermediate state or all possible container schemas.",
+    "The full-vs-original time includes both key maintenance and selection-policy changes, not isolated hash computation."
+  ]
+}

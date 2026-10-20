@@ -44,6 +44,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 | 已有多候选 Cell 的连续更新与端口复用消融 | `transition --output out/新目录` |
 | 比较源码计划、文件加载和 joint 路径耗时 | `transfer-bench --output out/新目录` |
 | 三个 terms ruleset 的联合 sat-skip | `joint-sat --output out/新目录` |
+| 小型真实 eggcc 全量结构键及确定性检查 | `structural-keys --snapshot FILE --output out/新目录` |
 | 相关正确性回归 | `test` |
 
 ```sh
@@ -78,3 +79,11 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 差异定位、sat-skip 小样例和报告字段的细节只在需要时读 [references/modes.md](references/modes.md)。交付给用户以结果、限制、报告链接为主；复现时给这个统一入口即可，不再反复展开整段底层命令。
 
 仅在 `CELL_QUERY_TIMINGS=1` 诊断模式下，查询耗时按 ruleset 保存在 `gpu.query_costs_by_ruleset`：`query_seconds` 包含交接和解码，`device_seconds` 来自 worker；两者不能相加。用这份分解决定下一项优化，不从逻辑 match 次数推算 probe 成本。
+
+## 全量结构键实验
+
+`structural-keys` 使用真实原生 egglog 回放一个完整、已冻结的 Pass 输入与调度，默认不运行 GPU、不跑 analyze、不 Bake。样例见 `experiments/structural_keys/fact-pass3.egg`。五条路径是原始规则、全量键与选择改写、相同配置的新进程、4 线程、反转连续规则声明组；每条路径一次，后几条是正确性扰动，不能拿来求平均时间。额外线程是否产生了实际并行工作没有单独认证。
+
+以全量键路径为参照，核对完整事实/值/等价关系/可见性；复用生产 Tiger 和现有 DAG 检查器比较实际提取结果。结构键覆盖率统计终态有构造器行的 e-class，不宣称所有中间状态或未实例化 schema 都已验证。未知容器声明可保留，实际实例出现时明确失败。`Smaller` 投影仅用于定位差异，不替代严格整图门槛。
+
+判等失败保留非零退出码。即使 Tiger 输出相同也不能自动启用 analyzer 的确定性选项。当前已知反例和成本见 `experiments/structural_keys/README.md`；原生短样例控制不替换为 raytrace 大基准。生成的 `policy-rules.egg` 是选择策略改写记录，需要 runner 的结构键类型、primitive 和维护调度，不是 pristine egglog 可独立执行的完整程序。
