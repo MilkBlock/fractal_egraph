@@ -32,9 +32,46 @@ struct Row {
     values: Vec<Value>,
     stamp: u32,
 }
+/// Partition the existing keyed mirror, without a second membership index.
+/// Closure construction visits only its table, while hot keyed reads stay hashed.
+#[derive(Default)]
+struct TableRows(Vec<FxHashMap<(usize, Key), Arc<Row>>>);
+impl TableRows {
+    fn get(&self, key: &(usize, Key)) -> Option<&Arc<Row>> {
+        self.0.get(key.0)?.get(key)
+    }
+    fn contains_key(&self, key: &(usize, Key)) -> bool { self.get(key).is_some() }
+    fn insert(&mut self, key: (usize, Key), row: Arc<Row>) {
+        self.0.resize_with(self.0.len().max(key.0 + 1), FxHashMap::default);
+        self.0[key.0].insert(key, row);
+    }
+    fn remove(&mut self, key: &(usize, Key)) -> Option<Arc<Row>> {
+        self.0.get_mut(key.0)?.remove(key)
+    }
+    fn keys(&self) -> impl Iterator<Item = &(usize, Key)> {
+        self.0.iter().flat_map(|t| t.keys())
+    }
+    fn len(&self) -> usize { self.0.iter().map(|t| t.len()).sum() }
+    fn table(&self, t: usize) -> impl Iterator<Item = (&(usize, Key), &Arc<Row>)> {
+        self.0.get(t).into_iter().flat_map(|t| t.iter())
+    }
+}
+impl std::ops::Index<&(usize, Key)> for TableRows {
+    type Output = Arc<Row>;
+    fn index(&self, key: &(usize, Key)) -> &Arc<Row> { self.get(key).unwrap() }
+}
+impl PartialEq for TableRows {
+    fn eq(&self, other: &Self) -> bool {
+        self.len() == other.len() && self.0.iter().enumerate().all(|(i, t)| {
+            if t.is_empty() { other.0.get(i).is_none_or(|t| t.is_empty()) }
+            else { other.0.get(i) == Some(t) }
+        })
+    }
+}
+impl Eq for TableRows {}
 #[derive(Default, PartialEq, Eq)]
 struct Rows {
-    keys: FxHashMap<(usize, Key), Arc<Row>>,
+    keys: TableRows,
     outputs: FxHashMap<(usize, Value), BTreeSet<Key>>,
     hidden: BTreeSet<(usize, Key)>,
     reverse: BTreeSet<usize>,
@@ -45,8 +82,7 @@ impl Rows {
     fn table(&self, table: usize) -> Vec<(&(usize, Key), &Arc<Row>)> {
         let mut rows = self
             .keys
-            .iter()
-            .filter(|((t, _), _)| *t == table)
+            .table(table)
             .collect::<Vec<_>>();
         rows.sort_unstable_by(|a, b| a.0.cmp(b.0));
         rows
@@ -720,9 +756,8 @@ impl Runtime {
             let keys = self
                 .rows
                 .keys
-                .keys()
-                .filter(|(id, _)| *id == t)
-                .map(|(_, k)| k.clone())
+                .table(t)
+                .map(|((_, k), _)| k.clone())
                 .collect::<Vec<_>>();
             for k in keys {
                 changed.extend(self.rows.change(t, k, None));
