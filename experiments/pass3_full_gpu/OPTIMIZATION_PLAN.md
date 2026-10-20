@@ -1,80 +1,56 @@
-# Performance order for full Pass-3 Cell-assisted execution
+# Current optimization priority after Cell query reuse
 
-Reference: the validated saturation-first run in `results.json` (32.658 s).
-These are affected costs, not independent predicted speedups; they overlap.
-Keep the original schedule and exact matching. No sampling, candidate budget or
-silent fallback is an optimization in this list.
+These priorities replace the older pre-Cell ranking. The current ordinary
+run took 22.718 s. A separate diagnostic split GPU command buffers to distinguish
+maintenance from matching. That diagnostic is not a speed benchmark. Saved
+measurements and checks: [priority-profile.json](priority-profile.json).
 
-1. **Sparse table-specific indexes - implemented.** Remove the event × all-index layout and
-   all-index bucket allocation (7.39 GB device buffers). Store links only for
-   indexes belonging to the event's table; size bucket segments per table.
-   Targets memory traffic/maintenance within the 15.17 s device work.
-2. **Shape-specific query kernels - implemented (69 exact shapes).** Stop giving every rule the largest rule's
-   stack (24 atoms, 37 slots). Compile exact query-shape groups while sharing
-   native rows/indexes and preserving a single commit. Same 15.17 s cost pool.
-3. **Correct reusable single-Run Cell plans - fixed as read-only frontiers.** The attempted 6.8 s improvement
-   failed graph and extraction checks. The replacement shares the original
-   commit and now passes graph, Tiger and Cell-query audit gates. Never apply a
-   saturation certificate to an ordinary Run implicitly.
-4. **Reduce device round trips - classification readback removed.** Avoid empty tier launches and unnecessary
-   readbacks in the 4,059 dispatches. About 4.68 s of roundtrip time lies outside
-   device time; no claim that all of it is removable.
-5. **Compact output bindings / shared contexts - width packing implemented.** Avoid returning maximum-width
-   records and repeated source/context coordinates (421 MB downloaded). Preserve
-   every binding and exact native action order. Measure after earlier changes.
-6. **Expand certified Cell coverage - pending proof and workload evidence.** Reuse more guaranteed port programs only
-   after the remaining rule/merge environment is proved. Current full run uses
-   12 parameterized dataflow closures, not precomputed fresh-DAG replay.
+| Priority | Remaining work | Measured cost pool | Next concrete direction |
+|---|---|---:|---|
+| 1 | Shared partial queries and Cell boundary matching | GPU matching 7.29 s | Start with residual `always-run` (2.65 s) and `type-analysis` (1.17 s). Reuse common prefixes/ports across different LHSs, retaining their separate binding and guard constraints. |
+| 2 | Native effect submission and rebuild | 4.29 s, including rebuild 2.76 s | Reduce temporary worklists, copies and repeated canonicalization. Do not omit RHSs or change merge/commit order. |
+| 3 | Parameterized joint Cell closure execution | 3.74 s | Reduce repeated internal port traversal and effect materialization within the existing certified boundaries. The 12 boundaries use dataflow execution, not fresh-DAG replay. |
+| 4 | Commit/event ingestion | 2.24 s | Share payload ownership between the Cell observer and GPU mirror; remove redundant copying/synchronization without losing union, visibility or row versions. |
+| 5 | Host/worker overhead outside device execution | about 2.27 s | Reduce packet preparation and waiting while preserving each original Run boundary. Do not merge independently observable Runs. |
+| 6 | Stable structural tie-key maintenance | 1.57 s | Maintain the existing stable-choice adapter incrementally; do not remove or change the tie policy to obtain speed. |
+| 7 | Cell frontier construction | 0.94 s | Batch cached port reads and reduce allocation for the 1.92M bindings. Larger Cell coverage is worthwhile only if it saves more search than maintenance. |
+| 8 | GPU index/table maintenance | 0.13 s | Deprioritize further construction/clearing optimization. This says nothing about the quality of indexes used during matching. |
 
-Implementation order is the list above, with correctness failures treated as
-prerequisites, not waived to satisfy the ordering. Persist exact control states
-so later candidate runs can reuse unchanged CPU/GPU-off results; keep real
-snapshot, binary/worker fingerprints and stage-specific checks in the benchmark
-skill. Do not repeat unchanged controls solely to generate another date.
+The GPU matching pool includes candidate routing and binding computation, not
+just Join probes. Ruleset binding totals include Cell-provided bindings; they are
+not a count of GPU probes or of GPU-only matches. Index maintenance is billed to the next consumer ruleset, not
+necessarily to the rule that produced its changes. Subcomponents overlap their
+parent pools; these costs are not additive promised savings.
 
-## Current verification
+## What changed in this iteration
 
-The first complete layout run took 22.585 s versus the saved 32.658 s reference.
-GPU buffers fell from 7.391 GB to 0.726 GB; returned bindings fell from 420.862 MB
-to 65.637 MB. Exact same-commit CPU/GPU graphs, Cell-on/off graphs, and actual
-Tiger CPU/GPU selected DAGs passed. The pre-existing fused-native differences
-remain. No fast-but-failing single-Run experiment was enabled.
+- `CELL_QUERY_TIMINGS=1` now separates device maintenance and matching, and the
+  benchmark refuses to publish a speedup for this split-command diagnostic.
+- Exact whole-query sharing was implemented and checked: identical typed LHS,
+  all guards, slot wiring and current native watermark must agree. RHSs still
+  submit independently in the original order. It is an opt-in experiment via
+  `CELL_SHARE_IDENTICAL_QUERIES=1`, not enabled by default.
+- A per-Run active-anchor routing experiment passed correctness but did not
+  improve end-to-end time, so it was removed from the default implementation.
+  Its reproducible source delta is [active-query-routing.patch](active-query-routing.patch).
 
-Index changes and shape grouping affect the same device work; there is no
-separate speedup attributed to each without an ablation. Repeated coordinate
-payload sharing under item 5 has not been implemented. The old whole-Run counterexample is retained; item 3 now uses the repaired
-read-only frontier contract rather than weakening the graph gate.
-The new exact control cache makes subsequent single-candidate ablations possible
-without re-running unchanged CPU lanes.
+| Experiment | Inference | Device | Outcome |
+|---|---:|---:|---|
+| Current Cell frontiers, ordinary ruleset timers | 22.718 s | 7.304 s | Reference for this investigation |
+| Active-anchor routing only | 22.942 s | 7.167 s | No meaningful net gain; default reverted |
+| Active routing + exact whole-query sharing | 22.505 s | 7.188 s | 24,947 bindings shared; no clear device-time improvement |
 
-## Remaining priorities from the fresh ruleset timing diagnostic
+Each configuration ran once. Do not average these runs or attribute all timing
+variation to the code change. The shared variant was timed on top of the active
+routing candidate; its standalone speedup has not been measured. There are 512
+exact query groups among 547 rules, so whole-LHS equality alone covers little
+of the remaining search. The larger opportunity is common **partial** structure.
 
-The single-candidate/control-reuse validation took 24.863 s with per-ruleset
-accounting, versus the 22.585 s timing run above. Both passed identical graph
-and same-commit Tiger gates. These are separate recorded runs, not an average;
-we do not attribute their entire difference to timer overhead. Query accounting
-is now opt-in via `CELL_QUERY_TIMINGS=1`.
+Both experiments preserved complete same-commit CPU/GPU graphs, the Cell-toggle
+graph gate and actual Tiger CPU/GPU output. The pre-existing fused-native
+execution/output difference remains; no pristine-equivalent replacement claim
+is made.
 
-| Ruleset | Query seconds (including device) | Device seconds | Complete bindings |
-|---|---:|---:|---:|
-| always-run | 6.684 | 4.630 | 2,407,793 |
-| type-analysis | 1.441 | 1.171 | 108,640 |
-| loop-iters-analysis | 0.700 | 0.595 | 87 |
-| all-optimizations (combined) | 0.678 | 0.533 | 863 |
-| state-edge-passthrough | 0.640 | 0.634 | 4 |
-
-The first semantic target remains `always-run`. The read-only frontier repair
-below is now enabled; further gains must reduce port/maintenance cost without
-changing its commit protocol. Next are type-analysis and the
-sparse boundary queries. These counts are complete bindings, not index probes.
-Do not add query time and device time, or call these per-rule measurements.
-
-## Item 3 repair
-
-The failed whole-Run delegation was replaced by read-only Cell query frontiers;
-see [CELL_QUERY_FIX.md](CELL_QUERY_FIX.md). Seventeen rules supply 1,918,606
-bindings with zero GPU requests for those rules; all effects still commit in
-the original order. Thirty thousand-plus native frontier checks and both
-same-commit graph/Tiger gates pass. End-to-end timing is effectively unchanged
-(22.636 s), so this is a correctness/interface repair, not a new speedup claim.
-The older blockers above describe the superseded whole-Run experiment.
+The completed sparse-index layout, exact shape kernels, packed bindings and
+correct read-only Cell frontier protocol remain in place. Their earlier
+measurements are in [RESULTS.md](RESULTS.md) and [CELL_QUERY_FIX.md](CELL_QUERY_FIX.md).

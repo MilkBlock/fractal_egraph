@@ -1,0 +1,89 @@
+--- a/cell-assisted-egglog/src/family_program.rs
++++ b/cell-assisted-egglog/src/family_program.rs
+@@ -631,6 +631,6 @@
+         shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
+     }
+     Ok(
+-        json!({"version":2,"family_layout":9,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
++        json!({"version":2,"family_layout":10,"query_tables":sinks.iter().map(|q|q.atoms.iter().map(|a|tids[&a.function]).collect::<Vec<_>>()).collect::<Vec<_>>(),"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+     )
+ }
+--- a/cell-assisted-egglog/src/table_live.rs
++++ b/cell-assisted-egglog/src/table_live.rs
+@@ -470,7 +470,7 @@
+             let mut device = Service::new(worker)?;
+             let installed = device.family_init(config)?;
+             if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
+-            if installed["family_layout"] != json!(9) {
++            if installed["family_layout"] != json!(10) {
+                 return Err("GPU family layout changed; rebuild matrix.swift".into());
+             }
+             if options.port_locality as u32 > 0
+--- a/cell-assisted-egglog/matrix.swift
++++ b/cell-assisted-egglog/matrix.swift
+@@ -496,16 +496,17 @@
+  let d:MTLDevice,q:MTLCommandQueue,code:MTLBuffer,c:Int,p:Int,s:Int,ni:Int,nq:Int,rs:Int,nc:Int,cs:Int,ck:Int,ec:Bool,locality:Int,routingMode:Int
+  let cellTables:Set<UInt32>,portMeta:[UInt32],portJoinGroup:[UInt32],phaseTiming:Bool
+  var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!,cells:MTLBuffer!,watches:MTLBuffer!,wheads:MTLBuffer!,dirty:MTLBuffer!,state:MTLBuffer!,ports:MTLBuffer!,previous:MTLBuffer!,seedQueue:MTLBuffer!,orderedSeeds:MTLBuffer!,routing:MTLBuffer!,rowCells:MTLBuffer!,instanceMeta:MTLBuffer!,freeCells:MTLBuffer!,registry:MTLBuffer!
+- let indexTables:[UInt32],tableDegree:[Int],queryShapes:[Int],shapeCount:Int
++ let indexTables:[UInt32],tableDegree:[Int],queryShapes:[Int],shapeCount:Int,queryTables:[[Int]]
+  var tableLive:[Int],tableBuckets:[Int],slotTable:[Int]=[],slotLive:[Bool]=[],linkCount=0,linkCapacity=1,headLayout:[UInt32]=[]
+- var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:27)
++ var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:29)
+  var rowSlots=0,rowCap=0,eventCount=0,eventCap=0,buckets=1,outCap=1,epoch=0,seedCap=1
+  var watchCount=0,watchCap=0,watchBuckets=1,portCount=0,portCap=0,watchGCs=0,portGCs=0,cellCap=1,cellSlotsReused=0
+  var pcursors:[Int],pendingPortEnd=0
+  var cursors:[Int],pending:[Int]=[],pendingEnd=0,compactions=0,gpu=0.0,compileSeconds=0.0
+  init(_ x:[String:Any])throws{
+-  try require(x["version"] as? Int==2 && x["family_layout"] as? Int==9,"family layout: rebuild both Rust and Swift")
++  try require(x["version"] as? Int==2 && x["family_layout"] as? Int==10,"family layout: rebuild both Rust and Swift")
+   c=x["columns"] as! Int;p=x["parts"] as! Int;s=x["slots"] as! Int;ni=x["indexes"] as! Int;nq=x["queries"] as! Int;rs=4+3*c;nc=x["cell_plans"] as? Int ?? 0;cs=x["cell_stride"] as? Int ?? 1;ck=x["cell_steps"] as! Int;ec=(x["event_cells"] as? Bool ?? false) && nc>0
++  queryTables=x["query_tables"] as! [[Int]]
+   queryShapes=x["query_shapes"] as! [Int];shapeCount=(x["shape_sizes"] as! [[Int]]).count
+   indexTables=x["index_tables"] as! [UInt32]
+   let nt=x["table_count"] as! Int
+@@ -689,8 +690,19 @@
+   linkBases.withUnsafeBytes{expanded.append(contentsOf:$0)}
+   let headLayoutOffset=expanded.count/4
+   headLayout.withUnsafeBytes{expanded.append(contentsOf:$0)}
++  // Current Run membership is exact metadata, not a candidate heuristic.
++  // Route each row only to active atom occurrences of its own table.
++  var activeOffsets=Array(repeating:UInt32(0),count:tableDegree.count+1)
++  for id in ids {for t in queryTables[id]{activeOffsets[t+1]+=1}}
++  for t in 0..<tableDegree.count{activeOffsets[t+1]+=activeOffsets[t]}
++  var fill=activeOffsets,activeAnchors=Array(repeating:UInt32(0),count:2*Int(activeOffsets.last!))
++  for (qi,id) in ids.enumerated(){for (a,t) in queryTables[id].enumerated(){
++   let at=Int(fill[t])*2;activeAnchors[at]=UInt32(qi);activeAnchors[at+1]=UInt32(a);fill[t]+=1
++  }}
++  let activeOffsetsAt=expanded.count/4;activeOffsets.withUnsafeBytes{expanded.append(contentsOf:$0)}
++  let activeAnchorsAt=expanded.count/4;activeAnchors.withUnsafeBytes{expanded.append(contentsOf:$0)}
+   packet=expanded.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
+-  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),UInt32(locality),UInt32(routingMode),0,UInt32(seedCap),0,UInt32(max(1,watchCap)),UInt32(max(1,portCap)),UInt32(cellCap),0,0,UInt32(linkBaseOffset),UInt32(headLayoutOffset)]
++  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),UInt32(locality),UInt32(routingMode),0,UInt32(seedCap),0,UInt32(max(1,watchCap)),UInt32(max(1,portCap)),UInt32(cellCap),0,0,UInt32(linkBaseOffset),UInt32(headLayoutOffset),UInt32(activeOffsetsAt),UInt32(activeAnchorsAt)]
+   memset(counts.contents(),0,counts.length)
+   var maintenance=try prepareCells(relevant,cellRelevant,changes,compact)
+   var maintenanceSeconds=0.0
+@@ -841,7 +853,7 @@
+         case "family_init":
+           try require(family==nil && tables==nil && current==nil,"family already installed")
+           family=try FamilyExecutor(message["config"] as! [String:Any])
+-          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1,"family_layout":9,"port_locality":family!.locality,"phase_timing":family!.phaseTiming])
++          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1,"family_layout":10,"port_locality":family!.locality,"phase_timing":family!.phaseTiming])
+         case "family_step":
+           guard let f=family else{throw NSError(domain:"no family",code:1)}
+           let (report,body)=try f.advance(readFrame(),ack:message["ack"] as! Int)
+--- a/cell-assisted-egglog/family_route.metal
++++ b/cell-assisted-egglog/family_route.metal
+@@ -105,9 +105,9 @@
+ kernel void family_classify_tables(CTX,uint lane [[thread_position_in_grid]]){
+  uint e=cfg[24]+lane;if(e>=cfg[6] || !live_event(rows,events,e))return;
+  uint row=E(e,0),table=R(row,0);
+- for(uint j=code[QUERY_ANCHOR_OFFSETS+table];j<code[QUERY_ANCHOR_OFFSETS+table+1];j++){
+-  uint q=code[QUERY_ANCHORS+2*j],anchor=code[QUERY_ANCHORS+2*j+1],qi=packet[cfg[23]+q];
+-  if(qi==NO || e<packet[6+qi*4] || R(row,3)<packet[5+qi*4])continue;
++ for(uint j=packet[cfg[27]+table];j<packet[cfg[27]+table+1];j++){
++  uint qi=packet[cfg[28]+2*j],anchor=packet[cfg[28]+2*j+1],q=packet[4+qi*4];
++  if(e<packet[6+qi*4] || R(row,3)<packet[5+qi*4])continue;
+   uint v[S],lo[S],hi[S],b[S];for(uint i=0;i<S;i++)v[i]=lo[i]=hi[i]=b[i]=0;
+   if(!bind_atom(code,rows,q,anchor,row,v,lo,hi,b))continue;
+   atomic_fetch_add_explicit(routing+24,1,memory_order_relaxed);

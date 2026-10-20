@@ -130,3 +130,14 @@ frontier provider. Default full-rule runs now share one sorted commit for Cell
 and GPU bindings. [CELL_QUERY_FIX.md](CELL_QUERY_FIX.md) records the small
 order-sensitive counterexample, the real Pass-3 exact checks and the remaining
 performance limit. The old failed experiment is historical, not an active flag.
+
+## Post-fix prioritization
+
+The fresh [priority investigation](OPTIMIZATION_PLAN.md) separates actual GPU
+matching from maintenance: 7.29 s versus 0.13 s. Index construction is therefore
+no longer a high-priority target. An active-anchor routing attempt and exact
+whole-query sharing both passed correctness but showed no material device-time
+improvement; the former was reverted, and the latter remains opt-in. The next
+search target is common partial structure across different rules, not merely
+identical complete queries. All individual runs are retained in
+[priority-profile.json](priority-profile.json).
