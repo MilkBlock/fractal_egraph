@@ -1,5 +1,7 @@
 # 模式与现有实现
 
+- `history [--joint-sat]` 只扫描 `out/*/workflow.json` 和小报告，不遍历大型导出图；按当前 snapshot 的内容 hash、policy 和 joint 模式列出最近已通过的历史结果。可加 `--limit N`。不构建、不计时、不宣称旧记录代表当前代码。
+- `run` 默认尝试完整结果复用；新记录的 `workflow.json` 保存 `inference_identity` 和 `extraction_identity`。`--refresh` 绕过复用。只有完整身份一致才自动复用，历史控制路径仍可人工固定为性能参照；脚本不会推断“一次源码修改只影响哪个执行路径”。缓存命中时返回原目录，不复制大型图。
 - `run` → `examples/raytrace_stable_bench.rs`，默认稳定选择；`--policy original` 加 `--original`。保存 `report.json`、`setup.json`、完整 `graphs/{native,cpu,gpu}.json`。同提交协议整图失败会退出非零，仍保留导出供提取核对。
 - `run --joint-sat` 在同一完整 Pass-3 调度中安装三个 terms ruleset 的联合证明，并额外运行一个 GPU 无 joint 控制。`gpu_without_joint` 和 `joint_verification` 用于归因 Cell 的独立成本/收益；CPU 控制不装 joint。三份导出的 extraction 图对应原生、CPU 控制、GPU＋joint，不能把初始化后的 `joint-sat --snapshot` 子调度结果当作这一项。
 - `extract RUN` → `experiments/raytrace_pass3_gpu/extract.py RUN`，可加 `--reference-output OLD/extraction/native.egg`。Tiger 的生产 reader 要 pretty JSON；现有脚本已经处理，不能直接给它一行紧凑 JSON。输出 `extraction/{timing,quality}.json`。该目录已存在时不要覆盖，用 `report` 查看，或明确安排新的提取目录。

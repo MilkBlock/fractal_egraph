@@ -7,6 +7,8 @@ description: 统计 eggcc 真实三 pass 的执行、search、RHS、insert/merge
 
 默认仓库 `/Users/mineralsteins/Repos/egg_related/egg_layout`，生产 eggcc 在旁边的 `check_statewalk`。先用本技能的脚本，不重新研究 profiler、LLVM 配置或编写另一套统计器。
 
+按用户约定假设机器性能稳定：默认先读历史表，复用未变化的 pass、调度统计、extraction 和覆盖诊断，不为了刷新日期或求平均而重跑。保留历史目录、输入/库/二进制版本及计时配置；新版本数据不能借旧版本的正确性结论。只有输入、生产二进制、调度、线程配置、提取器或冻结库改变而影响对应指标，或用户明确要求重新测量，才补测受影响部分。这里三个 pass 前后传递 extraction 结果，前一 pass 输出改变会使后续 pass 的旧输入不再适用；不要拼接不同输入的 pass 后称为同一次真实生产运行。当前 runner 的完整重测入口不等于逐 pass 自动缓存。
+
 ## 最短路径
 
 `$SKILL` 表示本 SKILL.md 所在目录；用 `/opt/homebrew/bin/python3` 或 Python 3.9+，脚本也支持 `--repo`。为保持已有缓存兼容，原覆盖统计入口默认原仓库；新增 `saturate-*` 默认本 skill 所属的版本化 checkout。两者都会打印实际路径，`--repo` 可统一覆盖。

@@ -30,6 +30,85 @@ def fixture():
                 verification=None)
 
 class WorkflowTests(unittest.TestCase):
+    def make_cache(self, root):
+        source = root/'input.egg'; source.write_text('; same input')
+        worker = root/'worker'; worker.write_text('worker')
+        binary = root/'target/analyzer/release/examples/raytrace_stable_bench'
+        binary.parent.mkdir(parents=True); binary.write_text('binary')
+        args = B.parser().parse_args(['run', '--snapshot', str(source),
+                                     '--worker', str(worker), '--no-extract'])
+        env = dict(RAYON_NUM_THREADS='1', EGGLOG_PROBE_COUNTS_OFF='1',
+                   CELL_MATRIX_WORKER=str(worker))
+        folder = root/'out/old'; folder.mkdir(parents=True)
+        workflow = dict(mode='run', returncode=0, snapshot_sha256=B.sha(source), policy='stable',
+                        inference_identity=B.inference_identity(args, root, worker, env))
+        (folder/'workflow.json').write_text(json.dumps(workflow))
+        (folder/'report.json').write_text(json.dumps(fixture()))
+        return args, worker, env, folder
+
+    def test_cache_requires_identical_execution_and_successful_graph_gate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            a, worker, env, folder = self.make_cache(root)
+            self.assertEqual(B.reusable_result(a, root, worker, env), folder)
+            for file in [a.snapshot, worker, root/'target/analyzer/release/examples/raytrace_stable_bench']:
+                old = file.read_text(); file.write_text('changed')
+                self.assertIsNone(B.reusable_result(a, root, worker, env))
+                file.write_text(old)
+            self.assertIsNone(B.reusable_result(a, root, worker, dict(env, RAYON_NUM_THREADS='4')))
+            a.joint_sat = True
+            self.assertIsNone(B.reusable_result(a, root, worker, env))
+            a.joint_sat = False
+            r = fixture(); r['same_commit_verification'] = None
+            (folder/'report.json').write_text(json.dumps(r))
+            self.assertIsNone(B.reusable_result(a, root, worker, env))
+
+    def test_old_provenance_is_history_not_current_binary_certification(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            a, worker, env, folder = self.make_cache(root)
+            w = B.load(folder/'workflow.json'); w.pop('inference_identity')
+            (folder/'workflow.json').write_text(json.dumps(w))
+            self.assertEqual(len(list(B.matching_history(root, a.snapshot, 'stable', False))), 1)
+            self.assertIsNone(B.reusable_result(a, root, worker, env))
+            with patch.object(B.subprocess, 'run', side_effect=AssertionError('executed')), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(B.main(['--repo', str(root), 'history', '--snapshot', str(a.snapshot)]), 0)
+
+    def test_cache_hit_never_executes_inference_or_creates_an_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            a, worker, env, folder = self.make_cache(root)
+            out = root/'out/new'
+            with patch.dict(B.os.environ, env, clear=True), \
+                 patch.object(B.subprocess, 'run', side_effect=AssertionError('executed')), \
+                 contextlib.redirect_stdout(io.StringIO()) as text:
+                status = B.main(['--repo', str(root), 'run', '--no-build', '--no-extract',
+                                 '--snapshot', str(a.snapshot), '--worker', str(worker), '--output', str(out)])
+            self.assertEqual(status, 0)
+            self.assertIn('没有重新执行推理', text.getvalue())
+            self.assertFalse(out.exists())
+
+    def test_requested_extraction_is_not_satisfied_by_inference_only_cache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            a, worker, env, _ = self.make_cache(root)
+            a.no_extract = False
+            self.assertIsNone(B.reusable_result(a, root, worker, env))
+
+    def test_refresh_bypasses_cached_result(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            a, worker, env, _ = self.make_cache(root)
+            with patch.dict(B.os.environ, env, clear=True), \
+                 patch.object(B, 'reusable_result', side_effect=AssertionError('looked up cache')), \
+                 patch.object(B.subprocess, 'run', return_value=subprocess.CompletedProcess([], 7)) as execute, \
+                 contextlib.redirect_stdout(io.StringIO()):
+                status = B.main(['--repo', str(root), 'run', '--no-build', '--no-extract', '--refresh',
+                                 '--snapshot', str(a.snapshot), '--worker', str(worker),
+                                 '--output', str(root/'out/new')])
+            self.assertEqual(status, 7)
+            execute.assert_called_once()
+
     def test_speedup_requires_exact_graph_and_unaudited_timing(self):
         r = fixture()
         self.assertEqual(B.metrics(r)['inference_speedup'], 2)

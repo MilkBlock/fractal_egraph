@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import platform
 import shlex
 import shutil
 import subprocess
@@ -18,6 +19,72 @@ SNAPSHOT = SHARED / 'egg_layout/out/raytrace-interactive-20261010/pass-3-flat.eg
 TIGER = SHARED / 'check_statewalk/target/release/tiger'
 WORKER = Path('out/cell-locality-worker/matrix')
 SAVED = Path('experiments/raytrace_pass3_gpu/results/stable-choice')
+
+def history_candidates(repo):
+    """Only inspect workflow packets; never walk/export the large saved graphs."""
+    return sorted((repo / 'out').glob('*/workflow.json'),
+                  key=lambda p: p.stat().st_mtime, reverse=True)
+
+def matching_history(repo, snapshot, policy, joint):
+    """Historical controls are evidence, not a claim about the current binary."""
+    source_hash = sha(snapshot)
+    for path in history_candidates(repo):
+        try:
+            w = load(path)
+            if (w.get('mode') != 'run' or w.get('returncode') != 0
+                    or w.get('snapshot_sha256') != source_hash or w.get('policy') != policy):
+                continue
+            r = load(path.parent / 'report.json')
+            if bool(r.get('gpu_without_joint')) != joint or not metrics(r)['timing_eligible']:
+                continue
+            yield path.parent, w, r
+        except (OSError, ValueError, KeyError, TypeError):
+            continue  # Incomplete/old diagnostic packets are not timing controls.
+
+def inference_identity(a, repo, worker, env):
+    binary = repo / 'target/analyzer/release/examples/raytrace_stable_bench'
+    resolve = lambda p: p if p.is_absolute() else repo / p
+    if not binary.is_file() or not worker.is_file():
+        return None
+    configuration = {k: v for k, v in sorted(env.items())
+                     if k.startswith(('RAYON_', 'EGGLOG_', 'CELL_', 'MTL_', 'DYLD_', 'OMP_'))}
+    return dict(version=1, snapshot=sha(resolve(a.snapshot)), binary=sha(binary),
+                worker=sha(worker), policy=a.policy, joint=a.joint_sat,
+                machine=[platform.node(), platform.system(), platform.release(), platform.machine()],
+                environment_sha256=hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest())
+
+def extraction_identity(a, repo):
+    resolve = lambda p: p if p.is_absolute() else repo / p
+    paths = [resolve(a.tiger), repo / 'target/analyzer/release/examples/tiger_output_check',
+             repo / 'experiments/raytrace_pass3_gpu/extract.py']
+    if a.reference_output:
+        paths.append(resolve(a.reference_output))
+    if not all(p.is_file() for p in paths):
+        return None
+    return [sha(p) for p in paths]
+
+def reusable_result(a, repo, worker, env):
+    identity = inference_identity(a, repo, worker, env)
+    if identity is None:
+        return None
+    extraction = None if a.no_extract else extraction_identity(a, repo)
+    for directory, workflow, _ in matching_history(
+            repo, a.snapshot if a.snapshot.is_absolute() else repo / a.snapshot, a.policy, a.joint_sat):
+        if workflow.get('inference_identity') != identity:
+            continue
+        if not a.no_extract:
+            try:
+                timing = load(directory / 'extraction/timing.json')
+                provenance = directory / 'workflow-extract.json'
+                ew = load(provenance) if provenance.is_file() else workflow
+                if (extraction is None or ew.get('extraction_identity') != extraction
+                        or not load(directory / 'extraction/quality.json').get('passed')
+                        or len(timing.get('runs', [])) != 3):
+                    continue
+            except (OSError, ValueError, KeyError, TypeError):
+                continue
+        return directory
+    return None
 
 def sha(path):
     h = hashlib.sha256()
@@ -122,6 +189,11 @@ def parser():
     p.add_argument('--dry-run', action='store_true')
     sub = p.add_subparsers(dest='mode', required=True)
     q = sub.add_parser('report'); q.add_argument('input', type=Path, nargs='?', default=SAVED)
+    q = sub.add_parser('history', help='reuse historical evidence; no build or execution')
+    q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
+    q.add_argument('--policy', choices=['stable', 'original'], default='stable')
+    q.add_argument('--joint-sat', action='store_true')
+    q.add_argument('--limit', type=int, default=3)
     for mode in ['check', 'build', 'run', 'extract', 'audit', 'cpu-pair', 'diff', 'sat-skip', 'parameterized', 'joint-sat', 'test']:
         q = sub.add_parser(mode)
         q.add_argument('--worker', type=Path, default=WORKER)
@@ -140,6 +212,7 @@ def parser():
             q.add_argument('--policy', choices=['stable', 'original'], default='stable')
             q.add_argument('--no-extract', action='store_true')
             q.add_argument('--joint-sat', action='store_true')
+            q.add_argument('--refresh', action='store_true', help='remeasure even if an identical verified result exists')
         if mode == 'audit': q.add_argument('--three-lane-check', action='store_true')
         if mode == 'diff':
             q.add_argument('--inspect'); q.add_argument('--open')
@@ -216,6 +289,23 @@ def main(argv=None):
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
     if a.mode == 'report': report(resolve(a.input)); return 0
+    if a.mode == 'history':
+        if a.limit < 1:
+            raise ValueError('--limit must be positive')
+        print('假设机器稳定；复用历史计时，没有重新测量。旧版本不代表当前代码。')
+        found = 0
+        for directory, w, r in matching_history(repo, resolve(a.snapshot), a.policy, a.joint_sat):
+            m = metrics(r)
+            print(json.dumps(dict(directory=str(directory), head=w.get('source_head'),
+                                  dirty=bool(w.get('dirty_files')),
+                                  cpu_seconds=r['sorted_commit_cpu']['runtime']['run_seconds'],
+                                  gpu_seconds=r['gpu']['runtime']['run_seconds'],
+                                  gpu_off_seconds=(r.get('gpu_without_joint') or {}).get('runtime', {}).get('run_seconds'),
+                                  joint_speedup=m['joint_speedup']), ensure_ascii=False))
+            found += 1
+            if found >= a.limit: break
+        print(f'{found} 份可用记录。用 report 目录读取完整验证；不按最快的一次挑基准。')
+        return 0
     worker = resolve(a.worker)
     if a.mode == 'check':
         files = [repo / 'examples/raytrace_stable_bench.rs', repo / 'experiments/raytrace_pass3_gpu/extract.py', resolve(a.snapshot), resolve(a.tiger)]
@@ -268,6 +358,13 @@ def main(argv=None):
         for c in plan: execute(c)
         if a.mode == 'diff': print('定位环境：', {k:v for k,v in env.items() if k.startswith('PASS3_DIFF_')})
         return 0
+    if a.mode == 'run' and not a.refresh:
+        cached = reusable_result(a, repo, worker, env)
+        if cached is not None:
+            print('输入、二进制、worker、策略及配置一致，复用已验证记录：', cached)
+            print('没有重新执行推理或创建目标目录；强制重新测量用 --refresh。')
+            report(cached)
+            return 0
     if a.mode not in ['test','extract']:
         out.parent.mkdir(parents=True, exist_ok=True)
     log = None if a.mode == 'test' else out.with_name(out.name + '.log')
@@ -287,6 +384,10 @@ def main(argv=None):
                           no_build=a.no_build, worker_sha256=sha(worker) if worker.is_file() else None,
                           snapshot_sha256=sha(resolve(a.snapshot)) if getattr(a,'snapshot',None) else None,
                           binary_sha256={str(p):sha(p) for t in targets if (p:=repo/'target/analyzer/release/examples'/t).is_file()})
+        if a.mode == 'run':
+            provenance['inference_identity'] = inference_identity(a, repo, worker, env)
+        if a.mode == 'extract' or (a.mode == 'run' and not a.no_extract):
+            provenance['extraction_identity'] = extraction_identity(a, repo)
         (out / ('workflow-extract.json' if a.mode == 'extract' else 'workflow.json')).write_text(json.dumps(provenance, indent=2) + '\n')
         try: report(out, fresh=True)
         except FileNotFoundError: print('未生成完整报告，日志：', log)
