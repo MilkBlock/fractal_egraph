@@ -869,6 +869,14 @@ impl Observer {
     }
 }
 impl crate::table_live::SaturationHook for Observer {
+    fn query_cells(&mut self,eg:&mut EGraph,set:&str,sinks:&[&CellActionSink])->Result<Vec<(usize,Vec<Vec<Value>>) >> {
+        if !self.0.scalar.contains_key(set){return Ok(vec![])}
+        self.with(eg,|r|{
+            if r.eg.cell_rule_environment_stamp()!=r.identity{return Ok(vec![])}
+            r.query_scalar(set,sinks)
+        })
+    }
+
     fn try_run(&mut self, eg: &mut EGraph, set: &str) -> Result<Option<egglog_reports::RunReport>> {
         if !self.0.scalar.contains_key(set) {
             return Ok(None);

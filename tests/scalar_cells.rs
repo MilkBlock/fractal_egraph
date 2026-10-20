@@ -273,7 +273,7 @@ fn full_gpu_partition_preserves_certified_single_run_and_publishes_its_delta() {
     let mut reference=base.clone();
     let mut cell=table_live::Runtime::new_full(base.clone(),&commands,Some(std::path::Path::new(&worker)),true,None).unwrap();
     cell.set_saturation_hook(Box::new(hook));
-    cell.enable_experimental_cell_runs();
+    cell.set_cell_query_reuse(true);
     for input in [
         "(Bop (Add) (V 0) (V 1)) (set (Size (V 0)) 2) (set (Size (V 1)) 3)",
         "", "(set (Size (V 1)) 1)", "", "(union (V 0) (V 1))", "",
@@ -283,7 +283,72 @@ fn full_gpu_partition_preserves_certified_single_run_and_publishes_its_delta() {
         compare::equal(&base,&reference,cell.engine()).unwrap();
     }
     let r=cell.report();
-    assert_eq!(r["runtime"]["cell_run_calls"],6);
-    assert_eq!(r["rules"].as_array().unwrap().iter().filter(|q|q["ruleset"]=="work").map(|q|q["stats"]["emitted_bindings"].as_u64().unwrap()).sum::<u64>(),0);
+    assert_eq!(r["runtime"]["cell_query_rules"],6);
+    assert!(r["rules"].as_array().unwrap().iter().filter(|q|q["rule"]=="size").all(|q|q["stats"]["dispatches"]==0 && q["stats"]["cell_queries"]==6));
     assert!(r["rules"].as_array().unwrap().iter().any(|q|q["ruleset"]=="outside"&&q["stats"]["emitted_bindings"].as_u64().unwrap()>0));
+}
+
+#[test]
+fn cell_run_preserves_the_sorted_commit_of_other_order_sensitive_rules() {
+    let src=format!("{}\n(function Pick (Expr) Expr :merge new) (rule ((Bop op x y)) ((set (Pick x) y)) :ruleset work :name \"pick\")",source());
+    for reverse in [false,true] {
+        let (mut base,hook)=Runtime::new_joint(&src).unwrap().detach_joint().unwrap();
+        for n in (0..12).rev() {base.parse_and_run_program(None,&format!("(V {n}) (set (Size (V {n})) 1)")).unwrap();}
+        let input=(1..12).map(|i|if reverse{12-i}else{i}).map(|i|format!("(Bop (Add) (V 0) (V {i}))")).collect::<Vec<_>>().join("\n");
+        base.parse_and_run_program(None,&input).unwrap();
+        let commands=base.parse_program(None,"(run work 1)").unwrap();
+        let mut expected=table_live::Runtime::new_full(base.clone(),&commands,None,false,None).unwrap();
+        let mut actual=table_live::Runtime::new_full(base.clone(),&commands,None,false,None).unwrap();
+        actual.set_saturation_hook(Box::new(hook));actual.set_cell_query_reuse(true);
+        expected.run(&commands).unwrap();actual.run(&commands).unwrap();
+        compare::equal(&base,expected.engine(),actual.engine()).unwrap();
+    }
+}
+
+#[test]
+fn cell_frontier_can_fall_back_and_resume_without_replaying_old_effects() {
+    let worker=std::env::var_os("CELL_MATRIX_WORKER");
+    let src=format!("{} (function Count (Expr) i64 :merge (+ old new)) (rule ((= e (Bop op x y)) (= n (Size e))) ((set (Count e) 1)) :ruleset work :name \"count\")",source());
+    for gpu in [false,true] {
+        if gpu && worker.is_none(){continue}
+        let (mut base,hook)=Runtime::new_joint(&src).unwrap().detach_joint().unwrap();
+        let commands=base.parse_program(None,"(run work 1)").unwrap();
+        let mut expected=table_live::Runtime::new_full(base.clone(),&commands,None,false,None).unwrap();
+        let mut actual=table_live::Runtime::new_full(base.clone(),&commands,gpu.then(||std::path::Path::new(worker.as_ref().unwrap())),false,None).unwrap();
+        actual.set_saturation_hook(Box::new(hook));actual.enable_cell_query_audit().unwrap();
+        for (enabled,input) in [
+            (true,"(Bop (Add) (V 0) (V 1)) (set (Size (V 0)) 8) (set (Size (V 1)) 2)"),
+            (false,""),(false,"(set (Size (V 0)) 1)"),(true,""),
+            (false,"(union (V 0) (V 1))"),(true,""),(true,"")
+        ] {
+            actual.set_cell_query_reuse(enabled);
+            expected.input(input).unwrap();actual.input(input).unwrap();
+            expected.run(&commands).unwrap();actual.run(&commands).unwrap();
+            compare::equal(&base,expected.engine(),actual.engine()).unwrap();
+        }
+        assert_eq!(actual.report()["audit_scope"],"Cell-supplied queries");
+    }
+}
+
+#[test]
+fn cell_frontier_filters_lhs_overflow_but_preserves_a_noop_rhs_failure() {
+    for lhs in [i64::MAX,i64::MAX-1] {
+        let (mut base,hook)=Runtime::new_joint(&source()).unwrap().detach_joint().unwrap();
+        base.parse_and_run_program(None,&format!("(Bop (Add) (V 0) (V 1)) (set (Size (V 0)) {lhs}) (set (Size (V 1)) 1) (set (Size (Bop (Add) (V 0) (V 1))) 0)")).unwrap();
+        let commands=base.parse_program(None,"(run work 1)").unwrap();
+        let mut expected=table_live::Runtime::new_full(base.clone(),&commands,None,false,None).unwrap();
+        let mut actual=table_live::Runtime::new_full(base.clone(),&commands,None,false,None).unwrap();
+        actual.set_saturation_hook(Box::new(hook));
+        match (expected.run(&commands),actual.run(&commands)) {
+            (Ok(_),Ok(_))=>{
+                compare::equal(&base,expected.engine(),actual.engine()).unwrap();
+                expected.input("(set (Size (V 0)) 2)").unwrap();actual.input("(set (Size (V 0)) 2)").unwrap();
+                expected.run(&commands).unwrap();actual.run(&commands).unwrap();
+                compare::equal(&base,expected.engine(),actual.engine()).unwrap();
+                assert!(actual.report()["runtime"]["cell_query_bindings"].as_u64().unwrap()>0);
+            },
+            (Err(a),Err(b))=>{assert_eq!(a.to_string(),b.to_string());assert!(actual.run(&commands).is_err());}
+            (a,b)=>panic!("native={a:?}, Cell={b:?}"),
+        }
+    }
 }

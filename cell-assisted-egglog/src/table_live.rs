@@ -50,8 +50,9 @@ pub struct Stats {
     pub skipped_saturations: usize,
     pub partial_saturations: usize,
     pub saturation_hook_seconds: f64,
-    pub cell_run_calls: usize,
-    pub cell_run_seconds: f64,
+    pub cell_query_rules: usize,
+    pub cell_query_bindings: usize,
+    pub cell_query_seconds: f64,
     pub native_only_runs: usize,
     pub native_only_seconds: f64,
 }
@@ -71,11 +72,15 @@ struct NativeStats {
     rebuild_seconds: f64,
     matches: usize,
 }
-/// Trusted saturation compiler, analogous to the complete-frontier provider.
-/// `None` declines WITHOUT effects. Some may publish certified closure effects;
-/// `complete=false` requires the ordinary backend to finish saturation.
-/// Only invoked for explicit Saturate bodies, never for an ordinary Run.
+/// Trusted Cell provider with separate query and closure contracts.
+/// `query_cells` is read-only and preserves an ordinary Run's commit boundary.
+/// `try_boundary` may publish a certified closure only at an explicit Saturate;
+/// `complete=false` requires the ordinary backend to finish that saturation.
 pub trait SaturationHook {
+    /// Complete incremental bindings for a subset of these exact rule sinks.
+    /// Reads only: no RHS execution, frontier advancement, or saturation here.
+    /// Returned indices refer to `sinks`; unclaimed rules retain their matcher.
+    fn query_cells(&mut self,_eg:&mut EGraph,_set:&str,_sinks:&[&CellActionSink])->Result<Vec<(usize,Vec<Vec<Value>>) >> {Ok(vec![])}
     fn try_run(&mut self,_eg:&mut EGraph,_set:&str)->Result<Option<egglog_reports::RunReport>>{Ok(None)}
     fn handles(&self,_body:&Schedule)->bool{true}
     fn diagnostics(&self) -> Json {
@@ -97,6 +102,8 @@ struct QueryStats {
     quiet_runs: usize,
     emitted_bindings: usize,
     audit_queries: usize,
+    cell_queries: usize,
+    cell_bindings: usize,
 }
 struct Row {
     table: usize,
@@ -146,7 +153,8 @@ pub struct Runtime {
     extended: bool,
     query_log: bool,
     query_timing: bool,
-    experimental_cell_runs: bool,
+    cell_queries_enabled: bool,
+    audit_cell_queries: bool,
     device: Option<Service>,
     feed: Option<CellCommitFeed>,
     sorts: Vec<Vec<ArcSort>>,
@@ -195,9 +203,14 @@ fn collect(
     Ok(())
 }
 impl Runtime {
-    /// Opt-in research lane: Pass 3 currently fails the full-graph gate after
-    /// scalar Run elision (Smaller fact mismatch). Do not enable by default.
-    pub fn enable_experimental_cell_runs(&mut self) {self.experimental_cell_runs=true;}
+    /// Reuse a certified complete query frontier without changing any effect.
+    pub fn set_cell_query_reuse(&mut self, enabled: bool) {self.cell_queries_enabled=enabled;}
+    /// Diagnose only Cell-supplied frontiers with cached native queries.
+    /// This is an oracle run, never a timing result.
+    pub fn enable_cell_query_audit(&mut self)->Result<()> {
+        if self.reference.is_empty(){for s in &self.sinks {self.reference.push(self.eg.prepare_cell_query(s)?);}}
+        self.audit_cell_queries=true;Ok(())
+    }
     pub fn set_saturation_hook(&mut self, hook: Box<dyn SaturationHook>) {
         self.hook_table_ids = self
             .feed
@@ -355,7 +368,8 @@ impl Runtime {
             extended,
             query_log: std::env::var_os("CELL_QUERY_LOG").is_some(),
             query_timing:std::env::var("CELL_QUERY_TIMINGS").as_deref()==Ok("1"),
-            experimental_cell_runs:std::env::var("CELL_EXPERIMENTAL_RUN_PROGRAMS").as_deref()==Ok("1"),
+            cell_queries_enabled:extended && std::env::var("CELL_DISABLE_CELL_QUERIES").as_deref()!=Ok("1"),
+            audit_cell_queries:false,
             device: None,
             feed: None,
             sorts: vec![],
@@ -733,43 +747,45 @@ impl Runtime {
         let query_start=Instant::now();
         if self.query_log {eprintln!("[query start] {} {}",self.stats.ruleset_runs,set);}
         let ids = self.sets.get(set).ok_or("unregistered ruleset")?.clone();
-        // Experimental single-Run Cell plans run before the ordinary GPU query.
-        // The large Pass-3 graph gate currently fails, so opt-in is required.
+        // Cell plans supply bindings only. All rules still read this frozen
+        // state and use the SAME sorted native commit, including residual rules.
         let started=Instant::now();
-        let assisted=if self.experimental_cell_runs {if let Some(hook)=self.saturation_hook.as_mut(){hook.try_run(&mut self.eg,set)?}else{None}}else{None};
-        if let Some(report)=assisted {
-            self.stats.cell_run_calls+=1;
-            self.stats.cell_run_seconds+=started.elapsed().as_secs_f64();
-            if self.cpu || self.audit {
-                for id in &ids {self.eg.sync_cell_query_after_native_run(&self.sinks[*id],&self.reference[*id]);}
-            }
-            let start=Instant::now();self.collect_commits()?;
-            self.stats.event_seconds+=start.elapsed().as_secs_f64();
-            self.stats.ruleset_runs+=1;
-            if self.query_log {eprintln!("[cell Run] {set} {:.6}s",query_start.elapsed().as_secs_f64());}
-            return Ok(report.updated);
+        let supplied=if self.cell_queries_enabled && self.saturation_hook.is_some() {
+            let sinks=ids.iter().map(|i|&self.sinks[*i]).collect::<Vec<_>>();
+            if let Some(hook)=self.saturation_hook.as_mut(){hook.query_cells(&mut self.eg,set,&sinks)?}else{vec![]}
+        }else{vec![]};
+        self.stats.cell_query_seconds+=started.elapsed().as_secs_f64();
+        let mut matches=vec![vec![];ids.len()];let mut provided=BTreeSet::new();
+        for (index,mut bindings) in supplied {
+            if index>=ids.len() || !provided.insert(index){return Err("invalid or duplicate Cell query index".into())}
+            let id=ids[index];bindings.sort_unstable();
+            if bindings.windows(2).any(|p|p[0]==p[1]){return Err("duplicate Cell query binding".into())}
+            self.qstats[id].cell_queries+=1;self.qstats[id].cell_bindings+=bindings.len();
+            self.stats.cell_query_rules+=1;self.stats.cell_query_bindings+=bindings.len();
+            matches[index]=bindings;
         }
+        let remaining=ids.iter().enumerate().filter(|(i,_)|!provided.contains(i)).map(|(i,id)|(i,*id)).collect::<Vec<_>>();
+        let pending=remaining.iter().map(|(_,id)|*id).collect::<Vec<_>>();
         let started=self.query_timing.then(Instant::now);let device_before=self.stats.device_seconds;
-        let matches = if self.cpu {
-            let t = Instant::now();
-            let r = self.native_matches(&ids)?;
-            self.stats.native_query_seconds += t.elapsed().as_secs_f64();
-            r
-        } else {
-            self.gpu_matches(&ids)?
-        };
+        let ordinary=if pending.is_empty(){vec![]}else if self.cpu {
+            let t=Instant::now();let r=self.native_matches(&pending)?;
+            self.stats.native_query_seconds+=t.elapsed().as_secs_f64();r
+        }else{self.gpu_matches(&pending)?};
+        for ((index,_),bindings) in remaining.into_iter().zip(ordinary){matches[index]=bindings;}
         if let Some(started)=started {
             let cost=self.query_costs.entry(set.to_string()).or_default();
             cost.runs+=1;cost.bindings+=matches.iter().map(Vec::len).sum::<usize>();
             cost.query_seconds+=started.elapsed().as_secs_f64();cost.device_seconds+=self.stats.device_seconds-device_before;
         }
-        if self.audit {
+        if self.audit || self.audit_cell_queries {
             let t = Instant::now();
-            let expected = self.native_matches(&ids)?;
-            for ((id, a), b) in ids.iter().zip(&matches).zip(&expected) {
+            let audited=ids.iter().enumerate().filter(|(i,_)|self.audit || provided.contains(i)).map(|(i,id)|(i,*id)).collect::<Vec<_>>();
+            let expected = self.native_matches(&audited.iter().map(|(_,id)|*id).collect::<Vec<_>>())?;
+            for ((i,id), b) in audited.iter().zip(&expected) {
+                let a=&matches[*i];
                 if a != b {
                     return Err(format!(
-                        "independent native frontier differs for {}: {} GPU / {} native",
+                        "independent native frontier differs for {}: {} assisted / {} native",
                         self.sinks[*id].name,
                         a.len(),
                         b.len()
@@ -790,6 +806,15 @@ impl Runtime {
             .map(|(id, b)| (&self.sinks[*id], b.as_slice()))
             .collect::<Vec<_>>();
         let report = self.eg.apply_completed_cell_ruleset(&batches)?;
+        if !self.audit && (self.cpu || self.audit_cell_queries) {
+            for (i,id) in ids.iter().enumerate() {
+                // Cell-only audit must also acknowledge GPU fallback runs,
+                // otherwise re-enabling the Cell would audit an obsolete delta.
+                if (self.cpu && !self.audit_cell_queries && provided.contains(&i)) || (self.audit_cell_queries && !provided.contains(&i)) {
+                    self.eg.sync_cell_query_after_native_run(&self.sinks[*id],&self.reference[*id]);
+                }
+            }
+        }
         self.stats.native_rhs_seconds += t.elapsed().as_secs_f64();
         self.stats.native_action_search_apply_seconds += report
             .search_and_apply_time_per_ruleset
@@ -914,7 +939,7 @@ impl Runtime {
                             };
                             for set in sets {
                                 let ids = self.sets.get(set).ok_or("unknown certified ruleset")?;
-                                if self.cpu || self.audit {
+                                if self.cpu || self.audit || self.audit_cell_queries {
                                     for id in ids {
                                         self.eg.sync_cell_query_after_saturation(
                                             &self.sinks[*id],
@@ -979,6 +1004,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"experimental_cell_run_programs":self.experimental_cell_runs,"selected_rule_count":self.sinks.len(),"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

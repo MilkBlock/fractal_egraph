@@ -257,6 +257,30 @@ pub(super) struct Group {
     pub certify_min: bool,
 }
 impl Runtime {
+    /// Match only the baked rooted scalar fragment. This is a complete LHS
+    /// provider, not a different executor: even min no-ops retain their binding.
+    pub(super) fn query_scalar(&mut self,set:&str,sinks:&[&CellActionSink])->Result<Vec<(usize,Vec<Vec<Value>>) >> {
+        self.sync()?;
+        let group=self.scalar.get(set).ok_or("missing scalar group")?;
+        let mut selected=vec![];
+        // Validate the interface before consuming any dirty seed frontier.
+        for (id,_) in &group.plans {
+            let source=&self.kernels[*id].sink;
+            let Some(i)=sinks.iter().position(|s|s.name==source.name) else{continue};
+            if source.slots()!=sinks[i].slots(){return Err("Cell query slot interface differs".into())}
+            selected.push((*id,i));
+        }
+        let mut out=vec![];
+        for (id,i) in selected {
+            let mut raw=self.kernels[id].matches(&self.eg,&self.rows,&mut self.stats.keyed_reads)?;
+            // Native exact pure constraints reject overflow just as the LHS
+            // does. RHS failure/panic, merges and all effects remain native.
+            let mut valid=vec![];
+            for b in raw.drain(..){if self.eg.cell_guards_hold(sinks[i],&b)?{valid.push(b)}}
+            out.push((i,valid));
+        }
+        Ok(out)
+    }
     pub(super) fn run_scalar(&mut self, set: &str) -> Result<egglog_reports::RunReport> {
         self.sync()?;
         let mut group = self.scalar.remove(set).ok_or("missing scalar group")?;
