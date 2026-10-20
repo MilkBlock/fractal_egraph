@@ -196,6 +196,16 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual(B.main(['--dry-run', 'transition']), 0)
         self.assertNotIn('swiftc', text.getvalue())
 
+    def test_loaded_transfer_report_does_not_claim_independent_graph_or_timing_proof(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'results.json'
+            path.write_text(json.dumps(dict(transfer_run_complete=True,passed=True,
+                boundaries=[{}],runtime=dict(stats=dict(loaded_programs=7,program_compilations=0)))))
+            with contextlib.redirect_stdout(io.StringIO()) as text:
+                B.report(path)
+            self.assertIn('不是独立原生整图对照', text.getvalue())
+            self.assertNotIn('差异定位', text.getvalue())
+
     def test_failed_graph_can_extract_but_keeps_failed_exit(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); source = root/'input.egg'; source.write_text('; input')

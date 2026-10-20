@@ -151,6 +151,11 @@ def report(path, fresh=False):
             print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
         if not m['exact_cpu_gpu']:
             print('失败原因：', r.get('same_commit_verification_error'))
+    elif 'transfer_run_complete' in r or ('library' in r and 'loaded_programs' in r.get('runtime', {}).get('stats', {})):
+        print('加载 Bake 文件的运行结果；输入断言与镜像核对：', r.get('passed') is True)
+        print('阶段数：', len(r['boundaries']), '；加载程序数：', r['runtime']['stats']['loaded_programs'],
+              '；重新搜索接线计划：', r['runtime']['stats']['program_compilations'])
+        print('这是执行报告，不是独立原生整图对照或计时加速比；整图回归见 transfer_artifact。')
     elif 'port_transition_verified' in r:
         print('已有 Cell 的端口接续，实际原生提交；比较索引读取次数，不报告时间加速比。')
         for p in r['phases']:
@@ -259,7 +264,7 @@ def commands(a, repo, worker, out):
         c = [['cargo', 'test', '--offline', '--manifest-path', 'egglog/egglog-bridge/Cargo.toml', '--target-dir', 'target/analyzer', '--lib', 'cell_worklist_tests', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--lib', 'stable_choice::tests', '--target-dir', 'target/analyzer'],
-             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
+             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'transfer_artifact', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
     else: c = []
     if getattr(a, 'reference_output', None): c[-1] += ['--reference-output', str(resolve(a.reference_output))]
     return c

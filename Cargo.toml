@@ -17,6 +17,9 @@ slotted-egraphs = "=0.0.36"
 web-time = "1"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+cell-assisted-egglog = { path = "cell-assisted-egglog" }
+
 [[bin]]
 name = "egg_layout"
 path = "src/main.rs"

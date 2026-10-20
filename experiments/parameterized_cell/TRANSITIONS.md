@@ -1,5 +1,8 @@
 # Existing Cell + boundary update
 
+Follow-up: [Analyze export and cold loading](TRANSFER_FILE.md) now writes these
+typed programs to a self-contained `.egg` file and loads them in a new process.
+
 The runtime now retains resolved port wiring per live seed, including in the
 joint saturation observer used by the shared CPU/GPU event loop. This is local
 state continuation, not a catalog containing a separate closure for every cost.

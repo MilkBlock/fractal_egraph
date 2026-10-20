@@ -1,0 +1,25 @@
+{
+  "scope": "Debug correctness run on the actual native runtime; not a timing benchmark. Full-graph control is in tests/transfer_artifact.rs.",
+  "programs": 7,
+  "training_records": 98,
+  "records_with_committed_changes": 44,
+  "rejected_records": 137,
+  "connection_shapes": 46,
+  "cold_process": true,
+  "training_file_removed": true,
+  "boundaries": 8,
+  "input_checks_passed": true,
+  "runtime": {
+    "program_compilations": 0,
+    "loaded_programs": 7,
+    "ruleset_runs": 135,
+    "keyed_reads": 761,
+    "committed_row_events": 202,
+    "union_events": 37,
+    "bootstrap_rows": 0,
+    "native_fallback_runs": 0
+  },
+  "artifact_bytes": 13271,
+  "artifact_sha256": "d686facc8b7d05ce679a2f318486ca66cdd25ef231d576f4bce6b049ca5ca6c4",
+  "evidence_directory": "out/analyze-transfer-loaded-v1"
+}

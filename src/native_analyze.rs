@@ -33,6 +33,9 @@ mod saturated_rule_composition_pipeline;
 mod sorts;
 #[path = "native_weak_dominate.rs"]
 mod weak_dominate;
+#[cfg(not(target_arch = "wasm32"))]
+#[path = "native_transfer.rs"]
+pub mod transfer;
 fn sp() -> Span {
     Span::Rust(Arc::new(egglog::ast::RustSpan {
         file: file!(),
@@ -1117,6 +1120,7 @@ fn execute(
     emit: &mut dyn FnMut(Json) -> Result,
     reuse_library: Option<&Path>,
     optimize: bool,
+    bake_transfers: bool,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
     let render_batch = crate::graph_render::Batch::start()?;
@@ -1218,6 +1222,17 @@ fn execute(
         }
     };
     drop(boundary_emit);
+    let mut transfer_report = Json::Null;
+    if bake_transfers {
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let bundle = transfer::from_capture(&c)?;
+            std::fs::write(out.join("transfers.egg"), bundle.text()?)?;
+            transfer_report = bundle.report();
+        }
+        #[cfg(target_arch = "wasm32")]
+        return Err("parameterized transfer export currently requires the native analyzer".into());
+    }
     if save_history {
         history::save(&out.join("history.json"), Path::new(name), &c)?;
     }
@@ -1295,6 +1310,7 @@ fn execute(
             crate::graph_render::enqueue(&path)?;
         }
     }
+    report["parameterized_transfers"] = transfer_report;
     std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
     std::fs::write(
         out.join("layers.json"),
@@ -1376,6 +1392,13 @@ pub fn run_configured(
     reuse_library: Option<&Path>,
     optimize: bool,
 ) -> Result<Json> {
+    run_configured_export(source,out,rounds,replay,save_history,observation,reuse_library,optimize,false)
+}
+pub fn run_configured_export(
+    source: &Path, out: &Path, rounds: Option<usize>, replay: Option<&Path>,
+    save_history: bool, observation: crate::ripen_observation::Limits,
+    reuse_library: Option<&Path>, optimize: bool, bake_transfers: bool,
+) -> Result<Json> {
     if optimize && (reuse_library.is_none() || replay.is_some()) {
         return Err(
             "planned capture requires a source and reuse library, not history replay".into(),
@@ -1403,6 +1426,7 @@ pub fn run_configured(
         &mut |_| Ok(()),
         reuse_library,
         optimize,
+        bake_transfers,
     )
 }
 

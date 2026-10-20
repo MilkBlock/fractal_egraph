@@ -15,6 +15,7 @@ use serde_json::{Value as Json, json};
 use smallvec::{SmallVec, smallvec};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
+pub mod artifact;
 pub mod joint;
 mod scalar;
 
@@ -81,7 +82,7 @@ impl Rows {
         reads
     }
 }
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, serde::Deserialize)]
 enum Access {
     Key,
     Output,
@@ -219,8 +220,16 @@ impl Kernel {
             .into());
         }
         let (seed, steps) = plans.pop().unwrap();
+        Ok(Self::from_wiring(sink, tables, seed, steps))
+    }
+    fn from_wiring(
+        sink: CellActionSink,
+        tables: Vec<usize>,
+        seed: usize,
+        steps: Vec<(usize, Access)>,
+    ) -> Self {
         let slot_count = sink.slots().len();
-        Ok(Self {
+        Self {
             sink,
             tables,
             seed,
@@ -241,7 +250,7 @@ impl Kernel {
             paths: FxHashMap::default(),
             reused_reads: 0,
             resumed_seeds: 0,
-        })
+        }
     }
     fn wake(&mut self, read: &Read) {
         if let Some(seeds) = self.subscribers.get(read) {
@@ -509,6 +518,7 @@ impl Kernel {
 #[derive(Default, Serialize)]
 pub struct Stats {
     pub program_compilations: usize,
+    pub loaded_programs: usize,
     pub ruleset_runs: usize,
     pub keyed_reads: usize,
     pub committed_row_events: usize,
@@ -544,10 +554,19 @@ impl Runtime {
         Self::new_with_scalar(eg, sets, seeds, vec![])
     }
     fn new_with_scalar(
+        eg: EGraph,
+        sets: &[&str],
+        seeds: &BTreeMap<String, String>,
+        specs: Vec<scalar::Spec>,
+    ) -> Result<Self> {
+        Self::new_with_plans(eg, sets, seeds, specs, None)
+    }
+    fn new_with_plans(
         mut eg: EGraph,
         sets: &[&str],
         seeds: &BTreeMap<String, String>,
         specs: Vec<scalar::Spec>,
+        plans: Option<&[artifact::Program]>,
     ) -> Result<Self> {
         let mut sinks = vec![];
         let mut groups = BTreeMap::new();
@@ -596,6 +615,10 @@ impl Runtime {
                 .collect();
         }
         let names = names.into_iter().collect::<Vec<_>>();
+        if plans.is_some_and(|p| p.len() != sinks.len()) {
+            return Err("transfer must cover every installed rule exactly once".into());
+        }
+        let mut used_plans = BTreeSet::new();
         let mut kernels = vec![];
         for (id, sink) in sinks.into_iter().enumerate() {
             let tables = sink
@@ -607,7 +630,22 @@ impl Runtime {
                 .get(&id)
                 .or_else(|| seeds.get(&sink.name))
                 .map(String::as_str);
-            kernels.push(Kernel::compile(&eg, sink, tables, seed)?);
+            if let Some(plans) = plans {
+                let (index, plan) = plans
+                    .iter()
+                    .enumerate()
+                    .find(|(_, p)| {
+                        p.rule == sink.name
+                            && groups.get(&p.ruleset).is_some_and(|ids| ids.contains(&id))
+                    })
+                    .ok_or("missing transferred rule or mismatched ruleset")?;
+                if !used_plans.insert(index) {
+                    return Err("duplicate transferred rule".into());
+                }
+                kernels.push(plan.instantiate(&eg, sink, tables)?);
+            } else {
+                kernels.push(Kernel::compile(&eg, sink, tables, seed)?);
+            }
         }
         let mut wake_tables = vec![vec![]; names.len()];
         let mut reverse = BTreeSet::new();
@@ -642,7 +680,8 @@ impl Runtime {
             forwarded: None,
             last_updated: false,
             stats: Stats {
-                program_compilations: 1,
+                program_compilations: usize::from(plans.is_none()),
+                loaded_programs: plans.map_or(0, |p| p.len()),
                 ..Stats::default()
             },
         };

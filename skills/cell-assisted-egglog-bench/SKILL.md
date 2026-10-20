@@ -60,6 +60,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 - Sat skip 只有真实认证边界才记收益。Math sat-skip 原型不等于 raytrace 已认证；不把普通 GPU 收益算到 Cell，也不把逻辑 match 算成提交的 mutation。
 - `parameterized` 是实际原生提交上的 CPU 正确性实验：一份 Bop spine 接线及七个规则程序复用不同 Term/代价，逐阶段核对两条 CPU 对照的完整图和同提交协议的匹配计数。它不使用 GPU，不构建具体闭包目录，也未证明整个 terms 族的饱和跳过或性能收益。失败与有限 Run 语义由 `test` 中的 `parameterized_cell` 回归检查。
 - `transition` 是很小的实际运行时消融：同一 p 的两个 producer、外部候选改善 x 后更新 p/q、重复改善、输入 union 和 TCPair 从单一到多个别名。逐阶段核对原生同提交协议及复用开关两侧的完整图和提交绑定数，报告索引读取次数。不开 GPU、不测 Pass-3 加速比；优先用它验证端口接续，再决定是否需要完整计时。输出含独立可运行的 `program.egg`。
+- Bake 文件的冷启动验证已纳入 `test` 的 `transfer_artifact`：原生 Analyze 导出、删除训练源码、独立进程加载，以及逐阶段整图与未见输入对照。需要检查/复现文件格式时读 [TRANSFER_FILE.md](../../experiments/parameterized_cell/TRANSFER_FILE.md)，不要重新编写采集器，也不要因此重跑完整 Pass 3。加载时的 `program_compilations=0` 仅指没有重新搜索接线计划，原生 schema/action sink 仍需安装。
 - `joint-sat` 检查共享 CPU/GPU 运行时的联合闭包宏：新 producer DAG 的边界契约满足时跳过三个 terms ruleset，更新/别名/删除等不满足契约的状态保留完整回退。必须核对每个公开边界的整图，并检查前两个新 Cell 阶段的原始 smooth 匹配为零。`--snapshot FILE` 只验证该快照初始事实上的 terms 子调度，不冒充整个 Pass 3，也不要求它一定命中宏；必须报告实际命中和回退原因。
 - 保留失败的报告、输入/worker/binary 指纹和实际命令。看保存结果必须说“未重新测量”。不部署网站、不采集大 trace、不自动重新 Bake。
 
