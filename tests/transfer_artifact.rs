@@ -215,3 +215,46 @@ fn a_fresh_process_runs_after_the_original_training_file_is_removed() {
     assert_eq!(r["runtime"]["stats"]["bootstrap_rows"], 0);
     assert_eq!(r["boundaries"].as_array().unwrap().len(), 7);
 }
+
+#[test]
+fn the_normal_analyze_pipeline_can_export_from_its_existing_capture() {
+    let t = Temp::new();
+    let source = t.0.join("train.egg");
+    let out = t.0.join("analysis");
+    let input = format!(
+        "{SOURCE}\n(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2))\n(set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3))\n(Bop (Add) (V 0) (V 1))\n{}",
+        cell_assisted_egglog::parameterized_cell::joint::SCHEDULE
+    );
+    std::fs::write(&source, input).unwrap();
+    let output = Process::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .args([
+            "analyze",
+            "--source",
+            source.to_str().unwrap(),
+            "--output",
+            out.to_str().unwrap(),
+            "--bake-transfers",
+        ])
+        .env("RAYON_NUM_THREADS", "1")
+        .env("EGG_LAYOUT_GRAPHS", "0")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: Value =
+        serde_json::from_slice(&std::fs::read(out.join("analysis.json")).unwrap()).unwrap();
+    assert_eq!(report["parameterized_transfers"]["programs"], 7);
+    assert_eq!(
+        Bundle::load(&out.join("transfers.egg"))
+            .unwrap()
+            .instantiate()
+            .unwrap()
+            .stats
+            .loaded_programs,
+        7
+    );
+    assert!(!out.join("history.json").exists());
+}
