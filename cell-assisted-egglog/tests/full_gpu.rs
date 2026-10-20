@@ -11,6 +11,36 @@ fn worker() -> Option<std::path::PathBuf> {
     std::env::var_os("CELL_MATRIX_WORKER").map(Into::into)
 }
 #[test]
+fn backtracking_restores_bound_slots_after_failed_and_successful_siblings() {
+    let Some(worker) = worker() else { return };
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(None, r#"
+      (relation P (i64)) (relation Q (i64 i64)) (relation R (i64 i64))
+      (relation Hit (i64 i64 i64)) (ruleset s)
+      (rule ((P x) (Q x y) (R (+ y 1) z) (> z x) (!= (% z y) 0))
+            ((Hit x y z)) :ruleset s)
+    "#).unwrap();
+    for x in [-1, 0, 1, 3] {
+        eg.parse_and_run_program(None, &format!("(P {x})")).unwrap();
+        for y in [0, 1, 2, 3, i64::MAX] {
+            eg.parse_and_run_program(None, &format!("(Q {x} {y})")).unwrap();
+        }
+    }
+    for y in 0..5 {
+        for z in -2..9 {
+            eg.parse_and_run_program(None, &format!("(R {y} {z})")).unwrap();
+        }
+    }
+    let commands = eg.parse_program(None, "(run s 1)").unwrap();
+    let mut r = Runtime::new_full(eg, &commands, Some(&worker), true, None).unwrap();
+    r.run(&commands).unwrap();
+    check(&r, "(check (Hit 1 2 3)) (fail (check (Hit 1 2 4)))");
+    r.input("(P 5) (Q 5 2) (R 3 11) (delete (R 3 3))").unwrap();
+    r.run(&commands).unwrap();
+    check(&r, "(check (Hit 5 2 11))");
+    r.run(&commands).unwrap();
+}
+#[test]
 fn computed_keys_and_late_aliases_use_the_complete_native_frontier() {
     let Some(worker) = worker() else { return };
     let mut eg = EGraph::default();

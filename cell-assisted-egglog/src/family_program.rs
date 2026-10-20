@@ -8,6 +8,8 @@ use egglog::{
 use egglog_numeric_id::NumericId;
 use serde_json::{Value as Json, json};
 use std::collections::{BTreeMap, BTreeSet};
+#[path = "constraint_schedule.rs"]
+mod constraint_schedule;
 pub fn compile(
     eg: &EGraph,
     sinks: &[CellActionSink],
@@ -527,6 +529,32 @@ pub fn compile(
     }
     let mut shape_sizes=vec![(0,0);shapes.len()];
     for (shape,id) in shapes{shape_sizes[id]=shape;}
+    let mut primitive_stages = vec![];
+    let mut staged_ops = vec![];
+    let mut staged_queries = vec![];
+    let mut binding_states = vec![];
+    let bw = s.div_ceil(16);
+    for (qi, q) in sinks.iter().enumerate() {
+        let schedules = (0..q.atoms.len()).map(|anchor| {
+            constraint_schedule::stages(q, &orders[qi*p+anchor])
+        }).collect::<Option<Vec<_>>>();
+        let enabled = schedules.is_some() && !q.atoms.is_empty();
+        staged_queries.push(u32::from(enabled));
+        for anchor in 0..p {
+            let states = schedules.as_ref().and_then(|x| x.get(anchor)).map(|x| {
+                constraint_schedule::binding_states(q, &orders[qi*p+anchor], x, s)
+            });
+            for depth in 0..p {
+                let ops = schedules.as_ref().and_then(|s| s.get(anchor))
+                    .and_then(|s| s.get(depth)).map(Vec::as_slice).unwrap_or(&[]);
+                primitive_stages.extend([staged_ops.len() as u32, ops.len() as u32]);
+                staged_ops.extend_from_slice(ops);
+                if let Some(mask) = states.as_ref().and_then(|x| x.get(depth)) {
+                    binding_states.extend_from_slice(mask);
+                } else { binding_states.extend(std::iter::repeat_n(0, bw)); }
+            }
+        }
+    }
     let mut code = vec![];
     let mut shader = format!(
         "#include <metal_stdlib>\nusing namespace metal;\n#define C {c}\n#define P {p}\n#define S {s}\n#define G {g}\n#define NP {np}\n#define HAS_PRIMITIVES {}\n#define NQ {}\n#define NI {}\n",
@@ -540,6 +568,13 @@ pub fn compile(
         u32::from(profile),
         u32::from(certificates && !cell_specs.is_empty())
     );
+    let staged_constraints = computed && !(certificates && !cell_specs.is_empty()) &&
+        std::env::var("CELL_STAGED_CONSTRAINTS").as_deref()!=Ok("0");
+    shader += &format!("#define STAGED_CONSTRAINTS {}\n", u32::from(staged_constraints));
+    let compact_bindings = !(certificates && !cell_specs.is_empty()) &&
+        (staged_constraints || !computed) &&
+        std::env::var("CELL_COMPACT_BINDINGS").as_deref()!=Ok("0");
+    shader += &format!("#define COMPACT_BINDINGS {}\n#define BW {bw}\n", u32::from(compact_bindings));
     let cell_header = 8; // Common revision header for sparse instance reuse.
     shader += &format!(
         "#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n#define CH {cell_header}\n"
@@ -596,6 +631,10 @@ pub fn compile(
         ("GUARD", guards),
         ("PMETA",primitive_meta),
         ("PRIMITIVE",primitives),
+        ("PREADY",staged_queries),
+        ("PSTAGE",primitive_stages),
+        ("POPS",staged_ops),
+        ("BSTATE",binding_states),
         ("ATOM_LITERAL",literals),
         ("TABLE_I64",tables.iter().flat_map(|t|(0..c).map(|i|u32::from(t.i64_columns.get(i).copied().unwrap_or(false)))).collect()),
         ("CELL_ROUTE", route),
@@ -620,6 +659,7 @@ pub fn compile(
     shader += include_str!("../integer.metal");
     shader += include_str!("../family_primitives.metal");
     shader += include_str!("../family.metal");
+    shader += include_str!("../family_compact.metal");
     shader += include_str!("../family_cells.metal");
     shader += include_str!("../family_events.metal");
     shader += include_str!("../family_registry.metal");
@@ -628,9 +668,9 @@ pub fn compile(
     shader+=&format!("#define SHAPE_COUNT {}u\n",shape_sizes.len());
     shader+=include_str!("../family_shapes.metal");
     for (id,(qp,qs)) in shape_sizes.iter().enumerate(){
-        shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
+        shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n if(COMPACT_BINDINGS)family_execute_compact<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2]);else family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
     }
     Ok(
-        json!({"version":2,"family_layout":9,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":9,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

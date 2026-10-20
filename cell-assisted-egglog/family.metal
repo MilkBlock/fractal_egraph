@@ -29,7 +29,7 @@ kernel void family_index(CTX,uint i [[thread_position_in_grid]]){
   links[index_link(code,events,e,sp)]=atomic_exchange_explicit(heads+index_head(packet,cfg,sp,h),e,memory_order_relaxed);
  }
 }
-bool bind_atom(device const uint* code,device uint* rows,uint q,uint part,uint row,thread uint* v,thread uint* lo,thread uint* hi,thread uint* bound){
+bool bind_atom(device const uint* code,device uint* rows,uint q,uint part,uint row,thread uint* v,thread uint* lo,thread uint* hi,thread uint* bound,bool check=true){
  uint at=ATOM+(q*P+part)*(2+2*C);if(R(row,0)!=code[at])return false;
  for(uint col=0;col<code[at+1];col++){
   uint kind=code[at+2+2*col],s=code[at+3+2*col],x=R(row,4+col);
@@ -37,17 +37,19 @@ bool bind_atom(device const uint* code,device uint* rows,uint q,uint part,uint r
    if(bound[s]==1 && v[s]!=x)return false;
    if(bound[s]==2 && (lo[s]!=R(row,4+C+2*col)||hi[s]!=R(row,5+C+2*col)))return false;
    v[s]=x;lo[s]=R(row,4+C+2*col);hi[s]=R(row,5+C+2*col);bound[s]=1;}
- }return primitive_constraints(code,q,v,lo,hi,bound,false);
+ }return !check || primitive_constraints(code,q,v,lo,hi,bound,false);
 }
 // Only observed anchor bindings have a record. No row x plan address space.
 uint cell_lookup(device const uint* rowCells,device const uint* instanceMeta,uint row,uint cp){
  for(uint id=rowCells[row];id!=NO;id=instanceMeta[id*3+2])if(instanceMeta[id*3+1]==cp)return id;
  return NO;
 }
-template<uint QS=S> bool emit_match(device const uint* code,device uint* output,device atomic_uint* counters,constant uint* cfg,uint q,thread const uint* v,thread const uint* lo,thread const uint* hi){
+template<uint QS=S> bool emit_match(device const uint* code,device uint* output,device atomic_uint* counters,constant uint* cfg,uint q,thread const uint* v,thread const uint* lo,thread const uint* hi,bool checked=false){
 #if HAS_PRIMITIVES
+ if(!checked){
  uint pv[QS],pl[QS],ph[QS],pb[QS];for(uint s=0;s<QS;s++){pv[s]=v[s];pl[s]=lo[s];ph[s]=hi[s];pb[s]=uint(s<code[QMETA+q*3+1]);}
  if(!primitive_constraints(code,q,pv,pl,ph,pb,true))return false;
+ }
 #endif
  for(uint j=0;j<code[QMETA+q*3+2];j++){
   uint at=GUARD+(q*G+j)*7,op=code[at];uint2 a=code[at+1]?uint2(code[at+2],code[at+3]):uint2(lo[code[at+2]],hi[code[at+2]]);
@@ -108,11 +110,13 @@ template<uint QP=P,uint QS=S> uint2 family_execute(QUERY_ARGS,uint qidx,uint e,u
  if(e>=cfg[6] || anchor>=n || !live_event(rows,events,e))return uint2(0);
  uint r=E(e,0);if(R(r,3)<cutoff || R(r,0)!=code[ATOM+(q*P+anchor)*(2+2*C)])return uint2(0);
  uint val[QP][QS],low[QP][QS],high[QP][QS],bound[QP][QS],cursor[QP],started[QP];int parent[QP];
+ bool staged=STAGED_CONSTRAINTS && code[PREADY+q]!=0;
  for(uint s=0;s<QS;s++){val[0][s]=0;low[0][s]=0;high[0][s]=0;bound[0][s]=0;}
- if(!bind_atom(code,rows,q,anchor,r,val[0],low[0],high[0],bound[0]))return uint2(hits,reused);
+ if(!bind_atom(code,rows,q,anchor,r,val[0],low[0],high[0],bound[0],!staged) ||
+    (staged&&!stage_constraints(code,q,anchor,0,val[0],low[0],high[0],bound[0])))return uint2(hits,reused);
  if(port_owns(code,rows,cells,rowCells,instanceMeta,q,anchor,anchor,r,val[0],bound[0])){if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+14,1,memory_order_relaxed);return uint2(hits,reused);}
  for(uint d=0;d<QP;d++)started[d]=0;
- if(n==1){hits+=emit_match<QS>(code,output,counters,cfg,q,val[0],low[0],high[0]);return uint2(hits,reused);}
+ if(n==1){hits+=emit_match<QS>(code,output,counters,cfg,q,val[0],low[0],high[0],staged);return uint2(hits,reused);}
  uint first=cell_segment(code,rows,cells,rowCells,instanceMeta,counters,cfg,q,anchor,0,r,cutoff,val[0],low[0],high[0],bound[0]);
  if(first==NO)return uint2(hits,reused);
  if(first!=NO)reused+=first;
@@ -136,13 +140,14 @@ template<uint QP=P,uint QS=S> uint2 family_execute(QUERY_ARGS,uint qidx,uint e,u
   cursor[depth]=(uint(depth)<hintCount)?NO:links[index_link(code,events,next,sp)];if(!live_event(rows,events,next))continue;
   uint row=E(next,0);if(precedes(code,q,t,anchor) && R(row,3)>=cutoff)continue;
   for(uint s=0;s<QS;s++){val[depth+1][s]=val[depth][s];low[depth+1][s]=low[depth][s];high[depth+1][s]=high[depth][s];bound[depth+1][s]=bound[depth][s];}
-  if(!bind_atom(code,rows,q,t,row,val[depth+1],low[depth+1],high[depth+1],bound[depth+1]))continue;
+  if(!bind_atom(code,rows,q,t,row,val[depth+1],low[depth+1],high[depth+1],bound[depth+1],!staged) ||
+     (staged&&!stage_constraints(code,q,anchor,uint(depth)+1,val[depth+1],low[depth+1],high[depth+1],bound[depth+1])))continue;
   if(port_owns(code,rows,cells,rowCells,instanceMeta,q,anchor,t,row,val[depth+1],bound[depth+1])){if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+14,1,memory_order_relaxed);continue;}
   uint skip=cell_segment(code,rows,cells,rowCells,instanceMeta,counters,cfg,q,anchor,uint(depth)+1,row,cutoff,val[depth+1],low[depth+1],high[depth+1],bound[depth+1]);
   if(skip==NO)continue;
   reused+=skip;
   uint nextDepth=uint(depth)+1+skip;
-  if(nextDepth==n-1)hits+=emit_match<QS>(code,output,counters,cfg,q,val[depth+1],low[depth+1],high[depth+1]);
+  if(nextDepth==n-1)hits+=emit_match<QS>(code,output,counters,cfg,q,val[depth+1],low[depth+1],high[depth+1],staged);
   else{
    if(skip)for(uint s=0;s<QS;s++){val[nextDepth][s]=val[depth+1][s];low[nextDepth][s]=low[depth+1][s];high[nextDepth][s]=high[depth+1][s];bound[nextDepth][s]=bound[depth+1][s];}
    if(CELL_CERTIFICATES)parent[nextDepth]=depth;depth=int(nextDepth);started[depth]=0;
