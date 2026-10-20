@@ -1,0 +1,320 @@
+{
+  "passed": true,
+  "scope": "Actual native effects and full committed graph checks at each saturation boundary. Same-submit CPU reference. Index reads, not time or GPU speedup. No cost-specific closure catalog.",
+  "phases": [
+    {
+      "label": "initial two producers",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 51,
+        "eclass_mapping": 37,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 9,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4,
+          "Smaller": 4,
+          "TCPair": 11,
+          "TermBop": 4,
+          "TermLeaf": 6,
+          "V": 6
+        }
+      },
+      "reuse_off_on": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 51,
+        "eclass_mapping": 37,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 9,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 4,
+          "Smaller": 4,
+          "TCPair": 11,
+          "TermBop": 4,
+          "TermLeaf": 6,
+          "V": 6
+        }
+      },
+      "index_reads_without_reuse": 88,
+      "index_reads_with_reuse": 80,
+      "reused_reads": 8
+    },
+    {
+      "label": "x: 7 to 2, p: 10 to 7, q: 15 to 12",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 66,
+        "eclass_mapping": 46,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 9,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 7,
+          "Smaller": 10,
+          "TCPair": 14,
+          "TermBop": 6,
+          "TermLeaf": 7,
+          "V": 6
+        }
+      },
+      "reuse_off_on": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 66,
+        "eclass_mapping": 46,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 9,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 7,
+          "Smaller": 10,
+          "TCPair": 14,
+          "TermBop": 6,
+          "TermLeaf": 7,
+          "V": 6
+        }
+      },
+      "index_reads_without_reuse": 109,
+      "index_reads_with_reuse": 99,
+      "reused_reads": 10
+    },
+    {
+      "label": "worse candidate",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 70,
+        "eclass_mapping": 49,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 9,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 8,
+          "Smaller": 11,
+          "TCPair": 15,
+          "TermBop": 6,
+          "TermLeaf": 8,
+          "V": 6
+        }
+      },
+      "reuse_off_on": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 70,
+        "eclass_mapping": 49,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 9,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 8,
+          "Smaller": 11,
+          "TCPair": 15,
+          "TermBop": 6,
+          "TermLeaf": 8,
+          "V": 6
+        }
+      },
+      "index_reads_without_reuse": 47,
+      "index_reads_with_reuse": 42,
+      "reused_reads": 5
+    },
+    {
+      "label": "second improvement",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 84,
+        "eclass_mapping": 58,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 9,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 11,
+          "Smaller": 16,
+          "TCPair": 18,
+          "TermBop": 8,
+          "TermLeaf": 9,
+          "V": 6
+        }
+      },
+      "reuse_off_on": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 84,
+        "eclass_mapping": 58,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 9,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 11,
+          "Smaller": 16,
+          "TCPair": 18,
+          "TermBop": 8,
+          "TermLeaf": 9,
+          "V": 6
+        }
+      },
+      "index_reads_without_reuse": 100,
+      "index_reads_with_reuse": 86,
+      "reused_reads": 14
+    },
+    {
+      "label": "input union",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 99,
+        "eclass_mapping": 66,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 8,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 14,
+          "Smaller": 23,
+          "TCPair": 21,
+          "TermBop": 11,
+          "TermLeaf": 9,
+          "V": 6
+        }
+      },
+      "reuse_off_on": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 99,
+        "eclass_mapping": 66,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 8,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 14,
+          "Smaller": 23,
+          "TCPair": 21,
+          "TermBop": 11,
+          "TermLeaf": 9,
+          "V": 6
+        }
+      },
+      "index_reads_without_reuse": 166,
+      "index_reads_with_reuse": 149,
+      "reused_reads": 17
+    },
+    {
+      "label": "one-to-many TCPair alias",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 115,
+        "eclass_mapping": 79,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 8,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 18,
+          "Smaller": 25,
+          "TCPair": 26,
+          "TermBop": 15,
+          "TermLeaf": 10,
+          "V": 6
+        }
+      },
+      "reuse_off_on": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 115,
+        "eclass_mapping": 79,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 8,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 18,
+          "Smaller": 25,
+          "TCPair": 26,
+          "TermBop": 15,
+          "TermLeaf": 10,
+          "V": 6
+        }
+      },
+      "index_reads_without_reuse": 139,
+      "index_reads_with_reuse": 111,
+      "reused_reads": 28
+    },
+    {
+      "label": "quiescent",
+      "same_submit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 115,
+        "eclass_mapping": 79,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 8,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 18,
+          "Smaller": 25,
+          "TCPair": 26,
+          "TermBop": 15,
+          "TermLeaf": 10,
+          "V": 6
+        }
+      },
+      "reuse_off_on": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 115,
+        "eclass_mapping": 79,
+        "tables": {
+          "Add": 1,
+          "Bop": 4,
+          "ExtractedExpr": 8,
+          "Mul": 1,
+          "NoTerm": 1,
+          "PotentialExtractedExpr": 18,
+          "Smaller": 25,
+          "TCPair": 26,
+          "TermBop": 15,
+          "TermLeaf": 10,
+          "V": 6
+        }
+      },
+      "index_reads_without_reuse": 0,
+      "index_reads_with_reuse": 0,
+      "reused_reads": 0
+    }
+  ],
+  "totals": {
+    "reads_without_reuse": 649,
+    "reads_with_reuse": 567,
+    "reused_reads": 82,
+    "resumed_seed_evaluations": 60,
+    "stored_paths": 56,
+    "shared_row_handles": 99,
+    "program_compilations": 1,
+    "concrete_closure_entries": 0
+  },
+  "binary_sha256": {
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/cell_transition": "fadd8c3b4e213cce6baaa51e6cc22773535c47865e2af3bd24ae3b425568b73f"
+  },
+  "source_sha256": {
+    "cell-assisted-egglog/src/parameterized_cell.rs": "af9488f47993a5737c1390ce4b8f63c4f665d6e69050fabf0193a0d35596dae5",
+    "cell-assisted-egglog/src/parameterized_cell/joint.rs": "42c109a2c38e7d9b86f801622a5d4d8e06601cd59e8cd605abff30b297ca57a3",
+    "experiments/parameterized_cell/terms.egg": "61849191d3f90e032996d97146caea5c914f9e35d283b56533099e8b53245172",
+    "experiments/parameterized_cell/competing_updates.egg": "4c91a5c2bbcab646ca34b5433952f152cc1ea2f92d0bb10737ce2028d4f08a3c"
+  },
+  "evidence_directory": "out/cell-transition-reuse-v1"
+}

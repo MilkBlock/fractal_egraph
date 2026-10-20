@@ -28,6 +28,7 @@ pub struct Counters {
     pub fallback_boundaries: usize,
     pub dataflow_boundaries: usize,
     pub dataflow_ruleset_runs: usize,
+    pub port_reusing_boundaries: usize,
     pub uniform_cost_boundaries: usize,
     pub reasons: BTreeMap<String, usize>,
 }
@@ -737,6 +738,7 @@ impl Joint {
         }
         self.counters.uniform_cost_boundaries += usize::from(uniform);
         let before = r.stats.ruleset_runs;
+        let before_reuse = r.kernels.iter().map(|k| k.reused_reads).sum::<usize>();
         let run = (|| {
             let mut updated = false;
             loop {
@@ -757,6 +759,8 @@ impl Joint {
         self.complete(r)?;
         self.counters.dataflow_boundaries += 1;
         self.counters.dataflow_ruleset_runs += r.stats.ruleset_runs - before;
+        self.counters.port_reusing_boundaries +=
+            usize::from(r.kernels.iter().map(|k| k.reused_reads).sum::<usize>() > before_reuse);
         Ok(updated)
     }
     pub(super) fn complete(&mut self, r: &mut Runtime) -> Result<()> {
@@ -845,6 +849,7 @@ impl Runtime {
             for id in ids {
                 self.kernels[*id].watch = false;
                 self.kernels[*id].dirty.clear();
+                self.kernels[*id].paths.clear();
             }
         }
         let eg = std::mem::take(&mut self.eg);

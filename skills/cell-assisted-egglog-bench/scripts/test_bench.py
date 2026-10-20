@@ -141,6 +141,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(plan(['sat-skip', '--checked'])[0][-2:], ['32', 'check'])
         self.assertEqual(plan(['sat-skip'])[0][-2:], ['512', 'time'])
         self.assertEqual(plan(['parameterized'])[0], ['/repo/target/analyzer/release/examples/parameterized_cell', '/new-out'])
+        self.assertEqual(plan(['transition'])[0], ['/repo/target/analyzer/release/examples/cell_transition', '/new-out'])
         self.assertEqual(plan(['joint-sat'])[0], ['/repo/target/analyzer/release/examples/joint_sat_bench', '/worker', '/new-out'])
         self.assertEqual(plan(['joint-sat','--snapshot','/input.egg'])[0][-1],'/input.egg')
 
@@ -179,6 +180,21 @@ class WorkflowTests(unittest.TestCase):
         text=output.getvalue()
         self.assertIn('--example parameterized_cell',text)
         self.assertNotIn('swiftc',text)
+
+    def test_transition_gate_does_not_accept_a_failed_ablation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            proof = dict(exact_rows_values_equivalence_visibility=True)
+            r = dict(passed=True, port_transition_verified=True,
+                     phases=[dict(same_submit=proof, reuse_off_on=proof)])
+            (folder/'results.json').write_text(json.dumps(r))
+            self.assertTrue(B.saved_gate('transition', folder))
+            r['phases'][0]['reuse_off_on'] = None
+            (folder/'results.json').write_text(json.dumps(r))
+            self.assertFalse(B.saved_gate('transition', folder))
+        with patch.object(B.subprocess, 'run', side_effect=AssertionError('executed')), contextlib.redirect_stdout(io.StringIO()) as text:
+            self.assertEqual(B.main(['--dry-run', 'transition']), 0)
+        self.assertNotIn('swiftc', text.getvalue())
 
     def test_failed_graph_can_extract_but_keeps_failed_exit(self):
         with tempfile.TemporaryDirectory() as tmp:

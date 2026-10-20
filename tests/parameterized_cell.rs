@@ -224,3 +224,59 @@ fn compiler_refuses_unconstrained_cartesian_join() {
     eg.parse_and_run_program(None, "(run s 1) (check (R 1 2))")
         .unwrap();
 }
+
+#[test]
+fn unchanged_operand_is_reused_but_a_dropped_subscription_cannot_leave_a_stale_port() {
+    let mut p = Pair::new(
+        r#"
+        (relation Root (i64 i64))
+        (function Val (i64) i64 :merge (max old new))
+        (relation Out (i64 i64 i64 i64))
+        (ruleset s)
+        (rule ((Root x y) (= vx (Val x)) (= vy (Val y)))
+              ((Out x y vx vy)) :ruleset s)
+        "#,
+        &["s"],
+    );
+    p.input("(Root 1 2) (set (Val 1) 3) (set (Val 2) 10)");
+    p.run("(run s 1)");
+    let before = p.cell.stats.keyed_reads;
+    p.input("(set (Val 1) 4)");
+    p.run("(run s 1)");
+    p.check("(check (Out 1 2 4 10))");
+    assert_eq!(
+        p.cell.stats.keyed_reads - before,
+        1,
+        "unchanged y was looked up again"
+    );
+    assert_eq!(p.cell.report()["port_reuse"]["reused_reads"], 1);
+
+    p.input("(delete (Val 1))");
+    p.run("(run s 1)"); // Stops at the missing first port; y is no longer watched.
+    p.input("(set (Val 2) 20)");
+    p.run("(run s 1)");
+    p.input("(set (Val 1) 5)");
+    p.run("(run s 1)");
+    p.check("(check (Out 1 2 5 20)) (fail (check (Out 1 2 5 10)))");
+}
+
+#[test]
+fn a_changed_binding_rewires_later_ports_even_when_the_old_row_did_not_change() {
+    let mut p = Pair::new(
+        r#"
+        (relation Root (i64 i64))
+        (function Next (i64) i64 :merge (max old new))
+        (function Weight (i64) i64 :merge (max old new))
+        (relation Out (i64 i64 i64 i64))
+        (ruleset s)
+        (rule ((Root x z) (= y (Next x)) (= c (Weight y)))
+              ((Out x z y c)) :ruleset s)
+        "#,
+        &["s"],
+    );
+    p.input("(Root 7 9) (set (Next 7) 1) (set (Weight 1) 10) (set (Weight 2) 20)");
+    p.run("(run s 1)");
+    p.input("(set (Next 7) 2)");
+    p.run("(run s 1)");
+    p.check("(check (Out 7 9 2 20)) (fail (check (Out 7 9 2 10)))");
+}

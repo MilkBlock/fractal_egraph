@@ -4,6 +4,80 @@ mod compare;
 use cell_assisted_egglog::parameterized_cell::{Runtime, joint::SCHEDULE};
 use egglog::{CommandOutput, EGraph};
 const SOURCE: &str = include_str!("../experiments/parameterized_cell/terms.egg");
+#[path = "../examples/support/cell_transition_case.rs"]
+mod transition_case;
+
+#[test]
+fn competing_existing_cell_resumes_its_ports_and_preserves_every_effect() {
+    transition_case::run().unwrap();
+}
+
+#[test]
+fn competing_transitions_are_used_by_the_shared_cpu_gpu_hook() {
+    use cell_assisted_egglog::table_live;
+    let worker = std::env::var_os("CELL_MATRIX_WORKER");
+    for gpu in [false, true] {
+        if gpu && worker.is_none() {
+            continue;
+        }
+        let (base, observer) = Runtime::new_joint(SOURCE).unwrap().detach_joint().unwrap();
+        let commands = base
+            .clone()
+            .parse_program(None, transition_case::UPDATES)
+            .unwrap();
+        let schedules = commands
+            .iter()
+            .filter(|c| matches!(c, egglog::ast::Command::RunSchedule(_)))
+            .cloned()
+            .collect::<Vec<_>>();
+        let selected = ["terms", "terms-helpers", "terms-helpers-helpers"].map(String::from);
+        let mut reference = table_live::Runtime::new_cpu(base.clone(), &schedules).unwrap();
+        let mut cell = table_live::Runtime::new_hybrid(
+            base.clone(),
+            &schedules,
+            gpu.then(|| std::path::Path::new(worker.as_ref().unwrap())),
+            gpu,
+            &selected,
+        )
+        .unwrap();
+        cell.set_saturation_hook(Box::new(observer));
+        let mut input = String::new();
+        for command in commands {
+            if !matches!(command, egglog::ast::Command::RunSchedule(_)) {
+                input.push_str(&format!("{command}\n"));
+                continue;
+            }
+            reference.input(&input).unwrap();
+            cell.input(&input).unwrap();
+            input.clear();
+            reference.run(std::slice::from_ref(&command)).unwrap();
+            cell.run(std::slice::from_ref(&command)).unwrap();
+            compare::equal(&base, reference.engine(), cell.engine()).unwrap();
+        }
+        assert!(input.trim().is_empty());
+        let report = cell.report();
+        assert!(
+            report["saturation_diagnostics"]["port_reuse"]["reused_reads"]
+                .as_u64()
+                .unwrap()
+                > 0
+        );
+        assert_eq!(
+            report["saturation_diagnostics"]["joint"]["stats"]["macro_instances"],
+            0
+        );
+        let ordinary: u64 = report["rules"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["stats"]["emitted_bindings"].as_u64().unwrap())
+            .sum();
+        assert_eq!(
+            ordinary, 0,
+            "the ordinary query dispatcher should not run in this closure"
+        );
+    }
+}
 struct Pair {
     base: EGraph,
     native: EGraph,
@@ -260,8 +334,13 @@ fn shared_cpu_and_gpu_receive_joint_macro_rows_and_handback() {
             "{}",
             r.report()
         );
-        let noops:u64=r.report()["saturation_diagnostics"]["programs"].as_array().unwrap().iter().map(|p|p["identity_noop_seeds"].as_u64().unwrap()).sum();
-        assert!(noops>0,"{}",r.report());
+        let noops: u64 = r.report()["saturation_diagnostics"]["programs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| p["identity_noop_seeds"].as_u64().unwrap())
+            .sum();
+        assert!(noops > 0, "{}", r.report());
         let mut handed = r.into_engine();
         for set in ["terms", "terms-helpers", "terms-helpers-helpers"] {
             assert_eq!(

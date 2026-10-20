@@ -3,6 +3,9 @@
 Follow-up: [guarded joint sat-skip](../joint_sat/README.md) now uses this program
 as a fallback and installs conditional joint closure macros in the shared
 CPU/GPU runtime. The experiment below remains the no-macro control.
+The later [existing-Cell transition ablation](TRANSITIONS.md) retains resolved
+ports across updates and exercises two producers for the same Expr. The counters
+below describe the original experiment, before that optimization.
 
 This experiment tests whether one Bop spine and a fixed update program can
 survive changes to Term/cost ports, without registering a concrete saturated Cell
