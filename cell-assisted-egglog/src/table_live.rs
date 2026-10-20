@@ -677,12 +677,13 @@ impl Runtime {
         if active.is_empty() {
             return Ok(matches);
         }
-        let mut words = vec![
+        let mut words = Vec::with_capacity(4 + 4*active.len() + self.pending.len()*(5 + 3*self.columns));
+        words.extend([
             u32::try_from(self.rows.len())?,
             u32::try_from(self.pending.len())?,
             u32::try_from(active.len())?,
             u32::try_from(self.epoch + 1)?,
-        ];
+        ]);
         for id in &active {
             words.extend([
                 *id as u32,
@@ -739,7 +740,6 @@ impl Runtime {
         if self.epoch == 1 {
             self.stats.first_upload_bytes = 4 * words.len();
         }
-        self.last_device = r.clone();
         if let Some(work) = r["cell_work"].as_object() {
             for (k, v) in work {
                 *self.cell_work.entry(k.clone()).or_default() +=
@@ -753,17 +753,16 @@ impl Runtime {
             return Err("family result shape".into());
         }
         self.stats.output_high_water = self.stats.output_high_water.max(count);
+        let mut positions = vec![usize::MAX; self.sinks.len()];
+        for (i, id) in ids.iter().enumerate() {
+            if active.contains(id) { positions[*id] = i; }
+        }
         let (mut offset,mut decoded)=(0,0);
         while offset<body.len(){
             let q = body[offset] as usize;
-            let i = ids
-                .iter()
-                .position(|i| *i == q)
-                .ok_or("result belongs to another ruleset")?;
-            if !active.contains(&q) {
-                return Err("result for quiet query".into());
-            }
-            let n = self.sinks[q].slots().len();
+            let i = *positions.get(q).filter(|i| **i != usize::MAX)
+                .ok_or("result for inactive or foreign query")?;
+            let n = self.sinks[q].slot_count();
             let width=if compact{1+n}else{1+self.slots};
             let record=body.get(offset..offset+width).ok_or("truncated compact binding")?;
             matches[i].push(record[1..1 + n].iter().map(|v| Value::new(*v)).collect());
@@ -778,11 +777,12 @@ impl Runtime {
                     self.sinks[*id].name,
                     pair[0],
                     bindings.len(),
-                    self.last_device["cell_work"]
+                    r["cell_work"]
                 )
                 .into());
             }
         }
+        self.last_device = r;
         self.stats.decode_seconds += t.elapsed().as_secs_f64();
         Ok(matches)
     }
