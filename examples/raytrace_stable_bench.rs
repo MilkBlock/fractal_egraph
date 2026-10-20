@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let a = std::env::args().skip(1).collect::<Vec<_>>();
     if a.len() < 3
         || a[3..].iter().any(|s| {
-            !["--original", "--joint-sat", "--all-rules", "--audit-only"].contains(&s.as_str())
+            !["--original", "--joint-sat", "--all-rules", "--audit-only", "--cell-audit-only"].contains(&s.as_str())
         })
     {
         return Err("SOURCE WORKER NEW_OUTPUT [--original] [--joint-sat]".into());
@@ -30,7 +30,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stable = !a[3..].iter().any(|s| s == "--original");
     let joint = a[3..].iter().any(|s| s == "--joint-sat");
     let all = a[3..].iter().any(|s| s == "--all-rules");
-    let audit = a[3..].iter().any(|s| s == "--audit-only");
+    let cell_audit=a[3..].iter().any(|s|s=="--cell-audit-only");
+    let audit = cell_audit || a[3..].iter().any(|s| s == "--audit-only");
     let start = Instant::now();
     let mut hook = None;
     let commands = if joint {
@@ -106,12 +107,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             eg,
             &commands,
             Some(Path::new(&a[1])),
-            true,
+            !cell_audit,
             Some(&selected),
         )?;
         if let Some(hook) = hook {
             r.set_saturation_hook(hook);
         }
+        if cell_audit {r.enable_cell_query_audit()?;}
         let result = r.run(&commands);
         std::fs::write(
             out.join("audit.json"),

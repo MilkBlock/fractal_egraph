@@ -12,9 +12,9 @@ silent fallback is an optimization in this list.
 2. **Shape-specific query kernels - implemented (69 exact shapes).** Stop giving every rule the largest rule's
    stack (24 atoms, 37 slots). Compile exact query-shape groups while sharing
    native rows/indexes and preserving a single commit. Same 15.17 s cost pool.
-3. **Correct reusable single-Run Cell plans - unresolved, kept off.** The attempted 6.8 s improvement
-   failed graph and extraction checks. Isolate its first divergence; retain the
-   experiment off unless whole-graph and Tiger gates pass. Never apply a
+3. **Correct reusable single-Run Cell plans - fixed as read-only frontiers.** The attempted 6.8 s improvement
+   failed graph and extraction checks. The replacement shares the original
+   commit and now passes graph, Tiger and Cell-query audit gates. Never apply a
    saturation certificate to an ordinary Run implicitly.
 4. **Reduce device round trips - classification readback removed.** Avoid empty tier launches and unnecessary
    readbacks in the 4,059 dispatches. About 4.68 s of roundtrip time lies outside
@@ -42,8 +42,8 @@ remain. No fast-but-failing single-Run experiment was enabled.
 
 Index changes and shape grouping affect the same device work; there is no
 separate speedup attributed to each without an ablation. Repeated coordinate
-payload sharing under item 5 has not been implemented. Under item 3, the large
-counterexample remains a blocker, not an invitation to weaken the graph gate.
+payload sharing under item 5 has not been implemented. The old whole-Run counterexample is retained; item 3 now uses the repaired
+read-only frontier contract rather than weakening the graph gate.
 The new exact control cache makes subsequent single-candidate ablations possible
 without re-running unchanged CPU lanes.
 
@@ -63,7 +63,18 @@ is now opt-in via `CELL_QUERY_TIMINGS=1`.
 | all-optimizations (combined) | 0.678 | 0.533 | 863 |
 | state-edge-passthrough | 0.640 | 0.634 | 4 |
 
-The first semantic target remains `always-run`, but its failed Cell Run proof
-must be repaired before enabling that path. Next are type-analysis and the
+The first semantic target remains `always-run`. The read-only frontier repair
+below is now enabled; further gains must reduce port/maintenance cost without
+changing its commit protocol. Next are type-analysis and the
 sparse boundary queries. These counts are complete bindings, not index probes.
 Do not add query time and device time, or call these per-rule measurements.
+
+## Item 3 repair
+
+The failed whole-Run delegation was replaced by read-only Cell query frontiers;
+see [CELL_QUERY_FIX.md](CELL_QUERY_FIX.md). Seventeen rules supply 1,918,606
+bindings with zero GPU requests for those rules; all effects still commit in
+the original order. Thirty thousand-plus native frontier checks and both
+same-commit graph/Tiger gates pass. End-to-end timing is effectively unchanged
+(22.636 s), so this is a correctness/interface repair, not a new speedup claim.
+The older blockers above describe the superseded whole-Run experiment.

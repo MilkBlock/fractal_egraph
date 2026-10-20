@@ -45,12 +45,12 @@ execution. Even the validated GPU path differs from fused native in `Smaller`,
 initial Expr anchors do not replace these failed checks. No “faster native
 replacement with unchanged extraction” claim is made.
 
-The single-Run experiment invoked 518 Cell programs, built 11 local scalar
+The historical, superseded single-Run experiment invoked 518 Cell programs, built 11 local scalar
 closures, and reduced device time, but introduced an additional `Smaller`
 structure difference relative to the sorted-commit reference. Tiger also found
-a `Concat` difference. The exact cause has not been isolated. It is **disabled
-by default**, retained only behind `CELL_EXPERIMENTAL_RUN_PROGRAMS=1` for
-reproduction. Small tests are insufficient to certify this broader dispatch
+a `Concat` difference. It was disabled while this cause was investigated.
+That implementation can be reproduced from commit `c7efb32`; the old
+`CELL_EXPERIMENTAL_RUN_PROGRAMS` switch is no longer active. Small tests are insufficient to certify this broader dispatch
 change. Ordinary Run must not be given saturation semantics implicitly.
 
 These are the two existing measured candidates; the final default restores the
@@ -91,7 +91,8 @@ additional targeted tests. Compact metrics and input/binary fingerprints are in
 
 The ordered implementation list is [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md).
 Items 1, 2 and the concrete readback/output-packing parts of 4 and 5 are now
-implemented. Items 3 and 6 remain proof work; no failed shortcut was re-enabled.
+implemented. Item 3 is repaired in the follow-up below; item 6 remains proof work.
+No failed whole-Run shortcut was re-enabled.
 
 | Metric | Previous validated run | Compact layout timing run |
 |---|---:|---:|
@@ -121,3 +122,11 @@ Full runs now save exact typed control facts and initial anchors. Subsequent
 `--reuse-controls` runs execute only the new GPU candidate and re-run graph
 checks; unchanged native/CPU Tiger outputs are reused only after fingerprint
 validation. A real full Pass-3 reuse run and small negative cache tests passed.
+
+## Cell query repair
+
+The failed ordinary-Run path has been replaced by a complete, read-only Cell
+frontier provider. Default full-rule runs now share one sorted commit for Cell
+and GPU bindings. [CELL_QUERY_FIX.md](CELL_QUERY_FIX.md) records the small
+order-sensitive counterexample, the real Pass-3 exact checks and the remaining
+performance limit. The old failed experiment is historical, not an active flag.

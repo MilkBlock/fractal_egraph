@@ -331,11 +331,12 @@ python3 skills/cell-assisted-egglog-bench/scripts/bench.py run \
 ```
 
 The `--joint-sat` path invokes the existing joint terms closure handler **before**
-GPU dispatch. Extended single-Run Cell programs are a separate experiment
-(`CELL_EXPERIMENTAL_RUN_PROGRAMS=1`): they failed the full Pass-3 graph gate and
-are disabled by default. It does not mark
-arbitrary small rules as saturated. A finite Run retains its original boundary;
-macro effects reach the shared table mirror before the next consumer. Without a
+GPU dispatch. At an ordinary Run, a Cell may now supply a complete LHS frontier
+for its supported rules; all Cell/GPU bindings share the original sorted native
+commit. This is enabled by default (`CELL_DISABLE_CELL_QUERIES=1` disables it).
+It replaces the failed experiment that delegated the whole Run to a different
+native execution order. No ordinary Run is saturated early and no RHS is omitted.
+Macro effects reach the shared table mirror before the next consumer. Without a
 certificate, the whole original query remains available on the GPU.
 
 Delta rows route through a table-to-query-anchor index, rather than a reserved

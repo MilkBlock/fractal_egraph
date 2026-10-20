@@ -147,6 +147,8 @@ def report(path, fresh=False):
         if r.get('gpu_without_joint'):
             print(f"| GPU 关闭 joint sat-skip | {r['gpu_without_joint']['runtime']['run_seconds']:.6f} |")
         print('\nCPU/GPU 整图：', m['exact_cpu_gpu'], '；融合原生/GPU 整图：', m['exact_fused_native_gpu'])
+        pair = path.parent / 'extraction/cpu-gpu-quality.json'
+        if pair.is_file(): print('Tiger same-commit CPU/GPU:', load(pair).get('passed'))
         print('实际 Tiger 选定 DAG 检查：', m['extraction_passed'] if qpath.is_file() else '尚未运行')
         print('有效推理加速比：', f"{m['inference_speedup']:.4f}x" if m['timing_eligible'] else '不报告（整图门槛失败或这是 audit）')
         if m['inference_plus_tiger_speedup'] is not None:
@@ -154,7 +156,7 @@ def report(path, fresh=False):
         if r.get('reused_controls'): print('复用历史对照：', r['reused_controls']['directory'], '；本次仅运行 GPU 候选并重新核对完整图。')
         print('以上不含序列化、诊断、共享输入准备；worker setup 见原始报告。当前 fork，不是 pristine。')
         print('由 Cell handler 完成的饱和边界（含显式 dataflow 推进）：', r['gpu']['runtime'].get('skipped_saturations', 0))
-        print('由 Cell 计划完成的普通 Run：', r['gpu']['runtime'].get('cell_run_calls', 0))
+        print('Cell supplied queries/bindings:', r['gpu']['runtime'].get('cell_query_rules', 0), r['gpu']['runtime'].get('cell_query_bindings', 0))
         if r.get('gpu_without_joint'):
             print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '未通过整图门槛')
             print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
@@ -204,6 +206,7 @@ def report(path, fresh=False):
         print('运行统计：', json.dumps(r['runtime']['stats'], ensure_ascii=False))
     elif 'runtime' in r:
         print('Native-frontier audit；不是独立最终图认证，也不是计时：', r.get('complete'))
+        print('Query audit scope:', r['runtime'].get('audit_scope', 'all queries'))
         print('核对查询次数：', sum(x['stats'].get('audit_queries', 0) for x in r['runtime'].get('rules', [])))
     else:
         raise ValueError('unknown report schema: ' + str(path))
@@ -243,6 +246,7 @@ def parser():
             q.add_argument('--reuse-controls', type=Path, help='reuse saved exact native/CPU/GPU-off controls; all-rules only')
             q.add_argument('--refresh', action='store_true', help='remeasure even if an identical verified result exists')
         if mode == 'audit':
+            q.add_argument('--cell-only', action='store_true')
             q.add_argument('--three-lane-check', action='store_true')
             q.add_argument('--all-rules', action='store_true')
             q.add_argument('--joint-sat', action='store_true')
@@ -271,9 +275,9 @@ def commands(a, repo, worker, out):
         c = [[sys.executable, str(repo / 'experiments/raytrace_pass3_gpu/extract.py'), str(out), '--tiger', str(resolve(a.tiger))]]
     elif a.mode == 'audit' and a.all_rules:
         if a.three_lane_check: raise ValueError('use run --all-rules for independent graph checks')
-        c = [[binary('raytrace_stable_bench'), source, str(worker), str(out), '--all-rules', '--audit-only'] + (['--joint-sat'] if a.joint_sat else [])]
+        c = [[binary('raytrace_stable_bench'), source, str(worker), str(out), '--all-rules', '--cell-audit-only' if a.cell_only else '--audit-only'] + (['--joint-sat'] if a.joint_sat else [])]
     elif a.mode == 'audit':
-        if a.joint_sat: raise ValueError('--joint-sat audit requires --all-rules')
+        if a.joint_sat or a.cell_only: raise ValueError('--joint-sat/--cell-only audit requires --all-rules')
         c = [[binary('raytrace_pass3_bench'), source, str(worker), str(out), 'check' if a.three_lane_check else 'audit']]
     elif a.mode == 'cpu-pair':
         c = [[binary('raytrace_pass3_bench'), source, str(worker), str(out), 'cpu-pair']]

@@ -151,6 +151,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('--joint-sat', plan(['run', '--joint-sat'])[0])
         self.assertEqual(plan(['audit', '--all-rules', '--joint-sat'])[0][-3:], ['--all-rules', '--audit-only', '--joint-sat'])
         self.assertEqual(plan(['run', '--all-rules', '--joint-sat'])[0][-2:], ['--joint-sat', '--all-rules'])
+        self.assertEqual(plan(['audit','--all-rules','--cell-only','--joint-sat'])[0][-3:], ['--all-rules','--cell-audit-only','--joint-sat'])
         self.assertEqual(plan(['audit'])[0][-1], 'audit')
         self.assertEqual(plan(['audit', '--three-lane-check'])[0][-1], 'check')
         self.assertEqual(plan(['sat-skip', '--checked'])[0][-2:], ['32', 'check'])

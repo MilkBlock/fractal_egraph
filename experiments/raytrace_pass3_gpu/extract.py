@@ -64,7 +64,13 @@ def main():
                str(output / 'cpu.egg'), str(output / 'gpu.egg')]
     if a.reference_output:
         command.append(str(a.reference_output))
-    subprocess.run(command, check=True)
+    primary = subprocess.run(command)
+    # Keep the original fused-native gate, but always record the independent
+    # same-commit CPU/GPU gate too; a known fused difference must not hide it.
+    pair = subprocess.run([str(checker), str(output / 'cpu-gpu-quality.json'),
+                           str(output / 'cpu.egg'), str(output / 'gpu.egg')])
+    primary.check_returncode()
+    pair.check_returncode()
     print(json.dumps(records, indent=2))
     print(output / 'quality.json')
 
