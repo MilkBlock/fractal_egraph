@@ -46,7 +46,7 @@ kernel void family_classify(CTX,uint lane [[thread_position_in_grid]]){
    for(uint j=0;j<code[at+1];j++){uint col=code[at+2+j],kind=code[atom+2+2*col],s=code[atom+3+2*col];h=mixkey(h^(kind?s:v[s]));}
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+26,1,memory_order_relaxed);
    uint found=0,chosen=NO;
-   for(uint n=atomic_load_explicit(heads+sp*cfg[4]+(h&(cfg[4]-1)),memory_order_relaxed);n!=NO;n=links[n*NI+sp]){
+   for(uint n=atomic_load_explicit(heads+index_head(packet,cfg,sp,h),memory_order_relaxed);n!=NO;n=links[index_link(code,events,n,sp)]){
     if(!live_event(rows,events,n))continue;uint r=E(n,0);if(precedes(code,q,t,anchor)&&R(r,3)>=cutoff)continue;
     uint vv[S],ll[S],hh[S],bb[S];for(uint j=0;j<S;j++){vv[j]=v[j];ll[j]=lo[j];hh[j]=hi[j];bb[j]=b[j];}
     if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+27,1,memory_order_relaxed);
@@ -113,6 +113,7 @@ kernel void family_classify_tables(CTX,uint lane [[thread_position_in_grid]]){
   atomic_fetch_add_explicit(routing+24,1,memory_order_relaxed);
   uint id=atomic_fetch_add_explicit(routing,1,memory_order_relaxed);
   atomic_fetch_add_explicit(routing+3,1,memory_order_relaxed);
+  atomic_fetch_add_explicit(routing+28+code[QUERY_SHAPE+q]*6,1,memory_order_relaxed);
   if(id>=cfg[18]){atomic_store_explicit(routing+7,1,memory_order_relaxed);continue;}
   uint at=id*SEED_WORDS;seedQueue[at]=qi;seedQueue[at+1]=e;seedQueue[at+2]=anchor;seedQueue[at+3]=0;
   seedQueue[at+4]=NO;seedQueue[at+5]=0;seedQueue[at+6]=2;seedQueue[at+7]=0;

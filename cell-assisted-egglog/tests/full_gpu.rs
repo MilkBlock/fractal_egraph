@@ -105,3 +105,26 @@ fn empty_graph_unit_query_fires_once() {
     r.run(&commands).unwrap();
     check(&r, "(check (= (Count) 1))");
 }
+
+#[test]
+fn unrelated_tables_do_not_multiply_index_storage_and_query_shapes_stay_exact() {
+    let Some(worker)=worker()else{return};
+    let mut eg=EGraph::default();
+    eg.parse_and_run_program(None,"(ruleset s)").unwrap();
+    for i in 0..24 {
+        eg.parse_and_run_program(None,&format!("(relation P{i} (i64 i64)) (relation Q{i} (i64 i64)) (relation Out{i} (i64 i64)) (rule ((P{i} x y) (Q{i} y z)) ((Out{i} x z)) :ruleset s)")).unwrap();
+        for x in 0..(i+2){eg.parse_and_run_program(None,&format!("(P{i} {x} {}) (Q{i} {} {})",x+1,x+1,x+2)).unwrap();}
+    }
+    eg.parse_and_run_program(None,"(relation Link (i64 i64)) (relation Reach (i64 i64)) (rule ((Link a b) (Link b c) (Link c d) (Link d e)) ((Reach a e)) :ruleset s) (Link 0 1) (Link 1 2) (Link 2 3) (Link 3 4)").unwrap();
+    let commands=eg.parse_program(None,"(run s 1)").unwrap();
+    let mut r=Runtime::new_full(eg,&commands,Some(&worker),true,None).unwrap();
+    r.run(&commands).unwrap();check(&r,"(check (Reach 0 4)) (check (Out23 24 26))");
+    // Rehash one small table, reuse a deleted row slot, and wake a delayed query.
+    r.input("(delete (P0 0 1)) (P0 4 5) (Q0 5 6) (Link 4 5)").unwrap();r.run(&commands).unwrap();
+    check(&r,"(check (Out0 4 6)) (check (Reach 1 5))");
+    let report=r.report();let d=&report["device"];
+    assert_eq!(d["sparse_indexes"],true);assert_eq!(d["compact_bindings"],true);
+    assert!(d["query_shapes"].as_u64().unwrap()>1);
+    let dense=d["events"].as_u64().unwrap()*d["index_count"].as_u64().unwrap();
+    assert!(d["index_link_words"].as_u64().unwrap()*8<dense,"{d}");
+}

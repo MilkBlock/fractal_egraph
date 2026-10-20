@@ -47,7 +47,7 @@ void register_key(device uint* watches,device atomic_uint* wheads,device atomic_
 kernel void family_cell_dispatch(CTX,uint i [[thread_position_in_grid]]){
  if(i)return;uint n=atomic_load_explicit(state+1,memory_order_relaxed);device uint* a=(device uint*)state;a[4]=max(1u,(n+127)/128);a[5]=1;a[6]=1;
 }
-uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* events,device uint* links,device atomic_uint* heads,device uint* cells,device uint* instanceMeta,device atomic_uint* counters,constant uint* cfg,uint id){
+uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* events,device uint* links,device atomic_uint* heads,device uint* cells,device uint* instanceMeta,device atomic_uint* counters,constant uint* cfg,device const uint* packet,uint id){
  uint r=instanceMeta[id*3],cp=instanceMeta[id*3+1];if(r==NO)return uint2(0);
  uint base=id*CS,m=CELL_META+cp*6,q=code[m],anchor=code[m+1],k=code[m+2];
  if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+11,1,memory_order_relaxed);
@@ -75,7 +75,7 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
    uint at=SPEC+sp*(2+C),h=0x31415926u;
    for(uint c=0;c<code[at+1];c++){uint col=code[at+2+c],kind=code[atom+2+2*col],s=code[atom+3+2*col];h=mixkey(h^(kind?s:v[s]));}
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+9,1,memory_order_relaxed);
-   for(uint e=atomic_load_explicit(heads+sp*cfg[4]+(h&(cfg[4]-1)),memory_order_relaxed);e!=NO;e=links[e*NI+sp]){
+   for(uint e=atomic_load_explicit(heads+index_head(packet,cfg,sp,h),memory_order_relaxed);e!=NO;e=links[index_link(code,events,e,sp)]){
     if(!live_event(rows,events,e))continue;
     uint vv[S],ll[S],hh[S],bb[S];for(uint s=0;s<S;s++){vv[s]=v[s];ll[s]=lo[s];hh[s]=hi[s];bb[s]=b[s];}
     if(bind_atom(code,rows,q,t,E(e,0),vv,ll,hh,bb)){chosen=E(e,0);break;}
@@ -97,7 +97,7 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
 }
 kernel void family_cell_events(CTX,uint lane [[thread_position_in_grid]]){
  if(lane>=atomic_load_explicit(state+1,memory_order_relaxed))return;
- uint2 needed=evaluate_cell(code,rows,events,links,heads,cells,instanceMeta,counters,cfg,dirty[lane]);
+ uint2 needed=evaluate_cell(code,rows,events,links,heads,cells,instanceMeta,counters,cfg,packet,dirty[lane]);
  atomic_fetch_add_explicit(registry+6,needed.x,memory_order_relaxed);atomic_fetch_add_explicit(registry+7,needed.y,memory_order_relaxed);
 }
 // Reconstruct keys from committed witness row IDs; this performs NO index

@@ -520,6 +520,13 @@ pub fn compile(
         index.extend([u32::MAX, 0]);
         index.extend(std::iter::repeat_n(0, c));
     }
+    let mut shapes=BTreeMap::new();let mut query_shapes=vec![];
+    for q in sinks {
+        let key=(q.atoms.len().max(1),q.device_slots().max(1));let next=shapes.len();
+        let id=*shapes.entry(key).or_insert(next);query_shapes.push(id as u32);
+    }
+    let mut shape_sizes=vec![(0,0);shapes.len()];
+    for (shape,id) in shapes{shape_sizes[id]=shape;}
     let mut code = vec![];
     let mut shader = format!(
         "#include <metal_stdlib>\nusing namespace metal;\n#define C {c}\n#define P {p}\n#define S {s}\n#define G {g}\n#define NP {np}\n#define HAS_PRIMITIVES {}\n#define NQ {}\n#define NI {}\n",
@@ -563,7 +570,21 @@ pub fn compile(
         }
         query_anchor_offsets.push((query_anchors.len()/2) as u32);
     }
+    let index_tables=(0..specs.len().max(1)).map(|sp|index[sp*(2+c)]).collect::<Vec<_>>();
+    let mut index_local=vec![0u32;index_tables.len()];
+    let mut table_spec_offsets=vec![0u32];let mut table_specs=vec![];
+    for t in 0..tables.len(){
+        let start=table_specs.len();
+        for (sp,table) in index_tables.iter().enumerate(){if *table==t as u32{
+            index_local[sp]=(table_specs.len()-start) as u32;table_specs.push(sp as u32);
+        }}
+        table_spec_offsets.push(table_specs.len() as u32);
+    }
     for (name, values) in [
+        ("QUERY_SHAPE",query_shapes.clone()),
+        ("INDEX_LOCAL",index_local),
+        ("TABLE_SPEC_OFFSETS",table_spec_offsets),
+        ("TABLE_SPECS",table_specs),
         ("QUERY_ANCHOR_OFFSETS",query_anchor_offsets),
         ("QUERY_ANCHORS",query_anchors),
         ("ANCHOR_OFFSETS", anchor_offsets),
@@ -604,7 +625,12 @@ pub fn compile(
     shader += include_str!("../family_registry.metal");
     shader += include_str!("../family_ports.metal");
     shader += include_str!("../family_route.metal");
+    shader+=&format!("#define SHAPE_COUNT {}u\n",shape_sizes.len());
+    shader+=include_str!("../family_shapes.metal");
+    for (id,(qp,qs)) in shape_sizes.iter().enumerate(){
+        shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
+    }
     Ok(
-        json!({"version":2,"family_layout":7,"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":9,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

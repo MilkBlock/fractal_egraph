@@ -56,6 +56,13 @@ pub struct Stats {
     pub native_only_seconds: f64,
 }
 #[derive(Default, Serialize)]
+struct QueryCost {
+    runs: usize,
+    bindings: usize,
+    query_seconds: f64,
+    device_seconds: f64,
+}
+#[derive(Default, Serialize)]
 struct NativeStats {
     runs: usize,
     seconds: f64,
@@ -133,10 +140,12 @@ pub struct Runtime {
     sets: BTreeMap<String, Vec<usize>>,
     native_sets: BTreeSet<String>,
     native_stats: BTreeMap<String, NativeStats>,
+    query_costs: BTreeMap<String, QueryCost>,
     qstats: Vec<QueryStats>,
     owners: Vec<String>,
     extended: bool,
     query_log: bool,
+    query_timing: bool,
     experimental_cell_runs: bool,
     device: Option<Service>,
     feed: Option<CellCommitFeed>,
@@ -340,10 +349,12 @@ impl Runtime {
             sets,
             native_sets,
             native_stats: BTreeMap::new(),
+            query_costs:BTreeMap::new(),
             qstats: vec![],
             owners,
             extended,
             query_log: std::env::var_os("CELL_QUERY_LOG").is_some(),
+            query_timing:std::env::var("CELL_QUERY_TIMINGS").as_deref()==Ok("1"),
             experimental_cell_runs:std::env::var("CELL_EXPERIMENTAL_RUN_PROGRAMS").as_deref()==Ok("1"),
             device: None,
             feed: None,
@@ -429,7 +440,7 @@ impl Runtime {
             runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
-            if installed["family_layout"] != json!(7) {
+            if installed["family_layout"] != json!(9) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0
@@ -680,12 +691,14 @@ impl Runtime {
         }
         let t = Instant::now();
         let count = r["bindings"].as_u64().ok_or("missing binding count")? as usize;
-        if count.checked_mul(1 + self.slots) != Some(body.len()) {
+        let compact=r["compact_bindings"].as_bool().unwrap_or(false);
+        if !compact && count.checked_mul(1 + self.slots) != Some(body.len()) {
             return Err("family result shape".into());
         }
         self.stats.output_high_water = self.stats.output_high_water.max(count);
-        for record in body.chunks_exact(1 + self.slots) {
-            let q = record[0] as usize;
+        let (mut offset,mut decoded)=(0,0);
+        while offset<body.len(){
+            let q = body[offset] as usize;
             let i = ids
                 .iter()
                 .position(|i| *i == q)
@@ -694,8 +707,12 @@ impl Runtime {
                 return Err("result for quiet query".into());
             }
             let n = self.sinks[q].slots().len();
+            let width=if compact{1+n}else{1+self.slots};
+            let record=body.get(offset..offset+width).ok_or("truncated compact binding")?;
             matches[i].push(record[1..1 + n].iter().map(|v| Value::new(*v)).collect());
+            offset+=width;decoded+=1;
         }
+        if decoded!=count{return Err("compact binding count differs".into())}
         for (id, bindings) in ids.iter().zip(&mut matches) {
             bindings.sort_unstable();
             if let Some(pair) = bindings.windows(2).find(|p| p[0] == p[1]) {
@@ -732,6 +749,7 @@ impl Runtime {
             if self.query_log {eprintln!("[cell Run] {set} {:.6}s",query_start.elapsed().as_secs_f64());}
             return Ok(report.updated);
         }
+        let started=self.query_timing.then(Instant::now);let device_before=self.stats.device_seconds;
         let matches = if self.cpu {
             let t = Instant::now();
             let r = self.native_matches(&ids)?;
@@ -740,6 +758,11 @@ impl Runtime {
         } else {
             self.gpu_matches(&ids)?
         };
+        if let Some(started)=started {
+            let cost=self.query_costs.entry(set.to_string()).or_default();
+            cost.runs+=1;cost.bindings+=matches.iter().map(Vec::len).sum::<usize>();
+            cost.query_seconds+=started.elapsed().as_secs_f64();cost.device_seconds+=self.stats.device_seconds-device_before;
+        }
         if self.audit {
             let t = Instant::now();
             let expected = self.native_matches(&ids)?;
@@ -956,6 +979,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"experimental_cell_run_programs":self.experimental_cell_runs,"selected_rule_count":self.sinks.len(),"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"experimental_cell_run_programs":self.experimental_cell_runs,"selected_rule_count":self.sinks.len(),"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

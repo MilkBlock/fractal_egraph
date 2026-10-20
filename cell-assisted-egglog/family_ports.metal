@@ -47,10 +47,10 @@ void port_query(PORT_ARGS,uint qi,uint cp,uint e,uint stamp,thread const uint* c
   uint plan=PORT_PLAN+(q*P+uint(depth))*2,t=code[plan],sp=code[plan+1],atom=ATOM+(q*P+t)*(2+2*C);
   if(!started[depth]){
    uint at=SPEC+sp*(2+C),h=0x31415926u;for(uint j=0;j<code[at+1];j++){uint col=code[at+2+j],kind=code[atom+2+2*col],s=code[atom+3+2*col];h=mixkey(h^(kind?s:val[depth][s]));}
-   cursor[depth]=atomic_load_explicit(heads+sp*cfg[4]+(h&(cfg[4]-1)),memory_order_relaxed);started[depth]=1;
+   cursor[depth]=atomic_load_explicit(heads+index_head(packet,cfg,sp,h),memory_order_relaxed);started[depth]=1;
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+15,1,memory_order_relaxed);
   }
-  uint candidate=cursor[depth];if(candidate==NO){started[depth]=0;depth--;continue;}cursor[depth]=links[candidate*NI+sp];if(!live_event(rows,events,candidate))continue;
+  uint candidate=cursor[depth];if(candidate==NO){started[depth]=0;depth--;continue;}cursor[depth]=links[index_link(code,events,candidate,sp)];if(!live_event(rows,events,candidate))continue;
   uint row=E(candidate,0);if(R(row,3)>=cutoff)continue;
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+25,1,memory_order_relaxed);
   for(uint s=0;s<S;s++){val[depth+1][s]=val[depth][s];low[depth+1][s]=low[depth][s];high[depth+1][s]=high[depth][s];bound[depth+1][s]=bound[depth][s];}
