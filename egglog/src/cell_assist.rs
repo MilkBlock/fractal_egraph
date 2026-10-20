@@ -108,6 +108,27 @@ impl EGraph {
         result
     }
     /// Names in a direct ruleset, for explicit assisted compiler validation.
+    pub fn cell_ruleset_members(&self, ruleset: &str) -> Result<Vec<(String,String)>,Error> {
+        fn visit(eg:&EGraph,set:&str,stack:&mut Vec<String>,out:&mut Vec<(String,String)>)->Result<(),Error>{
+            if stack.iter().any(|s|s==set){return Err(Error::BackendError("cyclic combined ruleset".into()));}
+            stack.push(set.into());
+            match eg.rulesets.get(set).ok_or_else(||Error::BackendError(format!("unknown ruleset {set}")))? {
+                Ruleset::Rules(rules)=>out.extend(rules.keys().map(|n|(set.to_string(),n.clone()))),
+                Ruleset::Combined(children)=>for child in children{visit(eg,child,stack,out)?;}
+            }
+            stack.pop();Ok(())
+        }
+        let mut out=vec![];visit(self,ruleset,&mut vec![],&mut out)?;Ok(out)
+    }
+    pub fn cell_rule_features(&self,set:&str,name:&str)->Result<serde_json::Value,Error>{
+        let Some(Ruleset::Rules(rules))=self.rulesets.get(set) else{return Err(Error::BackendError("expected leaf ruleset".into()))};
+        let (rule,id)=rules.get(name).ok_or_else(||Error::BackendError("unknown rule".into()))?;
+        let primitives=rule.body.atoms.iter().filter_map(|a|if let ResolvedCall::Primitive(p)=&a.head{
+            Some(serde_json::json!({"name":p.name(),"inputs":p.input().iter().map(|s|s.name()).collect::<Vec<_>>(),"output":p.output().name()}))
+        }else{None}).collect::<Vec<_>>();
+        Ok(serde_json::json!({"primitives":primitives,"seminaive":self.backend.rule_is_seminaive(*id),
+            "destructive_actions":rule.head.0.iter().filter(|a|matches!(a,crate::core::GenericCoreAction::Change(..))).count()}))
+    }
     pub fn cell_rule_names(&self, ruleset: &str) -> Result<Vec<String>, Error> {
         let Some(Ruleset::Rules(rules)) = self.rulesets.get(ruleset) else {
             return Err(Error::BackendError("expected direct ruleset".into()));
