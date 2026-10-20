@@ -311,3 +311,40 @@ identical inputs and exact final results. It separates checking from timing,
 accounts for setup/input/solver/transport/commit, and reports library bytes and
 sampled process-tree RSS. The current [results](bench/RESULTS.md) show no pristine
 speedup; worker JSON conversion, marker routing and layout solving dominate.
+
+## All original Pass-3 queries with Cell execution first
+
+`table_live::Runtime::new_full` admits every original rule in the saved raytrace
+Pass-3 main schedule (547 unique rules, including combined-ruleset members).
+It adds exact `i64` addition/remainder and comparisons, typed inequality,
+computed table keys, global reads and empty queries. The original engine still
+executes RHS actions, custom merges, union, subsume/delete and rebuild. This is
+an actual native runtime integration, not a standalone matching simulation.
+Unsupported selected rules fail compilation; the stable-choice adapter
+`cell-stable-keys` remains native.
+
+Use the versioned benchmark skill:
+
+```sh
+python3 skills/cell-assisted-egglog-bench/scripts/bench.py run \
+  --all-rules --joint-sat --output out/pass3-full-cells
+```
+
+The `--joint-sat` path invokes the existing joint terms closure handler **before**
+GPU dispatch. Extended single-Run Cell programs are a separate experiment
+(`CELL_EXPERIMENTAL_RUN_PROGRAMS=1`): they failed the full Pass-3 graph gate and
+are disabled by default. It does not mark
+arbitrary small rules as saturated. A finite Run retains its original boundary;
+macro effects reach the shared table mirror before the next consumer. Without a
+certificate, the whole original query remains available on the GPU.
+
+Delta rows route through a table-to-query-anchor index, rather than a reserved
+row × rule × maximum-arity grid. Exact function-key lookups have priority in
+extended plans. Both changes retain all atom positions and bindings. This
+backend is a sparse indexed Metal query program; it does not turn arbitrary
+rules into GEMM or claim all GPU work is a baked Cell transition.
+
+For per-batch checking use `audit --all-rules --joint-sat`; this checks dispatched
+queries, not matches replaced by certified execution. Separate whole-graph and
+Tiger gates are still required. See [full-coverage results](../experiments/pass3_full_gpu/RESULTS.md)
+for current performance and the remaining difference from fused native execution.

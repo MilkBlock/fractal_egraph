@@ -25,7 +25,7 @@ def history_candidates(repo):
     return sorted((repo / 'out').glob('*/workflow.json'),
                   key=lambda p: p.stat().st_mtime, reverse=True)
 
-def matching_history(repo, snapshot, policy, joint):
+def matching_history(repo, snapshot, policy, joint, all_rules=False):
     """Historical controls are evidence, not a claim about the current binary."""
     source_hash = sha(snapshot)
     for path in history_candidates(repo):
@@ -35,7 +35,7 @@ def matching_history(repo, snapshot, policy, joint):
                     or w.get('snapshot_sha256') != source_hash or w.get('policy') != policy):
                 continue
             r = load(path.parent / 'report.json')
-            if bool(r.get('gpu_without_joint')) != joint or not metrics(r)['timing_eligible']:
+            if bool(r.get('gpu_without_joint')) != joint or bool(r.get('gpu',{}).get('extended_queries')) != all_rules or not metrics(r)['timing_eligible']:
                 continue
             yield path.parent, w, r
         except (OSError, ValueError, KeyError, TypeError):
@@ -49,7 +49,7 @@ def inference_identity(a, repo, worker, env):
     configuration = {k: v for k, v in sorted(env.items())
                      if k.startswith(('RAYON_', 'EGGLOG_', 'CELL_', 'MTL_', 'DYLD_', 'OMP_'))}
     return dict(version=1, snapshot=sha(resolve(a.snapshot)), binary=sha(binary),
-                worker=sha(worker), policy=a.policy, joint=a.joint_sat,
+                worker=sha(worker), policy=a.policy, joint=a.joint_sat, all_rules=a.all_rules,
                 machine=[platform.node(), platform.system(), platform.release(), platform.machine()],
                 environment_sha256=hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest())
 
@@ -69,7 +69,7 @@ def reusable_result(a, repo, worker, env):
         return None
     extraction = None if a.no_extract else extraction_identity(a, repo)
     for directory, workflow, _ in matching_history(
-            repo, a.snapshot if a.snapshot.is_absolute() else repo / a.snapshot, a.policy, a.joint_sat):
+            repo, a.snapshot if a.snapshot.is_absolute() else repo / a.snapshot, a.policy, a.joint_sat, a.all_rules):
         if workflow.get('inference_identity') != identity:
             continue
         if not a.no_extract:
@@ -146,6 +146,7 @@ def report(path, fresh=False):
             print(f"推理＋Tiger：{m['inference_plus_tiger_speedup']:.4f}x")
         print('以上不含序列化、诊断、共享输入准备；worker setup 见原始报告。当前 fork，不是 pristine。')
         print('由 Cell handler 完成的饱和边界（含显式 dataflow 推进）：', r['gpu']['runtime'].get('skipped_saturations', 0))
+        print('由 Cell 计划完成的普通 Run：', r['gpu']['runtime'].get('cell_run_calls', 0))
         if r.get('gpu_without_joint'):
             print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '未通过整图门槛')
             print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
@@ -210,6 +211,7 @@ def parser():
     q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
     q.add_argument('--policy', choices=['stable', 'original'], default='stable')
     q.add_argument('--joint-sat', action='store_true')
+    q.add_argument('--all-rules', action='store_true')
     q.add_argument('--limit', type=int, default=3)
     for mode in ['check', 'build', 'run', 'extract', 'audit', 'cpu-pair', 'diff', 'sat-skip', 'parameterized', 'transition', 'transfer-bench', 'joint-sat', 'test']:
         q = sub.add_parser(mode)
@@ -229,8 +231,12 @@ def parser():
             q.add_argument('--policy', choices=['stable', 'original'], default='stable')
             q.add_argument('--no-extract', action='store_true')
             q.add_argument('--joint-sat', action='store_true')
+            q.add_argument('--all-rules', action='store_true')
             q.add_argument('--refresh', action='store_true', help='remeasure even if an identical verified result exists')
-        if mode == 'audit': q.add_argument('--three-lane-check', action='store_true')
+        if mode == 'audit':
+            q.add_argument('--three-lane-check', action='store_true')
+            q.add_argument('--all-rules', action='store_true')
+            q.add_argument('--joint-sat', action='store_true')
         if mode == 'diff':
             q.add_argument('--inspect'); q.add_argument('--open')
             g = q.add_mutually_exclusive_group(); g.add_argument('--sequential', action='store_true'); g.add_argument('--sort-hoist', action='store_true')
@@ -249,11 +255,16 @@ def commands(a, repo, worker, out):
     if a.mode == 'run':
         c = [[binary('raytrace_stable_bench'), source, str(worker), str(out)] + (['--original'] if a.policy == 'original' else [])]
         if a.joint_sat: c[0].append('--joint-sat')
+        if a.all_rules: c[0].append('--all-rules')
         if not a.no_extract:
             c += [[sys.executable, str(repo / 'experiments/raytrace_pass3_gpu/extract.py'), str(out), '--tiger', str(resolve(a.tiger))]]
     elif a.mode == 'extract':
         c = [[sys.executable, str(repo / 'experiments/raytrace_pass3_gpu/extract.py'), str(out), '--tiger', str(resolve(a.tiger))]]
+    elif a.mode == 'audit' and a.all_rules:
+        if a.three_lane_check: raise ValueError('use run --all-rules for independent graph checks')
+        c = [[binary('raytrace_stable_bench'), source, str(worker), str(out), '--all-rules', '--audit-only'] + (['--joint-sat'] if a.joint_sat else [])]
     elif a.mode == 'audit':
+        if a.joint_sat: raise ValueError('--joint-sat audit requires --all-rules')
         c = [[binary('raytrace_pass3_bench'), source, str(worker), str(out), 'check' if a.three_lane_check else 'audit']]
     elif a.mode == 'cpu-pair':
         c = [[binary('raytrace_pass3_bench'), source, str(worker), str(out), 'cpu-pair']]
@@ -274,7 +285,7 @@ def commands(a, repo, worker, out):
         c = [[binary('joint_sat_bench'), str(worker), str(out)] + ([source] if source else [])]
     elif a.mode == 'test':
         c = [['cargo', 'test', '--offline', '--manifest-path', 'egglog/egglog-bridge/Cargo.toml', '--target-dir', 'target/analyzer', '--lib', 'cell_worklist_tests', '--', '--test-threads=1'],
-             ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
+             ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--test', 'full_gpu', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--lib', 'stable_choice::tests', '--target-dir', 'target/analyzer'],
              ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'transfer_artifact', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
     else: c = []
@@ -327,7 +338,7 @@ def main(argv=None):
             raise ValueError('--limit must be positive')
         print('假设机器稳定；复用历史计时，没有重新测量。旧版本不代表当前代码。')
         found = 0
-        for directory, w, r in matching_history(repo, resolve(a.snapshot), a.policy, a.joint_sat):
+        for directory, w, r in matching_history(repo, resolve(a.snapshot), a.policy, a.joint_sat, a.all_rules):
             m = metrics(r)
             print(json.dumps(dict(directory=str(directory), head=w.get('source_head'),
                                   dirty=bool(w.get('dirty_files')),
@@ -359,6 +370,7 @@ def main(argv=None):
             if (out/'extraction').exists(): raise ValueError('提取目录已存在；使用 report 查看，不能覆盖')
     plan = commands(a, repo, worker, out)
     target = {'build': 'raytrace_stable_bench', 'run': 'raytrace_stable_bench', 'audit': 'raytrace_pass3_bench', 'cpu-pair': 'raytrace_pass3_bench', 'diff': 'raytrace_pass3_diff', 'sat-skip': 'sat_skip_bench', 'parameterized': 'parameterized_cell', 'transition': 'cell_transition', 'transfer-bench': 'transfer_bench', 'joint-sat': 'joint_sat_bench'}.get(a.mode)
+    if a.mode == 'audit' and a.all_rules: target = 'raytrace_stable_bench'
     targets = [target] if target else []
     if a.mode in ['build', 'extract'] or (a.mode == 'run' and not a.no_extract): targets += ['tiger_output_check']
     build = ['cargo', 'build', '--offline', '--release', '--target-dir', 'target/analyzer'] + [x for t in targets for x in ['--example', t]]

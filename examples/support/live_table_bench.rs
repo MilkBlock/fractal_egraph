@@ -267,7 +267,7 @@ pub fn benchmark(
     dest: &Path,
 ) -> Result<()> {
     benchmark_impl(
-        base, commands, label, worker, checked, dest, None, true, None, None,
+        base, commands, label, worker, checked, dest, None, true, None, None, false,
     )
 }
 pub fn benchmark_hybrid(
@@ -290,6 +290,7 @@ pub fn benchmark_hybrid(
         false,
         None,
         None,
+        false,
     )
 }
 pub fn benchmark_hybrid_export(
@@ -312,6 +313,7 @@ pub fn benchmark_hybrid_export(
         false,
         Some(exports),
         None,
+        false,
     )
 }
 /// The extra GPU-without-hook lane isolates Cell proof/maintenance from the
@@ -337,7 +339,11 @@ pub fn benchmark_hybrid_export_joint(
         false,
         Some(exports),
         Some(hook),
+        false,
     )
+}
+pub fn benchmark_all_export(base:&EGraph,commands:&[Command],worker:&Path,dest:&Path,selected:&[String],exports:&Path,checked:bool,hook:Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>)->Result<()>{
+    benchmark_impl(base,commands,"complete Pass 3, all original rules on GPU",worker,checked,dest,Some(selected),false,Some(exports),hook,true)
 }
 fn benchmark_impl(
     base: &EGraph,
@@ -350,6 +356,7 @@ fn benchmark_impl(
     fixed_point: bool,
     exports: Option<&Path>,
     hook: Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>,
+    full_queries: bool,
 ) -> Result<()> {
     let t = Instant::now();
     let mut native = base.clone();
@@ -364,7 +371,9 @@ fn benchmark_impl(
             report.union(r);
         }
     }
-    let mut ordered = if let Some(sets) = selected {
+    let mut ordered = if full_queries {
+        Runtime::new_full(base.clone(),commands,None,false,selected)?
+    } else if let Some(sets) = selected {
         Runtime::new_hybrid(base.clone(), commands, None, false, sets)?
     } else {
         Runtime::new_cpu(base.clone(), commands)?
@@ -372,13 +381,15 @@ fn benchmark_impl(
     ordered.run(commands)?;
     let sorted_stats = ordered.report();
     let gpu_without_joint = if hook.is_some() {
-        let mut r = Runtime::new_hybrid(
+        let mut r = if full_queries {
+            Runtime::new_full(base.clone(),commands,Some(worker),false,selected)?
+        } else {Runtime::new_hybrid(
             base.clone(),
             commands,
             Some(worker),
             false,
             selected.ok_or("joint comparison requires an explicit partition")?,
-        )?;
+        )?};
         r.run(commands)?;
         Some((r.report(), r.into_engine()))
     } else {
@@ -387,7 +398,9 @@ fn benchmark_impl(
     let t = Instant::now();
     let copy = base.clone();
     let gpu_clone = t.elapsed().as_secs_f64();
-    let mut runtime = if let Some(sets) = selected {
+    let mut runtime = if full_queries {
+        Runtime::new_full(copy,commands,Some(worker),checked,selected)?
+    } else if let Some(sets) = selected {
         Runtime::new_hybrid(copy, commands, Some(worker), checked, sets)?
     } else {
         Runtime::new(copy, commands, worker, checked)?

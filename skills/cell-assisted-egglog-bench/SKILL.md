@@ -27,6 +27,8 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 | 查找可复用的完整 Pass-3 历史 | `history --joint-sat` |
 | 核验输入、工具与缓存路径 | `check` |
 | 真实 raytrace Pass 3 稳定选择计时＋整图检查＋Tiger | `run --output out/新目录` |
+| 所有原始 Pass-3 规则交给 GPU，同时保留 Cell sat-skip | `run --all-rules --joint-sat --output out/新目录` |
+| 全规则 GPU 剩余查询逐批核对 | `audit --all-rules --joint-sat --output out/新目录` |
 | 完整 Pass 3 的 joint sat-skip 对照 | `run --joint-sat --output out/新目录` |
 | 只跑推理、推迟 Tiger | `run --output out/新目录 --no-extract` |
 | 补做已有图的真实提取检查 | `extract 分析目录` |
@@ -48,7 +50,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 执行类入口默认离线增量构建所需 Rust 示例；Swift worker 以源码/二进制指纹复用。构建不计入报告中的推理时间。仅明确复用已核验二进制时使用 `--no-build`；它不意味着缓存一定新鲜。全局 `--dry-run` 展示实际命令，不构建、不测量、不写输出。
 
-默认是完整**已保存 Pass-3 输入和主调度的回放**，不是重新执行 eggcc 三个 pass，也不是 pristine upstream。允许 `--snapshot` 指定相同格式的其它完整快照；当前辅助分区固定为三个 terms ruleset，不能据此宣称支持任意 `.egg`。缺快照就报告缺失，不换小 If/Math 冒充 raytrace。
+默认是完整**已保存 Pass-3 输入和主调度的回放**，不是重新执行 eggcc 三个 pass，也不是 pristine upstream。允许 `--snapshot` 指定相同格式的其它完整快照；默认辅助分区为三个 terms ruleset；`--all-rules` 编译主调度中的所有原始 ruleset（含 combined 成员），遇到不支持的规则直接报错。稳定选择辅助规则 `cell-stable-keys` 仍在 CPU；RHS、merge、rebuild 仍由原生执行。不能据此宣称支持任意 `.egg`。缺快照就报告缺失，不换小 If/Math 冒充 raytrace。
 
 ## 验证和计时的界限
 
@@ -57,6 +59,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 - `run --joint-sat` 顺序跑原生融合、CPU 同提交协议、GPU 关闭 joint、GPU 开启 joint 四条完整主调度。只有 GPU 开启 joint 装载联合闭包 observer。报告 CPU/GPU 比值及 GPU 关闭÷开启的单独增益；后者必须通过 `joint_verification` 整图门槛，并展示实际 macro 实例数、空转跳过数和回退原因。不能把普通 GPU 收益算成 Cell 收益。控制 GPU worker 在 joint lane 开始前释放。
 - 加速比默认用**同提交协议的 CPU vs GPU**，且要求完整原始事实、值、等价关系、可见性检查通过；失败时不打印有效加速比。Expr 数量、match 数量、TCPair 代价相同都不能替代这一门槛。
 - 真正的提取质量检查调用生产 Tiger，再比较它输出的选定 DAG。不能把 TCPair 或树大小称为实际 extraction 质量。若加上 Tiger 计算比值，说明仍不含序列化/诊断，并单列共享初始化。
+- `run --all-rules --joint-sat` 优先执行同一原生调度中的联合闭包跳过。全规则模式的普通 Run 计划使用 `CELL_EXPERIMENTAL_RUN_PROGRAMS=1` 单独试验（真实 Pass 3 的 Smaller 整图门槛失败，默认关闭），分别报告 `cell_run_calls` 与 `skipped_saturations`，不能把普通 Run 说成提前饱和；GPU-off、GPU-on 比较必须使用相同的全规则分区。`audit --all-rules --joint-sat` 核对实际派发的剩余 GPU 查询；被宏跳过的查询需用独立最终图检查和 joint 回归覆盖，不能称为逐条匹配审计。全规则模式和旧 14-rule 模式的时间分别记账。
 - `audit` 检查同一执行状态上的增量查询，既会扰动引擎，也不证明独立运行的最终图相等。当前这个入口检查**原策略**；它不是稳定策略完整运行的替代认证。
 - Sat skip 只有真实认证边界才记收益。Math sat-skip 原型不等于 raytrace 已认证；不把普通 GPU 收益算到 Cell，也不把逻辑 match 算成提交的 mutation。
 - `parameterized` 是实际原生提交上的 CPU 正确性实验：一份 Bop spine 接线及七个规则程序复用不同 Term/代价，逐阶段核对两条 CPU 对照的完整图和同提交协议的匹配计数。它不使用 GPU，不构建具体闭包目录，也未证明整个 terms 族的饱和跳过或性能收益。失败与有限 Run 语义由 `test` 中的 `parameterized_cell` 回归检查。

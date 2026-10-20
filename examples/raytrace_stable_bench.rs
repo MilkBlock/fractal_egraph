@@ -8,9 +8,9 @@ use std::{path::Path, time::Instant};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let a = std::env::args().skip(1).collect::<Vec<_>>();
     if a.len() < 3
-        || a[3..]
-            .iter()
-            .any(|s| s != "--original" && s != "--joint-sat")
+        || a[3..].iter().any(|s| {
+            !["--original", "--joint-sat", "--all-rules", "--audit-only"].contains(&s.as_str())
+        })
     {
         return Err("SOURCE WORKER NEW_OUTPUT [--original] [--joint-sat]".into());
     }
@@ -29,6 +29,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let stable = !a[3..].iter().any(|s| s == "--original");
     let joint = a[3..].iter().any(|s| s == "--joint-sat");
+    let all = a[3..].iter().any(|s| s == "--all-rules");
+    let audit = a[3..].iter().any(|s| s == "--audit-only");
     let start = Instant::now();
     let mut hook = None;
     let commands = if joint {
@@ -68,8 +70,70 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &serde_json::json!({"stable_choice":stable,"setup_seconds_excluded":start.elapsed().as_secs_f64(),"schedule":commands.iter().map(ToString::to_string).collect::<Vec<_>>(),"sat_skip_installed":joint,"policy":policy}),
         )?,
     )?;
-    let selected = ["terms", "terms-helpers", "terms-helpers-helpers"].map(String::from);
-    if let Some(hook) = hook {
+    let mut selected = ["terms", "terms-helpers", "terms-helpers-helpers"]
+        .map(String::from)
+        .to_vec();
+    if all {
+        fn sets(s: &egglog::ast::Schedule, names: &mut std::collections::BTreeSet<String>) {
+            use egglog::ast::GenericSchedule::*;
+            match s {
+                Run(_, r) => {
+                    names.insert(r.ruleset.clone());
+                }
+                Sequence(_, xs) => {
+                    for x in xs {
+                        sets(x, names)
+                    }
+                }
+                Repeat(_, _, x) | Saturate(_, x) => sets(x, names),
+            }
+        }
+        let mut names = std::collections::BTreeSet::new();
+        for c in &commands {
+            if let Command::RunSchedule(s) = c {
+                sets(s, &mut names)
+            }
+        }
+        // This is our stable-choice adapter, not a rule from the original .egg.
+        names.remove("cell-stable-keys");
+        selected = names.into_iter().collect();
+    }
+    if audit {
+        if !all {
+            return Err("--audit-only currently requires --all-rules".into());
+        }
+        let mut r = cell_assisted_egglog::table_live::Runtime::new_full(
+            eg,
+            &commands,
+            Some(Path::new(&a[1])),
+            true,
+            Some(&selected),
+        )?;
+        if let Some(hook) = hook {
+            r.set_saturation_hook(hook);
+        }
+        let result = r.run(&commands);
+        std::fs::write(
+            out.join("audit.json"),
+            serde_json::to_vec_pretty(
+                &serde_json::json!({"complete":result.is_ok(),"error":result.as_ref().err().map(ToString::to_string),"runtime":r.report()}),
+            )?,
+        )?;
+        result?;
+        return Ok(());
+    }
+    if all {
+        bench::benchmark_all_export(
+            &eg,
+            &commands,
+            Path::new(&a[1]),
+            &out.join("report.json"),
+            &selected,
+            &out.join("graphs"),
+            false,
+            hook,
+        )?;
+    } else if let Some(hook) = hook {
         bench::benchmark_hybrid_export_joint(
             &eg,
             &commands,
