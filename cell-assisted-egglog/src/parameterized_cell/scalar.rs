@@ -275,9 +275,14 @@ impl Runtime {
             let mut raw=self.kernels[id].matches(&self.eg,&self.rows,&mut self.stats.keyed_reads)?;
             // Native exact pure constraints reject overflow just as the LHS
             // does. RHS failure/panic, merges and all effects remain native.
-            let mut valid=vec![];
-            for b in raw.drain(..){if self.eg.cell_guards_hold(sinks[i],&b)?{valid.push(b)}}
-            out.push((i,valid));
+            let mut valid=0;
+            for j in 0..raw.len() {
+                if self.eg.cell_guards_hold(sinks[i],&raw[j])? {
+                    raw.swap(valid,j);valid+=1;
+                }
+            }
+            raw.truncate(valid);
+            out.push((i,raw));
         }
         Ok(out)
     }
