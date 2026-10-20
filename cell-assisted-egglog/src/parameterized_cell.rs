@@ -736,10 +736,11 @@ impl Runtime {
             kernel.paths.clear();
         }
     }
-    fn ingest(&mut self, batch: CellCommitBatch) -> Result<()> {
-        if let Some(out) = &mut self.forwarded {
-            out.push(batch.clone());
+    fn ingest(&mut self, mut batch: CellCommitBatch) -> Result<()> {
+        if batch.rows.is_empty() && batch.clears.is_empty() && batch.unions.is_empty() {
+            return Ok(());
         }
+        let forward = self.forwarded.is_some();
         if let Some(mut proof) = self.joint.take() {
             proof.observes(self, &batch);
             self.joint = Some(proof);
@@ -749,7 +750,7 @@ impl Runtime {
         self.stats.union_events += batch.unions.len();
         let mut changed = vec![];
         let mut hidden_changed = false;
-        for t in batch.clears {
+        for &t in &batch.clears {
             let before = self.rows.hidden.len();
             self.rows.hidden.retain(|(table, _)| *table != t);
             hidden_changed |= before != self.rows.hidden.len();
@@ -760,19 +761,22 @@ impl Runtime {
                 .map(|((_, k), _)| k.clone())
                 .collect::<Vec<_>>();
             for k in keys {
-                changed.extend(self.rows.change(t, k, None));
+                let reads = self.rows.change(t, k, None);
+                changed.extend(reads);
             }
         }
-        for delta in batch.rows {
+        for delta in &mut batch.rows {
             let t = delta.table;
-            let key = (t, delta.key.clone().into());
+            let key = (t, Key::from_slice(&delta.key));
             hidden_changed |= if delta.row.is_some() && !delta.visible {
                 self.rows.hidden.insert(key)
             } else {
                 self.rows.hidden.remove(&key)
             };
             let row = if delta.visible {
-                delta.row.map(|mut values| {
+                // Only the mirror's live payload needs a second owner. Move
+                // the original event, including its keys, to the GPU consumer.
+                (if forward { delta.row.clone() } else { delta.row.take() }).map(|mut values| {
                     values.truncate(self.feed.tables[t].keys + 1);
                     Row {
                         values,
@@ -782,7 +786,8 @@ impl Runtime {
             } else {
                 None
             };
-            changed.extend(self.rows.change(t, delta.key.into(), row));
+            let reads = self.rows.change(t, Key::from_slice(&delta.key), row);
+            changed.extend(reads);
         }
         if has_union || hidden_changed || !changed.is_empty() {
             self.epoch = self
@@ -803,6 +808,7 @@ impl Runtime {
                 }
             }
         }
+        if let Some(out) = &mut self.forwarded { out.push(batch); }
         Ok(())
     }
     fn sync(&mut self) -> Result<()> {

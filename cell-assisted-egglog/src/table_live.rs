@@ -607,20 +607,19 @@ impl Runtime {
         if let Some(feed) = &mut self.feed {
             let batch = self.eg.drain_cell_commits(feed)?;
             if let Some((names, batches)) = forwarded {
-                for b in batches {
-                    let mut mapped = CellCommitBatch::default();
-                    for mut row in b.rows {
-                        if let Some(i) = self.hook_table_ids.get(&names[row.table]) {
-                            row.table = *i;
-                            mapped.rows.push(row);
-                        }
-                    }
-                    for table in b.clears {
-                        if let Some(i) = self.hook_table_ids.get(&names[table]) {
-                            mapped.clears.push(*i);
-                        }
-                    }
-                    self.ingest(mapped)?;
+                // Resolve table names once for the batch, not for every row.
+                let remap = names.iter().map(|n| self.hook_table_ids.get(n).copied()).collect::<Vec<_>>();
+                for mut b in batches {
+                    b.rows.retain_mut(|row| {
+                        if let Some(i) = remap[row.table] { row.table = i; true } else { false }
+                    });
+                    b.clears.retain_mut(|t| {
+                        if let Some(i) = remap[*t] { *t = i; true } else { false }
+                    });
+                    // This feed has its own union cursor; count those from the
+                    // native batch below once, not again from the observer.
+                    b.unions.clear();
+                    self.ingest(b)?;
                 }
             }
             self.ingest(batch)?;
