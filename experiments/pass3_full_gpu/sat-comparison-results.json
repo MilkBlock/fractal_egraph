@@ -1,0 +1,176 @@
+{
+  "scope": "Actual saved raytrace Pass 3; not pristine; profiling disabled; one run per configuration",
+  "controls": "out/pass3-compact-layout",
+  "runs": [
+    {
+      "directory": "out/sat-comparison-on",
+      "binary": "2db67e5cf93c80b22d1f9fcb958400fbfc715028a1b5422df524e0aef154455b",
+      "worker": "911fe04f19941ba730b24775be025235e7834ba2abd395ab69cb55836be338b5",
+      "source_head": "0ef6f980c41a0978172aadc3ae3f5bb6a28f49a2",
+      "report_sha256": "5d4be744d9eb6592aeab48c8e185bd36fde8aacc9890ed5a0ef655f05d3215b0",
+      "timing": {
+        "run_seconds": 19.339029209,
+        "setup_seconds": 3.306902584,
+        "saturation_hook_seconds": 2.207051666000001,
+        "device_seconds": 6.239460291501018,
+        "native_rhs_seconds": 3.982630304000061,
+        "event_seconds": 2.0303708370000053
+      },
+      "same_commit_graph": true,
+      "joint_toggle_graph": true,
+      "same_commit_tiger": null,
+      "comparison": {
+        "saturations": 1185,
+        "seed_evaluations": 211572,
+        "union_proposals": 89226,
+        "native_batches": 601,
+        "propagated_costs": 89226,
+        "unchanged_saturations": 584,
+        "identity_noop_seeds": 73371
+      },
+      "dataflow_runs": 1639,
+      "keyed_reads": 3149872,
+      "row_events": 2425040,
+      "union_events": 239476,
+      "comparison_bindings": 0,
+      "cell_query_bindings": 1918606
+    },
+    {
+      "directory": "out/sat-comparison-off",
+      "binary": "2db67e5cf93c80b22d1f9fcb958400fbfc715028a1b5422df524e0aef154455b",
+      "worker": "911fe04f19941ba730b24775be025235e7834ba2abd395ab69cb55836be338b5",
+      "source_head": "0ef6f980c41a0978172aadc3ae3f5bb6a28f49a2",
+      "report_sha256": "13c83cdcd4a826f8314f51c4454dcc86f98a7657a21dd9995cd81fc7626c7d2f",
+      "timing": {
+        "run_seconds": 21.058777917,
+        "setup_seconds": 3.401748875,
+        "saturation_hook_seconds": 3.8024393720000003,
+        "device_seconds": 6.174858374681207,
+        "native_rhs_seconds": 4.00536916300005,
+        "event_seconds": 2.0548698900000053
+      },
+      "same_commit_graph": true,
+      "joint_toggle_graph": true,
+      "same_commit_tiger": null,
+      "comparison": {
+        "saturations": 0,
+        "seed_evaluations": 0,
+        "union_proposals": 0,
+        "native_batches": 0,
+        "propagated_costs": 0,
+        "unchanged_saturations": 0,
+        "identity_noop_seeds": 0
+      },
+      "dataflow_runs": 3660,
+      "keyed_reads": 3959289,
+      "row_events": 2458173,
+      "union_events": 239476,
+      "comparison_bindings": 73371,
+      "cell_query_bindings": 1918606
+    },
+    {
+      "directory": "out/sat-comparison-final",
+      "binary": "99dadbaf37c2e3a9290905294b1ebdd7794f36ae5ca650b5bb463fbf2a949c90",
+      "worker": "911fe04f19941ba730b24775be025235e7834ba2abd395ab69cb55836be338b5",
+      "source_head": "0ef6f980c41a0978172aadc3ae3f5bb6a28f49a2",
+      "report_sha256": "092d1c728fcb28fae958b320485b5920491c0b441eb4351eb4175aa3e2f0fa9c",
+      "timing": {
+        "run_seconds": 19.839453917,
+        "setup_seconds": 3.142813833,
+        "saturation_hook_seconds": 3.637217748,
+        "device_seconds": 5.95630404172698,
+        "native_rhs_seconds": 3.8444603830000625,
+        "event_seconds": 1.904905108000007
+      },
+      "same_commit_graph": true,
+      "joint_toggle_graph": true,
+      "same_commit_tiger": true,
+      "comparison": null,
+      "dataflow_runs": 3660,
+      "keyed_reads": 3959289,
+      "row_events": 2458173,
+      "union_events": 239476,
+      "comparison_bindings": 73371,
+      "cell_query_bindings": 1918606
+    },
+    {
+      "directory": "out/sat-comparison-verified",
+      "binary": "2a7d90f80d997b078d7f12196df5c8d72b05b0118720be3386ab57d047f7acd8",
+      "worker": "911fe04f19941ba730b24775be025235e7834ba2abd395ab69cb55836be338b5",
+      "source_head": "0ef6f980c41a0978172aadc3ae3f5bb6a28f49a2",
+      "report_sha256": "eaf1bb5aa92da64c7af3d074862f955989a6b9d90a9f94f5d9bea9be267cc80b",
+      "timing": {
+        "run_seconds": 17.708278709,
+        "setup_seconds": 3.143282041,
+        "saturation_hook_seconds": 2.074485537,
+        "device_seconds": 5.885125958186109,
+        "native_rhs_seconds": 3.731666879000077,
+        "event_seconds": 1.7254426900000055
+      },
+      "same_commit_graph": true,
+      "joint_toggle_graph": true,
+      "same_commit_tiger": true,
+      "comparison": {
+        "saturations": 1185,
+        "seed_evaluations": 211572,
+        "union_proposals": 89226,
+        "native_batches": 601,
+        "propagated_costs": 89226,
+        "unchanged_saturations": 584,
+        "identity_noop_seeds": 73371,
+        "cost_lookups": 151307,
+        "planning_seconds": 0.22318044000000067,
+        "effect_seconds": 0.8311887240000012
+      },
+      "dataflow_runs": 1639,
+      "keyed_reads": 3301179,
+      "row_events": 2425040,
+      "union_events": 239476,
+      "comparison_bindings": 0,
+      "cell_query_bindings": 1918606
+    },
+    {
+      "directory": "out/sat-comparison-verified-off",
+      "binary": "2a7d90f80d997b078d7f12196df5c8d72b05b0118720be3386ab57d047f7acd8",
+      "worker": "911fe04f19941ba730b24775be025235e7834ba2abd395ab69cb55836be338b5",
+      "source_head": "0ef6f980c41a0978172aadc3ae3f5bb6a28f49a2",
+      "report_sha256": "5285bf02b0d1e0ae97057728b8bb3deefc82baa43cabf47fb0f207595894d51b",
+      "timing": {
+        "run_seconds": 18.633954542,
+        "setup_seconds": 3.101762042,
+        "saturation_hook_seconds": 3.328559539,
+        "device_seconds": 5.7803187083191006,
+        "native_rhs_seconds": 3.6776580210000964,
+        "event_seconds": 1.6524378090000005
+      },
+      "same_commit_graph": true,
+      "joint_toggle_graph": true,
+      "same_commit_tiger": null,
+      "comparison": {
+        "saturations": 0,
+        "seed_evaluations": 0,
+        "union_proposals": 0,
+        "native_batches": 0,
+        "propagated_costs": 0,
+        "unchanged_saturations": 0,
+        "identity_noop_seeds": 0,
+        "cost_lookups": 0,
+        "planning_seconds": 0.0,
+        "effect_seconds": 0.0
+      },
+      "dataflow_runs": 3660,
+      "keyed_reads": 3959289,
+      "row_events": 2458173,
+      "union_events": 239476,
+      "comparison_bindings": 73371,
+      "cell_query_bindings": 1918606
+    }
+  ],
+  "audit": {
+    "complete": true,
+    "queries": 478136,
+    "scope": "all queries",
+    "path": "out/sat-comparison-frontier-audit/audit.json",
+    "sha256": "1264c06ef372da0a3dd7579c1b00f321c3344fb1081189094a17c3942f4e03a9"
+  }
+}

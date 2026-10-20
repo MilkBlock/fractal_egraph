@@ -160,6 +160,9 @@ def report(path, fresh=False):
         if r.get('gpu_without_joint'):
             print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '当前检查或计时模式不报告')
             print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
+            comparison=((r['gpu'].get('saturation_diagnostics') or {}).get('joint') or {}).get('comparison_closure')
+            if comparison:
+                print('Smaller 内部饱和闭包（union_proposals 是等价请求，不是新增事实）：',comparison)
         if not m['exact_cpu_gpu']:
             print('失败原因：', r.get('same_commit_verification_error'))
     elif 'transfer_bench_verified' in r:

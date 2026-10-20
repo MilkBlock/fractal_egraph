@@ -1,5 +1,10 @@
 # Current optimization priority after Cell query reuse
 
+Latest sat-skip work: [certified comparison closure](SAT_COMPARISON.md).
+On the final same-binary ablation the joint handler fell from 3.329 to 2.074 s,
+and inference from 18.634 to 17.708 s. This closes the inner comparison fixed
+point; producer/helper dataflow and broader cross-rule query sharing remain.
+
 Follow-up: all eight pools were addressed in
 [the individual optimization report](INDIVIDUAL_OPTIMIZATIONS.md).
 Current inference is 21.265 s; device time is 6.280 s. Keep the next priorities
