@@ -137,6 +137,7 @@ pub struct Runtime {
     owners: Vec<String>,
     extended: bool,
     query_log: bool,
+    experimental_cell_runs: bool,
     device: Option<Service>,
     feed: Option<CellCommitFeed>,
     sorts: Vec<Vec<ArcSort>>,
@@ -185,6 +186,9 @@ fn collect(
     Ok(())
 }
 impl Runtime {
+    /// Opt-in research lane: Pass 3 currently fails the full-graph gate after
+    /// scalar Run elision (Smaller fact mismatch). Do not enable by default.
+    pub fn enable_experimental_cell_runs(&mut self) {self.experimental_cell_runs=true;}
     pub fn set_saturation_hook(&mut self, hook: Box<dyn SaturationHook>) {
         self.hook_table_ids = self
             .feed
@@ -340,6 +344,7 @@ impl Runtime {
             owners,
             extended,
             query_log: std::env::var_os("CELL_QUERY_LOG").is_some(),
+            experimental_cell_runs:std::env::var("CELL_EXPERIMENTAL_RUN_PROGRAMS").as_deref()==Ok("1"),
             device: None,
             feed: None,
             sorts: vec![],
@@ -711,10 +716,10 @@ impl Runtime {
         let query_start=Instant::now();
         if self.query_log {eprintln!("[query start] {} {}",self.stats.ruleset_runs,set);}
         let ids = self.sets.get(set).ok_or("unregistered ruleset")?.clone();
-        // A certified single Run has the same priority as a certified Saturate.
-        // Moving a ruleset to the GPU must not bypass its existing Cell program.
+        // Experimental single-Run Cell plans run before the ordinary GPU query.
+        // The large Pass-3 graph gate currently fails, so opt-in is required.
         let started=Instant::now();
-        let assisted=if let Some(hook)=self.saturation_hook.as_mut(){hook.try_run(&mut self.eg,set)?}else{None};
+        let assisted=if self.experimental_cell_runs {if let Some(hook)=self.saturation_hook.as_mut(){hook.try_run(&mut self.eg,set)?}else{None}}else{None};
         if let Some(report)=assisted {
             self.stats.cell_run_calls+=1;
             self.stats.cell_run_seconds+=started.elapsed().as_secs_f64();
@@ -951,6 +956,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"selected_rule_count":self.sinks.len(),"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"experimental_cell_run_programs":self.experimental_cell_runs,"selected_rule_count":self.sinks.len(),"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

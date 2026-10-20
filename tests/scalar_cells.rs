@@ -273,6 +273,7 @@ fn full_gpu_partition_preserves_certified_single_run_and_publishes_its_delta() {
     let mut reference=base.clone();
     let mut cell=table_live::Runtime::new_full(base.clone(),&commands,Some(std::path::Path::new(&worker)),true,None).unwrap();
     cell.set_saturation_hook(Box::new(hook));
+    cell.enable_experimental_cell_runs();
     for input in [
         "(Bop (Add) (V 0) (V 1)) (set (Size (V 0)) 2) (set (Size (V 1)) 3)",
         "", "(set (Size (V 1)) 1)", "", "(union (V 0) (V 1))", "",

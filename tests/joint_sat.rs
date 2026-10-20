@@ -435,4 +435,5 @@ fn full_gpu_dispatch_keeps_joint_skip_and_observes_macro_effects() {
     assert!(r["runtime"]["skipped_saturations"].as_u64().unwrap()>0);
     assert!(r["rules"].as_array().unwrap().iter().any(|q|q["ruleset"]=="boundary" && q["stats"]["emitted_bindings"].as_u64().unwrap()>0));
     assert_eq!(r["extended_queries"],true);
+    assert_eq!(r["experimental_cell_run_programs"],false);
 }
