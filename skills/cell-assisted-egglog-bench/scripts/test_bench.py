@@ -63,6 +63,19 @@ class WorkflowTests(unittest.TestCase):
             (folder/'report.json').write_text(json.dumps(r))
             self.assertIsNone(B.reusable_result(a, root, worker, env))
 
+    def test_explicit_control_cache_fingerprints_the_saved_proof(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            a,worker,env,folder=self.make_cache(root)
+            a.reuse_controls=folder
+            (folder/'graphs').mkdir()
+            for lane in ['native','cpu']:
+                (folder/'graphs'/f'{lane}.control.json').write_text('{}')
+            before=B.inference_identity(a,root,worker,env)
+            self.assertIsNotNone(before)
+            (folder/'graphs/cpu.control.json').write_text('{"changed":true}')
+            self.assertNotEqual(before,B.inference_identity(a,root,worker,env))
+
     def test_old_provenance_is_history_not_current_binary_certification(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

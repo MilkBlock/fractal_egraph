@@ -3,21 +3,23 @@
 use cell_assisted_egglog::table_live::Runtime;
 use egglog::{ArcSort, CommandOutput, EGraph, Value, ast::Command};
 use serde_json::{Value as Json, json};
+use serde::{Serialize,Deserialize};
+use egglog_numeric_id::NumericId;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
     time::Instant,
 };
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize)]
 enum Atom {
-    Eq(String, Value),
+    Eq(String, u32),
     Base(String, String),
 }
 type Row = (String, Vec<Atom>, Atom, bool);
 fn atom(eg: &EGraph, v: Value, s: &ArcSort) -> Result<Atom> {
     if s.is_eq_sort() {
-        return Ok(Atom::Eq(s.name().into(), eg.get_canonical_value(v, s)));
+        return Ok(Atom::Eq(s.name().into(), eg.get_canonical_value(v, s).rep()));
     }
     let text = match s.name() {
         "i64" => eg.value_to_base::<i64>(v).to_string(),
@@ -86,8 +88,8 @@ pub fn equal_except(base: &EGraph, a: &EGraph, b: &EGraph, omitted: &[&str]) -> 
             if let Atom::Eq(sort, value) = v {
                 let s = a.get_sort_by_name(&sort).ok_or("missing equality sort")?;
                 pair(
-                    atom(a, value, &s)?,
-                    atom(b, value, &s)?,
+                    atom(a, Value::new_const(value), &s)?,
+                    atom(b, Value::new_const(value), &s)?,
                     &mut map,
                     &mut inverse,
                 )?;
@@ -102,6 +104,9 @@ pub fn equal_except(base: &EGraph, a: &EGraph, b: &EGraph, omitted: &[&str]) -> 
         .into_iter()
         .filter(|r| !omitted.contains(&r.0.as_str()))
         .collect::<Vec<_>>();
+    equal_rows(left,right,map,inverse)
+}
+fn equal_rows(left:Vec<Row>,right:Vec<Row>,mut map:BTreeMap<Atom,Atom>,mut inverse:BTreeMap<Atom,Atom>)->Result<Json>{
     let counts = |rows: &[Row]| {
         let mut out = BTreeMap::<String, usize>::new();
         for (op, ..) in rows {
@@ -174,6 +179,30 @@ pub fn equal_except(base: &EGraph, a: &EGraph, b: &EGraph, omitted: &[&str]) -> 
         json!({"exact_rows_values_equivalence_visibility":true,"rows":total,"eclass_mapping":map.len(),"tables":lc}),
     )
 }
+#[derive(Serialize,Deserialize)]
+struct ExactControl { initial:Vec<Row>, anchors:Vec<(Atom,Atom)>, rows:Vec<Row> }
+fn save_control(path:&Path,base:&EGraph,eg:&EGraph)->Result<()> {
+    let mut initial=snapshot(base)?;initial.sort();
+    let mut anchors=BTreeMap::new();
+    for (_,args,result,_) in &initial {for v in args.iter().chain([result]) {if let Atom::Eq(sort,id)=v {
+        anchors.insert(v.clone(),atom(eg,Value::new_const(*id),eg.get_sort_by_name(sort).ok_or("missing control sort")?)?);
+    }}}
+    let packet=ExactControl{initial,anchors:anchors.into_iter().collect(),rows:snapshot(eg)?};
+    let mut writer=std::io::BufWriter::new(std::fs::File::create(path)?);
+    serde_json::to_writer(&mut writer,&packet)?;std::io::Write::flush(&mut writer)?;Ok(())
+}
+fn equal_control(path:&Path,base:&EGraph,eg:&EGraph)->Result<Json>{
+    let saved:ExactControl=serde_json::from_reader(std::io::BufReader::new(std::fs::File::open(path)?))?;
+    let mut initial=snapshot(base)?;initial.sort();
+    if initial!=saved.initial{return Err("cached control has a different frozen input".into())}
+    let (mut map,mut inverse)=(BTreeMap::new(),BTreeMap::new());
+    for (old,then) in saved.anchors {
+        let Atom::Eq(sort,id)=old else{return Err("invalid control anchor".into())};
+        let now=atom(eg,Value::new_const(id),eg.get_sort_by_name(&sort).ok_or("missing control sort")?)?;
+        pair(then,now,&mut map,&mut inverse)?;
+    }
+    equal_rows(saved.rows,snapshot(eg)?,map,inverse)
+}
 fn graph_sizes(eg: &EGraph) -> Result<Json> {
     let mut nodes = BTreeMap::<String, usize>::new();
     let mut classes = BTreeMap::<String, BTreeSet<Value>>::new();
@@ -204,7 +233,7 @@ pub fn extraction_costs(base: &EGraph, a: &EGraph, b: &EGraph) -> Result<Json> {
         for atom in args.into_iter().chain([result]) {
             if let Atom::Eq(sort, v) = atom {
                 if sort == "Expr" {
-                    anchors.insert(v);
+                    anchors.insert(Value::new_const(v));
                 }
             }
         }
@@ -343,7 +372,42 @@ pub fn benchmark_hybrid_export_joint(
     )
 }
 pub fn benchmark_all_export(base:&EGraph,commands:&[Command],worker:&Path,dest:&Path,selected:&[String],exports:&Path,checked:bool,hook:Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>)->Result<()>{
+    if let Some(path)=std::env::var_os("CELL_BENCH_REUSE_CONTROLS") {
+        return benchmark_reusing_controls(base,commands,worker,dest,selected,exports,checked,hook,Path::new(&path));
+    }
     benchmark_impl(base,commands,"complete Pass 3, all original rules on GPU",worker,checked,dest,Some(selected),false,Some(exports),hook,true)
+}
+fn benchmark_reusing_controls(base:&EGraph,commands:&[Command],worker:&Path,dest:&Path,selected:&[String],exports:&Path,checked:bool,hook:Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>,directory:&Path)->Result<()>{
+    let directory=directory.canonicalize()?;
+    let mut report:Json=serde_json::from_reader(std::fs::File::open(directory.join("report.json"))?)?;
+    if report["schedule"]!=json!(commands.iter().map(ToString::to_string).collect::<Vec<_>>()) || report["assisted_rulesets"]!=json!(selected){return Err("cached control schedule/partition differs".into())}
+    if !report["same_commit_verification"].is_object(){return Err("cached CPU/GPU control was not validated".into())}
+    let joint=hook.is_some();
+    if report["gpu_without_joint"].is_object()!=joint{return Err("cached control Cell mode differs".into())}
+    for name in ["native","cpu"].into_iter().chain(joint.then_some("gpu-off")) {if !directory.join(format!("graphs/{name}.control.json")).is_file(){return Err("cached control lacks exact facts/anchors; generate one complete reference first".into())}}
+    let mut runtime=Runtime::new_full(base.clone(),commands,Some(worker),checked,Some(selected))?;
+    if let Some(hook)=hook {runtime.set_saturation_hook(hook);}
+    runtime.run(commands)?;
+    for (name,field) in [("native","verification"),("cpu","same_commit_verification")].into_iter().chain(joint.then_some(("gpu-off","joint_verification"))) {
+        let proof=equal_control(&directory.join(format!("graphs/{name}.control.json")),base,runtime.engine());
+        report[field]=proof.as_ref().map_or(Json::Null,|v|v.clone());
+        let error=if field=="verification"{"verification_error".to_string()}else{format!("{field}_error")};
+        report[error]=proof.err().map_or(Json::Null,|e|json!(e.to_string()));
+    }
+    report["complete"]=json!(report["verification"].is_object());report["benchmark_finished"]=json!(true);
+    report["gpu"]=runtime.report();report["gpu_graph"]=graph_sizes(runtime.engine())?;
+    report["reused_controls"]=json!({"directory":directory,"lanes":if joint{vec!["native","cpu","gpu-off"]}else{vec!["native","cpu"]},"times":"historical unchanged controls; candidate and all exact graph checks are fresh"});
+    for k in ["quality","quality_error","same_commit_quality","same_commit_quality_error","projection_without_smaller","projection_error","native_continuation_unchanged","continuation_error","continuation_seconds_excluded","gpu_clone_seconds_excluded"]{report.as_object_mut().unwrap().remove(k);}
+    std::fs::write(dest,serde_json::to_vec_pretty(&report)?)?;
+    std::fs::create_dir_all(exports)?;
+    for name in ["native","cpu"] {
+        #[cfg(unix)] std::os::unix::fs::symlink(directory.join(format!("graphs/{name}.json")),exports.join(format!("{name}.json")))?;
+        #[cfg(not(unix))] std::fs::copy(directory.join(format!("graphs/{name}.json")),exports.join(format!("{name}.json")))?;
+    }
+    let graph=runtime.engine().serialize(egglog::SerializeConfig::default());if !graph.is_complete(){return Err("truncated candidate graph".into())}
+    let mut writer=std::io::BufWriter::new(std::fs::File::create(exports.join("gpu.json"))?);
+    serde_json::to_writer_pretty(&mut writer,&graph.egraph)?;std::io::Write::flush(&mut writer)?;
+    Ok(())
 }
 fn benchmark_impl(
     base: &EGraph,
@@ -448,6 +512,10 @@ fn benchmark_impl(
     std::fs::write(dest, serde_json::to_vec_pretty(&output)?)?;
     if let Some(directory) = exports {
         std::fs::create_dir_all(directory)?;
+        if full_queries {
+            for (name,e) in [("native",&native),("cpu",ordered.engine())] {save_control(&directory.join(format!("{name}.control.json")),base,e)?;}
+            if let Some((_,e))=&gpu_without_joint {save_control(&directory.join("gpu-off.control.json"),base,e)?;}
+        }
         for (name, engine) in [
             ("native", &native),
             ("cpu", ordered.engine()),
@@ -603,12 +671,39 @@ mod tests {
         b.parse_and_run_program(None, "(N 2) (N 1) (Pair (N 1) (N 2)) (set (Cost (N 1)) 3)")
             .unwrap();
         equal(&base, &a, &b).unwrap();
+        let cache=std::env::temp_dir().join(format!("cell-control-{}-{}.json",std::process::id(),std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));
+        save_control(&cache,&base,&a).unwrap();
+        equal_control(&cache,&base,&b).unwrap();
+        let mut other=base.clone();other.parse_and_run_program(None,"(N 9)").unwrap();
+        assert!(equal_control(&cache,&other,&b).is_err());
         let mut bad = b.clone();
         bad.parse_and_run_program(None, "(union (N 1) (N 2))")
             .unwrap();
         assert!(equal(&base, &a, &bad).is_err());
+        assert!(equal_control(&cache,&base,&bad).is_err());
         b.parse_and_run_program(None, "(set (Cost (N 1)) 2)")
             .unwrap();
         assert!(equal(&base, &a, &b).is_err());
+        assert!(equal_control(&cache,&base,&b).is_err());
+        std::fs::remove_file(cache).unwrap();
     }
+    #[test]
+    fn cached_controls_recheck_a_fresh_gpu_without_running_old_lanes() {
+        let Some(worker)=std::env::var_os("CELL_MATRIX_WORKER") else{return};
+        let mut base=EGraph::default();
+        base.parse_and_run_program(None,"(datatype E (N i64) (P E E)) (ruleset s) (rewrite (P a b) (P b a) :ruleset s) (P (N 0) (N 1))").unwrap();
+        let commands=base.parse_program(None,"(run s 2)").unwrap();
+        let path=std::env::temp_dir().join(format!("cell-control-run-{}",std::process::id()));
+        std::fs::create_dir(&path).unwrap();let first=path.join("first");let second=path.join("second");
+        std::fs::create_dir(&first).unwrap();std::fs::create_dir(&second).unwrap();
+        let selected=vec!["s".to_string()];
+        benchmark_impl(&base,&commands,"cache correctness fixture",Path::new(&worker),false,&first.join("report.json"),Some(&selected),false,Some(&first.join("graphs")),None,true).unwrap();
+        benchmark_reusing_controls(&base,&commands,Path::new(&worker),&second.join("report.json"),&selected,&second.join("graphs"),false,None,&first).unwrap();
+        let a:Json=serde_json::from_reader(std::fs::File::open(first.join("report.json")).unwrap()).unwrap();
+        let b:Json=serde_json::from_reader(std::fs::File::open(second.join("report.json")).unwrap()).unwrap();
+        assert_eq!(a["native"],b["native"]);assert_eq!(a["sorted_commit_cpu"],b["sorted_commit_cpu"]);
+        assert!(b["same_commit_verification"].is_object());assert!(b["verification"].is_object());assert!(b["reused_controls"].is_object());
+        std::fs::remove_dir_all(path).unwrap();
+    }
+
 }

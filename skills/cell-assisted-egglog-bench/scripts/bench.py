@@ -46,10 +46,17 @@ def inference_identity(a, repo, worker, env):
     resolve = lambda p: p if p.is_absolute() else repo / p
     if not binary.is_file() or not worker.is_file():
         return None
+    controls = {}
+    if getattr(a, 'reuse_controls', None):
+        folder = resolve(a.reuse_controls)
+        for name in ['report.json', 'workflow.json', 'graphs/native.control.json', 'graphs/cpu.control.json'] + (['graphs/gpu-off.control.json'] if a.joint_sat else []):
+            file = folder/name
+            if not file.is_file(): return None
+            controls[name] = sha(file)
     configuration = {k: v for k, v in sorted(env.items())
                      if k.startswith(('RAYON_', 'EGGLOG_', 'CELL_', 'MTL_', 'DYLD_', 'OMP_'))}
     return dict(version=1, snapshot=sha(resolve(a.snapshot)), binary=sha(binary),
-                worker=sha(worker), policy=a.policy, joint=a.joint_sat, all_rules=a.all_rules,
+                worker=sha(worker), policy=a.policy, joint=a.joint_sat, all_rules=a.all_rules, controls=controls,
                 machine=[platform.node(), platform.system(), platform.release(), platform.machine()],
                 environment_sha256=hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest())
 
@@ -144,6 +151,7 @@ def report(path, fresh=False):
         print('有效推理加速比：', f"{m['inference_speedup']:.4f}x" if m['timing_eligible'] else '不报告（整图门槛失败或这是 audit）')
         if m['inference_plus_tiger_speedup'] is not None:
             print(f"推理＋Tiger：{m['inference_plus_tiger_speedup']:.4f}x")
+        if r.get('reused_controls'): print('复用历史对照：', r['reused_controls']['directory'], '；本次仅运行 GPU 候选并重新核对完整图。')
         print('以上不含序列化、诊断、共享输入准备；worker setup 见原始报告。当前 fork，不是 pristine。')
         print('由 Cell handler 完成的饱和边界（含显式 dataflow 推进）：', r['gpu']['runtime'].get('skipped_saturations', 0))
         print('由 Cell 计划完成的普通 Run：', r['gpu']['runtime'].get('cell_run_calls', 0))
@@ -232,6 +240,7 @@ def parser():
             q.add_argument('--no-extract', action='store_true')
             q.add_argument('--joint-sat', action='store_true')
             q.add_argument('--all-rules', action='store_true')
+            q.add_argument('--reuse-controls', type=Path, help='reuse saved exact native/CPU/GPU-off controls; all-rules only')
             q.add_argument('--refresh', action='store_true', help='remeasure even if an identical verified result exists')
         if mode == 'audit':
             q.add_argument('--three-lane-check', action='store_true')
@@ -375,6 +384,13 @@ def main(argv=None):
     if a.mode in ['build', 'extract'] or (a.mode == 'run' and not a.no_extract): targets += ['tiger_output_check']
     build = ['cargo', 'build', '--offline', '--release', '--target-dir', 'target/analyzer'] + [x for t in targets for x in ['--example', t]]
     env = dict(os.environ, RAYON_NUM_THREADS='1', EGGLOG_PROBE_COUNTS_OFF='1', CELL_MATRIX_WORKER=str(worker))
+    if getattr(a, 'reuse_controls', None):
+        if not a.all_rules: raise ValueError('--reuse-controls requires --all-rules')
+        folder=resolve(a.reuse_controls)
+        if not a.dry_run:
+            previous=load(folder/'workflow.json')
+            if previous.get('snapshot_sha256')!=sha(resolve(a.snapshot)) or previous.get('policy')!=a.policy: raise ValueError('control input/choice policy differs')
+        env['CELL_BENCH_REUSE_CONTROLS']=str(folder)
     if a.mode == 'test': env['RAYON_NUM_THREADS'] = '4'
     for name in ['inspect', 'open']:
         if getattr(a, name, None): env['PASS3_DIFF_' + name.upper()] = getattr(a, name)

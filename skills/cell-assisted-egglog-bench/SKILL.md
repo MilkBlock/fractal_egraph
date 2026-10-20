@@ -16,7 +16,8 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 - 先用 `history --joint-sat` 找同输入、同选择策略、同实验模式的已通过记录，再 `report 目录`。去掉 `--joint-sat` 查普通 GPU 对照。按最近的适用版本选择基准，不挑最快一次。
 - 未改变的 CPU、GPU-off、输入准备、Tiger 结果可作为历史对照。保留其目录、版本、配置和时间，不把历史时间写成这次新测。候选实现改变时，旧结果不能证明新实现正确。
 - `run` 在增量构建后，若输入、实际 Rust/worker 二进制、策略、joint 开关、记录的运行配置和机器一致，会直接返回已验证结果；不重新推理、不创建新的 output 目录。需要 Tiger 时，还核对提取工具与参照输出的指纹。`--refresh` 才强制重测。
-- 旧记录没有完整自动复用指纹时，仍可用 `history/report` 作历史证据，但不自动冒充当前二进制的结果。只补测改变或缺失的部分。当前 Rust `run` 在缓存未命中时仍是完整多路径验证；不要为了只问一个历史数字就调用它，也不要把它说成已支持逐路径缓存。
+- 完整 `run --all-rules` 会保存原生、同提交协议 CPU、GPU-off 的完整事实及冻结输入锚点。后续用 `run --all-rules --joint-sat --reuse-controls 旧目录` 只运行新 GPU 候选，重新核对完整事实、值、等价关系和可见性；旧时间明确标为历史。要求输入、调度、分区和选择策略相同，且旧 CPU/GPU 图检查通过。旧目录缺少 `graphs/*.control.json` 时不能使用此模式。
+- 缓存校验使用完整结构比较，不以哈希代替判等。native/CPU 的 Tiger 结果只在提取器和输入/输出指纹均一致时复用；新 GPU 的提取与检查仍执行。只读询问仍用 `report`，不调用 `run`。
 - 基线二进制、输入/调度、线程/worker、选择策略或验证口径改变时，先判断哪部分对照受影响；只有受影响的结果才需要刷新。公共内核变化可能同时影响 CPU 和 GPU。
 
 ## 常用入口
@@ -29,6 +30,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 | 真实 raytrace Pass 3 稳定选择计时＋整图检查＋Tiger | `run --output out/新目录` |
 | 所有原始 Pass-3 规则交给 GPU，同时保留 Cell sat-skip | `run --all-rules --joint-sat --output out/新目录` |
 | 全规则 GPU 剩余查询逐批核对 | `audit --all-rules --joint-sat --output out/新目录` |
+| 只运行全规则 GPU 新候选，复用完整对照 | `run --all-rules --joint-sat --reuse-controls 旧目录 --output out/新目录` |
 | 完整 Pass 3 的 joint sat-skip 对照 | `run --joint-sat --output out/新目录` |
 | 只跑推理、推迟 Tiger | `run --output out/新目录 --no-extract` |
 | 补做已有图的真实提取检查 | `extract 分析目录` |
@@ -72,3 +74,5 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 可重复性和正确性是两件事。不要声称原生 egglog 无条件保证“同输入/二进制/线程数逐字节相同”，也不要要求 GPU 模仿原生所有匹配顺序。现有严格整图检查是回归检查口径，并非 egglog 的通用语义规范；放宽为可观察结果检查时，必须先定义哪些辅助表不再可观察、仍能保证后续规则/提取不受影响，另标检查模式，不能把旧失败结果直接改成通过。普通 Run 的阶段边界、顺序敏感 merge、失败行为不能用“不确定性”一笔带过。输出等价性、提取质量与独立重放确定性分别报告。
 
 差异定位、sat-skip 小样例和报告字段的细节只在需要时读 [references/modes.md](references/modes.md)。交付给用户以结果、限制、报告链接为主；复现时给这个统一入口即可，不再反复展开整段底层命令。
+
+仅在 `CELL_QUERY_TIMINGS=1` 诊断模式下，查询耗时按 ruleset 保存在 `gpu.query_costs_by_ruleset`：`query_seconds` 包含交接和解码，`device_seconds` 来自 worker；两者不能相加。用这份分解决定下一项优化，不从逻辑 match 次数推算 probe 成本。

@@ -300,6 +300,7 @@ version = "0.1.0"
 dependencies = [
  "cell-assisted-egglog",
  "egglog",
+ "egglog-numeric-id",
  "egglog-reports",
  "getrandom 0.3.4",
  "rayon",

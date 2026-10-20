@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import shutil
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -25,9 +26,21 @@ def main():
     output = a.run / 'extraction'
     output.mkdir(exist_ok=False)
     records = []
+    report_path = a.run / 'report.json'
+    report = json.loads(report_path.read_text()) if report_path.is_file() else {}
+    old = report.get('reused_controls', {}).get('directory')
+    old = Path(old) / 'extraction' if old else None
+    timing = json.loads((old / 'timing.json').read_text()) if old and (old / 'timing.json').is_file() else {}
+    tiger_hash = sha(a.tiger)
     for lane in ['native', 'cpu', 'gpu']:
         graph = a.run / 'graphs' / (lane + '.json')
         target = output / (lane + '.egg')
+        cached = next((r for r in timing.get('runs', []) if r['lane'] == lane), None)
+        if lane != 'gpu' and cached and timing.get('tiger_sha256') == tiger_hash and cached.get('returncode') == 0 and cached.get('input_sha256') == sha(graph) and (old / (lane + '.egg')).is_file() and cached.get('output_sha256') == sha(old / (lane + '.egg')):
+            shutil.copyfile(old / (lane + '.egg'), target)
+            records.append(dict(cached, reused_from=str(old)))
+            (output / 'timing.json').write_text(json.dumps(dict(tiger=str(a.tiger), tiger_sha256=tiger_hash, runs=records), indent=2) + '\n')
+            continue
         # Match production's serde_json::to_string_pretty contract. Its C++
         # reader tokenizes whitespace, so compact JSON is not accepted.
         pretty = output / (lane + '.input-pretty.json')
