@@ -409,3 +409,30 @@ fn a_pending_smaller_alias_cannot_certify_an_immutable_cost() {
         0
     );
 }
+
+#[test]
+fn full_gpu_dispatch_keeps_joint_skip_and_observes_macro_effects() {
+    use cell_assisted_egglog::table_live;
+    let Some(worker)=std::env::var_os("CELL_MATRIX_WORKER") else{return};
+    let source=format!("{SOURCE}\n(relation Seen (Expr i64)) (ruleset boundary)\n(rule ((= tc (ExtractedExpr e)) (= tc (TCPair t n)) (> n 0) (= m (+ n 1))) ((Seen e m)) :ruleset boundary)");
+    let (base,observer)=Runtime::new_joint(&source).unwrap().detach_joint().unwrap();
+    let commands=base.clone().parse_program(None,&format!("{SCHEDULE} (run boundary 1)")).unwrap();
+    let mut reference=table_live::Runtime::new_full(base.clone(),&commands,None,false,None).unwrap();
+    let mut cell=table_live::Runtime::new_full(base.clone(),&commands,Some(std::path::Path::new(&worker)),true,None).unwrap();
+    cell.set_saturation_hook(Box::new(observer));
+    for input in [
+        "(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3)) (Bop (Add) (V 0) (V 1))",
+        "(Bop (Mul) (Bop (Add) (V 0) (V 1)) (V 0))",
+        "(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 9) 1))",
+        "(union (V 0) (V 1))",
+        "",
+    ] {
+        reference.input(input).unwrap();cell.input(input).unwrap();
+        reference.run(&commands).unwrap();cell.run(&commands).unwrap();
+        compare::equal(&base,reference.engine(),cell.engine()).unwrap();
+    }
+    let r=cell.report();
+    assert!(r["runtime"]["skipped_saturations"].as_u64().unwrap()>0);
+    assert!(r["rules"].as_array().unwrap().iter().any(|q|q["ruleset"]=="boundary" && q["stats"]["emitted_bindings"].as_u64().unwrap()>0));
+    assert_eq!(r["extended_queries"],true);
+}

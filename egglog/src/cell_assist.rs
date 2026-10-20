@@ -16,6 +16,9 @@ pub(crate) fn next_cell_environment_stamp()->u64{
 #[path = "cell_assist_check.rs"]
 mod check;
 pub use check::{CellI64Check, CellI64CheckReport, CellI64Group, CellI64Proposal};
+#[path = "cell_assist_primitives.rs"]
+mod primitives;
+pub use primitives::CellPrimitive;
 
 #[derive(Clone, Debug)]
 pub enum CellOperand {
@@ -47,6 +50,8 @@ pub struct CellActionSink {
     /// Structural candidate interface: all pure numeric residuals are evaluated
     /// by the original native query inside the action sink, not on the caller.
     pub native_residuals: bool,
+    pub primitives: Vec<CellPrimitive>,
+    pub primitive_slots: usize,
     vars: Vec<ResolvedVar>,
     decided: FunctionId,
     action: RuleId,
@@ -62,6 +67,7 @@ pub struct CellQuery {
     rows: Arc<std::sync::Mutex<Vec<Vec<Value>>>>,
 }
 impl CellActionSink {
+    pub fn device_slots(&self)->usize { self.vars.len()+self.primitive_slots }
     pub fn slots(&self) -> Vec<(&str, &str)> {
         self.vars
             .iter()
@@ -185,15 +191,18 @@ impl EGraph {
         ruleset: &str,
         name: &str,
     ) -> Result<CellActionSink, Error> {
-        self.prepare_cell_action_impl(ruleset,name,false)
+        self.prepare_cell_action_impl(ruleset,name,false,false)
+    }
+    pub fn prepare_gpu_cell_action(&mut self,ruleset:&str,name:&str)->Result<CellActionSink,Error>{
+        self.prepare_cell_action_impl(ruleset,name,false,true)
     }
 
     /// Compile an exact table-part frontier. Native +/comparison primitives
     /// bind derived values and filter candidates before the original RHS runs.
     pub fn prepare_cell_candidate_action(&mut self,ruleset:&str,name:&str)->Result<CellActionSink,Error>{
-        self.prepare_cell_action_impl(ruleset,name,true)
+        self.prepare_cell_action_impl(ruleset,name,true,false)
     }
-    fn prepare_cell_action_impl(&mut self,ruleset:&str,name:&str,native_residuals:bool)->Result<CellActionSink,Error>{
+    fn prepare_cell_action_impl(&mut self,ruleset:&str,name:&str,native_residuals:bool,extended:bool)->Result<CellActionSink,Error>{
         let fail = |s: &str| Error::BackendError(s.into());
         if self.are_proofs_enabled() || self.proof_state.original_typechecking.is_some() {
             return Err(fail("Cell assistance does not support proof/term encoding"));
@@ -217,7 +226,7 @@ impl EGraph {
                 .collect(),
         };
         let vars: Vec<_> = table_body.get_vars().into_iter().collect();
-        if vars.is_empty() {
+        if vars.is_empty() && !extended {
             return Err(fail("Cell query requires a table-bound interface"));
         }
         let operand = |a: &ResolvedAtomTerm| -> Result<CellOperand, Error> {
@@ -240,7 +249,7 @@ impl EGraph {
         for atom in &rule.body.atoms {
             match &atom.head {
                 ResolvedCall::Func(f) => {
-                    if self.functions[&f.name].decl.internal_let {
+                    if self.functions[&f.name].decl.internal_let && !extended {
                         return Err(fail("global evidence is not supported"));
                     }
                     atoms.push(CellQueryAtom {
@@ -254,6 +263,7 @@ impl EGraph {
                     });
                 }
                 ResolvedCall::Primitive(p) => {
+                    if extended { residual_atoms.push(atom.clone()); continue; }
                     if native_residuals {
                         if !matches!(p.name(),"+"|"<"|">"|"<="|">=") || p.input().len()!=2 || p.input().iter().any(|s|s.name()!="i64") || (p.output().name()!="i64" && p.output().name()!="Unit") {
                             return Err(fail("unsupported native candidate residual"));
@@ -293,6 +303,7 @@ impl EGraph {
             use crate::core::GenericCoreAction as A;
             match action {
                 A::Union(..) | A::LetAtomTerm(..) | A::Let(..) | A::Set(..) | A::Panic(..) => (),
+                A::Change(..) if extended => (),
                 A::Change(..) => return Err(fail("destructive RHS actions are not supported")),
             }
         }
@@ -304,6 +315,7 @@ impl EGraph {
         {
             return Err(fail("RHS has a value absent from the query interface"));
         }
+        let (primitives,primitive_slots)=if extended {primitives::compile(self,&rule.body,&vars)?}else{(vec![],0)};
         let unit = self.backend.base_values().get(());
         let decided = self.backend.add_table(FunctionConfig {
             schema: vars
@@ -358,6 +370,8 @@ impl EGraph {
             atoms,
             guards,
             native_residuals,
+            primitives,
+            primitive_slots,
             vars,
             decided,
             action: actions[0],
@@ -414,6 +428,12 @@ impl EGraph {
     /// independent CPU/audit query at the acknowledged ORIGINAL rule frontier;
     /// ordinary GPU batches must never use this to hide missing candidates.
     pub fn sync_cell_query_after_saturation(&mut self, sink:&CellActionSink, query:&CellQuery) {
+        self.sync_cell_query_after_native_run(sink,query);
+    }
+    /// A certified single-Run program has executed the ORIGINAL native rule
+    /// frontier. Synchronize the independent query, never advance the original.
+    /// This must not acknowledge an unchecked ordinary GPU candidate batch.
+    pub fn sync_cell_query_after_native_run(&mut self,sink:&CellActionSink,query:&CellQuery) {
         let epoch=self.backend.rule_last_run_value(sink.original);
         self.backend.complete_external_queries(&[query.rule],epoch);
     }
@@ -508,7 +528,7 @@ impl EGraph {
                 return Ok(false);
             }
         }
-        Ok(true)
+        primitives::hold(self,sink,binding)
     }
 
     /// Diagnostic oracle ONLY: runs the full native query, without its actions.

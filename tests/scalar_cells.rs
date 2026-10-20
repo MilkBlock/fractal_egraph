@@ -263,3 +263,26 @@ fn new_public_functions_invalidate_the_closed_cost_universe() {
     engine.parse_and_run_program(None,"(constructor Foreign (TermAndCost) TermAndCost)").unwrap();
     assert_ne!(before,engine.cell_rule_environment_stamp());
 }
+
+#[test]
+fn full_gpu_partition_preserves_certified_single_run_and_publishes_its_delta() {
+    let Some(worker)=std::env::var_os("CELL_MATRIX_WORKER")else{return};
+    let src=format!("{} (relation Export (Expr i64)) (ruleset outside) (rule ((Seen e n) (> n 0)) ((Export e n)) :ruleset outside)",source());
+    let (mut base,hook)=Runtime::new_joint(&src).unwrap().detach_joint().unwrap();
+    let commands=base.parse_program(None,"(run work 1) (run outside 1)").unwrap();
+    let mut reference=base.clone();
+    let mut cell=table_live::Runtime::new_full(base.clone(),&commands,Some(std::path::Path::new(&worker)),true,None).unwrap();
+    cell.set_saturation_hook(Box::new(hook));
+    for input in [
+        "(Bop (Add) (V 0) (V 1)) (set (Size (V 0)) 2) (set (Size (V 1)) 3)",
+        "", "(set (Size (V 1)) 1)", "", "(union (V 0) (V 1))", "",
+    ] {
+        reference.parse_and_run_program(None,input).unwrap();cell.input(input).unwrap();
+        reference.run_program(commands.clone()).unwrap();cell.run(&commands).unwrap();
+        compare::equal(&base,&reference,cell.engine()).unwrap();
+    }
+    let r=cell.report();
+    assert_eq!(r["runtime"]["cell_run_calls"],6);
+    assert_eq!(r["rules"].as_array().unwrap().iter().filter(|q|q["ruleset"]=="work").map(|q|q["stats"]["emitted_bindings"].as_u64().unwrap()).sum::<u64>(),0);
+    assert!(r["rules"].as_array().unwrap().iter().any(|q|q["ruleset"]=="outside"&&q["stats"]["emitted_bindings"].as_u64().unwrap()>0));
+}

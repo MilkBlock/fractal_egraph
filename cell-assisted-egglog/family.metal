@@ -19,7 +19,10 @@ kernel void family_index(CTX,uint i [[thread_position_in_grid]]){
  uint r=E(e,0);
  for(uint sp=0;sp<NI;sp++){
   uint at=SPEC+sp*(2+C);if(code[at]!=R(r,0))continue;uint h=0x31415926u;
-  for(uint j=0;j<code[at+1];j++)h=mixkey(h^R(r,4+code[at+2+j]));
+  for(uint j=0;j<code[at+1];j++){uint col=code[at+2+j];
+   if(HAS_PRIMITIVES && code[TABLE_I64+R(r,0)*C+col]){h=mixkey(h^R(r,4+C+2*col));h=mixkey(h^R(r,5+C+2*col));}
+   else h=mixkey(h^R(r,4+col));
+  }
   links[e*NI+sp]=atomic_exchange_explicit(heads+sp*cfg[4]+(h&(cfg[4]-1)),e,memory_order_relaxed);
  }
 }
@@ -27,8 +30,11 @@ bool bind_atom(device const uint* code,device uint* rows,uint q,uint part,uint r
  uint at=ATOM+(q*P+part)*(2+2*C);if(R(row,0)!=code[at])return false;
  for(uint col=0;col<code[at+1];col++){
   uint kind=code[at+2+2*col],s=code[at+3+2*col],x=R(row,4+col);
-  if(kind==1){if(x!=s)return false;}else{if(bound[s] && v[s]!=x)return false;v[s]=x;lo[s]=R(row,4+C+2*col);hi[s]=R(row,5+C+2*col);bound[s]=1;}
- }return true;
+  if(kind==1){if(x!=s)return false;}else{
+   if(bound[s]==1 && v[s]!=x)return false;
+   if(bound[s]==2 && (lo[s]!=R(row,4+C+2*col)||hi[s]!=R(row,5+C+2*col)))return false;
+   v[s]=x;lo[s]=R(row,4+C+2*col);hi[s]=R(row,5+C+2*col);bound[s]=1;}
+ }return primitive_constraints(code,q,v,lo,hi,bound,false);
 }
 // Only observed anchor bindings have a record. No row x plan address space.
 uint cell_lookup(device const uint* rowCells,device const uint* instanceMeta,uint row,uint cp){
@@ -36,6 +42,10 @@ uint cell_lookup(device const uint* rowCells,device const uint* instanceMeta,uin
  return NO;
 }
 bool emit_match(device const uint* code,device uint* output,device atomic_uint* counters,constant uint* cfg,uint q,thread const uint* v,thread const uint* lo,thread const uint* hi){
+#if HAS_PRIMITIVES
+ uint pv[S],pl[S],ph[S],pb[S];for(uint s=0;s<S;s++){pv[s]=v[s];pl[s]=lo[s];ph[s]=hi[s];pb[s]=uint(s<code[QMETA+q*3+1]);}
+ if(!primitive_constraints(code,q,pv,pl,ph,pb,true))return false;
+#endif
  for(uint j=0;j<code[QMETA+q*3+2];j++){
   uint at=GUARD+(q*G+j)*7,op=code[at];uint2 a=code[at+1]?uint2(code[at+2],code[at+3]):uint2(lo[code[at+2]],hi[code[at+2]]);
   uint2 b=code[at+4]?uint2(code[at+5],code[at+6]):uint2(lo[code[at+5]],hi[code[at+5]]);
@@ -88,8 +98,9 @@ uint cell_segment(device const uint* code,device uint* rows,device uint* cells,d
 uint2 family_execute(QUERY_ARGS,uint qidx,uint e,uint anchor,device const uint* hints,uint hintCount){
  uint hits=0,reused=0;if(qidx>=cfg[3])return uint2(0);
  uint q=packet[4+qidx*4],cutoff=packet[5+qidx*4],n=code[QMETA+q*3];
+ if(n==0){if(cutoff==0 && anchor==0 && e==0){uint v[S],l[S],h[S];for(uint i=0;i<S;i++)v[i]=l[i]=h[i]=0;hits+=emit_match(code,output,counters,cfg,q,v,l,h);}return uint2(hits,0);}
  if(e>=cfg[6] || anchor>=n || !live_event(rows,events,e))return uint2(0);
- uint r=E(e,0);if(R(r,3)<cutoff)return uint2(0);
+ uint r=E(e,0);if(R(r,3)<cutoff || R(r,0)!=code[ATOM+(q*P+anchor)*(2+2*C)])return uint2(0);
  uint val[P][S],low[P][S],high[P][S],bound[P][S],cursor[P],started[P];int parent[P];
  for(uint s=0;s<S;s++){val[0][s]=0;low[0][s]=0;high[0][s]=0;bound[0][s]=0;}
  if(!bind_atom(code,rows,q,anchor,r,val[0],low[0],high[0],bound[0]))return uint2(hits,reused);
@@ -107,7 +118,12 @@ uint2 family_execute(QUERY_ARGS,uint qidx,uint e,uint anchor,device const uint* 
   if(!started[depth]){
    if(PROFILE_JOIN && !(uint(depth)<hintCount))atomic_fetch_add_explicit(counters+2,1,memory_order_relaxed);
    uint at=SPEC+sp*(2+C),h=0x31415926u;
-   for(uint j=0;j<code[at+1];j++){uint col=code[at+2+j];uint kind=code[atom+2+2*col],s=code[atom+3+2*col];h=mixkey(h^(kind?s:val[depth][s]));}
+   for(uint j=0;j<code[at+1];j++){uint col=code[at+2+j];uint kind=code[atom+2+2*col],s=code[atom+3+2*col];
+    if(HAS_PRIMITIVES && code[TABLE_I64+code[at]*C+col]){
+     uint lit=ATOM_LITERAL+(q*P+t)*2*C+2*col;
+     h=mixkey(h^(kind?code[lit]:low[depth][s]));h=mixkey(h^(kind?code[lit+1]:high[depth][s]));
+    }else h=mixkey(h^(kind?s:val[depth][s]));
+   }
    cursor[depth]=(uint(depth)<hintCount)?hints[depth]:atomic_load_explicit(heads+sp*cfg[4]+(h&(cfg[4]-1)),memory_order_relaxed);started[depth]=1;
   }
   uint next=cursor[depth];if(next==NO){started[depth]=0;depth=CELL_CERTIFICATES?parent[depth]:depth-1;continue;}

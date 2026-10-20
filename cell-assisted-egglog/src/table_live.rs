@@ -50,6 +50,8 @@ pub struct Stats {
     pub skipped_saturations: usize,
     pub partial_saturations: usize,
     pub saturation_hook_seconds: f64,
+    pub cell_run_calls: usize,
+    pub cell_run_seconds: f64,
     pub native_only_runs: usize,
     pub native_only_seconds: f64,
 }
@@ -111,6 +113,8 @@ pub enum QueryRouting {
     Direct = 0,
     Compact = 1,
     CellPriority = 2,
+    /// Index every delta row directly into its consuming query anchors.
+    TableAnchors = 3,
 }
 #[derive(Default)]
 pub struct Options<'a> {
@@ -130,6 +134,9 @@ pub struct Runtime {
     native_sets: BTreeSet<String>,
     native_stats: BTreeMap<String, NativeStats>,
     qstats: Vec<QueryStats>,
+    owners: Vec<String>,
+    extended: bool,
+    query_log: bool,
     device: Option<Service>,
     feed: Option<CellCommitFeed>,
     sorts: Vec<Vec<ArcSort>>,
@@ -193,10 +200,10 @@ impl Runtime {
         self.saturation_hook = Some(hook);
     }
     pub fn new(eg: EGraph, commands: &[Command], worker: &Path, audit: bool) -> Result<Self> {
-        Self::create(eg, commands, Some(worker), audit, Options::default(), None)
+        Self::create(eg, commands, Some(worker), audit, Options::default(), None, false)
     }
     pub fn new_cpu(eg: EGraph, commands: &[Command]) -> Result<Self> {
-        Self::create(eg, commands, None, false, Options::default(), None)
+        Self::create(eg, commands, None, false, Options::default(), None, false)
     }
     /// Exact explicit partition: selected rulesets use cached queries (CPU or
     /// GPU); all other scheduled rulesets execute natively, in their original
@@ -209,7 +216,13 @@ impl Runtime {
         selected: &[String],
     ) -> Result<Self> {
         let sets = selected.iter().cloned().collect();
-        Self::create(eg, commands, worker, audit, Options::default(), Some(&sets))
+        Self::create(eg, commands, worker, audit, Options::default(), Some(&sets), false)
+    }
+    /// Full original Pass-3 LHS admission. Effects remain native; an unsupported
+    /// selected rule is an error, never silently moved to the CPU.
+    pub fn new_full(eg:EGraph,commands:&[Command],worker:Option<&Path>,audit:bool,selected:Option<&[String]>)->Result<Self>{
+        let sets=selected.map(|s|s.iter().cloned().collect());
+        Self::create(eg,commands,worker,audit,Options {query_routing:QueryRouting::TableAnchors,..Options::default()},sets.as_ref(),true)
     }
     /// Optional analyze-backed projections. The complete query remains the
     /// fallback for every uncertified occurrence, including new union aliases.
@@ -243,7 +256,7 @@ impl Runtime {
         audit: bool,
         options: Options<'_>,
     ) -> Result<Self> {
-        Self::create(eg, commands, Some(worker), audit, options, None)
+        Self::create(eg, commands, Some(worker), audit, options, None, false)
     }
     fn create(
         mut eg: EGraph,
@@ -252,6 +265,7 @@ impl Runtime {
         audit: bool,
         options: Options<'_>,
         selected: Option<&BTreeSet<String>>,
+        extended: bool,
     ) -> Result<Self> {
         let t = Instant::now();
         let cells = options
@@ -284,17 +298,26 @@ impl Runtime {
         let mut sinks = vec![];
         let mut sets = BTreeMap::new();
         let mut tables = BTreeSet::new();
+        let mut compiled=BTreeMap::new();
+        let mut owners=vec![];
         for set in names {
             if selected.is_some_and(|s| !s.contains(&set)) {
                 continue;
             }
             let mut ids = vec![];
-            for name in eg.cell_rule_names(&set)? {
-                let sink = eg.prepare_cell_action(&set, &name)?;
+            let members=if extended{eg.cell_ruleset_members(&set)?}else{eg.cell_rule_names(&set)?.into_iter().map(|n|(set.clone(),n)).collect()};
+            for (owner,name) in members {
+                if let Some(id)=compiled.get(&(owner.clone(),name.clone())){
+                    if ids.contains(id){return Err("repeated rule inside one combined Run".into())}
+                    ids.push(*id);continue;
+                }
+                let sink = if extended{eg.prepare_gpu_cell_action(&owner,&name)?}else{eg.prepare_cell_action(&owner, &name)?};
                 if !eg.cell_query_is_seminaive(&sink) {
                     return Err("shared runtime requires seminaive rules".into());
                 }
                 tables.extend(sink.atoms.iter().map(|a| a.function.clone()));
+                owners.push(owner.clone());
+                compiled.insert((owner,name),sinks.len());
                 ids.push(sinks.len());
                 sinks.push(sink);
             }
@@ -314,6 +337,9 @@ impl Runtime {
             native_sets,
             native_stats: BTreeMap::new(),
             qstats: vec![],
+            owners,
+            extended,
+            query_log: std::env::var_os("CELL_QUERY_LOG").is_some(),
             device: None,
             feed: None,
             sorts: vec![],
@@ -351,9 +377,9 @@ impl Runtime {
             runtime.slots = runtime
                 .sinks
                 .iter()
-                .map(|s| s.slots().len())
+                .map(|s| s.device_slots())
                 .max()
-                .unwrap_or(1);
+                .unwrap_or(1).max(1);
             runtime.sorts = feed
                 .tables
                 .iter()
@@ -398,7 +424,7 @@ impl Runtime {
             runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
-            if installed["family_layout"] != json!(6) {
+            if installed["family_layout"] != json!(7) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0
@@ -567,6 +593,7 @@ impl Runtime {
             .iter()
             .copied()
             .filter(|i| {
+                (self.table_ids[*i].is_empty() && self.eg.cell_query_watermark(&self.sinks[*i])==0) ||
                 self.table_ids[*i]
                     .iter()
                     .any(|t| self.max_stamp[*t] >= self.eg.cell_query_watermark(&self.sinks[*i]))
@@ -681,7 +708,25 @@ impl Runtime {
         Ok(matches)
     }
     fn run_set(&mut self, set: &str) -> Result<bool> {
+        let query_start=Instant::now();
+        if self.query_log {eprintln!("[query start] {} {}",self.stats.ruleset_runs,set);}
         let ids = self.sets.get(set).ok_or("unregistered ruleset")?.clone();
+        // A certified single Run has the same priority as a certified Saturate.
+        // Moving a ruleset to the GPU must not bypass its existing Cell program.
+        let started=Instant::now();
+        let assisted=if let Some(hook)=self.saturation_hook.as_mut(){hook.try_run(&mut self.eg,set)?}else{None};
+        if let Some(report)=assisted {
+            self.stats.cell_run_calls+=1;
+            self.stats.cell_run_seconds+=started.elapsed().as_secs_f64();
+            if self.cpu || self.audit {
+                for id in &ids {self.eg.sync_cell_query_after_native_run(&self.sinks[*id],&self.reference[*id]);}
+            }
+            let start=Instant::now();self.collect_commits()?;
+            self.stats.event_seconds+=start.elapsed().as_secs_f64();
+            self.stats.ruleset_runs+=1;
+            if self.query_log {eprintln!("[cell Run] {set} {:.6}s",query_start.elapsed().as_secs_f64());}
+            return Ok(report.updated);
+        }
         let matches = if self.cpu {
             let t = Instant::now();
             let r = self.native_matches(&ids)?;
@@ -744,6 +789,7 @@ impl Runtime {
                 self.stats.ruleset_runs
             );
         }
+        if self.query_log {eprintln!("[query done] {} {:.6}s",set,query_start.elapsed().as_secs_f64());}
         Ok(report.updated)
     }
     fn schedule(&mut self, s: &Schedule) -> Result<bool> {
@@ -905,6 +951,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"selected_rule_count":self.sinks.len(),"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

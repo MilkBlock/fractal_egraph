@@ -99,3 +99,25 @@ kernel void family_routed_join(CTX,uint lane [[thread_position_in_grid]]){
   atomic_fetch_add_explicit(counters+38+tier,outcome.y,memory_order_relaxed);
  }
 }
+
+// One live delta row visits only consumers of its table. No query candidates
+// are sampled: every atom occurrence is in QUERY_ANCHORS, including repeats.
+kernel void family_classify_tables(CTX,uint lane [[thread_position_in_grid]]){
+ uint e=cfg[24]+lane;if(e>=cfg[6] || !live_event(rows,events,e))return;
+ uint row=E(e,0),table=R(row,0);
+ for(uint j=code[QUERY_ANCHOR_OFFSETS+table];j<code[QUERY_ANCHOR_OFFSETS+table+1];j++){
+  uint q=code[QUERY_ANCHORS+2*j],anchor=code[QUERY_ANCHORS+2*j+1],qi=packet[cfg[23]+q];
+  if(qi==NO || e<packet[6+qi*4] || R(row,3)<packet[5+qi*4])continue;
+  uint v[S],lo[S],hi[S],b[S];for(uint i=0;i<S;i++)v[i]=lo[i]=hi[i]=b[i]=0;
+  if(!bind_atom(code,rows,q,anchor,row,v,lo,hi,b))continue;
+  atomic_fetch_add_explicit(routing+24,1,memory_order_relaxed);
+  uint id=atomic_fetch_add_explicit(routing,1,memory_order_relaxed);
+  atomic_fetch_add_explicit(routing+3,1,memory_order_relaxed);
+  if(id>=cfg[18]){atomic_store_explicit(routing+7,1,memory_order_relaxed);continue;}
+  uint at=id*SEED_WORDS;seedQueue[at]=qi;seedQueue[at+1]=e;seedQueue[at+2]=anchor;seedQueue[at+3]=0;
+  seedQueue[at+4]=NO;seedQueue[at+5]=0;seedQueue[at+6]=2;seedQueue[at+7]=0;
+ }
+}
+kernel void family_unit(CTX,uint qi [[thread_position_in_grid]]){
+ if(qi<cfg[3] && code[QMETA+packet[4+qi*4]*3]==0)family_execute(QUERY_PASS,qi,0,0,code,0);
+}

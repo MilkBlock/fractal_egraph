@@ -19,8 +19,11 @@ pub fn compile(
 ) -> Result<Json> {
     if sinks.iter().any(|s|s.native_residuals){return Err("native residual candidates are not a GPU match program".into())}
     let c = tables.iter().map(|t| t.keys + 1).max().unwrap_or(1);
-    let p = sinks.iter().map(|q| q.atoms.len()).max().unwrap_or(1);
-    let s = sinks.iter().map(|q| q.slots().len()).max().unwrap_or(1);
+    let p = sinks.iter().map(|q| q.atoms.len()).max().unwrap_or(1).max(1);
+    let s = sinks.iter().map(|q| q.device_slots()).max().unwrap_or(1).max(1);
+    let np = sinks.iter().map(|q|q.primitives.len()).max().unwrap_or(0).max(1);
+    let computed = sinks.iter().any(|q|!q.primitives.is_empty());
+    if computed && cells.is_some(){return Err("full primitive Cell projections require an extended certificate".into())}
     let g = sinks
         .iter()
         .map(|q| q.guards.len())
@@ -42,7 +45,37 @@ pub fn compile(
     let mut index = vec![];
     let mut guards = vec![];
     let mut orders = vec![];
+    let mut primitive_meta=vec![];
+    let mut primitives=vec![];
+    let mut literals=vec![];
+    fn close_numeric(q:&CellActionSink,bound:&mut BTreeSet<usize>){
+        loop{
+            let before=bound.len();
+            for op in &q.primitives{
+                if op.args.iter().all(|v|match v{CellOperand::Slot(s)=>bound.contains(s),_=>true}){
+                    if let Some(CellOperand::Slot(s))=&op.result {bound.insert(*s);}
+                }
+            }
+            if before==bound.len(){break}
+        }
+    }
     for q in sinks {
+        primitive_meta.push(q.primitives.len() as u32);
+        for i in 0..np {
+            if let Some(op)=q.primitives.get(i) {
+                primitives.push(op.opcode);
+                for operand in op.args.iter().map(Some).chain([op.result.as_ref()]){
+                    match operand {
+                        Some(CellOperand::Slot(i))=>primitives.extend([0,*i as u32,0]),
+                        Some(CellOperand::Constant{value,..})=>{
+                            let n=if op.opcode==4{value.rep() as u64}else{eg.value_to_base::<i64>(*value) as u64};
+                            primitives.extend([1,n as u32,(n>>32) as u32]);
+                        }
+                        None=>primitives.extend([2,0,0]),
+                    }
+                }
+            }else{primitives.extend([0;10]);}
+        }
         let mut local_pairs = BTreeSet::new();
         if let Some(lib) = cells {
             for i in 0..q.atoms.len() {
@@ -60,6 +93,13 @@ pub fn compile(
         ]);
         for part in 0..p {
             if let Some(a) = q.atoms.get(part) {
+                for col in 0..c{
+                    let n=match a.columns.get(col){
+                        Some(CellOperand::Constant{value,..}) if a.sorts[col]=="i64"=>eg.value_to_base::<i64>(*value) as u64,
+                        _=>0,
+                    };
+                    literals.extend([n as u32,(n>>32) as u32]);
+                }
                 atoms.extend([tids[&a.function] as u32, a.columns.len() as u32]);
                 for col in 0..c {
                     atoms.extend(match a.columns.get(col) {
@@ -69,6 +109,7 @@ pub fn compile(
                     });
                 }
             } else {
+                literals.extend(std::iter::repeat_n(0,2*c));
                 atoms.extend(std::iter::repeat_n(0, 2 + 2 * c));
             }
         }
@@ -81,6 +122,7 @@ pub fn compile(
                         bound.insert(*v);
                     }
                 }
+                close_numeric(q,&mut bound);
             }
             let mut remain = (0..q.atoms.len())
                 .filter(|v| *v != anchor)
@@ -109,11 +151,16 @@ pub fn compile(
                         })
                     })
                     .or_else(|| {
-                        remain.iter().copied().find(|i| {
-                            q.atoms[*i]
-                                .columns
-                                .iter()
-                                .any(|o| matches!(o,CellOperand::Slot(s) if bound.contains(s)))
+                        if !computed {return remain.iter().copied().find(|i| q.atoms[*i].columns.iter().any(|o| matches!(o,CellOperand::Slot(s) if bound.contains(s))));}
+                        // A complete function key resolves at most one row. Prefer
+                        // that proof over an arbitrary connected atom; Unit output
+                        // conveys no selectivity. This never removes a binding.
+                        remain.iter().copied().max_by_key(|i| {
+                            let a=&q.atoms[*i];let t=&tables[tids[&a.function]];
+                            let known=|o:&CellOperand|match o {CellOperand::Constant{..}=>true,CellOperand::Slot(s)=>bound.contains(s)};
+                            let full=a.columns[..t.keys].iter().all(known);
+                            let useful=a.columns.iter().zip(&a.sorts).filter(|(o,s)|s.as_str()!="Unit"&&known(o)).count();
+                            (full,useful,std::cmp::Reverse(*i))
                         })
                     })
                     .unwrap_or(*remain.first().unwrap());
@@ -144,6 +191,7 @@ pub fn compile(
                         bound.insert(*v);
                     }
                 }
+                close_numeric(q,&mut bound);
             }
             orders.push(order);
         }
@@ -474,7 +522,8 @@ pub fn compile(
     }
     let mut code = vec![];
     let mut shader = format!(
-        "#include <metal_stdlib>\nusing namespace metal;\n#define C {c}\n#define P {p}\n#define S {s}\n#define G {g}\n#define NQ {}\n#define NI {}\n",
+        "#include <metal_stdlib>\nusing namespace metal;\n#define C {c}\n#define P {p}\n#define S {s}\n#define G {g}\n#define NP {np}\n#define HAS_PRIMITIVES {}\n#define NQ {}\n#define NI {}\n",
+        u32::from(computed),
         sinks.len(),
         specs.len().max(1)
     );
@@ -504,7 +553,19 @@ pub fn compile(
         }
         anchor_offsets.push(anchor_plans.len() as u32);
     }
+    let mut query_anchor_offsets = vec![0u32];
+    let mut query_anchors = vec![];
+    for table in tables {
+        for (q, sink) in sinks.iter().enumerate() {
+            for (a, atom) in sink.atoms.iter().enumerate() {
+                if atom.function == table.name {query_anchors.extend([q as u32,a as u32]);}
+            }
+        }
+        query_anchor_offsets.push((query_anchors.len()/2) as u32);
+    }
     for (name, values) in [
+        ("QUERY_ANCHOR_OFFSETS",query_anchor_offsets),
+        ("QUERY_ANCHORS",query_anchors),
         ("ANCHOR_OFFSETS", anchor_offsets),
         ("ANCHOR_PLANS", anchor_plans),
         ("QMETA", meta),
@@ -512,6 +573,10 @@ pub fn compile(
         ("PLAN", plans),
         ("SPEC", index),
         ("GUARD", guards),
+        ("PMETA",primitive_meta),
+        ("PRIMITIVE",primitives),
+        ("ATOM_LITERAL",literals),
+        ("TABLE_I64",tables.iter().flat_map(|t|(0..c).map(|i|u32::from(t.i64_columns.get(i).copied().unwrap_or(false)))).collect()),
         ("CELL_ROUTE", route),
         ("CELL_META", cell_meta),
         ("CELL_STEP", cell_steps),
@@ -532,6 +597,7 @@ pub fn compile(
     }
     // Empty index set (all unary queries) is represented by one disabled spec.
     shader += include_str!("../integer.metal");
+    shader += include_str!("../family_primitives.metal");
     shader += include_str!("../family.metal");
     shader += include_str!("../family_cells.metal");
     shader += include_str!("../family_events.metal");
@@ -539,6 +605,6 @@ pub fn compile(
     shader += include_str!("../family_ports.metal");
     shader += include_str!("../family_route.metal");
     Ok(
-        json!({"version":2,"family_layout":6,"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":7,"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

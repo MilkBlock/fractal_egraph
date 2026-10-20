@@ -496,15 +496,15 @@ final class FamilyExecutor {
  let d:MTLDevice,q:MTLCommandQueue,code:MTLBuffer,c:Int,p:Int,s:Int,ni:Int,nq:Int,rs:Int,nc:Int,cs:Int,ck:Int,ec:Bool,locality:Int,routingMode:Int
  let cellTables:Set<UInt32>,portMeta:[UInt32],portJoinGroup:[UInt32]
  var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!,cells:MTLBuffer!,watches:MTLBuffer!,wheads:MTLBuffer!,dirty:MTLBuffer!,state:MTLBuffer!,ports:MTLBuffer!,previous:MTLBuffer!,seedQueue:MTLBuffer!,orderedSeeds:MTLBuffer!,routing:MTLBuffer!,rowCells:MTLBuffer!,instanceMeta:MTLBuffer!,freeCells:MTLBuffer!,registry:MTLBuffer!
- var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:24)
+ var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:25)
  var rowSlots=0,rowCap=0,eventCount=0,eventCap=0,buckets=1,outCap=1,epoch=0,seedCap=1
  var watchCount=0,watchCap=0,watchBuckets=1,portCount=0,portCap=0,watchGCs=0,portGCs=0,cellCap=1,cellSlotsReused=0
  var pcursors:[Int],pendingPortEnd=0
  var cursors:[Int],pending:[Int]=[],pendingEnd=0,compactions=0,gpu=0.0,compileSeconds=0.0
  init(_ x:[String:Any])throws{
-  try require(x["version"] as? Int==2 && x["family_layout"] as? Int==6,"family layout: rebuild both Rust and Swift")
+  try require(x["version"] as? Int==2 && x["family_layout"] as? Int==7,"family layout: rebuild both Rust and Swift")
   c=x["columns"] as! Int;p=x["parts"] as! Int;s=x["slots"] as! Int;ni=x["indexes"] as! Int;nq=x["queries"] as! Int;rs=4+3*c;nc=x["cell_plans"] as? Int ?? 0;cs=x["cell_stride"] as? Int ?? 1;ck=x["cell_steps"] as! Int;ec=(x["event_cells"] as? Bool ?? false) && nc>0
-  routingMode=x["query_routing"] as? Int ?? 0;try require((0...2).contains(routingMode),"query routing mode")
+  routingMode=x["query_routing"] as? Int ?? 0;try require((0...3).contains(routingMode),"query routing mode")
   locality=x["port_locality"] as? Int ?? 0;try require((0...2).contains(locality),"Cell locality mode")
   cellTables=Set(x["cell_tables"] as! [UInt32]);portMeta=x["port_meta"] as! [UInt32];portJoinGroup=x["port_join_group"] as! [UInt32]
   guard let device=MTLCreateSystemDefaultDevice(),let queue=device.makeCommandQueue()else{throw NSError(domain:"Metal unavailable",code:1)}
@@ -517,7 +517,7 @@ final class FamilyExecutor {
   let t=ProcessInfo.processInfo.systemUptime,options=MTLCompileOptions()
   if #available(macOS 15.0, *) {options.mathMode = .safe}else{options.fastMathEnabled=false}
   let lib=try d.makeLibrary(source:x["shader"] as! String,options:options)
-  let names=["family_patch","family_rebase","family_clear","family_index","family_join"] + (nc>0 ? ["family_cell_retire_count","family_cell_allocate","family_registry_finish"] : []) + (routingMode>0 ? ["family_classify","family_route_dispatch","family_route_scatter","family_routed_join"] : []) + (ec ? ["family_wake","family_watch_clear","family_watch_compact","family_cell_dispatch","family_cell_events","family_cell_publish","family_watch_count","family_port_count","family_port_compact","family_port_dispatch","family_port_join","family_port_locality"] : (nc>0 ? ["family_cells"] : []))
+  let names=["family_patch","family_rebase","family_clear","family_index","family_join"] + (nc>0 ? ["family_cell_retire_count","family_cell_allocate","family_registry_finish"] : []) + (routingMode>0 ? ["family_classify","family_classify_tables","family_unit","family_route_dispatch","family_route_scatter","family_routed_join"] : []) + (ec ? ["family_wake","family_watch_clear","family_watch_compact","family_cell_dispatch","family_cell_events","family_cell_publish","family_watch_count","family_port_count","family_port_compact","family_port_dispatch","family_port_join","family_port_locality"] : (nc>0 ? ["family_cells"] : []))
   for name in names{kernels[name]=try d.makeComputePipelineState(function:lib.makeFunction(name:name)!)}
   compileSeconds=ProcessInfo.processInfo.systemUptime-t
  }
@@ -641,9 +641,9 @@ final class FamilyExecutor {
   ctrl[0]=UInt32(watchCount);ctrl[1]=0;ctrl[2]=UInt32(portCount)
   reg[2]=0;reg[3]=0;for i in 5..<10{reg[i]=0}
   rowSlots=total;rowCap=newRowCap;epoch=nextEpoch
-  var expanded=data;expanded.append(Data(count:n*8))
+  var expanded=data;expanded.append(Data(count:n*8+nq*4))
   packet=expanded.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
-  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),UInt32(locality),UInt32(routingMode),0,UInt32(seedCap),0,UInt32(max(1,watchCap)),UInt32(max(1,portCap)),UInt32(cellCap),0]
+  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),UInt32(locality),UInt32(routingMode),0,UInt32(seedCap),0,UInt32(max(1,watchCap)),UInt32(max(1,portCap)),UInt32(cellCap),0,0]
   memset(counts.contents(),0,counts.length)
   let maintenance=try prepareCells(relevant,cellRelevant,changes,compact)
   let expectedWatch=watchCount,expectedPort=portCount
@@ -660,6 +660,12 @@ final class FamilyExecutor {
    if let (head,tail)=groups[key]{words[groupBase+i]=UInt32(head);words[groupBase+n+tail]=UInt32(i);groups[key]=(head,i)}
    else{groups[key]=(i,i)}
   }
+  // An empty-table query has one initial unit binding, even with zero events.
+  args[23]=UInt32(groupBase+2*n)
+  args[24]=UInt32(ids.map{cursors[$0]}.min() ?? eventCount)
+  for id in 0..<nq{words[Int(args[23])+id]=UInt32.max}
+  for (i,id) in ids.enumerated(){words[Int(args[23])+id]=UInt32(i)}
+  span=max(1,span)
   args[8]=UInt32(span);args[6]=UInt32(eventCount);args[4]=UInt32(buckets)
   let portWork=ec && ids.enumerated().contains{ i,id in portMeta[id*3] != UInt32.max && (words[5+4*i]>0 || portMeta[id*3+2]==0) && (relevant || pcursors[id]<portCount) }
   var retries=0,count=0,routeRetries=0,routedCount=0
@@ -670,11 +676,11 @@ final class FamilyExecutor {
    if routingMode>0 {
     if retries==0 {
      memset(routing.contents(),0,routing.length);args[18]=UInt32(seedCap)
-     encode("family_classify",span*p*n,work);try submit(work)
+     encode(routingMode==3 ? "family_classify_tables" : "family_classify",routingMode==3 ? eventCount-Int(args[24]) : span*p*n,work);try submit(work)
      routedCount=Int(routing.contents().assumingMemoryBound(to:UInt32.self)[0])
      if routedCount>seedCap {
       routeRetries+=1;seedCap=try pow2(routedCount);seedQueue=try alloc(seedCap*(8+p));orderedSeeds=try alloc(seedCap*(8+p));args[18]=UInt32(seedCap)
-      memset(routing.contents(),0,routing.length);work=q.makeCommandBuffer()!;encode("family_classify",span*p*n,work);try submit(work)
+      memset(routing.contents(),0,routing.length);work=q.makeCommandBuffer()!;encode(routingMode==3 ? "family_classify_tables" : "family_classify",routingMode==3 ? eventCount-Int(args[24]) : span*p*n,work);try submit(work)
      }
      try require(routing.contents().assumingMemoryBound(to:UInt32.self)[7]==0,"routing capacity changed within immutable snapshot")
      let rc=routing.contents().assumingMemoryBound(to:UInt32.self)
@@ -684,6 +690,7 @@ final class FamilyExecutor {
     // Each tier reads the same immutable snapshot; effects still commit together.
     memset(counts.contents().advanced(by:29*4),0,12*4)
     if portWork {encode("family_port_dispatch",1,work);encode(locality>0 ? "family_port_locality" : "family_port_join",1,work,32)}
+    if routingMode==3 {encode("family_unit",n,work)}
     for tier in 0..<3 {args[17]=UInt32(tier);encode("family_routed_join",1,work,(12+tier*4)*4)}
    } else {encode("family_join",span*p*n,work)}
    if routingMode==0 && portWork {encode("family_port_dispatch",1,work);encode(locality>0 ? "family_port_locality" : "family_port_join",1,work,32)};try submit(work)
@@ -759,7 +766,7 @@ do {
         case "family_init":
           try require(family==nil && tables==nil && current==nil,"family already installed")
           family=try FamilyExecutor(message["config"] as! [String:Any])
-          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1,"family_layout":6,"port_locality":family!.locality])
+          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1,"family_layout":7,"port_locality":family!.locality])
         case "family_step":
           guard let f=family else{throw NSError(domain:"no family",code:1)}
           let (report,body)=try f.advance(readFrame(),ack:message["ack"] as! Int)
