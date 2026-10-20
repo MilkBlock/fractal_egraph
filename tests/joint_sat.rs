@@ -83,6 +83,85 @@ struct Pair {
     native: EGraph,
     cell: Runtime,
 }
+
+#[test]
+fn certified_comparisons_close_a_deep_minimum_chain_in_one_native_batch() {
+    let mut p = Pair::new();
+    let mut term = "(TCPair (TermLeaf 0) 1)".to_string();
+    for _ in 0..24 { term = format!("(Smaller (TCPair (TermLeaf 1) 9) {term})"); }
+    // Existing helper state forces the general joint path, not the fresh-DAG macro.
+    p.input(&format!("(PotentialExtractedExpr (V 9) {term})"));
+    p.run_ordered(SCHEDULE);
+    let report = p.cell.report();
+    let c = &report["joint"]["comparison_closure"];
+    assert!(c["saturations"].as_u64().unwrap() > 0, "{report}");
+    assert!(c["propagated_costs"].as_u64().unwrap() >= 24, "{report}");
+    assert!(c["native_batches"].as_u64().unwrap() <= 2, "{report}");
+    p.cell.engine().clone().parse_and_run_program(None,
+        "(check (= (ExtractedExpr (V 9)) (TCPair (TermLeaf 0) 1)))").unwrap();
+    let before = c["native_batches"].clone();
+    // A finite Run keeps its usual semantics even after the accelerated closure.
+    p.input("(Smaller (TCPair (TermLeaf 2) 2) (TCPair (TermLeaf 3) 3))");
+    p.run_ordered("(run terms-helpers-helpers 1)");
+    assert_eq!(p.cell.report()["joint"]["comparison_closure"]["native_batches"], before);
+}
+
+#[test]
+fn foreign_cost_keyed_function_disables_comparison_reordering() {
+    for declaration in [
+        "(function Foreign (TermAndCost) i64 :merge new)",
+        "(sort Costs (Vec TermAndCost)) (function Foreign (Costs) i64 :merge new)",
+    ] {
+        let source = format!("{SOURCE}\n{declaration}");
+        let cell = Runtime::new_joint(&source).unwrap();
+        let base = cell.engine().clone();
+        let mut p = Pair { native: base.clone(), base, cell };
+        p.input("(PotentialExtractedExpr (V 0) (TCPair (TermLeaf 1) 2))");
+        p.run_ordered(SCHEDULE);
+        assert!(p.cell.report()["joint"]["comparison_closure"].is_null());
+    }
+}
+
+#[test]
+fn comparison_proof_is_not_reused_after_conflicting_cost_aliases() {
+    let mut p = Pair::new();
+    p.input("(PotentialExtractedExpr (V 0) (TCPair (TermLeaf 0) 3))");
+    p.run_ordered(SCHEDULE);
+    let before = p.cell.report()["joint"]["comparison_closure"]["saturations"].clone();
+    p.input("(union (TCPair (TermLeaf 0) 3) (TCPair (TermLeaf 1) 8)) \
+             (PotentialExtractedExpr (V 0) (TCPair (TermLeaf 2) 5))");
+    p.run_ordered(SCHEDULE);
+    assert_eq!(p.cell.report()["joint"]["comparison_closure"]["saturations"], before);
+}
+
+#[test]
+fn unrelated_container_sort_does_not_disable_the_cost_closure() {
+    let source = format!("{SOURCE}\n(sort Exprs (Set Expr)) \
+                         (function Foreign (Exprs) i64 :merge new)");
+    let cell = Runtime::new_joint(&source).unwrap();
+    let base = cell.engine().clone();
+    let mut p = Pair { native: base.clone(), base, cell };
+    p.input("(PotentialExtractedExpr (V 0) (TCPair (TermLeaf 1) 2))");
+    p.run_ordered(SCHEDULE);
+    assert!(p.cell.report()["joint"]["comparison_closure"]["saturations"].as_u64().unwrap() > 0);
+}
+
+#[test]
+fn pending_comparison_resumes_when_a_child_is_derived_inside_the_closure() {
+    let mut p = Pair::new();
+    // The outer left argument is allocated before the inner arguments, so its
+    // seed is visited before the inner Smaller has a resolved TCPair cost.
+    p.input("(PotentialExtractedExpr (V 0) \
+               (Smaller (TCPair (TermLeaf 0) 1) \
+                 (Smaller (TCPair (TermLeaf 1) 9) (TCPair (TermLeaf 2) 5))))");
+    p.run_ordered(SCHEDULE);
+    let report = p.cell.report();
+    let c = &report["joint"]["comparison_closure"];
+    assert!(c["propagated_costs"].as_u64().unwrap() >= 2);
+    assert!(c["native_batches"].as_u64().unwrap() <= 2);
+    p.cell.engine().clone().parse_and_run_program(None,
+        "(check (= (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 1)))").unwrap();
+}
 impl Pair {
     fn new() -> Self {
         let cell = Runtime::new_joint(SOURCE).unwrap();
@@ -340,7 +419,9 @@ fn shared_cpu_and_gpu_receive_joint_macro_rows_and_handback() {
             .iter()
             .map(|p| p["identity_noop_seeds"].as_u64().unwrap())
             .sum();
-        assert!(noops > 0, "{}", r.report());
+        let closed_noops = r.report()["saturation_diagnostics"]["joint"]["comparison_closure"]
+            ["identity_noop_seeds"].as_u64().unwrap_or(0);
+        assert!(noops + closed_noops > 0, "{}", r.report());
         let mut handed = r.into_engine();
         for set in ["terms", "terms-helpers", "terms-helpers-helpers"] {
             assert_eq!(

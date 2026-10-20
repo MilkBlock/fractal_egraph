@@ -43,6 +43,7 @@ pub(super) struct Joint {
     closed_epoch: Option<u64>,
     sentinel: i64,
     counters: Counters,
+    comparison: Option<comparison::Scope>,
 }
 fn call<'a>(e: &'a Expr, name: &str) -> Result<&'a [Expr]> {
     if let Expr::Call(_, op, args) = e {
@@ -150,6 +151,7 @@ impl Joint {
             return Err("joint contract requires distinct Expr, Term and TermAndCost sorts".into());
         }
         let cost_sort = tc_schema.output.name().to_string();
+        let comparison_safe = comparison::Scope::safe_schema(eg, &cost_sort);
         let expected = eg.parse_program(None, include_str!("joint_helpers.egg"))?;
         let want = expected
             .iter()
@@ -404,6 +406,7 @@ impl Joint {
                 _ => panic!("invalid built-in joint schedule"),
             }
         }
+        let comparison = if comparison_safe { Some(comparison::Scope::compile(eg, &cost_sort)?) } else { None };
         Ok(Self {
             producers,
             improve_rule,
@@ -415,6 +418,7 @@ impl Joint {
             closed_epoch: None,
             sentinel,
             counters: Counters::default(),
+            comparison,
         })
     }
     pub(super) fn observes(&mut self, r: &Runtime, batch: &CellCommitBatch) {
@@ -706,10 +710,10 @@ impl Joint {
         true
     }
     pub(super) fn run_dataflow(&mut self, r: &mut Runtime, s: &Schedule) -> Result<bool> {
-        // The general precompiled port program preserves each original
-        // Run and merge/rebuild wave, including multiple producers,
-        // missing ports, aliases and mutable function outputs. No
-        // original relational query or GPU round-trip is required.
+        // Producer/helper Runs keep their frozen waves, including multiple
+        // producers, missing ports, aliases and mutable function outputs.
+        // The inner comparison Saturate may use its certified fixed point.
+        // No original relational query or GPU round-trip is required.
         for ids in r.sets.values() {
             for id in ids {
                 let k = &mut r.kernels[*id];
@@ -737,6 +741,9 @@ impl Joint {
             r.kernels[*id].retire_guard_failures = uniform;
         }
         self.counters.uniform_cost_boundaries += usize::from(uniform);
+        if uniform && std::env::var("CELL_COMPARISON_CLOSURE").as_deref() != Ok("0") {
+            r.comparison = self.comparison.take();
+        }
         let before = r.stats.ruleset_runs;
         let before_reuse = r.kernels.iter().map(|k| k.reused_reads).sum::<usize>();
         let run = (|| {
@@ -750,6 +757,7 @@ impl Joint {
             }
             Ok::<_, Box<dyn std::error::Error>>(updated)
         })();
+        if r.comparison.is_some() { self.comparison = r.comparison.take(); }
         for id in guarded {
             let k = &mut r.kernels[id];
             k.retire_guard_failures = false;
@@ -785,7 +793,7 @@ impl Joint {
         Ok(())
     }
     pub(super) fn report(&self) -> Json {
-        json!({"contract":"parameterized terms dataflow with fresh DAG shortcut/v2","closed_cost_producer_universe":self.cost_universe_closed,"stats":self.counters,"producer_templates":self.producers.len(),"macro_source":self.producers.iter().map(|p|p.code.clone()).collect::<Vec<_>>(),"concrete_closure_entries":0})
+        json!({"contract":"parameterized terms with certified comparison closure/v3","closed_cost_producer_universe":self.cost_universe_closed,"stats":self.counters,"comparison_closure":self.comparison.as_ref().map(|s|&s.counters),"producer_templates":self.producers.len(),"macro_source":self.producers.iter().map(|p|p.code.clone()).collect::<Vec<_>>(),"concrete_closure_entries":0})
     }
 }
 
@@ -906,7 +914,7 @@ impl crate::table_live::SaturationHook for Observer {
                     return Ok(json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"fresh parameterized terms joint closure"}));
                 }
                 let updated=j.run_dataflow(r,s)?;
-                Ok(json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"exact parameterized terms dataflow closure; original effect waves retained"}))
+                Ok(json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"parameterized producer/helper waves; certified comparison closure when available"}))
             })();
             r.joint=Some(j);result.map(Some)
         })

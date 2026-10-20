@@ -17,6 +17,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 pub mod artifact;
 pub mod joint;
+mod comparison;
 mod scalar;
 
 type Key = SmallVec<[Value; 4]>;
@@ -577,6 +578,7 @@ pub struct Runtime {
     failed: bool,
     epoch: u64,
     joint: Option<joint::Joint>,
+    comparison: Option<comparison::Scope>,
     scalar: BTreeMap<String, scalar::Group>,
     forwarded: Option<Vec<CellCommitBatch>>,
     pub last_updated: bool,
@@ -712,6 +714,7 @@ impl Runtime {
             failed: false,
             epoch: 0,
             joint: None,
+            comparison: None,
             scalar,
             forwarded: None,
             last_updated: false,
@@ -937,6 +940,12 @@ impl Runtime {
             }
             GenericSchedule::Saturate(_, x) => {
                 self.sync()?;
+                if self.comparison.is_some() && comparison::Scope::accepts(x) {
+                    let mut scope = self.comparison.take().unwrap();
+                    let result = scope.run(self);
+                    self.comparison = Some(scope);
+                    return result;
+                }
                 if self.enter_scalar_scope(x) {
                     let result = (|| {
                         let mut c = false;
