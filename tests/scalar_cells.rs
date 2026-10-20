@@ -251,3 +251,15 @@ fn wide_keys_and_bindings_spill_without_an_arity_limit() {
         r.audit_mirror().unwrap();
     }
 }
+
+#[test]
+fn new_public_functions_invalidate_the_closed_cost_universe() {
+    let mut r=Runtime::new_joint(BASE).unwrap();
+    let before=r.engine().cell_rule_environment_stamp();
+    // Public Runtime input deliberately forbids schema changes. The engine's
+    // declaration epoch also protects compiled observers after native handoff.
+    assert!(r.input("(constructor Foreign (TermAndCost) TermAndCost)").is_err());
+    let mut engine=r.engine().clone();
+    engine.parse_and_run_program(None,"(constructor Foreign (TermAndCost) TermAndCost)").unwrap();
+    assert_ne!(before,engine.cell_rule_environment_stamp());
+}

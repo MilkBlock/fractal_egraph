@@ -788,6 +788,11 @@ impl EGraph {
             backend_id,
         };
 
+        // New public tables/merge callbacks can participate in rebuild of an
+        // existing Cell. Zero-argument internal lets only carry input data.
+        if !decl.internal_let {
+            self.cell_environment_stamp = cell_assist::next_cell_environment_stamp();
+        }
         let old = self.functions.insert(decl.name.clone(), function);
         if old.is_some() {
             panic!(
