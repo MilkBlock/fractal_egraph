@@ -9,6 +9,10 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 `$SKILL` 指本目录。用 `/opt/homebrew/bin/python3`，或其它 Python 3.9+。
 
+## 自动 Cell 账表
+
+成功的 `run` / `audit` 自动写出 `cell-ledger.md`、`.csv`、`.json`，包含所有 Analyze Cell（含无计划/拒绝项）、共享片段、源码程序和证明组。普通 `run --all-rules --analysis DIR` 自动复用或补齐独立 plan-only/复用诊断，不污染原计时、不重跑未变 CPU。`--no-cell-metrics` 只禁用额外采集；缺测保持 null。已有目录用 `cell-ledger --input DIR [--baseline PLAN_DIR]` 一次生成，禁止再为同类指标临时写脚本。归因与字段详见 [Cell 账表](references/cell-ledger.md)。
+
 ## 默认复用历史
 
 按用户约定，假设同一台机器的性能稳定。**先读已有结果，再决定是否执行。** 不为刷新日期、增加平均次数或陪跑未改的对照而重测；也不要重复解释已经固定的底层命令。
@@ -108,7 +112,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 紧凑 GPU Join 默认使用自动证否 lookahead；`CELL_REFUTATION=0` 关闭。编译器只选择已有 tuple index，提前检测未访问 atom 的必要键，空哈希桶可直接拒绝整条后继搜索。碰撞及退休行只可能多保留候选；union/rebuild 仍使用原生完整增量维护，不以 Cell 库未覆盖作为证否。它不是新增 Cell 闭包证明。
 
-后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 16，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
+后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 17，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
 
 从 layout 13 起，`CELL_SEARCH_COUNTERS=1` 另记录多 atom 查询的起始候选数 `eligible_seeds`、当场被否的 `refuted_seeds`、至少产生一条完整 binding 的 `productive_seeds`，并按原始 rule 汇总。命中率用 `refuted_seeds / eligible_seeds`；不能将包括深层分支的 `refuted_branches` 除以起始候选数。无剩余候选时比率未定义。普通运行不执行这些诊断 atomic，也不分配按 rule 的计数区。
 

@@ -1,0 +1,2781 @@
+{
+  "schema": "cell-work-ledger/v1",
+  "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/cell-ledger-reuse/report.json",
+  "source_sha256": "b1bd528479f70536c8380e2e14f0b9388a6500feb14bad1e7fa7a02c37143967",
+  "baseline": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/cell-ledger-plan",
+  "baseline_sha256": "3ceb750d66a826e59343be69e596dd095b4f72da1878cd7d138417634090f8bc",
+  "provenance": {
+    "source_head": "57d6d2683fd4e7affca457c6cb321095ec626ddb",
+    "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "binary_sha256": {
+      "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "f4a17b5accd124a10459c1cc9d61d7641996e6cbc31accc0bd2e774b49ff6bba"
+    },
+    "worker_sha256": "df32aa869f0a4237df6ead0c3411bb7bd52a4d3644f4ef071f4cfa4a3ed8466c",
+    "policy": "stable",
+    "inference_identity": {
+      "version": 1,
+      "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "binary": "f4a17b5accd124a10459c1cc9d61d7641996e6cbc31accc0bd2e774b49ff6bba",
+      "worker": "df32aa869f0a4237df6ead0c3411bb7bd52a4d3644f4ef071f4cfa4a3ed8466c",
+      "policy": "stable",
+      "joint": true,
+      "all_rules": true,
+      "controls": {
+        "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+        "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+        "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+        "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+        "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+      },
+      "machine": [
+        "MineralSteinsdeMacBook-Pro.local",
+        "Darwin",
+        "27.0.0",
+        "arm64"
+      ],
+      "environment_sha256": "10f7dc3d3d3efd1a7846d30eaec7b21531f49c86d4d87f242f3588c25bf90519",
+      "analysis": {
+        "catalog/catalog.json": "29d4df54a2268a6c145ef8423be374cfc275dd3dc702d882d65e5574a0201bcb",
+        "catalog/states/state-0000.json": "bba14b1e92619e19da26e76df9857495532a57f994fee5d184253bcc455df570",
+        "catalog/states/state-0001.json": "169b34d245121e7cc7c06b5cebb9862b04ec714af7fe850c56f36467f70f8e66",
+        "catalog/states/state-0002.json": "8f3d1ca924390f71a1d8e6cb69b2ae4ebea6eeba9dbc30a673cf6f41446b0449",
+        "catalog/states/state-0003.json": "2a5a029cd27656e2ed17605264a10beb4a3518aff245f940f317b310a80265b2",
+        "catalog/states/state-0004.json": "47035881c3ecd894bc55a4f8a71934f31fe001da8bf7b17cac864bb87ab395b9"
+      }
+    }
+  },
+  "baseline_provenance": {
+    "source_head": "57d6d2683fd4e7affca457c6cb321095ec626ddb",
+    "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "binary_sha256": {
+      "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "f4a17b5accd124a10459c1cc9d61d7641996e6cbc31accc0bd2e774b49ff6bba"
+    },
+    "worker_sha256": "df32aa869f0a4237df6ead0c3411bb7bd52a4d3644f4ef071f4cfa4a3ed8466c",
+    "policy": "stable",
+    "inference_identity": {
+      "version": 1,
+      "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "binary": "f4a17b5accd124a10459c1cc9d61d7641996e6cbc31accc0bd2e774b49ff6bba",
+      "worker": "df32aa869f0a4237df6ead0c3411bb7bd52a4d3644f4ef071f4cfa4a3ed8466c",
+      "policy": "stable",
+      "joint": true,
+      "all_rules": true,
+      "controls": {
+        "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+        "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+        "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+        "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+        "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+      },
+      "machine": [
+        "MineralSteinsdeMacBook-Pro.local",
+        "Darwin",
+        "27.0.0",
+        "arm64"
+      ],
+      "environment_sha256": "7459ea0096700e0199a2878d4b8b15e6baeebfe69ca47f8ead4430a6f7623fd2",
+      "analysis": {
+        "catalog/catalog.json": "29d4df54a2268a6c145ef8423be374cfc275dd3dc702d882d65e5574a0201bcb",
+        "catalog/states/state-0000.json": "bba14b1e92619e19da26e76df9857495532a57f994fee5d184253bcc455df570",
+        "catalog/states/state-0001.json": "169b34d245121e7cc7c06b5cebb9862b04ec714af7fe850c56f36467f70f8e66",
+        "catalog/states/state-0002.json": "8f3d1ca924390f71a1d8e6cb69b2ae4ebea6eeba9dbc30a673cf6f41446b0449",
+        "catalog/states/state-0003.json": "2a5a029cd27656e2ed17605264a10beb4a3518aff245f940f317b310a80265b2",
+        "catalog/states/state-0004.json": "47035881c3ecd894bc55a4f8a71934f31fe001da8bf7b17cac864bb87ab395b9"
+      }
+    }
+  },
+  "verified": true,
+  "profile_measured": true,
+  "definitions": {
+    "segment_hit_rate": "successful certified segment substitutions / segment requests",
+    "port_hit_rate": "port evaluations with at least one emitted binding / port evaluations",
+    "program_hit_rate": "nonempty complete query answers / query requests",
+    "candidate_rows": "live row visits before binding constraints, including retry attempts; not unique rows, matches or mutations",
+    "credit": "per-object seconds remain null without an isolated valid timing ablation; shared groups must not be summed again through parent Cells"
+  },
+  "rows": [
+    {
+      "kind": "shared_projection",
+      "id": "0",
+      "label": "2 + 6 + 10",
+      "owners": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "plans": [
+        0
+      ],
+      "consumers": [
+        2,
+        3,
+        5
+      ],
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": 0,
+      "port_hits": 0,
+      "port_hit_rate": null,
+      "new_reads": 416,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": 0,
+      "skipped_reads": 0,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "measured shared work; seconds not isolated"
+    },
+    {
+      "kind": "shared_projection",
+      "id": "1",
+      "label": "6 + 10",
+      "owners": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "plans": [
+        1
+      ],
+      "consumers": [
+        2,
+        3,
+        5
+      ],
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": 0,
+      "port_hits": 0,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": 0,
+      "skipped_reads": 0,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "measured shared work; seconds not isolated"
+    },
+    {
+      "kind": "shared_projection",
+      "id": "2",
+      "label": "1 + 0",
+      "owners": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "plans": [
+        2
+      ],
+      "consumers": [
+        2,
+        3,
+        368,
+        369,
+        374,
+        375,
+        376,
+        377
+      ],
+      "requests": 6756,
+      "hits": 76,
+      "hit_rate": 0.011249259917110717,
+      "port_requests": 92,
+      "port_hits": 60,
+      "port_hit_rate": 0.6521739130434783,
+      "new_reads": 11367,
+      "cached_reads": 18,
+      "cache_hit_rate": 0.0015810276679841897,
+      "watch_checks": 0,
+      "skipped_reads": 76,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "measured shared work; seconds not isolated"
+    },
+    {
+      "kind": "shared_projection",
+      "id": "3",
+      "label": "10 + 6",
+      "owners": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "plans": [
+        3
+      ],
+      "consumers": [
+        2,
+        3,
+        5
+      ],
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": 0,
+      "port_hits": 0,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": 0,
+      "skipped_reads": 0,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "measured shared work; seconds not isolated"
+    },
+    {
+      "kind": "shared_projection",
+      "id": "4",
+      "label": "0 + 5",
+      "owners": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "plans": [
+        4
+      ],
+      "consumers": [
+        6,
+        374,
+        376,
+        380,
+        381
+      ],
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": 0,
+      "port_hits": 0,
+      "port_hit_rate": null,
+      "new_reads": 416,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": 0,
+      "skipped_reads": 0,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "measured shared work; seconds not isolated"
+    },
+    {
+      "kind": "shared_projection",
+      "id": "5",
+      "label": "0 + 9",
+      "owners": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "plans": [
+        5
+      ],
+      "consumers": [
+        7,
+        375,
+        377
+      ],
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": 0,
+      "port_hits": 0,
+      "port_hit_rate": null,
+      "new_reads": 416,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": 0,
+      "skipped_reads": 0,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "measured shared work; seconds not isolated"
+    },
+    {
+      "kind": "analyzed_cell",
+      "id": "0",
+      "label": "Analyze Cell 0",
+      "owners": null,
+      "plans": [],
+      "consumers": [],
+      "requests": null,
+      "hits": null,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "no compiled projection; no runtime reuse"
+    },
+    {
+      "kind": "analyzed_cell",
+      "id": "1",
+      "label": "Analyze Cell 1",
+      "owners": null,
+      "plans": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "consumers": [
+        2,
+        3,
+        5,
+        6,
+        7,
+        368,
+        369,
+        374,
+        375,
+        376,
+        377,
+        380,
+        381
+      ],
+      "requests": null,
+      "hits": null,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "shared projections: follow plan rows; do not duplicate credit"
+    },
+    {
+      "kind": "analyzed_cell",
+      "id": "2",
+      "label": "Analyze Cell 2",
+      "owners": null,
+      "plans": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "consumers": [
+        2,
+        3,
+        5,
+        6,
+        7,
+        368,
+        369,
+        374,
+        375,
+        376,
+        377,
+        380,
+        381
+      ],
+      "requests": null,
+      "hits": null,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "shared projections: follow plan rows; do not duplicate credit"
+    },
+    {
+      "kind": "analyzed_cell",
+      "id": "3",
+      "label": "Analyze Cell 3",
+      "owners": null,
+      "plans": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "consumers": [
+        2,
+        3,
+        5,
+        6,
+        7,
+        368,
+        369,
+        374,
+        375,
+        376,
+        377,
+        380,
+        381
+      ],
+      "requests": null,
+      "hits": null,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "shared projections: follow plan rows; do not duplicate credit"
+    },
+    {
+      "kind": "analyzed_cell",
+      "id": "4",
+      "label": "Analyze Cell 4",
+      "owners": null,
+      "plans": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "consumers": [
+        2,
+        3,
+        5,
+        6,
+        7,
+        368,
+        369,
+        374,
+        375,
+        376,
+        377,
+        380,
+        381
+      ],
+      "requests": null,
+      "hits": null,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "shared projections: follow plan rows; do not duplicate credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "0",
+      "label": "Const",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "1",
+      "label": "Arg",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "2",
+      "label": "Bop",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 47848,
+      "cached_reads": 26806,
+      "cache_hit_rate": 0.35906984220537413,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "3",
+      "label": "Top",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 16842,
+      "cached_reads": 8861,
+      "cache_hit_rate": 0.3447457495234019,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "4",
+      "label": "Uop",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 22,
+      "cached_reads": 3,
+      "cache_hit_rate": 0.12,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "5",
+      "label": "Get",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 85314,
+      "cached_reads": 5,
+      "cache_hit_rate": 5.860359357235786e-05,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "6",
+      "label": "Single",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 33058,
+      "cached_reads": 2750,
+      "cache_hit_rate": 0.07679848078641645,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "7",
+      "label": "Concat",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 34261,
+      "cached_reads": 11051,
+      "cache_hit_rate": 0.2438868290960452,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "8",
+      "label": "PotentialExtractedExpr",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "9",
+      "label": "PotentialExtractedExpr",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 536749,
+      "cached_reads": 56030,
+      "cache_hit_rate": 0.09452089227182474,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "10",
+      "label": "PotentialExtractedExpr",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 71204,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "11",
+      "label": "Smaller",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "12",
+      "label": "Smaller",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "13",
+      "label": "Smaller",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 0,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "14",
+      "label": "Function",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 704,
+      "hit_rate": 0.39154616240266965,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 1487,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "15",
+      "label": "Const",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 17,
+      "hit_rate": 0.009454949944382647,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "16",
+      "label": "Top",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 1290,
+      "hit_rate": 0.7174638487208009,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 143633,
+      "cached_reads": 103094,
+      "cache_hit_rate": 0.417846445666668,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "17",
+      "label": "Bop",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 1553,
+      "hit_rate": 0.8637374860956618,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 316085,
+      "cached_reads": 132399,
+      "cache_hit_rate": 0.29521454500049055,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "18",
+      "label": "Uop",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 3,
+      "hit_rate": 0.0016685205784204673,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 7,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "19",
+      "label": "Get",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 1637,
+      "hit_rate": 0.9104560622914349,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 977455,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "20",
+      "label": "Concat",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 1589,
+      "hit_rate": 0.8837597330367074,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 539510,
+      "cached_reads": 134947,
+      "cache_hit_rate": 0.20008243668610454,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "21",
+      "label": "Single",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 1586,
+      "hit_rate": 0.882091212458287,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 311109,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "22",
+      "label": "Switch",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 0,
+      "hit_rate": 0.0,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "23",
+      "label": "If",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 965,
+      "hit_rate": 0.5367074527252503,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 20035,
+      "cached_reads": 32701,
+      "cache_hit_rate": 0.6200887439320388,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "24",
+      "label": "DoWhile",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 973,
+      "hit_rate": 0.5411568409343716,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 7857,
+      "cached_reads": 6591,
+      "cache_hit_rate": 0.45618770764119604,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "25",
+      "label": "Arg",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 5,
+      "hit_rate": 0.0027808676307007787,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "26",
+      "label": "Call",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 972,
+      "hit_rate": 0.5406006674082313,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 7030,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "27",
+      "label": "Empty",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 2,
+      "hit_rate": 0.0011123470522803114,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "28",
+      "label": "Cons",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 0,
+      "hit_rate": 0.0,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "29",
+      "label": "Nil",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 0,
+      "hit_rate": 0.0,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 0,
+      "cached_reads": 0,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "source_program",
+      "id": "30",
+      "label": "Alloc",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 1798,
+      "hits": 6,
+      "hit_rate": 0.0033370411568409346,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": 366,
+      "cached_reads": 0,
+      "cache_hit_rate": 0.0,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "source-compiled execution; not independent Cell proof credit"
+    },
+    {
+      "kind": "proof_group",
+      "id": "terms-joint-closure-proofs",
+      "label": "joint closure proofs",
+      "owners": null,
+      "plans": null,
+      "consumers": null,
+      "requests": 12,
+      "hits": 0,
+      "hit_rate": 0.0,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": null,
+      "candidates_after": null,
+      "candidates_saved": null,
+      "net_seconds": null,
+      "status": "comparison closures consumed: 1185; marginal time needs cell-credit"
+    },
+    {
+      "kind": "consumer",
+      "id": "2",
+      "label": "switch_rewrite",
+      "owners": null,
+      "plans": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "consumers": [
+        2
+      ],
+      "requests": 2,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 2; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "3",
+      "label": "switch_rewrite",
+      "owners": null,
+      "plans": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "consumers": [
+        3
+      ],
+      "requests": 2,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 2; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "5",
+      "label": "switch_rewrite",
+      "owners": null,
+      "plans": [
+        0,
+        1,
+        3
+      ],
+      "consumers": [
+        5
+      ],
+      "requests": 2,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 2; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "6",
+      "label": "switch_rewrite",
+      "owners": null,
+      "plans": [
+        4
+      ],
+      "consumers": [
+        6
+      ],
+      "requests": 2,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 2; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "7",
+      "label": "switch_rewrite",
+      "owners": null,
+      "plans": [
+        5
+      ],
+      "consumers": [
+        7
+      ],
+      "requests": 2,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 2; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "368",
+      "label": "interval-analysis",
+      "owners": null,
+      "plans": [
+        2
+      ],
+      "consumers": [
+        368
+      ],
+      "requests": 28,
+      "hits": 46,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 9106,
+      "candidates_after": 9022,
+      "candidates_saved": 84,
+      "net_seconds": null,
+      "status": "generic empty requests: 1; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "369",
+      "label": "interval-analysis",
+      "owners": null,
+      "plans": [
+        2
+      ],
+      "consumers": [
+        369
+      ],
+      "requests": 28,
+      "hits": 46,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 9106,
+      "candidates_after": 9022,
+      "candidates_saved": 84,
+      "net_seconds": null,
+      "status": "generic empty requests: 1; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "374",
+      "label": "interval-analysis",
+      "owners": null,
+      "plans": [
+        2,
+        4
+      ],
+      "consumers": [
+        374
+      ],
+      "requests": 30,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 30; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "375",
+      "label": "interval-analysis",
+      "owners": null,
+      "plans": [
+        2,
+        5
+      ],
+      "consumers": [
+        375
+      ],
+      "requests": 30,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 30; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "376",
+      "label": "interval-analysis",
+      "owners": null,
+      "plans": [
+        2,
+        4
+      ],
+      "consumers": [
+        376
+      ],
+      "requests": 30,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 30; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "377",
+      "label": "interval-analysis",
+      "owners": null,
+      "plans": [
+        2,
+        5
+      ],
+      "consumers": [
+        377
+      ],
+      "requests": 30,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 30; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "380",
+      "label": "interval-analysis",
+      "owners": null,
+      "plans": [
+        4
+      ],
+      "consumers": [
+        380
+      ],
+      "requests": 30,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 30; hits column = output bindings, not a rate"
+    },
+    {
+      "kind": "consumer",
+      "id": "381",
+      "label": "interval-analysis",
+      "owners": null,
+      "plans": [
+        4
+      ],
+      "consumers": [
+        381
+      ],
+      "requests": 30,
+      "hits": 0,
+      "hit_rate": null,
+      "port_requests": null,
+      "port_hits": null,
+      "port_hit_rate": null,
+      "new_reads": null,
+      "cached_reads": null,
+      "cache_hit_rate": null,
+      "watch_checks": null,
+      "skipped_reads": null,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "candidates_saved": 0,
+      "net_seconds": null,
+      "status": "generic empty requests: 30; hits column = output bindings, not a rate"
+    }
+  ],
+  "groups": [
+    {
+      "id": 0,
+      "plans": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "consumers": [
+        2,
+        3,
+        5,
+        6,
+        7,
+        368,
+        369,
+        374,
+        375,
+        376,
+        377,
+        380,
+        381
+      ],
+      "owners": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "candidates_saved": 168,
+      "net_seconds": null,
+      "scope": "query work difference for the connected sharing group; no per-parent credit"
+    }
+  ],
+  "plan_counters": {
+    "0": {
+      "attempts": 416,
+      "probes": 416,
+      "missing_keys": 416,
+      "ready_publications": 0,
+      "segment_checks": 0,
+      "segment_hits": 0,
+      "skipped_internal_reads": 0,
+      "port_queries": 0,
+      "port_nonempty_queries": 0,
+      "port_matches": 0,
+      "port_probes": 0,
+      "port_candidate_rows": 0,
+      "watch_checks": 0,
+      "watch_wakes": 0,
+      "invalidations": 0,
+      "row_reuses": 0
+    },
+    "1": {
+      "attempts": 0,
+      "probes": 0,
+      "missing_keys": 0,
+      "ready_publications": 0,
+      "segment_checks": 0,
+      "segment_hits": 0,
+      "skipped_internal_reads": 0,
+      "port_queries": 0,
+      "port_nonempty_queries": 0,
+      "port_matches": 0,
+      "port_probes": 0,
+      "port_candidate_rows": 0,
+      "watch_checks": 0,
+      "watch_wakes": 0,
+      "invalidations": 0,
+      "row_reuses": 0
+    },
+    "2": {
+      "attempts": 11385,
+      "probes": 11367,
+      "missing_keys": 11158,
+      "ready_publications": 227,
+      "segment_checks": 6756,
+      "segment_hits": 76,
+      "skipped_internal_reads": 76,
+      "port_queries": 92,
+      "port_nonempty_queries": 60,
+      "port_matches": 60,
+      "port_probes": 272,
+      "port_candidate_rows": 382,
+      "watch_checks": 0,
+      "watch_wakes": 0,
+      "invalidations": 18,
+      "row_reuses": 18
+    },
+    "3": {
+      "attempts": 0,
+      "probes": 0,
+      "missing_keys": 0,
+      "ready_publications": 0,
+      "segment_checks": 0,
+      "segment_hits": 0,
+      "skipped_internal_reads": 0,
+      "port_queries": 0,
+      "port_nonempty_queries": 0,
+      "port_matches": 0,
+      "port_probes": 0,
+      "port_candidate_rows": 0,
+      "watch_checks": 0,
+      "watch_wakes": 0,
+      "invalidations": 0,
+      "row_reuses": 0
+    },
+    "4": {
+      "attempts": 416,
+      "probes": 416,
+      "missing_keys": 416,
+      "ready_publications": 0,
+      "segment_checks": 0,
+      "segment_hits": 0,
+      "skipped_internal_reads": 0,
+      "port_queries": 0,
+      "port_nonempty_queries": 0,
+      "port_matches": 0,
+      "port_probes": 0,
+      "port_candidate_rows": 0,
+      "watch_checks": 0,
+      "watch_wakes": 0,
+      "invalidations": 0,
+      "row_reuses": 0
+    },
+    "5": {
+      "attempts": 416,
+      "probes": 416,
+      "missing_keys": 416,
+      "ready_publications": 0,
+      "segment_checks": 0,
+      "segment_hits": 0,
+      "skipped_internal_reads": 0,
+      "port_queries": 0,
+      "port_nonempty_queries": 0,
+      "port_matches": 0,
+      "port_probes": 0,
+      "port_candidate_rows": 0,
+      "watch_checks": 0,
+      "watch_wakes": 0,
+      "invalidations": 0,
+      "row_reuses": 0
+    }
+  },
+  "plan_definitions": [
+    {
+      "plan": 0,
+      "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((panic 'context should not be present'))\n        :ruleset switch_rewrite )",
+      "atoms": [
+        2,
+        6,
+        10
+      ],
+      "states": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "connection_sources": null,
+      "contract": "positive closure projection",
+      "internal_joins": 2,
+      "consumers": [
+        2,
+        3,
+        5
+      ]
+    },
+    {
+      "plan": 1,
+      "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((panic 'context should not be present'))\n        :ruleset switch_rewrite )",
+      "atoms": [
+        6,
+        10
+      ],
+      "states": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "connection_sources": null,
+      "contract": "positive closure projection",
+      "internal_joins": 1,
+      "consumers": [
+        2,
+        3,
+        5
+      ]
+    },
+    {
+      "plan": 2,
+      "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((panic 'context should not be present'))\n        :ruleset switch_rewrite )",
+      "atoms": [
+        1,
+        0
+      ],
+      "states": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "connection_sources": null,
+      "contract": "positive closure projection",
+      "internal_joins": 1,
+      "consumers": [
+        2,
+        3,
+        368,
+        369,
+        374,
+        375,
+        376,
+        377
+      ]
+    },
+    {
+      "plan": 3,
+      "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((panic 'context should not be present'))\n        :ruleset switch_rewrite )",
+      "atoms": [
+        10,
+        6
+      ],
+      "states": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "connection_sources": null,
+      "contract": "positive closure projection",
+      "internal_joins": 1,
+      "consumers": [
+        2,
+        3,
+        5
+      ]
+    },
+    {
+      "plan": 4,
+      "rule": "(rule ((= if_e (If pred inputs thn els))\n       (ContextOf if_e ctx)\n       (HasArgType if_e ty)\n       (= a (Get inputs i))\n       (= (Get thn k) (Get (Arg _ty (InIf true pred inputs)) i))\n       (= els_out (Get els k))\n       (= (IntB y) (lo-bound els_out))\n       (= (IntB y) (hi-bound els_out)))\n      ((panic 'context should not be present'))\n        :ruleset switch_rewrite )",
+      "atoms": [
+        0,
+        5
+      ],
+      "states": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "connection_sources": null,
+      "contract": "positive closure projection",
+      "internal_joins": 1,
+      "consumers": [
+        6,
+        374,
+        376,
+        380,
+        381
+      ]
+    },
+    {
+      "plan": 5,
+      "rule": "(rule ((= if_e (If pred inputs thn els))\n       (ContextOf if_e ctx)\n       (HasArgType if_e ty)\n       (= thn_out (Get thn k))\n       (= (IntB y) (lo-bound thn_out))\n       (= (IntB y) (hi-bound thn_out))\n       (= b (Get inputs i))\n       (= (Get els k) (Get (Arg _ty (InIf false pred inputs)) i)))\n      ((panic 'context should not be present'))\n        :ruleset switch_rewrite )",
+      "atoms": [
+        0,
+        9
+      ],
+      "states": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "connection_sources": null,
+      "contract": "positive closure projection",
+      "internal_joins": 1,
+      "consumers": [
+        7,
+        375,
+        377
+      ]
+    }
+  ],
+  "source_program_counters": [
+    {
+      "program_id": 0,
+      "kind": "dataflow",
+      "ruleset": "terms",
+      "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+      "seed": "Const",
+      "accesses": [],
+      "seed_evaluations": 1550,
+      "emitted_bindings": 1548,
+      "live_seed_instances": 1543,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 1,
+      "kind": "dataflow",
+      "ruleset": "terms",
+      "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+      "seed": "Arg",
+      "accesses": [],
+      "seed_evaluations": 78,
+      "emitted_bindings": 77,
+      "live_seed_instances": 77,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 2,
+      "kind": "dataflow",
+      "ruleset": "terms",
+      "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+      "seed": "Bop",
+      "accesses": [
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        },
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 28161,
+      "emitted_bindings": 16617,
+      "live_seed_instances": 3486,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 47848,
+      "reused_port_reads": 26806,
+      "resumed_seed_evaluations": 12541,
+      "stored_port_paths": 3486
+    },
+    {
+      "program_id": 3,
+      "kind": "dataflow",
+      "ruleset": "terms",
+      "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+      "seed": "Top",
+      "accesses": [
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        },
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        },
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 6916,
+      "emitted_bindings": 4044,
+      "live_seed_instances": 938,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 16842,
+      "reused_port_reads": 8861,
+      "resumed_seed_evaluations": 3606,
+      "stored_port_paths": 938
+    },
+    {
+      "program_id": 4,
+      "kind": "dataflow",
+      "ruleset": "terms",
+      "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+      "seed": "Uop",
+      "accesses": [
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 15,
+      "emitted_bindings": 9,
+      "live_seed_instances": 3,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 22,
+      "reused_port_reads": 3,
+      "resumed_seed_evaluations": 3,
+      "stored_port_paths": 3
+    },
+    {
+      "program_id": 5,
+      "kind": "dataflow",
+      "ruleset": "terms",
+      "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+      "seed": "Get",
+      "accesses": [
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 66233,
+      "emitted_bindings": 33806,
+      "live_seed_instances": 13341,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 85314,
+      "reused_port_reads": 5,
+      "resumed_seed_evaluations": 5,
+      "stored_port_paths": 13341
+    },
+    {
+      "program_id": 6,
+      "kind": "dataflow",
+      "ruleset": "terms",
+      "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+      "seed": "Single",
+      "accesses": [
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 27820,
+      "emitted_bindings": 14610,
+      "live_seed_instances": 4382,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 33058,
+      "reused_port_reads": 2750,
+      "resumed_seed_evaluations": 2750,
+      "stored_port_paths": 4382
+    },
+    {
+      "program_id": 7,
+      "kind": "dataflow",
+      "ruleset": "terms",
+      "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+      "seed": "Concat",
+      "accesses": [
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        },
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 32693,
+      "emitted_bindings": 6173,
+      "live_seed_instances": 8147,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 34261,
+      "reused_port_reads": 11051,
+      "resumed_seed_evaluations": 5078,
+      "stored_port_paths": 8147
+    },
+    {
+      "program_id": 8,
+      "kind": "dataflow",
+      "ruleset": "terms-helpers",
+      "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+      "seed": "PotentialExtractedExpr",
+      "accesses": [],
+      "seed_evaluations": 72759,
+      "emitted_bindings": 71204,
+      "live_seed_instances": 69649,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 9,
+      "kind": "dataflow",
+      "ruleset": "terms-helpers",
+      "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+      "seed": "PotentialExtractedExpr",
+      "accesses": [
+        {
+          "table": "TCPair",
+          "access": "Output"
+        },
+        {
+          "table": "ExtractedExpr",
+          "access": "Key"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 202081,
+      "emitted_bindings": 42713,
+      "live_seed_instances": 69649,
+      "retired_guard_seeds": 73607,
+      "identity_noop_seeds": 0,
+      "index_reads": 536749,
+      "reused_port_reads": 56030,
+      "resumed_seed_evaluations": 55997,
+      "stored_port_paths": 69647
+    },
+    {
+      "program_id": 10,
+      "kind": "dataflow",
+      "ruleset": "terms-helpers",
+      "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+      "seed": "PotentialExtractedExpr",
+      "accesses": [
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 72759,
+      "emitted_bindings": 0,
+      "live_seed_instances": 69649,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 71204,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 69649
+    },
+    {
+      "program_id": 11,
+      "kind": "dataflow",
+      "ruleset": "terms-helpers-helpers",
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "seed": "Smaller",
+      "accesses": [
+        {
+          "table": "TCPair",
+          "access": "Output"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 0,
+      "emitted_bindings": 0,
+      "live_seed_instances": 73371,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 12,
+      "kind": "dataflow",
+      "ruleset": "terms-helpers-helpers",
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+      "seed": "Smaller",
+      "accesses": [
+        {
+          "table": "TCPair",
+          "access": "Output"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 0,
+      "emitted_bindings": 0,
+      "live_seed_instances": 73371,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 13,
+      "kind": "dataflow",
+      "ruleset": "terms-helpers-helpers",
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "seed": "Smaller",
+      "accesses": [
+        {
+          "table": "TCPair",
+          "access": "Output"
+        },
+        {
+          "table": "TCPair",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 0,
+      "emitted_bindings": 0,
+      "live_seed_instances": 73371,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 14,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Function name tyin tyout out))\n       (= sum (Expr-size out)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "Function",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 1487,
+      "emitted_bindings": 1458,
+      "live_seed_instances": 29,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 1487,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 29
+    },
+    {
+      "program_id": 15,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Const n ty assum)))\n      ((set (Expr-size expr) 1))\n        :ruleset always-run )",
+      "seed": "Const",
+      "accesses": [],
+      "seed_evaluations": 1550,
+      "emitted_bindings": 1548,
+      "live_seed_instances": 1543,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 16,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Top op x y z))\n       (= sum (+ (Expr-size z) (+ (Expr-size y) (Expr-size x)))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "Top",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 85049,
+      "emitted_bindings": 79666,
+      "live_seed_instances": 938,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 143633,
+      "reused_port_reads": 103094,
+      "resumed_seed_evaluations": 66693,
+      "stored_port_paths": 938
+    },
+    {
+      "program_id": 17,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Bop op x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "Bop",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 233649,
+      "emitted_bindings": 219726,
+      "live_seed_instances": 3486,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 316085,
+      "reused_port_reads": 132399,
+      "resumed_seed_evaluations": 132399,
+      "stored_port_paths": 3486
+    },
+    {
+      "program_id": 18,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Uop op x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "Uop",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 8,
+      "emitted_bindings": 4,
+      "live_seed_instances": 3,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 7,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 3
+    },
+    {
+      "program_id": 19,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "seed": "Get",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 994600,
+      "emitted_bindings": 957751,
+      "live_seed_instances": 13341,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 977455,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 13341
+    },
+    {
+      "program_id": 20,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "seed": "Concat",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 356678,
+      "emitted_bindings": 330955,
+      "live_seed_instances": 8147,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 539510,
+      "reused_port_reads": 134947,
+      "resumed_seed_evaluations": 134947,
+      "stored_port_paths": 8147
+    },
+    {
+      "program_id": 21,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Single x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "seed": "Single",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 320520,
+      "emitted_bindings": 302564,
+      "live_seed_instances": 4382,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 311109,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 4382
+    },
+    {
+      "program_id": 22,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Switch pred inputs branches))\n       (= sum (+ (Expr-size inputs) (+ (ListExpr-size branches) (Expr-size pred)))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "Switch",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "ListExpr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 0,
+      "emitted_bindings": 0,
+      "live_seed_instances": 0,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 23,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (If pred inputs then else))\n       (= sum (+ (Expr-size inputs) (+ (Expr-size else) (+ (Expr-size then) (Expr-size pred))))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "If",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 13607,
+      "emitted_bindings": 13036,
+      "live_seed_instances": 168,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 20035,
+      "reused_port_reads": 32701,
+      "resumed_seed_evaluations": 13016,
+      "stored_port_paths": 168
+    },
+    {
+      "program_id": 24,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (DoWhile in pred-and-output))\n       (= sum (+ (Expr-size pred-and-output) (Expr-size in))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 7339,
+      "emitted_bindings": 7179,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 7857,
+      "reused_port_reads": 6591,
+      "resumed_seed_evaluations": 6591,
+      "stored_port_paths": 84
+    },
+    {
+      "program_id": 25,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Arg ty assum)))\n      ((set (Expr-size expr) 1))\n        :ruleset always-run )",
+      "seed": "Arg",
+      "accesses": [],
+      "seed_evaluations": 78,
+      "emitted_bindings": 77,
+      "live_seed_instances": 77,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 26,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Call func arg))\n       (= sum (Expr-size arg)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "Call",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 7189,
+      "emitted_bindings": 6909,
+      "live_seed_instances": 121,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 7030,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 121
+    },
+    {
+      "program_id": 27,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Empty ty assum))\n      ((set (Expr-size (Empty ty assum)) 0))\n        :ruleset always-run )",
+      "seed": "Empty",
+      "accesses": [],
+      "seed_evaluations": 6,
+      "emitted_bindings": 5,
+      "live_seed_instances": 5,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 28,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Cons hd tl))\n       (= sum (+ (ListExpr-size tl) (Expr-size hd))))\n      ((set (ListExpr-size expr) sum))\n        :ruleset always-run )",
+      "seed": "Cons",
+      "accesses": [
+        {
+          "table": "ListExpr-size",
+          "access": "Key"
+        },
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 0,
+      "emitted_bindings": 0,
+      "live_seed_instances": 0,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 29,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Nil ))\n      ((set (ListExpr-size (Nil )) 0))\n        :ruleset always-run )",
+      "seed": "Nil",
+      "accesses": [],
+      "seed_evaluations": 0,
+      "emitted_bindings": 0,
+      "live_seed_instances": 0,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0
+    },
+    {
+      "program_id": 30,
+      "kind": "scalar_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= expr (Alloc id e state ty))\n       (= sum (Expr-size e)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "seed": "Alloc",
+      "accesses": [
+        {
+          "table": "Expr-size",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 668,
+      "emitted_bindings": 230,
+      "live_seed_instances": 137,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 366,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 137
+    }
+  ],
+  "proof_group_counters": {
+    "credit_contract": "same-dataflow-optional-joint-proofs/v1",
+    "proofs_enabled": true,
+    "contract": "parameterized terms with certified comparison closure/v3",
+    "closed_cost_producer_universe": true,
+    "stats": {
+      "boundaries": 12,
+      "skipped_joint_saturations": 0,
+      "quiescent_skips": 0,
+      "macro_instances": 0,
+      "macro_waves": 0,
+      "fallback_boundaries": 12,
+      "dataflow_boundaries": 12,
+      "dataflow_ruleset_runs": 1639,
+      "port_reusing_boundaries": 11,
+      "uniform_cost_boundaries": 12,
+      "reasons": {
+        "changed existing state or external helper work": 11,
+        "multiple producers for one Expr": 1
+      }
+    },
+    "comparison_closure": {
+      "saturations": 1185,
+      "seed_evaluations": 211572,
+      "union_proposals": 89226,
+      "native_batches": 601,
+      "propagated_costs": 89226,
+      "unchanged_saturations": 584,
+      "identity_noop_seeds": 73371,
+      "cost_lookups": 151307,
+      "planning_seconds": 0.21332701000000057,
+      "effect_seconds": 0.7802010819999996
+    },
+    "producer_templates": 8,
+    "macro_source": [
+      "(ruleset joint_macro_0)\n(function joint_gate_0 (Constant Type Assumption Expr) i64 :merge old)\n(rule ((= 0 (joint_gate_0 p0 p1 p2 p3))) ((PotentialExtractedExpr p3 (TCPair (TermConst p0) 1)) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_0 :name \"high\")\n(rule ((= 0 (joint_gate_0 p0 p1 p2 p3))) ((PotentialExtractedExpr p3 (TCPair (TermConst p0) 1)) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p3) (TCPair (TermConst p0) 1)) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermConst p0) 1)) (TCPair (TermConst p0) 1))) :ruleset joint_macro_0 :name \"low\")\n",
+      "(ruleset joint_macro_1)\n(function joint_gate_1 (Type Assumption Expr) i64 :merge old)\n(rule ((= 0 (joint_gate_1 p0 p1 p2))) ((PotentialExtractedExpr p2 (TCPair (TermArg ) 1)) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_1 :name \"high\")\n(rule ((= 0 (joint_gate_1 p0 p1 p2))) ((PotentialExtractedExpr p2 (TCPair (TermArg ) 1)) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p2) (TCPair (TermArg ) 1)) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermArg ) 1)) (TCPair (TermArg ) 1))) :ruleset joint_macro_1 :name \"low\")\n",
+      "(ruleset joint_macro_2)\n(function joint_gate_2 (BinaryOp Expr Expr Expr Term i64 TermAndCost Term i64 TermAndCost) i64 :merge old)\n(rule ((= 0 (joint_gate_2 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9))) ((PotentialExtractedExpr p3 (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_2 :name \"high\")\n(rule ((= 0 (joint_gate_2 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9))) ((PotentialExtractedExpr p3 (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p3) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8))))) :ruleset joint_macro_2 :name \"low\")\n",
+      "(ruleset joint_macro_3)\n(function joint_gate_3 (TernaryOp Expr Expr Expr Expr Term i64 TermAndCost Term i64 TermAndCost Term i64 TermAndCost) i64 :merge old)\n(rule ((= 0 (joint_gate_3 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13))) ((PotentialExtractedExpr p4 (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12)))) (set (ExtractedExpr p4) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_3 :name \"high\")\n(rule ((= 0 (joint_gate_3 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13))) ((PotentialExtractedExpr p4 (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12)))) (set (ExtractedExpr p4) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p4) (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12)))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12)))) (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12))))) :ruleset joint_macro_3 :name \"low\")\n",
+      "(ruleset joint_macro_4)\n(function joint_gate_4 (UnaryOp Expr Expr Term i64 TermAndCost) i64 :merge old)\n(rule ((= 0 (joint_gate_4 p0 p1 p2 p3 p4 p5))) ((PotentialExtractedExpr p2 (TCPair (TermUop p0 p3) (+ 1 p4))) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_4 :name \"high\")\n(rule ((= 0 (joint_gate_4 p0 p1 p2 p3 p4 p5))) ((PotentialExtractedExpr p2 (TCPair (TermUop p0 p3) (+ 1 p4))) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p2) (TCPair (TermUop p0 p3) (+ 1 p4))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermUop p0 p3) (+ 1 p4))) (TCPair (TermUop p0 p3) (+ 1 p4)))) :ruleset joint_macro_4 :name \"low\")\n",
+      "(ruleset joint_macro_5)\n(function joint_gate_5 (Expr i64 Expr Term i64 TermAndCost) i64 :merge old)\n(rule ((= 0 (joint_gate_5 p0 p1 p2 p3 p4 p5))) ((PotentialExtractedExpr p2 (TCPair (TermGet p3 p1) p4)) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_5 :name \"high\")\n(rule ((= 0 (joint_gate_5 p0 p1 p2 p3 p4 p5))) ((PotentialExtractedExpr p2 (TCPair (TermGet p3 p1) p4)) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p2) (TCPair (TermGet p3 p1) p4)) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermGet p3 p1) p4)) (TCPair (TermGet p3 p1) p4))) :ruleset joint_macro_5 :name \"low\")\n",
+      "(ruleset joint_macro_6)\n(function joint_gate_6 (Expr Expr Term i64 TermAndCost) i64 :merge old)\n(rule ((= 0 (joint_gate_6 p0 p1 p2 p3 p4))) ((PotentialExtractedExpr p1 (TCPair (TermSingle p2) p3)) (set (ExtractedExpr p1) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_6 :name \"high\")\n(rule ((= 0 (joint_gate_6 p0 p1 p2 p3 p4))) ((PotentialExtractedExpr p1 (TCPair (TermSingle p2) p3)) (set (ExtractedExpr p1) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p1) (TCPair (TermSingle p2) p3)) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermSingle p2) p3)) (TCPair (TermSingle p2) p3))) :ruleset joint_macro_6 :name \"low\")\n",
+      "(ruleset joint_macro_7)\n(function joint_gate_7 (Expr Expr Expr Term i64 TermAndCost Term i64 TermAndCost) i64 :merge old)\n(rule ((= 0 (joint_gate_7 p0 p1 p2 p3 p4 p5 p6 p7 p8))) ((PotentialExtractedExpr p2 (TCPair (TermConcat p3 p6) (+ p4 p7))) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_7 :name \"high\")\n(rule ((= 0 (joint_gate_7 p0 p1 p2 p3 p4 p5 p6 p7 p8))) ((PotentialExtractedExpr p2 (TCPair (TermConcat p3 p6) (+ p4 p7))) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p2) (TCPair (TermConcat p3 p6) (+ p4 p7))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermConcat p3 p6) (+ p4 p7))) (TCPair (TermConcat p3 p6) (+ p4 p7)))) :ruleset joint_macro_7 :name \"low\")\n"
+    ],
+    "concrete_closure_entries": 0
+  },
+  "runtime_seconds": 15.835993334,
+  "timing_eligible": false,
+  "shared_costs": {
+    "bake_seconds": null,
+    "allocated_gpu_bytes": 487830844,
+    "cell_cache_bytes": 1081344,
+    "cell_watch_bytes": 212992,
+    "watch_checks_not_assigned_to_valid_plan": 273075
+  },
+  "limitations": [
+    "No sampled or cache-hit-derived wall-time credit.",
+    "Unmeasured counters are null, never zero.",
+    "Shared fragment work is recorded once; ambiguous parent Cell attribution stays unresolved."
+  ]
+}

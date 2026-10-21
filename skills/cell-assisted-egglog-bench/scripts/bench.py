@@ -13,6 +13,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import cell_ledger
 
 REPO = Path(__file__).resolve().parents[3]
 SHARED = Path('/Users/mineralsteins/Repos/egg_related')
@@ -26,7 +27,7 @@ def history_candidates(repo):
     return sorted((repo / 'out').glob('*/workflow.json'),
                   key=lambda p: p.stat().st_mtime, reverse=True)
 
-def matching_history(repo, snapshot, policy, joint, all_rules=False):
+def matching_history(repo, snapshot, policy, joint, all_rules=False, profile=False):
     """Historical controls are evidence, not a claim about the current binary."""
     source_hash = sha(snapshot)
     for path in history_candidates(repo):
@@ -36,7 +37,9 @@ def matching_history(repo, snapshot, policy, joint, all_rules=False):
                     or w.get('snapshot_sha256') != source_hash or w.get('policy') != policy):
                 continue
             r = load(path.parent / 'report.json')
-            if bool(r.get('gpu_without_joint')) != joint or bool(r.get('gpu',{}).get('extended_queries')) != all_rules or not metrics(r)['timing_eligible']:
+            g=r.get('gpu',{}); diagnostic=bool(g.get('cells',{}).get('profile'))
+            eligible=metrics(r)['timing_eligible'] if not profile else (diagnostic and exact(r.get('same_commit_verification')) and r.get('benchmark_finished') and not g.get('audit') and not g.get('query_timing_profile'))
+            if bool(r.get('gpu_without_joint')) != joint or bool(g.get('extended_queries')) != all_rules or diagnostic!=profile or not eligible:
                 continue
             yield path.parent, w, r
         except (OSError, ValueError, KeyError, TypeError):
@@ -84,7 +87,7 @@ def reusable_result(a, repo, worker, env):
         return None
     extraction = None if a.no_extract else extraction_identity(a, repo)
     for directory, workflow, _ in matching_history(
-            repo, a.snapshot if a.snapshot.is_absolute() else repo / a.snapshot, a.policy, a.joint_sat, a.all_rules):
+            repo, a.snapshot if a.snapshot.is_absolute() else repo / a.snapshot, a.policy, a.joint_sat, a.all_rules, env.get('CELL_SEARCH_COUNTERS')=='1'):
         if workflow.get('inference_identity') != identity:
             continue
         if not a.no_extract:
@@ -734,6 +737,8 @@ def parser():
         q.add_argument('--input',type=Path,required=True);q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
         q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
         if mode=='cell-value':q.add_argument('--timing-before',type=Path);q.add_argument('--timing-after',type=Path)
+    q = sub.add_parser('cell-ledger',help='generate all Cell/program/shared-fragment cost and reuse tables from saved reports')
+    q.add_argument('--input',type=Path,required=True);q.add_argument('--baseline',type=Path);q.add_argument('--output',type=Path)
     q = sub.add_parser('analyze-credit',help='frozen Analyze library: no library / order only / projection reuse')
     for name in ['baseline','plan-only','candidate']: q.add_argument('--'+name,type=Path,required=True)
     q.add_argument('--profile-plan',type=Path); q.add_argument('--profile-candidate',type=Path)
@@ -769,6 +774,7 @@ def parser():
             q.add_argument('--joint-sat', action='store_true')
             q.add_argument('--all-rules', action='store_true')
             q.add_argument('--reuse-controls', type=Path, help='reuse saved exact native/CPU/GPU-off controls; all-rules only')
+            q.add_argument('--no-cell-metrics',action='store_true',help='write available ledger only; skip automatic missing diagnostic companions')
             q.add_argument('--refresh', action='store_true', help='remeasure even if an identical verified result exists')
         if mode == 'audit':
             q.add_argument('--cell-only', action='store_true')
@@ -830,6 +836,7 @@ def commands(a, repo, worker, out):
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--lib', 'stable_choice::tests', '--target-dir', 'target/analyzer'],
              ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'transfer_artifact', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
     else: c = []
+    if a.mode=='test': c.append([sys.executable,'-m','unittest','discover','-s',str(repo/'skills/cell-assisted-egglog-bench/scripts'),'-p','test_*.py'])
     if getattr(a, 'reference_output', None): c[-1] += ['--reference-output', str(resolve(a.reference_output))]
     return c
 
@@ -869,11 +876,77 @@ def saved_gate(mode, out, three_lane=False):
         return bool(checked) and all(exact(p.get('verification')) for p in checked)
     return True
 
+def ledger_baseline(repo,source):
+    """Find the newest valid same-library diagnostic control, never fastest."""
+    ap,a=cell_ledger.read(source)
+    if not (ap.parent/'workflow.json').exists():return None
+    aw=load(ap.parent/'workflow.json')
+    for wpath in history_candidates(repo):
+        if wpath.parent==ap.parent:continue
+        try:
+            w=load(wpath)
+            if any(w.get(k)!=aw.get(k) for k in ['snapshot_sha256','binary_sha256','worker_sha256','policy']):continue
+            bp,b=cell_ledger.read(wpath.parent)
+            cell_ledger.baseline_check(a,b,ap,bp)
+            return wpath.parent
+        except (ValueError,KeyError,TypeError,OSError):continue
+    return None
+
+def finish_cell_metrics(a,repo,worker,out,env):
+    source=out/('report.json' if (out/'report.json').is_file() else 'audit.json')
+    r=load(source);g=cell_ledger.gpu(r);c=g.get('cells') or {}
+    if a.mode!='run' or not getattr(a,'all_rules',False) or c.get('profile') or not c.get('library') or getattr(a,'no_cell_metrics',False):
+        baseline=ledger_baseline(repo,source) if c.get('profile') and c.get('library') and not c.get('plan_only') else None
+        cell_ledger.write(source,baseline)
+        return
+    # At most two work profiles for this binary/input/library. Reuse them on
+    # later runs; do not silently launch N leave-one-Cell-out timing experiments.
+    analysis=getattr(a,'analysis',None) or Path(c['library']['analysis_directory'])
+    control=getattr(a,'reuse_controls',None) or out
+    profiles={}
+    modes=[True] if a.analysis_plan_only else [True,False]
+    old=os.environ.get('CELL_SEARCH_COUNTERS')
+    try:
+        os.environ['CELL_SEARCH_COUNTERS']='1'
+        for only in modes:
+            label='plan' if only else 'reuse'
+            dest=out.with_name(out.name+'-ledger-'+label)
+            args=['--repo',str(repo),'run','--all-rules','--no-build','--no-extract','--no-cell-metrics',
+                  '--policy',a.policy,'--snapshot',str(a.snapshot),'--worker',str(worker),
+                  '--analysis',str(analysis),'--reuse-controls',str(control),'--output',str(dest)]
+            if a.joint_sat:args.append('--joint-sat')
+            if only:args.append('--analysis-plan-only')
+            pa=parser().parse_args(args)
+            pe=dict(env,CELL_SEARCH_COUNTERS='1',CELL_BENCH_ANALYSIS=str(analysis if analysis.is_absolute() else repo/analysis),
+                    CELL_BENCH_ANALYSIS_PLAN_ONLY='1' if only else '0',CELL_BENCH_REUSE_CONTROLS=str(control if control.is_absolute() else repo/control))
+            cached=reusable_result(pa,repo,worker,pe)
+            if cached is None:
+                if dest.exists():
+                    dest=dest.with_name(dest.name+'-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
+                    args[args.index('--output')+1]=str(dest)
+                print('补充独立诊断（不用于计时）：',label)
+                if main(args)!=0:raise ValueError('Cell diagnostic failed; no savings claimed')
+                cached=dest
+            else:print('复用已验证的 Cell 诊断：',cached)
+            profiles[label]=cached
+    finally:
+        if old is None:os.environ.pop('CELL_SEARCH_COUNTERS',None)
+        else:os.environ['CELL_SEARCH_COUNTERS']=old
+    measured=profiles['plan'] if a.analysis_plan_only else profiles['reuse']
+    baseline=None if a.analysis_plan_only else profiles['plan']
+    cell_ledger.write(measured,baseline,out/'cell-ledger',timing=source)
+    print('已生成 Cell 账表：',out/'cell-ledger.md')
+
 def main(argv=None):
     a = parser().parse_args(argv); repo = a.repo.resolve()
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
     if a.mode == 'report': report(resolve(a.input)); return 0
+    if a.mode == 'cell-ledger':
+        result=cell_ledger.write(resolve(a.input),resolve(a.baseline) if a.baseline else None,resolve(a.output) if a.output else None)
+        print('Cell ledger rows:',len(result['rows']),'; missing data stays null; shared cost counted once.')
+        return 0
+
     if a.mode in ['interaction','depth','depth-pair']:
         paths={name:resolve(getattr(a,name)) for name in (['before','after'] if a.mode=='depth-pair' else ['s0r0','s0r1','s1r0','s1r1'])}
         if getattr(a,'sat_only',None): paths['sat-only']=resolve(a.sat_only)
@@ -929,6 +1002,12 @@ def main(argv=None):
         result=analyze_credit_report({k:resolve(getattr(a,k)) for k in ['baseline','plan_only','candidate']},profiles)
         print('Analyze library net seconds:',result['net_library_seconds'],'fraction:',result['net_library_fraction'])
         print('Library order/backend seconds:',result['plan_only_seconds'],'certificate reuse seconds:',result['projection_reuse_seconds'])
+        if a.output and not a.dry_run:
+            inp=resolve(a.profile_candidate) if a.profile_candidate else resolve(a.candidate)
+            _,raw=cell_ledger.read(inp)
+            bp=resolve(a.profile_plan) if a.profile_plan and cell_ledger.gpu(raw).get('work_profile_version')==1 else None
+            cell_ledger.write(inp,bp,resolve(a.output).parent/'cell-ledger')
+
         if a.output and not a.dry_run:
             dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
             with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
@@ -1051,6 +1130,7 @@ def main(argv=None):
             print('输入、二进制、worker、策略及配置一致，复用已验证记录：', cached)
             print('没有重新执行推理或创建目标目录；强制重新测量用 --refresh。')
             report(cached)
+            finish_cell_metrics(a,repo,worker,cached,env)
             return 0
     if a.mode not in ['test','extract']:
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -1082,6 +1162,8 @@ def main(argv=None):
         (out / ('workflow-extract.json' if a.mode == 'extract' else 'workflow.json')).write_text(json.dumps(provenance, indent=2) + '\n')
         try: report(out, fresh=True)
         except FileNotFoundError: print('未生成完整报告，日志：', log)
+        if status==0 and a.mode in ['run','audit']:
+            finish_cell_metrics(a,repo,worker,out,env)
     return status
 
 if __name__ == '__main__':
