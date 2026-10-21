@@ -38,6 +38,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 | 需求 | `bench.py` 子命令 |
 |---|---|
+| 通用 GPU 空表短路对照（不使用 Cell） | `empty-tables --before 关闭目录 --after 开启目录 [--timing-before DIR --timing-after DIR] [--output NEW.json]` |
 | 联合闭包证明组的净 credit | `cell-credit --baseline 仅关闭证明 --candidate 开启证明 [--output NEW.json]` |
 | GPU 工作迁移与局部成本账（非 credit） | `cell-value --input 诊断目录 --before 历史Cell关闭 --after 历史Cell开启 [--output NEW.json] [--csv NEW.csv]` |
 | 每个 Cell 程序的真实缓存率与案例 | `cell-cases --input 诊断目录 --before 历史Cell关闭 --after 历史Cell开启 [--output NEW.json] [--csv NEW.csv]` |
@@ -107,7 +108,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 紧凑 GPU Join 默认使用自动证否 lookahead；`CELL_REFUTATION=0` 关闭。编译器只选择已有 tuple index，提前检测未访问 atom 的必要键，空哈希桶可直接拒绝整条后继搜索。碰撞及退休行只可能多保留候选；union/rebuild 仍使用原生完整增量维护，不以 Cell 库未覆盖作为证否。它不是新增 Cell 闭包证明。
 
-后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 15，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
+后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 16，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
 
 从 layout 13 起，`CELL_SEARCH_COUNTERS=1` 另记录多 atom 查询的起始候选数 `eligible_seeds`、当场被否的 `refuted_seeds`、至少产生一条完整 binding 的 `productive_seeds`，并按原始 rule 汇总。命中率用 `refuted_seeds / eligible_seeds`；不能将包括深层分支的 `refuted_branches` 除以起始候选数。无剩余候选时比率未定义。普通运行不执行这些诊断 atomic，也不分配按 rule 的计数区。
 
@@ -142,3 +143,8 @@ Cell 完整接口实验：`CELL_BINDING_CONNECTIONS=1` 开启已安装参数化 
 `CELL_JOINT_PROOFS=0/1` 提供同一参数化执行器上的证明组消融：保留普通 scalar 查询接管、固定根计划、订阅、端口缓存和原生 effects；只改变 fresh-DAG 宏、uniform-cost 退役及 Smaller 比较闭包，并包含其维护成本。两组都用 `--all-rules --joint-sat`。`cell-credit` 核验该契约、相同二进制/worker/输入/调度/查询接线和无插桩整图门槛；拒绝用“去掉整个 handler”的实验冒充此对照，也拒绝没有实际消费证明的时间差。
 
 测到的 credit 只归 `terms-joint-closure-proofs` 这一组，不能拆给三个 Smaller 规则、其父 Cell 或等价 spine 重复记账。当前尚无一般的逐 Cell 证明消费账和独立边际 credit。复用旧 CPU/完整图控制仍允许；报告中的历史 `gpu_without_joint` 可能来自别的 GPU 版本，因此不再自动据它显示“joint 单独收益”，正确归因须读独立同版本关/开记录。
+
+
+GPU 后端从 layout 16 起默认启用必需表为空的批次短路。`EGGLOG_GPU_EMPTY_TABLE_PRUNING=0` 关闭作消融；它归 `gpu_optimizations.empty_table_pruning`，不归 Cell。worker 在处理本批全部增量后的可见行计数上判断，重插/union/rebuild 后重新检查；零 atom 的规则不被短路。整批为空也继续提交维护并推进请求游标。`gpu_empty_table_prunes` / 每规则 `empty_table_prunes` 统计被短路的请求，是原 `dispatches` 的子集，不是内核启动数，也不能直接当作省掉的起点数。
+
+`empty-tables` 比较同二进制的无 Cell 运行，只改变这个开关，保留全部规则/调度和原生 effects；统计用 `CELL_SEARCH_COUNTERS=1`，时间另取无插桩对照。使用已验证 CPU 控制，不重跑未变的 CPU。要对照收益按原深度字段核算，不能把被短路请求乘表行数估算。Cell/refutation/credit 的其它对照必须固定此通用开关；工具会拒绝混用。空表短路没有 Cell credit。该优化只处理整个必需表没有可见行，非空表之间连不上仍由 Join/约束处理。

@@ -216,6 +216,10 @@ def report(path, fresh=False):
         raise ValueError('unknown report schema: ' + str(path))
     print('报告：', path)
 
+def generic_gpu_options(g):
+    # Old reports predate this optimization; absence means disabled.
+    return {'empty_table_pruning':False,**(g.get('gpu_optimizations') or {})}
+
 def interaction_report(paths):
     """Counted factorial experiment; never publish its instrumented seconds."""
     expected = {'s0r0': (False, False), 's0r1': (False, True),
@@ -238,7 +242,7 @@ def interaction_report(paths):
         if refute and (not g['cells']['refutation_signatures'] or g['cells']['refutation_domains']):
             raise ValueError('refutation configuration differs: '+name)
         key = [w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],
-               w['policy'],r['schedule'],r['assisted_rulesets'],r['same_commit_verification']]
+               w['policy'],r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],generic_gpu_options(g)]
         if identity is None: identity=key
         elif key != identity: raise ValueError('input, binary, worker, schedule or graph differs: '+name)
         if not all(f in work for f in fields): raise ValueError('missing seed counters; use layout 13+: '+name)
@@ -300,7 +304,7 @@ def connection_pair_report(paths):
             raise ValueError('incorrect connection/profile switch: '+name)
         key=[w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],w['policy'],
              r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],
-             g.get('cell_query_reuse'),bool(g.get('saturation_diagnostics')),
+             generic_gpu_options(g),g.get('cell_query_reuse'),bool(g.get('saturation_diagnostics')),
              (g.get('saturation_diagnostics') or {}).get('joint',{}).get('stats'),
              [g['cells'].get(k) for k in ['refutation','refutation_signatures','refutation_domains','query_routing']]]
         if identity is None:identity=key
@@ -330,9 +334,39 @@ def connection_pair_report(paths):
             if ar[q][field]!=br[q][field]:raise ValueError('seed cohort counts differ; inspect retries/anchor routing')
     return dict(scope='Actual GPU runtime, Cell connection ablation. Same per-rule seed counts, not proof of identical individual seeds. Profiled time is not speedup evidence.',records=records,query_mix=[])
 
-def join_depth_report(paths, connection_pair=False):
+def empty_table_pair_report(paths, profile=True):
+    records={};identity=None;rules={}
+    for name,path in paths.items():
+        r,w=load(path/'report.json'),load(path/'workflow.json');g=r['gpu']
+        if not exact(r.get('same_commit_verification')) or not r.get('benchmark_finished'):raise ValueError('empty-table run failed graph gate')
+        if bool(g.get('saturation_diagnostics')) or g['runtime'].get('cell_query_rules',0):raise ValueError('generic pruning ablation must not use Cell services')
+        if g['cells'].get('profile')!=profile or generic_gpu_options(g)['empty_table_pruning']!=(name=='after'):raise ValueError('wrong empty-table/pruning profile switch')
+        if not profile and not metrics(r)['timing_eligible']:raise ValueError('instrumented or unverified timing')
+        key=[w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],w['policy'],r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],g['cells'],g.get('query_sharing')]
+        if identity is None:identity=key
+        elif key!=identity:raise ValueError('empty-table input, binaries, query program or other optimization differs')
+        qs={(q['ruleset'],q['rule']):q for q in g['rules']}
+        if len(qs)!=len(g['rules']):raise ValueError('duplicate query')
+        work=g['cell_work'];n=work['eligible_seeds']
+        pruned=sum(q['stats']['empty_table_prunes'] for q in qs.values())
+        if pruned!=g['runtime']['gpu_empty_table_prunes'] or (name=='before' and pruned):raise ValueError('generic empty-table accounting differs')
+        for field in ['eligible_seeds','refuted_seeds','productive_seeds']:
+            if sum(q['stats'][field] for q in qs.values())!=work[field]:raise ValueError('per-query seed accounting differs')
+        rules[name]=qs
+        records[name]=dict(directory=str(path),provenance=w,work=work,counter_profile=profile,query_program_config=g['cells'],rejection_rate=work['refuted_seeds']/n if n else None,
+            empty_table_query_requests=pruned,runtime=g['runtime'],exact_same_commit=r['same_commit_verification'])
+    if rules['before'].keys()!=rules['after'].keys():raise ValueError('query universe changed')
+    for k,q in rules['before'].items():
+        if q['stats']['emitted_bindings']!=rules['after'][k]['stats']['emitted_bindings']:raise ValueError('empty-table filter changed a completed binding count')
+    per_rule=[dict(ruleset=k[0],rule=k[1],pruned_requests=q['stats']['empty_table_prunes'],
+        seeds_before=rules['before'][k]['stats']['eligible_seeds'],seeds_after=q['stats']['eligible_seeds'])
+        for k,q in rules['after'].items() if q['stats']['empty_table_prunes']]
+    return dict(scope='Generic GPU backend empty-required-table pruning. No Cell services. Query requests are not kernel launches or avoided seeds.',
+        records=records,pruned_rules=per_rule,query_mix=[])
+
+def join_depth_report(paths, connection_pair=False, empty_tables=False):
     """Depth is matched non-anchor atoms; loops/branches are not probabilities."""
-    result=connection_pair_report(paths) if connection_pair else interaction_report(paths)
+    result=empty_table_pair_report(paths) if empty_tables else connection_pair_report(paths) if connection_pair else interaction_report(paths)
     required={'entries','link_visits','live_rows','prefixes','key_checks','refutations',
               'matched_leaves','domain_checks','signature_refutations','deepest_seeds'}
     parsed={}; depths={}; fields=None
@@ -416,7 +450,7 @@ def join_depth_report(paths, connection_pair=False):
     result.update(depth_fields=fields,depths=depths,depth_contrasts={
         'cell_effect_with_refutation':contrast('s0r1','s1r1'),
         'refutation_effect_with_cell':contrast('s1r0','s1r1'),
-        'refutation_effect_without_cell':contrast('s0r0','s0r1')} if not connection_pair else {'connection_effect':contrast('before','after')})
+        'refutation_effect_without_cell':contrast('s0r0','s0r1')} if not (connection_pair or empty_tables) else {'empty_table_effect' if empty_tables else 'connection_effect':contrast('before','after')})
     result['depth_scope']='Actual compact GPU Join. Depth 0 is a valid multi-atom anchor; depth d attempts the d-th non-anchor atom. Deepest-seed bins count each seed evaluation once, including retries. Entry counts can exceed seed counts due to branching; they are not reach probabilities.'
     return result
 
@@ -436,7 +470,7 @@ def cell_cases_report(current, before, after):
             raise ValueError('case analysis requires the same counted refutation mode')
         if g['cells'].get('binding_connections',False) or g['cells'].get('binding_ranges',False):
             raise ValueError('do not mix new port constraints into historical Cell ablation')
-        key=[provenance[name]['snapshot_sha256'],provenance[name]['policy'],r['schedule'],r['assisted_rulesets'],r['same_commit_verification']]
+        key=[provenance[name]['snapshot_sha256'],provenance[name]['policy'],r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],generic_gpu_options(g)]
         if name=='current':identity=key
         elif identity!=key:raise ValueError('input, policy, schedule or graph differs')
     for field in ['binary_sha256','worker_sha256']:
@@ -508,7 +542,7 @@ def cell_net_time(before, after):
             raise ValueError('net benefit requires correct, uninstrumented timings')
     identity=lambda r,w:[w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],w['policy'],
         r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],
-        [r['gpu'].get('cells',{}).get(k,False) for k in ['refutation','refutation_signatures','refutation_domains','binding_connections','binding_ranges']]]
+        generic_gpu_options(r['gpu']),[r['gpu'].get('cells',{}).get(k,False) for k in ['refutation','refutation_signatures','refutation_domains','binding_connections','binding_ranges']]]
     if identity(rs[0],ws[0])!=identity(rs[1],ws[1]):raise ValueError('net-benefit control differs in input, binary, policy or other optimizations')
     if rs[0]['gpu'].get('saturation_diagnostics') or not rs[1]['gpu'].get('saturation_diagnostics'):
         raise ValueError('net-benefit timings must toggle Cell services only')
@@ -537,7 +571,7 @@ def cell_credit_report(baseline, candidate):
         proofs.append(j)
     identity=lambda r,w,g:[w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],w['policy'],
         w.get('inference_identity',{}).get('machine'),r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],
-        g.get('cells'),g.get('query_sharing'),
+        generic_gpu_options(g),g.get('cells'),g.get('query_sharing'),
         [(p['ruleset'],p['rule'],p['kind'],p['seed'],p['accesses']) for p in g['saturation_diagnostics']['programs']]]
     if identity(rs[0],ws[0],gs[0])!=identity(rs[1],ws[1],gs[1]):raise ValueError('credit confounded by input, binaries, query layout or generic optimizations')
     before,after=[g['runtime']['run_seconds'] for g in gs]
@@ -631,6 +665,9 @@ def parser():
         if mode=='cell-value':q.add_argument('--timing-before',type=Path);q.add_argument('--timing-after',type=Path)
     q = sub.add_parser('cell-credit',help='attribute proof-only benefit with generic dataflow kept in both lanes')
     q.add_argument('--baseline',type=Path,required=True);q.add_argument('--candidate',type=Path,required=True);q.add_argument('--output',type=Path)
+    q = sub.add_parser('empty-tables',help='generic GPU pruning off/on, without Cell services')
+    q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
+    q.add_argument('--timing-before',type=Path);q.add_argument('--timing-after',type=Path);q.add_argument('--output',type=Path)
     q = sub.add_parser('history', help='reuse historical evidence; no build or execution')
     q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
     q.add_argument('--policy', choices=['stable', 'original'], default='stable')
@@ -814,6 +851,25 @@ def main(argv=None):
         print('baseline/candidate seconds:',result['baseline_seconds'],result['candidate_seconds'])
         print('group credit seconds:',result['credit_seconds'],'fraction:',result['credit_fraction'])
         print('individual Cell credits: unmeasured')
+        if a.output and not a.dry_run:
+            dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
+            with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
+        return 0
+    if a.mode == 'empty-tables':
+        result=join_depth_report({'before':resolve(a.before),'after':resolve(a.after)},empty_tables=True)
+        if (a.timing_before is None)!=(a.timing_after is None):raise ValueError('both uninstrumented timing directories required')
+        if a.timing_before:
+            result['timing']=empty_table_pair_report({'before':resolve(a.timing_before),'after':resolve(a.timing_after)},profile=False)
+            for name in ['before','after']:
+                counts=result['records'][name];timing=result['timing']['records'][name]
+                for field in ['snapshot_sha256','binary_sha256','worker_sha256','policy']:
+                    if counts['provenance'][field]!=timing['provenance'][field]:raise ValueError('count/timing experiment identity differs')
+                config=lambda r:{k:v for k,v in r['query_program_config'].items() if k!='profile'}
+                if config(counts)!=config(timing) or counts['exact_same_commit']!=timing['exact_same_commit']:
+                    raise ValueError('count/timing query configuration or final graph differs')
+        for name,r in result['records'].items():
+            print(name,'pruned query requests:',r['empty_table_query_requests'],'seeds:',r['work']['eligible_seeds'],'live rows:',r['work']['join_live_row_visits'])
+        print('Generic GPU optimization; Cell credit is zero.')
         if a.output and not a.dry_run:
             dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
             with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')

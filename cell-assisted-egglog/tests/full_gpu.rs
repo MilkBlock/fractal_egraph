@@ -366,3 +366,59 @@ fn complete_port_ranges_cover_all_aliases_and_extreme_integer_values() {
         assert!(r.report()["cell_work"]["range_refutations"].as_u64().unwrap()>0);
     }
 }
+
+#[test]
+fn generic_empty_table_gate_resumes_after_insert_delete_union_and_subsume() {
+    let Some(worker)=worker() else{return};
+    for direct in [false,true] {
+        let mut eg=EGraph::default();
+        eg.parse_and_run_program(None,r#"
+          (datatype E (N i64) (Gate E))
+          (relation Need (E)) (relation Hit (E)) (relation Boot ()) (ruleset s)
+          (rule ((Need x) (= g (Gate x))) ((Hit x)) :ruleset s :name "join")
+          (Need (N 1))
+        "#).unwrap();
+        eg.parse_and_run_program(None,if direct {"(Boot)"} else {"(rule () ((Boot)) :ruleset s :name \"unit\")"}).unwrap();
+        let commands=eg.parse_program(None,"(run s 1)").unwrap();
+        let mut r=if direct {Runtime::new(eg,&commands,&worker,true).unwrap()} else {Runtime::new_full(eg,&commands,Some(&worker),true,None).unwrap()};
+        r.run(&commands).unwrap();check(&r,"(check (Boot)) (fail (check (Hit (N 1))))");
+        r.run(&commands).unwrap(); // Repeated empty query still acknowledges its frontier.
+        r.input("(Gate (N 1))").unwrap();r.run(&commands).unwrap();check(&r,"(check (Hit (N 1)))");
+        r.input("(delete (Gate (N 1))) (Need (N 2))").unwrap();r.run(&commands).unwrap();
+        check(&r,"(fail (check (Hit (N 2))))");
+        r.input("(Gate (N 3)) (union (N 2) (N 3))").unwrap();r.run(&commands).unwrap();
+        check(&r,"(check (Hit (N 2)))");
+        // The final snapshot is nonempty; do not prune on an intermediate delete.
+        r.input("(delete (Gate (N 3))) (Gate (N 4)) (Need (N 4))").unwrap();r.run(&commands).unwrap();
+        check(&r,"(check (Hit (N 4)))");
+        r.input("(subsume (Gate (N 4))) (Need (N 5))").unwrap();r.run(&commands).unwrap();
+        check(&r,"(fail (check (Hit (N 5))))");
+        r.input("(Gate (N 5))").unwrap();r.run(&commands).unwrap();check(&r,"(check (Hit (N 5)))");
+        let report=r.report();assert!(report["saturation_diagnostics"].is_null());assert_eq!(report["runtime"]["cell_query_rules"],0);
+        if report["gpu_optimizations"]["empty_table_pruning"]==true {
+            assert!(report["runtime"]["gpu_empty_table_prunes"].as_u64().unwrap()>=3);
+            if !direct {
+                let unit=report["rules"].as_array().unwrap().iter().find(|q|q["rule"]=="unit").unwrap();
+                assert_eq!(unit["stats"]["empty_table_prunes"],0);
+            }
+        }
+    }
+}
+
+#[test]
+fn empty_nullary_relation_is_required_and_pruning_preserves_frozen_run_boundaries() {
+    let Some(worker)=worker() else{return};
+    let mut eg=EGraph::default();
+    eg.parse_and_run_program(None,r#"
+      (relation Ready ()) (relation Seed (i64)) (relation Gate (i64)) (relation Hit (i64)) (ruleset s)
+      (rule ((Seed x)) ((Gate x)) :ruleset s :name "produce")
+      (rule ((Ready) (Gate x)) ((Hit x)) :ruleset s :name "consume")
+      (Seed 1) (Ready)
+    "#).unwrap();
+    let commands=eg.parse_program(None,"(run s 1)").unwrap();
+    let mut r=Runtime::new_full(eg,&commands,Some(&worker),true,None).unwrap();
+    r.run(&commands).unwrap();check(&r,"(check (Gate 1)) (fail (check (Hit 1)))");
+    r.run(&commands).unwrap();check(&r,"(check (Hit 1))");
+    r.input("(delete (Ready)) (Gate 2)").unwrap();r.run(&commands).unwrap();check(&r,"(fail (check (Hit 2)))");
+    r.input("(Ready)").unwrap();r.run(&commands).unwrap();check(&r,"(check (Hit 2))");
+}

@@ -238,6 +238,30 @@ class WorkflowTests(unittest.TestCase):
             (paths[1]/'report.json').write_text(json.dumps(bad))
             with self.assertRaises(ValueError):B.cell_credit_report(*paths)
 
+    def test_empty_table_report_counts_generic_pruning_without_cell_credit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=self.depth_fixture(root)
+            paths={'before':source['s0r1'],'after':source['s1r1']}
+            for name,path in paths.items():
+                r=B.load(path/'report.json');g=r['gpu'];g['saturation_diagnostics']=None
+                g['gpu_optimizations']={'empty_table_pruning':name=='after'}
+                g['runtime'].update(cell_query_rules=0,cell_query_bindings=0,gpu_empty_table_prunes=int(name=='after'))
+                for i,q in enumerate(g['rules']):
+                    q['stats'].update(empty_table_prunes=int(name=='after' and i==0),emitted_bindings=2 if i else 0)
+                (path/'report.json').write_text(json.dumps(r))
+            out=B.join_depth_report(paths,empty_tables=True)
+            self.assertEqual(out['records']['after']['empty_table_query_requests'],1)
+            self.assertEqual(out['pruned_rules'][0]['seeds_after'],0)
+            self.assertFalse(out['depth_contrasts']['empty_table_effect']['same_per_rule_seed_counts'])
+            p=paths['after']/'report.json';r=B.load(p);r['gpu']['runtime']['cell_query_rules']=1;p.write_text(json.dumps(r))
+            with self.assertRaises(ValueError):B.empty_table_pair_report(paths)
+
+    def test_cell_credit_rejects_mixed_generic_gpu_optimizations(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);paths=self.interaction_fixture(root)
+            p=paths['s1r1']/'report.json';r=B.load(p);r['gpu']['gpu_optimizations']={'empty_table_pruning':True};p.write_text(json.dumps(r))
+            with self.assertRaises(ValueError):B.interaction_report(paths)
+
     def test_depth_branch_entries_are_not_seed_reach_probabilities(self):
         with tempfile.TemporaryDirectory() as tmp:
             result=B.join_depth_report(self.depth_fixture(Path(tmp)))

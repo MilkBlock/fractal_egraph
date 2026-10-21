@@ -39,6 +39,7 @@ pub struct Stats {
     pub native_query_seconds: f64,
     pub audit_seconds: f64,
     pub dispatches: usize,
+    pub gpu_empty_table_prunes: usize,
     pub uploaded_bytes: usize,
     pub downloaded_bytes: usize,
     pub first_upload_bytes: usize,
@@ -110,6 +111,7 @@ pub trait SaturationHook {
 #[derive(Default, Serialize)]
 struct QueryStats {
     dispatches: usize,
+    empty_table_prunes: usize,
     quiet_runs: usize,
     emitted_bindings: usize,
     audit_queries: usize,
@@ -193,6 +195,7 @@ pub struct Runtime {
     failed: bool,
     last_device: Json,
     cell_evidence: Json,
+    gpu_optimizations: Json,
     cell_work: BTreeMap<String, u64>,
     saturation_hook: Option<Box<dyn SaturationHook>>,
     hook_table_ids: BTreeMap<String, usize>,
@@ -423,6 +426,7 @@ impl Runtime {
             failed: false,
             last_device: Json::Null,
             cell_evidence: Json::Null,
+            gpu_optimizations: Json::Null,
             cell_work: BTreeMap::new(),
             saturation_hook: None,
             hook_table_ids: BTreeMap::new(),
@@ -490,10 +494,11 @@ impl Runtime {
             config["port_locality"] = json!(options.port_locality as u32);
             config["query_routing"] = json!(options.query_routing as u32);
             runtime.cell_evidence = json!({"binding_ranges":config["binding_ranges"],"range_checks":config["range_checks"],"range_sources":config["range_sources"],"binding_connections":config["binding_connections"],"connection_sources":connections.map(|c|c.len()).unwrap_or(0),"refutation_signatures":config["refutation_signatures"],"refutation_domains":config["refutation_domains"],"domain_checks":config["domain_checks"],"domain_summaries":config["domain_tables"].as_array().map(Vec::len),"refutation":config["refutation"],"refutation_checks":config["refutation_checks"],"staged_constraints":config["staged_constraints"],"compact_binding_workspace":config["compact_binding_workspace"]==true && matches!(options.query_routing,QueryRouting::TableAnchors),"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
+            runtime.gpu_optimizations=json!({"empty_table_pruning":config["empty_table_pruning"]});
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
             if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
-            if installed["family_layout"] != json!(15) {
+            if installed["family_layout"] != json!(16) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0
@@ -753,6 +758,16 @@ impl Runtime {
         if r["epoch"].as_u64() != Some((self.epoch + 1) as u64) || r["retained_matches"] != 0 {
             return Err("invalid family receipt".into());
         }
+        let mut pruned=BTreeSet::new();
+        for id in r["empty_table_queries"].as_array().ok_or("missing generic empty-table receipt")? {
+            let id=id.as_u64().ok_or("invalid empty-table query")? as usize;
+            if !active.contains(&id) || !pruned.insert(id){return Err("foreign or duplicate empty-table query".into())}
+            // The independent host mirror must agree with the worker's claim.
+            if !self.table_ids[id].iter().any(|t|self.keys[*t].is_empty()) {return Err("worker pruned a query whose required tables are nonempty".into())}
+            self.qstats[id].empty_table_prunes+=1;
+        }
+        if r["queries"].as_u64()!=Some(active.len() as u64) || r["matched_queries"].as_u64()!=Some((active.len()-pruned.len()) as u64){return Err("generic query pruning lost a request".into())}
+        self.stats.gpu_empty_table_prunes+=pruned.len();
         self.epoch += 1;
         self.pending.clear();
         self.stats.dispatches += 1;
@@ -819,6 +834,7 @@ impl Runtime {
         }
         if decoded!=count{return Err("compact binding count differs".into())}
         for (id, bindings) in ids.iter().zip(&mut matches) {
+            if pruned.contains(id) && !bindings.is_empty(){return Err("empty-table query returned a binding".into())}
             bindings.sort_unstable();
             if let Some(pair) = bindings.windows(2).find(|p| p[0] == p[1]) {
                 return Err(format!(
@@ -1103,6 +1119,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"join_depth_fields":family_program::DEPTH_METRICS,"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"atoms":sink.atoms.len(),"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"join_depth_fields":family_program::DEPTH_METRICS,"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"gpu_optimizations":self.gpu_optimizations,"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"atoms":sink.atoms.len(),"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }
