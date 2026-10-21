@@ -26,6 +26,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 |---|---|
 | 看已有结果，不重新跑 | `report [分析目录或 report.json]` |
 | 查找可复用的完整 Pass-3 历史 | `history --joint-sat` |
+| 只读分析 sat-skip/refutation 的交叉计数与规则构成 | `interaction --s0r0 DIR --s0r1 DIR --s1r0 DIR --s1r1 DIR [--sat-only DIR]` |
 | 核验输入、工具与缓存路径 | `check` |
 | 真实 raytrace Pass 3 稳定选择计时＋整图检查＋Tiger | `run --output out/新目录` |
 | 所有原始 Pass-3 规则交给 GPU，同时保留 Cell sat-skip | `run --all-rules --joint-sat --output out/新目录` |
@@ -87,6 +88,10 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 紧凑 GPU Join 默认使用自动证否 lookahead；`CELL_REFUTATION=0` 关闭。编译器只选择已有 tuple index，提前检测未访问 atom 的必要键，空哈希桶可直接拒绝整条后继搜索。碰撞及退休行只可能多保留候选；union/rebuild 仍使用原生完整增量维护，不以 Cell 库未覆盖作为证否。它不是新增 Cell 闭包证明。
 
-后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 12，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
+后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 13，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
+
+从 layout 13 起，`CELL_SEARCH_COUNTERS=1` 另记录多 atom 查询的起始候选数 `eligible_seeds`、当场被否的 `refuted_seeds`、至少产生一条完整 binding 的 `productive_seeds`，并按原始 rule 汇总。命中率用 `refuted_seeds / eligible_seeds`；不能将包括深层分支的 `refuted_branches` 除以起始候选数。无剩余候选时比率未定义。普通运行不执行这些诊断 atomic，也不分配按 rule 的计数区。
+
+互补性实验用同二进制、同输入的 2×2 组合；S 为 `--joint-sat` 的 CPU Cell 服务，R 为 `CELL_REFUTATION`。中间组另设 `CELL_DISABLE_CELL_QUERIES=1`，区分纯饱和接续与普通查询复用。`interaction` 只读已有目录，校验配置/指纹/整图/计数守恒，比较固定规则权重下的证否率，不能把移走查询导致的比例升高当成同一候选的证明增强，也不能把这些插桩时间报成加速比。`--output NEW.json` 保存分析，已有文件不覆盖。无需重跑原生/CPU；同调度的 joint 对照也可为不启用 hook 的候选提供原生/CPU 图，旧 joint 判等字段会被删除后重新核对。见 [互补性验证](../../experiments/sat_refutation_interaction/README.md)。
 
 比较 search 必须用同输入、同调度、同二进制开关消融。`CELL_QUERY_TIMINGS=1` 分离 `gpu_matching_seconds`（含证否和候选路由）与 `gpu_maintenance_seconds`；不要把该诊断的总推理时间作为正常运行加速比。另用普通 `run` 报告完整推理耗时。`CELL_SEARCH_COUNTERS=1` 在全规则路径开启诊断计数，报告 `join_probes`（实际进入的索引 Join 层）、`refutation_checks`（额外的必要键检查）、`refuted_branches`、`join_link_visits`（含退休行）和 `join_live_row_visits`（实际候选访问）；不是新事实或唯一行数。计数器含 atomic 开销，不作为无插桩时间证据。修改证否后须跑 `audit --all-rules --joint-sat`，并检查新增事实、union、删除重插和精确整数键。见 [自动证否实验](../../experiments/automatic_refutation/README.md)。

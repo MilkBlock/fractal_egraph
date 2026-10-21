@@ -3,6 +3,11 @@
 // overwrite an ancestor value: bind_atom/primitive_apply check it first.
 // Backtracking therefore restores bound-status masks, not copies of values.
 // This path has no Cell segment jumps; those retain the general executor.
+// Profile multi-atom starts only. Keep a real denominator, and retain rule
+// identity so removing easy queries cannot masquerade as stronger proof.
+void seed_work(device atomic_uint* counters,uint q,uint kind){
+ if(PROFILE_JOIN){atomic_fetch_add_explicit(counters+49+kind,1,memory_order_relaxed);atomic_fetch_add_explicit(counters+64+q*3+kind,1,memory_order_relaxed);}
+}
 bool refuted(device const uint* code,device atomic_uint* heads,device atomic_uint* domains,device const uint* packet,
  constant uint* cfg,device atomic_uint* counters,uint q,uint anchor,uint depth,
  thread const uint* v,thread const uint* lo,thread const uint* hi){
@@ -72,8 +77,11 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
  if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,bound,false) ||
     !stage_constraints(code,q,anchor,0,v,lo,hi,bound))return uint2(0);
  if(n==1)return uint2(emit_match<QS>(code,output,counters,cfg,q,v,lo,hi,true),0);
- if(refuted(code,heads,domains,packet,cfg,counters,q,anchor,0,v,lo,hi))return uint2(0);
- if(domains_refuted(code,domains,packet,cfg,counters,q,anchor,v,lo,hi))return uint2(0);
+ seed_work(counters,q,0);
+ if(refuted(code,heads,domains,packet,cfg,counters,q,anchor,0,v,lo,hi) ||
+    domains_refuted(code,domains,packet,cfg,counters,q,anchor,v,lo,hi)){
+  seed_work(counters,q,1);return uint2(0);
+ }
  for(uint j=0;j<QP;j++)started[j]=0;
  int depth=0;
  while(depth>=0){
@@ -104,5 +112,6 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
   if(uint(depth)+1==n-1)hits+=emit_match<QS>(code,output,counters,cfg,q,v,lo,hi,true);
   else{depth++;started[depth]=0;}
  }
+ if(hits)seed_work(counters,q,2);
  return uint2(hits,0);
 }

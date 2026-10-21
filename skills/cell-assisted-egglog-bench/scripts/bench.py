@@ -215,12 +215,88 @@ def report(path, fresh=False):
         raise ValueError('unknown report schema: ' + str(path))
     print('报告：', path)
 
+def interaction_report(paths):
+    """Counted factorial experiment; never publish its instrumented seconds."""
+    expected = {'s0r0': (False, False), 's0r1': (False, True),
+                's1r0': (True, False), 's1r1': (True, True), 'sat-only': (True, True)}
+    if not {'s0r0','s0r1','s1r0','s1r1'} <= paths.keys():
+        raise ValueError('four factorial corners are required')
+    records, rule_counts, identity = {}, {}, None
+    fields = ['eligible_seeds', 'refuted_seeds', 'productive_seeds']
+    for name, path in paths.items():
+        r, w = load(path/'report.json'), load(path/'workflow.json')
+        g = r['gpu']; work = g['cell_work']; sat, refute = expected[name]
+        if not exact(r.get('same_commit_verification')) or r.get('benchmark_finished') is not True:
+            raise ValueError('unverified graph: '+name)
+        if g.get('cells',{}).get('profile') is not True:
+            raise ValueError('seed counters were not enabled: '+name)
+        if bool(g.get('saturation_diagnostics')) != sat or g['cells']['refutation'] != refute:
+            raise ValueError('incorrect experimental switches: '+name)
+        if g.get('cell_query_reuse') != (name != 'sat-only'):
+            raise ValueError('incorrect Cell frontier switch: '+name)
+        if refute and (not g['cells']['refutation_signatures'] or g['cells']['refutation_domains']):
+            raise ValueError('refutation configuration differs: '+name)
+        key = [w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],
+               w['policy'],r['schedule'],r['assisted_rulesets'],r['same_commit_verification']]
+        if identity is None: identity=key
+        elif key != identity: raise ValueError('input, binary, worker, schedule or graph differs: '+name)
+        if not all(f in work for f in fields): raise ValueError('missing seed counters; use layout 13+: '+name)
+        rules={(x['ruleset'],x['rule']):x['stats'] for x in g['rules']}
+        if len(rules)!=len(g['rules']): raise ValueError('duplicate rule identity')
+        for f in fields:
+            if sum(x[f] for x in rules.values()) != work[f]:
+                raise ValueError('per-rule seed accounting differs: '+name)
+        if any(type(work[f]) is not int or work[f]<0 for f in fields) or work['refuted_seeds']+work['productive_seeds']>work['eligible_seeds']:
+            raise ValueError('invalid seed outcomes: '+name)
+        rule_counts[name]=rules
+        records[name]=dict(directory=str(path),provenance=w,work=work,
+                          rejection_rate=work['refuted_seeds']/work['eligible_seeds'] if work['eligible_seeds'] else None,
+                          productive_rate=work['productive_seeds']/work['eligible_seeds'] if work['eligible_seeds'] else None,
+                          cell_query_bindings=g['runtime']['cell_query_bindings'],
+                          cell_query_rules=g['runtime']['cell_query_rules'],
+                          exact_same_commit=r['same_commit_verification'],
+                          exact_fused_native=exact(r.get('verification')))
+    for a,b in [('s0r0','s0r1'),('s1r0','s1r1')]:
+        for f in ['eligible_seeds','productive_seeds']:
+            if records[a]['work'][f]!=records[b]['work'][f]:
+                raise ValueError('refutation changed seed population counts: '+a+'/'+b)
+    def mix(a,b):
+        left,right=rule_counts[a],rule_counts[b]
+        if left.keys()!=right.keys(): raise ValueError('rule universe changed')
+        common=[k for k in left if left[k]['eligible_seeds'] and right[k]['eligible_seeds']]
+        removed=[k for k in left if left[k]['eligible_seeds'] and not right[k]['eligible_seeds']]
+        identical=[k for k in left if all(left[k][f]==right[k][f] for f in fields)]
+        total=sum(left[k]['eligible_seeds'] for k in common)
+        return dict(reference=a,candidate=b,common_rules=len(common),identical_rules=len(identical),
+                    identical_nonempty_rules=sum(left[k]['eligible_seeds']>0 for k in identical),
+                    common_reference_rate=sum(left[k]['refuted_seeds'] for k in common)/total if total else None,
+                    common_candidate_fixed_weight_rate=sum(left[k]['eligible_seeds']*right[k]['refuted_seeds']/right[k]['eligible_seeds'] for k in common)/total if total else None,
+                    removed_rules=len(removed),removed_totals={f:sum(left[k][f] for k in removed) for f in fields},
+                    removed=[dict(ruleset=k[0],rule=k[1],stats=left[k]) for k in removed],
+                    changed_common=[dict(ruleset=k[0],rule=k[1],before={f:left[k][f] for f in fields},after={f:right[k][f] for f in fields}) for k in common if any(left[k][f]!=right[k][f] for f in fields)])
+    contrasts={}
+    for metric in ['join_live_row_visits','join_probes']:
+        v={k:r['work'][metric] for k,r in records.items()}
+        contrasts[metric]=dict(cell_saving_without_refutation=v['s0r0']-v['s1r0'],
+             cell_saving_with_refutation=v['s0r1']-v['s1r1'],
+             refutation_saving_without_cell=v['s0r0']-v['s0r1'],
+             refutation_saving_with_cell=v['s1r0']-v['s1r1'],
+             combined_fraction_saved=1-v['s1r1']/v['s0r0'] if v['s0r0'] else None,
+             superadditive_saving=v['s1r0']+v['s0r1']-v['s0r0']-v['s1r1'])
+    mixtures=[mix('s0r1','s1r1')]
+    if 'sat-only' in paths: mixtures += [mix('s0r1','sat-only'),mix('sat-only','s1r1')]
+    return dict(scope='Actual full Pass-3 work-count experiment. Profiled seconds are not speedup evidence. This ablates certified services, not training data or Bake quality.',
+                records=records,contrasts=contrasts,query_mix=mixtures)
+
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--repo', type=Path, default=REPO)
     p.add_argument('--dry-run', action='store_true')
     sub = p.add_subparsers(dest='mode', required=True)
     q = sub.add_parser('report'); q.add_argument('input', type=Path, nargs='?', default=SAVED)
+    q = sub.add_parser('interaction', help='read saved sat/refutation factorial counters; no runs')
+    for name in ['s0r0','s0r1','s1r0','s1r1']: q.add_argument('--'+name,type=Path,required=True)
+    q.add_argument('--sat-only',type=Path);q.add_argument('--output',type=Path)
     q = sub.add_parser('history', help='reuse historical evidence; no build or execution')
     q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
     q.add_argument('--policy', choices=['stable', 'original'], default='stable')
@@ -349,6 +425,18 @@ def main(argv=None):
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
     if a.mode == 'report': report(resolve(a.input)); return 0
+    if a.mode == 'interaction':
+        paths={name:resolve(getattr(a,name)) for name in ['s0r0','s0r1','s1r0','s1r1']}
+        if a.sat_only: paths['sat-only']=resolve(a.sat_only)
+        result=interaction_report(paths)
+        print('读取已有计数，不重新执行；不使用带计数器的时间证明加速。')
+        for name,r in result['records'].items():
+            print(name, 'candidate row visits:',r['work']['join_live_row_visits'], 'seed rejection:',f"{100*r['rejection_rate']:.3f}%" if r['rejection_rate'] is not None else 'N/A')
+        print('固定规则权重的比较：',json.dumps([{k:v for k,v in m.items() if k not in ['removed','changed_common']} for m in result['query_mix']],ensure_ascii=False))
+        if a.output:
+            dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
+            with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
+        return 0
     if a.mode == 'history':
         if a.limit < 1:
             raise ValueError('--limit must be positive')

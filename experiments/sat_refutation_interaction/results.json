@@ -1,0 +1,4332 @@
+{
+  "scope": "Actual full Pass-3 work-count experiment. Profiled seconds are not speedup evidence. This ablates certified services, not training data or Bake quality.",
+  "records": {
+    "s0r0": {
+      "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-s0r0",
+      "provenance": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/interaction-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-s0r0",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout",
+        "source_head": "08dc6cf10a8ee0a9497521ebbfa0b273d8b725c3",
+        "dirty_files": " M cell-assisted-egglog/family_compact.metal\n M cell-assisted-egglog/matrix.swift\n M cell-assisted-egglog/src/family_program.rs\n M cell-assisted-egglog/src/table_live.rs\n M examples/support/live_table_bench.rs\n",
+        "no_build": true,
+        "worker_sha256": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68",
+          "worker": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+          "policy": "stable",
+          "joint": false,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "c4da514876f1d2e0d843a52fdc2a207a2c6529a46d0b4c4eadc0ebf52f2f3a1d"
+        }
+      },
+      "work": {
+        "certificate_reuses": 0,
+        "certification_attempts": 0,
+        "certification_probes": 0,
+        "certified_anchor_hits": 0,
+        "delegated_branches": 0,
+        "direct_row_reuses": 0,
+        "dirty_cells": 0,
+        "domain_checks": 0,
+        "domain_refuted_branches": 0,
+        "eligible_seeds": 40587639,
+        "invalidated_certificates": 0,
+        "join_link_visits": 852637216,
+        "join_live_row_visits": 789963008,
+        "join_probes": 229531003,
+        "missing_key_waits": 0,
+        "port_bindings": 0,
+        "port_candidate_rows": 0,
+        "port_consumer_checks": 0,
+        "port_context_loads": 0,
+        "port_context_words": 0,
+        "port_join_executions": 0,
+        "port_probes": 0,
+        "port_shared_joins_saved": 0,
+        "ports_published": 0,
+        "prefix_rows_reused": 0,
+        "productive_seeds": 2041682,
+        "ready_covered_atom_sum": 0,
+        "ready_matches": 0,
+        "ready_productive_seeds": 0,
+        "ready_query_atom_sum": 0,
+        "ready_reuse_seeds": 0,
+        "ready_reused_atoms": 0,
+        "refutation_checks": 0,
+        "refuted_branches": 0,
+        "refuted_seeds": 0,
+        "routed_ready": 0,
+        "routed_suspected": 0,
+        "routed_unmapped": 40150184,
+        "routing_ambiguous": 0,
+        "routing_delegated_to_port": 0,
+        "routing_earlier_delta_owner": 0,
+        "routing_locator_probes": 0,
+        "routing_locator_rows": 0,
+        "routing_no_next_atom": 0,
+        "routing_unique_hints": 0,
+        "routing_valid_seeds": 40150184,
+        "shape_fallbacks": 0,
+        "signature_refuted_branches": 0,
+        "skipped_join_probes": 0,
+        "suspected_matches": 0,
+        "suspected_productive_seeds": 0,
+        "suspected_reuse_seeds": 0,
+        "suspected_reused_atoms": 0,
+        "unmapped_matches": 0,
+        "unmapped_productive_seeds": 0,
+        "unmapped_reuse_seeds": 0,
+        "unmapped_reused_atoms": 0,
+        "watch_entries_checked": 0,
+        "watch_wakes": 0
+      },
+      "rejection_rate": 0.0,
+      "productive_rate": 0.05030304916233241,
+      "cell_query_bindings": 0,
+      "cell_query_rules": 0,
+      "exact_same_commit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      },
+      "exact_fused_native": false
+    },
+    "s0r1": {
+      "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-s0r1",
+      "provenance": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/interaction-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-s0r1",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout",
+        "source_head": "08dc6cf10a8ee0a9497521ebbfa0b273d8b725c3",
+        "dirty_files": " M cell-assisted-egglog/family_compact.metal\n M cell-assisted-egglog/matrix.swift\n M cell-assisted-egglog/src/family_program.rs\n M cell-assisted-egglog/src/table_live.rs\n M examples/support/live_table_bench.rs\n",
+        "no_build": true,
+        "worker_sha256": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68",
+          "worker": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+          "policy": "stable",
+          "joint": false,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "e7ee30cfcf2ec1f93470f10d7527cd1f4a52e631f0e8cdec7dd0a96453c7a8a3"
+        }
+      },
+      "work": {
+        "certificate_reuses": 0,
+        "certification_attempts": 0,
+        "certification_probes": 0,
+        "certified_anchor_hits": 0,
+        "delegated_branches": 0,
+        "direct_row_reuses": 0,
+        "dirty_cells": 0,
+        "domain_checks": 0,
+        "domain_refuted_branches": 0,
+        "eligible_seeds": 40587639,
+        "invalidated_certificates": 0,
+        "join_link_visits": 116316129,
+        "join_live_row_visits": 72750548,
+        "join_probes": 60237385,
+        "missing_key_waits": 0,
+        "port_bindings": 0,
+        "port_candidate_rows": 0,
+        "port_consumer_checks": 0,
+        "port_context_loads": 0,
+        "port_context_words": 0,
+        "port_join_executions": 0,
+        "port_probes": 0,
+        "port_shared_joins_saved": 0,
+        "ports_published": 0,
+        "prefix_rows_reused": 0,
+        "productive_seeds": 2041682,
+        "ready_covered_atom_sum": 0,
+        "ready_matches": 0,
+        "ready_productive_seeds": 0,
+        "ready_query_atom_sum": 0,
+        "ready_reuse_seeds": 0,
+        "ready_reused_atoms": 0,
+        "refutation_checks": 13876927,
+        "refuted_branches": 7968420,
+        "refuted_seeds": 7298840,
+        "routed_ready": 0,
+        "routed_suspected": 0,
+        "routed_unmapped": 40150184,
+        "routing_ambiguous": 0,
+        "routing_delegated_to_port": 0,
+        "routing_earlier_delta_owner": 0,
+        "routing_locator_probes": 0,
+        "routing_locator_rows": 0,
+        "routing_no_next_atom": 0,
+        "routing_unique_hints": 0,
+        "routing_valid_seeds": 40150184,
+        "shape_fallbacks": 0,
+        "signature_refuted_branches": 1504621,
+        "skipped_join_probes": 0,
+        "suspected_matches": 0,
+        "suspected_productive_seeds": 0,
+        "suspected_reuse_seeds": 0,
+        "suspected_reused_atoms": 0,
+        "unmapped_matches": 0,
+        "unmapped_productive_seeds": 0,
+        "unmapped_reuse_seeds": 0,
+        "unmapped_reused_atoms": 0,
+        "watch_entries_checked": 0,
+        "watch_wakes": 0
+      },
+      "rejection_rate": 0.17982913467817135,
+      "productive_rate": 0.05030304916233241,
+      "cell_query_bindings": 0,
+      "cell_query_rules": 0,
+      "exact_same_commit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      },
+      "exact_fused_native": false
+    },
+    "s1r0": {
+      "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-s1r0",
+      "provenance": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/interaction-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-s1r0",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout",
+        "source_head": "08dc6cf10a8ee0a9497521ebbfa0b273d8b725c3",
+        "dirty_files": " M cell-assisted-egglog/family_compact.metal\n M cell-assisted-egglog/matrix.swift\n M cell-assisted-egglog/src/family_program.rs\n M cell-assisted-egglog/src/table_live.rs\n M examples/support/live_table_bench.rs\n",
+        "no_build": true,
+        "worker_sha256": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68",
+          "worker": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "c4da514876f1d2e0d843a52fdc2a207a2c6529a46d0b4c4eadc0ebf52f2f3a1d"
+        }
+      },
+      "work": {
+        "certificate_reuses": 0,
+        "certification_attempts": 0,
+        "certification_probes": 0,
+        "certified_anchor_hits": 0,
+        "delegated_branches": 0,
+        "direct_row_reuses": 0,
+        "dirty_cells": 0,
+        "domain_checks": 0,
+        "domain_refuted_branches": 0,
+        "eligible_seeds": 13278476,
+        "invalidated_certificates": 0,
+        "join_link_visits": 781686115,
+        "join_live_row_visits": 762210024,
+        "join_probes": 194029242,
+        "missing_key_waits": 0,
+        "port_bindings": 0,
+        "port_candidate_rows": 0,
+        "port_consumer_checks": 0,
+        "port_context_loads": 0,
+        "port_context_words": 0,
+        "port_join_executions": 0,
+        "port_probes": 0,
+        "port_shared_joins_saved": 0,
+        "ports_published": 0,
+        "prefix_rows_reused": 0,
+        "productive_seeds": 492823,
+        "ready_covered_atom_sum": 0,
+        "ready_matches": 0,
+        "ready_productive_seeds": 0,
+        "ready_query_atom_sum": 0,
+        "ready_reuse_seeds": 0,
+        "ready_reused_atoms": 0,
+        "refutation_checks": 0,
+        "refuted_branches": 0,
+        "refuted_seeds": 0,
+        "routed_ready": 0,
+        "routed_suspected": 0,
+        "routed_unmapped": 12954363,
+        "routing_ambiguous": 0,
+        "routing_delegated_to_port": 0,
+        "routing_earlier_delta_owner": 0,
+        "routing_locator_probes": 0,
+        "routing_locator_rows": 0,
+        "routing_no_next_atom": 0,
+        "routing_unique_hints": 0,
+        "routing_valid_seeds": 12954363,
+        "shape_fallbacks": 0,
+        "signature_refuted_branches": 0,
+        "skipped_join_probes": 0,
+        "suspected_matches": 0,
+        "suspected_productive_seeds": 0,
+        "suspected_reuse_seeds": 0,
+        "suspected_reused_atoms": 0,
+        "unmapped_matches": 0,
+        "unmapped_productive_seeds": 0,
+        "unmapped_reuse_seeds": 0,
+        "unmapped_reused_atoms": 0,
+        "watch_entries_checked": 0,
+        "watch_wakes": 0
+      },
+      "rejection_rate": 0.0,
+      "productive_rate": 0.037114424878276694,
+      "cell_query_bindings": 1918606,
+      "cell_query_rules": 30566,
+      "exact_same_commit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      },
+      "exact_fused_native": false
+    },
+    "s1r1": {
+      "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-s1r1",
+      "provenance": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "cargo",
+            "build",
+            "--offline",
+            "--release",
+            "--target-dir",
+            "target/analyzer",
+            "--example",
+            "raytrace_stable_bench"
+          ],
+          [
+            "xcrun",
+            "swiftc",
+            "-O",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/cell-assisted-egglog/matrix.swift",
+            "-o",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/interaction-worker/matrix"
+          ],
+          [
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/interaction-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-s1r1",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout",
+        "source_head": "08dc6cf10a8ee0a9497521ebbfa0b273d8b725c3",
+        "dirty_files": " M cell-assisted-egglog/family_compact.metal\n M cell-assisted-egglog/matrix.swift\n M cell-assisted-egglog/src/family_program.rs\n M cell-assisted-egglog/src/table_live.rs\n M examples/support/live_table_bench.rs\n",
+        "no_build": false,
+        "worker_sha256": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68",
+          "worker": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "f960e91b27764e5a8453c15c4e467a94694a5fe1c6da609f4a87167c9c200b9c"
+        }
+      },
+      "work": {
+        "certificate_reuses": 0,
+        "certification_attempts": 0,
+        "certification_probes": 0,
+        "certified_anchor_hits": 0,
+        "delegated_branches": 0,
+        "direct_row_reuses": 0,
+        "dirty_cells": 0,
+        "domain_checks": 0,
+        "domain_refuted_branches": 0,
+        "eligible_seeds": 13278476,
+        "invalidated_certificates": 0,
+        "join_link_visits": 48766459,
+        "join_live_row_visits": 48033034,
+        "join_probes": 26650658,
+        "missing_key_waits": 0,
+        "port_bindings": 0,
+        "port_candidate_rows": 0,
+        "port_consumer_checks": 0,
+        "port_context_loads": 0,
+        "port_context_words": 0,
+        "port_join_executions": 0,
+        "port_probes": 0,
+        "port_shared_joins_saved": 0,
+        "ports_published": 0,
+        "prefix_rows_reused": 0,
+        "productive_seeds": 492823,
+        "ready_covered_atom_sum": 0,
+        "ready_matches": 0,
+        "ready_productive_seeds": 0,
+        "ready_query_atom_sum": 0,
+        "ready_reuse_seeds": 0,
+        "ready_reused_atoms": 0,
+        "refutation_checks": 12200432,
+        "refuted_branches": 7803841,
+        "refuted_seeds": 7144255,
+        "routed_ready": 0,
+        "routed_suspected": 0,
+        "routed_unmapped": 12954363,
+        "routing_ambiguous": 0,
+        "routing_delegated_to_port": 0,
+        "routing_earlier_delta_owner": 0,
+        "routing_locator_probes": 0,
+        "routing_locator_rows": 0,
+        "routing_no_next_atom": 0,
+        "routing_unique_hints": 0,
+        "routing_valid_seeds": 12954363,
+        "shape_fallbacks": 0,
+        "signature_refuted_branches": 1465413,
+        "skipped_join_probes": 0,
+        "suspected_matches": 0,
+        "suspected_productive_seeds": 0,
+        "suspected_reuse_seeds": 0,
+        "suspected_reused_atoms": 0,
+        "unmapped_matches": 0,
+        "unmapped_productive_seeds": 0,
+        "unmapped_reuse_seeds": 0,
+        "unmapped_reused_atoms": 0,
+        "watch_entries_checked": 0,
+        "watch_wakes": 0
+      },
+      "rejection_rate": 0.538032753156311,
+      "productive_rate": 0.037114424878276694,
+      "cell_query_bindings": 1918606,
+      "cell_query_rules": 30566,
+      "exact_same_commit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      },
+      "exact_fused_native": false
+    },
+    "sat-only": {
+      "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-sat-only-r1",
+      "provenance": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/interaction-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/sat-refutation-sat-only-r1",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout",
+        "source_head": "08dc6cf10a8ee0a9497521ebbfa0b273d8b725c3",
+        "dirty_files": " M cell-assisted-egglog/family_compact.metal\n M cell-assisted-egglog/matrix.swift\n M cell-assisted-egglog/src/family_program.rs\n M cell-assisted-egglog/src/table_live.rs\n M examples/support/live_table_bench.rs\n",
+        "no_build": true,
+        "worker_sha256": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "680c7d6499e3a11cd9d108c5a10ddd3ec58cb2bb0643beead1329aa1a8121a68",
+          "worker": "3d56ec4f64973e26009c67206bae2ab9d0b50a60bf0f6f869b3934fcf0080c8d",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "15df4099026d7da28a1833e8ecbcefd68605da518dd876ef46a5a985b95a0acb"
+        }
+      },
+      "work": {
+        "certificate_reuses": 0,
+        "certification_attempts": 0,
+        "certification_probes": 0,
+        "certified_anchor_hits": 0,
+        "delegated_branches": 0,
+        "direct_row_reuses": 0,
+        "dirty_cells": 0,
+        "domain_checks": 0,
+        "domain_refuted_branches": 0,
+        "eligible_seeds": 38166162,
+        "invalidated_certificates": 0,
+        "join_link_visits": 101206219,
+        "join_live_row_visits": 59688062,
+        "join_probes": 52457427,
+        "missing_key_waits": 0,
+        "port_bindings": 0,
+        "port_candidate_rows": 0,
+        "port_consumer_checks": 0,
+        "port_context_loads": 0,
+        "port_context_words": 0,
+        "port_join_executions": 0,
+        "port_probes": 0,
+        "port_shared_joins_saved": 0,
+        "ports_published": 0,
+        "prefix_rows_reused": 0,
+        "productive_seeds": 1797442,
+        "ready_covered_atom_sum": 0,
+        "ready_matches": 0,
+        "ready_productive_seeds": 0,
+        "ready_query_atom_sum": 0,
+        "ready_reuse_seeds": 0,
+        "ready_reused_atoms": 0,
+        "refutation_checks": 12450950,
+        "refuted_branches": 7856361,
+        "refuted_seeds": 7189573,
+        "routed_ready": 0,
+        "routed_suspected": 0,
+        "routed_unmapped": 37655878,
+        "routing_ambiguous": 0,
+        "routing_delegated_to_port": 0,
+        "routing_earlier_delta_owner": 0,
+        "routing_locator_probes": 0,
+        "routing_locator_rows": 0,
+        "routing_no_next_atom": 0,
+        "routing_unique_hints": 0,
+        "routing_valid_seeds": 37655878,
+        "shape_fallbacks": 0,
+        "signature_refuted_branches": 1478089,
+        "skipped_join_probes": 0,
+        "suspected_matches": 0,
+        "suspected_productive_seeds": 0,
+        "suspected_reuse_seeds": 0,
+        "suspected_reused_atoms": 0,
+        "unmapped_matches": 0,
+        "unmapped_productive_seeds": 0,
+        "unmapped_reuse_seeds": 0,
+        "unmapped_reused_atoms": 0,
+        "watch_entries_checked": 0,
+        "watch_wakes": 0
+      },
+      "rejection_rate": 0.18837558253827041,
+      "productive_rate": 0.047095172944033516,
+      "cell_query_bindings": 0,
+      "cell_query_rules": 0,
+      "exact_same_commit": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      },
+      "exact_fused_native": false
+    }
+  },
+  "contrasts": {
+    "join_live_row_visits": {
+      "cell_saving_without_refutation": 27752984,
+      "cell_saving_with_refutation": 24717514,
+      "refutation_saving_without_cell": 717212460,
+      "refutation_saving_with_cell": 714176990,
+      "combined_fraction_saved": 0.9391958439653924,
+      "superadditive_saving": -3035470
+    },
+    "join_probes": {
+      "cell_saving_without_refutation": 35501761,
+      "cell_saving_with_refutation": 33586727,
+      "refutation_saving_without_cell": 169293618,
+      "refutation_saving_with_cell": 167378584,
+      "combined_fraction_saved": 0.8838908136518708,
+      "superadditive_saving": -1915034
+    }
+  },
+  "query_mix": [
+    {
+      "reference": "s0r1",
+      "candidate": "s1r1",
+      "common_rules": 376,
+      "identical_rules": 446,
+      "identical_nonempty_rules": 299,
+      "common_reference_rate": 0.5342474112645097,
+      "common_candidate_fixed_weight_rate": 0.5345250612168705,
+      "removed_rules": 24,
+      "removed_totals": {
+        "eligible_seeds": 27166318,
+        "refuted_seeds": 128534,
+        "productive_seeds": 1536487
+      },
+      "removed": [
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Function name tyin tyout out))\n       (= sum (Expr-size out)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1665,
+            "quiet_runs": 133,
+            "emitted_bindings": 1458,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1121783,
+            "refuted_seeds": 0,
+            "productive_seeds": 1458
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Top op x y z))\n       (= sum (+ (Expr-size z) (+ (Expr-size y) (Expr-size x)))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1672,
+            "quiet_runs": 126,
+            "emitted_bindings": 79484,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 3367209,
+            "refuted_seeds": 1512,
+            "productive_seeds": 54900
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Bop op x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1678,
+            "quiet_runs": 120,
+            "emitted_bindings": 218786,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 2252830,
+            "refuted_seeds": 7211,
+            "productive_seeds": 150604
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Uop op x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1666,
+            "quiet_runs": 132,
+            "emitted_bindings": 4,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1121731,
+            "refuted_seeds": 0,
+            "productive_seeds": 4
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1679,
+            "quiet_runs": 119,
+            "emitted_bindings": 957751,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1150539,
+            "refuted_seeds": 0,
+            "productive_seeds": 464463
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1675,
+            "quiet_runs": 123,
+            "emitted_bindings": 329665,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 2257003,
+            "refuted_seeds": 10099,
+            "productive_seeds": 293138
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Single x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1671,
+            "quiet_runs": 127,
+            "emitted_bindings": 302564,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1133715,
+            "refuted_seeds": 0,
+            "productive_seeds": 302645
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Switch pred inputs branches))\n       (= sum (+ (Expr-size inputs) (+ (ListExpr-size branches) (Expr-size pred)))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1665,
+            "quiet_runs": 133,
+            "emitted_bindings": 0,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 2243450,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (If pred inputs then else))\n       (= sum (+ (Expr-size inputs) (+ (Expr-size else) (+ (Expr-size then) (Expr-size pred))))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1670,
+            "quiet_runs": 128,
+            "emitted_bindings": 12946,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 4487242,
+            "refuted_seeds": 338,
+            "productive_seeds": 11808
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (DoWhile in pred-and-output))\n       (= sum (+ (Expr-size pred-and-output) (Expr-size in))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1668,
+            "quiet_runs": 130,
+            "emitted_bindings": 7179,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 2243587,
+            "refuted_seeds": 107,
+            "productive_seeds": 6185
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Call func arg))\n       (= sum (Expr-size arg)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1666,
+            "quiet_runs": 132,
+            "emitted_bindings": 6909,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1121931,
+            "refuted_seeds": 0,
+            "productive_seeds": 6907
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Cons hd tl))\n       (= sum (+ (ListExpr-size tl) (Expr-size hd))))\n      ((set (ListExpr-size expr) sum))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1665,
+            "quiet_runs": 133,
+            "emitted_bindings": 0,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1121725,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Alloc id e state ty))\n       (= sum (Expr-size e)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1666,
+            "quiet_runs": 132,
+            "emitted_bindings": 230,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1122096,
+            "refuted_seeds": 0,
+            "productive_seeds": 135
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 453,
+            "quiet_runs": 1,
+            "emitted_bindings": 16617,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 223731,
+            "refuted_seeds": 4833,
+            "productive_seeds": 14978
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 453,
+            "quiet_runs": 1,
+            "emitted_bindings": 4044,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 329269,
+            "refuted_seeds": 2010,
+            "productive_seeds": 3951
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 452,
+            "quiet_runs": 2,
+            "emitted_bindings": 9,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 109389,
+            "refuted_seeds": 414,
+            "productive_seeds": 8
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 454,
+            "quiet_runs": 0,
+            "emitted_bindings": 33806,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 127016,
+            "refuted_seeds": 414,
+            "productive_seeds": 19110
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 452,
+            "quiet_runs": 2,
+            "emitted_bindings": 14610,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 115710,
+            "refuted_seeds": 414,
+            "productive_seeds": 13702
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 454,
+            "quiet_runs": 0,
+            "emitted_bindings": 6173,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 227738,
+            "refuted_seeds": 9291,
+            "productive_seeds": 3601
+          }
+        },
+        {
+          "ruleset": "terms-helpers",
+          "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+          "stats": {
+            "dispatches": 1173,
+            "quiet_runs": 12,
+            "emitted_bindings": 42713,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 252035,
+            "refuted_seeds": 414,
+            "productive_seeds": 42157
+          }
+        },
+        {
+          "ruleset": "terms-helpers",
+          "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+          "stats": {
+            "dispatches": 443,
+            "quiet_runs": 742,
+            "emitted_bindings": 0,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 71204,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "terms-helpers-helpers",
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "stats": {
+            "dispatches": 1573,
+            "quiet_runs": 448,
+            "emitted_bindings": 70668,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 321795,
+            "refuted_seeds": 0,
+            "productive_seeds": 70668
+          }
+        },
+        {
+          "ruleset": "terms-helpers-helpers",
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+          "stats": {
+            "dispatches": 1573,
+            "quiet_runs": 448,
+            "emitted_bindings": 75520,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 321795,
+            "refuted_seeds": 0,
+            "productive_seeds": 75511
+          }
+        },
+        {
+          "ruleset": "terms-helpers-helpers",
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "stats": {
+            "dispatches": 1573,
+            "quiet_runs": 448,
+            "emitted_bindings": 554,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 321795,
+            "refuted_seeds": 91477,
+            "productive_seeds": 554
+          }
+        }
+      ],
+      "changed_common": [
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((HasType expr (TupleT tl))\n       (= len (TypeList-length tl)))\n      ((set (tuple-length expr) len))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 41243,
+            "refuted_seeds": 0,
+            "productive_seeds": 9563
+          },
+          "after": {
+            "eligible_seeds": 41240,
+            "refuted_seeds": 0,
+            "productive_seeds": 9563
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 43309,
+            "refuted_seeds": 22364,
+            "productive_seeds": 6409
+          },
+          "after": {
+            "eligible_seeds": 42353,
+            "refuted_seeds": 22022,
+            "productive_seeds": 6079
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 51697,
+            "refuted_seeds": 11279,
+            "productive_seeds": 9320
+          },
+          "after": {
+            "eligible_seeds": 50071,
+            "refuted_seeds": 10721,
+            "productive_seeds": 8832
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 36217,
+            "refuted_seeds": 0,
+            "productive_seeds": 14831
+          },
+          "after": {
+            "eligible_seeds": 35019,
+            "refuted_seeds": 0,
+            "productive_seeds": 14435
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 29374,
+            "refuted_seeds": 0,
+            "productive_seeds": 2039
+          },
+          "after": {
+            "eligible_seeds": 28579,
+            "refuted_seeds": 0,
+            "productive_seeds": 1993
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 23425,
+            "refuted_seeds": 0,
+            "productive_seeds": 6437
+          },
+          "after": {
+            "eligible_seeds": 22081,
+            "refuted_seeds": 0,
+            "productive_seeds": 6122
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Bop _op _x _y)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 9380,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 9107,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Get _tup _i)))\n      ((ExprIsValid _tup))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 28814,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 27858,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Concat _x _y)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 13553,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 12722,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Single _x)))\n      ((ExprIsValid _x))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 11990,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 11587,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (If _pred _input _then _else)))\n      ((ExprIsValid _pred)\n       (ExprIsValid _input)\n       (ExprIsValid _then)\n       (ExprIsValid _else))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 342,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 336,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Alloc _id _e _state _ty)))\n      ((ExprIsValid _e)\n       (ExprIsValid _state))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 371,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 370,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Top _op _x _y _z)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y)\n       (BodyContainsExpr body _z))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 68991,
+            "refuted_seeds": 0,
+            "productive_seeds": 2644
+          },
+          "after": {
+            "eligible_seeds": 67899,
+            "refuted_seeds": 0,
+            "productive_seeds": 2612
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Bop _op _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 76337,
+            "refuted_seeds": 0,
+            "productive_seeds": 11170
+          },
+          "after": {
+            "eligible_seeds": 74972,
+            "refuted_seeds": 0,
+            "productive_seeds": 11078
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Uop _op _x)))\n      ((BodyContainsExpr body _x))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 66963,
+            "refuted_seeds": 0,
+            "productive_seeds": 9
+          },
+          "after": {
+            "eligible_seeds": 65871,
+            "refuted_seeds": 0,
+            "productive_seeds": 9
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Get _tup _i)))\n      ((BodyContainsExpr body _tup))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 95771,
+            "refuted_seeds": 0,
+            "productive_seeds": 21858
+          },
+          "after": {
+            "eligible_seeds": 93723,
+            "refuted_seeds": 0,
+            "productive_seeds": 21560
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Concat _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 80510,
+            "refuted_seeds": 0,
+            "productive_seeds": 19389
+          },
+          "after": {
+            "eligible_seeds": 78587,
+            "refuted_seeds": 0,
+            "productive_seeds": 18817
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Single _x)))\n      ((BodyContainsExpr body _x))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 78947,
+            "refuted_seeds": 0,
+            "productive_seeds": 17652
+          },
+          "after": {
+            "eligible_seeds": 77452,
+            "refuted_seeds": 0,
+            "productive_seeds": 17390
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Switch _pred _inputs _branches)))\n      ((BodyContainsExpr body _pred)\n       (BodyContainsExpr body _inputs))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 66957,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 65865,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (If _pred _input _then _else)))\n      ((BodyContainsExpr body _pred)\n       (BodyContainsExpr body _input))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67299,
+            "refuted_seeds": 0,
+            "productive_seeds": 536
+          },
+          "after": {
+            "eligible_seeds": 66201,
+            "refuted_seeds": 0,
+            "productive_seeds": 531
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (DoWhile _in _pred-and-output)))\n      ((BodyContainsExpr body _in))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67094,
+            "refuted_seeds": 0,
+            "productive_seeds": 179
+          },
+          "after": {
+            "eligible_seeds": 66002,
+            "refuted_seeds": 0,
+            "productive_seeds": 171
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Call _func _arg)))\n      ((BodyContainsExpr body _arg))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67163,
+            "refuted_seeds": 0,
+            "productive_seeds": 406
+          },
+          "after": {
+            "eligible_seeds": 66071,
+            "refuted_seeds": 0,
+            "productive_seeds": 406
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Alloc _id _e _state _ty)))\n      ((BodyContainsExpr body _e)\n       (BodyContainsExpr body _state))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67328,
+            "refuted_seeds": 0,
+            "productive_seeds": 467
+          },
+          "after": {
+            "eligible_seeds": 66235,
+            "refuted_seeds": 0,
+            "productive_seeds": 455
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Function _name _tyin _tyout _out)\n       (ExprIsPure _out))\n      ((ExprIsPure (Function _name _tyin _tyout _out)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 6010,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 5774,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Top _op _x _y _z)\n       (TernaryOpIsPure _op)\n       (ExprIsPure _x)\n       (ExprIsPure _y)\n       (ExprIsPure _z))\n      ((ExprIsPure (Top _op _x _y _z)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 19892,
+            "refuted_seeds": 1869,
+            "productive_seeds": 168
+          },
+          "after": {
+            "eligible_seeds": 19184,
+            "refuted_seeds": 1869,
+            "productive_seeds": 168
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Bop _op _x _y)\n       (BinaryOpIsPure _op)\n       (ExprIsPure _x)\n       (ExprIsPure _y))\n      ((ExprIsPure (Bop _op _x _y)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 21340,
+            "refuted_seeds": 8949,
+            "productive_seeds": 676
+          },
+          "after": {
+            "eligible_seeds": 20595,
+            "refuted_seeds": 8692,
+            "productive_seeds": 661
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Uop _op _x)\n       (UnaryOpIsPure _op)\n       (ExprIsPure _x))\n      ((ExprIsPure (Uop _op _x)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 5964,
+            "refuted_seeds": 6,
+            "productive_seeds": 2
+          },
+          "after": {
+            "eligible_seeds": 5728,
+            "refuted_seeds": 6,
+            "productive_seeds": 2
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Get _tup _i)\n       (ExprIsPure _tup))\n      ((ExprIsPure (Get _tup _i)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34766,
+            "refuted_seeds": 0,
+            "productive_seeds": 1117
+          },
+          "after": {
+            "eligible_seeds": 33574,
+            "refuted_seeds": 0,
+            "productive_seeds": 1089
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= lhs (Get (Arg (TupleT tylist) _ctx) i))\n       (!= (TypeList-ith tylist i) (StateT )))\n      ((ExprIsPure lhs))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 40122,
+            "refuted_seeds": 28368,
+            "productive_seeds": 174
+          },
+          "after": {
+            "eligible_seeds": 39166,
+            "refuted_seeds": 27429,
+            "productive_seeds": 174
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Concat _x _y)\n       (ExprIsPure _x)\n       (ExprIsPure _y))\n      ((ExprIsPure (Concat _x _y)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 25457,
+            "refuted_seeds": 12529,
+            "productive_seeds": 2894
+          },
+          "after": {
+            "eligible_seeds": 24154,
+            "refuted_seeds": 11789,
+            "productive_seeds": 2650
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Single _x)\n       (ExprIsPure _x))\n      ((ExprIsPure (Single _x)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 17942,
+            "refuted_seeds": 0,
+            "productive_seeds": 1035
+          },
+          "after": {
+            "eligible_seeds": 17303,
+            "refuted_seeds": 0,
+            "productive_seeds": 1032
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Switch _pred _inputs _branches)\n       (ExprIsPure _pred)\n       (ExprIsPure _inputs)\n       (ListExprIsPure _branches))\n      ((ExprIsPure (Switch _pred _inputs _branches)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 11904,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 11432,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((If _pred _input _then _else)\n       (ExprIsPure _pred)\n       (ExprIsPure _input)\n       (ExprIsPure _then)\n       (ExprIsPure _else))\n      ((ExprIsPure (If _pred _input _then _else)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 24150,
+            "refuted_seeds": 340,
+            "productive_seeds": 7
+          },
+          "after": {
+            "eligible_seeds": 23200,
+            "refuted_seeds": 334,
+            "productive_seeds": 6
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((DoWhile _in _pred-and-output)\n       (ExprIsPure _in)\n       (ExprIsPure _pred-and-output))\n      ((ExprIsPure (DoWhile _in _pred-and-output)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 12041,
+            "refuted_seeds": 136,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 11569,
+            "refuted_seeds": 136,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Call _f _arg)\n       (ExprIsPure _arg)\n       (ExprIsPure (Function _f inty outty out)))\n      ((ExprIsPure (Call _f _arg)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 12168,
+            "refuted_seeds": 24,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 11696,
+            "refuted_seeds": 24,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Cons _hd _tl)\n       (ExprIsPure _hd)\n       (ListExprIsPure _tl))\n      ((ListExprIsPure (Cons _hd _tl)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 5952,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 5716,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Top op x y z)\n       (ContextOf x ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 36078,
+            "refuted_seeds": 0,
+            "productive_seeds": 1587
+          },
+          "after": {
+            "eligible_seeds": 32024,
+            "refuted_seeds": 0,
+            "productive_seeds": 1587
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Top op x y z)\n       (ContextOf y ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 36078,
+            "refuted_seeds": 0,
+            "productive_seeds": 1302
+          },
+          "after": {
+            "eligible_seeds": 32024,
+            "refuted_seeds": 0,
+            "productive_seeds": 1280
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Top op x y z)\n       (ContextOf z ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 36078,
+            "refuted_seeds": 0,
+            "productive_seeds": 1209
+          },
+          "after": {
+            "eligible_seeds": 32024,
+            "refuted_seeds": 0,
+            "productive_seeds": 1157
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Bop op x y)\n       (ContextOf x ctx))\n      ((ContextOf (Bop op x y) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 43424,
+            "refuted_seeds": 0,
+            "productive_seeds": 5577
+          },
+          "after": {
+            "eligible_seeds": 39097,
+            "refuted_seeds": 0,
+            "productive_seeds": 4879
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Bop op x y)\n       (ContextOf y ctx))\n      ((ContextOf (Bop op x y) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 43424,
+            "refuted_seeds": 0,
+            "productive_seeds": 5682
+          },
+          "after": {
+            "eligible_seeds": 39097,
+            "refuted_seeds": 0,
+            "productive_seeds": 4603
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Uop op x)\n       (ContextOf x ctx))\n      ((ContextOf (Uop op x) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34050,
+            "refuted_seeds": 0,
+            "productive_seeds": 3
+          },
+          "after": {
+            "eligible_seeds": 29996,
+            "refuted_seeds": 0,
+            "productive_seeds": 3
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Get tup i)\n       (ContextOf tup ctx))\n      ((ContextOf (Get tup i) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 62858,
+            "refuted_seeds": 0,
+            "productive_seeds": 19900
+          },
+          "after": {
+            "eligible_seeds": 57848,
+            "refuted_seeds": 0,
+            "productive_seeds": 18725
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Concat x y)\n       (ContextOf x ctx))\n      ((ContextOf (Concat x y) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 47597,
+            "refuted_seeds": 0,
+            "productive_seeds": 9435
+          },
+          "after": {
+            "eligible_seeds": 42712,
+            "refuted_seeds": 0,
+            "productive_seeds": 7919
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Concat x y)\n       (ContextOf y ctx))\n      ((ContextOf (Concat x y) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 47597,
+            "refuted_seeds": 0,
+            "productive_seeds": 9625
+          },
+          "after": {
+            "eligible_seeds": 42712,
+            "refuted_seeds": 0,
+            "productive_seeds": 8009
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Single x)\n       (ContextOf x ctx))\n      ((ContextOf (Single x) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 46034,
+            "refuted_seeds": 0,
+            "productive_seeds": 10189
+          },
+          "after": {
+            "eligible_seeds": 41577,
+            "refuted_seeds": 0,
+            "productive_seeds": 8419
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Switch pred inputs branches)\n       (ContextOf pred ctx))\n      ((ContextOf (Switch pred inputs branches) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34044,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 29990,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((If pred inputs then else)\n       (ContextOf pred ctx))\n      ((ContextOf (If pred inputs then else) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34386,
+            "refuted_seeds": 0,
+            "productive_seeds": 202
+          },
+          "after": {
+            "eligible_seeds": 30326,
+            "refuted_seeds": 0,
+            "productive_seeds": 199
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((If pred inputs then else)\n       (ContextOf inputs ctx))\n      ((ContextOf (If pred inputs then else) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34386,
+            "refuted_seeds": 0,
+            "productive_seeds": 208
+          },
+          "after": {
+            "eligible_seeds": 30326,
+            "refuted_seeds": 0,
+            "productive_seeds": 197
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((DoWhile in pred-and-output)\n       (ContextOf in ctx))\n      ((ContextOf (DoWhile in pred-and-output) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34181,
+            "refuted_seeds": 0,
+            "productive_seeds": 96
+          },
+          "after": {
+            "eligible_seeds": 30127,
+            "refuted_seeds": 0,
+            "productive_seeds": 92
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Call func arg)\n       (ContextOf arg ctx))\n      ((ContextOf (Call func arg) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34250,
+            "refuted_seeds": 0,
+            "productive_seeds": 158
+          },
+          "after": {
+            "eligible_seeds": 30196,
+            "refuted_seeds": 0,
+            "productive_seeds": 127
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Alloc amt e state ty)\n       (ContextOf e ctx))\n      ((ContextOf (Alloc amt e state ty) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34415,
+            "refuted_seeds": 0,
+            "productive_seeds": 135
+          },
+          "after": {
+            "eligible_seeds": 30360,
+            "refuted_seeds": 0,
+            "productive_seeds": 134
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Alloc amt e state ty)\n       (ContextOf state ctx))\n      ((ContextOf (Alloc amt e state ty) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34415,
+            "refuted_seeds": 0,
+            "productive_seeds": 288
+          },
+          "after": {
+            "eligible_seeds": 30360,
+            "refuted_seeds": 0,
+            "productive_seeds": 216
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (Concat (Concat a b) c) (Concat a (Concat b c)) :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 27106,
+            "refuted_seeds": 0,
+            "productive_seeds": 4750
+          },
+          "after": {
+            "eligible_seeds": 25444,
+            "refuted_seeds": 0,
+            "productive_seeds": 4239
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (Concat (Empty ty ctx) x) x :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 13558,
+            "refuted_seeds": 0,
+            "productive_seeds": 63
+          },
+          "after": {
+            "eligible_seeds": 12727,
+            "refuted_seeds": 0,
+            "productive_seeds": 63
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (Concat x (Empty ty ctx)) x :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 13558,
+            "refuted_seeds": 0,
+            "productive_seeds": 19
+          },
+          "after": {
+            "eligible_seeds": 12727,
+            "refuted_seeds": 0,
+            "productive_seeds": 19
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (SubTuple expr x 0) (Empty ty ctx) :when ((HasArgType expr ty) (ContextOf expr ctx)) :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 71767,
+            "refuted_seeds": 42417,
+            "productive_seeds": 16
+          },
+          "after": {
+            "eligible_seeds": 67701,
+            "refuted_seeds": 41668,
+            "productive_seeds": 16
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= lhs (If pred inputs thn els))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 14259,
+            "refuted_seeds": 0,
+            "productive_seeds": 202
+          },
+          "after": {
+            "eligible_seeds": 14253,
+            "refuted_seeds": 0,
+            "productive_seeds": 196
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a (+ b c)) :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 75227,
+            "refuted_seeds": 47147,
+            "productive_seeds": 10956
+          },
+          "after": {
+            "eligible_seeds": 72270,
+            "refuted_seeds": 45304,
+            "productive_seeds": 10486
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (SubTuple expr 0 len) expr :when ((= len (tuple-length expr))) :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 25125,
+            "refuted_seeds": 0,
+            "productive_seeds": 7436
+          },
+          "after": {
+            "eligible_seeds": 24962,
+            "refuted_seeds": 0,
+            "productive_seeds": 7324
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= f (TCons hd tl))\n       (PointerishTypeList tl))\n      ((PointerishTypeList f))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 2739,
+            "refuted_seeds": 0,
+            "productive_seeds": 790
+          },
+          "after": {
+            "eligible_seeds": 2700,
+            "refuted_seeds": 0,
+            "productive_seeds": 764
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= f (TupleT l))\n       (PointerishTypeList l))\n      ((PointerishType f))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 2521,
+            "refuted_seeds": 0,
+            "productive_seeds": 913
+          },
+          "after": {
+            "eligible_seeds": 2482,
+            "refuted_seeds": 0,
+            "productive_seeds": 886
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Const _n _ty _ctx)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 68960,
+            "refuted_seeds": 65110,
+            "productive_seeds": 215
+          },
+          "after": {
+            "eligible_seeds": 67868,
+            "refuted_seeds": 64062,
+            "productive_seeds": 199
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get (Arg ty ctx) i))\n       (= expr (Get body (+ i 1))))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 124870,
+            "refuted_seeds": 117709,
+            "productive_seeds": 404
+          },
+          "after": {
+            "eligible_seeds": 121866,
+            "refuted_seeds": 114924,
+            "productive_seeds": 403
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Function _name _tyin _tyout _out)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67152,
+            "refuted_seeds": 66009,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 66060,
+            "refuted_seeds": 64922,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Top _op _x _y _z))\n       (is-inv-Expr body _x)\n       (is-inv-Expr body _y)\n       (is-inv-Expr body _z))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 73661,
+            "refuted_seeds": 72952,
+            "productive_seeds": 22
+          },
+          "after": {
+            "eligible_seeds": 72569,
+            "refuted_seeds": 71860,
+            "productive_seeds": 22
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Bop _op _x _y))\n       (BinaryOpIsPure _op)\n       (is-inv-Expr body _x)\n       (is-inv-Expr body _y))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 79552,
+            "refuted_seeds": 76754,
+            "productive_seeds": 219
+          },
+          "after": {
+            "eligible_seeds": 78187,
+            "refuted_seeds": 75389,
+            "productive_seeds": 219
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Uop _op _x))\n       (UnaryOpIsPure _op)\n       (is-inv-Expr body _x))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 68617,
+            "refuted_seeds": 68378,
+            "productive_seeds": 2
+          },
+          "after": {
+            "eligible_seeds": 67525,
+            "refuted_seeds": 67286,
+            "productive_seeds": 2
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get _tup _i))\n       (is-inv-Expr body _tup))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 97419,
+            "refuted_seeds": 92583,
+            "productive_seeds": 475
+          },
+          "after": {
+            "eligible_seeds": 95371,
+            "refuted_seeds": 90535,
+            "productive_seeds": 475
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Concat _x _y))\n       (is-inv-Expr body _x)\n       (is-inv-Expr body _y))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 83669,
+            "refuted_seeds": 77924,
+            "productive_seeds": 585
+          },
+          "after": {
+            "eligible_seeds": 81746,
+            "refuted_seeds": 76001,
+            "productive_seeds": 585
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Single _x))\n       (is-inv-Expr body _x))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 80595,
+            "refuted_seeds": 74780,
+            "productive_seeds": 477
+          },
+          "after": {
+            "eligible_seeds": 79100,
+            "refuted_seeds": 73285,
+            "productive_seeds": 477
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Switch _pred _inputs _branches))\n       (is-inv-Expr body _pred)\n       (is-inv-Expr body _inputs)\n       (is-inv-ListExpr body _branches))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 70116,
+            "refuted_seeds": 70086,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 69024,
+            "refuted_seeds": 68994,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (If _pred _input _then _else))\n       (is-inv-Expr body _pred)\n       (is-inv-Expr body _input))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 70458,
+            "refuted_seeds": 70180,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 69360,
+            "refuted_seeds": 69082,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (DoWhile _in _pred-and-output))\n       (is-inv-Expr body _in)\n       (ExprIsPure expr))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 74694,
+            "refuted_seeds": 74335,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 73366,
+            "refuted_seeds": 73010,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Call _func _arg))\n       (is-inv-Expr body _arg)\n       (ExprIsPure expr))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 74763,
+            "refuted_seeds": 74356,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 73435,
+            "refuted_seeds": 73030,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Empty _ty _ctx)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67099,
+            "refuted_seeds": 66941,
+            "productive_seeds": 4
+          },
+          "after": {
+            "eligible_seeds": 66007,
+            "refuted_seeds": 65849,
+            "productive_seeds": 4
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 107798,
+            "refuted_seeds": 42614,
+            "productive_seeds": 1486
+          },
+          "after": {
+            "eligible_seeds": 99678,
+            "refuted_seeds": 41865,
+            "productive_seeds": 1480
+          }
+        }
+      ]
+    },
+    {
+      "reference": "s0r1",
+      "candidate": "sat-only",
+      "common_rules": 389,
+      "identical_rules": 536,
+      "identical_nonempty_rules": 389,
+      "common_reference_rate": 0.18837558253827041,
+      "common_candidate_fixed_weight_rate": 0.18837558253827041,
+      "removed_rules": 11,
+      "removed_totals": {
+        "eligible_seeds": 2421477,
+        "refuted_seeds": 109267,
+        "productive_seeds": 244240
+      },
+      "removed": [
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 453,
+            "quiet_runs": 1,
+            "emitted_bindings": 16617,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 223731,
+            "refuted_seeds": 4833,
+            "productive_seeds": 14978
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 453,
+            "quiet_runs": 1,
+            "emitted_bindings": 4044,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 329269,
+            "refuted_seeds": 2010,
+            "productive_seeds": 3951
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 452,
+            "quiet_runs": 2,
+            "emitted_bindings": 9,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 109389,
+            "refuted_seeds": 414,
+            "productive_seeds": 8
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 454,
+            "quiet_runs": 0,
+            "emitted_bindings": 33806,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 127016,
+            "refuted_seeds": 414,
+            "productive_seeds": 19110
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 452,
+            "quiet_runs": 2,
+            "emitted_bindings": 14610,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 115710,
+            "refuted_seeds": 414,
+            "productive_seeds": 13702
+          }
+        },
+        {
+          "ruleset": "terms",
+          "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+          "stats": {
+            "dispatches": 454,
+            "quiet_runs": 0,
+            "emitted_bindings": 6173,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 227738,
+            "refuted_seeds": 9291,
+            "productive_seeds": 3601
+          }
+        },
+        {
+          "ruleset": "terms-helpers",
+          "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+          "stats": {
+            "dispatches": 1173,
+            "quiet_runs": 12,
+            "emitted_bindings": 42713,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 252035,
+            "refuted_seeds": 414,
+            "productive_seeds": 42157
+          }
+        },
+        {
+          "ruleset": "terms-helpers",
+          "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+          "stats": {
+            "dispatches": 443,
+            "quiet_runs": 742,
+            "emitted_bindings": 0,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 71204,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "terms-helpers-helpers",
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "stats": {
+            "dispatches": 1573,
+            "quiet_runs": 448,
+            "emitted_bindings": 70668,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 321795,
+            "refuted_seeds": 0,
+            "productive_seeds": 70668
+          }
+        },
+        {
+          "ruleset": "terms-helpers-helpers",
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+          "stats": {
+            "dispatches": 1573,
+            "quiet_runs": 448,
+            "emitted_bindings": 75520,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 321795,
+            "refuted_seeds": 0,
+            "productive_seeds": 75511
+          }
+        },
+        {
+          "ruleset": "terms-helpers-helpers",
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "stats": {
+            "dispatches": 1573,
+            "quiet_runs": 448,
+            "emitted_bindings": 554,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 321795,
+            "refuted_seeds": 91477,
+            "productive_seeds": 554
+          }
+        }
+      ],
+      "changed_common": []
+    },
+    {
+      "reference": "sat-only",
+      "candidate": "s1r1",
+      "common_rules": 376,
+      "identical_rules": 457,
+      "identical_nonempty_rules": 299,
+      "common_reference_rate": 0.5342474112645097,
+      "common_candidate_fixed_weight_rate": 0.5345250612168705,
+      "removed_rules": 13,
+      "removed_totals": {
+        "eligible_seeds": 24744841,
+        "refuted_seeds": 19267,
+        "productive_seeds": 1292247
+      },
+      "removed": [
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Function name tyin tyout out))\n       (= sum (Expr-size out)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1665,
+            "quiet_runs": 133,
+            "emitted_bindings": 1458,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1121783,
+            "refuted_seeds": 0,
+            "productive_seeds": 1458
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Top op x y z))\n       (= sum (+ (Expr-size z) (+ (Expr-size y) (Expr-size x)))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1672,
+            "quiet_runs": 126,
+            "emitted_bindings": 79484,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 3367209,
+            "refuted_seeds": 1512,
+            "productive_seeds": 54900
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Bop op x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1678,
+            "quiet_runs": 120,
+            "emitted_bindings": 218786,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 2252830,
+            "refuted_seeds": 7211,
+            "productive_seeds": 150604
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Uop op x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1666,
+            "quiet_runs": 132,
+            "emitted_bindings": 4,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1121731,
+            "refuted_seeds": 0,
+            "productive_seeds": 4
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1679,
+            "quiet_runs": 119,
+            "emitted_bindings": 957751,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1150539,
+            "refuted_seeds": 0,
+            "productive_seeds": 464463
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1675,
+            "quiet_runs": 123,
+            "emitted_bindings": 329665,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 2257003,
+            "refuted_seeds": 10099,
+            "productive_seeds": 293138
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Single x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1671,
+            "quiet_runs": 127,
+            "emitted_bindings": 302564,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1133715,
+            "refuted_seeds": 0,
+            "productive_seeds": 302645
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Switch pred inputs branches))\n       (= sum (+ (Expr-size inputs) (+ (ListExpr-size branches) (Expr-size pred)))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1665,
+            "quiet_runs": 133,
+            "emitted_bindings": 0,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 2243450,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (If pred inputs then else))\n       (= sum (+ (Expr-size inputs) (+ (Expr-size else) (+ (Expr-size then) (Expr-size pred))))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1670,
+            "quiet_runs": 128,
+            "emitted_bindings": 12946,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 4487242,
+            "refuted_seeds": 338,
+            "productive_seeds": 11808
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (DoWhile in pred-and-output))\n       (= sum (+ (Expr-size pred-and-output) (Expr-size in))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1668,
+            "quiet_runs": 130,
+            "emitted_bindings": 7179,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 2243587,
+            "refuted_seeds": 107,
+            "productive_seeds": 6185
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Call func arg))\n       (= sum (Expr-size arg)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1666,
+            "quiet_runs": 132,
+            "emitted_bindings": 6909,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1121931,
+            "refuted_seeds": 0,
+            "productive_seeds": 6907
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Cons hd tl))\n       (= sum (+ (ListExpr-size tl) (Expr-size hd))))\n      ((set (ListExpr-size expr) sum))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1665,
+            "quiet_runs": 133,
+            "emitted_bindings": 0,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1121725,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= expr (Alloc id e state ty))\n       (= sum (Expr-size e)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+          "stats": {
+            "dispatches": 1666,
+            "quiet_runs": 132,
+            "emitted_bindings": 230,
+            "audit_queries": 0,
+            "cell_queries": 0,
+            "cell_bindings": 0,
+            "shared_queries": 0,
+            "shared_bindings": 0,
+            "eligible_seeds": 1122096,
+            "refuted_seeds": 0,
+            "productive_seeds": 135
+          }
+        }
+      ],
+      "changed_common": [
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((HasType expr (TupleT tl))\n       (= len (TypeList-length tl)))\n      ((set (tuple-length expr) len))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 41243,
+            "refuted_seeds": 0,
+            "productive_seeds": 9563
+          },
+          "after": {
+            "eligible_seeds": 41240,
+            "refuted_seeds": 0,
+            "productive_seeds": 9563
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 43309,
+            "refuted_seeds": 22364,
+            "productive_seeds": 6409
+          },
+          "after": {
+            "eligible_seeds": 42353,
+            "refuted_seeds": 22022,
+            "productive_seeds": 6079
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 51697,
+            "refuted_seeds": 11279,
+            "productive_seeds": 9320
+          },
+          "after": {
+            "eligible_seeds": 50071,
+            "refuted_seeds": 10721,
+            "productive_seeds": 8832
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 36217,
+            "refuted_seeds": 0,
+            "productive_seeds": 14831
+          },
+          "after": {
+            "eligible_seeds": 35019,
+            "refuted_seeds": 0,
+            "productive_seeds": 14435
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 29374,
+            "refuted_seeds": 0,
+            "productive_seeds": 2039
+          },
+          "after": {
+            "eligible_seeds": 28579,
+            "refuted_seeds": 0,
+            "productive_seeds": 1993
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 23425,
+            "refuted_seeds": 0,
+            "productive_seeds": 6437
+          },
+          "after": {
+            "eligible_seeds": 22081,
+            "refuted_seeds": 0,
+            "productive_seeds": 6122
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Bop _op _x _y)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 9380,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 9107,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Get _tup _i)))\n      ((ExprIsValid _tup))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 28814,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 27858,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Concat _x _y)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 13553,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 12722,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Single _x)))\n      ((ExprIsValid _x))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 11990,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 11587,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (If _pred _input _then _else)))\n      ((ExprIsValid _pred)\n       (ExprIsValid _input)\n       (ExprIsValid _then)\n       (ExprIsValid _else))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 342,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 336,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((ExprIsValid (Alloc _id _e _state _ty)))\n      ((ExprIsValid _e)\n       (ExprIsValid _state))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 371,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 370,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Top _op _x _y _z)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y)\n       (BodyContainsExpr body _z))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 68991,
+            "refuted_seeds": 0,
+            "productive_seeds": 2644
+          },
+          "after": {
+            "eligible_seeds": 67899,
+            "refuted_seeds": 0,
+            "productive_seeds": 2612
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Bop _op _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 76337,
+            "refuted_seeds": 0,
+            "productive_seeds": 11170
+          },
+          "after": {
+            "eligible_seeds": 74972,
+            "refuted_seeds": 0,
+            "productive_seeds": 11078
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Uop _op _x)))\n      ((BodyContainsExpr body _x))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 66963,
+            "refuted_seeds": 0,
+            "productive_seeds": 9
+          },
+          "after": {
+            "eligible_seeds": 65871,
+            "refuted_seeds": 0,
+            "productive_seeds": 9
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Get _tup _i)))\n      ((BodyContainsExpr body _tup))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 95771,
+            "refuted_seeds": 0,
+            "productive_seeds": 21858
+          },
+          "after": {
+            "eligible_seeds": 93723,
+            "refuted_seeds": 0,
+            "productive_seeds": 21560
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Concat _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 80510,
+            "refuted_seeds": 0,
+            "productive_seeds": 19389
+          },
+          "after": {
+            "eligible_seeds": 78587,
+            "refuted_seeds": 0,
+            "productive_seeds": 18817
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Single _x)))\n      ((BodyContainsExpr body _x))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 78947,
+            "refuted_seeds": 0,
+            "productive_seeds": 17652
+          },
+          "after": {
+            "eligible_seeds": 77452,
+            "refuted_seeds": 0,
+            "productive_seeds": 17390
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Switch _pred _inputs _branches)))\n      ((BodyContainsExpr body _pred)\n       (BodyContainsExpr body _inputs))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 66957,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 65865,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (If _pred _input _then _else)))\n      ((BodyContainsExpr body _pred)\n       (BodyContainsExpr body _input))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67299,
+            "refuted_seeds": 0,
+            "productive_seeds": 536
+          },
+          "after": {
+            "eligible_seeds": 66201,
+            "refuted_seeds": 0,
+            "productive_seeds": 531
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (DoWhile _in _pred-and-output)))\n      ((BodyContainsExpr body _in))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67094,
+            "refuted_seeds": 0,
+            "productive_seeds": 179
+          },
+          "after": {
+            "eligible_seeds": 66002,
+            "refuted_seeds": 0,
+            "productive_seeds": 171
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Call _func _arg)))\n      ((BodyContainsExpr body _arg))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67163,
+            "refuted_seeds": 0,
+            "productive_seeds": 406
+          },
+          "after": {
+            "eligible_seeds": 66071,
+            "refuted_seeds": 0,
+            "productive_seeds": 406
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body (Alloc _id _e _state _ty)))\n      ((BodyContainsExpr body _e)\n       (BodyContainsExpr body _state))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67328,
+            "refuted_seeds": 0,
+            "productive_seeds": 467
+          },
+          "after": {
+            "eligible_seeds": 66235,
+            "refuted_seeds": 0,
+            "productive_seeds": 455
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Function _name _tyin _tyout _out)\n       (ExprIsPure _out))\n      ((ExprIsPure (Function _name _tyin _tyout _out)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 6010,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 5774,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Top _op _x _y _z)\n       (TernaryOpIsPure _op)\n       (ExprIsPure _x)\n       (ExprIsPure _y)\n       (ExprIsPure _z))\n      ((ExprIsPure (Top _op _x _y _z)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 19892,
+            "refuted_seeds": 1869,
+            "productive_seeds": 168
+          },
+          "after": {
+            "eligible_seeds": 19184,
+            "refuted_seeds": 1869,
+            "productive_seeds": 168
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Bop _op _x _y)\n       (BinaryOpIsPure _op)\n       (ExprIsPure _x)\n       (ExprIsPure _y))\n      ((ExprIsPure (Bop _op _x _y)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 21340,
+            "refuted_seeds": 8949,
+            "productive_seeds": 676
+          },
+          "after": {
+            "eligible_seeds": 20595,
+            "refuted_seeds": 8692,
+            "productive_seeds": 661
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Uop _op _x)\n       (UnaryOpIsPure _op)\n       (ExprIsPure _x))\n      ((ExprIsPure (Uop _op _x)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 5964,
+            "refuted_seeds": 6,
+            "productive_seeds": 2
+          },
+          "after": {
+            "eligible_seeds": 5728,
+            "refuted_seeds": 6,
+            "productive_seeds": 2
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Get _tup _i)\n       (ExprIsPure _tup))\n      ((ExprIsPure (Get _tup _i)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34766,
+            "refuted_seeds": 0,
+            "productive_seeds": 1117
+          },
+          "after": {
+            "eligible_seeds": 33574,
+            "refuted_seeds": 0,
+            "productive_seeds": 1089
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= lhs (Get (Arg (TupleT tylist) _ctx) i))\n       (!= (TypeList-ith tylist i) (StateT )))\n      ((ExprIsPure lhs))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 40122,
+            "refuted_seeds": 28368,
+            "productive_seeds": 174
+          },
+          "after": {
+            "eligible_seeds": 39166,
+            "refuted_seeds": 27429,
+            "productive_seeds": 174
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Concat _x _y)\n       (ExprIsPure _x)\n       (ExprIsPure _y))\n      ((ExprIsPure (Concat _x _y)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 25457,
+            "refuted_seeds": 12529,
+            "productive_seeds": 2894
+          },
+          "after": {
+            "eligible_seeds": 24154,
+            "refuted_seeds": 11789,
+            "productive_seeds": 2650
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Single _x)\n       (ExprIsPure _x))\n      ((ExprIsPure (Single _x)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 17942,
+            "refuted_seeds": 0,
+            "productive_seeds": 1035
+          },
+          "after": {
+            "eligible_seeds": 17303,
+            "refuted_seeds": 0,
+            "productive_seeds": 1032
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Switch _pred _inputs _branches)\n       (ExprIsPure _pred)\n       (ExprIsPure _inputs)\n       (ListExprIsPure _branches))\n      ((ExprIsPure (Switch _pred _inputs _branches)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 11904,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 11432,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((If _pred _input _then _else)\n       (ExprIsPure _pred)\n       (ExprIsPure _input)\n       (ExprIsPure _then)\n       (ExprIsPure _else))\n      ((ExprIsPure (If _pred _input _then _else)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 24150,
+            "refuted_seeds": 340,
+            "productive_seeds": 7
+          },
+          "after": {
+            "eligible_seeds": 23200,
+            "refuted_seeds": 334,
+            "productive_seeds": 6
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((DoWhile _in _pred-and-output)\n       (ExprIsPure _in)\n       (ExprIsPure _pred-and-output))\n      ((ExprIsPure (DoWhile _in _pred-and-output)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 12041,
+            "refuted_seeds": 136,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 11569,
+            "refuted_seeds": 136,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Call _f _arg)\n       (ExprIsPure _arg)\n       (ExprIsPure (Function _f inty outty out)))\n      ((ExprIsPure (Call _f _arg)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 12168,
+            "refuted_seeds": 24,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 11696,
+            "refuted_seeds": 24,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Cons _hd _tl)\n       (ExprIsPure _hd)\n       (ListExprIsPure _tl))\n      ((ListExprIsPure (Cons _hd _tl)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 5952,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 5716,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Top op x y z)\n       (ContextOf x ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 36078,
+            "refuted_seeds": 0,
+            "productive_seeds": 1587
+          },
+          "after": {
+            "eligible_seeds": 32024,
+            "refuted_seeds": 0,
+            "productive_seeds": 1587
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Top op x y z)\n       (ContextOf y ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 36078,
+            "refuted_seeds": 0,
+            "productive_seeds": 1302
+          },
+          "after": {
+            "eligible_seeds": 32024,
+            "refuted_seeds": 0,
+            "productive_seeds": 1280
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Top op x y z)\n       (ContextOf z ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 36078,
+            "refuted_seeds": 0,
+            "productive_seeds": 1209
+          },
+          "after": {
+            "eligible_seeds": 32024,
+            "refuted_seeds": 0,
+            "productive_seeds": 1157
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Bop op x y)\n       (ContextOf x ctx))\n      ((ContextOf (Bop op x y) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 43424,
+            "refuted_seeds": 0,
+            "productive_seeds": 5577
+          },
+          "after": {
+            "eligible_seeds": 39097,
+            "refuted_seeds": 0,
+            "productive_seeds": 4879
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Bop op x y)\n       (ContextOf y ctx))\n      ((ContextOf (Bop op x y) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 43424,
+            "refuted_seeds": 0,
+            "productive_seeds": 5682
+          },
+          "after": {
+            "eligible_seeds": 39097,
+            "refuted_seeds": 0,
+            "productive_seeds": 4603
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Uop op x)\n       (ContextOf x ctx))\n      ((ContextOf (Uop op x) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34050,
+            "refuted_seeds": 0,
+            "productive_seeds": 3
+          },
+          "after": {
+            "eligible_seeds": 29996,
+            "refuted_seeds": 0,
+            "productive_seeds": 3
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Get tup i)\n       (ContextOf tup ctx))\n      ((ContextOf (Get tup i) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 62858,
+            "refuted_seeds": 0,
+            "productive_seeds": 19900
+          },
+          "after": {
+            "eligible_seeds": 57848,
+            "refuted_seeds": 0,
+            "productive_seeds": 18725
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Concat x y)\n       (ContextOf x ctx))\n      ((ContextOf (Concat x y) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 47597,
+            "refuted_seeds": 0,
+            "productive_seeds": 9435
+          },
+          "after": {
+            "eligible_seeds": 42712,
+            "refuted_seeds": 0,
+            "productive_seeds": 7919
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Concat x y)\n       (ContextOf y ctx))\n      ((ContextOf (Concat x y) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 47597,
+            "refuted_seeds": 0,
+            "productive_seeds": 9625
+          },
+          "after": {
+            "eligible_seeds": 42712,
+            "refuted_seeds": 0,
+            "productive_seeds": 8009
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Single x)\n       (ContextOf x ctx))\n      ((ContextOf (Single x) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 46034,
+            "refuted_seeds": 0,
+            "productive_seeds": 10189
+          },
+          "after": {
+            "eligible_seeds": 41577,
+            "refuted_seeds": 0,
+            "productive_seeds": 8419
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Switch pred inputs branches)\n       (ContextOf pred ctx))\n      ((ContextOf (Switch pred inputs branches) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34044,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 29990,
+            "refuted_seeds": 0,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((If pred inputs then else)\n       (ContextOf pred ctx))\n      ((ContextOf (If pred inputs then else) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34386,
+            "refuted_seeds": 0,
+            "productive_seeds": 202
+          },
+          "after": {
+            "eligible_seeds": 30326,
+            "refuted_seeds": 0,
+            "productive_seeds": 199
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((If pred inputs then else)\n       (ContextOf inputs ctx))\n      ((ContextOf (If pred inputs then else) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34386,
+            "refuted_seeds": 0,
+            "productive_seeds": 208
+          },
+          "after": {
+            "eligible_seeds": 30326,
+            "refuted_seeds": 0,
+            "productive_seeds": 197
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((DoWhile in pred-and-output)\n       (ContextOf in ctx))\n      ((ContextOf (DoWhile in pred-and-output) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34181,
+            "refuted_seeds": 0,
+            "productive_seeds": 96
+          },
+          "after": {
+            "eligible_seeds": 30127,
+            "refuted_seeds": 0,
+            "productive_seeds": 92
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Call func arg)\n       (ContextOf arg ctx))\n      ((ContextOf (Call func arg) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34250,
+            "refuted_seeds": 0,
+            "productive_seeds": 158
+          },
+          "after": {
+            "eligible_seeds": 30196,
+            "refuted_seeds": 0,
+            "productive_seeds": 127
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Alloc amt e state ty)\n       (ContextOf e ctx))\n      ((ContextOf (Alloc amt e state ty) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34415,
+            "refuted_seeds": 0,
+            "productive_seeds": 135
+          },
+          "after": {
+            "eligible_seeds": 30360,
+            "refuted_seeds": 0,
+            "productive_seeds": 134
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((Alloc amt e state ty)\n       (ContextOf state ctx))\n      ((ContextOf (Alloc amt e state ty) ctx))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 34415,
+            "refuted_seeds": 0,
+            "productive_seeds": 288
+          },
+          "after": {
+            "eligible_seeds": 30360,
+            "refuted_seeds": 0,
+            "productive_seeds": 216
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (Concat (Concat a b) c) (Concat a (Concat b c)) :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 27106,
+            "refuted_seeds": 0,
+            "productive_seeds": 4750
+          },
+          "after": {
+            "eligible_seeds": 25444,
+            "refuted_seeds": 0,
+            "productive_seeds": 4239
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (Concat (Empty ty ctx) x) x :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 13558,
+            "refuted_seeds": 0,
+            "productive_seeds": 63
+          },
+          "after": {
+            "eligible_seeds": 12727,
+            "refuted_seeds": 0,
+            "productive_seeds": 63
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (Concat x (Empty ty ctx)) x :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 13558,
+            "refuted_seeds": 0,
+            "productive_seeds": 19
+          },
+          "after": {
+            "eligible_seeds": 12727,
+            "refuted_seeds": 0,
+            "productive_seeds": 19
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (SubTuple expr x 0) (Empty ty ctx) :when ((HasArgType expr ty) (ContextOf expr ctx)) :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 71767,
+            "refuted_seeds": 42417,
+            "productive_seeds": 16
+          },
+          "after": {
+            "eligible_seeds": 67701,
+            "refuted_seeds": 41668,
+            "productive_seeds": 16
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= lhs (If pred inputs thn els))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 14259,
+            "refuted_seeds": 0,
+            "productive_seeds": 202
+          },
+          "after": {
+            "eligible_seeds": 14253,
+            "refuted_seeds": 0,
+            "productive_seeds": 196
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a (+ b c)) :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 75227,
+            "refuted_seeds": 47147,
+            "productive_seeds": 10956
+          },
+          "after": {
+            "eligible_seeds": 72270,
+            "refuted_seeds": 45304,
+            "productive_seeds": 10486
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rewrite (SubTuple expr 0 len) expr :when ((= len (tuple-length expr))) :ruleset always-run)",
+          "before": {
+            "eligible_seeds": 25125,
+            "refuted_seeds": 0,
+            "productive_seeds": 7436
+          },
+          "after": {
+            "eligible_seeds": 24962,
+            "refuted_seeds": 0,
+            "productive_seeds": 7324
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= f (TCons hd tl))\n       (PointerishTypeList tl))\n      ((PointerishTypeList f))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 2739,
+            "refuted_seeds": 0,
+            "productive_seeds": 790
+          },
+          "after": {
+            "eligible_seeds": 2700,
+            "refuted_seeds": 0,
+            "productive_seeds": 764
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= f (TupleT l))\n       (PointerishTypeList l))\n      ((PointerishType f))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 2521,
+            "refuted_seeds": 0,
+            "productive_seeds": 913
+          },
+          "after": {
+            "eligible_seeds": 2482,
+            "refuted_seeds": 0,
+            "productive_seeds": 886
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Const _n _ty _ctx)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 68960,
+            "refuted_seeds": 65110,
+            "productive_seeds": 215
+          },
+          "after": {
+            "eligible_seeds": 67868,
+            "refuted_seeds": 64062,
+            "productive_seeds": 199
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get (Arg ty ctx) i))\n       (= expr (Get body (+ i 1))))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 124870,
+            "refuted_seeds": 117709,
+            "productive_seeds": 404
+          },
+          "after": {
+            "eligible_seeds": 121866,
+            "refuted_seeds": 114924,
+            "productive_seeds": 403
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Function _name _tyin _tyout _out)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67152,
+            "refuted_seeds": 66009,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 66060,
+            "refuted_seeds": 64922,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Top _op _x _y _z))\n       (is-inv-Expr body _x)\n       (is-inv-Expr body _y)\n       (is-inv-Expr body _z))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 73661,
+            "refuted_seeds": 72952,
+            "productive_seeds": 22
+          },
+          "after": {
+            "eligible_seeds": 72569,
+            "refuted_seeds": 71860,
+            "productive_seeds": 22
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Bop _op _x _y))\n       (BinaryOpIsPure _op)\n       (is-inv-Expr body _x)\n       (is-inv-Expr body _y))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 79552,
+            "refuted_seeds": 76754,
+            "productive_seeds": 219
+          },
+          "after": {
+            "eligible_seeds": 78187,
+            "refuted_seeds": 75389,
+            "productive_seeds": 219
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Uop _op _x))\n       (UnaryOpIsPure _op)\n       (is-inv-Expr body _x))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 68617,
+            "refuted_seeds": 68378,
+            "productive_seeds": 2
+          },
+          "after": {
+            "eligible_seeds": 67525,
+            "refuted_seeds": 67286,
+            "productive_seeds": 2
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get _tup _i))\n       (is-inv-Expr body _tup))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 97419,
+            "refuted_seeds": 92583,
+            "productive_seeds": 475
+          },
+          "after": {
+            "eligible_seeds": 95371,
+            "refuted_seeds": 90535,
+            "productive_seeds": 475
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Concat _x _y))\n       (is-inv-Expr body _x)\n       (is-inv-Expr body _y))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 83669,
+            "refuted_seeds": 77924,
+            "productive_seeds": 585
+          },
+          "after": {
+            "eligible_seeds": 81746,
+            "refuted_seeds": 76001,
+            "productive_seeds": 585
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Single _x))\n       (is-inv-Expr body _x))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 80595,
+            "refuted_seeds": 74780,
+            "productive_seeds": 477
+          },
+          "after": {
+            "eligible_seeds": 79100,
+            "refuted_seeds": 73285,
+            "productive_seeds": 477
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Switch _pred _inputs _branches))\n       (is-inv-Expr body _pred)\n       (is-inv-Expr body _inputs)\n       (is-inv-ListExpr body _branches))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 70116,
+            "refuted_seeds": 70086,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 69024,
+            "refuted_seeds": 68994,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (If _pred _input _then _else))\n       (is-inv-Expr body _pred)\n       (is-inv-Expr body _input))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 70458,
+            "refuted_seeds": 70180,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 69360,
+            "refuted_seeds": 69082,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (DoWhile _in _pred-and-output))\n       (is-inv-Expr body _in)\n       (ExprIsPure expr))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 74694,
+            "refuted_seeds": 74335,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 73366,
+            "refuted_seeds": 73010,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Call _func _arg))\n       (is-inv-Expr body _arg)\n       (ExprIsPure expr))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 74763,
+            "refuted_seeds": 74356,
+            "productive_seeds": 0
+          },
+          "after": {
+            "eligible_seeds": 73435,
+            "refuted_seeds": 73030,
+            "productive_seeds": 0
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Empty _ty _ctx)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 67099,
+            "refuted_seeds": 66941,
+            "productive_seeds": 4
+          },
+          "after": {
+            "eligible_seeds": 66007,
+            "refuted_seeds": 65849,
+            "productive_seeds": 4
+          }
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "before": {
+            "eligible_seeds": 107798,
+            "refuted_seeds": 42614,
+            "productive_seeds": 1486
+          },
+          "after": {
+            "eligible_seeds": 99678,
+            "refuted_seeds": 41865,
+            "productive_seeds": 1480
+          }
+        }
+      ]
+    }
+  ]
+}

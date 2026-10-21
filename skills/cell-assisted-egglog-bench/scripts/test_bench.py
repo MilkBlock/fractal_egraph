@@ -46,6 +46,54 @@ class WorkflowTests(unittest.TestCase):
         (folder/'report.json').write_text(json.dumps(fixture()))
         return args, worker, env, folder
 
+    def interaction_fixture(self, root):
+        paths={}
+        for name,sat,refute,visits in [('s0r0',False,False,1000),('s0r1',False,True,400),('s1r0',True,False,900),('s1r1',True,True,300)]:
+            path=root/name;path.mkdir();paths[name]=path
+            rules=[dict(ruleset='s',rule='removed',stats=dict(eligible_seeds=0 if sat else 100,refuted_seeds=0,productive_seeds=0)),
+                   dict(ruleset='s',rule='common',stats=dict(eligible_seeds=10,refuted_seeds=5 if refute else 0,productive_seeds=2))]
+            work={f:sum(q['stats'][f] for q in rules) for f in ['eligible_seeds','refuted_seeds','productive_seeds']}
+            work.update(join_live_row_visits=visits,join_probes=visits)
+            r=fixture();r.update(schedule=['s'],assisted_rulesets=['s'])
+            r['gpu'].update(cells=dict(profile=True,refutation=refute,refutation_signatures=refute,refutation_domains=False),
+                            saturation_diagnostics={'joint':{}} if sat else None,cell_query_reuse=True,cell_work=work,rules=rules)
+            r['gpu']['runtime'].update(cell_query_bindings=0,cell_query_rules=1 if sat else 0)
+            (path/'report.json').write_text(json.dumps(r))
+            (path/'workflow.json').write_text(json.dumps(dict(snapshot_sha256='input',binary_sha256='binary',worker_sha256='worker',policy='stable')))
+        return paths
+
+    def test_interaction_separates_rule_mix_from_stronger_refutation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result=B.interaction_report(self.interaction_fixture(Path(tmp)))
+            self.assertAlmostEqual(result['records']['s0r1']['rejection_rate'],5/110)
+            self.assertEqual(result['records']['s1r1']['rejection_rate'],.5)
+            mix=result['query_mix'][0]
+            self.assertEqual(mix['common_reference_rate'],.5)
+            self.assertEqual(mix['common_candidate_fixed_weight_rate'],.5)
+            self.assertEqual(mix['removed_rules'],1)
+            self.assertEqual(result['contrasts']['join_live_row_visits']['superadditive_saving'],0)
+
+    def test_interaction_rejects_mixed_binaries_and_inconsistent_counters(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=self.interaction_fixture(Path(tmp));p=paths['s1r1']/'workflow.json';w=B.load(p)
+            p.write_text(json.dumps(dict(w,binary_sha256='other')))
+            with self.assertRaises(ValueError):B.interaction_report(paths)
+            p.write_text(json.dumps(w))
+            p=paths['s1r1']/'report.json';r=B.load(p);r['gpu']['cell_work']['eligible_seeds']+=1;p.write_text(json.dumps(r))
+            with self.assertRaises(ValueError):B.interaction_report(paths)
+
+    def test_interaction_no_residual_candidates_has_no_fake_hit_rate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=self.interaction_fixture(Path(tmp))
+            for name in ['s1r0','s1r1']:
+                p=paths[name]/'report.json';r=B.load(p)
+                for row in r['gpu']['rules']:
+                    row['stats']={k:0 for k in row['stats']}
+                r['gpu']['cell_work']={k:0 for k in r['gpu']['cell_work']};p.write_text(json.dumps(r))
+            result=B.interaction_report(paths)
+            self.assertIsNone(result['records']['s1r1']['rejection_rate'])
+            self.assertIsNone(result['query_mix'][0]['common_candidate_fixed_weight_rate'])
+
     def test_cache_requires_identical_execution_and_successful_graph_gate(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

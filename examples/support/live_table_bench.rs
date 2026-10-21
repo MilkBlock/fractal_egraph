@@ -377,13 +377,22 @@ pub fn benchmark_all_export(base:&EGraph,commands:&[Command],worker:&Path,dest:&
     }
     benchmark_impl(base,commands,"complete Pass 3, all original rules on GPU",worker,checked,dest,Some(selected),false,Some(exports),hook,true)
 }
+// A no-hook candidate may reuse the same frozen native/CPU controls from a
+// joint experiment. Remove the old joint comparison instead of mislabelling it.
+fn select_cached_controls(report:&mut Json,joint:bool)->Result<()> {
+    if report["same_commit_verification"]["exact_rows_values_equivalence_visibility"]!=true {
+        return Err("cached CPU/GPU control was not validated".into());
+    }
+    if joint && !report["gpu_without_joint"].is_object() {return Err("cached control lacks GPU-off lane".into());}
+    if !joint {for key in ["gpu_without_joint","joint_verification","joint_verification_error"] {report.as_object_mut().ok_or("invalid control report")?.remove(key);}}
+    Ok(())
+}
 fn benchmark_reusing_controls(base:&EGraph,commands:&[Command],worker:&Path,dest:&Path,selected:&[String],exports:&Path,checked:bool,hook:Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>,directory:&Path)->Result<()>{
     let directory=directory.canonicalize()?;
     let mut report:Json=serde_json::from_reader(std::fs::File::open(directory.join("report.json"))?)?;
     if report["schedule"]!=json!(commands.iter().map(ToString::to_string).collect::<Vec<_>>()) || report["assisted_rulesets"]!=json!(selected){return Err("cached control schedule/partition differs".into())}
-    if !report["same_commit_verification"].is_object(){return Err("cached CPU/GPU control was not validated".into())}
     let joint=hook.is_some();
-    if report["gpu_without_joint"].is_object()!=joint{return Err("cached control Cell mode differs".into())}
+    select_cached_controls(&mut report,joint)?;
     for name in ["native","cpu"].into_iter().chain(joint.then_some("gpu-off")) {if !directory.join(format!("graphs/{name}.control.json")).is_file(){return Err("cached control lacks exact facts/anchors; generate one complete reference first".into())}}
     let mut runtime=Runtime::new_full(base.clone(),commands,Some(worker),checked,Some(selected))?;
     if let Some(hook)=hook {runtime.set_saturation_hook(hook);}
@@ -704,6 +713,19 @@ mod tests {
         assert_eq!(a["native"],b["native"]);assert_eq!(a["sorted_commit_cpu"],b["sorted_commit_cpu"]);
         assert!(b["same_commit_verification"].is_object());assert!(b["verification"].is_object());assert!(b["reused_controls"].is_object());
         std::fs::remove_dir_all(path).unwrap();
+    }
+
+    #[test]
+    fn joint_cache_can_supply_cpu_controls_without_leaking_joint_results() {
+        let mut report=json!({"same_commit_verification":{"exact_rows_values_equivalence_visibility":true},
+            "gpu_without_joint":{},"joint_verification":{"old":true},"joint_verification_error":"old"});
+        select_cached_controls(&mut report,false).unwrap();
+        assert!(report.get("gpu_without_joint").is_none());
+        assert!(report.get("joint_verification").is_none());
+        assert!(report.get("joint_verification_error").is_none());
+        assert!(select_cached_controls(&mut report,true).is_err());
+        report["same_commit_verification"]=json!({"exact_rows_values_equivalence_visibility":false});
+        assert!(select_cached_controls(&mut report,false).is_err());
     }
 
 }

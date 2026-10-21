@@ -114,6 +114,9 @@ struct QueryStats {
     cell_bindings: usize,
     shared_queries: usize,
     shared_bindings: usize,
+    eligible_seeds:u64,
+    refuted_seeds:u64,
+    productive_seeds:u64,
 }
 struct Row {
     table: usize,
@@ -473,7 +476,7 @@ impl Runtime {
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
             if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
-            if installed["family_layout"] != json!(12) {
+            if installed["family_layout"] != json!(13) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0
@@ -745,6 +748,21 @@ impl Runtime {
             for (k, v) in work {
                 *self.cell_work.entry(k.clone()).or_default() +=
                     v.as_u64().ok_or("invalid Cell work counter")?;
+            }
+        }
+        if let Some(work)=r["query_seed_work"].as_array() {
+            for row in work {
+                let row=row.as_array().ok_or("invalid query seed profile")?;
+                if row.len()!=4{return Err("invalid query seed profile width".into());}
+                let id=row[0].as_u64().ok_or("missing seed query")? as usize;
+                if !active.contains(&id){return Err("inactive seed query".into());}
+                let a=row[1].as_u64().ok_or("missing seed total")?;
+                let b=row[2].as_u64().ok_or("missing seed rejections")?;
+                let c=row[3].as_u64().ok_or("missing productive seeds")?;
+                if b+c>a{return Err("invalid seed outcomes".into());}
+                self.qstats[id].eligible_seeds+=a;
+                self.qstats[id].refuted_seeds+=b;
+                self.qstats[id].productive_seeds+=c;
             }
         }
         let t = Instant::now();
