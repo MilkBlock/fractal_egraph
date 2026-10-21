@@ -168,7 +168,7 @@ def write(path, baseline=None, output=None, timing=None):
     if dest.exists() and json.loads(dest.read_text()).get('schema')!='cell-work-ledger/v1':raise ValueError('refusing to overwrite unrelated ledger file')
     dest.write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n')
     with stem.with_suffix('.csv').open('w',newline='') as f:
-        w=csv.DictWriter(f,fieldnames=COLUMNS);w.writeheader()
+        w=csv.DictWriter(f,fieldnames=COLUMNS,lineterminator="\n");w.writeheader()
         for r in result['rows']:w.writerow({k:json.dumps(v,ensure_ascii=False) if isinstance(v,list) else v for k,v in r.items()})
     lines=['# Cell 代价与复用账表','',f"来源：`{source}`。诊断计数：{result['profile_measured']}。核对通过：{result['verified']}。",'',
            '— 表示未测或不能独立归因。共享片段只记一次；candidate 是候选行访问，不是 match 或新事实。','']
