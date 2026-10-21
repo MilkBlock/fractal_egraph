@@ -6,6 +6,7 @@ Native hashcons, union and subsumption decide retained rows. No closure export,
 trace replay, graph dump, fabricated RSS estimate, or candidate truncation.
 """
 import json
+import hashlib
 from pathlib import Path
 import subprocess
 import time
@@ -14,10 +15,21 @@ from .terms import actions
 
 
 class InstanceStorage:
-    def __init__(self, data, candidates, environment, signatures, runner):
+    def __init__(self, data, candidates, environment, signatures, runner, *, measure_search=False):
         self.data=data;self.candidates=candidates;self.environment=environment
         self.signatures=signatures;self.runner=Path(runner)
         self.cache={};self.evaluations=0;self.seconds=0.
+        self.measure_search=measure_search
+        self.runner_sha256=hashlib.sha256(self.runner.read_bytes()).hexdigest() if measure_search else None
+
+    def search_work(self,bundle,selected,folder):
+        if not self.measure_search:raise ValueError('search counters not enabled')
+        measured=self(bundle,selected,folder)
+        counters=measured['native'].get('run_probe_counters')
+        if counters is None or not {'probes','candidate_rows'}<=counters.keys():
+            raise ValueError('native runner lacks search counters; rebuild it')
+        return dict(value=counters['probes']+counters['candidate_rows'],counters=counters,runner_sha256=self.runner_sha256,
+                    native=measured,scope='one current-input native saturation; handles plus row visits, including failed searches')
 
     def lower_bound(self,bundle):
         """Rows no certified initializer can cover must remain raw.
@@ -56,9 +68,14 @@ class InstanceStorage:
         lowered=[r for r in lowered if not r.get('disabled')]
         # Preserve rule order, tables, guards and input exactly. Only names and
         # local variable spelling can differ; those do not alter stored rows.
-        key=json.dumps((environment,inputs,[(r.get('ruleset'),rule_recipe(r)) for r in lowered]),sort_keys=True)
-        environment += [markers.render(r) for r in lowered]
-        request=dict(environment='\n'.join(environment),input='\n'.join(inputs),run=markers.RUNTIME_SCHEDULE)
+        emitted=[markers.render(r) for r in lowered]
+        # Search plans can depend on syntactic order and scheduling names.
+        # Semantic/alpha equivalence alone is not a performance cache key.
+        key=json.dumps((environment,inputs,emitted if self.measure_search else
+                        [(r.get('ruleset'),rule_recipe(r)) for r in lowered]),sort_keys=True)
+        environment += emitted
+        request=dict(environment='\n'.join(environment),input='\n'.join(inputs),run=markers.RUNTIME_SCHEDULE,
+                     measure_search=self.measure_search)
         if key not in self.cache:
             path=folder/'storage-input.json';path.write_text(json.dumps(request)+'\n')
             with (folder/'storage.stderr').open('w') as stderr:

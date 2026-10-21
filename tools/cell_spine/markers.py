@@ -257,6 +257,14 @@ def _lower_ast(rule, selected, signatures, *, export=False, source=None, stop_af
             body.append(owner)
             for term,column in zip(layout['terms'],columns):
                 if term['kind']=='var':subst[term['name']]=column
+            # A published ABI stores intermediate witnesses as columns too.
+            # Their rows were materialized by the Summary's creating action;
+            # retain these exact correlated values instead of decoding again.
+            if layout.get('interface')=='published':
+                for term,column in zip(layout['terms'],columns):
+                    if term['kind']=='call':
+                        concrete=t.replace(term,subst)
+                        bind(concrete,column,True);canonical_rows.add(text(concrete))
             for i,root in enumerate(layout['roots']):
                 term=t.replace(root,subst);bind(term,columns[i],True)
                 if layout.get('representation','canonical')=='canonical':canonical_rows.add(text(term))

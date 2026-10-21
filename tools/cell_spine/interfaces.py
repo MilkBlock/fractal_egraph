@@ -30,16 +30,38 @@ def coordinates(layout):
 def storage_columns(layout):return layout['columns']+layout.get('interface_columns',0)
 
 
+def published(layout):
+    """Carry a producer's correlated seed witnesses in the active Summary.
+
+    This is another physical ABI for an already certified seed, not a claim
+    that one tuple enumerates every alternative introduced by future unions.
+    The existing inline/shared implementations remain available to the solver.
+    Borrowed/subtree storage cannot promise all intermediate rows exist.
+    """
+    if layout.get('representation','canonical')!='canonical':return None
+    coords=coordinates(layout)
+    return dict(layout,id=layout['id']+'_published',interface='published',
+                terms=coords,columns=len(coords),anchor=layout['roots'][0],anchor_field='r0',
+                decode=[q for q in layout['decode'] if q.get('guard')],lookup_atoms=0,
+                publication='same action that constructs the certified canonical seed')
+
+
 def extend(bundle,mode='auto'):
-    if mode not in ('inline','auto','shared'):raise ValueError('unknown interface mode')
+    if mode not in ('inline','auto','shared','publisher'):raise ValueError('unknown interface mode')
     if mode=='inline':return dict(bundle,interface_mode=mode)
     chosen={};consumers=list(bundle['consumers'])
     for family,c in bundle['chosen'].items():
-        layouts=[];has_shared=False
+        layouts=[];has_shared=False;published_keys=set()
         fields={f'r{i}':c['signatures'][r['head']]['output'] for i,r in enumerate(c['roots'])}
         fields.update({v:c['param_sorts'][k] for k,v in c['params'].items()})
         for l in c['marker_layouts']:
-            if mode=='auto' or not l['decode']:layouts.append(l)
+            if mode in ('auto','publisher') or not l['decode']:layouts.append(l)
+            if mode=='publisher':
+                direct=published(l)
+                if direct:
+                    key=(tuple(map(text,direct['terms'])),tuple(t.fact_text(q) for q in direct['decode']))
+                    if key not in published_keys:
+                        published_keys.add(key);layouts.append(direct)
             if not l['decode']:continue
             coords=coordinates(l)
             types=[fields[e['name']] if e['kind']=='var' else c['signatures'][e['head'][:-1]]['output'] for e in coords]

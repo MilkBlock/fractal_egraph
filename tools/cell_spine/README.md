@@ -104,6 +104,48 @@ outside this proof. See [the fixed-library held-out comparisons](../../experimen
 
 ## Shared seed interfaces
 
+### Direct publication and native search pricing
+
+`--cell-interfaces publisher` adds a layout to the existing inline/shared
+choice space: the action constructing a certified canonical seed writes its
+complete correlated input binding and intermediate subtree identities directly
+into the active Summary. Consumers reuse those columns. No separate full-spine
+decoder rule or second interface table is emitted for this layout. Guards,
+typed positions, roots, retirement, and native union canonicalization remain.
+Borrowed/subtree storage does not qualify for this new layout. This is a physical
+ABI of the existing baked transition contract, not an exhaustive hidden-fact
+matcher or permission to execute unknown transitions.
+
+`--search-cost native` replaces the static atom-count term with a current-input
+native measurement: index handles plus index-returned candidate row visits,
+including unsuccessful joins and auxiliary maintenance. Both components remain
+visible in the report. These are work units, not seconds; primary cover scans,
+insert/merge/rebuild, index bytes and RSS are not fully described by this score.
+The static update/column terms remain separately charged. Explicit export and
+initialization are outside the run-search measurement.
+
+The existing MIP uses nonnegative bounds and exact-layout value cuts. It does
+not assume atom count bounds real search, substitute successful match frequency,
+truncate candidate layouts, or accept an interrupted optimum. Measurements of
+identical emitted programs and inputs are cached; performance cache identity
+retains rule names and order. The selected measured initializer is emitted
+verbatim and checked against native retained table counts. Native failures are
+errors, never silently replaced by static estimates. This mode can be expensive
+offline on large products of layouts; it is opt-in and has no runtime solver.
+Its optimum applies to the admitted representations, input policy and specified
+score, not all possible marker layouts or unseen workloads.
+
+```sh
+out/cell-spine-venv/bin/python -m tools.cell_spine.compiler \
+  --source experiments/cell_spine/published_markers/pipeline.egg \
+  --output out/published-pipeline \
+  --cell-interfaces publisher --search-cost native
+```
+
+Outputs remain `library.egg`, `runtime.egg`, `restore.egg`, `report.json`, and
+full native `validation.json`. The ordinary `auto`/structural defaults remain
+unchanged. See [native examples and boundaries](../../experiments/cell_spine/published_markers/README.md).
+
 In `--cell-composition seed-cuts`, known target seeds can additionally use
 `certified_boundary_cut` interfaces. These expose alternative port-visible rows
 of a parent's certified closure, including orientations absent from its stored

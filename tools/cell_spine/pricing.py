@@ -112,11 +112,12 @@ class Diagram:
 
 
 class RuntimePricing:
-    def __init__(self,prepare,signatures,output,weights,*,storage=None,layout_pricing='projected'):
+    def __init__(self,prepare,signatures,output,weights,*,storage=None,search=None,layout_pricing='projected'):
         self.prepare=prepare;self.signatures=signatures;self.output=output;self.weights=weights
         if layout_pricing not in ('enumerate','source-cache','projected'):raise ValueError('invalid layout pricing mode')
         self.layout_pricing=layout_pricing
         self.storage=storage
+        self.search=search
         self.cache={};self.diagram=Diagram();self.profiles={};self.evaluations=0;self.schemes=0
         self.equivalent_models={};self.equivalent_model_hits=0
         self.preparation_seconds=0.;self.profile_seconds=0.
@@ -165,7 +166,10 @@ class RuntimePricing:
                     lowered=markers.resume_source(rule,assignment,self.signatures,source,normalizations=normalizations)
                     self.normalization_builds+=len(normalizations)-before
                 c=cost(lowered);self.evaluations+=1
-                return self.diagram.leaf(self.weights[1]*c['search_atoms']+self.weights[2]*c['update_actions'])
+                # Native search includes failed prefixes and maintenance. Static
+                # atom count is not a lower bound on that metric; use zero until
+                # the complete layout has actually executed.
+                return self.diagram.leaf((0 if self.search else self.weights[1]*c['search_atoms'])+self.weights[2]*c['update_actions'])
             choices=[]
             for group in grouped[depth]:
                 assignment[scope[depth]]=group[0]
@@ -197,7 +201,7 @@ class RuntimePricing:
         # rule programs and entire layout domains. IDs are labels, not semantics.
         # Concrete input/storage pricing is deliberately excluded from this key.
         semantic_key=None
-        if self.storage is None:
+        if self.storage is None and self.search is None:
             semantic_key=json.dumps(([rule_recipe(r) for r in bundle['consumers']],
                 [(f,[{k:v for k,v in l.items() if k not in ('id','path')} for l in c['marker_layouts']])
                  for f,c in sorted(chosen.items())]),sort_keys=True)
@@ -230,7 +234,8 @@ class RuntimePricing:
             columns=gp.quicksum(storage_columns(l)*variables[l['id']] for c in chosen.values() for l in c['marker_layouts'])
             storage_bound=self.storage.lower_bound(bundle) if hasattr(self.storage,'lower_bound') else 0.
             retained=model.addVar(lb=storage_bound,name='instance_storage') if self.storage is not None else 0.
-            model.setObjective(self.weights[0]*(columns+retained)+gp.quicksum(work))
+            searched=model.addVar(lb=0,name='native_search_work') if self.search is not None else 0.
+            model.setObjective(self.weights[0]*(columns+retained)+self.weights[1]*searched+gp.quicksum(work))
             # Native storage is nonnegative. Exact-layout value cuts refine
             # this lower bound; no layout is sampled, discarded or budgeted.
             best=None;history=[];seen=set()
@@ -252,18 +257,24 @@ class RuntimePricing:
                 if ids in seen:raise ValueError('priced layout returned below its certified cost')
                 seen.add(ids)
                 sample=self.storage(bundle,selected,folder/f'instance-{len(history):04d}') if self.storage is not None else None
+                search_sample=self.search(bundle,selected,folder/f'search-{len(history):04d}') if self.search is not None else None
                 storage_value=sample['value'] if sample is not None else 0.
                 if storage_value<storage_bound:raise ValueError('mandatory input storage bound exceeds native measurement')
                 prices=self.prices(bundle,selected)
                 q=sum(c['search_atoms'] for c in prices.values());w=sum(c['update_actions'] for c in prices.values())
+                search_value=search_sample['value'] if search_sample is not None else q
+                if not math.isfinite(search_value) or search_value<0:raise ValueError('invalid native search cost')
                 k=sum(storage_columns(l) for l in selected.values())
-                value=self.weights[0]*(k+storage_value)+self.weights[1]*q+self.weights[2]*w
-                history.append(dict(layouts=ids,lower_bound=bound,storage_value=storage_value,value=value))
-                if best is None or value<best[0]:best=value,selected,sample
-                if self.storage is None:break
-                model.addConstr(retained>=storage_value*(gp.quicksum(variables[i] for i in ids)-len(ids)+1),
-                                name=f'instance_value_{len(history)}')
-            value,selected,sample=best
+                value=self.weights[0]*(k+storage_value)+self.weights[1]*search_value+self.weights[2]*w
+                history.append(dict(layouts=ids,lower_bound=bound,storage_value=storage_value,search_value=search_value,value=value))
+                if best is None or value<best[0]:best=value,selected,sample,search_sample
+                if self.storage is None and self.search is None:break
+                active=gp.quicksum(variables[i] for i in ids)-len(ids)+1
+                if self.storage is not None:
+                    model.addConstr(retained>=storage_value*active,name=f'instance_value_{len(history)}')
+                if self.search is not None:
+                    model.addConstr(searched>=search_value*active,name=f'search_value_{len(history)}')
+            value,selected,sample,search_sample=best
             model.write(str(folder/'selection.lp'))
             for name,v in variables.items():model.fix(v,float(name in {l['id'] for l in selected.values()}))
             model.optimize()
@@ -276,10 +287,14 @@ class RuntimePricing:
             result=dict(value=value,marker_layouts=[l['id'] for l in selected.values()],
                 costs=dict(marker_columns=sum(l['columns'] for l in selected.values()),
                            interface_columns=sum(l.get('interface_columns',0) for l in selected.values()),
+                           search_objective=search_sample['value'] if search_sample is not None else q,
                            lookup_atoms_and_guards=q,write_atoms_and_unions=w),rule_costs=prices,
                 variables=model.NumVars,constraints=model.NumConstrs,cost_diagram_nodes=nodes,
                 evaluated_layout_tuples=self.evaluations-before,folder=str(folder),instance_storage=sample,
+                native_search=search_sample,
+                search_cost_scope='current-input native index handles plus candidate row visits, including unsuccessful queries; not time or held-out guarantee' if self.search else 'structural atom count',
                 storage_pricing_history=history if self.storage is not None else [],
+                search_pricing_history=history if self.search is not None else [],
                 mandatory_input_value_slots=storage_bound,
                 preparation_seconds=preparation_seconds,profile_seconds=profile_seconds,
                 storage_cost_scope='checkpoint retained Value slots, including retired markers; not index bytes or RSS' if self.storage is not None else 'structural only')

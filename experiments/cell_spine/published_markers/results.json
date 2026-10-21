@@ -1,0 +1,87 @@
+{
+  "scope": "Actual native execution of generated marker ABIs; controlled lowering fixture, not Analyze coverage or pristine eggcc speedup",
+  "copies": 128,
+  "consumers": 12,
+  "results": {
+    "m0_0": {
+      "probes": 4762,
+      "candidate_rows": 8064,
+      "logical_matches": 1664,
+      "instrumented_run_seconds": 0.00134175
+    },
+    "m0_0_published": {
+      "probes": 130,
+      "candidate_rows": 384,
+      "logical_matches": 1664,
+      "instrumented_run_seconds": 0.000766959
+    },
+    "m0_0_shared": {
+      "probes": 668,
+      "candidate_rows": 4224,
+      "logical_matches": 1792,
+      "instrumented_run_seconds": 0.00114175
+    }
+  },
+  "selected": [
+    "m0_0_published"
+  ],
+  "binary_sha256": "f2007a5529274080170c1f43cfb9be118816a3fb516e5bac8ada41febb664a85",
+  "generated_sha256": {
+    "m0_0": "cca29424938ce3bc5d3a4efc516f02c136cc09e47388ec1b4d0887cdb6838914",
+    "m0_0_published": "a9ee13d746b3659754c1058f3932c57c563a3f9a8632e5b12e2d591f6bfa629c",
+    "m0_0_shared": "378e1743a4e3928d8ac9a05c21d1ea7030d86786e1682cac961e8d4680486a0b"
+  },
+  "equality": {
+    "m0_0": {
+      "exact_equal": true,
+      "enodes": 2304,
+      "eclasses": 2048,
+      "sorts": {
+        "T!": {
+          "enodes": 2304,
+          "eclasses": 2048
+        }
+      }
+    },
+    "m0_0_published": {
+      "exact_equal": true,
+      "enodes": 2304,
+      "eclasses": 2048,
+      "sorts": {
+        "T!": {
+          "enodes": 2304,
+          "eclasses": 2048
+        }
+      }
+    },
+    "m0_0_shared": {
+      "exact_equal": true,
+      "enodes": 2304,
+      "eclasses": 2048,
+      "sorts": {
+        "T!": {
+          "enodes": 2304,
+          "eclasses": 2048
+        }
+      }
+    }
+  },
+  "solver": {
+    "backend": "scip",
+    "python_package_version": "6.3.0",
+    "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+    "threads": 1,
+    "models": {
+      "cell_marker_value": {
+        "models": 1,
+        "solve_calls": 5,
+        "api_build_seconds": 0.05379858301603235,
+        "solve_seconds": 0.0018922069866675884,
+        "peak_variables": 6,
+        "peak_constraints": 8,
+        "engine_version": "10.0.2",
+        "nonoptimal_solves": 0
+      }
+    }
+  }
+}

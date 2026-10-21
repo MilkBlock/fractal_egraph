@@ -84,4 +84,4 @@ def solve(candidates, edges, output, weights=(1.,1.,1.), *, pricing):
             priced_schemes=len(history),scheme_history=history,
             hyperedges=len(edges),implementations_considered=len(z),
             weights=dict(storage=weights[0],search=weights[1],update=weights[2]),
-            cost_scope='shared template shapes + marker/interface columns + lowered runtime lookups/writes/marker keys, shared maintenance once per family; when enabled, conditional current-input native retained Value slots including stale interfaces and retired markers; not runtime frequency, index bytes or RSS')
+            cost_scope='shared template shapes + marker/interface columns + lowered writes; search is static atoms or opt-in current-input native handles plus candidate rows (including failed searches); optional retained Value slots; not elapsed time, index bytes or RSS')

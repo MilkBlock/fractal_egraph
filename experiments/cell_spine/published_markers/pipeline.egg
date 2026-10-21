@@ -1,0 +1,7 @@
+; Complete native Analyze -> spine/marker solve -> generated .egg validation.
+(datatype Math (Leaf i64) (Add Math Math) (Mul Math Math))
+(ruleset algebra)
+(rewrite (Mul (Add a b) c) (Add (Mul a c) (Mul b c)) :ruleset algebra)
+(let root (Mul (Add (Leaf 1) (Leaf 2)) (Leaf 3)))
+(run-schedule (saturate algebra))
+(check (= root (Add (Mul (Leaf 1) (Leaf 3)) (Mul (Leaf 2) (Leaf 3)))))

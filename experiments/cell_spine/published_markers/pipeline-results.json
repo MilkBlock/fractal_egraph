@@ -1,0 +1,78 @@
+{
+  "scope": "Fresh native Analyze through generated egglog and full restoration comparison; not performance benchmark",
+  "source_sha256": "ed9d25b79c116b5b0e974db6cdd165c79a9895c99e4bad07d166f28e9e9f5999",
+  "selected": [
+    "m0_0_borrowed"
+  ],
+  "status": "optimal",
+  "objective": 11.0,
+  "search_cost": "native",
+  "search_counters": {
+    "  candidate_rows enumerated (for_each)": 2,
+    "  candidate_rows from lookups": 1,
+    "  lookup calls (get_subset)": 1,
+    "cached_column": 0,
+    "cached_index_hit": 0,
+    "cached_index_rebuild": 2,
+    "cached_index_rebuild_full": 0,
+    "cached_index_rebuild_rows": 2,
+    "cached_tuple": 0,
+    "candidate_rows": 3,
+    "dynamic_column (per-node cache)": 0,
+    "dynamic_tuple (group_by_key)": 0,
+    "probed_keys": 2,
+    "probes": 3,
+    "sparse_column": 3
+  },
+  "runner_sha256": "f2007a5529274080170c1f43cfb9be118816a3fb516e5bac8ada41febb664a85",
+  "checks": [
+    {
+      "case": "path-0",
+      "status": "passed",
+      "original_constructor_rows": 8,
+      "restored_constructor_rows": 8,
+      "original_constructor_eclasses": 7,
+      "restored_constructor_eclasses": 7,
+      "comparison": {
+        "status": "equivalent",
+        "value_map": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "states": 10
+      }
+    },
+    {
+      "case": "source",
+      "status": "passed",
+      "original_constructor_rows": 8,
+      "restored_constructor_rows": 8,
+      "original_constructor_eclasses": 7,
+      "restored_constructor_eclasses": 7,
+      "comparison": {
+        "status": "equivalent",
+        "value_map": [
+          3,
+          4,
+          5,
+          0,
+          1,
+          2,
+          6,
+          7,
+          8,
+          9
+        ],
+        "states": 10
+      }
+    }
+  ]
+}

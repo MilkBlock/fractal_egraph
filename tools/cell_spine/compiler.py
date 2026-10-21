@@ -624,7 +624,8 @@ def make_library(candidates, plan, edges, environment, signatures, work, prepare
         redundant_inherited_rules_removed=prepared['redundant'],runtime_rules=runtime_rules,marker_layouts=selected_layouts,gate_audit=gate_audit,
         raw_contracts=prepared.get('raw_contracts',{}),costed_transitions=transitions,
         interfaces=dict(mode=prepared.get('interface_mode','inline'),selected=[f for f,l in selected_layouts.items() if l.get('interface')=='shared'],
-            scope='shared seed decoders; every consumer retains its active owner marker; rows may remain after retirement'),
+            published=[f for f,l in selected_layouts.items() if l.get('interface')=='published'],
+            scope='shared decoders or producer-published correlated seed witnesses; consumers retain active owner markers'),
         scope='active canonical markers; raw constructors are ingress only; optional shared seed decoders')
     return '\n'.join(out)+'\n', chosen, prepared['lowered'], retirement
 
@@ -710,13 +711,15 @@ def main():
     p.add_argument('--update-weight',type=float,default=1.)
     p.add_argument('--storage-cost',choices=('instances','structural'),default='structural',
                    help='price current-input retained rows, or retain the inexpensive structural-only objective (default)')
+    p.add_argument('--search-cost',choices=('native','structural'),default='structural',
+                   help='price actual current-input native search (including failures), or static atoms (default)')
     p.add_argument('--solver',choices=('scip','gurobi'),default=os.environ.get('EGG_LAYOUT_SOLVER','scip'))
     p.add_argument('--layout-pricing',choices=('enumerate','source-cache','projected'),default='projected',
                    help='exact layout pricing: original enumeration, source reuse, or source reuse plus per-transition projection (default)')
     p.add_argument('--cell-composition',choices=('observed','seed-cuts'),default=os.environ.get('EGG_LAYOUT_CELL_COMPOSITION','seed-cuts'),
                    help='observed parents only, or additionally factor certified constructor boundaries into small Cells (default)')
-    p.add_argument('--cell-interfaces',choices=('inline','auto','shared'),default=os.environ.get('EGG_LAYOUT_CELL_INTERFACES','auto'),
-                   help='inline seed queries, jointly selected shared decoders (default), or force shared where decoding is needed')
+    p.add_argument('--cell-interfaces',choices=('inline','auto','shared','publisher'),default=os.environ.get('EGG_LAYOUT_CELL_INTERFACES','auto'),
+                   help='inline, auto/shared decoders, or publisher: also consider correlated witnesses published in Summary by the creating action')
     p.add_argument('--lhs-coverage',choices=('off','report','entries'),default='off',
                    help='index rule LHS coverage; entries additionally emits certified alternative ingresses into existing Cells')
     p.add_argument('--keep-duplicate-spines',action='store_true',help='ablation: retain distinct variables for identical physical representations')
@@ -795,9 +798,11 @@ def main():
                 sig[name]=s
     from .pricing import RuntimePricing,audit
     from .storage import InstanceStorage
-    storage=InstanceStorage(data,cs,environment,sig,ROOT/'target/release/examples/native_math_baseline') if a.storage_cost=='instances' else None
+    measure=InstanceStorage(data,cs,environment,sig,ROOT/'target/release/examples/native_math_baseline',
+                            measure_search=a.search_cost=='native') if a.storage_cost=='instances' or a.search_cost=='native' else None
+    storage=measure if a.storage_cost=='instances' else None
     pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest,interface_mode=a.cell_interfaces),sig,work/'pricing',weights,
-                           storage=storage,layout_pricing=a.layout_pricing)
+                           storage=storage,search=measure.search_work if a.search_cost=='native' else None,layout_pricing=a.layout_pricing)
     phase('catalog_prepare')
     plan=solve(representations,edges,a.output,weights,pricing=pricing)
     prepared,priced=pricing.optimize(plan)
@@ -808,15 +813,16 @@ def main():
     retirement['cost_audit']=dict(status='exact',rule_costs=priced['rule_costs'],scope='Native parser agrees with pre-solver lowered AST costs')
     phase('library_emit')
     from .input_spine import project
-    if storage is None:
+    measured_input=priced['instance_storage'] or (priced.get('native_search') or {}).get('native')
+    if measured_input is None:
         initial,input_plan=project(data,cs,chosen,retirement['marker_layouts'],prepared,a.output)
     else:
         # Emit the very initializer whose storage affected selection. Re-solving
         # a tied input cover here could silently change the priced program.
-        initial=priced['instance_storage']['initial'];input_plan=priced['instance_storage']['input_plan']
+        initial=measured_input['initial'];input_plan=measured_input['input_plan']
         import shutil
         for name in ('input-selection.lp','input-selection.sol'):
-            saved=Path(priced['instance_storage']['folder'])/name
+            saved=Path(measured_input['folder'])/name
             if saved.exists():shutil.copyfile(saved,a.output/name)
     (a.output/'input-plan.json').write_text(json.dumps(input_plan,indent=2)+'\n')
     phase('input_solve')
@@ -846,8 +852,8 @@ def main():
     run([ROOT/'target/release/examples/spine_validate',work/'validation.json',a.output/'validation.json'])
     phase('native_validation')
     measured=next(c for c in json.loads((a.output/'validation.json').read_text())['cases'] if c['case']=='source')
-    if storage is not None:
-        predicted=priced['instance_storage']['native']['retained']
+    if measured_input is not None:
+        predicted=measured_input['native']['retained']
         actual={k:v for k,v in measured['native_tables_before_export'].items() if v}
         if actual!={k:v['rows'] for k,v in predicted['tables'].items()}:
             raise ValueError('instance-priced and emitted programs retained different native table rows')
@@ -872,6 +878,7 @@ def main():
                   transitions=transitions,retirement=retirement,runtime_schedule=markers.RUNTIME_SCHEDULE,
                   input_plan=input_plan,paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
                   storage_cost=a.storage_cost,
+                  search_cost=a.search_cost,native_search=priced.get('native_search'),
                   representation_normalization=dict(history_paths=len(cs),representations=len(representations),
                       current_history_paths=len(knowledge.current_ids) if knowledge else len(cs),
                       imported_recipes=len(knowledge.imported) if knowledge else 0,

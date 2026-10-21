@@ -48,8 +48,33 @@ pub fn run(path: &str) {
     eg.parse_and_run_program(None, request["input"].as_str().unwrap())
         .unwrap();
     let initial = snapshot(&eg);
-    eg.parse_and_run_program(None, request["run"].as_str().unwrap())
+    let measure_search = request["measure_search"].as_bool().unwrap_or(false);
+    if measure_search {
+        egglog::set_probe_counts_enabled(true);
+    }
+    let before: BTreeMap<_, _> = if measure_search {
+        egglog::probe_counts().into_iter().collect()
+    } else {
+        BTreeMap::new()
+    };
+    let outputs = eg
+        .parse_and_run_program(None, request["run"].as_str().unwrap())
         .unwrap();
+    let matches: usize = outputs
+        .iter()
+        .filter_map(|o| match o {
+            egglog::CommandOutput::RunSchedule(r) => {
+                Some(r.num_matches_per_rule.values().sum::<usize>())
+            }
+            _ => None,
+        })
+        .sum();
+    let search = measure_search.then(|| {
+        egglog::probe_counts()
+            .into_iter()
+            .map(|(key, value)| (key, value - before.get(key).copied().unwrap_or(0)))
+            .collect::<BTreeMap<_, _>>()
+    });
     let retained = snapshot(&eg);
     let peak = initial["value_slots"]
         .as_u64()
@@ -58,6 +83,8 @@ pub fn run(path: &str) {
     println!(
         "{}",
         json!({"schema":"cell-instance-storage/v1","initial":initial,"retained":retained,
+        "run_probe_counters":search,
+        "logical_matches":matches,
         "checkpoint_peak_value_slots":peak,
         "scope":"retained function-table Value slots at input and post-saturation checkpoints, including timestamp/subsume columns and retired rows; not allocation capacity, bytes, RSS or the within-sweep peak",
         "unpriced":["hashcons capacity","join/rebuild index bytes","union-find","stale backing rows","allocator capacity","temporary buffers"]})
