@@ -1,0 +1,419 @@
+{
+  "scope": "net source-derived boundary-context reuse with unchanged joint proofs and GPU backend; not automatic Analyze library or new sat-proof credit",
+  "timing": {
+    "off": {
+      "setup_seconds": 28.253382375,
+      "run_seconds": 13.386659209,
+      "event_seconds": 1.3751397030000043,
+      "native_rhs_seconds": 3.4174500050001004,
+      "cell_query_seconds": 0.6177722059999962,
+      "device_seconds": 2.858859625470359,
+      "downloaded_bytes": 23834036
+    },
+    "on": {
+      "setup_seconds": 2.732711875,
+      "run_seconds": 12.455757875,
+      "event_seconds": 1.4136857190000058,
+      "native_rhs_seconds": 3.3539498560001086,
+      "cell_query_seconds": 0.6422403449999986,
+      "device_seconds": 2.0681913750449894,
+      "downloaded_bytes": 17424828
+    }
+  },
+  "saved_seconds": 0.9309013339999996,
+  "saved_fraction": 0.06953948102108587,
+  "gpu_total_rows": [
+    42251486,
+    10405823
+  ],
+  "target_work": {
+    "ruleset": "always-run",
+    "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+    "gpu_rows_before": 31846434,
+    "gpu_rows_after": 0,
+    "seeds_before": 73660,
+    "seeds_after": 0,
+    "cell_queries_before": 0,
+    "cell_queries_after": 1798,
+    "depths_before": [
+      {
+        "entries": 73660,
+        "link_visits": 0,
+        "live_rows": 0,
+        "prefixes": 73660,
+        "key_checks": 72294,
+        "refutations": 16317,
+        "matched_leaves": 0,
+        "domain_checks": 0,
+        "signature_refutations": 5269,
+        "deepest_seeds": 16317,
+        "connection_checks": 0,
+        "connection_refutations": 0,
+        "connection_unknown": 0,
+        "range_checks": 0,
+        "range_refutations": 0
+      },
+      {
+        "entries": 57343,
+        "link_visits": 21102329,
+        "live_rows": 21058314,
+        "prefixes": 19319615,
+        "key_checks": 84,
+        "refutations": 0,
+        "matched_leaves": 0,
+        "domain_checks": 0,
+        "signature_refutations": 0,
+        "deepest_seeds": 55779,
+        "connection_checks": 0,
+        "connection_refutations": 0,
+        "connection_unknown": 0,
+        "range_checks": 0,
+        "range_refutations": 0
+      },
+      {
+        "entries": 19319615,
+        "link_visits": 10487080,
+        "live_rows": 10399263,
+        "prefixes": 81103,
+        "key_checks": 80978,
+        "refutations": 0,
+        "matched_leaves": 0,
+        "domain_checks": 0,
+        "signature_refutations": 0,
+        "deepest_seeds": 84,
+        "connection_checks": 0,
+        "connection_refutations": 0,
+        "connection_unknown": 0,
+        "range_checks": 0,
+        "range_refutations": 0
+      },
+      {
+        "entries": 81103,
+        "link_visits": 184706,
+        "live_rows": 184706,
+        "prefixes": 136790,
+        "key_checks": 0,
+        "refutations": 0,
+        "matched_leaves": 0,
+        "domain_checks": 0,
+        "signature_refutations": 0,
+        "deepest_seeds": 0,
+        "connection_checks": 0,
+        "connection_refutations": 0,
+        "connection_unknown": 0,
+        "range_checks": 0,
+        "range_refutations": 0
+      },
+      {
+        "entries": 136790,
+        "link_visits": 204467,
+        "live_rows": 204151,
+        "prefixes": 136790,
+        "key_checks": 0,
+        "refutations": 0,
+        "matched_leaves": 136790,
+        "domain_checks": 0,
+        "signature_refutations": 0,
+        "deepest_seeds": 1480,
+        "connection_checks": 0,
+        "connection_refutations": 0,
+        "connection_unknown": 0,
+        "range_checks": 0,
+        "range_refutations": 0
+      }
+    ],
+    "depths_after": [],
+    "conditional_survival_before": [
+      1.0,
+      0.7784822155851209,
+      0.02123269074124355,
+      0.02009231604670106,
+      0.02009231604670106
+    ],
+    "conditional_survival_after": null,
+    "probability_scope": "no conditional depth probability when query has moved entirely off GPU"
+  },
+  "changed_query_count": 95,
+  "common_rule_fixed_weights": {
+    "rules": 311,
+    "weight": "before eligible seeds; queries moved off GPU excluded",
+    "before": [
+      1.0,
+      0.5650599089831128,
+      0.030286938835839515,
+      0.009384434195036052,
+      0.0035288287041781163,
+      0.0008820005770604766,
+      0.0004951292223519795,
+      0.00019314053594845934,
+      4.250036243364631e-05,
+      3.2583611199128834e-05,
+      1.7944597471983996e-05,
+      1.7590427785036943e-05,
+      5.90282811578421e-07,
+      4.7222624926273674e-07,
+      4.7222624926273674e-07,
+      4.7222624926273674e-07,
+      1.1805656231568419e-07,
+      1.1805656231568419e-07,
+      1.1805656231568419e-07
+    ],
+    "after": [
+      1.0,
+      0.5657858192357722,
+      0.030692834745677446,
+      0.009514705788841574,
+      0.003614214459297012,
+      0.0009046332584148735,
+      0.0005156755138915875,
+      0.00020838938196333608,
+      4.250036243364631e-05,
+      3.2583611199128834e-05,
+      1.7944597471983996e-05,
+      1.7590427785036943e-05,
+      5.90282811578421e-07,
+      4.7222624926273674e-07,
+      4.7222624926273674e-07,
+      4.7222624926273674e-07,
+      1.1805656231568419e-07,
+      1.1805656231568419e-07,
+      1.1805656231568419e-07
+    ],
+    "fixed_candidate_identity": false
+  },
+  "cpu_programs": [
+    {
+      "program_id": 31,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "HasArgType",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Const",
+          "access": {
+            "Columns": 4
+          }
+        }
+      ],
+      "seed_evaluations": 1182,
+      "emitted_bindings": 123254,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 1346,
+      "candidate_rows": 126320,
+      "terminal_delta_rows_skipped": 1048146,
+      "reused_port_reads": 2814,
+      "resumed_seed_evaluations": 956,
+      "stored_port_paths": 84
+    }
+  ],
+  "cpu_monitored_rows": [
+    265102,
+    303422
+  ],
+  "source_selection_bytes": 475,
+  "validation": {
+    "same_commit_graph": [
+      true,
+      true
+    ],
+    "fused_native_graph": [
+      false,
+      false
+    ],
+    "cell_query_audit_complete": true,
+    "cell_query_audit_scope": "Cell-supplied queries",
+    "cell_query_audit_queries": 32364,
+    "tiger_same_commit": true,
+    "tiger_fused_native": false
+  },
+  "native_hotspots": [
+    {
+      "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+      "search_apply_seconds": 1.682721555,
+      "logical_matches": 42713
+    },
+    {
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "search_apply_seconds": 1.352016727,
+      "logical_matches": 554
+    },
+    {
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "search_apply_seconds": 1.156421456,
+      "logical_matches": 68346
+    },
+    {
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+      "search_apply_seconds": 1.151239504,
+      "logical_matches": 75562
+    },
+    {
+      "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+      "search_apply_seconds": 0.768169739,
+      "logical_matches": 16734
+    },
+    {
+      "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "search_apply_seconds": 0.666378584,
+      "logical_matches": 329668
+    },
+    {
+      "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+      "search_apply_seconds": 0.645809924,
+      "logical_matches": 6160
+    },
+    {
+      "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "search_apply_seconds": 0.50030614,
+      "logical_matches": 956219
+    },
+    {
+      "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+      "search_apply_seconds": 0.465592611,
+      "logical_matches": 4070
+    },
+    {
+      "rule": "(rule ((= lhs (Bop (PtrAdd ) ptr n))\n       (HasType ptr (Base (PointerT ty)))\n       (HasType n (Base (IntT ))))\n      ((HasType lhs (Base (PointerT ty))))\n        :ruleset type-analysis )",
+      "search_apply_seconds": 0.381897055,
+      "logical_matches": 1696
+    }
+  ],
+  "gpu_hotspots": [
+    {
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "ruleset": "always-run",
+      "candidate_rows": 31846434,
+      "eligible_seeds": 73660,
+      "emitted_bindings": 123254,
+      "cell_queries": 0,
+      "share_of_measured_rows": 0.7538670252177228
+    },
+    {
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+      "ruleset": "non-weakly-linear",
+      "candidate_rows": 1664447,
+      "eligible_seeds": 80714,
+      "emitted_bindings": 0,
+      "cell_queries": 0,
+      "share_of_measured_rows": 0.03940069737549149
+    },
+    {
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+      "ruleset": "state-edge-passthrough",
+      "candidate_rows": 1433752,
+      "eligible_seeds": 87030,
+      "emitted_bindings": 4,
+      "cell_queries": 0,
+      "share_of_measured_rows": 0.03393969808801702
+    },
+    {
+      "rule": "(rule ((= lhs (DoWhile inputs outputs))\n       (= pred (Get outputs 0))\n       (= (Const (Int start_const) _ty1 _ctx1) (Get inputs counter_i))\n       (= body-arg (Get (Arg _ty _ctx) counter_i))\n       (= next_counter (Get outputs (+ counter_i 1)))\n       (= next_counter (Bop (Add ) body-arg (Const (Int increment) _ty2 _ctx2)))\n       (> increment 0)\n       (= pred (Bop (LessThan ) body-arg (Const (Int end_constant) _ty3 _ctx3)))\n       (>= end_constant start_const))\n      ((set (LoopNumItersGuess inputs outputs) (+ (/ (- end_constant start_const) increment) 1))\n       (LoopIsFinite inputs outputs))\n        :ruleset loop-iters-analysis )",
+      "ruleset": "loop-iters-analysis",
+      "candidate_rows": 1064309,
+      "eligible_seeds": 75893,
+      "emitted_bindings": 0,
+      "cell_queries": 0,
+      "share_of_measured_rows": 0.02519426381435514
+    },
+    {
+      "rule": "(rule ((= lhs (DoWhile inputs outputs))\n       (= pred (Get outputs 0))\n       (= (Const (Int start_const) _ty1 _ctx1) (Get inputs counter_i))\n       (= next_counter (Get outputs (+ counter_i 1)))\n       (= next_counter (Bop (Add ) (Get (Arg _ty _ctx) counter_i) (Const (Int increment) _ty2 _ctx2)))\n       (> increment 0)\n       (= pred (Bop (LessThan ) next_counter (Const (Int end_constant) _ty3 _ctx3)))\n       (>= end_constant start_const))\n      ((set (LoopNumItersGuess inputs outputs) (/ (- end_constant start_const) increment))\n       (LoopIsFinite inputs outputs))\n        :ruleset loop-iters-analysis )",
+      "ruleset": "loop-iters-analysis",
+      "candidate_rows": 573801,
+      "eligible_seeds": 75893,
+      "emitted_bindings": 3,
+      "cell_queries": 0,
+      "share_of_measured_rows": 0.013582985553012137
+    }
+  ],
+  "provenance": {
+    "off": {
+      "source_head": "fcb152cd15ad868151dfb437f59cece90237b5af",
+      "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "binary_sha256": {
+        "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "793320ccebc6ff002ccbea5edd8673d947b8bd4dc1bff665ffedff1f4bceaf73"
+      },
+      "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+      "policy": "stable",
+      "inference_identity": {
+        "version": 1,
+        "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary": "793320ccebc6ff002ccbea5edd8673d947b8bd4dc1bff665ffedff1f4bceaf73",
+        "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "policy": "stable",
+        "joint": true,
+        "all_rules": true,
+        "controls": {
+          "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+          "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+          "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+          "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+          "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+        },
+        "machine": [
+          "MineralSteinsdeMacBook-Pro.local",
+          "Darwin",
+          "27.0.0",
+          "arm64"
+        ],
+        "environment_sha256": "23e04a70ee8bfe1be21d517117edfbda1e5671259565a5f60f75e6f903f44ef2",
+        "boundary_programs": null,
+        "analysis": null
+      }
+    },
+    "on": {
+      "source_head": "fcb152cd15ad868151dfb437f59cece90237b5af",
+      "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "binary_sha256": {
+        "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "793320ccebc6ff002ccbea5edd8673d947b8bd4dc1bff665ffedff1f4bceaf73"
+      },
+      "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+      "policy": "stable",
+      "inference_identity": {
+        "version": 1,
+        "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary": "793320ccebc6ff002ccbea5edd8673d947b8bd4dc1bff665ffedff1f4bceaf73",
+        "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "policy": "stable",
+        "joint": true,
+        "all_rules": true,
+        "controls": {
+          "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+          "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+          "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+          "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+          "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+        },
+        "machine": [
+          "MineralSteinsdeMacBook-Pro.local",
+          "Darwin",
+          "27.0.0",
+          "arm64"
+        ],
+        "environment_sha256": "9e8f7f5c88b771b23ec9b6d14cefca420bcaa93e2702c6857921dee6b5523f48",
+        "boundary_programs": "8fc6a6d9df8afffd8bd02a9b9aab62f9e7ac0cbe82986180f06912df98672804",
+        "analysis": null
+      }
+    }
+  }
+}

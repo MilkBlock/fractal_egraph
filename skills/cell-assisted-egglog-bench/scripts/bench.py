@@ -69,6 +69,7 @@ def inference_identity(a, repo, worker, env):
                 worker=sha(worker), policy=a.policy, joint=a.joint_sat, all_rules=a.all_rules, controls=controls,
                 machine=[platform.node(), platform.system(), platform.release(), platform.machine()],
                 environment_sha256=hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest(),
+                boundary_programs=sha(env['CELL_BOUNDARY_PROGRAMS']) if env.get('CELL_BOUNDARY_PROGRAMS') else None,
                 analysis=analysis_identity(env["CELL_BENCH_ANALYSIS"]) if env.get("CELL_BENCH_ANALYSIS") else None)
 
 def extraction_identity(a, repo):
@@ -760,6 +761,12 @@ def parser():
     q.add_argument('--joint-sat', action='store_true')
     q.add_argument('--all-rules', action='store_true')
     q.add_argument('--limit', type=int, default=3)
+    q=sub.add_parser('hotspots',help='rank saved native times and GPU row visits; no new execution')
+    q.add_argument('--input',type=Path,required=True);q.add_argument('--native',type=Path)
+    q.add_argument('--output',type=Path);q.add_argument('--boundary-output',type=Path);q.add_argument('--root')
+    q=sub.add_parser('boundary-credit',help='compare source-derived boundary programs off/on; not automatic Bake credit')
+    q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
+    q.add_argument('--profile-before',type=Path);q.add_argument('--profile-after',type=Path);q.add_argument('--output',type=Path)
     q=sub.add_parser('marker-pass3',help='Analyze-backed .egg marker conversion and complete native Pass-3 check')
     q.add_argument('--snapshot',type=Path,default=SNAPSHOT);q.add_argument('--analysis',type=Path,required=True)
     q.add_argument('--reuse-controls',type=Path,required=True);q.add_argument('--output',type=Path,required=True)
@@ -795,6 +802,7 @@ def parser():
             q.add_argument('--all-rules', action='store_true')
             q.add_argument('--joint-sat', action='store_true')
         if mode in ['run', 'audit']:
+            q.add_argument('--boundary-programs',type=Path,help='source-derived complete CPU boundary queries; requires --all-rules --joint-sat')
             q.add_argument('--commit-markers',action='store_true',help='publish spine witnesses from committed action receipts; requires --analysis')
             q.add_argument('--analysis', type=Path, help='frozen Analyze catalog for structural projections; all-rules only')
             q.add_argument('--analysis-plan-only', action='store_true', help='retain identical library-guided order/backend but disable certificates')
@@ -930,6 +938,7 @@ def finish_cell_metrics(a,repo,worker,out,env):
                   '--analysis',str(analysis),'--reuse-controls',str(control),'--output',str(dest)]
             if a.joint_sat:args.append('--joint-sat')
             if a.commit_markers:args.append('--commit-markers')
+            if getattr(a,'boundary_programs',None):args.extend(['--boundary-programs',str(a.boundary_programs)])
             if only:args.append('--analysis-plan-only')
             pa=parser().parse_args(args)
             pe=dict(env,CELL_SEARCH_COUNTERS='1',CELL_BENCH_ANALYSIS=str(analysis if analysis.is_absolute() else repo/analysis),
@@ -956,6 +965,17 @@ def main(argv=None):
     a = parser().parse_args(argv); repo = a.repo.resolve()
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
+    if a.mode=='hotspots':
+        import hotspots
+        return hotspots.run(a,resolve)
+    if a.mode=='boundary-credit':
+        import hotspots
+        r=hotspots.compare(resolve(a.before),resolve(a.after),resolve(a.profile_before) if a.profile_before else None,resolve(a.profile_after) if a.profile_after else None)
+        print(r['before_seconds'],r['after_seconds'],'saved fraction',r['saved_fraction'])
+        if a.output:
+            p=resolve(a.output);p.parent.mkdir(parents=True,exist_ok=True)
+            with p.open('x') as f:json.dump(r,f,indent=2);f.write('\n')
+        return 0
     if a.mode=='marker-pass3':
         import marker_pass3
         return marker_pass3.run(a,repo,sha)
@@ -1101,6 +1121,9 @@ def main(argv=None):
     if a.mode in ['build', 'extract'] or (a.mode == 'run' and not a.no_extract): targets += ['tiger_output_check']
     build = ['cargo', 'build', '--offline', '--release', '--target-dir', 'target/analyzer'] + [x for t in targets for x in ['--example', t]]
     env = dict(os.environ, RAYON_NUM_THREADS='1', EGGLOG_PROBE_COUNTS_OFF='1', CELL_MATRIX_WORKER=str(worker))
+    if getattr(a,'boundary_programs',None):
+        if not a.all_rules or not a.joint_sat:raise ValueError('--boundary-programs requires --all-rules --joint-sat')
+        env['CELL_BOUNDARY_PROGRAMS']=str(resolve(a.boundary_programs))
     if getattr(a,'commit_markers',False):
         if not getattr(a,'analysis',None):raise ValueError('--commit-markers requires --analysis')
         env['CELL_COMMIT_MARKERS']='1'

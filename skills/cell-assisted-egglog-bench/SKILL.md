@@ -163,6 +163,37 @@ GPU 后端从 layout 16 起默认启用必需表为空的批次短路。`EGGLOG_
 
 ## 提交驱动的 spine marker
 
+### 热点与 CPU 边界上下文接管
+
+`hotspots --input GPU诊断目录 --native 原生目录 --output NEW.json` 只读已有数据，
+分别排序 GPU 实际候选行访问和原生 search+apply 时间。不要把前者当耗时，或
+把已经被联合闭包接管的原生热点再当成 GPU 热点。需要选择首个热点做边界
+实验时，加 `--boundary-output NEW.json --root 构造器名`；root 是明确的选择，
+运行时仍验证原规则和完整接线，不从名字猜语义。
+
+`run/audit --all-rules --joint-sat --boundary-programs FILE` 启用完整 CPU 边界
+查询提供者。它从原始 typed rule 编译，以 constructor 提交建立实例，维护
+带版本的部分键索引、缺失端口订阅和末端时间索引。若前缀全旧，末端只读取
+本轮 delta；不能把这个过滤结果缓存成整个端口的完整内容。所有 binding
+仍与剩余 GPU binding 一起按原提交顺序执行 RHS。文件内容进入缓存指纹。
+普通 Run 不替换为 saturation；不改变原规则或 native 表格式。
+
+这是 **source-derived boundary context reuse**，不是此前五状态 Analyze
+库的新增闭包证明。先固定现有 joint proofs、GPU/refutation 后端做开关对照。
+`boundary-credit --before DIR --after DIR --profile-before DIR --profile-after DIR`
+验证二进制、输入、规则、完整 binding 数和公共执行能力，并导出净耗时、
+逐查询/逐层工作、固定规则权重曲线及 CPU 工作。`emitted_bindings` 已包含
+`cell_bindings`，不能相加。整个查询移出 GPU 后，其条件深度概率为 N/A；
+其它查询的 seed/重试分布也可能变化，不能声称固定候选因果效应。
+
+现有 raytrace 首个热点的选择文件为
+`experiments/pass3_boundary_programs/loop-context.json`。验证结果：13.386659 →
+12.455758 s（单次同二进制配对，约 6.95%）；目标 GPU 行访问 31,846,434 → 0，
+CPU 访问 126,320 行，新增监测行 38,320。统一账表含 `cpu_candidate_rows`。
+同提交 CPU/GPU 整图、32,364 次 Cell query oracle、Tiger CPU/GPU DAG 通过；
+融合原生的既有差异仍保留。不要给通用空表短路或 1,656 次原有 quiet run
+重复记 Cell credit。详细限制和复现见 `experiments/pass3_boundary_programs`。
+
 ### Pass 3 的源码 marker 实验
 
 `marker-pass3 --analysis DIR --reuse-controls 已通过目录 --output 新目录`
