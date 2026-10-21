@@ -1,0 +1,123 @@
+program_id,kind,ruleset,root,rule,starts_removed,candidate_rows_removed,global_start_contribution,global_candidate_contribution,cell_root_evaluations,cell_new_port_reads,cell_cached_port_reads,cell_query_requests,retired_guard_records,cost_scope
+0,dataflow,terms,Const,"(rule ((= lhs (Const c ty ass)))
+      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))
+        :ruleset terms )",0,0,0.0,0.0,1550,0,0,0,0,"Partial local-work counters, not total cost"
+1,dataflow,terms,Arg,"(rule ((= lhs (Arg ty ass)))
+      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))
+        :ruleset terms )",0,0,0.0,0.0,78,0,0,0,0,"Partial local-work counters, not total cost"
+2,dataflow,terms,Bop,"(rule ((= lhs (Bop o e1 e2))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2)))
+      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))
+        :ruleset terms )",223731,366140,0.005512294026267455,0.005032814323268053,28161,47848,26806,0,0,"Partial local-work counters, not total cost"
+3,dataflow,terms,Top,"(rule ((= lhs (Top o e1 e2 e3))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2))
+       (= (TCPair t3 c3) (ExtractedExpr e3)))
+      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))
+        :ruleset terms )",329269,340324,0.008112543821531476,0.0046779578897467545,6916,16842,8861,0,0,"Partial local-work counters, not total cost"
+4,dataflow,terms,Uop,"(rule ((= lhs (Uop o e1))
+       (= (TCPair t1 c1) (ExtractedExpr e1)))
+      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))
+        :ruleset terms )",109389,99442,0.0026951308993361255,0.0013668900473436984,15,22,3,0,0,"Partial local-work counters, not total cost"
+5,dataflow,terms,Get,"(rule ((= lhs (Get tup i))
+       (= (TCPair t1 c1) (ExtractedExpr tup)))
+      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))
+        :ruleset terms )",127016,222190,0.003129425685490107,0.00305413506988291,66233,85314,5,0,0,"Partial local-work counters, not total cost"
+6,dataflow,terms,Single,"(rule ((= lhs (Single e1))
+       (= (TCPair t1 c1) (ExtractedExpr e1)))
+      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))
+        :ruleset terms )",115710,166249,0.0028508679699255236,0.0022851924084475624,27820,33058,2750,0,0,"Partial local-work counters, not total cost"
+7,dataflow,terms,Concat,"(rule ((= lhs (Concat e1 e2))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2)))
+      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))
+        :ruleset terms )",227738,259146,0.005611018665066967,0.003562117497726615,32693,34261,11051,0,0,"Partial local-work counters, not total cost"
+8,dataflow,terms-helpers,PotentialExtractedExpr,"(rule ((PotentialExtractedExpr expr termandcost))
+      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))
+        :ruleset terms-helpers )",0,0,0.0,0.0,72759,0,0,0,0,"Partial local-work counters, not total cost"
+9,dataflow,terms-helpers,PotentialExtractedExpr,"(rule ((PotentialExtractedExpr expr (TCPair term cost))
+       (= (ExtractedExpr expr) (TCPair oldterm oldcost))
+       (< cost oldcost))
+      ((set (ExtractedExpr expr) (TCPair term cost)))
+        :ruleset terms-helpers )",252035,9269688,0.006209649198860767,0.127417431962162,202081,536749,56030,0,73607,"Partial local-work counters, not total cost"
+10,dataflow,terms-helpers,PotentialExtractedExpr,"(rule ((PotentialExtractedExpr expr (TCPair term cost))
+       (< cost 0))
+      ((panic 'Negative cost'))
+        :ruleset terms-helpers )",71204,115131,0.0017543272226305156,0.0015825447802812428,72759,71204,0,0,0,"Partial local-work counters, not total cost"
+11,dataflow,terms-helpers-helpers,Smaller,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (< cost1 cost2))
+      ((union lhs (TCPair t1 cost1)))
+        :ruleset terms-helpers-helpers )",321795,703209,0.007928399087219633,0.009666030281998701,0,0,0,0,0,Shared comparison proof below
+12,dataflow,terms-helpers-helpers,Smaller,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (> cost1 cost2))
+      ((union lhs (TCPair t2 cost2)))
+        :ruleset terms-helpers-helpers )",321795,703209,0.007928399087219633,0.009666030281998701,0,0,0,0,0,Shared comparison proof below
+13,dataflow,terms-helpers-helpers,Smaller,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (= cost1 cost2))
+      ((union lhs (TCPair t1 cost1)))
+        :ruleset terms-helpers-helpers )",321795,815247,0.007928399087219633,0.011206059918613946,0,0,0,0,0,Shared comparison proof below
+14,scalar_query,always-run,Function,"(rule ((= expr (Function name tyin tyout out))
+       (= sum (Expr-size out)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",1121783,501850,0.027638537930230432,0.00689822982501795,1487,1487,0,1798,0,"Partial local-work counters, not total cost"
+15,scalar_query,always-run,Const,"(rule ((= expr (Const n ty assum)))
+      ((set (Expr-size expr) 1))
+        :ruleset always-run )",0,0,0.0,0.0,1550,0,0,1798,0,"Partial local-work counters, not total cost"
+16,scalar_query,always-run,Top,"(rule ((= expr (Top op x y z))
+       (= sum (+ (Expr-size z) (+ (Expr-size y) (Expr-size x)))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",3367209,1246604,0.0829614405509027,0.01713532109751256,85049,143633,103094,1798,0,"Partial local-work counters, not total cost"
+17,scalar_query,always-run,Bop,"(rule ((= expr (Bop op x y))
+       (= sum (+ (Expr-size y) (Expr-size x))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",2252830,1552855,0.055505322691965404,0.021344925126887015,233649,316085,132399,1798,0,"Partial local-work counters, not total cost"
+18,scalar_query,always-run,Uop,"(rule ((= expr (Uop op x))
+       (= sum (Expr-size x)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",1121731,422579,0.027637256751987964,0.005808602293964851,8,7,0,1798,0,"Partial local-work counters, not total cost"
+19,scalar_query,always-run,Get,"(rule ((= expr (Get tup i))
+       (= sum (Expr-size tup)))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )",1150539,1234556,0.028347029498315978,0.016969714097548792,994600,977455,0,1798,0,"Partial local-work counters, not total cost"
+20,scalar_query,always-run,Concat,"(rule ((= expr (Concat x y))
+       (= sum (+ (Expr-size y) (Expr-size x))))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )",2257003,1815871,0.05560813724592357,0.0249602381001996,356678,539510,134947,1798,0,"Partial local-work counters, not total cost"
+21,scalar_query,always-run,Single,"(rule ((= expr (Single x))
+       (= sum (Expr-size x)))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )",1133715,939707,0.027932519060790896,0.01291683740993951,320520,311109,0,1798,0,"Partial local-work counters, not total cost"
+22,scalar_query,always-run,Switch,"(rule ((= expr (Switch pred inputs branches))
+       (= sum (+ (Expr-size inputs) (+ (ListExpr-size branches) (Expr-size pred)))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",2243450,0,0.05527421784745844,0.0,0,0,0,1798,0,"Partial local-work counters, not total cost"
+23,scalar_query,always-run,If,"(rule ((= expr (If pred inputs then else))
+       (= sum (+ (Expr-size inputs) (+ (Expr-size else) (+ (Expr-size then) (Expr-size pred))))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",4487242,1624328,0.11055686190566542,0.022327364461914433,13607,20035,32701,1798,0,"Partial local-work counters, not total cost"
+24,scalar_query,always-run,DoWhile,"(rule ((= expr (DoWhile in pred-and-output))
+       (= sum (+ (Expr-size pred-and-output) (Expr-size in))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",2243587,1423873,0.05527759325936648,0.019571990028171334,7339,7857,6591,1798,0,"Partial local-work counters, not total cost"
+25,scalar_query,always-run,Arg,"(rule ((= expr (Arg ty assum)))
+      ((set (Expr-size expr) 1))
+        :ruleset always-run )",0,0,0.0,0.0,78,0,0,1798,0,"Partial local-work counters, not total cost"
+26,scalar_query,always-run,Call,"(rule ((= expr (Call func arg))
+       (= sum (Expr-size arg)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",1121931,526532,0.027642184360612845,0.0072374987470884755,7189,7030,0,1798,0,"Partial local-work counters, not total cost"
+27,scalar_query,always-run,Empty,"(rule ((Empty ty assum))
+      ((set (Expr-size (Empty ty assum)) 0))
+        :ruleset always-run )",0,0,0.0,0.0,6,0,0,1798,0,"Partial local-work counters, not total cost"
+28,scalar_query,always-run,Cons,"(rule ((= expr (Cons hd tl))
+       (= sum (+ (ListExpr-size tl) (Expr-size hd))))
+      ((set (ListExpr-size expr) sum))
+        :ruleset always-run )",1121725,0,0.02763710892372922,0.0,0,0,0,1798,0,"Partial local-work counters, not total cost"
+29,scalar_query,always-run,Nil,"(rule ((Nil ))
+      ((set (ListExpr-size (Nil )) 0))
+        :ruleset always-run )",0,0,0.0,0.0,0,0,0,1798,0,"Partial local-work counters, not total cost"
+30,scalar_query,always-run,Alloc,"(rule ((= expr (Alloc id e state ty))
+       (= sum (Expr-size e)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",1122096,289620,0.027646249637728375,0.003981000940364051,668,366,0,1798,0,"Partial local-work counters, not total cost"

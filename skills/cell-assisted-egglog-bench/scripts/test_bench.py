@@ -172,6 +172,47 @@ class WorkflowTests(unittest.TestCase):
             g['saturation_diagnostics']['programs'].pop();(current/'report.json').write_text(json.dumps(r))
             with self.assertRaises(ValueError):B.cell_cases_report(current,paths['s0r1'],paths['s1r1'])
 
+    def test_cell_value_counts_empty_and_zero_cache_cases_without_free_work(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);paths=self.depth_fixture(root);current=root/'current';current.mkdir()
+            report=B.load(paths['s1r1']/'report.json')
+            report['gpu']['saturation_diagnostics'].update(stats={'committed_row_events':12,'union_events':2},dependency_edges=5)
+            (current/'report.json').write_text(json.dumps(report))
+            def program(i,starts,visits,roots,reads):
+                return dict(program_id=i,kind='scalar_query',ruleset='s',root='Empty' if i==0 else 'Get',rule=str(i),
+                    gpu_seeds_before=starts,gpu_seeds_after=0,gpu_rows_saved=visits,seed_evaluations=roots,
+                    fresh_reads=reads,cached_reads=0,cell_query_requests=4,retired_guard_seeds=0)
+            cases=dict(scope='test',provenance={},programs=[program(0,100,0,0,0),program(1,5,10,4,3),program(2,0,-5,2,2)],
+                comparison_closure={'seed_evaluations':7,'cost_lookups':3},port_reuse=dict(index_reads=5,reused_reads=0,stored_paths=2))
+            with patch.object(B,'cell_cases_report',return_value=cases):
+                r=B.cell_value_report(current,paths['s0r1'],paths['s1r1'])
+            empty,get,bad=r['programs']
+            self.assertGreater(empty['global_start_contribution'],0);self.assertEqual(empty['candidate_rows_removed'],0)
+            self.assertEqual(empty['cell_query_requests'],4)
+            self.assertGreater(get['global_candidate_contribution'],0);self.assertEqual(get['cell_new_port_reads'],3)
+            self.assertLess(bad['global_candidate_contribution'],0)
+            self.assertIsNone(r['net_inference_benefit']);self.assertIsNone(r['per_cell_marginal_time'])
+            self.assertEqual(r['local_work']['shared_comparison_proof']['cost_lookups'],3)
+            self.assertEqual(r['totals']['candidate_rows']['saved'],r['unassigned']['candidate_rows']+sum(p['candidate_rows_removed'] for p in r['programs']))
+
+    def test_cell_net_benefit_preserves_slowdowns_and_rejects_confounded_time(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);paths=[root/'before',root/'after'];rs=[]
+            w=dict(snapshot_sha256='input',binary_sha256='bin',worker_sha256='worker',policy='stable')
+            for i,path in enumerate(paths):
+                path.mkdir();r=fixture();r.update(schedule=['s'],assisted_rulesets=['s'])
+                r['gpu'].update(cells=dict(refutation=True),saturation_diagnostics={} if i==0 else {'joint':{}})
+                r['gpu']['runtime']['run_seconds']=10+2*i;rs.append(r)
+                (path/'report.json').write_text(json.dumps(r));(path/'workflow.json').write_text(json.dumps(w))
+            result=B.cell_net_time(*paths);self.assertEqual(result['saved_seconds'],-2);self.assertEqual(result['fraction_saved'],-.2)
+            for field in ['profile','refutation']:
+                r=copy.deepcopy(rs[1]);r['gpu']['cells'][field]=True if field=='profile' else False
+                (paths[1]/'report.json').write_text(json.dumps(r))
+                with self.assertRaises(ValueError):B.cell_net_time(*paths)
+            (paths[1]/'report.json').write_text(json.dumps(rs[1]))
+            (paths[1]/'workflow.json').write_text(json.dumps(dict(w,binary_sha256='other')))
+            with self.assertRaises(ValueError):B.cell_net_time(*paths)
+
     def test_depth_branch_entries_are_not_seed_reach_probabilities(self):
         with tempfile.TemporaryDirectory() as tmp:
             result=B.join_depth_report(self.depth_fixture(Path(tmp)))

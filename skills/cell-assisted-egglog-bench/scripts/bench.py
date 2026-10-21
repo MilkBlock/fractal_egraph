@@ -497,6 +497,68 @@ def cell_cases_report(current, before, after):
          historical_gpu_rows_saved=all_saved,represented_program_rows_saved=sum(p['gpu_rows_saved'] for p in cases),
          unrepresented_rule_rows_change=all_saved-sum(p['gpu_rows_saved'] for p in cases))
 
+def cell_net_time(before, after):
+    """A real net benefit needs an uninstrumented same-binary Cell ablation.
+    Never turn profiled counters, mixed GPU versions, or row savings into time.
+    """
+    rs=[load(p/'report.json') for p in [before,after]]
+    ws=[load(p/'workflow.json') for p in [before,after]]
+    for r in rs:
+        if not metrics(r)['timing_eligible'] or not r.get('benchmark_finished'):
+            raise ValueError('net benefit requires correct, uninstrumented timings')
+    identity=lambda r,w:[w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],w['policy'],
+        r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],
+        [r['gpu'].get('cells',{}).get(k,False) for k in ['refutation','refutation_signatures','refutation_domains','binding_connections','binding_ranges']]]
+    if identity(rs[0],ws[0])!=identity(rs[1],ws[1]):raise ValueError('net-benefit control differs in input, binary, policy or other optimizations')
+    if rs[0]['gpu'].get('saturation_diagnostics') or not rs[1]['gpu'].get('saturation_diagnostics'):
+        raise ValueError('net-benefit timings must toggle Cell services only')
+    a,b=[r['gpu']['runtime']['run_seconds'] for r in rs]
+    if a<=0 or b<=0:raise ValueError('invalid inference time')
+    return dict(before_directory=str(before),after_directory=str(after),before_seconds=a,after_seconds=b,
+        saved_seconds=a-b,fraction_saved=(a-b)/a,speedup=a/b,
+        setup_seconds=[r['gpu']['runtime'].get('setup_seconds') for r in rs],
+        scope='Whole Cell-service inference benefit, including runtime maintenance and native effects. Excludes setup, Bake and extraction. Not an individual Cell marginal benefit.')
+
+
+def cell_value_report(current, before, after, timing_before=None, timing_after=None):
+    cases=cell_cases_report(current,before,after)
+    b,a=[load(p/'report.json')['gpu'] for p in [before,after]]
+    current_gpu=load(current/'report.json')['gpu'];observed=current_gpu['saturation_diagnostics']
+    ratio=lambda x,y:x/y if y else None
+    totals={}
+    for name,field in [('starts','eligible_seeds'),('candidate_rows','join_live_row_visits')]:
+        v0,v1=b['cell_work'][field],a['cell_work'][field]
+        if name=='starts':
+            for g in [b,a]:
+                if sum(q['stats'][field] for q in g['rules'])!=g['cell_work'][field]:raise ValueError('global seed accounting differs')
+        totals[name]=dict(before=v0,after=v1,saved=v0-v1,fraction_saved=ratio(v0-v1,v0))
+    programs=[]
+    for p in cases['programs']:
+        starts=p['gpu_seeds_before']-p['gpu_seeds_after'];rows=p['gpu_rows_saved']
+        programs.append(dict(program_id=p['program_id'],kind=p['kind'],ruleset=p['ruleset'],root=p['root'],rule=p['rule'],
+             starts_removed=starts,candidate_rows_removed=rows,
+             global_start_contribution=ratio(starts,totals['starts']['before']),
+             global_candidate_contribution=ratio(rows,totals['candidate_rows']['before']),
+             cell_root_evaluations=p['seed_evaluations'],cell_new_port_reads=p['fresh_reads'],cell_cached_port_reads=p['cached_reads'],
+             cell_query_requests=p['cell_query_requests'],retired_guard_records=p['retired_guard_seeds'],
+             cost_scope='Shared comparison proof below' if p['ruleset']=='terms-helpers-helpers' and p['seed_evaluations']==0 else 'Partial local-work counters, not total cost'))
+    proof=cases['comparison_closure'] or {}
+    local=dict(root_evaluations=sum(p['cell_root_evaluations'] for p in programs),
+         new_port_reads=cases['port_reuse']['index_reads'],cached_port_reads=cases['port_reuse']['reused_reads'],
+         query_requests=sum(p['cell_query_requests'] for p in programs),
+         shared_comparison_proof={k:proof.get(k) for k in ['saturations','seed_evaluations','cost_lookups','union_proposals','native_batches']},
+         observer_row_events=observed['stats'].get('committed_row_events'),observer_union_events=observed['stats'].get('union_events'),
+         stored_port_paths=cases['port_reuse']['stored_paths'],dependency_edges=observed.get('dependency_edges'),
+         warning='Different operation types; do not add or subtract these from GPU row visits. Subscription scans, guards, allocation and synchronization are not fully represented.')
+    if (timing_before is None)!=(timing_after is None):raise ValueError('both timing directories are required')
+    time=cell_net_time(timing_before,timing_after) if timing_before is not None else None
+    return dict(schema='cell-search-value/v1',scope=cases['scope'],provenance=cases['provenance'],
+        metric='Search replacement benefit: removed outer starts and inner candidate enumeration, with local work charged separately. Net benefit requires timing.',
+        totals=totals,programs=programs,local_work=local,
+        unassigned=dict(starts=totals['starts']['saved']-sum(p['starts_removed'] for p in programs),candidate_rows=totals['candidate_rows']['saved']-sum(p['candidate_rows_removed'] for p in programs)),
+        net_inference_benefit=time,per_cell_marginal_time=None,
+        interpretation='Per-program columns partition the observed all-Cell off/on change. They are not leave-one-Cell-out causal gains and are not speedup ratios. Undefined zero-denominator fractions remain null; regressions remain negative.')
+
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--repo', type=Path, default=REPO)
@@ -511,9 +573,11 @@ def parser():
     q = sub.add_parser('depth-pair',help='fixed Cell routing, complete-connection off/on comparison')
     q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
     q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
-    q = sub.add_parser('cell-cases',help='read per-Cell program cache rates and historical work savings')
-    q.add_argument('--input',type=Path,required=True);q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
-    q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
+    for mode in ['cell-cases','cell-value']:
+        q = sub.add_parser(mode,help='read per-Cell cases or search replacement benefit')
+        q.add_argument('--input',type=Path,required=True);q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
+        q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
+        if mode=='cell-value':q.add_argument('--timing-before',type=Path);q.add_argument('--timing-after',type=Path)
     q = sub.add_parser('history', help='reuse historical evidence; no build or execution')
     q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
     q.add_argument('--policy', choices=['stable', 'original'], default='stable')
@@ -667,13 +731,22 @@ def main(argv=None):
             dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
             with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
         return 0
-    if a.mode == 'cell-cases':
-        result=cell_cases_report(resolve(a.input),resolve(a.before),resolve(a.after))
-        print('只读汇总已保存的运行；按 Cell 程序统计，不将接管率冒充缓存命中率。')
-        for p in result['programs']:
-            rate=p['port_read_hit_rate']
-            print(p['program_id'],p['kind'],p['root'],'port cache:',f"{100*rate:.2f}%" if rate is not None else 'N/A',
-                  'nonempty:',f"{p['nonempty_cell_answers']}/{p['cell_query_requests']}",'GPU rows saved:',p['gpu_rows_saved'])
+    if a.mode in ['cell-cases','cell-value']:
+        if a.mode=='cell-value':
+            result=cell_value_report(resolve(a.input),resolve(a.before),resolve(a.after),resolve(a.timing_before) if a.timing_before else None,resolve(a.timing_after) if a.timing_after else None)
+            print('只读搜索替代账；局部工作单列，不冒充净加速或独立 Cell 收益。')
+            print('整体替代：',json.dumps(result['totals'],ensure_ascii=False))
+            for p in sorted(result['programs'],key=lambda p:p['candidate_rows_removed'],reverse=True):
+                print(p['program_id'],p['root'],'removed starts/rows:',p['starts_removed'],p['candidate_rows_removed'],
+                      'local roots/new reads/cached reads:',p['cell_root_evaluations'],p['cell_new_port_reads'],p['cell_cached_port_reads'])
+            print('净推理收益：',result['net_inference_benefit'] if result['net_inference_benefit'] else '未测；需要正确、无插桩、同二进制的关/开计时。')
+        else:
+            result=cell_cases_report(resolve(a.input),resolve(a.before),resolve(a.after))
+            print('只读汇总已保存的运行；按 Cell 程序统计，不将接管率冒充缓存命中率。')
+            for p in result['programs']:
+                rate=p['port_read_hit_rate']
+                print(p['program_id'],p['kind'],p['root'],'port cache:',f"{100*rate:.2f}%" if rate is not None else 'N/A',
+                      'nonempty:',f"{p['nonempty_cell_answers']}/{p['cell_query_requests']}",'GPU rows saved:',p['gpu_rows_saved'])
         if a.output and not a.dry_run:
             dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
             with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
