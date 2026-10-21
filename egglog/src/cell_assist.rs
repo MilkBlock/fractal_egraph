@@ -42,6 +42,17 @@ pub struct CellI64Guard {
     pub operands: [CellOperand; 2],
 }
 
+/// Post-action observations, held only until the native commit/rebuild boundary.
+/// These are not committed facts; consumers must validate current rows first.
+pub struct CellActionReceipts {
+    pub rows: Vec<(String, Vec<String>)>,
+    values: Arc<std::sync::Mutex<Vec<Vec<Value>>>>,
+    enabled: Arc<std::sync::atomic::AtomicBool>,
+}
+impl CellActionReceipts {
+    pub fn set_enabled(&self,enabled:bool){self.enabled.store(enabled,std::sync::atomic::Ordering::Relaxed);}
+    pub fn drain(&self)->Vec<Vec<Value>> {std::mem::take(&mut *self.values.lock().unwrap())}
+}
 /// Compiled once, and owned by the same EGraph for its entire lifetime.
 pub struct CellActionSink {
     pub name: String,
@@ -52,6 +63,7 @@ pub struct CellActionSink {
     pub native_residuals: bool,
     pub primitives: Vec<CellPrimitive>,
     pub primitive_slots: usize,
+    pub receipts: Option<CellActionReceipts>,
     vars: Vec<ResolvedVar>,
     decided: FunctionId,
     action: RuleId,
@@ -198,18 +210,24 @@ impl EGraph {
         ruleset: &str,
         name: &str,
     ) -> Result<CellActionSink, Error> {
-        self.prepare_cell_action_impl(ruleset,name,false,false)
+        self.prepare_cell_action_impl(ruleset,name,false,false,None)
     }
     pub fn prepare_gpu_cell_action(&mut self,ruleset:&str,name:&str)->Result<CellActionSink,Error>{
-        self.prepare_cell_action_impl(ruleset,name,false,true)
+        self.prepare_cell_action_impl(ruleset,name,false,true,None)
     }
 
     /// Compile an exact table-part frontier. Native +/comparison primitives
     /// bind derived values and filter candidates before the original RHS runs.
     pub fn prepare_cell_candidate_action(&mut self,ruleset:&str,name:&str)->Result<CellActionSink,Error>{
-        self.prepare_cell_action_impl(ruleset,name,true,false)
+        self.prepare_cell_action_impl(ruleset,name,true,false,None)
     }
-    fn prepare_cell_action_impl(&mut self,ruleset:&str,name:&str,native_residuals:bool,extended:bool)->Result<CellActionSink,Error>{
+    /// Optional fixed LHS/RHS observations for structural producers. The tap
+    /// must be drained after successful commit/rebuild and checked against live
+    /// rows; proposed function writes and failed actions are not certificates.
+    pub fn prepare_gpu_cell_action_receipts(&mut self,ruleset:&str,name:&str,tables:&std::collections::BTreeSet<String>)->Result<CellActionSink,Error>{
+        self.prepare_cell_action_impl(ruleset,name,false,true,Some(tables))
+    }
+    fn prepare_cell_action_impl(&mut self,ruleset:&str,name:&str,native_residuals:bool,extended:bool,receipt_tables:Option<&std::collections::BTreeSet<String>>)->Result<CellActionSink,Error>{
         let fail = |s: &str| Error::BackendError(s.into());
         if self.are_proofs_enabled() || self.proof_state.original_typechecking.is_some() {
             return Err(fail("Cell assistance does not support proof/term encoding"));
@@ -323,6 +341,26 @@ impl EGraph {
             return Err(fail("RHS has a value absent from the query interface"));
         }
         let (primitives,primitive_slots)=if extended {primitives::compile(self,&rule.body,&vars)?}else{(vec![],0)};
+        let mut receipt_rows=vec![];
+        let mut receipt_terms=vec![];
+        if let Some(tables)=receipt_tables.filter(|tables|rule.head.0.iter().any(|a| {
+            use crate::core::GenericCoreAction as A;
+            matches!(a,A::Let(_,_,ResolvedCall::Func(f),_)|A::Set(_,ResolvedCall::Func(f),_,_) if tables.contains(&f.name))
+        })) {
+            let mut push=|f:&crate::typechecking::FuncType,args:Vec<ResolvedAtomTerm>| {
+                if tables.contains(&f.name) {
+                    receipt_rows.push((f.name.clone(),args.iter().map(|a|a.output().name().to_string()).collect::<Vec<_>>()));
+                    receipt_terms.extend(args);
+                }
+            };
+            for a in &rule.body.atoms {if let ResolvedCall::Func(f)=&a.head {push(f,a.args.clone());}}
+            for a in &rule.head.0 {use crate::core::GenericCoreAction as A;match a {
+                A::Let(span,v,ResolvedCall::Func(f),args)=>{let mut args=args.clone();args.push(ResolvedAtomTerm::Var(span.clone(),v.clone()));push(f,args);}
+                A::Set(_,ResolvedCall::Func(f),args,value)=>{let mut args=args.clone();args.push(value.clone());push(f,args);}
+                _=>()
+            }}
+        }
+        let receipts=(!receipt_rows.is_empty()).then(||CellActionReceipts{rows:receipt_rows,values:Arc::new(std::sync::Mutex::new(vec![])),enabled:Arc::new(std::sync::atomic::AtomicBool::new(true))});
         let unit = self.backend.base_values().get(());
         let decided = self.backend.add_table(FunctionConfig {
             schema: vars
@@ -338,6 +376,12 @@ impl EGraph {
         let mut actions = Vec::new();
         for trace_lane in [false, true] {
             let unit_type = self.backend.base_values().get_ty::<()>();
+            let callback=receipts.as_ref().map(|r| {
+                let output=r.values.clone();let enabled=r.enabled.clone();let unit=self.backend.base_values().get(());
+                self.backend.register_external_func(Box::new(make_external_func(move |_,v| {
+                    if enabled.load(std::sync::atomic::Ordering::Relaxed){output.lock().unwrap().push(v.to_vec());}Some(unit)
+                })))
+            });
             let mut builder = BackendRule::new(
                 self.backend
                     .new_rule(&format!("cell-action:{trace_lane}:{name}"), false),
@@ -370,6 +414,10 @@ impl EGraph {
                 builder.rb.remove(decided, &entries);
             }
             builder.actions(&rule.head)?;
+            if let Some(callback)=callback {
+                let values=receipt_terms.iter().map(|v|builder.entry(v)).collect::<Vec<_>>();
+                builder.rb.call_external_func(callback,&values,ColumnTy::Base(unit_type),||"Cell spine receipt".into());
+            }
             actions.push(builder.build());
         }
         Ok(CellActionSink {
@@ -379,6 +427,7 @@ impl EGraph {
             native_residuals,
             primitives,
             primitive_slots,
+            receipts,
             vars,
             decided,
             action: actions[0],
