@@ -23,6 +23,7 @@ mod marker_layout;
 mod table_program;
 mod family_program;
 pub mod cell_prefix;
+mod spine_projection;
 pub mod table_query;
 pub mod table_live;
 pub mod stable_choice;
@@ -656,6 +657,10 @@ fn project(t: &Template, sink: &CellActionSink, p: &Part) -> Vec<Lens> {
     project_mode(t, sink, p, true)
 }
 fn project_mode(t: &Template, sink: &CellActionSink, p: &Part, allow_new_aliases: bool) -> Vec<Lens> {
+    project_mode_counted(t, sink, p, allow_new_aliases).0
+}
+fn project_mode_counted(t: &Template, sink: &CellActionSink, p: &Part, allow_new_aliases: bool) -> (Vec<Lens>, usize) {
+    let mut comparisons = 0;
     let hidden: BTreeSet<_> = t.state["subsumed_rows"]
         .as_array()
         .into_iter()
@@ -688,6 +693,7 @@ fn project_mode(t: &Template, sink: &CellActionSink, p: &Part, allow_new_aliases
                 continue;
             }
             for old in &solutions {
+                comparisons += 1;
                 let mut row = old.clone();
                 let mut valid = true;
                 for ((term, &v), sort) in atom.columns.iter().zip(&cols).zip(&atom.sorts) {
@@ -724,7 +730,7 @@ fn project_mode(t: &Template, sink: &CellActionSink, p: &Part, allow_new_aliases
         }
         solutions = next.into_iter().collect();
     }
-    solutions
+    (solutions, comparisons)
 }
 
 fn resolve(eg: &EGraph, t: &Template, params: &[Value], reads: &mut usize) -> Option<Vec<Value>> {
