@@ -18,6 +18,12 @@ kernel void family_clear(CTX,uint i [[thread_position_in_grid]]){if(i<cfg[4])ato
 kernel void family_domain_clear(CTX,uint i [[thread_position_in_grid]]){if(i<cfg[28])atomic_store_explicit(domains+i,0,memory_order_relaxed);}
 uint domain_head(device const uint* packet,constant uint* cfg,uint id,uint h){uint at=cfg[27]+2*id;return packet[at]+(h&packet[at+1]);}
 bool live_event(device uint* rows,device uint* events,uint e){uint r=E(e,0);return R(r,1)!=0 && R(r,2)==E(e,1);}
+// Monotone bounded integer coordinate. The two endpoints mean -/+ infinity,
+// so clipping huge i64 values can only weaken refutation, never lose matches.
+uint range_coordinate(uint lo,uint hi){
+ if((hi==0 && lo<0x80000000u) || (hi==NO && lo>=0x80000000u))return lo^0x80000000u;
+ return (hi&0x80000000u)?0u:NO;
+}
 kernel void family_index(CTX,uint i [[thread_position_in_grid]]){
  uint e=cfg[7]?i:cfg[1]+i;if(e>=cfg[6] || !live_event(rows,events,e))return;
  uint r=E(e,0);
@@ -30,6 +36,11 @@ kernel void family_index(CTX,uint i [[thread_position_in_grid]]){
   }
   if(REFUTATION_SUMMARIES)for(uint j=code[DOMAIN_OFFSETS+sp];j<code[DOMAIN_OFFSETS+sp+1];j++){
    uint id=code[DOMAIN_IDS+j],col=code[DOMAIN_META+2*id+1],value;
+   if(col!=NO && (col&0xc0000000u)){
+    uint c=col&0x3fffffffu,x=range_coordinate(R(r,4+C+2*c),R(r,5+C+2*c));
+    // Complemented minimum and maximum both use atomic_max, reset to zero.
+    atomic_fetch_max_explicit(domains+domain_head(packet,cfg,id,h),(col&0x40000000u)?~x:x,memory_order_relaxed);continue;
+   }
    if(col==NO)value=mixkey(h);
    else if(code[TABLE_I64+R(r,0)*C+col])value=mixkey(mixkey(R(r,4+C+2*col))^R(r,5+C+2*col));
    else value=mixkey(R(r,4+col));

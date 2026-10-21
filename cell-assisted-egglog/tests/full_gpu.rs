@@ -273,3 +273,96 @@ fn shared_queries_preserve_wiring_predicates_and_independent_watermarks() {
         assert!(delta.abs()<1e-6,"stage timers do not add up: {s}");
     }
 }
+
+#[test]
+fn complete_cell_connections_refute_and_refresh_without_claiming_query_frontiers() {
+    let Some(worker)=worker() else{return};
+    if std::env::var("CELL_BINDING_CONNECTIONS").as_deref()!=Ok("1"){return}
+    use cell_assisted_egglog::{cell_connection, table_live::SaturationHook};
+    struct Hook(cell_connection::Library);
+    impl SaturationHook for Hook {
+        fn binding_connections(&self)->cell_connection::Library {self.0.clone()}
+        fn try_boundary(&mut self,_:&mut EGraph,_:&egglog::ast::Schedule)->cell_assisted_egglog::Result<Option<serde_json::Value>>{Ok(None)}
+        fn take_commits(&mut self,_:&mut EGraph)->cell_assisted_egglog::Result<(Vec<String>,Vec<egglog::cell_events::CellCommitBatch>)>{Ok((vec![],vec![]))}
+    }
+    let mut eg=EGraph::default();
+    eg.parse_and_run_program(None,r#"
+      (datatype E (N i64) (Root E i64))
+      (function Cost (E) i64 :merge (min old new))
+      (relation Fan (E i64)) (relation Hit (E i64)) (relation CellMark (E))
+      (ruleset bake) (ruleset s)
+      (rule ((= r (Root x limit)) (= cost (Cost x))) ((CellMark r)) :ruleset bake :name "cell-port")
+      (rule ((= r (Root x limit)) (= cost (Cost x)) (Fan x y) (> cost limit)) ((Hit r y)) :ruleset s :name "consumer")
+      (Root (N 0) 10) (Root (N 1) 10) (Root (N 2) 10)
+      (set (Cost (N 0)) 5) (set (Cost (N 1)) 20)
+      (Fan (N 0) 1) (Fan (N 1) 2) (Fan (N 2) 3)
+    "#).unwrap();
+    let q=eg.prepare_gpu_cell_action("bake","cell-port").unwrap();
+    let lib=cell_connection::Library::from_cell_programs(&[q]);assert!(!lib.is_empty());
+    let commands=eg.parse_program(None,"(run s 1)").unwrap();
+    let mut r=Runtime::new_full_assisted(eg,&commands,Some(&worker),true,None,Some(Box::new(Hook(lib)))).unwrap();
+    assert_eq!(r.report()["cells"]["binding_connections"],true);
+    r.run(&commands).unwrap();
+    check(&r,"(check (Hit (Root (N 1) 10) 2)) (fail (check (Hit (Root (N 0) 10) 1)))");
+    // Missing -> present, function update, deletion, fresh alias key, and subsume.
+    r.input("(set (Cost (N 2)) 15) (set (Cost (N 1)) 3) (Fan (N 1) 4)").unwrap();
+    r.run(&commands).unwrap();
+    check(&r,"(check (Hit (Root (N 2) 10) 3)) (fail (check (Hit (Root (N 1) 10) 4)))");
+    r.input("(delete (Cost (N 2))) (Fan (N 2) 5)").unwrap();r.run(&commands).unwrap();
+    check(&r,"(fail (check (Hit (Root (N 2) 10) 5)))");
+    r.input("(set (Cost (N 3)) 17) (union (N 2) (N 3))").unwrap();r.run(&commands).unwrap();
+    check(&r,"(check (Hit (Root (N 2) 10) 5))");
+    r.input("(subsume (Root (N 2) 10)) (Fan (N 2) 6)").unwrap();r.run(&commands).unwrap();
+    check(&r,"(fail (check (Hit (Root (N 2) 10) 6)))");
+    let report=r.report();
+    assert_eq!(report["runtime"]["cell_query_bindings"],0);
+    if std::env::var("CELL_SEARCH_COUNTERS").as_deref()==Ok("1") {
+        assert!(report["cell_work"]["connection_refutations"].as_u64().unwrap()>0);
+        assert!(report["cell_work"]["watch_wakes"].as_u64().unwrap()>0);
+    }
+}
+
+#[test]
+fn complete_port_ranges_cover_all_aliases_and_extreme_integer_values() {
+    let Some(worker)=worker() else{return};
+    if std::env::var("CELL_BINDING_RANGES").as_deref()!=Ok("1"){return}
+    use cell_assisted_egglog::{cell_connection, table_live::SaturationHook};
+    struct Hook(cell_connection::Library);
+    impl SaturationHook for Hook {
+        fn binding_connections(&self)->cell_connection::Library {self.0.clone()}
+        fn try_boundary(&mut self,_:&mut EGraph,_:&egglog::ast::Schedule)->cell_assisted_egglog::Result<Option<serde_json::Value>>{Ok(None)}
+        fn take_commits(&mut self,_:&mut EGraph)->cell_assisted_egglog::Result<(Vec<String>,Vec<egglog::cell_events::CellCommitBatch>)>{Ok((vec![],vec![]))}
+    }
+    let mut eg=EGraph::default();
+    eg.parse_and_run_program(None,r#"
+      (datatype E (N i64) (Pair E i64))
+      (relation Anchor (E i64)) (relation Fan (E i64)) (relation Hit (E i64 i64 i64)) (relation CellMark (E))
+      (ruleset bake) (ruleset s)
+      (rule ((= p (Pair term cost))) ((CellMark p)) :ruleset bake :name "cell-cost-port")
+    "#).unwrap();
+    for (op,i) in ["<",">","<=",">=","!="].into_iter().zip(0..){
+        eg.parse_and_run_program(None,&format!("(rule ((Anchor p limit) (= p (Pair term cost)) (Fan p token) ({op} cost limit)) ((Hit p cost token {i})) :ruleset s)")).unwrap();
+    }
+    let values=[i64::MIN,i64::MIN+1,-4294967296,-2147483648,-11,0,7,20,2147483647,4294967296,i64::MAX-1,i64::MAX];
+    for (i,cost) in values.iter().enumerate(){for limit in values {
+        eg.parse_and_run_program(None,&format!("(Anchor (Pair (N {i}) {cost}) {limit}) (Fan (Pair (N {i}) {cost}) 1)")).unwrap();
+    }}
+    let q=eg.prepare_gpu_cell_action("bake","cell-cost-port").unwrap();
+    let commands=eg.parse_program(None,"(run s 1)").unwrap();
+    let mut r=Runtime::new_full_assisted(eg,&commands,Some(&worker),true,None,Some(Box::new(Hook(cell_connection::Library::from_cell_programs(&[q]))))).unwrap();
+    assert!(r.report()["cells"]["range_checks"].as_u64().unwrap()>0);
+    r.run(&commands).unwrap();
+    // New candidate in the same output fiber must widen, not reuse the old
+    // positive sample as an upper bound. Join retains full tuple correlations.
+    r.input("(union (Pair (N 7) 20) (Pair (N 42) 3)) (Fan (Pair (N 7) 20) 2)").unwrap();
+    r.run(&commands).unwrap();
+    check(&r,"(check (Hit (Pair (N 7) 20) 3 2 0))");
+    r.input("(subsume (Pair (N 42) 3)) (Fan (Pair (N 7) 20) 3)").unwrap();r.run(&commands).unwrap();
+    check(&r,"(fail (check (Hit (Pair (N 7) 20) 3 3 0)))");
+    // Forces index rebase; summary reset must include all surviving rows.
+    let fresh=(100..600).map(|i|format!("(Anchor (Pair (N {i}) {i}) 0) (Fan (Pair (N {i}) {i}) 4)")).collect::<String>();
+    r.input(&fresh).unwrap();r.run(&commands).unwrap();
+    if std::env::var("CELL_SEARCH_COUNTERS").as_deref()==Ok("1") {
+        assert!(r.report()["cell_work"]["range_refutations"].as_u64().unwrap()>0);
+    }
+}

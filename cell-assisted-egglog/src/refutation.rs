@@ -230,3 +230,56 @@ mod tests {
         assert!(checks[2].is_empty());
     }
 }
+
+/// Condition complete numeric port fibers from installed Cell programs on the
+/// currently bound key. Native indexes provide all rows, never only Cell hits.
+/// Marginal intervals are supersets: useful to disprove a guard, never to prove
+/// that a correlated multi-slot binding exists.
+pub(crate) fn ranges(
+    eg:&egglog::EGraph, q:&CellActionSink, order:&[usize],
+    tids:&BTreeMap<String,usize>,specs:&BTreeMap<(usize,Vec<usize>),usize>,
+    summaries:&mut BTreeMap<(usize,usize),usize>,lib:&crate::cell_connection::Library,
+    sources:&mut BTreeSet<String>,
+)->Vec<Vec<[u32;9]>> {
+    let mut bound=BTreeSet::new();let mut tested=BTreeSet::new();
+    let guards=q.primitives.iter().filter(|op|matches!(op.opcode,0..=3|5))
+        .map(|op|(op.opcode,&op.args[0],&op.args[1]))
+        .chain(q.guards.iter().map(|g|(g.opcode,&g.operands[0],&g.operands[1]))).collect::<Vec<_>>();
+    order.iter().map(|part| {
+        bound.extend(q.atoms[*part].columns.iter().filter_map(|o|match o{CellOperand::Slot(s)=>Some(*s),_=>None}));
+        close_numeric(q,&mut bound);
+        let mut out=vec![];
+        for (op,a,b) in &guards {
+            let known=|o:&CellOperand|match o{CellOperand::Slot(s)=>bound.contains(s),_=>true};
+            if known(a)&&known(b){continue}
+            let mut evidence=BTreeSet::new();
+            let mut operand=|o:&CellOperand|->Option<[u32;4]> {
+                match o {
+                    CellOperand::Constant{value,..}=>{let n=eg.value_to_base::<i64>(*value) as u64;Some([1,n as u32,(n>>32) as u32,0])},
+                    CellOperand::Slot(s) if bound.contains(s)=>Some([0,*s as u32,0,0]),
+                    CellOperand::Slot(s)=>{
+                        let mut choices=vec![];
+                        for (t,atom) in q.atoms.iter().enumerate(){for (col,v) in atom.columns.iter().enumerate(){
+                            if !matches!(v,CellOperand::Slot(v) if v==s){continue}
+                            let Some(from)=lib.range_sources(&atom.function,col) else{continue};
+                            for ((table,keys),sp) in specs {
+                                if *table==tids[&atom.function] && !keys.is_empty() && keys.iter().any(|c|atom.sorts[*c]!="Unit") && keys.iter().all(|c|known(&atom.columns[*c])) {
+                                    choices.push((keys.len(),std::cmp::Reverse((t,col,*sp)),from));
+                                }
+                            }
+                        }}
+                        let (_,std::cmp::Reverse((t,col,sp)),from)=choices.into_iter().max()?;
+                        evidence.extend(from.iter().cloned());
+                        let next=summaries.len();let lo=*summaries.entry((sp,col|0x40000000)).or_insert(next);
+                        let next=summaries.len();let hi=*summaries.entry((sp,col|0x80000000)).or_insert(next);
+                        Some([2,t as u32,lo as u32,hi as u32])
+                    }
+                }
+            };
+            let Some(a)=operand(a) else{continue};let Some(b)=operand(b) else{continue};
+            let check=[*op,a[0],a[1],a[2],a[3],b[0],b[1],b[2],b[3]];
+            if tested.insert(check){out.push(check);sources.extend(evidence);}
+        }
+        out
+    }).collect()
+}

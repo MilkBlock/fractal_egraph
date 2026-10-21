@@ -15,18 +15,23 @@ mod refutation;
 pub(crate) const DEPTH_METRICS: &[&str] = &[
     "entries", "link_visits", "live_rows", "prefixes", "key_checks",
     "refutations", "matched_leaves", "domain_checks", "signature_refutations", "deepest_seeds",
+    "connection_checks", "connection_refutations", "connection_unknown",
+    "range_checks", "range_refutations",
 ];
 pub fn compile(
     eg: &EGraph,
     sinks: &[CellActionSink],
     tables: &[CellTable],
     cells: Option<&crate::cell_prefix::Library>,
+    connections: Option<&crate::cell_connection::Library>,
     profile: bool,
     certificates: bool,
     event_cells: bool,
     table_routes: bool,
 ) -> Result<Json> {
     if sinks.iter().any(|s|s.native_residuals){return Err("native residual candidates are not a GPU match program".into())}
+    if cells.is_some() && connections.is_some(){return Err("select closure projections or complete connections".into())}
+    let connection_mode=connections.is_some() && std::env::var("CELL_BINDING_CONNECTIONS").as_deref()==Ok("1");
     let c = tables.iter().map(|t| t.keys + 1).max().unwrap_or(1);
     let p = sinks.iter().map(|q| q.atoms.len()).max().unwrap_or(1).max(1);
     let s = sinks.iter().map(|q| q.device_slots()).max().unwrap_or(1).max(1);
@@ -253,6 +258,13 @@ pub fn compile(
                         longest = Some((n, alts));
                     }
                     longest
+                }).or_else(|| {
+                    if !connection_mode{return None}
+                    let lib=connections?;
+                    if order.len()<2 || lib.evidence(q,&order[..2]).is_none(){return None}
+                    // No historical alias precondition: live functional reads
+                    // certify the complete empty/singleton binding relation.
+                    Some((2,vec![(usize::MAX,vec![[0,0];q.slots().len()])]))
                 });
                 let Some((n, alts)) = found else {
                     route.extend([u32::MAX, 0]);
@@ -358,7 +370,7 @@ pub fn compile(
                             _ => None,
                         }));
                     }
-                    cell_evidence.push(json!({"plan":id,"rule":q.name,"atoms":&order[..n],"states":alts.iter().map(|(id,_)|id).collect::<BTreeSet<_>>(),"internal_joins":n-1}));
+                    cell_evidence.push(json!({"plan":id,"rule":q.name,"atoms":&order[..n],"states":alts.iter().filter_map(|(id,_)|(*id!=usize::MAX).then_some(id)).collect::<BTreeSet<_>>(),"connection_sources":connections.and_then(|lib|lib.evidence(q,&order[..n])),"contract":if connection_mode {"complete functional binding range; native key watches"} else {"positive closure projection"},"internal_joins":n-1}));
                     cell_specs.insert(key, id);
                     id
                 };
@@ -388,7 +400,7 @@ pub fn compile(
     let (mut port_meta, mut port_map, mut port_group, mut port_plan, mut owner) =
         (vec![], vec![], vec![], vec![], vec![]);
     for (qi, q) in sinks.iter().enumerate() {
-        let driver = drivers[qi].as_ref().filter(|_| event_cells && certificates);
+        let driver = drivers[qi].as_ref().filter(|_| event_cells && certificates && !connection_mode);
         let group = driver.map(|(_, g, _)| g.clone()).unwrap_or_default();
         let outside = (0..q.atoms.len())
             .filter(|i| !group.contains(i))
@@ -576,9 +588,9 @@ pub fn compile(
             }
         }
     }
-    let staged_constraints = computed && !(certificates && !cell_specs.is_empty()) &&
+    let staged_constraints = computed && !(certificates && !cell_specs.is_empty() && !connection_mode) &&
         std::env::var("CELL_STAGED_CONSTRAINTS").as_deref()!=Ok("0");
-    let compact_bindings = !(certificates && !cell_specs.is_empty()) &&
+    let compact_bindings = !(certificates && !cell_specs.is_empty() && !connection_mode) &&
         (staged_constraints || !computed) &&
         std::env::var("CELL_COMPACT_BINDINGS").as_deref()!=Ok("0");
     let refutation_enabled = table_routes && compact_bindings && std::env::var("CELL_REFUTATION").as_deref()!=Ok("0");
@@ -604,6 +616,17 @@ pub fn compile(
             signature_specs[sp]=*domain_specs.entry((sp,usize::MAX)).or_insert(next) as u32;
         }
     }
+    let ranges_enabled=connections.is_some() && table_routes && compact_bindings && std::env::var("CELL_BINDING_RANGES").as_deref()==Ok("1");
+    let mut range_stages=vec![];let mut range_checks=vec![];let mut range_sources=BTreeSet::new();
+    for (qi,q) in sinks.iter().enumerate(){for anchor in 0..p {
+        let checks=if ranges_enabled && anchor<q.atoms.len(){refutation::ranges(eg,q,&orders[qi*p+anchor],&tids,&specs,&mut domain_specs,connections.unwrap(),&mut range_sources)}else{vec![]};
+        for depth in 0..p {
+            let cs=checks.get(depth).map(Vec::as_slice).unwrap_or(&[]);
+            range_stages.extend([(range_checks.len()/9) as u32,cs.len() as u32]);
+            range_checks.extend(cs.iter().flatten().copied());
+        }
+    }}
+    let range_check_count=range_checks.len()/9;
     let mut domain_meta=vec![0u32;2*domain_specs.len()];
     for ((sp,col),id) in &domain_specs {domain_meta[2*id]=*sp as u32;domain_meta[2*id+1]=*col as u32;}
     let domain_tables=(0..domain_specs.len()).map(|id|index[domain_meta[2*id] as usize*(2+c)]).collect::<Vec<_>>();
@@ -624,17 +647,19 @@ pub fn compile(
         "#define NC {}\n#define PROFILE_JOIN {}\n#define CELL_CERTIFICATES {}\n",
         cell_specs.len().max(1),
         u32::from(profile),
-        u32::from(certificates && !cell_specs.is_empty())
+        u32::from(certificates && !cell_specs.is_empty() && !connection_mode)
     );
+    shader += &format!("#define CELL_CONNECTIONS {}\n",u32::from(connection_mode));
     shader += &format!("#define STAGED_CONSTRAINTS {}\n", u32::from(staged_constraints));
     shader += &format!("#define COMPACT_BINDINGS {}\n#define BW {bw}\n", u32::from(compact_bindings));
     shader += &format!("#define REFUTATION {}\n", u32::from(refutation_enabled));
     shader += &format!("#define REFUTATION_DOMAINS {}\n", u32::from(domains_enabled));
-    shader += &format!("#define REFUTATION_SIGNATURES {}\n#define REFUTATION_SUMMARIES {}\n", u32::from(signatures_enabled),u32::from(signatures_enabled||domains_enabled));
+    shader += &format!("#define REFUTATION_SIGNATURES {}\n#define REFUTATION_SUMMARIES {}\n", u32::from(signatures_enabled),u32::from(signatures_enabled||domains_enabled||ranges_enabled));
     shader += &format!("#define ND {}u\n", DEPTH_METRICS.len());
     for (i,name) in DEPTH_METRICS.iter().enumerate() {
         shader += &format!("#define D_{} {i}u\n",name.to_ascii_uppercase());
     }
+    shader += &format!("#define CELL_RANGES {}\n",u32::from(ranges_enabled));
     let cell_header = 8; // Common revision header for sparse instance reuse.
     shader += &format!(
         "#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n#define CH {cell_header}\n"
@@ -697,6 +722,8 @@ pub fn compile(
         ("BSTATE",binding_states),
         ("REFUTE_STAGE",refutation_stages),
         ("REFUTE_CHECK",refutation_checks),
+        ("RANGE_STAGE",range_stages),
+        ("RANGE_CHECK",range_checks),
         ("DOMAIN_STAGE",domain_stages),
         ("DOMAIN_CHECK",domain_checks),
         ("DOMAIN_META",domain_meta),
@@ -739,6 +766,6 @@ pub fn compile(
         shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n if(COMPACT_BINDINGS)family_execute_compact<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2]);else family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
     }
     Ok(
-        json!({"version":2,"family_layout":14,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":15,"binding_connections":connection_mode,"binding_ranges":ranges_enabled,"range_checks":range_check_count,"range_sources":range_sources,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

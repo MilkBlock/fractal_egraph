@@ -20,12 +20,25 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 - 缓存校验使用完整结构比较，不以哈希代替判等。native/CPU 的 Tiger 结果只在提取器和输入/输出指纹均一致时复用；新 GPU 的提取与检查仍执行。只读询问仍用 `report`，不调用 `run`。
 - 基线二进制、输入/调度、线程/worker、选择策略或验证口径改变时，先判断哪部分对照受影响；只有受影响的结果才需要刷新。公共内核变化可能同时影响 CPU 和 GPU。
 
+## Cell / Join 改动的固定评价指标
+
+**Join 深度分布是评价一套 Cell 与 Join 流程的必报指标。** 先复用已有同口径诊断；只有候选实现或数据流改变才补测，不为生成报告重跑未变对照。至少给出：
+
+1. 外层起点 `eligible_seeds`，和逐层进入数、活候选行访问数；分别回答省了多少外层启动、多少内层工作。
+2. `Pr(max_depth >= d)` 的前后曲线、最大到达深度直方图、各层证否占比和各层节省的行访问数。概率必须来自 `deepest_seeds`，不能用循环进入数冒充。
+3. 按原始 rule 拆分，并给出固定规则权重的曲线；说明新增、移走的查询。规则构成改变与同一候选更容易被证否须分开。固定规则权重仍不是固定候选身份。
+4. Cell 提供约束时，另报完整且版本有效的约束命中、未知/失效回退、约束导致的证否，以及其维护时间、传输和存储字节。不能用正例命中率代表完整 binding 范围。
+5. 另用无插桩运行报告端到端推理时间和整图检查；诊断 atomic 的时间不用于宣称加速。新约束消融须固定 Cell 查询分流、Join 顺序及其他证否开关，才可归因。
+
+优先用下表的 `depth` / `interaction` 读取已存数据。若历史缺字段，明确写“未测”，不要补造概率；当前统计对象为 compact GPU Join，不能冒称原生 CPU Free Join。
+
 ## 常用入口
 
 | 需求 | `bench.py` 子命令 |
 |---|---|
 | 看已有结果，不重新跑 | `report [分析目录或 report.json]` |
 | 查找可复用的完整 Pass-3 历史 | `history --joint-sat` |
+| 固定 Cell 分流，比较完整 binding 约束关闭/开启 | `depth-pair --before DIR --after DIR [--output NEW.json] [--csv NEW.csv]` |
 | 只读查看 Join 深度分布及导出 CSV | `depth --s0r0 DIR --s0r1 DIR --s1r0 DIR --s1r1 DIR [--output NEW.json] [--csv NEW.csv]` |
 | 只读分析 sat-skip/refutation 的交叉计数与规则构成 | `interaction --s0r0 DIR --s0r1 DIR --s1r0 DIR --s1r1 DIR [--sat-only DIR]` |
 | 核验输入、工具与缓存路径 | `check` |
@@ -89,7 +102,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 紧凑 GPU Join 默认使用自动证否 lookahead；`CELL_REFUTATION=0` 关闭。编译器只选择已有 tuple index，提前检测未访问 atom 的必要键，空哈希桶可直接拒绝整条后继搜索。碰撞及退休行只可能多保留候选；union/rebuild 仍使用原生完整增量维护，不以 Cell 库未覆盖作为证否。它不是新增 Cell 闭包证明。
 
-后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 14，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
+后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 15，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
 
 从 layout 13 起，`CELL_SEARCH_COUNTERS=1` 另记录多 atom 查询的起始候选数 `eligible_seeds`、当场被否的 `refuted_seeds`、至少产生一条完整 binding 的 `productive_seeds`，并按原始 rule 汇总。命中率用 `refuted_seeds / eligible_seeds`；不能将包括深层分支的 `refuted_branches` 除以起始候选数。无剩余候选时比率未定义。普通运行不执行这些诊断 atomic，也不分配按 rule 的计数区。
 
@@ -102,3 +115,10 @@ Layout 14 的 `join_depth_fields` 定义逐层计数字段，`rules[].stats.dept
 `depth` 只读已保存的四组计数，校验逐规则的下一层进入数 = 本层 prefix − 本层证否、最深层直方图与 seed 总数、以及全局行访问/证否计数，并输出固定规则权重的曲线。`--output`/`--csv` 不覆盖既有文件；不重新编译或推理。无完整深度 schema 的旧记录不能用来推造概率。普通执行不分配这些逐层诊断计数区，且不执行诊断 atomic。可视化和复现见 [Join 深度分布](../../experiments/join_depth_distribution/README.md)。
 
 注意旧 GPU `join_probes` 在输出缓冲区重试时重置，记录每个 packet 最后一遍；逐层 entries 与 `join_live_row_visits` 包含所有尝试。总循环进入使用 `compact_probe_attempts`，并保留 `legacy_final_attempt_probes` 作口径对照，不能强行判它们相等。这不是原生 CPU probe 计数的修改。当前逐层统计限 compact GPU 执行器，插桩时间仍不作为加速比。
+
+
+Cell 完整接口实验：`CELL_BINDING_CONNECTIONS=1` 开启已安装参数化 Cell 程序的完整函数键连接（空集／唯一 binding）；`CELL_BINDING_RANGES=1` 开启同一来源的数值端口范围。均为实验开关，默认关闭，不能仅凭减少扫描便启用默认路径。范围按完整原生索引 fiber 更新，包含全部当前候选，并允许哈希碰撞／退休行扩大范围。它只能证否，不能据两个边际范围拼出真实 binding。i64 在有界整数坐标中保守处理超界值，保留原生精确整数 Join 作最终验证。
+
+比较这些接口时，固定 `--joint-sat`、普通 Cell 查询分流和原有 refutation 开关，使用同二进制的开关消融。`depth-pair` 校验整图、调度、二进制、worker、逐规则起点与产出数、分层守恒，并报告 `connection_*` / `range_*`；它不把“起点数量相等”说成逐个起点身份完全相同。`connection_unknown` 是失效／未覆盖后回退；完整范围采用可单调放宽的上界，删除后不缩小，重建时重新收紧；新事实和 canonical row 必须先纳入当前 packet 再查。
+
+实际 GPU 快速回归：设置 `CELL_MATRIX_WORKER` 为当前 worker，`CELL_BINDING_CONNECTIONS=1 CELL_BINDING_RANGES=1 CELL_SEARCH_COUNTERS=1`，运行 `cell-assisted-egglog` 的 `full_gpu` 测试；必须覆盖缺失键后续出现、函数更新、union、subsume、索引 rebase 和 i64 极值。完整 `audit --all-rules --joint-sat` 与整图检查仍不可替代。来源局限：当前导出的是已安装参数化 Cell 程序的端口，不是任意 Analyze 闭包的完整关系，也没有证明全部 Cell 形变都已被支持。

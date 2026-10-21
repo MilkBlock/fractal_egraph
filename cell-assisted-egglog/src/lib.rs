@@ -830,3 +830,5 @@ mod projection_tests {
 }
 
 mod query_sharing;
+
+pub mod cell_connection;

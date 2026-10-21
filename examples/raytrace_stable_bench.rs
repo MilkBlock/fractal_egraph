@@ -103,16 +103,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !all {
             return Err("--audit-only currently requires --all-rules".into());
         }
-        let mut r = cell_assisted_egglog::table_live::Runtime::new_full(
+        let mut r = cell_assisted_egglog::table_live::Runtime::new_full_assisted(
             eg,
             &commands,
             Some(Path::new(&a[1])),
             !cell_audit,
             Some(&selected),
+            hook,
         )?;
-        if let Some(hook) = hook {
-            r.set_saturation_hook(hook);
-        }
         if cell_audit {r.enable_cell_query_audit()?;}
         let result = r.run(&commands);
         std::fs::write(

@@ -122,6 +122,27 @@ class WorkflowTests(unittest.TestCase):
             (path/'report.json').write_text(json.dumps(r))
         return paths
 
+    def test_connection_depth_pair_keeps_routing_fixed_and_rejects_invalid_proofs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);fixtures=self.depth_fixture(root)
+            paths={'before':root/'before','after':root/'after'}
+            base=B.load(fixtures['s1r1']/'report.json')
+            for name,path in paths.items():
+                path.mkdir();r=copy.deepcopy(base);r['gpu']['cells']['binding_ranges']=name=='after'
+                fields=['connection_checks','connection_refutations','connection_unknown','range_checks','range_refutations']
+                r['gpu']['join_depth_fields']+=fields
+                for q in r['gpu']['rules']:
+                    for row in q['stats']['depth_work']:row.extend([0]*len(fields))
+                r['gpu']['cell_work'].update({f:0 for f in fields})
+                (path/'report.json').write_text(json.dumps(r))
+                (path/'workflow.json').write_text((fixtures['s1r1']/'workflow.json').read_text())
+            result=B.join_depth_report(paths,True)
+            self.assertTrue(result['depth_contrasts']['connection_effect']['same_per_rule_seed_counts'])
+            p=paths['after']/'report.json';r=B.load(p);r['gpu']['runtime']['cell_query_bindings']+=1;p.write_text(json.dumps(r))
+            with self.assertRaises(ValueError):B.join_depth_report(paths,True)
+            r['gpu']['runtime']['cell_query_bindings']-=1;r['gpu']['cell_work']['range_refutations']+=1;p.write_text(json.dumps(r))
+            with self.assertRaises(ValueError):B.join_depth_report(paths,True)
+
     def test_depth_branch_entries_are_not_seed_reach_probabilities(self):
         with tempfile.TemporaryDirectory() as tmp:
             result=B.join_depth_report(self.depth_fixture(Path(tmp)))

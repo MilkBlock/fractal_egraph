@@ -877,6 +877,11 @@ impl Observer {
     }
 }
 impl crate::table_live::SaturationHook for Observer {
+    fn binding_connections(&self)->crate::cell_connection::Library {
+        let mut out=crate::cell_connection::Library::default();
+        for k in &self.0.kernels {out.add_program(&k.sink);}
+        out
+    }
     fn query_cells(&mut self,eg:&mut EGraph,set:&str,sinks:&[&CellActionSink])->Result<Vec<(usize,Vec<Vec<Value>>) >> {
         if !self.0.scalar.contains_key(set){return Ok(vec![])}
         self.with(eg,|r|{

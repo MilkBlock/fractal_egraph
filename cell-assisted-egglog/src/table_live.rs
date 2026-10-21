@@ -85,6 +85,9 @@ struct NativeStats {
 /// `try_boundary` may publish a certified closure only at an explicit Saturate;
 /// `complete=false` requires the ordinary backend to finish that saturation.
 pub trait SaturationHook {
+    /// Immutable wiring from installed Cell programs; concrete ranges are
+    /// certified and invalidated on device from the native commit stream.
+    fn binding_connections(&self) -> crate::cell_connection::Library {Default::default()}
     /// Complete incremental bindings for a subset of these exact rule sinks.
     /// Reads only: no RHS execution, frontier advancement, or saturation here.
     /// Returned indices refer to `sinks`; unclaimed rules retain their matcher.
@@ -243,10 +246,10 @@ impl Runtime {
         self.saturation_hook = Some(hook);
     }
     pub fn new(eg: EGraph, commands: &[Command], worker: &Path, audit: bool) -> Result<Self> {
-        Self::create(eg, commands, Some(worker), audit, Options::default(), None, false)
+        Self::create(eg, commands, Some(worker), audit, Options::default(), None, false, None)
     }
     pub fn new_cpu(eg: EGraph, commands: &[Command]) -> Result<Self> {
-        Self::create(eg, commands, None, false, Options::default(), None, false)
+        Self::create(eg, commands, None, false, Options::default(), None, false, None)
     }
     /// Exact explicit partition: selected rulesets use cached queries (CPU or
     /// GPU); all other scheduled rulesets execute natively, in their original
@@ -259,13 +262,23 @@ impl Runtime {
         selected: &[String],
     ) -> Result<Self> {
         let sets = selected.iter().cloned().collect();
-        Self::create(eg, commands, worker, audit, Options::default(), Some(&sets), false)
+        Self::create(eg, commands, worker, audit, Options::default(), Some(&sets), false, None)
     }
     /// Full original Pass-3 LHS admission. Effects remain native; an unsupported
     /// selected rule is an error, never silently moved to the CPU.
     pub fn new_full(eg:EGraph,commands:&[Command],worker:Option<&Path>,audit:bool,selected:Option<&[String]>)->Result<Self>{
         let sets=selected.map(|s|s.iter().cloned().collect());
-        Self::create(eg,commands,worker,audit,Options {query_routing:QueryRouting::TableAnchors,profile:std::env::var("CELL_SEARCH_COUNTERS").as_deref()==Ok("1"),..Options::default()},sets.as_ref(),true)
+        Self::create(eg,commands,worker,audit,Options {query_routing:QueryRouting::TableAnchors,profile:std::env::var("CELL_SEARCH_COUNTERS").as_deref()==Ok("1"),..Options::default()},sets.as_ref(),true,None)
+    }
+    /// Install Cell wiring before shader compilation. The observer and GPU
+    /// consume the same committed event stream; ordinary Run order is unchanged.
+    pub fn new_full_assisted(eg:EGraph,commands:&[Command],worker:Option<&Path>,audit:bool,selected:Option<&[String]>,hook:Option<Box<dyn SaturationHook>>)->Result<Self>{
+        let connections=hook.as_ref().map(|h|h.binding_connections());
+        let enabled=std::env::var("CELL_BINDING_CONNECTIONS").as_deref()==Ok("1") || std::env::var("CELL_BINDING_RANGES").as_deref()==Ok("1");
+        let sets=selected.map(|s|s.iter().cloned().collect());
+        let mut r=Self::create(eg,commands,worker,audit,Options {query_routing:QueryRouting::TableAnchors,profile:std::env::var("CELL_SEARCH_COUNTERS").as_deref()==Ok("1"),..Options::default()},sets.as_ref(),true,connections.as_ref().filter(|c|enabled&&!c.is_empty()))?;
+        if let Some(hook)=hook {r.set_saturation_hook(hook);}
+        Ok(r)
     }
     /// Optional analyze-backed projections. The complete query remains the
     /// fallback for every uncertified occurrence, including new union aliases.
@@ -299,7 +312,7 @@ impl Runtime {
         audit: bool,
         options: Options<'_>,
     ) -> Result<Self> {
-        Self::create(eg, commands, Some(worker), audit, options, None, false)
+        Self::create(eg, commands, Some(worker), audit, options, None, false, None)
     }
     fn create(
         mut eg: EGraph,
@@ -309,6 +322,7 @@ impl Runtime {
         options: Options<'_>,
         selected: Option<&BTreeSet<String>>,
         extended: bool,
+        connections: Option<&crate::cell_connection::Library>,
     ) -> Result<Self> {
         let t = Instant::now();
         let cells = options
@@ -465,6 +479,7 @@ impl Runtime {
                 &runtime.sinks,
                 &feed.tables,
                 cells.as_ref(),
+                connections,
                 options.profile,
                 !options.plan_only,
                 !options.cache_only,
@@ -473,11 +488,11 @@ impl Runtime {
             config["phase_timing"]=json!(runtime.query_timing);
             config["port_locality"] = json!(options.port_locality as u32);
             config["query_routing"] = json!(options.query_routing as u32);
-            runtime.cell_evidence = json!({"refutation_signatures":config["refutation_signatures"],"refutation_domains":config["refutation_domains"],"domain_checks":config["domain_checks"],"domain_summaries":config["domain_tables"].as_array().map(Vec::len),"refutation":config["refutation"],"refutation_checks":config["refutation_checks"],"staged_constraints":config["staged_constraints"],"compact_binding_workspace":config["compact_binding_workspace"]==true && matches!(options.query_routing,QueryRouting::TableAnchors),"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
+            runtime.cell_evidence = json!({"binding_ranges":config["binding_ranges"],"range_checks":config["range_checks"],"range_sources":config["range_sources"],"binding_connections":config["binding_connections"],"connection_sources":connections.map(|c|c.len()).unwrap_or(0),"refutation_signatures":config["refutation_signatures"],"refutation_domains":config["refutation_domains"],"domain_checks":config["domain_checks"],"domain_summaries":config["domain_tables"].as_array().map(Vec::len),"refutation":config["refutation"],"refutation_checks":config["refutation_checks"],"staged_constraints":config["staged_constraints"],"compact_binding_workspace":config["compact_binding_workspace"]==true && matches!(options.query_routing,QueryRouting::TableAnchors),"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
             if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
-            if installed["family_layout"] != json!(14) {
+            if installed["family_layout"] != json!(15) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0

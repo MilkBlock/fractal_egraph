@@ -58,7 +58,7 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
  cells[base+2]++;cells[base+6]++;cells[base]=0;cells[base+5]=0;cells[base+1]=R(r,2);
  if(!R(r,1))return uint2(0);
  uint v[S],lo[S],hi[S],b[S];for(uint j=0;j<S;j++){v[j]=lo[j]=hi[j]=b[j]=0;}
- if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,b))return uint2(0);
+ if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,b,!CELL_CONNECTIONS))return uint2(0);
  if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+5,1,memory_order_relaxed);
  uint stamp=R(r,3);
  for(uint j=0;j<k;j++){
@@ -67,22 +67,28 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
   uint save=base+8+j*2,chosen=NO;
   if(cells[save+1]!=0 && R(cells[save],1) && R(cells[save],2)==cells[save+1]){
    uint vv[S],ll[S],hh[S],bb[S];for(uint s=0;s<S;s++){vv[s]=v[s];ll[s]=lo[s];hh[s]=hi[s];bb[s]=b[s];}
-   if(bind_atom(code,rows,q,t,cells[save],vv,ll,hh,bb)){
+   if(bind_atom(code,rows,q,t,cells[save],vv,ll,hh,bb,!CELL_CONNECTIONS)){
     chosen=cells[save];if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+(j<resume?12:19),1,memory_order_relaxed);
    }
   }
   if(chosen==NO){
    uint at=SPEC+sp*(2+C),h=0x31415926u;
-   for(uint c=0;c<code[at+1];c++){uint col=code[at+2+c],kind=code[atom+2+2*col],s=code[atom+3+2*col];h=mixkey(h^(kind?s:v[s]));}
+   for(uint c=0;c<code[at+1];c++){
+    uint col=code[at+2+c],kind=code[atom+2+2*col],s=code[atom+3+2*col];
+    if(HAS_PRIMITIVES && code[TABLE_I64+table*C+col]){
+     uint lit=ATOM_LITERAL+(q*P+t)*2*C+2*col;
+     h=mixkey(h^(kind?code[lit]:lo[s]));h=mixkey(h^(kind?code[lit+1]:hi[s]));
+    }else h=mixkey(h^(kind?s:v[s]));
+   }
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+9,1,memory_order_relaxed);
    for(uint e=atomic_load_explicit(heads+index_head(packet,cfg,sp,h),memory_order_relaxed);e!=NO;e=links[index_link(code,events,e,sp)]){
     if(!live_event(rows,events,e))continue;
     uint vv[S],ll[S],hh[S],bb[S];for(uint s=0;s<S;s++){vv[s]=v[s];ll[s]=lo[s];hh[s]=hi[s];bb[s]=b[s];}
-    if(bind_atom(code,rows,q,t,E(e,0),vv,ll,hh,bb)){chosen=E(e,0);break;}
+    if(bind_atom(code,rows,q,t,E(e,0),vv,ll,hh,bb,!CELL_CONNECTIONS)){chosen=E(e,0);break;}
    }
   }
   if(chosen==NO){cells[base]=1;if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+17,1,memory_order_relaxed);return uint2(j+1,0);}
-  if(!bind_atom(code,rows,q,t,chosen,v,lo,hi,b)){cells[base]=1;return uint2(j+1,0);}
+  if(!bind_atom(code,rows,q,t,chosen,v,lo,hi,b,!CELL_CONNECTIONS)){cells[base]=1;return uint2(j+1,0);}
   cells[save]=chosen;cells[save+1]=R(chosen,2);cells[base+5]=j+1;stamp=max(stamp,R(chosen,3));
  }
  bool shape=false;for(uint a=0;a<code[m+4];a++){
@@ -93,7 +99,7 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
  if(!shape){cells[base]=3;if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+7,1,memory_order_relaxed);return uint2(k,0);}
  for(uint i=0;i<code[m+5];i++){uint f=code[CELL_FIELDS+cp*S+i];cells[base+CV+i*3]=v[f];cells[base+CV+i*3+1]=lo[f];cells[base+CV+i*3+2]=hi[f];}
  cells[base]=2;cells[base+7]=stamp;
- return uint2(k,1);
+ return uint2(k,CELL_CONNECTIONS?0:1);
 }
 kernel void family_cell_events(CTX,uint lane [[thread_position_in_grid]]){
  if(lane>=atomic_load_explicit(state+1,memory_order_relaxed))return;
@@ -108,14 +114,14 @@ kernel void family_cell_publish(CTX,uint lane [[thread_position_in_grid]]){
  if(r==NO || cells[base]==0)return;
  uint m=CELL_META+cp*6,q=code[m],anchor=code[m+1],complete=cells[base+5],needed=complete+(cells[base]==1?1:0);
  uint v[S],lo[S],hi[S],b[S];for(uint j=0;j<S;j++)v[j]=lo[j]=hi[j]=b[j]=0;
- if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,b)){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}
+ if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,b,!CELL_CONNECTIONS)){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}
  for(uint j=0;j<needed;j++){
   uint step=CELL_STEP+(cp*(P-1)+j)*2,t=code[step],atom=ATOM+(q*P+t)*(2+2*C),table=code[atom],width=code[TABLE_KEYS+table],key[C];
   for(uint c=0;c<width;c++){uint kind=code[atom+2+2*c],s=code[atom+3+2*c];if(!kind&&!b[s]){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}key[c]=kind?s:v[s];}
   register_key(watches,wheads,state,cfg,counters,id,cells[base+2],j,table,width,key);
-  if(j<complete){uint row=cells[base+CH+j*2];if(!R(row,1) || R(row,2)!=cells[base+CH+j*2+1] || !bind_atom(code,rows,q,t,row,v,lo,hi,b)){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}}
+  if(j<complete){uint row=cells[base+CH+j*2];if(!R(row,1) || R(row,2)!=cells[base+CH+j*2+1] || !bind_atom(code,rows,q,t,row,v,lo,hi,b,!CELL_CONNECTIONS)){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}}
  }
- if(cells[base]==2){uint at=atomic_fetch_add_explicit(state+2,1,memory_order_relaxed);if(at>=cfg[21]){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}ports[at*2]=id;ports[at*2+1]=cells[base+6];if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+16,1,memory_order_relaxed);}
+ if(cells[base]==2 && !CELL_CONNECTIONS){uint at=atomic_fetch_add_explicit(state+2,1,memory_order_relaxed);if(at>=cfg[21]){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}ports[at*2]=id;ports[at*2+1]=cells[base+6];if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+16,1,memory_order_relaxed);}
 }
 kernel void family_watch_count(CTX,uint i [[thread_position_in_grid]]){
  if(i>=cfg[12])return;uint id=W(i,0);if(instanceMeta[id*3]!=NO && cells[id*CS+2]==W(i,1))atomic_fetch_add_explicit(registry+8,1,memory_order_relaxed);

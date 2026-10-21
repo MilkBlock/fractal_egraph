@@ -289,16 +289,57 @@ def interaction_report(paths):
     return dict(scope='Actual full Pass-3 work-count experiment. Profiled seconds are not speedup evidence. This ablates certified services, not training data or Bake quality.',
                 records=records,contrasts=contrasts,query_mix=mixtures)
 
-def join_depth_report(paths):
+def connection_pair_report(paths):
+    """Same routing and seed cohort, differing only in complete Cell constraints."""
+    records={}; identity=None
+    for name,path in paths.items():
+        r,w=load(path/'report.json'),load(path/'workflow.json');g=r['gpu']
+        if not exact(r.get('same_commit_verification')) or not r.get('benchmark_finished'):
+            raise ValueError('unverified graph: '+name)
+        if g['cells'].get('profile') is not True or bool(g['cells'].get('binding_connections') or g['cells'].get('binding_ranges')) != (name=='after'):
+            raise ValueError('incorrect connection/profile switch: '+name)
+        key=[w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],w['policy'],
+             r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],
+             g.get('cell_query_reuse'),bool(g.get('saturation_diagnostics')),
+             (g.get('saturation_diagnostics') or {}).get('joint',{}).get('stats'),
+             [g['cells'].get(k) for k in ['refutation','refutation_signatures','refutation_domains','query_routing']]]
+        if identity is None:identity=key
+        elif key!=identity:raise ValueError('input, binary, routing, Cell service or refutation differs')
+        work=g['cell_work'];seeds=work['eligible_seeds']
+        records[name]=dict(directory=str(path),provenance=w,work=work,
+             rejection_rate=work['refuted_seeds']/seeds if seeds else None,
+             cell_interface={k:g['cells'].get(k) for k in ['binding_connections','binding_ranges','connection_sources','range_sources','range_checks']},
+             summary_bytes=g.get('device',{}).get('refutation_domain_bytes'),
+             exact_same_commit=r['same_commit_verification'])
+    a,b=[load(paths[k]/'report.json')['gpu'] for k in ['before','after']]
+    for field in ['cell_query_rules','cell_query_bindings']:
+        if a['runtime'][field]!=b['runtime'][field]:raise ValueError('Cell query routing changed')
+    ar={(q['ruleset'],q['rule']):q['stats'] for q in a['rules']}
+    br={(q['ruleset'],q['rule']):q['stats'] for q in b['rules']}
+    if ar.keys()!=br.keys():raise ValueError('rule universe changed')
+    for g,rules in [(a,ar),(b,br)]:
+        if len(rules)!=len(g['rules']):raise ValueError('duplicate rule identity')
+        for field in ['eligible_seeds','refuted_seeds','productive_seeds']:
+            work=g['cell_work'][field]
+            if type(work) is not int or work<0 or sum(q[field] for q in rules.values())!=work:
+                raise ValueError('per-rule seed accounting differs')
+        if g['cell_work']['refuted_seeds']+g['cell_work']['productive_seeds']>g['cell_work']['eligible_seeds']:
+            raise ValueError('seed outcomes overlap')
+    for q in ar:
+        for field in ['eligible_seeds','productive_seeds']:
+            if ar[q][field]!=br[q][field]:raise ValueError('seed cohort counts differ; inspect retries/anchor routing')
+    return dict(scope='Actual GPU runtime, Cell connection ablation. Same per-rule seed counts, not proof of identical individual seeds. Profiled time is not speedup evidence.',records=records,query_mix=[])
+
+def join_depth_report(paths, connection_pair=False):
     """Depth is matched non-anchor atoms; loops/branches are not probabilities."""
-    result=interaction_report(paths)
+    result=connection_pair_report(paths) if connection_pair else interaction_report(paths)
     required={'entries','link_visits','live_rows','prefixes','key_checks','refutations',
               'matched_leaves','domain_checks','signature_refutations','deepest_seeds'}
     parsed={}; depths={}; fields=None
     for name,path in paths.items():
         g=load(path/'report.json')['gpu']; names=g.get('join_depth_fields',[])
-        if set(names)!=required or len(names)!=len(required):
-            raise ValueError('missing full Join depth schema; collect layout 14 profile: '+name)
+        if not required<=set(names) or len(names)!=len(set(names)) or set(names)-required-{"connection_checks","connection_refutations","connection_unknown","range_checks","range_refutations"}:
+            raise ValueError('missing full Join depth schema; collect layout 14+ profile: '+name)
         if fields is None: fields=names
         elif fields!=names: raise ValueError('depth schema/order differs')
         rules={}; totals=[]
@@ -335,8 +376,10 @@ def join_depth_report(paths):
         # retain all attempts. The compact-path counters are authoritative here.
         result['records'][name]['compact_probe_attempts']=sum(r['entries'] for r in totals[1:])
         result['records'][name]['legacy_final_attempt_probes']=work['join_probes']
-        if sum(r['refutations'] for r in totals)!=work['refuted_branches']+work['domain_refuted_branches']:
+        if sum(r['refutations'] for r in totals)!=work['refuted_branches']+work['domain_refuted_branches']+work.get('connection_refutations',0)+work.get('range_refutations',0):
             raise ValueError('depth refutation totals differ')
+        for f in ['connection_checks','connection_refutations','connection_unknown','range_checks','range_refutations']:
+            if f in names and sum(r[f] for r in totals)!=work.get(f,0):raise ValueError('depth totals differ: '+f)
         seeds=work['eligible_seeds']; visits=work['join_live_row_visits']; rejects=sum(r['refutations'] for r in totals)
         bins=[]
         for d,row in enumerate(totals):
@@ -373,7 +416,7 @@ def join_depth_report(paths):
     result.update(depth_fields=fields,depths=depths,depth_contrasts={
         'cell_effect_with_refutation':contrast('s0r1','s1r1'),
         'refutation_effect_with_cell':contrast('s1r0','s1r1'),
-        'refutation_effect_without_cell':contrast('s0r0','s0r1')})
+        'refutation_effect_without_cell':contrast('s0r0','s0r1')} if not connection_pair else {'connection_effect':contrast('before','after')})
     result['depth_scope']='Actual compact GPU Join. Depth 0 is a valid multi-atom anchor; depth d attempts the d-th non-anchor atom. Deepest-seed bins count each seed evaluation once, including retries. Entry counts can exceed seed counts due to branching; they are not reach probabilities.'
     return result
 
@@ -388,6 +431,9 @@ def parser():
         for name in ['s0r0','s0r1','s1r0','s1r1']: q.add_argument('--'+name,type=Path,required=True)
         q.add_argument('--sat-only',type=Path);q.add_argument('--output',type=Path)
         if mode=='depth':q.add_argument('--csv',type=Path)
+    q = sub.add_parser('depth-pair',help='fixed Cell routing, complete-connection off/on comparison')
+    q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
+    q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
     q = sub.add_parser('history', help='reuse historical evidence; no build or execution')
     q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
     q.add_argument('--policy', choices=['stable', 'original'], default='stable')
@@ -516,21 +562,21 @@ def main(argv=None):
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
     if a.mode == 'report': report(resolve(a.input)); return 0
-    if a.mode in ['interaction','depth']:
-        paths={name:resolve(getattr(a,name)) for name in ['s0r0','s0r1','s1r0','s1r1']}
-        if a.sat_only: paths['sat-only']=resolve(a.sat_only)
-        result=join_depth_report(paths) if a.mode=='depth' else interaction_report(paths)
+    if a.mode in ['interaction','depth','depth-pair']:
+        paths={name:resolve(getattr(a,name)) for name in (['before','after'] if a.mode=='depth-pair' else ['s0r0','s0r1','s1r0','s1r1'])}
+        if getattr(a,'sat_only',None): paths['sat-only']=resolve(a.sat_only)
+        result=join_depth_report(paths,a.mode=='depth-pair') if a.mode.startswith('depth') else interaction_report(paths)
         print('读取已有计数，不重新执行；不使用带计数器的时间证明加速。')
         for name,r in result['records'].items():
             print(name, 'candidate row visits:',r['work']['join_live_row_visits'], 'seed rejection:',f"{100*r['rejection_rate']:.3f}%" if r['rejection_rate'] is not None else 'N/A')
         print('固定规则权重的比较：',json.dumps([{k:v for k,v in m.items() if k not in ['removed','changed_common']} for m in result['query_mix']],ensure_ascii=False))
-        if a.mode=='depth':
+        if a.mode.startswith('depth'):
             for name,rows in result['depths'].items():
                 print(name,'depth / loop entries / row visits / refutations / reach probability')
                 for row in rows:
                     if row['entries'] or row['refutations']:
                         print(row['depth'],row['entries'],row['live_rows'],row['refutations'],row['reach_probability'])
-        if a.mode=='depth' and a.csv and not a.dry_run:
+        if a.mode.startswith('depth') and a.csv and not a.dry_run:
             dest=resolve(a.csv);dest.parent.mkdir(parents=True,exist_ok=True)
             names=['configuration','depth']+result['depth_fields']+['reach_probability','deepest_seed_probability','refutation_event_share','row_visit_share','rejection_rate_given_prefix','entries_per_seed']
             with dest.open('x',newline='') as f:

@@ -6,7 +6,7 @@
 bool anchor_matches(device const uint* code,device uint* rows,uint cp,uint row){
  if(!R(row,1))return false;uint m=CELL_META+cp*6,q=code[m],a=code[m+1];
  uint v[S],lo[S],hi[S],b[S];for(uint i=0;i<S;i++)v[i]=lo[i]=hi[i]=b[i]=0;
- return bind_atom(code,rows,q,a,row,v,lo,hi,b);
+ return bind_atom(code,rows,q,a,row,v,lo,hi,b,!CELL_CONNECTIONS);
 }
 kernel void family_cell_retire_count(CTX,uint lane [[thread_position_in_grid]]){
  if(lane>=cfg[2])return;uint row=packet[4+4*cfg[3]+lane*(1+RS)],prev=NO;

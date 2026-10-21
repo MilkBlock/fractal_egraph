@@ -394,8 +394,7 @@ fn benchmark_reusing_controls(base:&EGraph,commands:&[Command],worker:&Path,dest
     let joint=hook.is_some();
     select_cached_controls(&mut report,joint)?;
     for name in ["native","cpu"].into_iter().chain(joint.then_some("gpu-off")) {if !directory.join(format!("graphs/{name}.control.json")).is_file(){return Err("cached control lacks exact facts/anchors; generate one complete reference first".into())}}
-    let mut runtime=Runtime::new_full(base.clone(),commands,Some(worker),checked,Some(selected))?;
-    if let Some(hook)=hook {runtime.set_saturation_hook(hook);}
+    let mut runtime=Runtime::new_full_assisted(base.clone(),commands,Some(worker),checked,Some(selected),hook)?;
     runtime.run(commands)?;
     for (name,field) in [("native","verification"),("cpu","same_commit_verification")].into_iter().chain(joint.then_some(("gpu-off","joint_verification"))) {
         let proof=equal_control(&directory.join(format!("graphs/{name}.control.json")),base,runtime.engine());
@@ -471,8 +470,9 @@ fn benchmark_impl(
     let t = Instant::now();
     let copy = base.clone();
     let gpu_clone = t.elapsed().as_secs_f64();
+    let mut hook=hook;
     let mut runtime = if full_queries {
-        Runtime::new_full(copy,commands,Some(worker),checked,selected)?
+        Runtime::new_full_assisted(copy,commands,Some(worker),checked,selected,hook.take())?
     } else if let Some(sets) = selected {
         Runtime::new_hybrid(copy, commands, Some(worker), checked, sets)?
     } else {
