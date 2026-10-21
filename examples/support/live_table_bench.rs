@@ -11,6 +11,17 @@ use std::{
     time::Instant,
 };
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+/// Library affects only the candidate; native/CPU controls never load it.
+pub fn full_candidate(base:EGraph, commands:&[Command], worker:Option<&Path>, checked:bool, selected:Option<&[String]>, hook:Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>)->Result<Runtime>{
+    let analysis=std::env::var_os("CELL_BENCH_ANALYSIS").map(std::path::PathBuf::from);
+    Runtime::new_full_configured(base, commands, worker, checked, selected, hook,
+        cell_assisted_egglog::table_live::Options {
+            analysis:analysis.as_deref(),
+            plan_only:std::env::var("CELL_BENCH_ANALYSIS_PLAN_ONLY").as_deref()==Ok("1"),
+            ..Default::default()
+        })
+}
+
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize)]
 enum Atom {
     Eq(String, u32),
@@ -394,7 +405,7 @@ fn benchmark_reusing_controls(base:&EGraph,commands:&[Command],worker:&Path,dest
     let joint=hook.is_some();
     select_cached_controls(&mut report,joint)?;
     for name in ["native","cpu"].into_iter().chain(joint.then_some("gpu-off")) {if !directory.join(format!("graphs/{name}.control.json")).is_file(){return Err("cached control lacks exact facts/anchors; generate one complete reference first".into())}}
-    let mut runtime=Runtime::new_full_assisted(base.clone(),commands,Some(worker),checked,Some(selected),hook)?;
+    let mut runtime=full_candidate(base.clone(),commands,Some(worker),checked,Some(selected),hook)?;
     runtime.run(commands)?;
     for (name,field) in [("native","verification"),("cpu","same_commit_verification")].into_iter().chain(joint.then_some(("gpu-off","joint_verification"))) {
         let proof=equal_control(&directory.join(format!("graphs/{name}.control.json")),base,runtime.engine());
@@ -472,7 +483,7 @@ fn benchmark_impl(
     let gpu_clone = t.elapsed().as_secs_f64();
     let mut hook=hook;
     let mut runtime = if full_queries {
-        Runtime::new_full_assisted(copy,commands,Some(worker),checked,selected,hook.take())?
+        full_candidate(copy,commands,Some(worker),checked,selected,hook.take())?
     } else if let Some(sets) = selected {
         Runtime::new_hybrid(copy, commands, Some(worker), checked, sets)?
     } else {

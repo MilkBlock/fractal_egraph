@@ -774,6 +774,7 @@ final class FamilyExecutor {
      // Overflow cancels this attempt and requests lossless buffer growth.
      encode("family_shape_scatter",1,work,12*4)
     }
+    if portWork {encode("family_port_dispatch",1,work);encode(locality>0 ? "family_port_locality" : "family_port_join",1,work,32)}
     encode("family_unit",n,work)
     for g in activeShapes {encode("family_shape_\(g)",1,work,(28+g*6+1)*4)}
    } else if routingMode>0 {

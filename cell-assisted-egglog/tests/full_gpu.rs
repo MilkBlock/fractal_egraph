@@ -422,3 +422,31 @@ fn empty_nullary_relation_is_required_and_pruning_preserves_frozen_run_boundarie
     r.input("(delete (Ready)) (Gate 2)").unwrap();r.run(&commands).unwrap();check(&r,"(fail (check (Hit 2)))");
     r.input("(Ready)").unwrap();r.run(&commands).unwrap();check(&r,"(check (Hit 2))");
 }
+
+#[test]
+fn analyzed_structural_projection_coexists_with_full_numeric_queries() {
+    let Some(worker) = worker() else { return };
+    let mut eg=EGraph::default();
+    eg.parse_and_run_program(None, r#"
+      (datatype Expr (Leaf i64) (Single Expr) (Get Expr i64))
+      (relation Out (Expr)) (relation Num (i64)) (relation Done (i64))
+      (ruleset s)
+      (rule ((= y (Single x)) (= z (Get y 0))) ((Out z)) :ruleset s :name "structure")
+      (rule ((Num n) (> n 0)) ((Done (+ n 1))) :ruleset s :name "numeric")
+      (union (Get (Single (Leaf 9)) 0) (Leaf 9)) (Num 4)
+    "#).unwrap();
+    let cmds=eg.parse_program(None,"(run s 1)").unwrap();
+    let lib=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/analyze");
+    for plan_only in [false,true] {
+        let mut r=Runtime::new_full_configured(eg.clone(),&cmds,Some(&worker),true,None,None,
+            cell_assisted_egglog::table_live::Options{analysis:Some(&lib),plan_only,..Default::default()}).unwrap();
+        let report=r.report();
+        assert_eq!(report["cells"]["compact_binding_workspace"],true);
+        assert!(!report["cells"]["projection_queries"].as_array().unwrap().is_empty());
+        assert!(!report["cells"]["projection_fallback_queries"].as_array().unwrap().is_empty());
+        r.run(&cmds).unwrap();check(&r,"(check (Out (Leaf 9))) (check (Done 5))");
+        r.input("(subsume (Get (Single (Leaf 9)) 0)) (Num 5)").unwrap();r.run(&cmds).unwrap();
+        r.input("(union (Get (Single (Leaf 8)) 0) (Leaf 8)) (union (Leaf 9) (Leaf 8))").unwrap();r.run(&cmds).unwrap();
+        check(&r,"(check (Out (Leaf 8))) (check (Done 6))");
+    }
+}

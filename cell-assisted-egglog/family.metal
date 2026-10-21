@@ -59,6 +59,19 @@ bool bind_atom(device const uint* code,device uint* rows,uint q,uint part,uint r
    v[s]=x;lo[s]=R(row,4+C+2*col);hi[s]=R(row,5+C+2*col);bound[s]=1;}
  }return !check || primitive_constraints(code,q,v,lo,hi,bound,false);
 }
+// Cell projections and ordinary queries share the table index key encoding,
+// including raw i64 words when another query in this batch uses primitives.
+uint query_index_hash(device const uint* code,uint q,uint t,uint sp,thread const uint* v,thread const uint* lo,thread const uint* hi){
+ uint at=SPEC+sp*(2+C),atom=ATOM+(q*P+t)*(2+2*C),h=0x31415926u;
+ for(uint j=0;j<code[at+1];j++){
+  uint col=code[at+2+j],kind=code[atom+2+2*col],slot=code[atom+3+2*col];
+  if(HAS_PRIMITIVES && code[TABLE_I64+code[at]*C+col]){
+   uint lit=ATOM_LITERAL+(q*P+t)*2*C+2*col;
+   h=mixkey(h^(kind?code[lit]:lo[slot]));h=mixkey(h^(kind?code[lit+1]:hi[slot]));
+  }else h=mixkey(h^(kind?slot:v[slot]));
+ }
+ return h;
+}
 // Only observed anchor bindings have a record. No row x plan address space.
 uint cell_lookup(device const uint* rowCells,device const uint* instanceMeta,uint row,uint cp){
  for(uint id=rowCells[row];id!=NO;id=instanceMeta[id*3+2])if(instanceMeta[id*3+1]==cp)return id;

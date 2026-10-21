@@ -277,10 +277,15 @@ impl Runtime {
     /// Install Cell wiring before shader compilation. The observer and GPU
     /// consume the same committed event stream; ordinary Run order is unchanged.
     pub fn new_full_assisted(eg:EGraph,commands:&[Command],worker:Option<&Path>,audit:bool,selected:Option<&[String]>,hook:Option<Box<dyn SaturationHook>>)->Result<Self>{
+        Self::new_full_configured(eg, commands, worker, audit, selected, hook, Options::default())
+    }
+    /// Analyze projections and source-compiled observers are independent inputs.
+    pub fn new_full_configured(eg:EGraph, commands:&[Command], worker:Option<&Path>, audit:bool, selected:Option<&[String]>, hook:Option<Box<dyn SaturationHook>>, mut options:Options<'_>)->Result<Self>{
+        options.query_routing=QueryRouting::TableAnchors;
         let connections=hook.as_ref().map(|h|h.binding_connections());
         let enabled=std::env::var("CELL_BINDING_CONNECTIONS").as_deref()==Ok("1") || std::env::var("CELL_BINDING_RANGES").as_deref()==Ok("1");
         let sets=selected.map(|s|s.iter().cloned().collect());
-        let mut r=Self::create(eg,commands,worker,audit,Options {query_routing:QueryRouting::TableAnchors,profile:std::env::var("CELL_SEARCH_COUNTERS").as_deref()==Ok("1"),..Options::default()},sets.as_ref(),true,connections.as_ref().filter(|c|enabled&&!c.is_empty()))?;
+        let mut r=Self::create(eg,commands,worker,audit,{options.profile |= std::env::var("CELL_SEARCH_COUNTERS").as_deref()==Ok("1"); options},sets.as_ref(),true,connections.as_ref().filter(|c|enabled&&!c.is_empty()))?;
         if let Some(hook)=hook {r.set_saturation_hook(hook);}
         Ok(r)
     }
@@ -493,7 +498,7 @@ impl Runtime {
             config["phase_timing"]=json!(runtime.query_timing);
             config["port_locality"] = json!(options.port_locality as u32);
             config["query_routing"] = json!(options.query_routing as u32);
-            runtime.cell_evidence = json!({"binding_ranges":config["binding_ranges"],"range_checks":config["range_checks"],"range_sources":config["range_sources"],"binding_connections":config["binding_connections"],"connection_sources":connections.map(|c|c.len()).unwrap_or(0),"refutation_signatures":config["refutation_signatures"],"refutation_domains":config["refutation_domains"],"domain_checks":config["domain_checks"],"domain_summaries":config["domain_tables"].as_array().map(Vec::len),"refutation":config["refutation"],"refutation_checks":config["refutation_checks"],"staged_constraints":config["staged_constraints"],"compact_binding_workspace":config["compact_binding_workspace"]==true && matches!(options.query_routing,QueryRouting::TableAnchors),"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
+            runtime.cell_evidence = json!({"binding_ranges":config["binding_ranges"],"range_checks":config["range_checks"],"range_sources":config["range_sources"],"binding_connections":config["binding_connections"],"connection_sources":connections.map(|c|c.len()).unwrap_or(0),"refutation_signatures":config["refutation_signatures"],"refutation_domains":config["refutation_domains"],"domain_checks":config["domain_checks"],"domain_summaries":config["domain_tables"].as_array().map(Vec::len),"refutation":config["refutation"],"refutation_checks":config["refutation_checks"],"staged_constraints":config["staged_constraints"],"compact_binding_workspace":config["compact_binding_workspace"]==true && matches!(options.query_routing,QueryRouting::TableAnchors),"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"projection_queries":config["projection_queries"],"projection_fallback_queries":config["projection_fallback_queries"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             runtime.gpu_optimizations=json!({"empty_table_pruning":config["empty_table_pruning"]});
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;

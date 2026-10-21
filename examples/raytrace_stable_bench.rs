@@ -103,7 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !all {
             return Err("--audit-only currently requires --all-rules".into());
         }
-        let mut r = cell_assisted_egglog::table_live::Runtime::new_full_assisted(
+        let mut r = bench::full_candidate(
             eg,
             &commands,
             Some(Path::new(&a[1])),

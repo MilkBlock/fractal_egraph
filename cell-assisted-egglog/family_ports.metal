@@ -46,7 +46,7 @@ void port_query(PORT_ARGS,uint qi,uint cp,uint e,uint stamp,thread const uint* c
  while(depth>=0){
   uint plan=PORT_PLAN+(q*P+uint(depth))*2,t=code[plan],sp=code[plan+1],atom=ATOM+(q*P+t)*(2+2*C);
   if(!started[depth]){
-   uint at=SPEC+sp*(2+C),h=0x31415926u;for(uint j=0;j<code[at+1];j++){uint col=code[at+2+j],kind=code[atom+2+2*col],s=code[atom+3+2*col];h=mixkey(h^(kind?s:val[depth][s]));}
+   uint h=query_index_hash(code,q,t,sp,val[depth],low[depth],high[depth]);
    cursor[depth]=atomic_load_explicit(heads+index_head(packet,cfg,sp,h),memory_order_relaxed);started[depth]=1;
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+15,1,memory_order_relaxed);
   }

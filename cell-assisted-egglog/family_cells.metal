@@ -20,7 +20,7 @@ kernel void family_cells(CTX,uint id [[thread_position_in_grid]]){
  if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+5,1,memory_order_relaxed);
  for(uint j=0;j<k;j++){
   uint step=CELL_STEP+(cp*(P-1)+j)*2,t=code[step],sp=code[step+1],atom=ATOM+(q*P+t)*(2+2*C),at=SPEC+sp*(2+C),h=0x31415926u;
-  for(uint c=0;c<code[at+1];c++){uint col=code[at+2+c],kind=code[atom+2+2*col],slot=code[atom+3+2*col];h=mixkey(h^(kind?slot:v[slot]));}
+  h=query_index_hash(code,q,t,sp,v,lo,hi);
   uint bucket=index_head(packet,cfg,sp,h),head=atomic_load_explicit(heads+bucket,memory_order_relaxed),chosen=NO;
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+9,1,memory_order_relaxed);
   for(uint e=head;e!=NO;e=links[index_link(code,events,e,sp)]){

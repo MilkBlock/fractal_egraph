@@ -37,7 +37,6 @@ pub fn compile(
     let s = sinks.iter().map(|q| q.device_slots()).max().unwrap_or(1).max(1);
     let np = sinks.iter().map(|q|q.primitives.len()).max().unwrap_or(0).max(1);
     let computed = sinks.iter().any(|q|!q.primitives.is_empty());
-    if computed && cells.is_some(){return Err("full primitive Cell projections require an extended certificate".into())}
     let g = sinks
         .iter()
         .map(|q| q.guards.len())
@@ -91,7 +90,7 @@ pub fn compile(
             }else{primitives.extend([0;10]);}
         }
         let mut local_pairs = BTreeSet::new();
-        if let Some(lib) = cells {
+        if let Some(lib) = cells.filter(|_| q.primitives.is_empty()) {
             for i in 0..q.atoms.len() {
                 for j in 0..q.atoms.len() {
                     if i != j && !lib.alternatives(q, &[i, j]).is_empty() {
@@ -248,7 +247,7 @@ pub fn compile(
                 } else {
                     &[]
                 };
-                let found = cells.and_then(|lib| {
+                let found = cells.filter(|_| q.primitives.is_empty()).and_then(|lib| {
                     let mut longest = None;
                     for n in 2..=order.len() {
                         let alts = lib.alternatives(q, &order[..n]);
@@ -557,7 +556,11 @@ pub fn compile(
         let schedules = (0..q.atoms.len()).map(|anchor| {
             constraint_schedule::stages(q, &orders[qi*p+anchor])
         }).collect::<Option<Vec<_>>>();
-        let enabled = schedules.is_some() && !q.atoms.is_empty();
+        // Only structural queries with an actual projection use the certificate
+        // executor. Keep the same backend in plan-only ablations; all other
+        // queries retain compact bindings, staged guards and refutation.
+        let enabled = schedules.is_some() && !q.atoms.is_empty()
+            && !(cells.is_some() && drivers[qi].is_some());
         staged_queries.push(u32::from(enabled));
         for anchor in 0..p {
             let states = schedules.as_ref().and_then(|x| x.get(anchor)).map(|x| {
@@ -588,10 +591,9 @@ pub fn compile(
             }
         }
     }
-    let staged_constraints = computed && !(certificates && !cell_specs.is_empty() && !connection_mode) &&
+    let staged_constraints = computed &&
         std::env::var("CELL_STAGED_CONSTRAINTS").as_deref()!=Ok("0");
-    let compact_bindings = !(certificates && !cell_specs.is_empty() && !connection_mode) &&
-        (staged_constraints || !computed) &&
+    let compact_bindings = (staged_constraints || !computed) &&
         std::env::var("CELL_COMPACT_BINDINGS").as_deref()!=Ok("0");
     let refutation_enabled = table_routes && compact_bindings && std::env::var("CELL_REFUTATION").as_deref()!=Ok("0");
     let refutation_count = refutation_checks.len()/2;
@@ -766,6 +768,6 @@ pub fn compile(
         shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n if(COMPACT_BINDINGS)family_execute_compact<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2]);else family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
     }
     Ok(
-        json!({"version":2,"family_layout":16,"empty_table_pruning":std::env::var("EGGLOG_GPU_EMPTY_TABLE_PRUNING").as_deref()!=Ok("0"),"query_tables":sinks.iter().map(|q|q.atoms.iter().map(|a|tids[&a.function]).collect::<BTreeSet<_>>()).collect::<Vec<_>>(),"binding_connections":connection_mode,"binding_ranges":ranges_enabled,"range_checks":range_check_count,"range_sources":range_sources,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":16,"empty_table_pruning":std::env::var("EGGLOG_GPU_EMPTY_TABLE_PRUNING").as_deref()!=Ok("0"),"query_tables":sinks.iter().map(|q|q.atoms.iter().map(|a|tids[&a.function]).collect::<BTreeSet<_>>()).collect::<Vec<_>>(),"binding_connections":connection_mode,"binding_ranges":ranges_enabled,"range_checks":range_check_count,"range_sources":range_sources,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"projection_queries":sinks.iter().enumerate().filter_map(|(i,_)| (cells.is_some() && drivers[i].is_some()).then_some(i)).collect::<Vec<_>>(),"projection_fallback_queries":sinks.iter().enumerate().filter_map(|(i,q)| (cells.is_some() && !q.primitives.is_empty()).then_some(i)).collect::<Vec<_>>(),"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }
