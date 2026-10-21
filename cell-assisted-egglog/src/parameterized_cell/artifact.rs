@@ -100,6 +100,7 @@ impl Program {
                 Access::Output => {
                     eg.cell_sort_is_equality(&a.sorts[n])? && known(&a.columns[n], &bound)
                 }
+                Access::Columns(_)=>return Err("partial-key boundary programs require their source selector, not a v1 transfer artifact".into()),
             };
             if !valid {
                 return Err(format!("unbound transfer read in {}", self.rule).into());

@@ -852,7 +852,8 @@ impl Runtime {
             .map(|p| (p.name.clone(), p.constructor.clone()))
             .collect();
         let scalar = super::scalar::discover(&eg, &commands);
-        let mut r = Self::new_with_scalar(eg, SETS, &seeds, scalar)?;
+        let boundaries=super::boundary::load()?;
+        let mut r = Self::new_with_boundaries(eg, SETS, &seeds, scalar, None, &boundaries)?;
         for id in &r.sets[SETS[2]] {
             let k = &mut r.kernels[*id];
             if k.sink.atoms[k.seed].function == "Smaller" {
@@ -898,10 +899,12 @@ impl crate::table_live::SaturationHook for Observer {
         out
     }
     fn query_cells(&mut self,eg:&mut EGraph,set:&str,sinks:&[&CellActionSink])->Result<Vec<(usize,Vec<Vec<Value>>) >> {
-        if !self.0.scalar.contains_key(set){return Ok(vec![])}
+        if !self.0.scalar.contains_key(set) && !self.0.boundary.contains_key(set){return Ok(vec![])}
         self.with(eg,|r|{
             if r.eg.cell_rule_environment_stamp()!=r.identity{return Ok(vec![])}
-            r.query_scalar(set,sinks)
+            let mut out=if r.scalar.contains_key(set){r.query_scalar(set,sinks)?}else{vec![]};
+            if r.boundary.contains_key(set){out.extend(r.query_boundary(set,sinks)?)}
+            Ok(out)
         })
     }
 

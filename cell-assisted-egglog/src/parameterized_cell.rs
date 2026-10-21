@@ -19,6 +19,7 @@ pub mod artifact;
 pub mod joint;
 mod comparison;
 mod scalar;
+pub mod boundary;
 
 type Key = SmallVec<[Value; 4]>;
 type Binding = SmallVec<[Option<Value>; 16]>;
@@ -26,6 +27,7 @@ type Binding = SmallVec<[Option<Value>; 16]>;
 enum Read {
     Key(usize, Key),
     Output(usize, Value),
+    Columns(usize, u64, Key),
 }
 type Reads = SmallVec<[Read; 4]>;
 #[derive(Clone, PartialEq, Eq)]
@@ -71,11 +73,28 @@ impl PartialEq for TableRows {
 }
 impl Eq for TableRows {}
 #[derive(Default, PartialEq, Eq)]
+struct ProjectedRows { by_stamp:BTreeMap<u32,BTreeSet<Key>>, len:usize }
+impl ProjectedRows {
+    fn insert(&mut self,stamp:u32,key:Key){if self.by_stamp.entry(stamp).or_default().insert(key){self.len+=1;}}
+    fn remove(&mut self,stamp:u32,key:&Key){
+        if let Some(keys)=self.by_stamp.get_mut(&stamp){
+            if keys.remove(key){self.len-=1;}
+            if keys.is_empty(){self.by_stamp.remove(&stamp);}
+        }
+    }
+    fn keys(&self,since:u32)->impl Iterator<Item=&Key>{self.by_stamp.range(since..).flat_map(|(_,keys)|keys.iter())}
+}
+#[derive(Default, PartialEq, Eq)]
 struct Rows {
     keys: TableRows,
     outputs: FxHashMap<(usize, Value), BTreeSet<Key>>,
     hidden: BTreeSet<(usize, Key)>,
     reverse: BTreeSet<usize>,
+    projections: BTreeSet<(usize,u64)>,
+    projected: FxHashMap<(usize,u64,Key),ProjectedRows>,
+}
+fn projected_key(row:&[Value], mask:u64)->Key {
+    row.iter().enumerate().filter_map(|(i,v)|(i<64 && mask&(1u64<<i)!=0).then_some(*v)).collect()
 }
 impl Rows {
     // Traversals used for closure construction retain their previous exact
@@ -95,6 +114,20 @@ impl Rows {
             return vec![];
         }
         let mut reads = vec![Read::Key(table, key.clone())];
+        for &(t,mask) in self.projections.range((table,0)..=(table,u64::MAX)) {
+            if let Some(old)=self.keys.get(&id) {
+                let k=projected_key(&old.values,mask);
+                let bucket=self.projected.get_mut(&(t,mask,k.clone())).unwrap();
+                bucket.remove(old.stamp,&key);
+                if bucket.len==0{self.projected.remove(&(t,mask,k.clone()));}
+                reads.push(Read::Columns(t,mask,k));
+            }
+            if let Some(new)=&row {
+                let k=projected_key(&new.values,mask);
+                self.projected.entry((t,mask,k.clone())).or_default().insert(new.stamp,key.clone());
+                reads.push(Read::Columns(t,mask,k));
+            }
+        }
         if let Some(old) = self
             .keys
             .remove(&id)
@@ -123,6 +156,7 @@ impl Rows {
 enum Access {
     Key,
     Output,
+    Columns(u64),
 }
 /// Confirmed ports on the single-path prefix of one live seed. Immutable rows are shared
 /// with the current mirror, not copied into an application history. An output
@@ -172,6 +206,8 @@ struct Kernel {
     reused_reads: usize,
     index_reads: usize,
     resumed_seeds: usize,
+    rows_examined: std::cell::Cell<usize>,
+    delta_rows_skipped: std::cell::Cell<usize>,
 }
 fn known(o: &CellOperand, b: &[bool]) -> bool {
     match o {
@@ -289,6 +325,8 @@ impl Kernel {
             reused_reads: 0,
             index_reads: 0,
             resumed_seeds: 0,
+            rows_examined: std::cell::Cell::new(0),
+            delta_rows_skipped: std::cell::Cell::new(0),
         }
     }
     fn wake(&mut self, read: &Read) {
@@ -325,6 +363,20 @@ impl Kernel {
         self.read_program_reusing(
             eg, rows, step, b, stamp, watermark, deps, out, lookups, rejections, None, &mut 0,
         )
+    }
+    fn read_keys<'a>(&self,eg:&EGraph,rows:&Rows,keys:impl Iterator<Item=&'a Key>,table:usize,
+        step:usize,b:&Binding,stamp:u32,watermark:u32,deps:&mut Reads,out:&mut Vec<Vec<Value>>,
+        lookups:&mut usize,rejections:&mut usize)->Result<()> {
+        let a=&self.sink.atoms[self.steps[step].0];
+        for key in keys {
+            let row=&rows.keys[&(table,key.clone())];
+            self.rows_examined.set(self.rows_examined.get()+1);
+            let mut next=b.clone();
+            if unify(&a.columns,&row.values,&mut next){
+                self.read_program(eg,rows,step+1,next,stamp.max(row.stamp),watermark,deps,out,lookups,rejections)?;
+            }
+        }
+        Ok(())
     }
     fn read_program_reusing(
         &self,
@@ -368,6 +420,8 @@ impl Kernel {
                     Read::Key(table, a.columns[..n].iter().map(|x| value(x, &b)).collect())
                 }
                 Access::Output => Read::Output(table, value(&a.columns[n], &b)),
+                Access::Columns(mask)=>Read::Columns(table,mask,a.columns.iter().enumerate().filter_map(|(i,o)|
+                    (mask&(1u64<<i)!=0).then(||value(o,&b))).collect()),
             };
             deps.push(read.clone());
             // Committed notifications invalidate changed ports. Recompute the
@@ -384,6 +438,7 @@ impl Kernel {
                 if old_read == &read {
                     *reused += 1;
                     let Some(row) = row else { return Ok(()) };
+                    self.rows_examined.set(self.rows_examined.get()+1);
                     if !unify(&a.columns, &row.values, &mut b) {
                         return Ok(());
                     }
@@ -393,10 +448,28 @@ impl Kernel {
                 }
             }
             *lookups += 1;
+            if let Read::Columns(_,mask,key)=&read {
+                if step+1==self.steps.len() && stamp<watermark {
+                    // Every preceding witness is old. Only the terminal port's
+                    // delta can create a new binding. Do not cache this filtered
+                    // subset as if it were the complete current port.
+                    if let Some(p)=path.as_mut(){p.visited=step;}
+                    if let Some(bucket)=rows.projected.get(&(table,*mask,key.clone())) {
+                        let mut visited=0;
+                        for key in bucket.keys(watermark) {
+                            visited+=1;self.rows_examined.set(self.rows_examined.get()+1);
+                            let row=&rows.keys[&(table,key.clone())];let mut next=b.clone();
+                            if unify(&a.columns,&row.values,&mut next){self.read_program(eg,rows,step+1,next,stamp.max(row.stamp),watermark,deps,out,lookups,rejections)?;}
+                        }
+                        self.delta_rows_skipped.set(self.delta_rows_skipped.get()+bucket.len-visited);
+                    }
+                    return Ok(());
+                }
+            }
             let row = match &read {
                 Read::Key(_, k) => rows.keys.get(&(table, k.clone())),
-                Read::Output(_, v) => {
-                    let Some(keys) = rows.outputs.get(&(table, *v)) else {
+                Read::Output(_,v) => {
+                    let Some(keys) = rows.outputs.get(&(table,*v)) else {
                         if let Some(p) = path.as_mut() {
                             p.save(step, read, None);
                         }
@@ -408,24 +481,19 @@ impl Kernel {
                         if let Some(p) = path.as_mut() {
                             p.visited = step;
                         }
-                        for key in keys {
-                            let row = &rows.keys[&(table, key.clone())];
-                            let mut next = b.clone();
-                            if unify(&a.columns, &row.values, &mut next) {
-                                self.read_program(
-                                    eg,
-                                    rows,
-                                    step + 1,
-                                    next,
-                                    stamp.max(row.stamp),
-                                    watermark,
-                                    deps,
-                                    out,
-                                    lookups,
-                                    rejections,
-                                )?;
-                            }
-                        }
+                        self.read_keys(eg,rows,keys.iter(),table,step,&b,stamp,watermark,deps,out,lookups,rejections)?;
+                        return Ok(());
+                    }
+                }
+                Read::Columns(_,mask,key)=>{
+                    let Some(keys)=rows.projected.get(&(table,*mask,key.clone())) else{
+                        if let Some(p)=path.as_mut(){p.save(step,read,None);}
+                        return Ok(());
+                    };
+                    if keys.len==1 {rows.keys.get(&(table,keys.keys(0).next().unwrap().clone()))}
+                    else{
+                        if let Some(p)=path.as_mut(){p.visited=step;}
+                        self.read_keys(eg,rows,keys.keys(0),table,step,&b,stamp,watermark,deps,out,lookups,rejections)?;
                         return Ok(());
                     }
                 }
@@ -434,6 +502,7 @@ impl Kernel {
                 p.save(step, read, row.cloned());
             }
             let Some(row) = row else { return Ok(()) };
+            self.rows_examined.set(self.rows_examined.get()+1);
             if !unify(&a.columns, &row.values, &mut b) {
                 return Ok(());
             }
@@ -584,6 +653,7 @@ pub struct Runtime {
     joint: Option<joint::Joint>,
     comparison: Option<comparison::Scope>,
     scalar: BTreeMap<String, scalar::Group>,
+    boundary: BTreeMap<String,Vec<usize>>,
     forwarded: Option<Vec<CellCommitBatch>>,
     pub last_updated: bool,
     pub stats: Stats,
@@ -604,12 +674,18 @@ impl Runtime {
         Self::new_with_plans(eg, sets, seeds, specs, None)
     }
     fn new_with_plans(
-        mut eg: EGraph,
+        eg: EGraph,
         sets: &[&str],
         seeds: &BTreeMap<String, String>,
         specs: Vec<scalar::Spec>,
         plans: Option<&[artifact::Program]>,
     ) -> Result<Self> {
+        Self::new_with_boundaries(eg,sets,seeds,specs,plans,&[])
+    }
+    fn new_with_boundaries(
+        mut eg:EGraph,sets:&[&str],seeds:&BTreeMap<String,String>,specs:Vec<scalar::Spec>,
+        plans:Option<&[artifact::Program]>,boundaries:&[boundary::Spec],
+    )->Result<Self>{
         let mut sinks = vec![];
         let mut groups = BTreeMap::new();
         let mut names = BTreeSet::new();
@@ -656,6 +732,18 @@ impl Runtime {
                 .filter(|n| !selected.contains(n))
                 .collect();
         }
+        let mut boundary=BTreeMap::<String,Vec<usize>>::new();
+        let mut boundary_seeds=BTreeMap::new();
+        for spec in boundaries {
+            if sinks.iter().any(|s|s.name==spec.rule){return Err("boundary rule is already supplied by a Cell program".into())}
+            let sink=eg.prepare_cell_action(&spec.ruleset,&spec.rule)?;
+            if !eg.cell_query_is_seminaive(&sink) || !sink.primitives.is_empty() || sink.native_residuals {
+                return Err("boundary program requires a seminaive structural query".into())
+            }
+            names.extend(sink.atoms.iter().map(|a|a.function.clone()));
+            boundary_seeds.insert(sinks.len(),spec.root.clone());
+            boundary.entry(spec.ruleset.clone()).or_default().push(sinks.len());sinks.push(sink);
+        }
         let names = names.into_iter().collect::<Vec<_>>();
         if plans.is_some_and(|p| p.len() != sinks.len()) {
             return Err("transfer must cover every installed rule exactly once".into());
@@ -672,7 +760,9 @@ impl Runtime {
                 .get(&id)
                 .or_else(|| seeds.get(&sink.name))
                 .map(String::as_str);
-            if let Some(plans) = plans {
+            if let Some(root)=boundary_seeds.get(&id) {
+                kernels.push(boundary::compile(&eg,sink,tables,root)?);
+            } else if let Some(plans) = plans {
                 let (index, plan) = plans
                     .iter()
                     .enumerate()
@@ -691,6 +781,7 @@ impl Runtime {
         }
         let mut wake_tables = vec![vec![]; names.len()];
         let mut reverse = BTreeSet::new();
+        let mut projections=BTreeSet::new();
         for (id, k) in kernels.iter().enumerate() {
             for table in k.tables.iter().copied().collect::<BTreeSet<_>>() {
                 wake_tables[table].push(id)
@@ -699,6 +790,7 @@ impl Runtime {
                 if matches!(access, Access::Output) {
                     reverse.insert(k.tables[*atom]);
                 }
+                if let Access::Columns(mask)=access {projections.insert((k.tables[*atom],*mask));}
             }
         }
         let identity = eg.cell_rule_environment_stamp();
@@ -712,6 +804,7 @@ impl Runtime {
             feed,
             rows: Rows {
                 reverse,
+                projections,
                 ..Rows::default()
             },
             identity,
@@ -720,6 +813,7 @@ impl Runtime {
             joint: None,
             comparison: None,
             scalar,
+            boundary,
             forwarded: None,
             last_updated: false,
             stats: Stats {
@@ -805,7 +899,7 @@ impl Runtime {
         {
             for read in changed {
                 let table = match &read {
-                    Read::Key(t, _) | Read::Output(t, _) => *t,
+                    Read::Key(t, _) | Read::Output(t, _) | Read::Columns(t,..) => *t,
                 };
                 for id in &self.wake_tables[table] {
                     let k = &mut self.kernels[*id];
@@ -1015,6 +1109,7 @@ impl Runtime {
         // ordinary-Run query provider and made per-Cell reuse misleading.
         let owners = self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|(*id,(set,"dataflow"))))
             .chain(self.scalar.iter().flat_map(|(set,g)|g.plans.iter().map(move |(id,_)|(*id,(set,"scalar_query")))))
+            .chain(self.boundary.iter().flat_map(|(set,ids)|ids.iter().map(move |id|(*id,(set,"boundary_query")))))
             .collect::<BTreeMap<_,_>>();
         let programs=self.kernels.iter().enumerate().map(|(id,k)| {
             let (set,kind)=owners[&id];
@@ -1024,6 +1119,8 @@ impl Runtime {
                 "seed_evaluations":k.executions,"emitted_bindings":k.bindings,
                 "live_seed_instances":k.dependencies.len(),"retired_guard_seeds":k.retired_total,
                 "identity_noop_seeds":k.identity_noops,"index_reads":k.index_reads,
+                "candidate_rows":k.rows_examined.get(),
+                "terminal_delta_rows_skipped":k.delta_rows_skipped.get(),
                 "reused_port_reads":k.reused_reads,"resumed_seed_evaluations":k.resumed_seeds,
                 "stored_port_paths":k.paths.len()})
         }).collect::<Vec<_>>();
