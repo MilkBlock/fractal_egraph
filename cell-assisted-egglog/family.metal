@@ -4,7 +4,7 @@
 #define OS (1+S)
 #define CS (CH+2*CK+3*CF)
 #define CV (CH+2*CK)
-#define CTX device const uint* code [[buffer(0)]],device uint* rows [[buffer(1)]],device uint* events [[buffer(2)]],device uint* links [[buffer(3)]],device atomic_uint* heads [[buffer(4)]],device uint* output [[buffer(5)]],device atomic_uint* counters [[buffer(6)]],constant uint* cfg [[buffer(7)]],device const uint* packet [[buffer(8)]],device uint* cells [[buffer(9)]],device uint* watches [[buffer(10)]],device atomic_uint* wheads [[buffer(11)]],device uint* dirty [[buffer(12)]],device atomic_uint* state [[buffer(13)]],device uint* ports [[buffer(14)]],device uint* previous [[buffer(15)]],device uint* seedQueue [[buffer(16)]],device uint* orderedSeeds [[buffer(17)]],device atomic_uint* routing [[buffer(18)]],device uint* rowCells [[buffer(19)]],device uint* instanceMeta [[buffer(20)]],device uint* freeCells [[buffer(21)]],device atomic_uint* registry [[buffer(22)]]
+#define CTX device const uint* code [[buffer(0)]],device uint* rows [[buffer(1)]],device uint* events [[buffer(2)]],device uint* links [[buffer(3)]],device atomic_uint* heads [[buffer(4)]],device uint* output [[buffer(5)]],device atomic_uint* counters [[buffer(6)]],constant uint* cfg [[buffer(7)]],device const uint* packet [[buffer(8)]],device uint* cells [[buffer(9)]],device uint* watches [[buffer(10)]],device atomic_uint* wheads [[buffer(11)]],device uint* dirty [[buffer(12)]],device atomic_uint* state [[buffer(13)]],device uint* ports [[buffer(14)]],device uint* previous [[buffer(15)]],device uint* seedQueue [[buffer(16)]],device uint* orderedSeeds [[buffer(17)]],device atomic_uint* routing [[buffer(18)]],device uint* rowCells [[buffer(19)]],device uint* instanceMeta [[buffer(20)]],device uint* freeCells [[buffer(21)]],device atomic_uint* registry [[buffer(22)]],device atomic_uint* domains [[buffer(23)]]
 #define R(r,c) rows[(r)*RS+(c)]
 #define E(e,c) events[(e)*3+(c)]
 uint index_head(device const uint* packet,constant uint* cfg,uint sp,uint h){uint at=cfg[26]+2*sp;return packet[at]+(h&packet[at+1]);}
@@ -15,6 +15,8 @@ kernel void family_patch(CTX,uint i [[thread_position_in_grid]]){
 }
 kernel void family_rebase(CTX,uint i [[thread_position_in_grid]]){if(i<cfg[0]){E(i,0)=i;E(i,1)=R(i,2);E(i,2)=packet[cfg[25]+i];}}
 kernel void family_clear(CTX,uint i [[thread_position_in_grid]]){if(i<cfg[4])atomic_store_explicit(heads+i,NO,memory_order_relaxed);}
+kernel void family_domain_clear(CTX,uint i [[thread_position_in_grid]]){if(i<cfg[28])atomic_store_explicit(domains+i,0,memory_order_relaxed);}
+uint domain_head(device const uint* packet,constant uint* cfg,uint id,uint h){uint at=cfg[27]+2*id;return packet[at]+(h&packet[at+1]);}
 bool live_event(device uint* rows,device uint* events,uint e){uint r=E(e,0);return R(r,1)!=0 && R(r,2)==E(e,1);}
 kernel void family_index(CTX,uint i [[thread_position_in_grid]]){
  uint e=cfg[7]?i:cfg[1]+i;if(e>=cfg[6] || !live_event(rows,events,e))return;
@@ -25,6 +27,13 @@ kernel void family_index(CTX,uint i [[thread_position_in_grid]]){
   for(uint j=0;j<code[at+1];j++){uint col=code[at+2+j];
    if(HAS_PRIMITIVES && code[TABLE_I64+R(r,0)*C+col]){h=mixkey(h^R(r,4+C+2*col));h=mixkey(h^R(r,5+C+2*col));}
    else h=mixkey(h^R(r,4+col));
+  }
+  if(REFUTATION_SUMMARIES)for(uint j=code[DOMAIN_OFFSETS+sp];j<code[DOMAIN_OFFSETS+sp+1];j++){
+   uint id=code[DOMAIN_IDS+j],col=code[DOMAIN_META+2*id+1],value;
+   if(col==NO)value=mixkey(h);
+   else if(code[TABLE_I64+R(r,0)*C+col])value=mixkey(mixkey(R(r,4+C+2*col))^R(r,5+C+2*col));
+   else value=mixkey(R(r,4+col));
+   atomic_fetch_or_explicit(domains+domain_head(packet,cfg,id,h),1u<<(value&31u),memory_order_relaxed);
   }
   links[index_link(code,events,e,sp)]=atomic_exchange_explicit(heads+index_head(packet,cfg,sp,h),e,memory_order_relaxed);
  }
@@ -100,8 +109,8 @@ uint cell_segment(device const uint* code,device uint* rows,device uint* cells,d
  if(PROFILE_JOIN){atomic_fetch_add_explicit(counters+3,k,memory_order_relaxed);atomic_fetch_add_explicit(counters+4,1,memory_order_relaxed);}
  return k;
 }
-#define QUERY_ARGS device const uint* code,device uint* rows,device uint* events,device uint* links,device atomic_uint* heads,device uint* output,device atomic_uint* counters,constant uint* cfg,device const uint* packet,device uint* cells,device uint* rowCells,device uint* instanceMeta
-#define QUERY_PASS code,rows,events,links,heads,output,counters,cfg,packet,cells,rowCells,instanceMeta
+#define QUERY_ARGS device const uint* code,device uint* rows,device uint* events,device uint* links,device atomic_uint* heads,device uint* output,device atomic_uint* counters,constant uint* cfg,device const uint* packet,device uint* cells,device uint* rowCells,device uint* instanceMeta,device atomic_uint* domains
+#define QUERY_PASS code,rows,events,links,heads,output,counters,cfg,packet,cells,rowCells,instanceMeta,domains
 // Return complete bindings emitted and internal atom reads actually reused.
 template<uint QP=P,uint QS=S> uint2 family_execute(QUERY_ARGS,uint qidx,uint e,uint anchor,device const uint* hints,uint hintCount){
  uint hits=0,reused=0;if(qidx>=cfg[3])return uint2(0);

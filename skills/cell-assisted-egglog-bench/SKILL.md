@@ -85,6 +85,8 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 联合 Cell 现在默认在已验证的 uniform-cost 条件下，批量关闭内部 `Smaller` 比较 Saturate。普通 Run 不变；外部 merge、容器键或代价别名不满足证明时回退。`CELL_COMPARISON_CLOSURE=0` 做同二进制消融。报告 `gpu.saturation_diagnostics.joint.comparison_closure` 的实际使用次数、`native_batches` 和 `union_proposals`；后者不是新增事实数。不能因外层 12 次仍显示 dataflow、fresh-DAG 宏为零而漏报内层闭包，也不能把内层收益宣称为整个 Cell 一次回放。结果见 [SAT_COMPARISON.md](../../experiments/pass3_full_gpu/SAT_COMPARISON.md)。
 
-紧凑 GPU Join 默认使用自动证否 lookahead；`CELL_REFUTATION=0` 关闭。编译器只选择已有 tuple index，提前检测未访问 atom 的必要键，空哈希桶才能拒绝整条后继搜索。碰撞及退休行只可能多保留候选；union/rebuild 仍使用原生完整增量维护，不以 Cell 库未覆盖作为证否。它不是新增 Cell 闭包证明。
+紧凑 GPU Join 默认使用自动证否 lookahead；`CELL_REFUTATION=0` 关闭。编译器只选择已有 tuple index，提前检测未访问 atom 的必要键，空哈希桶可直接拒绝整条后继搜索。碰撞及退休行只可能多保留候选；union/rebuild 仍使用原生完整增量维护，不以 Cell 库未覆盖作为证否。它不是新增 Cell 闭包证明。
+
+后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 12，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
 
 比较 search 必须用同输入、同调度、同二进制开关消融。`CELL_QUERY_TIMINGS=1` 分离 `gpu_matching_seconds`（含证否和候选路由）与 `gpu_maintenance_seconds`；不要把该诊断的总推理时间作为正常运行加速比。另用普通 `run` 报告完整推理耗时。`CELL_SEARCH_COUNTERS=1` 在全规则路径开启诊断计数，报告 `join_probes`（实际进入的索引 Join 层）、`refutation_checks`（额外的必要键检查）、`refuted_branches`、`join_link_visits`（含退休行）和 `join_live_row_visits`（实际候选访问）；不是新事实或唯一行数。计数器含 atomic 开销，不作为无插桩时间证据。修改证否后须跑 `audit --all-rules --joint-sat`，并检查新增事实、union、删除重插和精确整数键。见 [自动证否实验](../../experiments/automatic_refutation/README.md)。

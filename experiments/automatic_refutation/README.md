@@ -1,5 +1,9 @@
 # Automatic negative lookahead in the actual GPU matcher
 
+This report preserves the original empty-bucket experiment. The subsequent
+key-fingerprint and domain-summary work is documented in
+[BUCKET_SUMMARIES.md](BUCKET_SUMMARIES.md).
+
 The requested 5% search reduction was exceeded on the **complete raytrace
 Pass 3 snapshot and schedule**, with all 547 original rules admitted. This
 is the persistent cell-assisted-egglog runtime, not a synthetic Cell example

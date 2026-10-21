@@ -11,6 +11,40 @@ fn worker() -> Option<std::path::PathBuf> {
     std::env::var_os("CELL_MATRIX_WORKER").map(Into::into)
 }
 #[test]
+fn domain_refutation_keeps_aliases_new_bridges_and_rehashed_buckets() {
+    let Some(worker)=worker() else {return};
+    let mut eg=EGraph::default();
+    eg.parse_and_run_program(None,r#"
+      (datatype E (N i64))
+      (relation Frame (E E)) (relation L (E E)) (relation R (E E))
+      (relation Hit (E)) (ruleset s)
+      (rule ((Frame x z) (L x y) (R y z)) ((Hit y)) :ruleset s)
+      ; Another query supplies the existing R(_,z) projection. The negative
+      ; filter deliberately does not create missing tuple indexes itself.
+      (relation NeedR (E)) (relation Seen (E))
+      (rule ((NeedR z) (R y z)) ((Seen y)) :ruleset s)
+      (Frame (N 1) (N 2)) (L (N 1) (N 3)) (R (N 4) (N 2))
+    "#).unwrap();
+    let commands=eg.parse_program(None,"(run s 1)").unwrap();
+    let mut r=Runtime::new_full(eg,&commands,Some(&worker),true,None).unwrap();
+    if std::env::var("CELL_REFUTATION_DOMAINS").as_deref()==Ok("1") {
+        assert!(r.report()["cells"]["domain_checks"].as_u64().unwrap()>0);
+    }
+    r.run(&commands).unwrap();
+    check(&r,"(fail (check (Hit (N 3))))");
+    r.input("(union (N 3) (N 4))").unwrap();
+    r.run(&commands).unwrap();
+    check(&r,"(check (Hit (N 3)))");
+    r.input("(delete (R (N 4) (N 2))) (L (N 1) (N 5))").unwrap();
+    let unrelated=(100..230).map(|i|format!("(L (N {i}) (N {})) (R (N {}) (N {}))",i+1,i+2,i+3)).collect::<String>();
+    r.input(&unrelated).unwrap();
+    r.run(&commands).unwrap();
+    check(&r,"(fail (check (Hit (N 5))))");
+    r.input("(R (N 5) (N 2))").unwrap();
+    r.run(&commands).unwrap();
+    check(&r,"(check (Hit (N 5)))");
+}
+#[test]
 fn refutation_is_invalidated_by_insert_union_rebuild_and_reinsert() {
     let Some(worker) = worker() else { return };
     let mut eg = EGraph::default();

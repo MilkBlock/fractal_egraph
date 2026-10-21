@@ -3,7 +3,7 @@
 // overwrite an ancestor value: bind_atom/primitive_apply check it first.
 // Backtracking therefore restores bound-status masks, not copies of values.
 // This path has no Cell segment jumps; those retain the general executor.
-bool refuted(device const uint* code,device atomic_uint* heads,device const uint* packet,
+bool refuted(device const uint* code,device atomic_uint* heads,device atomic_uint* domains,device const uint* packet,
  constant uint* cfg,device atomic_uint* counters,uint q,uint anchor,uint depth,
  thread const uint* v,thread const uint* lo,thread const uint* hi){
  if(!REFUTATION)return false;
@@ -23,6 +23,42 @@ bool refuted(device const uint* code,device atomic_uint* heads,device const uint
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+43,1,memory_order_relaxed);
    return true;
   }
+  if(REFUTATION_SIGNATURES){
+   uint id=code[SIGNATURE_SPEC+sp];
+   if(id!=NO && (atomic_load_explicit(domains+domain_head(packet,cfg,id,h),memory_order_relaxed)&(1u<<(mixkey(h)&31u)))==0){
+    if(PROFILE_JOIN){atomic_fetch_add_explicit(counters+48,1,memory_order_relaxed);atomic_fetch_add_explicit(counters+43,1,memory_order_relaxed);}
+    return true;
+   }
+  }
+ }
+ return false;
+}
+// Bucket collisions and retired rows only enlarge these value sets. A real
+// shared value sets the same bit on both sides, so zero intersection is sound.
+bool domains_refuted(device const uint* code,device atomic_uint* domains,device const uint* packet,
+ constant uint* cfg,device atomic_uint* counters,uint q,uint anchor,
+ thread const uint* v,thread const uint* lo,thread const uint* hi){
+ if(!REFUTATION_DOMAINS)return false;
+ uint stage=DOMAIN_STAGE+(q*P+anchor)*2;
+ for(uint i=0;i<code[stage+1];i++){
+  uint check=DOMAIN_CHECK+(code[stage]+i)*4,masks[2];
+  for(uint side=0;side<2;side++){
+   uint t=code[check+2*side],id=code[check+2*side+1],sp=code[DOMAIN_META+2*id];
+   uint at=SPEC+sp*(2+C),atom=ATOM+(q*P+t)*(2+2*C),h=0x31415926u;
+   for(uint j=0;j<code[at+1];j++){
+    uint col=code[at+2+j],kind=code[atom+2+2*col],s=code[atom+3+2*col];
+    if(HAS_PRIMITIVES && code[TABLE_I64+code[at]*C+col]){
+     uint lit=ATOM_LITERAL+(q*P+t)*2*C+2*col;
+     h=mixkey(h^(kind?code[lit]:lo[s]));h=mixkey(h^(kind?code[lit+1]:hi[s]));
+    }else h=mixkey(h^(kind?s:v[s]));
+   }
+   masks[side]=atomic_load_explicit(domains+domain_head(packet,cfg,id,h),memory_order_relaxed);
+  }
+  if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+46,1,memory_order_relaxed);
+  if((masks[0]&masks[1])==0){
+   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+47,1,memory_order_relaxed);
+   return true;
+  }
  }
  return false;
 }
@@ -36,7 +72,8 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
  if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,bound,false) ||
     !stage_constraints(code,q,anchor,0,v,lo,hi,bound))return uint2(0);
  if(n==1)return uint2(emit_match<QS>(code,output,counters,cfg,q,v,lo,hi,true),0);
- if(refuted(code,heads,packet,cfg,counters,q,anchor,0,v,lo,hi))return uint2(0);
+ if(refuted(code,heads,domains,packet,cfg,counters,q,anchor,0,v,lo,hi))return uint2(0);
+ if(domains_refuted(code,domains,packet,cfg,counters,q,anchor,v,lo,hi))return uint2(0);
  for(uint j=0;j<QP;j++)started[j]=0;
  int depth=0;
  while(depth>=0){
@@ -63,7 +100,7 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
   for(uint j=0;j<QS;j++)bound[j]=(code[mask+j/16]>>(2*(j%16)))&3u;
   if(!bind_atom(code,rows,q,t,row,v,lo,hi,bound,false) ||
      !stage_constraints(code,q,anchor,uint(depth)+1,v,lo,hi,bound))continue;
-  if(refuted(code,heads,packet,cfg,counters,q,anchor,uint(depth)+1,v,lo,hi))continue;
+  if(refuted(code,heads,domains,packet,cfg,counters,q,anchor,uint(depth)+1,v,lo,hi))continue;
   if(uint(depth)+1==n-1)hits+=emit_match<QS>(code,output,counters,cfg,q,v,lo,hi,true);
   else{depth++;started[depth]=0;}
  }
