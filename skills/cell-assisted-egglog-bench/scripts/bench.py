@@ -120,7 +120,7 @@ def metrics(r, quality=None, extraction=None):
                   timing_eligible=eligible, inference_speedup=cpu / gpu if eligible else None,
                   extraction_passed=bool(quality and quality.get('passed') is True),
                   inference_plus_tiger_speedup=None, joint_speedup=None)
-    if eligible and control and control.get('audit') is False:
+    if eligible and control and control.get('audit') is False and not r.get('reused_controls'):
         result['joint_speedup']=control['runtime']['run_seconds']/gpu
     if eligible and result['extraction_passed'] and extraction:
         times = {v['lane']: v['seconds'] for v in extraction['runs'] if v['returncode'] == 0}
@@ -159,7 +159,7 @@ def report(path, fresh=False):
         print('由 Cell handler 完成的饱和边界（含显式 dataflow 推进）：', r['gpu']['runtime'].get('skipped_saturations', 0))
         print('Cell supplied queries/bindings:', r['gpu']['runtime'].get('cell_query_rules', 0), r['gpu']['runtime'].get('cell_query_bindings', 0))
         if r.get('gpu_without_joint'):
-            print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '当前检查或计时模式不报告')
+            print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '未取得独立同版本对照，或检查/计时模式不适用')
             print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
             comparison=((r['gpu'].get('saturation_diagnostics') or {}).get('joint') or {}).get('comparison_closure')
             if comparison:
@@ -520,6 +520,56 @@ def cell_net_time(before, after):
         scope='Whole Cell-service inference benefit, including runtime maintenance and native effects. Excludes setup, Bake and extraction. Not an individual Cell marginal benefit.')
 
 
+def cell_credit_report(baseline, candidate):
+    """Attribute only the optional joint proof group, not generic handoff.
+    Both executions retain the same rooted CPU plans, cache and subscriptions.
+    """
+    rs=[load(p/'report.json') for p in [baseline,candidate]]
+    ws=[load(p/'workflow.json') for p in [baseline,candidate]]
+    gs=[r['gpu'] for r in rs];proofs=[]
+    for name,r,g in zip(['baseline','candidate'],rs,gs):
+        if not metrics(r)['timing_eligible']:raise ValueError('credit requires verified uninstrumented runs: '+name)
+        d=g.get('saturation_diagnostics') or {};j=d.get('joint') or {}
+        if j.get('credit_contract')!='same-dataflow-optional-joint-proofs/v1':raise ValueError('baseline removed generic dataflow or lacks proof-only contract')
+        if j.get('proofs_enabled')!=(name=='candidate'):raise ValueError('wrong joint-proof switch')
+        if not g.get('cell_query_reuse') or d.get('port_reuse',{}).get('enabled') is not True:
+            raise ValueError('generic query provider and port cache must remain enabled')
+        proofs.append(j)
+    identity=lambda r,w,g:[w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],w['policy'],
+        w.get('inference_identity',{}).get('machine'),r['schedule'],r['assisted_rulesets'],r['same_commit_verification'],
+        g.get('cells'),g.get('query_sharing'),
+        [(p['ruleset'],p['rule'],p['kind'],p['seed'],p['accesses']) for p in g['saturation_diagnostics']['programs']]]
+    if identity(rs[0],ws[0],gs[0])!=identity(rs[1],ws[1],gs[1]):raise ValueError('credit confounded by input, binaries, query layout or generic optimizations')
+    before,after=[g['runtime']['run_seconds'] for g in gs]
+    if before<=0 or after<=0:raise ValueError('invalid credit timing')
+    def consumed(g):
+        d=g['saturation_diagnostics'];j=d['joint'];c=j.get('comparison_closure') or {}
+        return dict(macros=j['stats']['macro_instances'],closed_boundaries=j['stats']['skipped_joint_saturations'],
+            comparison_saturations=c.get('saturations',0),retired_guard_records=sum(p['retired_guard_seeds'] for p in d['programs']))
+    usage=[consumed(g) for g in gs]
+    if any(usage[0].values()):raise ValueError('disabled baseline still consumed joint proofs')
+    if not any(usage[1].values()):raise ValueError('no proof consumption; cannot attribute timing noise to this group')
+    query_maps=[{(q['ruleset'],q['rule']):q['stats'] for q in g['rules']} for g in gs]
+    if query_maps[0].keys()!=query_maps[1].keys():raise ValueError('query universe changed')
+    common=[]
+    for p in gs[1]['saturation_diagnostics']['programs']:
+        if p['kind']!='scalar_query':continue
+        key=(p['ruleset'],p['rule']);a,b=[m[key] for m in query_maps]
+        old=next(x for x in gs[0]['saturation_diagnostics']['programs'] if (x['ruleset'],x['rule'])==key)
+        common.append(dict(rule=p['rule'],root=p['seed'],ordinary_handoff_credit=0,
+            explanation='Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.',
+            queries=[a['cell_queries'],b['cell_queries']],bindings=[a['cell_bindings'],b['cell_bindings']],
+            root_evaluations=[old['seed_evaluations'],p['seed_evaluations']],fresh_reads=[old['index_reads'],p['index_reads']],
+            cached_reads=[old['reused_port_reads'],p['reused_port_reads']]))
+    return dict(schema='cell-proof-credit/v1',credit_owner='terms-joint-closure-proofs',
+        definition='J(same generic runtime, proofs disabled) - J(same generic runtime, proofs enabled)',
+        baseline=str(baseline),candidate=str(candidate),provenance=ws,
+        baseline_seconds=before,candidate_seconds=after,credit_seconds=before-after,credit_fraction=(before-after)/before,
+        setup_seconds=[g['runtime']['setup_seconds'] for g in gs],proof_consumption=usage,
+        common_query_paths=common,individual_cell_credits=None,
+        graph_verified=True,scope='Actual full raytrace Pass 3. Joint proof-group conditional net inference benefit; not individual learned RipSatCell credit. Generic execution, port cache and handoff stay in both runs. Includes maintenance/effects once; excludes setup, Bake and extraction.',
+        overlap_policy='One group receives the measured net credit. Do not duplicate it across three Smaller rules, parents, alternative spines or dependent Cells.')
+
 def cell_value_report(current, before, after, timing_before=None, timing_after=None):
     cases=cell_cases_report(current,before,after)
     b,a=[load(p/'report.json')['gpu'] for p in [before,after]]
@@ -537,8 +587,9 @@ def cell_value_report(current, before, after, timing_before=None, timing_after=N
         starts=p['gpu_seeds_before']-p['gpu_seeds_after'];rows=p['gpu_rows_saved']
         programs.append(dict(program_id=p['program_id'],kind=p['kind'],ruleset=p['ruleset'],root=p['root'],rule=p['rule'],
              starts_removed=starts,candidate_rows_removed=rows,
-             global_start_contribution=ratio(starts,totals['starts']['before']),
-             global_candidate_contribution=ratio(rows,totals['candidate_rows']['before']),
+             observed_start_delta_share=ratio(starts,totals['starts']['before']),
+             observed_candidate_delta_share=ratio(rows,totals['candidate_rows']['before']),
+             cell_specific_credit=None,credit_status='unattributed_without_proof-only_counterfactual',
              cell_root_evaluations=p['seed_evaluations'],cell_new_port_reads=p['fresh_reads'],cell_cached_port_reads=p['cached_reads'],
              cell_query_requests=p['cell_query_requests'],retired_guard_records=p['retired_guard_seeds'],
              cost_scope='Shared comparison proof below' if p['ruleset']=='terms-helpers-helpers' and p['seed_evaluations']==0 else 'Partial local-work counters, not total cost'))
@@ -552,8 +603,8 @@ def cell_value_report(current, before, after, timing_before=None, timing_after=N
          warning='Different operation types; do not add or subtract these from GPU row visits. Subscription scans, guards, allocation and synchronization are not fully represented.')
     if (timing_before is None)!=(timing_after is None):raise ValueError('both timing directories are required')
     time=cell_net_time(timing_before,timing_after) if timing_before is not None else None
-    return dict(schema='cell-search-value/v1',scope=cases['scope'],provenance=cases['provenance'],
-        metric='Search replacement benefit: removed outer starts and inner candidate enumeration, with local work charged separately. Net benefit requires timing.',
+    return dict(schema='cell-search-value/v2',scope=cases['scope'],provenance=cases['provenance'],
+        metric='Observed GPU work displacement, not Cell credit. Generic empty-root handling and backend migration are included; use cell-credit for a proof-only counterfactual.',
         totals=totals,programs=programs,local_work=local,
         unassigned=dict(starts=totals['starts']['saved']-sum(p['starts_removed'] for p in programs),candidate_rows=totals['candidate_rows']['saved']-sum(p['candidate_rows_removed'] for p in programs)),
         net_inference_benefit=time,per_cell_marginal_time=None,
@@ -578,6 +629,8 @@ def parser():
         q.add_argument('--input',type=Path,required=True);q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
         q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
         if mode=='cell-value':q.add_argument('--timing-before',type=Path);q.add_argument('--timing-after',type=Path)
+    q = sub.add_parser('cell-credit',help='attribute proof-only benefit with generic dataflow kept in both lanes')
+    q.add_argument('--baseline',type=Path,required=True);q.add_argument('--candidate',type=Path,required=True);q.add_argument('--output',type=Path)
     q = sub.add_parser('history', help='reuse historical evidence; no build or execution')
     q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
     q.add_argument('--policy', choices=['stable', 'original'], default='stable')
@@ -754,6 +807,16 @@ def main(argv=None):
             dest=resolve(a.csv);dest.parent.mkdir(parents=True,exist_ok=True)
             with dest.open('x',newline='') as f:
                 writer=csv.DictWriter(f,fieldnames=list(result['programs'][0]),lineterminator='\n');writer.writeheader();writer.writerows(result['programs'])
+        return 0
+    if a.mode == 'cell-credit':
+        result=cell_credit_report(resolve(a.baseline),resolve(a.candidate))
+        print('仅归因联合闭包证明组；普通查询接管、端口缓存和空回答保留在共同基线。')
+        print('baseline/candidate seconds:',result['baseline_seconds'],result['candidate_seconds'])
+        print('group credit seconds:',result['credit_seconds'],'fraction:',result['credit_fraction'])
+        print('individual Cell credits: unmeasured')
+        if a.output and not a.dry_run:
+            dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
+            with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
         return 0
     if a.mode == 'history':
         if a.limit < 1:

@@ -518,3 +518,34 @@ fn full_gpu_dispatch_keeps_joint_skip_and_observes_macro_effects() {
     assert_eq!(r["extended_queries"],true);
     assert_eq!(r["cell_query_reuse"],true);
 }
+
+#[test]
+fn credit_baseline_keeps_dataflow_and_ports_while_only_joint_proofs_change() {
+    let mut yes=Runtime::new_joint(SOURCE).unwrap();
+    let mut no=Runtime::new_joint(SOURCE).unwrap();
+    yes.set_joint_proofs(true).unwrap();no.set_joint_proofs(false).unwrap();
+    let base=yes.engine().clone();
+    let schedule=base.clone().parse_program(None,SCHEDULE).unwrap();
+    for input in [
+        "(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 8)) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3)) (Bop (Add) (V 0) (V 1))",
+        "(PotentialExtractedExpr (V 0) (TCPair (TermLeaf 3) 2))",
+        "(Bop (Mul) (Bop (Add) (V 0) (V 1)) (V 1))",
+        "(union (TCPair (TermLeaf 1) 3) (TCPair (TermLeaf 7) 3))",
+    ] {
+        yes.input(input).unwrap();no.input(input).unwrap();
+        yes.run(&schedule).unwrap();no.run(&schedule).unwrap();
+        compare::equal(&base,yes.engine(),no.engine()).unwrap();
+        yes.audit_mirror().unwrap();no.audit_mirror().unwrap();
+    }
+    let a=yes.report();let b=no.report();
+    assert_eq!(a["port_reuse"]["enabled"],true);assert_eq!(b["port_reuse"]["enabled"],true);
+    assert!(b["joint"]["stats"]["dataflow_boundaries"].as_u64().unwrap()>0);
+    assert_eq!(b["joint"]["stats"]["macro_instances"],0);
+    assert_eq!(b["joint"]["stats"]["uniform_cost_boundaries"],0);
+    assert_eq!(b["joint"]["comparison_closure"]["saturations"],0);
+    assert_eq!(b["programs"].as_array().unwrap().iter().map(|p|p["retired_guard_seeds"].as_u64().unwrap()).sum::<u64>(),0);
+    assert!(a["joint"]["comparison_closure"]["saturations"].as_u64().unwrap()>0);
+    // Turning the proof back on cannot revive a stale closure certificate.
+    no.set_joint_proofs(true).unwrap();no.run(&schedule).unwrap();
+    compare::equal(&base,yes.engine(),no.engine()).unwrap();
+}

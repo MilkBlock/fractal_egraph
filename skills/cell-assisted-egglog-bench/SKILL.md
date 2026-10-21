@@ -22,7 +22,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 ## Cell / Join 改动的固定评价指标
 
-**主看搜索替代收益，缓存命中率只作诊断。** 固定输入、调度和正确结果，记录外层起点与内层候选枚举的关/开差值；每个程序还用“差值 / 整个基线的对应总数”表达贡献，避免每条被接管的规则都显示 100%。两类贡献不硬加权求和。Cell 的根评估、新读取、缓存读、请求和共享证明工作另列，不能把工作转移到 CPU 就说已经免费消除了。
+**Cell 选择使用反事实 credit；GPU 工作迁移只作定位。** 空表短路、普通函数键取值、固定计划和执行后端迁移不能自动给 Cell 领取 credit。对照应保留这些公共能力，只撤去目标 Cell 结论/证明。Switch 空回答不得领取 Cell credit；Get 的新端口读取仍记成本。此前全服务开/关的起点/行访问差值只叫“观测差额”，不用于 Cell 排名或训练。详见 [credit 协议](references/credit.md)。
 
 **Join 深度分布是评价一套 Cell 与 Join 流程的必报指标。** 先复用已有同口径诊断；只有候选实现或数据流改变才补测，不为生成报告重跑未变对照。至少给出：
 
@@ -38,7 +38,8 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 | 需求 | `bench.py` 子命令 |
 |---|---|
-| 搜索替代贡献与局部成本账 | `cell-value --input 诊断目录 --before 历史Cell关闭 --after 历史Cell开启 [--output NEW.json] [--csv NEW.csv]` |
+| 联合闭包证明组的净 credit | `cell-credit --baseline 仅关闭证明 --candidate 开启证明 [--output NEW.json]` |
+| GPU 工作迁移与局部成本账（非 credit） | `cell-value --input 诊断目录 --before 历史Cell关闭 --after 历史Cell开启 [--output NEW.json] [--csv NEW.csv]` |
 | 每个 Cell 程序的真实缓存率与案例 | `cell-cases --input 诊断目录 --before 历史Cell关闭 --after 历史Cell开启 [--output NEW.json] [--csv NEW.csv]` |
 | 看已有结果，不重新跑 | `report [分析目录或 report.json]` |
 | 查找可复用的完整 Pass-3 历史 | `history --joint-sat` |
@@ -133,6 +134,11 @@ Cell 完整接口实验：`CELL_BINDING_CONNECTIONS=1` 开启已安装参数化 
 三种比例分开：端口缓存率 = 缓存读 / (缓存读 + 新索引读)，包括已知缺失端口；非空回答率 = 非空 Cell 查询回答 / Cell 查询请求；查询接管率 = Cell 完整回答 / 该规则全部请求。没有端口读取时缓存率为 N/A，不是 0%。空回答可能避开大量无用起点，缓存率 0% 也可能通过固定接线与依赖订阅省下 Join。另列 fresh-DAG 宏、参数化 dataflow 和内部比较闭包的计数，不能把它们合成“整 Cell 命中”。单条规则的 GPU 工作移除不是该 Cell 的独立耗时贡献。
 
 
-`cell-value` 只读已有记录，按程序列出移除起点、移除活候选行及其对整个基线的贡献，同时保留局部工作账与未归属差额。空查询可以只省起点；缓存率为零仍可有收益；回退增多可产生负收益；零分母不造百分比。它是全开/全关后的工作归属，不是删掉某一个 Cell 的独立因果贡献，也不能把 CPU 根评估、端口读取、GPU 行访问相加相减成“净操作数”。
+`cell-value` 只读已有记录，按程序列出移除起点、移除活候选行及其占整个基线的差额份额，同时保留局部工作账与未归属差额。空查询可以只省起点；缓存率为零仍可观察到工作迁移；回退增多可产生负差额；零分母不造百分比。它是全开/全关后的工作归属，不是 Cell credit，不是删掉某一个 Cell 的独立因果贡献，也不能把 CPU 根评估、端口读取、GPU 行访问相加相减成“净操作数”。
 
-是否默认启用看**净推理耗时降幅** `(T_off - T_on) / T_off`，计入运行期维护、交接与原生 effects，setup/Bake/extraction 单列。`cell-value --timing-before DIR --timing-after DIR` 仅接受同二进制、同 worker、同输入/调度、原有过滤开关一致、整图通过且无插桩的 Cell 关/开对照。没有这样的数据就报告未测，不拿旧 GPU 内核或插桩秒数凑加速比。单个 Cell 的边际时间收益须用 `T(库去掉 C) - T(完整库)`，当前未采集，不把全开/全关的规则计数当它的替代。
+整套执行方案是否默认启用可看**净推理耗时降幅** `(T_off - T_on) / T_off`，计入运行期维护、交接与原生 effects，setup/Bake/extraction 单列。`cell-value --timing-before DIR --timing-after DIR` 仅接受同二进制、同 worker、同输入/调度、原有过滤开关一致、整图通过且无插桩的 Cell 关/开对照。没有这样的数据就报告未测，不拿旧 GPU 内核或插桩秒数凑加速比。这只能评价整套服务，不能用作 Cell 选择 credit；后者使用下面保留公共执行器的对照。单个 Cell 的边际时间收益须用 `T(库去掉 C) - T(完整库)`，当前未采集，不把全开/全关的规则计数当它的替代。
+
+
+`CELL_JOINT_PROOFS=0/1` 提供同一参数化执行器上的证明组消融：保留普通 scalar 查询接管、固定根计划、订阅、端口缓存和原生 effects；只改变 fresh-DAG 宏、uniform-cost 退役及 Smaller 比较闭包，并包含其维护成本。两组都用 `--all-rules --joint-sat`。`cell-credit` 核验该契约、相同二进制/worker/输入/调度/查询接线和无插桩整图门槛；拒绝用“去掉整个 handler”的实验冒充此对照，也拒绝没有实际消费证明的时间差。
+
+测到的 credit 只归 `terms-joint-closure-proofs` 这一组，不能拆给三个 Smaller 规则、其父 Cell 或等价 spine 重复记账。当前尚无一般的逐 Cell 证明消费账和独立边际 credit。复用旧 CPU/完整图控制仍允许；报告中的历史 `gpu_without_joint` 可能来自别的 GPU 版本，因此不再自动据它显示“joint 单独收益”，正确归因须读独立同版本关/开记录。

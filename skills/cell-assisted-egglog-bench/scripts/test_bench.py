@@ -187,10 +187,10 @@ class WorkflowTests(unittest.TestCase):
             with patch.object(B,'cell_cases_report',return_value=cases):
                 r=B.cell_value_report(current,paths['s0r1'],paths['s1r1'])
             empty,get,bad=r['programs']
-            self.assertGreater(empty['global_start_contribution'],0);self.assertEqual(empty['candidate_rows_removed'],0)
+            self.assertGreater(empty['observed_start_delta_share'],0);self.assertEqual(empty['candidate_rows_removed'],0)
             self.assertEqual(empty['cell_query_requests'],4)
-            self.assertGreater(get['global_candidate_contribution'],0);self.assertEqual(get['cell_new_port_reads'],3)
-            self.assertLess(bad['global_candidate_contribution'],0)
+            self.assertGreater(get['observed_candidate_delta_share'],0);self.assertEqual(get['cell_new_port_reads'],3)
+            self.assertLess(bad['observed_candidate_delta_share'],0)
             self.assertIsNone(r['net_inference_benefit']);self.assertIsNone(r['per_cell_marginal_time'])
             self.assertEqual(r['local_work']['shared_comparison_proof']['cost_lookups'],3)
             self.assertEqual(r['totals']['candidate_rows']['saved'],r['unassigned']['candidate_rows']+sum(p['candidate_rows_removed'] for p in r['programs']))
@@ -212,6 +212,31 @@ class WorkflowTests(unittest.TestCase):
             (paths[1]/'report.json').write_text(json.dumps(rs[1]))
             (paths[1]/'workflow.json').write_text(json.dumps(dict(w,binary_sha256='other')))
             with self.assertRaises(ValueError):B.cell_net_time(*paths)
+
+    def test_credit_keeps_generic_executor_and_requires_consumed_proofs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);paths=[root/'base',root/'cell'];rs=[]
+            w=dict(snapshot_sha256='s',binary_sha256='b',worker_sha256='w',policy='stable')
+            for i,path in enumerate(paths):
+                path.mkdir();r=fixture();r.update(schedule=['s'],assisted_rulesets=['s'])
+                # Negative credit must survive; consuming proof isn't itself a win.
+                r['gpu']['runtime'].update(run_seconds=10+i,setup_seconds=1)
+                program=dict(ruleset='s',rule='get',kind='scalar_query',seed='Get',accesses=[],retired_guard_seeds=0,seed_evaluations=3,index_reads=3,reused_port_reads=0)
+                r['gpu'].update(cells={},cell_query_reuse=True,rules=[dict(ruleset='s',rule='get',stats=dict(cell_queries=2,cell_bindings=3))],
+                    saturation_diagnostics=dict(port_reuse=dict(enabled=True),programs=[program],
+                    joint=dict(credit_contract='same-dataflow-optional-joint-proofs/v1',proofs_enabled=bool(i),
+                    stats=dict(macro_instances=0,skipped_joint_saturations=0),comparison_closure=dict(saturations=i))))
+                (path/'report.json').write_text(json.dumps(r));(path/'workflow.json').write_text(json.dumps(w));rs.append(r)
+            r=B.cell_credit_report(*paths);self.assertEqual(r['credit_seconds'],-1)
+            self.assertEqual(r['common_query_paths'][0]['ordinary_handoff_credit'],0)
+            self.assertEqual(r['common_query_paths'][0]['fresh_reads'],[3,3])
+            self.assertIsNone(r['individual_cell_credits'])
+            bad=copy.deepcopy(rs[0]);bad['gpu']['cell_query_reuse']=False;(paths[0]/'report.json').write_text(json.dumps(bad))
+            with self.assertRaises(ValueError):B.cell_credit_report(*paths)
+            (paths[0]/'report.json').write_text(json.dumps(rs[0]))
+            bad=copy.deepcopy(rs[1]);bad['gpu']['saturation_diagnostics']['joint']['comparison_closure']['saturations']=0
+            (paths[1]/'report.json').write_text(json.dumps(bad))
+            with self.assertRaises(ValueError):B.cell_credit_report(*paths)
 
     def test_depth_branch_entries_are_not_seed_reach_probabilities(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -396,6 +421,8 @@ class WorkflowTests(unittest.TestCase):
         self.assertIsNone(B.metrics(r)['inference_speedup'])
         r['joint_verification']=dict(exact_rows_values_equivalence_visibility=True)
         self.assertEqual(B.metrics(r)['joint_speedup'],1.25)
+        r['reused_controls']={'directory':'old-other-binary'}
+        self.assertIsNone(B.metrics(r)['joint_speedup'], 'historical GPU-off is not a proof-only control')
 
     def test_parameterized_gate_requires_both_graphs_and_counts(self):
         phase = dict(same_submit=dict(exact_rows_values_equivalence_visibility=True),

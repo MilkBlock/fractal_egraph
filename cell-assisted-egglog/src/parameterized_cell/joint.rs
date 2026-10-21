@@ -33,6 +33,7 @@ pub struct Counters {
     pub reasons: BTreeMap<String, usize>,
 }
 pub(super) struct Joint {
+    proofs_enabled: bool,
     producers: Vec<Producer>,
     improve_rule: String,
     cost_universe_closed: bool,
@@ -408,6 +409,7 @@ impl Joint {
         }
         let comparison = if comparison_safe { Some(comparison::Scope::compile(eg, &cost_sort)?) } else { None };
         Ok(Self {
+            proofs_enabled: std::env::var("CELL_JOINT_PROOFS").as_deref()!=Ok("0"),
             producers,
             improve_rule,
             cost_universe_closed,
@@ -422,6 +424,7 @@ impl Joint {
         })
     }
     pub(super) fn observes(&mut self, r: &Runtime, batch: &CellCommitBatch) {
+        if !self.proofs_enabled {return}
         if !batch.unions.is_empty() || !batch.clears.is_empty() {
             self.extendable = false;
         }
@@ -465,6 +468,7 @@ impl Joint {
     }
     pub(super) fn try_close(&mut self, r: &mut Runtime) -> Result<Option<bool>> {
         self.counters.boundaries += 1;
+        if !self.proofs_enabled {return Ok(self.decline("joint proofs disabled; generic dataflow retained"));}
         if self.closed_epoch == Some(r.epoch) {
             self.counters.skipped_joint_saturations += 1;
             self.counters.quiescent_skips += 1;
@@ -734,7 +738,7 @@ impl Joint {
             .copied()
             .find(|id| r.kernels[*id].sink.name == self.improve_rule)
             .unwrap();
-        let uniform = self.uniform_costs(r);
+        let uniform = self.proofs_enabled && self.uniform_costs(r);
         let mut guarded = r.sets[SETS[2]].clone();
         guarded.push(improve);
         for id in &guarded {
@@ -775,6 +779,7 @@ impl Joint {
         for set in SETS {
             r.eg.certify_cell_saturation(set)?;
         }
+        if !self.proofs_enabled {return Ok(())}
         let f = Self::table(r, "ExtractedExpr");
         self.stable.clear();
         for p in &self.producers {
@@ -793,11 +798,21 @@ impl Joint {
         Ok(())
     }
     pub(super) fn report(&self) -> Json {
-        json!({"contract":"parameterized terms with certified comparison closure/v3","closed_cost_producer_universe":self.cost_universe_closed,"stats":self.counters,"comparison_closure":self.comparison.as_ref().map(|s|&s.counters),"producer_templates":self.producers.len(),"macro_source":self.producers.iter().map(|p|p.code.clone()).collect::<Vec<_>>(),"concrete_closure_entries":0})
+        json!({"credit_contract":"same-dataflow-optional-joint-proofs/v1","proofs_enabled":self.proofs_enabled,"contract":"parameterized terms with certified comparison closure/v3","closed_cost_producer_universe":self.cost_universe_closed,"stats":self.counters,"comparison_closure":self.comparison.as_ref().map(|s|&s.counters),"producer_templates":self.producers.len(),"macro_source":self.producers.iter().map(|p|p.code.clone()).collect::<Vec<_>>(),"concrete_closure_entries":0})
     }
 }
 
 impl Runtime {
+    /// Ablate only this proof group. Keep rooted query plans, subscriptions,
+    /// port caching, native effects and the original schedule in both lanes.
+    pub fn set_joint_proofs(&mut self, enabled: bool) -> Result<()> {
+        let proof=self.joint.as_mut().ok_or("no joint proof group installed")?;
+        if proof.proofs_enabled!=enabled {
+            proof.proofs_enabled=enabled;
+            proof.closed_epoch=None;proof.stable.clear();proof.extendable=false;
+        }
+        Ok(())
+    }
     /// Install the checked terms transfer and original rules in the same native
     /// engine. Unsupported contracts fail compilation, never erase a rule.
     pub fn new_joint(source: &str) -> Result<Self> {

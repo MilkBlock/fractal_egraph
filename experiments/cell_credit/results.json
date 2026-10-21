@@ -1,0 +1,583 @@
+{
+  "schema": "cell-proof-credit/v1",
+  "credit_owner": "terms-joint-closure-proofs",
+  "definition": "J(same generic runtime, proofs disabled) - J(same generic runtime, proofs enabled)",
+  "baseline": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/cell-credit-generic",
+  "candidate": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/cell-credit-proofs",
+  "provenance": [
+    {
+      "mode": "run",
+      "policy": "stable",
+      "commands": [
+        [
+          "cargo",
+          "build",
+          "--offline",
+          "--release",
+          "--target-dir",
+          "target/analyzer",
+          "--example",
+          "raytrace_stable_bench"
+        ],
+        [
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/connection-worker/matrix",
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/cell-credit-generic",
+          "--joint-sat",
+          "--all-rules"
+        ]
+      ],
+      "returncode": 0,
+      "repo": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout",
+      "source_head": "da37107d549892f106d6c9ccf2bf48e3069ca2c1",
+      "dirty_files": " M cell-assisted-egglog/src/parameterized_cell.rs\n M cell-assisted-egglog/src/parameterized_cell/joint.rs\n M tests/joint_sat.rs\n",
+      "no_build": false,
+      "worker_sha256": "69387f01a5b4f2f779f267ef09171af252a1ff3ac3eea86dffeb92b027e70ae5",
+      "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "binary_sha256": {
+        "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "23e5af9ca9f47d1a65a72a84426a9e3b57ed7fc536c525cb99ce285ab3f5931b"
+      },
+      "inference_identity": {
+        "version": 1,
+        "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary": "23e5af9ca9f47d1a65a72a84426a9e3b57ed7fc536c525cb99ce285ab3f5931b",
+        "worker": "69387f01a5b4f2f779f267ef09171af252a1ff3ac3eea86dffeb92b027e70ae5",
+        "policy": "stable",
+        "joint": true,
+        "all_rules": true,
+        "controls": {
+          "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+          "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+          "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+          "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+          "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+        },
+        "machine": [
+          "MineralSteinsdeMacBook-Pro.local",
+          "Darwin",
+          "27.0.0",
+          "arm64"
+        ],
+        "environment_sha256": "59a8c86544dc59d5018262682eacd03ffa48a3c044fecaa6af7452dc7dc97862"
+      }
+    },
+    {
+      "mode": "run",
+      "policy": "stable",
+      "commands": [
+        [
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/connection-worker/matrix",
+          "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/cell-credit-proofs",
+          "--joint-sat",
+          "--all-rules"
+        ]
+      ],
+      "returncode": 0,
+      "repo": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout",
+      "source_head": "da37107d549892f106d6c9ccf2bf48e3069ca2c1",
+      "dirty_files": " M cell-assisted-egglog/src/parameterized_cell.rs\n M cell-assisted-egglog/src/parameterized_cell/joint.rs\n M skills/cell-assisted-egglog-bench/scripts/bench.py\n M skills/cell-assisted-egglog-bench/scripts/test_bench.py\n M tests/joint_sat.rs\n",
+      "no_build": true,
+      "worker_sha256": "69387f01a5b4f2f779f267ef09171af252a1ff3ac3eea86dffeb92b027e70ae5",
+      "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "binary_sha256": {
+        "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "23e5af9ca9f47d1a65a72a84426a9e3b57ed7fc536c525cb99ce285ab3f5931b"
+      },
+      "inference_identity": {
+        "version": 1,
+        "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary": "23e5af9ca9f47d1a65a72a84426a9e3b57ed7fc536c525cb99ce285ab3f5931b",
+        "worker": "69387f01a5b4f2f779f267ef09171af252a1ff3ac3eea86dffeb92b027e70ae5",
+        "policy": "stable",
+        "joint": true,
+        "all_rules": true,
+        "controls": {
+          "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+          "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+          "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+          "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+          "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+        },
+        "machine": [
+          "MineralSteinsdeMacBook-Pro.local",
+          "Darwin",
+          "27.0.0",
+          "arm64"
+        ],
+        "environment_sha256": "eaae5ba93cd76ace78bf4780adf4c8835a63bcdb2fe58820b6e36741036ce4ee"
+      }
+    }
+  ],
+  "baseline_seconds": 16.474769916,
+  "candidate_seconds": 15.1959095,
+  "credit_seconds": 1.2788604159999988,
+  "credit_fraction": 0.07762538854991793,
+  "setup_seconds": [
+    2.928676,
+    3.013655041
+  ],
+  "proof_consumption": [
+    {
+      "macros": 0,
+      "closed_boundaries": 0,
+      "comparison_saturations": 0,
+      "retired_guard_records": 0
+    },
+    {
+      "macros": 0,
+      "closed_boundaries": 0,
+      "comparison_saturations": 1185,
+      "retired_guard_records": 73607
+    }
+  ],
+  "common_query_paths": [
+    {
+      "rule": "(rule ((= expr (Function name tyin tyout out))\n       (= sum (Expr-size out)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "Function",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        1458,
+        1458
+      ],
+      "root_evaluations": [
+        1487,
+        1487
+      ],
+      "fresh_reads": [
+        1487,
+        1487
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Const n ty assum)))\n      ((set (Expr-size expr) 1))\n        :ruleset always-run )",
+      "root": "Const",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        1548,
+        1548
+      ],
+      "root_evaluations": [
+        1550,
+        1550
+      ],
+      "fresh_reads": [
+        0,
+        0
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Top op x y z))\n       (= sum (+ (Expr-size z) (+ (Expr-size y) (Expr-size x)))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "Top",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        79484,
+        79484
+      ],
+      "root_evaluations": [
+        85049,
+        85049
+      ],
+      "fresh_reads": [
+        143633,
+        143633
+      ],
+      "cached_reads": [
+        103094,
+        103094
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Bop op x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "Bop",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        218786,
+        218786
+      ],
+      "root_evaluations": [
+        233649,
+        233649
+      ],
+      "fresh_reads": [
+        316085,
+        316085
+      ],
+      "cached_reads": [
+        132399,
+        132399
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Uop op x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "Uop",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        4,
+        4
+      ],
+      "root_evaluations": [
+        8,
+        8
+      ],
+      "fresh_reads": [
+        7,
+        7
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "root": "Get",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        957751,
+        957751
+      ],
+      "root_evaluations": [
+        994600,
+        994600
+      ],
+      "fresh_reads": [
+        977455,
+        977455
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "root": "Concat",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        329665,
+        329665
+      ],
+      "root_evaluations": [
+        356678,
+        356678
+      ],
+      "fresh_reads": [
+        539510,
+        539510
+      ],
+      "cached_reads": [
+        134947,
+        134947
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Single x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "root": "Single",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        302564,
+        302564
+      ],
+      "root_evaluations": [
+        320520,
+        320520
+      ],
+      "fresh_reads": [
+        311109,
+        311109
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Switch pred inputs branches))\n       (= sum (+ (Expr-size inputs) (+ (ListExpr-size branches) (Expr-size pred)))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "Switch",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        0,
+        0
+      ],
+      "root_evaluations": [
+        0,
+        0
+      ],
+      "fresh_reads": [
+        0,
+        0
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (If pred inputs then else))\n       (= sum (+ (Expr-size inputs) (+ (Expr-size else) (+ (Expr-size then) (Expr-size pred))))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "If",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        12946,
+        12946
+      ],
+      "root_evaluations": [
+        13607,
+        13607
+      ],
+      "fresh_reads": [
+        20035,
+        20035
+      ],
+      "cached_reads": [
+        32701,
+        32701
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (DoWhile in pred-and-output))\n       (= sum (+ (Expr-size pred-and-output) (Expr-size in))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "DoWhile",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        7179,
+        7179
+      ],
+      "root_evaluations": [
+        7339,
+        7339
+      ],
+      "fresh_reads": [
+        7857,
+        7857
+      ],
+      "cached_reads": [
+        6591,
+        6591
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Arg ty assum)))\n      ((set (Expr-size expr) 1))\n        :ruleset always-run )",
+      "root": "Arg",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        77,
+        77
+      ],
+      "root_evaluations": [
+        78,
+        78
+      ],
+      "fresh_reads": [
+        0,
+        0
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Call func arg))\n       (= sum (Expr-size arg)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "Call",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        6909,
+        6909
+      ],
+      "root_evaluations": [
+        7189,
+        7189
+      ],
+      "fresh_reads": [
+        7030,
+        7030
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((Empty ty assum))\n      ((set (Expr-size (Empty ty assum)) 0))\n        :ruleset always-run )",
+      "root": "Empty",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        5,
+        5
+      ],
+      "root_evaluations": [
+        6,
+        6
+      ],
+      "fresh_reads": [
+        0,
+        0
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Cons hd tl))\n       (= sum (+ (ListExpr-size tl) (Expr-size hd))))\n      ((set (ListExpr-size expr) sum))\n        :ruleset always-run )",
+      "root": "Cons",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        0,
+        0
+      ],
+      "root_evaluations": [
+        0,
+        0
+      ],
+      "fresh_reads": [
+        0,
+        0
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((Nil ))\n      ((set (ListExpr-size (Nil )) 0))\n        :ruleset always-run )",
+      "root": "Nil",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        0,
+        0
+      ],
+      "root_evaluations": [
+        0,
+        0
+      ],
+      "fresh_reads": [
+        0,
+        0
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Alloc id e state ty))\n       (= sum (Expr-size e)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "root": "Alloc",
+      "ordinary_handoff_credit": 0,
+      "explanation": "Generic provider remains enabled in both lanes. No credit for moving this rule off GPU.",
+      "queries": [
+        1798,
+        1798
+      ],
+      "bindings": [
+        230,
+        230
+      ],
+      "root_evaluations": [
+        668,
+        668
+      ],
+      "fresh_reads": [
+        366,
+        366
+      ],
+      "cached_reads": [
+        0,
+        0
+      ]
+    }
+  ],
+  "individual_cell_credits": null,
+  "graph_verified": true,
+  "scope": "Actual full raytrace Pass 3. Joint proof-group conditional net inference benefit; not individual learned RipSatCell credit. Generic execution, port cache and handoff stay in both runs. Includes maintenance/effects once; excludes setup, Bake and extraction.",
+  "overlap_policy": "One group receives the measured net credit. Do not duplicate it across three Smaller rules, parents, alternative spines or dependent Cells."
+}
