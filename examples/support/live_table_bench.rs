@@ -192,7 +192,7 @@ fn equal_rows(left:Vec<Row>,right:Vec<Row>,mut map:BTreeMap<Atom,Atom>,mut inver
 }
 #[derive(Serialize,Deserialize)]
 struct ExactControl { initial:Vec<Row>, anchors:Vec<(Atom,Atom)>, rows:Vec<Row> }
-fn save_control(path:&Path,base:&EGraph,eg:&EGraph)->Result<()> {
+pub fn save_control(path:&Path,base:&EGraph,eg:&EGraph)->Result<()> {
     let mut initial=snapshot(base)?;initial.sort();
     let mut anchors=BTreeMap::new();
     for (_,args,result,_) in &initial {for v in args.iter().chain([result]) {if let Atom::Eq(sort,id)=v {
@@ -203,6 +203,10 @@ fn save_control(path:&Path,base:&EGraph,eg:&EGraph)->Result<()> {
     serde_json::to_writer(&mut writer,&packet)?;std::io::Write::flush(&mut writer)?;Ok(())
 }
 fn equal_control(path:&Path,base:&EGraph,eg:&EGraph)->Result<Json>{
+    equal_control_except(path,base,eg,&[])
+}
+/// Source-level auxiliary relations only; callers must name every omitted table.
+pub fn equal_control_except(path:&Path,base:&EGraph,eg:&EGraph,omitted:&[&str])->Result<Json>{
     let saved:ExactControl=serde_json::from_reader(std::io::BufReader::new(std::fs::File::open(path)?))?;
     let mut initial=snapshot(base)?;initial.sort();
     if initial!=saved.initial{return Err("cached control has a different frozen input".into())}
@@ -212,7 +216,8 @@ fn equal_control(path:&Path,base:&EGraph,eg:&EGraph)->Result<Json>{
         let now=atom(eg,Value::new_const(id),eg.get_sort_by_name(&sort).ok_or("missing control sort")?)?;
         pair(then,now,&mut map,&mut inverse)?;
     }
-    equal_rows(saved.rows,snapshot(eg)?,map,inverse)
+    equal_rows(saved.rows.into_iter().filter(|r|!omitted.contains(&r.0.as_str())).collect(),
+               snapshot(eg)?.into_iter().filter(|r|!omitted.contains(&r.0.as_str())).collect(),map,inverse)
 }
 fn graph_sizes(eg: &EGraph) -> Result<Json> {
     let mut nodes = BTreeMap::<String, usize>::new();

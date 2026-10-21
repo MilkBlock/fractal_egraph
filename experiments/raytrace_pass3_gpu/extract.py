@@ -32,11 +32,13 @@ def main():
     old = Path(old) / 'extraction' if old else None
     timing = json.loads((old / 'timing.json').read_text()) if old and (old / 'timing.json').is_file() else {}
     tiger_hash = sha(a.tiger)
-    for lane in ['native', 'cpu', 'gpu']:
+    lanes = report.get('extraction_lanes', ['native', 'cpu', 'gpu'])
+    if lanes not in (['native','cpu','gpu'],['native','markers']):raise ValueError('unsupported extraction lanes')
+    for lane in lanes:
         graph = a.run / 'graphs' / (lane + '.json')
         target = output / (lane + '.egg')
         cached = next((r for r in timing.get('runs', []) if r['lane'] == lane), None)
-        if lane != 'gpu' and cached and timing.get('tiger_sha256') == tiger_hash and cached.get('returncode') == 0 and cached.get('input_sha256') == sha(graph) and (old / (lane + '.egg')).is_file() and cached.get('output_sha256') == sha(old / (lane + '.egg')):
+        if lane in ('native','cpu') and cached and timing.get('tiger_sha256') == tiger_hash and cached.get('returncode') == 0 and cached.get('input_sha256') == sha(graph) and (old / (lane + '.egg')).is_file() and cached.get('output_sha256') == sha(old / (lane + '.egg')):
             shutil.copyfile(old / (lane + '.egg'), target)
             records.append(dict(cached, reused_from=str(old)))
             (output / 'timing.json').write_text(json.dumps(dict(tiger=str(a.tiger), tiger_sha256=tiger_hash, runs=records), indent=2) + '\n')
@@ -60,17 +62,16 @@ def main():
         result.check_returncode()
         pretty.unlink()
     checker = ROOT / 'target/analyzer/release/examples/tiger_output_check'
-    command = [str(checker), str(output / 'quality.json'), str(output / 'native.egg'),
-               str(output / 'cpu.egg'), str(output / 'gpu.egg')]
+    command = [str(checker), str(output / 'quality.json')]+[str(output / (lane+'.egg')) for lane in lanes]
     if a.reference_output:
         command.append(str(a.reference_output))
     primary = subprocess.run(command)
     # Keep the original fused-native gate, but always record the independent
     # same-commit CPU/GPU gate too; a known fused difference must not hide it.
     pair = subprocess.run([str(checker), str(output / 'cpu-gpu-quality.json'),
-                           str(output / 'cpu.egg'), str(output / 'gpu.egg')])
+                           str(output / 'cpu.egg'), str(output / 'gpu.egg')]) if 'gpu' in lanes else None
     primary.check_returncode()
-    pair.check_returncode()
+    if pair:pair.check_returncode()
     print(json.dumps(records, indent=2))
     print(output / 'quality.json')
 

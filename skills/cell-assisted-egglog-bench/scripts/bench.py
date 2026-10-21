@@ -145,6 +145,12 @@ def report(path, fresh=False):
         choices = ['report.json', 'stable-time.json', 'results.json', 'summary.json', 'time.json', 'check.json', 'audit.json', 'diff.json', 'cpu-pair.json']
         path = next((path / n for n in choices if (path / n).is_file()), path / 'report.json')
     r = load(path)
+    if r.get('schema')=='pass3-egg-markers/v1':
+        print('生成 .egg 的原生 CPU 执行；不是 GPU 或整 Cell sat-skip。')
+        print('历史原生秒数：',r['native_historical']['run_seconds'],'；marker 秒数：',r['run_seconds'])
+        print('原始表、值、等价关系和可见性：',bool(r.get('verification')),'；诊断计数模式：',r['profile'])
+        print('marker 行数：',r['marker_rows'])
+        return
     if 'sorted_commit_cpu' in r:
         committed = path.name == 'stable-time.json'
         qpath = path.parent / ('stable-quality.json' if committed else 'extraction/quality.json')
@@ -754,6 +760,13 @@ def parser():
     q.add_argument('--joint-sat', action='store_true')
     q.add_argument('--all-rules', action='store_true')
     q.add_argument('--limit', type=int, default=3)
+    q=sub.add_parser('marker-pass3',help='Analyze-backed .egg marker conversion and complete native Pass-3 check')
+    q.add_argument('--snapshot',type=Path,default=SNAPSHOT);q.add_argument('--analysis',type=Path,required=True)
+    q.add_argument('--reuse-controls',type=Path,required=True);q.add_argument('--output',type=Path,required=True)
+    q.add_argument('--compiled',type=Path);q.add_argument('--solver-python',type=Path)
+    q.add_argument('--variant',choices=['original','shared','published'],default='published')
+    q.add_argument('--no-build',action='store_true');q.add_argument('--no-extract',action='store_true')
+    q.add_argument('--profile',action='store_true');q.add_argument('--tiger',type=Path,default=TIGER)
     for mode in ['check', 'build', 'run', 'extract', 'audit', 'cpu-pair', 'diff', 'sat-skip', 'parameterized', 'transition', 'transfer-bench', 'joint-sat', 'test']:
         q = sub.add_parser(mode)
         q.add_argument('--worker', type=Path, default=WORKER)
@@ -943,6 +956,9 @@ def main(argv=None):
     a = parser().parse_args(argv); repo = a.repo.resolve()
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
+    if a.mode=='marker-pass3':
+        import marker_pass3
+        return marker_pass3.run(a,repo,sha)
     if a.mode == 'report': report(resolve(a.input)); return 0
     if a.mode == 'cell-ledger':
         result=cell_ledger.write(resolve(a.input),resolve(a.baseline) if a.baseline else None,resolve(a.output) if a.output else None)

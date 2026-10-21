@@ -163,6 +163,33 @@ GPU 后端从 layout 16 起默认启用必需表为空的批次短路。`EGGLOG_
 
 ## 提交驱动的 spine marker
 
+### Pass 3 的源码 marker 实验
+
+`marker-pass3 --analysis DIR --reuse-controls 已通过目录 --output 新目录`
+把 Analyze 中出现的公共结构片段写成真实 `.egg` marker，再用原生 CPU
+执行完整 Pass 3。`--variant shared|published|original` 区分共享补全、生产者
+发布和原始程序；`--compiled 之前输出/program` 可复用完全相同的生成源码。
+默认检查原始全部表/值/等价关系/可见性，并调用 Tiger；仅明确推迟时用
+`--no-extract`。`--profile` 是独立计数运行，不用其耗时宣称加速。
+
+这不是 GPU 模式，也不是 Cell sat-skip。它保留原规则的函数更新、guard、
+普通 Run 次数；每次原始 Run 前做共享视图补全。仅允许不会删除/subsume 的
+constructor 片段，保留关联 binding。当前是有限的两 atom、完整键接续布局；
+选片段的 MIP 是结构模型，不是假称原生时间全局最优。不会执行的 ruleset
+不参与选择，combined-ruleset 展开后判断。
+
+生成器保持原声明/编译次序：旧规则在不调度的私有 ruleset 中保留编译，
+可执行替代规则和辅助表在原规则定义完成后安装。bench 必须保留初始化快照
+并运行 clone，与既有 native 对照保持一致。直接运行初始化对象曾导致本例
+的非合流选择不同，不能混用这两种协议。辅助表只按生成清单投影掉；原始表
+不允许忽略。未通过整图或 Tiger 的实验仍返回非零状态。
+
+自动写 `run/source-marker-ledger.json`：每个 marker 对应的 Analyze 状态、
+consumer、实际逻辑应用数、物理 marker 行数及验证门槛。未报告的 consumer
+保持 null。空 marker 或零成功应用不能获得 Cell credit。现有五状态库在
+raytrace Pass 3 上只有一个空 marker、六个无成功应用的 consumer；正确性
+已通过，但没有有效复用/加速证据。结果见 `experiments/pass3_source_markers`。
+
 `run/audit --all-rules --analysis DIR --commit-markers` 启用编译后的 producer 发布器；`CELL_COMMIT_MARKERS=1` 是底层开关。只在原始 Run 提交/merge/rebuild 成功后，将已给出的行和 binding 转成 GPU marker 凭据。后续 spine 延续已有行身份；无凭据或失效时保留完整查询。首次未知后缀仍可能需要查找。普通路径不开启；当前 worker layout 18。
 
 账表必须同时报告 `commit_marker_cpu_work`（应用、行观察、CPU 目录定位、拒绝、接线、传输和处理时间）及 per-plan `receipt_*`，不能把 CPU 定位成本藏在“GPU 认证读取为零”后面。Publisher 的静态数量不等于 live Cell 数，观察到的应用不等于提交 mutation。自动诊断保留这个开关，plan-only 基线不发布 marker。正确性回归已加入 skill 的 `test`；用例和限制见 `experiments/commit_spine_markers/README.md`。本次完整 Pass 3 只验证整图和工作计数，没有新的无插桩加速比。
