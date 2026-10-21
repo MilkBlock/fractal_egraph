@@ -124,6 +124,7 @@ struct QueryStats {
     refuted_seeds:u64,
     productive_seeds:u64,
     depth_work:Vec<Vec<u64>>,
+    search_work:[u64;3],
 }
 struct Row {
     table: usize,
@@ -197,6 +198,7 @@ pub struct Runtime {
     cell_evidence: Json,
     gpu_optimizations: Json,
     cell_work: BTreeMap<String, u64>,
+    cell_plan_work:BTreeMap<usize,Vec<u64>>,
     saturation_hook: Option<Box<dyn SaturationHook>>,
     hook_table_ids: BTreeMap<String, usize>,
     last_saturation: Json,
@@ -433,6 +435,7 @@ impl Runtime {
             cell_evidence: Json::Null,
             gpu_optimizations: Json::Null,
             cell_work: BTreeMap::new(),
+            cell_plan_work:BTreeMap::new(),
             saturation_hook: None,
             hook_table_ids: BTreeMap::new(),
             last_saturation: Json::Null,
@@ -503,7 +506,7 @@ impl Runtime {
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
             if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
-            if installed["family_layout"] != json!(16) {
+            if installed["family_layout"] != json!(17) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0
@@ -785,6 +788,26 @@ impl Runtime {
             for (k, v) in work {
                 *self.cell_work.entry(k.clone()).or_default() +=
                     v.as_u64().ok_or("invalid Cell work counter")?;
+            }
+        }
+        if let Some(work)=r["query_search_work"].as_array(){
+            for row in work {
+                let row=row.as_array().ok_or("invalid query search work")?;
+                if row.len()!=4{return Err("query search work width".into())}
+                let id=row[0].as_u64().ok_or("query search ID")? as usize;
+                if !active.contains(&id){return Err("inactive search work".into())}
+                for (dest,v) in self.qstats[id].search_work.iter_mut().zip(&row[1..]){*dest+=v.as_u64().ok_or("query search count")?;}
+            }
+        }
+        if let Some(work)=r["cell_plan_work"].as_array(){
+            let n=self.cell_evidence["plans"].as_array().map_or(0,Vec::len);
+            for row in work {
+                let row=row.as_array().ok_or("invalid Cell plan work")?;
+                if row.len()!=family_program::CELL_METRICS.len()+1{return Err("Cell plan work width".into())}
+                let id=row[0].as_u64().ok_or("Cell plan ID")? as usize;
+                if id>=n{return Err("unknown Cell plan work".into())}
+                let counts=self.cell_plan_work.entry(id).or_insert_with(||vec![0;family_program::CELL_METRICS.len()]);
+                for (dest,v) in counts.iter_mut().zip(&row[1..]){*dest+=v.as_u64().ok_or("Cell plan count")?;}
             }
         }
         if let Some(work)=r["query_seed_work"].as_array() {
@@ -1124,6 +1147,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"join_depth_fields":family_program::DEPTH_METRICS,"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"gpu_optimizations":self.gpu_optimizations,"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"atoms":sink.atoms.len(),"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"work_profile_version":1,"cell_plan_fields":family_program::CELL_METRICS,"search_work_fields":family_program::SEARCH_METRICS,"cell_plan_work":self.cell_plan_work,"join_depth_fields":family_program::DEPTH_METRICS,"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"gpu_optimizations":self.gpu_optimizations,"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"atoms":sink.atoms.len(),"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

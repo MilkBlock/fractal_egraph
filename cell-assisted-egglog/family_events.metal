@@ -10,13 +10,14 @@ void dirty_cell(device uint* cells,device uint* dirty,device atomic_uint* state,
   uint at=atomic_fetch_add_explicit(state+1,1,memory_order_relaxed);dirty[at]=id;
  }
 }
-void wake_key(device uint* cells,device uint* watches,device atomic_uint* wheads,device uint* dirty,device atomic_uint* state,device atomic_uint* counters,constant uint* cfg,uint table,uint width,thread const uint* key,uint hint,uint generation){
+void wake_key(device uint* instanceMeta,device uint* cells,device uint* watches,device atomic_uint* wheads,device uint* dirty,device atomic_uint* state,device atomic_uint* counters,constant uint* cfg,uint table,uint width,thread const uint* key,uint hint,uint generation){
  uint bucket=watch_hash(table,width,key)&(cfg[10]-1);
  for(uint w=atomic_load_explicit(wheads+bucket,memory_order_relaxed);w!=NO;w=W(w,5)){
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+18,1,memory_order_relaxed);
   uint id=W(w,0);if(cells[id*CS+2]!=W(w,1) || W(w,3)!=table || W(w,4)!=width)continue;
+  uint cp=instanceMeta[id*3+1];cell_work(counters,cp,CM_WATCH_CHECKS);
   bool equal=true;for(uint j=0;j<width;j++)if(W(w,6+j)!=key[j]){equal=false;break;}
-  if(equal){if(hint!=NO){uint at=id*CS+8+W(w,2)*2;cells[at]=hint;cells[at+1]=generation;}dirty_cell(cells,dirty,state,cfg,id,W(w,2));if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+10,1,memory_order_relaxed);}
+  if(equal){cell_work(counters,cp,CM_WATCH_WAKES);if(hint!=NO){uint at=id*CS+8+W(w,2)*2;cells[at]=hint;cells[at+1]=generation;}dirty_cell(cells,dirty,state,cfg,id,W(w,2));if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+10,1,memory_order_relaxed);}
  }
 }
 kernel void family_wake(CTX,uint i [[thread_position_in_grid]]){
@@ -24,11 +25,11 @@ kernel void family_wake(CTX,uint i [[thread_position_in_grid]]){
  uint key[C];
  if(r<cfg[11] && R(r,1)){
   uint table=R(r,0),width=code[TABLE_KEYS+table];for(uint j=0;j<width;j++)key[j]=R(r,4+j);
-  wake_key(cells,watches,wheads,dirty,state,counters,cfg,table,width,key,NO,0);
+  wake_key(instanceMeta,cells,watches,wheads,dirty,state,counters,cfg,table,width,key,NO,0);
  }
  if(packet[at+2]){
   uint table=packet[at+1],width=code[TABLE_KEYS+table];for(uint j=0;j<width;j++)key[j]=packet[at+5+j];
-  wake_key(cells,watches,wheads,dirty,state,counters,cfg,table,width,key,r,packet[at+3]);
+  wake_key(instanceMeta,cells,watches,wheads,dirty,state,counters,cfg,table,width,key,r,packet[at+3]);
  }
 
 }
@@ -53,12 +54,14 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
  if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+11,1,memory_order_relaxed);
  uint resume=min(cells[base+4],cells[base+5]);cells[base+4]=NO;
  if(cells[base+1]!=R(r,2))resume=0;
+ if(cells[base]==2)cell_work(counters,cp,CM_INVALIDATIONS);
  if(cells[base]==2 && PROFILE_JOIN)atomic_fetch_add_explicit(counters+8,1,memory_order_relaxed);
  if(cells[base+2]==NO || cells[base+6]==NO){atomic_fetch_or_explicit(counters+1,4,memory_order_relaxed);return uint2(0);}
  cells[base+2]++;cells[base+6]++;cells[base]=0;cells[base+5]=0;cells[base+1]=R(r,2);
  if(!R(r,1))return uint2(0);
  uint v[S],lo[S],hi[S],b[S];for(uint j=0;j<S;j++){v[j]=lo[j]=hi[j]=b[j]=0;}
  if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,b,!CELL_CONNECTIONS))return uint2(0);
+ cell_work(counters,cp,CM_ATTEMPTS);
  if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+5,1,memory_order_relaxed);
  uint stamp=R(r,3);
  for(uint j=0;j<k;j++){
@@ -68,7 +71,7 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
   if(cells[save+1]!=0 && R(cells[save],1) && R(cells[save],2)==cells[save+1]){
    uint vv[S],ll[S],hh[S],bb[S];for(uint s=0;s<S;s++){vv[s]=v[s];ll[s]=lo[s];hh[s]=hi[s];bb[s]=b[s];}
    if(bind_atom(code,rows,q,t,cells[save],vv,ll,hh,bb,!CELL_CONNECTIONS)){
-    chosen=cells[save];if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+(j<resume?12:19),1,memory_order_relaxed);
+    chosen=cells[save];cell_work(counters,cp,CM_ROW_REUSES);if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+(j<resume?12:19),1,memory_order_relaxed);
    }
   }
   if(chosen==NO){
@@ -80,6 +83,7 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
      h=mixkey(h^(kind?code[lit]:lo[s]));h=mixkey(h^(kind?code[lit+1]:hi[s]));
     }else h=mixkey(h^(kind?s:v[s]));
    }
+   cell_work(counters,cp,CM_PROBES);
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+9,1,memory_order_relaxed);
    for(uint e=atomic_load_explicit(heads+index_head(packet,cfg,sp,h),memory_order_relaxed);e!=NO;e=links[index_link(code,events,e,sp)]){
     if(!live_event(rows,events,e))continue;
@@ -87,7 +91,7 @@ uint2 evaluate_cell(device const uint* code,device uint* rows,device uint* event
     if(bind_atom(code,rows,q,t,E(e,0),vv,ll,hh,bb,!CELL_CONNECTIONS)){chosen=E(e,0);break;}
    }
   }
-  if(chosen==NO){cells[base]=1;if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+17,1,memory_order_relaxed);return uint2(j+1,0);}
+  if(chosen==NO){cell_work(counters,cp,CM_MISSING_KEYS);cells[base]=1;if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+17,1,memory_order_relaxed);return uint2(j+1,0);}
   if(!bind_atom(code,rows,q,t,chosen,v,lo,hi,b,!CELL_CONNECTIONS)){cells[base]=1;return uint2(j+1,0);}
   cells[save]=chosen;cells[save+1]=R(chosen,2);cells[base+5]=j+1;stamp=max(stamp,R(chosen,3));
  }
@@ -121,7 +125,7 @@ kernel void family_cell_publish(CTX,uint lane [[thread_position_in_grid]]){
   register_key(watches,wheads,state,cfg,counters,id,cells[base+2],j,table,width,key);
   if(j<complete){uint row=cells[base+CH+j*2];if(!R(row,1) || R(row,2)!=cells[base+CH+j*2+1] || !bind_atom(code,rows,q,t,row,v,lo,hi,b,!CELL_CONNECTIONS)){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}}
  }
- if(cells[base]==2 && !CELL_CONNECTIONS){uint at=atomic_fetch_add_explicit(state+2,1,memory_order_relaxed);if(at>=cfg[21]){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}ports[at*2]=id;ports[at*2+1]=cells[base+6];if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+16,1,memory_order_relaxed);}
+ if(cells[base]==2 && !CELL_CONNECTIONS){uint at=atomic_fetch_add_explicit(state+2,1,memory_order_relaxed);if(at>=cfg[21]){atomic_fetch_or_explicit(counters+1,32,memory_order_relaxed);return;}ports[at*2]=id;ports[at*2+1]=cells[base+6];cell_work(counters,cp,CM_READY_PUBLICATIONS);if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+16,1,memory_order_relaxed);}
 }
 kernel void family_watch_count(CTX,uint i [[thread_position_in_grid]]){
  if(i>=cfg[12])return;uint id=W(i,0);if(instanceMeta[id*3]!=NO && cells[id*CS+2]==W(i,1))atomic_fetch_add_explicit(registry+8,1,memory_order_relaxed);

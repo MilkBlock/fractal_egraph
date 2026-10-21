@@ -9,6 +9,12 @@
 #define E(e,c) events[(e)*3+(c)]
 uint index_head(device const uint* packet,constant uint* cfg,uint sp,uint h){uint at=cfg[26]+2*sp;return packet[at]+(h&packet[at+1]);}
 uint index_link(device const uint* code,device uint* events,uint e,uint sp){return E(e,2)+code[INDEX_LOCAL+sp];}
+// Diagnostic-only work. Per-packet counters retain every retry attempt.
+void add_work(device atomic_uint* counters,uint at,uint amount){
+ if(PROFILE_JOIN && amount){uint old=atomic_fetch_add_explicit(counters+at,amount,memory_order_relaxed);if(old>NO-amount)atomic_fetch_or_explicit(counters+1,2,memory_order_relaxed);}
+}
+void query_work(device atomic_uint* counters,uint q,uint field,uint amount=1){add_work(counters,64+NQ*(3+P*ND)+q*NSEARCH+field,amount);}
+void cell_work(device atomic_uint* counters,uint cp,uint field,uint amount=1){if(cp!=NO)add_work(counters,64+NQ*(3+P*ND+NSEARCH)+cp*NCM+field,amount);}
 uint mixkey(uint x){x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;return x^(x>>16);}
 kernel void family_patch(CTX,uint i [[thread_position_in_grid]]){
  if(i<cfg[2]){uint at=4+cfg[3]*4+i*(1+RS),slot=packet[at];for(uint j=0;j<RS;j++)R(slot,j)=packet[at+1+j];if(cfg[7]==0){E(cfg[1]+i,0)=slot;E(cfg[1]+i,1)=R(slot,2);E(cfg[1]+i,2)=packet[cfg[25]+i];}}
@@ -111,7 +117,7 @@ bool port_owns(device const uint* code,device uint* rows,device uint* cells,devi
 // this branch belongs to an earlier seminaive anchor.
 uint cell_segment(device const uint* code,device uint* rows,device uint* cells,device uint* rowCells,device uint* instanceMeta,device atomic_uint* counters,constant uint* cfg,uint q,uint anchor,uint position,uint r,uint cutoff,thread uint* v,thread uint* lo,thread uint* hi,thread uint* bound){
  if(!CELL_CERTIFICATES)return 0;
- uint route=CELL_ROUTE+((q*P+anchor)*P+position)*(2+S),cp=code[route];if(cp==NO)return 0;
+ uint route=CELL_ROUTE+((q*P+anchor)*P+position)*(2+S),cp=code[route];if(cp==NO)return 0;cell_work(counters,cp,CM_SEGMENT_CHECKS);
  uint id=cell_lookup(rowCells,instanceMeta,r,cp);if(id==NO)return 0;uint base=id*CS,k=code[route+1];
  if(cells[base]!=2 || cells[base+1]!=R(r,2))return 0;
  for(uint j=0;j<k;j++){
@@ -130,6 +136,7 @@ uint cell_segment(device const uint* code,device uint* rows,device uint* cells,d
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+14,1,memory_order_relaxed);return NO;
   }
  }
+ cell_work(counters,cp,CM_SEGMENT_HITS);cell_work(counters,cp,CM_SKIPPED_INTERNAL_READS,k);
  if(PROFILE_JOIN){atomic_fetch_add_explicit(counters+3,k,memory_order_relaxed);atomic_fetch_add_explicit(counters+4,1,memory_order_relaxed);}
  return k;
 }
@@ -147,6 +154,7 @@ template<uint QP=P,uint QS=S> uint2 family_execute(QUERY_ARGS,uint qidx,uint e,u
  for(uint s=0;s<QS;s++){val[0][s]=0;low[0][s]=0;high[0][s]=0;bound[0][s]=0;}
  if(!bind_atom(code,rows,q,anchor,r,val[0],low[0],high[0],bound[0],!staged) ||
     (staged&&!stage_constraints(code,q,anchor,0,val[0],low[0],high[0],bound[0])))return uint2(hits,reused);
+ if(n>1)query_work(counters,q,0);
  if(port_owns(code,rows,cells,rowCells,instanceMeta,q,anchor,anchor,r,val[0],bound[0])){if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+14,1,memory_order_relaxed);return uint2(hits,reused);}
  for(uint d=0;d<QP;d++)started[d]=0;
  if(n==1){hits+=emit_match<QS>(code,output,counters,cfg,q,val[0],low[0],high[0],staged);return uint2(hits,reused);}
@@ -159,6 +167,7 @@ template<uint QP=P,uint QS=S> uint2 family_execute(QUERY_ARGS,uint qidx,uint e,u
  while(depth>=0){
   uint step=PLAN+((q*P+anchor)*(P-1)+uint(depth))*2,t=code[step],sp=code[step+1],atom=ATOM+(q*P+t)*(2+2*C);
   if(!started[depth]){
+   if(!(uint(depth)<hintCount))query_work(counters,q,1);
    if(PROFILE_JOIN && !(uint(depth)<hintCount))atomic_fetch_add_explicit(counters+2,1,memory_order_relaxed);
    uint at=SPEC+sp*(2+C),h=0x31415926u;
    for(uint j=0;j<code[at+1];j++){uint col=code[at+2+j];uint kind=code[atom+2+2*col],s=code[atom+3+2*col];
@@ -171,6 +180,7 @@ template<uint QP=P,uint QS=S> uint2 family_execute(QUERY_ARGS,uint qidx,uint e,u
   }
   uint next=cursor[depth];if(next==NO){started[depth]=0;depth=CELL_CERTIFICATES?parent[depth]:depth-1;continue;}
   cursor[depth]=(uint(depth)<hintCount)?NO:links[index_link(code,events,next,sp)];if(!live_event(rows,events,next))continue;
+  query_work(counters,q,2);
   uint row=E(next,0);if(precedes(code,q,t,anchor) && R(row,3)>=cutoff)continue;
   for(uint s=0;s<QS;s++){val[depth+1][s]=val[depth][s];low[depth+1][s]=low[depth][s];high[depth+1][s]=high[depth][s];bound[depth+1][s]=bound[depth][s];}
   if(!bind_atom(code,rows,q,t,row,val[depth+1],low[depth+1],high[depth+1],bound[depth+1],!staged) ||

@@ -12,6 +12,13 @@ use std::collections::{BTreeMap, BTreeSet};
 mod constraint_schedule;
 #[path = "refutation.rs"]
 mod refutation;
+pub(crate) const CELL_METRICS: &[&str] = &[
+    "attempts", "probes", "missing_keys", "ready_publications", "segment_checks",
+    "segment_hits", "skipped_internal_reads", "port_queries", "port_nonempty_queries", "port_matches",
+    "port_probes", "port_candidate_rows", "watch_checks", "watch_wakes",
+    "invalidations", "row_reuses",
+];
+pub(crate) const SEARCH_METRICS: &[&str] = &["starts", "index_probes", "candidate_rows"];
 pub(crate) const DEPTH_METRICS: &[&str] = &[
     "entries", "link_visits", "live_rows", "prefixes", "key_checks",
     "refutations", "matched_leaves", "domain_checks", "signature_refutations", "deepest_seeds",
@@ -235,7 +242,7 @@ pub fn compile(
     let mut cell_fields = vec![];
     let (mut max_cell_steps, mut max_cell_vars) = (1, 1);
     let mut cell_steps = vec![];
-    let mut cell_evidence = vec![];
+    let mut cell_evidence: Vec<Json> = vec![];
     let mut cell_tables = BTreeSet::new();
     let mut drivers: Vec<Option<(usize, Vec<usize>, Vec<u32>)>> = vec![None; sinks.len()];
     for (qi, q) in sinks.iter().enumerate() {
@@ -373,6 +380,14 @@ pub fn compile(
                     cell_specs.insert(key, id);
                     id
                 };
+                // One plan can be justified by several Cells and used by many
+                // consumers. Preserve all owners without duplicating its work.
+                let item=&mut cell_evidence[id];
+                let mut owners=item["states"].as_array().unwrap().iter().filter_map(Json::as_u64).collect::<BTreeSet<_>>();
+                owners.extend(alts.iter().filter_map(|(v,_)|(*v!=usize::MAX).then_some(*v as u64)));
+                item["states"]=json!(owners);
+                let mut users=item["consumers"].as_array().into_iter().flatten().filter_map(Json::as_u64).collect::<BTreeSet<_>>();
+                users.insert(qi as u64);item["consumers"]=json!(users);
                 let inverse = renaming
                     .iter()
                     .map(|(o, n)| (*n, *o))
@@ -662,6 +677,8 @@ pub fn compile(
         shader += &format!("#define D_{} {i}u\n",name.to_ascii_uppercase());
     }
     shader += &format!("#define CELL_RANGES {}\n",u32::from(ranges_enabled));
+    shader += &format!("#define NCM {}u\n#define NSEARCH {}u\n", CELL_METRICS.len(), SEARCH_METRICS.len());
+    for (i,name) in CELL_METRICS.iter().enumerate() {shader+=&format!("#define CM_{} {i}u\n",name.to_ascii_uppercase());}
     let cell_header = 8; // Common revision header for sparse instance reuse.
     shader += &format!(
         "#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n#define CH {cell_header}\n"
@@ -767,7 +784,8 @@ pub fn compile(
     for (id,(qp,qs)) in shape_sizes.iter().enumerate(){
         shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n if(COMPACT_BINDINGS)family_execute_compact<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2]);else family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
     }
-    Ok(
-        json!({"version":2,"family_layout":16,"empty_table_pruning":std::env::var("EGGLOG_GPU_EMPTY_TABLE_PRUNING").as_deref()!=Ok("0"),"query_tables":sinks.iter().map(|q|q.atoms.iter().map(|a|tids[&a.function]).collect::<BTreeSet<_>>()).collect::<Vec<_>>(),"binding_connections":connection_mode,"binding_ranges":ranges_enabled,"range_checks":range_check_count,"range_sources":range_sources,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"projection_queries":sinks.iter().enumerate().filter_map(|(i,_)| (cells.is_some() && drivers[i].is_some()).then_some(i)).collect::<Vec<_>>(),"projection_fallback_queries":sinks.iter().enumerate().filter_map(|(i,q)| (cells.is_some() && !q.primitives.is_empty()).then_some(i)).collect::<Vec<_>>(),"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
-    )
+    let mut config=json!({"version":2,"family_layout":17,"empty_table_pruning":std::env::var("EGGLOG_GPU_EMPTY_TABLE_PRUNING").as_deref()!=Ok("0"),"query_tables":sinks.iter().map(|q|q.atoms.iter().map(|a|tids[&a.function]).collect::<BTreeSet<_>>()).collect::<Vec<_>>(),"binding_connections":connection_mode,"binding_ranges":ranges_enabled,"range_checks":range_check_count,"range_sources":range_sources,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"projection_queries":sinks.iter().enumerate().filter_map(|(i,_)| (cells.is_some() && drivers[i].is_some()).then_some(i)).collect::<Vec<_>>(),"projection_fallback_queries":sinks.iter().enumerate().filter_map(|(i,q)| (cells.is_some() && !q.primitives.is_empty()).then_some(i)).collect::<Vec<_>>(),"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile});
+    config["cell_metrics"]=json!(CELL_METRICS);
+    config["search_metrics"]=json!(SEARCH_METRICS);
+    Ok(config)
 }

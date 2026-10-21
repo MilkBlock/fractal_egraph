@@ -17,11 +17,13 @@ kernel void family_cells(CTX,uint id [[thread_position_in_grid]]){
  cells[base]=0;
  uint v[S],lo[S],hi[S],b[S];for(uint i=0;i<S;i++){v[i]=lo[i]=hi[i]=b[i]=0;}
  if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,b))return;
+ cell_work(counters,cp,CM_ATTEMPTS);
  if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+5,1,memory_order_relaxed);
  for(uint j=0;j<k;j++){
   uint step=CELL_STEP+(cp*(P-1)+j)*2,t=code[step],sp=code[step+1],atom=ATOM+(q*P+t)*(2+2*C),at=SPEC+sp*(2+C),h=0x31415926u;
   h=query_index_hash(code,q,t,sp,v,lo,hi);
   uint bucket=index_head(packet,cfg,sp,h),head=atomic_load_explicit(heads+bucket,memory_order_relaxed),chosen=NO;
+  cell_work(counters,cp,CM_PROBES);
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+9,1,memory_order_relaxed);
   for(uint e=head;e!=NO;e=links[index_link(code,events,e,sp)]){
    if(!live_event(rows,events,e))continue;
@@ -29,7 +31,7 @@ kernel void family_cells(CTX,uint id [[thread_position_in_grid]]){
    uint row=E(e,0);if(!bind_atom(code,rows,q,t,row,vv,ll,hh,bb))continue;
    chosen=row;break; // Complete key: no second canonical row can exist.
   }
-  if(chosen==NO)return;
+  if(chosen==NO){cell_work(counters,cp,CM_MISSING_KEYS);return;}
   bind_atom(code,rows,q,t,chosen,v,lo,hi,b);
   uint save=base+CH+j*2;cells[save]=chosen;cells[save+1]=R(chosen,2);
  }

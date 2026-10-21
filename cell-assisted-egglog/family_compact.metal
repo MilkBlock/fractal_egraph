@@ -165,7 +165,7 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
  if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,bound,false) ||
     !stage_constraints(code,q,anchor,0,v,lo,hi,bound))return uint2(0);
  if(n==1)return uint2(emit_match<QS>(code,output,counters,cfg,q,v,lo,hi,true),0);
- seed_work(counters,q,0);
+ query_work(counters,q,0);seed_work(counters,q,0);
  depth_work(counters,q,0,D_ENTRIES);depth_work(counters,q,0,D_PREFIXES);
  if(refuted(code,heads,domains,packet,cfg,counters,q,anchor,0,v,lo,hi) ||
     domains_refuted(code,domains,packet,cfg,counters,q,anchor,v,lo,hi) ||
@@ -180,6 +180,7 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
   uint atom=ATOM+(q*P+t)*(2+2*C);
   if(!started[depth]){
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+2,1,memory_order_relaxed);
+   query_work(counters,q,1);
    depth_work(counters,q,uint(depth)+1,D_ENTRIES);
    if(PROFILE_JOIN)deepest=max(deepest,uint(depth)+1);
    uint at=SPEC+sp*(2+C),h=0x31415926u;
@@ -197,6 +198,7 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
   depth_work(counters,q,uint(depth)+1,D_LINK_VISITS);
   cursor[depth]=links[index_link(code,events,next,sp)];if(!live_event(rows,events,next))continue;
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+45,1,memory_order_relaxed);
+  query_work(counters,q,2);
   depth_work(counters,q,uint(depth)+1,D_LIVE_ROWS);
   uint row=E(next,0);if(precedes(code,q,t,anchor) && R(row,3)>=cutoff)continue;
   uint mask=BSTATE+((q*P+anchor)*P+uint(depth))*BW;

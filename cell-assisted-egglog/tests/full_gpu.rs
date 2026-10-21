@@ -439,7 +439,7 @@ fn analyzed_structural_projection_coexists_with_full_numeric_queries() {
     let lib=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/analyze");
     for plan_only in [false,true] {
         let mut r=Runtime::new_full_configured(eg.clone(),&cmds,Some(&worker),true,None,None,
-            cell_assisted_egglog::table_live::Options{analysis:Some(&lib),plan_only,..Default::default()}).unwrap();
+            cell_assisted_egglog::table_live::Options{analysis:Some(&lib),plan_only,profile:true,..Default::default()}).unwrap();
         let report=r.report();
         assert_eq!(report["cells"]["compact_binding_workspace"],true);
         assert!(!report["cells"]["projection_queries"].as_array().unwrap().is_empty());
@@ -448,5 +448,13 @@ fn analyzed_structural_projection_coexists_with_full_numeric_queries() {
         r.input("(subsume (Get (Single (Leaf 9)) 0)) (Num 5)").unwrap();r.run(&cmds).unwrap();
         r.input("(union (Get (Single (Leaf 8)) 0) (Leaf 8)) (union (Leaf 9) (Leaf 8))").unwrap();r.run(&cmds).unwrap();
         check(&r,"(check (Out (Leaf 8))) (check (Done 6))");
+        let final_report=r.report();
+        assert_eq!(final_report["work_profile_version"],1);
+        assert!(final_report["rules"].as_array().unwrap().iter().any(|q|q["stats"]["search_work"][0].as_u64().unwrap()>0));
+        if !plan_only {
+            assert!(!final_report["cell_plan_work"].as_object().unwrap().is_empty());
+            assert!(final_report["cells"]["plans"].as_array().unwrap().iter().all(|p|!p["consumers"].as_array().unwrap().is_empty()));
+        }
+
     }
 }
