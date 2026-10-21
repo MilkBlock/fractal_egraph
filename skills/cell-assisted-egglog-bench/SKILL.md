@@ -112,7 +112,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 紧凑 GPU Join 默认使用自动证否 lookahead；`CELL_REFUTATION=0` 关闭。编译器只选择已有 tuple index，提前检测未访问 atom 的必要键，空哈希桶可直接拒绝整条后继搜索。碰撞及退休行只可能多保留候选；union/rebuild 仍使用原生完整增量维护，不以 Cell 库未覆盖作为证否。它不是新增 Cell 闭包证明。
 
-后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 17，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
+后续版本默认再检查每桶 32 位键指纹；`CELL_REFUTATION_SIGNATURES=0` 恢复上一版仅查空桶。`CELL_REFUTATION_DOMAINS=1` 开启可选的共享中间取值求交，默认关闭。`CELL_REFUTATION=0` 同时关闭三种过滤及摘要维护。报告 GPU 摘要字节数，不能称为 RSS 或压缩率；计数中的 `signature_refuted_branches` 已包含在 `refuted_branches` 内，不能相加，`domain_refuted_branches` 才是另一组排除。当前 worker layout 18，旧 worker 需重建。见 [共享桶摘要](../../experiments/automatic_refutation/BUCKET_SUMMARIES.md)。
 
 从 layout 13 起，`CELL_SEARCH_COUNTERS=1` 另记录多 atom 查询的起始候选数 `eligible_seeds`、当场被否的 `refuted_seeds`、至少产生一条完整 binding 的 `productive_seeds`，并按原始 rule 汇总。命中率用 `refuted_seeds / eligible_seeds`；不能将包括深层分支的 `refuted_branches` 除以起始候选数。无剩余候选时比率未定义。普通运行不执行这些诊断 atomic，也不分配按 rule 的计数区。
 
@@ -160,3 +160,9 @@ GPU 后端从 layout 16 起默认启用必需表为空的批次短路。`EGGLOG_
 使用三组同二进制运行：无库、同库 plan-only、同库开启复用。`analyze-credit --baseline DIR --plan-only DIR --candidate DIR [--profile-plan DIR --profile-candidate DIR] --output NEW.json` 核验后分开报告库的总净收益及顺序/片段复用的条件差值。时间不含 setup、Bake、extraction，均须另列；不能拿源码 terms 证明的收益冒充该库收益。复用未变的 CPU 控制；每组只跑一次。
 
 当前接线仅复用已认证的正向、全键结构片段。含 computed primitive 的查询逐条保持完整 GPU 匹配，其他查询保留紧凑工作区/refutation。片段第一次认证与订阅维护不免费；报告 loaded states、共享计划、实际消费者、认证读取、普通/port 探测、watch 检查和 GPU 分配字节。13 条投影查询的旧执行器尚无完整逐层行数，最新诊断曲线只覆盖其余 compact 查询，不能冒称完整工作量。冻结的 If/Single 库在完整 Pass 3 的一次测量为负收益，见 `experiments/analyze_library_credit/README.md`；它不是完整 Pass-3 Bake 库的结论。
+
+## 提交驱动的 spine marker
+
+`run/audit --all-rules --analysis DIR --commit-markers` 启用编译后的 producer 发布器；`CELL_COMMIT_MARKERS=1` 是底层开关。只在原始 Run 提交/merge/rebuild 成功后，将已给出的行和 binding 转成 GPU marker 凭据。后续 spine 延续已有行身份；无凭据或失效时保留完整查询。首次未知后缀仍可能需要查找。普通路径不开启；当前 worker layout 18。
+
+账表必须同时报告 `commit_marker_cpu_work`（应用、行观察、CPU 目录定位、拒绝、接线、传输和处理时间）及 per-plan `receipt_*`，不能把 CPU 定位成本藏在“GPU 认证读取为零”后面。Publisher 的静态数量不等于 live Cell 数，观察到的应用不等于提交 mutation。自动诊断保留这个开关，plan-only 基线不发布 marker。正确性回归已加入 skill 的 `test`；用例和限制见 `experiments/commit_spine_markers/README.md`。本次完整 Pass 3 只验证整图和工作计数，没有新的无插桩加速比。

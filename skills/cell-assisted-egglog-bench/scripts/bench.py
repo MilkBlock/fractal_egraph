@@ -782,6 +782,7 @@ def parser():
             q.add_argument('--all-rules', action='store_true')
             q.add_argument('--joint-sat', action='store_true')
         if mode in ['run', 'audit']:
+            q.add_argument('--commit-markers',action='store_true',help='publish spine witnesses from committed action receipts; requires --analysis')
             q.add_argument('--analysis', type=Path, help='frozen Analyze catalog for structural projections; all-rules only')
             q.add_argument('--analysis-plan-only', action='store_true', help='retain identical library-guided order/backend but disable certificates')
         if mode == 'diff':
@@ -832,7 +833,7 @@ def commands(a, repo, worker, out):
         c = [[binary('joint_sat_bench'), str(worker), str(out)] + ([source] if source else [])]
     elif a.mode == 'test':
         c = [['cargo', 'test', '--offline', '--manifest-path', 'egglog/egglog-bridge/Cargo.toml', '--target-dir', 'target/analyzer', '--lib', 'cell_worklist_tests', '--', '--test-threads=1'],
-             ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--test', 'full_gpu', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
+             ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--test', 'full_gpu', '--test', 'commit_markers', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--lib', 'stable_choice::tests', '--target-dir', 'target/analyzer'],
              ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'transfer_artifact', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
     else: c = []
@@ -915,6 +916,7 @@ def finish_cell_metrics(a,repo,worker,out,env):
                   '--policy',a.policy,'--snapshot',str(a.snapshot),'--worker',str(worker),
                   '--analysis',str(analysis),'--reuse-controls',str(control),'--output',str(dest)]
             if a.joint_sat:args.append('--joint-sat')
+            if a.commit_markers:args.append('--commit-markers')
             if only:args.append('--analysis-plan-only')
             pa=parser().parse_args(args)
             pe=dict(env,CELL_SEARCH_COUNTERS='1',CELL_BENCH_ANALYSIS=str(analysis if analysis.is_absolute() else repo/analysis),
@@ -1083,6 +1085,9 @@ def main(argv=None):
     if a.mode in ['build', 'extract'] or (a.mode == 'run' and not a.no_extract): targets += ['tiger_output_check']
     build = ['cargo', 'build', '--offline', '--release', '--target-dir', 'target/analyzer'] + [x for t in targets for x in ['--example', t]]
     env = dict(os.environ, RAYON_NUM_THREADS='1', EGGLOG_PROBE_COUNTS_OFF='1', CELL_MATRIX_WORKER=str(worker))
+    if getattr(a,'commit_markers',False):
+        if not getattr(a,'analysis',None):raise ValueError('--commit-markers requires --analysis')
+        env['CELL_COMMIT_MARKERS']='1'
     if getattr(a, 'analysis_plan_only', False) and not getattr(a, 'analysis', None): raise ValueError('--analysis-plan-only requires --analysis')
     if getattr(a, 'analysis', None):
         if not a.all_rules: raise ValueError('--analysis requires --all-rules')

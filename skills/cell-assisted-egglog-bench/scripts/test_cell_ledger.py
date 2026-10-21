@@ -111,6 +111,17 @@ class LedgerTests(unittest.TestCase):
                     self.assertEqual(write.call_count,1)
                 self.assertEqual(os.environ.get('CELL_SEARCH_COUNTERS'),old)
 
+    def test_commit_marker_costs_are_visible_and_flag_survives_companions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);r=fixture(profile=False)
+            r['gpu']['commit_markers']={'directory_resolutions':12,'emitted_hints':4}
+            p=save(root,'run',r)
+            self.assertEqual(L.build(p)['shared_costs']['commit_marker_cpu_work']['directory_resolutions'],12)
+            a=B.parser().parse_args(['run','--all-rules','--analysis',str(root/'lib'),'--commit-markers'])
+            with patch.object(B,'reusable_result',return_value=None),patch.object(B,'main',return_value=0) as execute,patch.object(L,'write'):
+                B.finish_cell_metrics(a,root,root/'worker',p,{})
+                self.assertTrue(all('--commit-markers' in c.args[0] for c in execute.call_args_list))
+
     def test_no_metrics_flag_does_not_launch_companions(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);p=save(root,'run',fixture(profile=False))

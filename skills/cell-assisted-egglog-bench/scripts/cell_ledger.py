@@ -140,7 +140,7 @@ def build(path, baseline=None):
         rows=rows,groups=groups,plan_counters=raw,plan_definitions=plans,source_program_counters=d.get('programs',[]),proof_group_counters=d.get('joint'),
         runtime_seconds=g.get('runtime',{}).get('run_seconds'),
         timing_eligible=not c.get('profile') and not g.get('audit') and not g.get('query_timing_profile') and verified(r),
-        shared_costs={'bake_seconds':None,'allocated_gpu_bytes':g.get('device',{}).get('device_bytes'),
+        shared_costs={'commit_marker_cpu_work':g.get('commit_markers'),'bake_seconds':None,'allocated_gpu_bytes':g.get('device',{}).get('device_bytes'),
             'cell_cache_bytes':g.get('device',{}).get('cell_cache_bytes'),
             'cell_watch_bytes':g.get('device',{}).get('cell_watch_bytes'),
             'watch_checks_not_assigned_to_valid_plan':g.get('cell_work',{}).get('watch_entries_checked',0)-sum((m or {}).get('watch_checks',0) for m in raw.values()) if measured else None},

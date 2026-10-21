@@ -1,0 +1,57 @@
+kind,id,label,owners,plans,consumers,requests,hits,hit_rate,port_requests,port_hits,port_hit_rate,new_reads,cached_reads,cache_hit_rate,watch_checks,skipped_reads,candidates_before,candidates_after,candidates_saved,net_seconds,status
+shared_projection,0,2 + 6 + 10,"[1, 2, 3, 4]",[0],"[2, 3, 5]",0,0,,0,0,,0,0,,0,0,,,,,measured shared work; seconds not isolated
+shared_projection,1,6 + 10,"[1, 2, 3, 4]",[1],"[2, 3, 5]",0,0,,0,0,,0,0,,0,0,,,,,measured shared work; seconds not isolated
+shared_projection,2,1 + 0,"[1, 2, 3, 4]",[2],"[2, 3, 368, 369, 374, 375, 376, 377]",6848,8,0.0011682242990654205,0,0,,0,4,1.0,0,8,,,,,measured shared work; seconds not isolated
+shared_projection,3,10 + 6,"[1, 2, 3, 4]",[3],"[2, 3, 5]",0,0,,0,0,,0,0,,0,0,,,,,measured shared work; seconds not isolated
+shared_projection,4,0 + 5,"[1, 2, 3, 4]",[4],"[6, 374, 376, 380, 381]",0,0,,0,0,,0,0,,0,0,,,,,measured shared work; seconds not isolated
+shared_projection,5,0 + 9,"[1, 2, 3, 4]",[5],"[7, 375, 377]",0,0,,0,0,,0,0,,0,0,,,,,measured shared work; seconds not isolated
+analyzed_cell,0,Analyze Cell 0,,[],[],,,,,,,,,,,,,,,,no compiled projection; no runtime reuse
+analyzed_cell,1,Analyze Cell 1,,"[0, 1, 2, 3, 4, 5]","[2, 3, 5, 6, 7, 368, 369, 374, 375, 376, 377, 380, 381]",,,,,,,,,,,,,,,,shared projections: follow plan rows; do not duplicate credit
+analyzed_cell,2,Analyze Cell 2,,"[0, 1, 2, 3, 4, 5]","[2, 3, 5, 6, 7, 368, 369, 374, 375, 376, 377, 380, 381]",,,,,,,,,,,,,,,,shared projections: follow plan rows; do not duplicate credit
+analyzed_cell,3,Analyze Cell 3,,"[0, 1, 2, 3, 4, 5]","[2, 3, 5, 6, 7, 368, 369, 374, 375, 376, 377, 380, 381]",,,,,,,,,,,,,,,,shared projections: follow plan rows; do not duplicate credit
+analyzed_cell,4,Analyze Cell 4,,"[0, 1, 2, 3, 4, 5]","[2, 3, 5, 6, 7, 368, 369, 374, 375, 376, 377, 380, 381]",,,,,,,,,,,,,,,,shared projections: follow plan rows; do not duplicate credit
+source_program,0,Const,,,,0,0,,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,1,Arg,,,,0,0,,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,2,Bop,,,,0,0,,,,,47848,26806,0.35906984220537413,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,3,Top,,,,0,0,,,,,16842,8861,0.3447457495234019,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,4,Uop,,,,0,0,,,,,22,3,0.12,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,5,Get,,,,0,0,,,,,85314,5,5.860359357235786e-05,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,6,Single,,,,0,0,,,,,33058,2750,0.07679848078641645,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,7,Concat,,,,0,0,,,,,34261,11051,0.2438868290960452,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,8,PotentialExtractedExpr,,,,0,0,,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,9,PotentialExtractedExpr,,,,0,0,,,,,536749,56030,0.09452089227182474,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,10,PotentialExtractedExpr,,,,0,0,,,,,71204,0,0.0,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,11,Smaller,,,,0,0,,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,12,Smaller,,,,0,0,,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,13,Smaller,,,,0,0,,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,14,Function,,,,1798,704,0.39154616240266965,,,,1487,0,0.0,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,15,Const,,,,1798,17,0.009454949944382647,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,16,Top,,,,1798,1290,0.7174638487208009,,,,143633,103094,0.417846445666668,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,17,Bop,,,,1798,1553,0.8637374860956618,,,,316085,132399,0.29521454500049055,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,18,Uop,,,,1798,3,0.0016685205784204673,,,,7,0,0.0,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,19,Get,,,,1798,1637,0.9104560622914349,,,,977455,0,0.0,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,20,Concat,,,,1798,1589,0.8837597330367074,,,,539510,134947,0.20008243668610454,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,21,Single,,,,1798,1586,0.882091212458287,,,,311109,0,0.0,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,22,Switch,,,,1798,0,0.0,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,23,If,,,,1798,965,0.5367074527252503,,,,20035,32701,0.6200887439320388,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,24,DoWhile,,,,1798,973,0.5411568409343716,,,,7857,6591,0.45618770764119604,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,25,Arg,,,,1798,5,0.0027808676307007787,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,26,Call,,,,1798,972,0.5406006674082313,,,,7030,0,0.0,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,27,Empty,,,,1798,2,0.0011123470522803114,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,28,Cons,,,,1798,0,0.0,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,29,Nil,,,,1798,0,0.0,,,,0,0,,,,,,,,source-compiled execution; not independent Cell proof credit
+source_program,30,Alloc,,,,1798,6,0.0033370411568409346,,,,366,0,0.0,,,,,,,source-compiled execution; not independent Cell proof credit
+proof_group,terms-joint-closure-proofs,joint closure proofs,,,,12,0,0.0,,,,,,,,,,,,,comparison closures consumed: 1185; marginal time needs cell-credit
+consumer,2,switch_rewrite,,"[0, 1, 2, 3]",[2],2,0,,,,,,,,,,,0,,,"generic empty requests: 2; hits column = output bindings, not a rate"
+consumer,3,switch_rewrite,,"[0, 1, 2, 3]",[3],2,0,,,,,,,,,,,0,,,"generic empty requests: 2; hits column = output bindings, not a rate"
+consumer,5,switch_rewrite,,"[0, 1, 3]",[5],2,0,,,,,,,,,,,0,,,"generic empty requests: 2; hits column = output bindings, not a rate"
+consumer,6,switch_rewrite,,[4],[6],2,0,,,,,,,,,,,0,,,"generic empty requests: 2; hits column = output bindings, not a rate"
+consumer,7,switch_rewrite,,[5],[7],2,0,,,,,,,,,,,0,,,"generic empty requests: 2; hits column = output bindings, not a rate"
+consumer,368,interval-analysis,,[2],[368],28,46,,,,,,,,,,,9102,,,"generic empty requests: 1; hits column = output bindings, not a rate"
+consumer,369,interval-analysis,,[2],[369],28,46,,,,,,,,,,,9102,,,"generic empty requests: 1; hits column = output bindings, not a rate"
+consumer,374,interval-analysis,,"[2, 4]",[374],30,0,,,,,,,,,,,0,,,"generic empty requests: 30; hits column = output bindings, not a rate"
+consumer,375,interval-analysis,,"[2, 5]",[375],30,0,,,,,,,,,,,0,,,"generic empty requests: 30; hits column = output bindings, not a rate"
+consumer,376,interval-analysis,,"[2, 4]",[376],30,0,,,,,,,,,,,0,,,"generic empty requests: 30; hits column = output bindings, not a rate"
+consumer,377,interval-analysis,,"[2, 5]",[377],30,0,,,,,,,,,,,0,,,"generic empty requests: 30; hits column = output bindings, not a rate"
+consumer,380,interval-analysis,,[4],[380],30,0,,,,,,,,,,,0,,,"generic empty requests: 30; hits column = output bindings, not a rate"
+consumer,381,interval-analysis,,[4],[381],30,0,,,,,,,,,,,0,,,"generic empty requests: 30; hits column = output bindings, not a rate"
