@@ -117,6 +117,7 @@ struct QueryStats {
     eligible_seeds:u64,
     refuted_seeds:u64,
     productive_seeds:u64,
+    depth_work:Vec<Vec<u64>>,
 }
 struct Row {
     table: usize,
@@ -476,7 +477,7 @@ impl Runtime {
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
             if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
-            if installed["family_layout"] != json!(13) {
+            if installed["family_layout"] != json!(14) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0
@@ -763,6 +764,19 @@ impl Runtime {
                 self.qstats[id].eligible_seeds+=a;
                 self.qstats[id].refuted_seeds+=b;
                 self.qstats[id].productive_seeds+=c;
+            }
+        }
+        if let Some(work)=r["query_depth_work"].as_array() {
+            let width=family_program::DEPTH_METRICS.len();
+            for row in work {
+                let row=row.as_array().ok_or("invalid depth profile")?;
+                if row.len()!=width+2{return Err("invalid depth profile width".into());}
+                let id=row[0].as_u64().ok_or("missing depth query")? as usize;
+                let depth=row[1].as_u64().ok_or("missing depth")? as usize;
+                if !active.contains(&id) || depth>=self.sinks[id].atoms.len(){return Err("invalid depth query/stage".into());}
+                let counts=&mut self.qstats[id].depth_work;
+                counts.resize_with(self.sinks[id].atoms.len(),||vec![0;width]);
+                for (dest,value) in counts[depth].iter_mut().zip(&row[2..]) {*dest+=value.as_u64().ok_or("invalid depth counter")?;}
             }
         }
         let t = Instant::now();
@@ -1073,6 +1087,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"join_depth_fields":family_program::DEPTH_METRICS,"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"atoms":sink.atoms.len(),"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

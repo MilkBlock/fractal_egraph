@@ -2,6 +2,7 @@
 """Reusable entry point to existing native/GPU experiments; standard library only."""
 from __future__ import annotations
 import argparse
+import csv
 import datetime
 import hashlib
 import json
@@ -288,15 +289,105 @@ def interaction_report(paths):
     return dict(scope='Actual full Pass-3 work-count experiment. Profiled seconds are not speedup evidence. This ablates certified services, not training data or Bake quality.',
                 records=records,contrasts=contrasts,query_mix=mixtures)
 
+def join_depth_report(paths):
+    """Depth is matched non-anchor atoms; loops/branches are not probabilities."""
+    result=interaction_report(paths)
+    required={'entries','link_visits','live_rows','prefixes','key_checks','refutations',
+              'matched_leaves','domain_checks','signature_refutations','deepest_seeds'}
+    parsed={}; depths={}; fields=None
+    for name,path in paths.items():
+        g=load(path/'report.json')['gpu']; names=g.get('join_depth_fields',[])
+        if set(names)!=required or len(names)!=len(required):
+            raise ValueError('missing full Join depth schema; collect layout 14 profile: '+name)
+        if fields is None: fields=names
+        elif fields!=names: raise ValueError('depth schema/order differs')
+        rules={}; totals=[]
+        def empty(): return {f:0 for f in fields}
+        for q in g['rules']:
+            stats=q['stats']; n=q['atoms']; raw=stats.get('depth_work',[])
+            if raw and len(raw)!=n: raise ValueError('depth vector differs from rule arity')
+            rows=[dict(zip(fields,v)) for v in raw] if raw else [empty() for _ in range(n)]
+            if any(len(v)!=len(fields) for v in raw): raise ValueError('depth field width differs')
+            if any(type(v) is not int or v<0 for row in rows for v in row.values()): raise ValueError('invalid depth count')
+            if sum(row['deepest_seeds'] for row in rows)!=stats['eligible_seeds']:
+                raise ValueError('deepest-depth histogram differs from seed count')
+            if rows:
+                for f,seed_field in [('entries','eligible_seeds'),('prefixes','eligible_seeds'),
+                                     ('refutations','refuted_seeds'),('deepest_seeds','refuted_seeds')]:
+                    if rows[0][f]!=stats[seed_field]: raise ValueError('anchor-depth accounting differs')
+            for d,row in enumerate(rows):
+                if row['refutations']>row['prefixes']: raise ValueError('too many refutations')
+                if d and not row['prefixes']<=row['live_rows']<=row['link_visits']:
+                    raise ValueError('prefix/row/link accounting differs')
+                if d+1<n and rows[d+1]['entries']!=row['prefixes']-row['refutations']:
+                    raise ValueError('next loop does not conserve surviving prefixes')
+                if row['matched_leaves']>row['prefixes']-row['refutations'] or (d+1<n and row['matched_leaves']):
+                    raise ValueError('invalid matched leaves')
+                while len(totals)<=d: totals.append(empty())
+                for f,v in row.items(): totals[d][f]+=v
+            rules[(q['ruleset'],q['rule'])]=dict(seeds=stats['eligible_seeds'],rows=rows)
+        work=g['cell_work']
+        for field,global_field in [('link_visits','join_link_visits'),('live_rows','join_live_row_visits'),
+                                  ('key_checks','refutation_checks'),('domain_checks','domain_checks'),
+                                  ('signature_refutations','signature_refuted_branches')]:
+            if sum(r[field] for r in totals)!=work[global_field]: raise ValueError('depth totals differ: '+field)
+        # Legacy join_probes is cleared on output retry; per-depth counters
+        # retain all attempts. The compact-path counters are authoritative here.
+        result['records'][name]['compact_probe_attempts']=sum(r['entries'] for r in totals[1:])
+        result['records'][name]['legacy_final_attempt_probes']=work['join_probes']
+        if sum(r['refutations'] for r in totals)!=work['refuted_branches']+work['domain_refuted_branches']:
+            raise ValueError('depth refutation totals differ')
+        seeds=work['eligible_seeds']; visits=work['join_live_row_visits']; rejects=sum(r['refutations'] for r in totals)
+        bins=[]
+        for d,row in enumerate(totals):
+            bins.append(dict(depth=d,**row,
+                rejection_rate_given_prefix=row['refutations']/row['prefixes'] if row['prefixes'] else None,
+                row_visit_share=row['live_rows']/visits if visits else None,
+                refutation_event_share=row['refutations']/rejects if rejects else None,
+                entries_per_seed=row['entries']/seeds if seeds else None,
+                deepest_seed_probability=row['deepest_seeds']/seeds if seeds else None,
+                reach_probability=sum(x['deepest_seeds'] for x in totals[d:])/seeds if seeds else None))
+        parsed[name]=rules;depths[name]=bins
+    def contrast(a,b):
+        left,right=parsed[a],parsed[b]
+        common=[k for k in left if left[k]['seeds'] and right[k]['seeds']]
+        weight=sum(left[k]['seeds'] for k in common); size=max(len(depths[a]),len(depths[b]))
+        def weighted(source,d,field,tail=False):
+            if not weight:return None
+            def val(k):
+                rows=source[k]['rows']
+                return sum(r[field] for r in rows[d:]) if tail else (rows[d][field] if d<len(rows) else 0)
+            return sum(left[k]['seeds']*val(k)/source[k]['seeds'] for k in common)/weight
+        same_seeds=all(left[k]['seeds']==right[k]['seeds'] for k in left)
+        fixed=[];raw=[]
+        for d in range(size):
+            fixed.append(dict(depth=d,
+                before_rows_per_seed=weighted(left,d,'live_rows'),after_rows_per_seed=weighted(right,d,'live_rows'),
+                before_entries_per_seed=weighted(left,d,'entries'),after_entries_per_seed=weighted(right,d,'entries'),
+                before_reach_probability=weighted(left,d,'deepest_seeds',True),after_reach_probability=weighted(right,d,'deepest_seeds',True)))
+            va=depths[a][d]['live_rows'] if d<len(depths[a]) else 0
+            vb=depths[b][d]['live_rows'] if d<len(depths[b]) else 0
+            raw.append(dict(depth=d,before=va,after=vb,saved=va-vb,reduction=(1-vb/va) if va else None))
+        return dict(before=a,after=b,common_rules=len(common),same_per_rule_seed_counts=same_seeds,
+                    fixed_rule_mix=fixed,raw_row_savings=raw)
+    result.update(depth_fields=fields,depths=depths,depth_contrasts={
+        'cell_effect_with_refutation':contrast('s0r1','s1r1'),
+        'refutation_effect_with_cell':contrast('s1r0','s1r1'),
+        'refutation_effect_without_cell':contrast('s0r0','s0r1')})
+    result['depth_scope']='Actual compact GPU Join. Depth 0 is a valid multi-atom anchor; depth d attempts the d-th non-anchor atom. Deepest-seed bins count each seed evaluation once, including retries. Entry counts can exceed seed counts due to branching; they are not reach probabilities.'
+    return result
+
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--repo', type=Path, default=REPO)
     p.add_argument('--dry-run', action='store_true')
     sub = p.add_subparsers(dest='mode', required=True)
     q = sub.add_parser('report'); q.add_argument('input', type=Path, nargs='?', default=SAVED)
-    q = sub.add_parser('interaction', help='read saved sat/refutation factorial counters; no runs')
-    for name in ['s0r0','s0r1','s1r0','s1r1']: q.add_argument('--'+name,type=Path,required=True)
-    q.add_argument('--sat-only',type=Path);q.add_argument('--output',type=Path)
+    for mode in ['interaction','depth']:
+        q = sub.add_parser(mode, help='read saved factorial/depth counters; no runs')
+        for name in ['s0r0','s0r1','s1r0','s1r1']: q.add_argument('--'+name,type=Path,required=True)
+        q.add_argument('--sat-only',type=Path);q.add_argument('--output',type=Path)
+        if mode=='depth':q.add_argument('--csv',type=Path)
     q = sub.add_parser('history', help='reuse historical evidence; no build or execution')
     q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
     q.add_argument('--policy', choices=['stable', 'original'], default='stable')
@@ -425,15 +516,28 @@ def main(argv=None):
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
     if a.mode == 'report': report(resolve(a.input)); return 0
-    if a.mode == 'interaction':
+    if a.mode in ['interaction','depth']:
         paths={name:resolve(getattr(a,name)) for name in ['s0r0','s0r1','s1r0','s1r1']}
         if a.sat_only: paths['sat-only']=resolve(a.sat_only)
-        result=interaction_report(paths)
+        result=join_depth_report(paths) if a.mode=='depth' else interaction_report(paths)
         print('读取已有计数，不重新执行；不使用带计数器的时间证明加速。')
         for name,r in result['records'].items():
             print(name, 'candidate row visits:',r['work']['join_live_row_visits'], 'seed rejection:',f"{100*r['rejection_rate']:.3f}%" if r['rejection_rate'] is not None else 'N/A')
         print('固定规则权重的比较：',json.dumps([{k:v for k,v in m.items() if k not in ['removed','changed_common']} for m in result['query_mix']],ensure_ascii=False))
-        if a.output:
+        if a.mode=='depth':
+            for name,rows in result['depths'].items():
+                print(name,'depth / loop entries / row visits / refutations / reach probability')
+                for row in rows:
+                    if row['entries'] or row['refutations']:
+                        print(row['depth'],row['entries'],row['live_rows'],row['refutations'],row['reach_probability'])
+        if a.mode=='depth' and a.csv and not a.dry_run:
+            dest=resolve(a.csv);dest.parent.mkdir(parents=True,exist_ok=True)
+            names=['configuration','depth']+result['depth_fields']+['reach_probability','deepest_seed_probability','refutation_event_share','row_visit_share','rejection_rate_given_prefix','entries_per_seed']
+            with dest.open('x',newline='') as f:
+                writer=csv.DictWriter(f,fieldnames=names,lineterminator="\n");writer.writeheader()
+                for name,rows in result['depths'].items():
+                    for row in rows:writer.writerow(dict(configuration=name,**row))
+        if a.output and not a.dry_run:
             dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
             with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
         return 0

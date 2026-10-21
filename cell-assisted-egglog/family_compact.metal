@@ -8,6 +8,14 @@
 void seed_work(device atomic_uint* counters,uint q,uint kind){
  if(PROFILE_JOIN){atomic_fetch_add_explicit(counters+49+kind,1,memory_order_relaxed);atomic_fetch_add_explicit(counters+64+q*3+kind,1,memory_order_relaxed);}
 }
+// Depth 0 is the valid anchor, depth d>0 is the d-th subsequent atom.
+// These count work attempts (including retries), never committed mutations.
+void depth_work(device atomic_uint* counters,uint q,uint depth,uint field,uint amount=1){
+ if(PROFILE_JOIN && amount){
+  uint old=atomic_fetch_add_explicit(counters+64+3*NQ+(q*P+depth)*ND+field,amount,memory_order_relaxed);
+  if(old>NO-amount)atomic_fetch_or_explicit(counters+1,2,memory_order_relaxed);
+ }
+}
 bool refuted(device const uint* code,device atomic_uint* heads,device atomic_uint* domains,device const uint* packet,
  constant uint* cfg,device atomic_uint* counters,uint q,uint anchor,uint depth,
  thread const uint* v,thread const uint* lo,thread const uint* hi){
@@ -24,6 +32,7 @@ bool refuted(device const uint* code,device atomic_uint* heads,device atomic_uin
    }else h=mixkey(h^(kind?s:v[s]));
   }
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+42,1,memory_order_relaxed);
+  depth_work(counters,q,depth,D_KEY_CHECKS);
   if(atomic_load_explicit(heads+index_head(packet,cfg,sp,h),memory_order_relaxed)==NO){
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+43,1,memory_order_relaxed);
    return true;
@@ -31,6 +40,7 @@ bool refuted(device const uint* code,device atomic_uint* heads,device atomic_uin
   if(REFUTATION_SIGNATURES){
    uint id=code[SIGNATURE_SPEC+sp];
    if(id!=NO && (atomic_load_explicit(domains+domain_head(packet,cfg,id,h),memory_order_relaxed)&(1u<<(mixkey(h)&31u)))==0){
+    depth_work(counters,q,depth,D_SIGNATURE_REFUTATIONS);
     if(PROFILE_JOIN){atomic_fetch_add_explicit(counters+48,1,memory_order_relaxed);atomic_fetch_add_explicit(counters+43,1,memory_order_relaxed);}
     return true;
    }
@@ -60,6 +70,7 @@ bool domains_refuted(device const uint* code,device atomic_uint* domains,device 
    masks[side]=atomic_load_explicit(domains+domain_head(packet,cfg,id,h),memory_order_relaxed);
   }
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+46,1,memory_order_relaxed);
+  depth_work(counters,q,0,D_DOMAIN_CHECKS);
   if((masks[0]&masks[1])==0){
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+47,1,memory_order_relaxed);
    return true;
@@ -72,15 +83,16 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
  if(n==0 || !code[PREADY+q])return family_execute<QP,QS>(QUERY_PASS,qidx,e,anchor,code,0);
  if(e>=cfg[6] || anchor>=n || !live_event(rows,events,e))return uint2(0);
  uint r=E(e,0);if(R(r,3)<cutoff)return uint2(0);
- uint v[QS],lo[QS],hi[QS],bound[QS],cursor[QP],started[QP],hits=0;
+ uint v[QS],lo[QS],hi[QS],bound[QS],cursor[QP],started[QP],hits=0,deepest=0;
  for(uint j=0;j<QS;j++){v[j]=lo[j]=hi[j]=bound[j]=0;}
  if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,bound,false) ||
     !stage_constraints(code,q,anchor,0,v,lo,hi,bound))return uint2(0);
  if(n==1)return uint2(emit_match<QS>(code,output,counters,cfg,q,v,lo,hi,true),0);
  seed_work(counters,q,0);
+ depth_work(counters,q,0,D_ENTRIES);depth_work(counters,q,0,D_PREFIXES);
  if(refuted(code,heads,domains,packet,cfg,counters,q,anchor,0,v,lo,hi) ||
     domains_refuted(code,domains,packet,cfg,counters,q,anchor,v,lo,hi)){
-  seed_work(counters,q,1);return uint2(0);
+  seed_work(counters,q,1);depth_work(counters,q,0,D_REFUTATIONS);depth_work(counters,q,0,D_DEEPEST_SEEDS);return uint2(0);
  }
  for(uint j=0;j<QP;j++)started[j]=0;
  int depth=0;
@@ -89,6 +101,8 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
   uint atom=ATOM+(q*P+t)*(2+2*C);
   if(!started[depth]){
    if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+2,1,memory_order_relaxed);
+   depth_work(counters,q,uint(depth)+1,D_ENTRIES);
+   if(PROFILE_JOIN)deepest=max(deepest,uint(depth)+1);
    uint at=SPEC+sp*(2+C),h=0x31415926u;
    for(uint j=0;j<code[at+1];j++){
     uint col=code[at+2+j],kind=code[atom+2+2*col],s=code[atom+3+2*col];
@@ -101,17 +115,23 @@ template<uint QP,uint QS> uint2 family_execute_compact(QUERY_ARGS,uint qidx,uint
   }
   uint next=cursor[depth];if(next==NO){started[depth]=0;depth--;continue;}
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+44,1,memory_order_relaxed);
+  depth_work(counters,q,uint(depth)+1,D_LINK_VISITS);
   cursor[depth]=links[index_link(code,events,next,sp)];if(!live_event(rows,events,next))continue;
   if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+45,1,memory_order_relaxed);
+  depth_work(counters,q,uint(depth)+1,D_LIVE_ROWS);
   uint row=E(next,0);if(precedes(code,q,t,anchor) && R(row,3)>=cutoff)continue;
   uint mask=BSTATE+((q*P+anchor)*P+uint(depth))*BW;
   for(uint j=0;j<QS;j++)bound[j]=(code[mask+j/16]>>(2*(j%16)))&3u;
   if(!bind_atom(code,rows,q,t,row,v,lo,hi,bound,false) ||
      !stage_constraints(code,q,anchor,uint(depth)+1,v,lo,hi,bound))continue;
-  if(refuted(code,heads,domains,packet,cfg,counters,q,anchor,uint(depth)+1,v,lo,hi))continue;
-  if(uint(depth)+1==n-1)hits+=emit_match<QS>(code,output,counters,cfg,q,v,lo,hi,true);
+  depth_work(counters,q,uint(depth)+1,D_PREFIXES);
+  if(refuted(code,heads,domains,packet,cfg,counters,q,anchor,uint(depth)+1,v,lo,hi)){
+   depth_work(counters,q,uint(depth)+1,D_REFUTATIONS);continue;
+  }
+  if(uint(depth)+1==n-1){uint hit=emit_match<QS>(code,output,counters,cfg,q,v,lo,hi,true);hits+=hit;depth_work(counters,q,uint(depth)+1,D_MATCHED_LEAVES,hit);}
   else{depth++;started[depth]=0;}
  }
+ depth_work(counters,q,deepest,D_DEEPEST_SEEDS);
  if(hits)seed_work(counters,q,2);
  return uint2(hits,0);
 }

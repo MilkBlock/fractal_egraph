@@ -94,6 +94,72 @@ class WorkflowTests(unittest.TestCase):
             self.assertIsNone(result['records']['s1r1']['rejection_rate'])
             self.assertIsNone(result['query_mix'][0]['common_candidate_fixed_weight_rate'])
 
+    def depth_fixture(self, root):
+        paths=self.interaction_fixture(root)
+        fields=['entries','link_visits','live_rows','prefixes','key_checks','refutations',
+                'matched_leaves','domain_checks','signature_refutations','deepest_seeds']
+        for name,path in paths.items():
+            r=B.load(path/'report.json');g=r['gpu'];refute=name.endswith('r1')
+            for q in g['rules']:
+                q['atoms']=3
+                if q['rule']=='removed':
+                    e=q['stats']['eligible_seeds']
+                    rows=[dict(entries=e,prefixes=e),dict(entries=e,link_visits=e,live_rows=e,deepest_seeds=e),{}]
+                elif refute:
+                    rows=[dict(entries=10,prefixes=10,key_checks=10,refutations=5,deepest_seeds=5),
+                          dict(entries=5,link_visits=20,live_rows=20,prefixes=8,deepest_seeds=3),
+                          dict(entries=8,link_visits=3,live_rows=3,prefixes=2,matched_leaves=2,deepest_seeds=2)]
+                else:
+                    rows=[dict(entries=10,prefixes=10),
+                          dict(entries=10,link_visits=30,live_rows=30,prefixes=20,deepest_seeds=5),
+                          dict(entries=20,link_visits=10,live_rows=10,prefixes=2,matched_leaves=2,deepest_seeds=5)]
+                q['stats']['depth_work']=[[row.get(f,0) for f in fields] for row in rows]
+            g['join_depth_fields']=fields
+            total={f:sum(row[i] for q in g['rules'] for row in q['stats']['depth_work']) for i,f in enumerate(fields)}
+            w=g['cell_work'];w.update(join_probes=sum(row[0] for q in g['rules'] for row in q['stats']['depth_work'][1:]),
+                join_link_visits=total['link_visits'],join_live_row_visits=total['live_rows'],refutation_checks=total['key_checks'],
+                domain_checks=0,signature_refuted_branches=0,refuted_branches=total['refutations'],domain_refuted_branches=0)
+            (path/'report.json').write_text(json.dumps(r))
+        return paths
+
+    def test_depth_branch_entries_are_not_seed_reach_probabilities(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result=B.join_depth_report(self.depth_fixture(Path(tmp)))
+            d=result['depths']['s1r0'][2]
+            self.assertEqual(d['entries_per_seed'],2)
+            self.assertEqual(d['reach_probability'],.5)
+            for rows in result['depths'].values():
+                self.assertAlmostEqual(sum(r['deepest_seed_probability'] for r in rows),1)
+                self.assertTrue(all(0<=r['reach_probability']<=1 for r in rows))
+
+    def test_depth_checks_prefix_flow_and_one_deepest_bin_per_seed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=self.depth_fixture(Path(tmp));p=paths['s1r1']/'report.json';original=B.load(p)
+            for field in ['prefixes','deepest_seeds']:
+                r=copy.deepcopy(original);i=r['gpu']['join_depth_fields'].index(field)
+                r['gpu']['rules'][1]['stats']['depth_work'][1][i]+=1;p.write_text(json.dumps(r))
+                with self.assertRaises(ValueError):B.join_depth_report(paths)
+            p.write_text(json.dumps(original));del original['gpu']['join_depth_fields'];p.write_text(json.dumps(original))
+            with self.assertRaises(ValueError):B.join_depth_report(paths)
+
+    def test_depth_preserves_legacy_probe_counter_retry_semantics(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=self.depth_fixture(Path(tmp));p=paths['s1r1']/'report.json';r=B.load(p)
+            r['gpu']['cell_work']['join_probes']-=2;p.write_text(json.dumps(r))
+            result=B.join_depth_report(paths)['records']['s1r1']
+            self.assertEqual(result['compact_probe_attempts']-result['legacy_final_attempt_probes'],2)
+
+    def test_depth_csv_exports_saved_data_without_running_inference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);paths=self.depth_fixture(root);out=root/'depth.csv'
+            args=['--repo',str(root),'depth']
+            for name,path in paths.items():args += ['--'+name,str(path)]
+            with patch.object(B.subprocess,'run',side_effect=AssertionError('inference executed')),contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(B.main(args+['--csv',str(out)]),0)
+            with out.open() as f:rows=list(B.csv.DictReader(f))
+            self.assertEqual(len(rows),12)
+            self.assertIn('deepest_seeds',rows[0]);self.assertIn('reach_probability',rows[0])
+
     def test_cache_requires_identical_execution_and_successful_graph_gate(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

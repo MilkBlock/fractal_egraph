@@ -12,6 +12,10 @@ use std::collections::{BTreeMap, BTreeSet};
 mod constraint_schedule;
 #[path = "refutation.rs"]
 mod refutation;
+pub(crate) const DEPTH_METRICS: &[&str] = &[
+    "entries", "link_visits", "live_rows", "prefixes", "key_checks",
+    "refutations", "matched_leaves", "domain_checks", "signature_refutations", "deepest_seeds",
+];
 pub fn compile(
     eg: &EGraph,
     sinks: &[CellActionSink],
@@ -627,6 +631,10 @@ pub fn compile(
     shader += &format!("#define REFUTATION {}\n", u32::from(refutation_enabled));
     shader += &format!("#define REFUTATION_DOMAINS {}\n", u32::from(domains_enabled));
     shader += &format!("#define REFUTATION_SIGNATURES {}\n#define REFUTATION_SUMMARIES {}\n", u32::from(signatures_enabled),u32::from(signatures_enabled||domains_enabled));
+    shader += &format!("#define ND {}u\n", DEPTH_METRICS.len());
+    for (i,name) in DEPTH_METRICS.iter().enumerate() {
+        shader += &format!("#define D_{} {i}u\n",name.to_ascii_uppercase());
+    }
     let cell_header = 8; // Common revision header for sparse instance reuse.
     shader += &format!(
         "#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n#define CH {cell_header}\n"
@@ -731,6 +739,6 @@ pub fn compile(
         shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n if(COMPACT_BINDINGS)family_execute_compact<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2]);else family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
     }
     Ok(
-        json!({"version":2,"family_layout":13,"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":14,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

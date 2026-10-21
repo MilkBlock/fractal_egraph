@@ -215,3 +215,10 @@ subsume, computed keys and backtracking. Five fresh full Pass-3 graph checks
 pass against the same-commit reference. This change adds observation and report
 tools; it does not change matching or saturation semantics, and does not
 claim a new Tiger or pristine-upstream validation run.
+
+Later diagnostic clarification: the GPU receipt's legacy `join_probes` resets
+on output-capacity retries, while candidate-row counters retain all attempts.
+The indexed-stage column above preserves its original last-attempt-per-packet
+meaning. For all-attempt loop counts and actual seed reach probabilities, see
+[the Join depth distribution](../join_depth_distribution/README.md). Candidate
+row results and the conclusions about query mix are unchanged.
