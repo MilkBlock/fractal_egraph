@@ -218,6 +218,7 @@ mod spine_tests {
             true,
             true,
             true,
+            false,
         )
         .unwrap();
         lib.shared_spines = true;
@@ -231,6 +232,7 @@ mod spine_tests {
             true,
             true,
             true,
+            false,
         )
         .unwrap();
         for (key, value) in old.as_object().unwrap() {
@@ -248,6 +250,10 @@ mod spine_tests {
     }
 }
 impl Library {
+    pub(crate) fn receipt_tables(&self)->BTreeSet<String>{
+        self.templates.iter().flat_map(|t|t.state["rows"].as_array().into_iter().flatten()
+            .filter_map(|r|r["op"].as_str()).filter(|op|!t.markers.contains(*op)).map(str::to_owned)).collect()
+    }
     /// Values are interned in the target engine, never copied as foreign IDs.
     /// Only complete states referenced by the analyze catalog are accepted.
     pub fn load(eg: &mut EGraph, dir: &Path) -> Result<Self> {

@@ -199,6 +199,8 @@ pub struct Runtime {
     gpu_optimizations: Json,
     cell_work: BTreeMap<String, u64>,
     cell_plan_work:BTreeMap<usize,Vec<u64>>,
+    commit_markers:Option<crate::commit_markers::Compiler>,
+    marker_parts:usize,
     saturation_hook: Option<Box<dyn SaturationHook>>,
     hook_table_ids: BTreeMap<String, usize>,
     last_saturation: Json,
@@ -340,6 +342,7 @@ impl Runtime {
             .analysis
             .map(|dir| crate::cell_prefix::Library::load(&mut eg, dir))
             .transpose()?;
+        let marker_tables=if worker.is_some() && extended && !options.plan_only && !options.cache_only && std::env::var("CELL_COMMIT_MARKERS").as_deref()==Ok("1") {cells.as_ref().map(|c|c.receipt_tables())}else{None};
         let mut names = BTreeSet::new();
         for c in commands {
             let Command::RunSchedule(s) = c else {
@@ -379,11 +382,12 @@ impl Runtime {
                     if ids.contains(id){return Err("repeated rule inside one combined Run".into())}
                     ids.push(*id);continue;
                 }
-                let sink = if extended{eg.prepare_gpu_cell_action(&owner,&name)?}else{eg.prepare_cell_action(&owner, &name)?};
+                let sink = if let Some(tables)=&marker_tables {eg.prepare_gpu_cell_action_receipts(&owner,&name,tables)?}else if extended{eg.prepare_gpu_cell_action(&owner,&name)?}else{eg.prepare_cell_action(&owner, &name)?};
                 if !eg.cell_query_is_seminaive(&sink) {
                     return Err("shared runtime requires seminaive rules".into());
                 }
                 tables.extend(sink.atoms.iter().map(|a| a.function.clone()));
+                if let Some(receipts)=&sink.receipts {tables.extend(receipts.rows.iter().map(|(n,_)|n.clone()));}
                 owners.push(owner.clone());
                 compiled.insert((owner,name),sinks.len());
                 ids.push(sinks.len());
@@ -436,6 +440,7 @@ impl Runtime {
             gpu_optimizations: Json::Null,
             cell_work: BTreeMap::new(),
             cell_plan_work:BTreeMap::new(),
+            commit_markers:None,marker_parts:1,
             saturation_hook: None,
             hook_table_ids: BTreeMap::new(),
             last_saturation: Json::Null,
@@ -497,17 +502,23 @@ impl Runtime {
                 !options.plan_only,
                 !options.cache_only,
                 matches!(options.query_routing,QueryRouting::TableAnchors),
+                marker_tables.is_some(),
             )?;
+            runtime.marker_parts=config["parts"].as_u64().unwrap() as usize;
+            if marker_tables.is_some(){
+                runtime.commit_markers=Some(crate::commit_markers::Compiler::new(&config,&runtime.sinks,&feed.tables.iter().map(|t|t.name.clone()).collect::<Vec<_>>())?);
+            }
             config["phase_timing"]=json!(runtime.query_timing);
             config["port_locality"] = json!(options.port_locality as u32);
             config["query_routing"] = json!(options.query_routing as u32);
             runtime.cell_evidence = json!({"binding_ranges":config["binding_ranges"],"range_checks":config["range_checks"],"range_sources":config["range_sources"],"binding_connections":config["binding_connections"],"connection_sources":connections.map(|c|c.len()).unwrap_or(0),"refutation_signatures":config["refutation_signatures"],"refutation_domains":config["refutation_domains"],"domain_checks":config["domain_checks"],"domain_summaries":config["domain_tables"].as_array().map(Vec::len),"refutation":config["refutation"],"refutation_checks":config["refutation_checks"],"staged_constraints":config["staged_constraints"],"compact_binding_workspace":config["compact_binding_workspace"]==true && matches!(options.query_routing,QueryRouting::TableAnchors),"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"projection_queries":config["projection_queries"],"projection_fallback_queries":config["projection_fallback_queries"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             runtime.gpu_optimizations=json!({"empty_table_pruning":config["empty_table_pruning"]});
             runtime.cell_evidence["spine_projection"]=config["spine_projection"].clone();
+            runtime.cell_evidence["commit_markers"]=config["commit_markers"].clone();
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
             if runtime.query_timing && installed["phase_timing"]!=true {return Err("worker does not support phase timing; rebuild matrix.swift".into())}
-            if installed["family_layout"] != json!(17) {
+            if installed["family_layout"] != json!(18) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0
@@ -661,6 +672,29 @@ impl Runtime {
         }
         Ok(())
     }
+    fn collect_marker_receipts(&mut self,ids:&[usize])->Result<()> {
+        let Some(markers)=&mut self.commit_markers else{return Ok(())};
+        let started=Instant::now();let feed=self.feed.as_ref().ok_or("marker commit feed")?;
+        for id in ids {if let Some(tap)=&self.sinks[*id].receipts {
+            let applications=tap.drain();if applications.is_empty(){continue}
+            let layout=tap.rows.iter().map(|(name,types)|feed.tables.iter().position(|t|t.name==*name).map(|table|(table,types.len())).ok_or("receipt table not subscribed")).collect::<std::result::Result<Vec<_>,_>>()?;
+            for values in applications {
+                markers.stats.applications+=1;let mut offset=0;let mut rows=vec![];
+                for &(table,width) in &layout {
+                    let end=offset+width;let mut values=values.get(offset..end).ok_or("receipt arity")?.to_vec();offset=end;
+                    markers.stats.receipt_rows+=1;
+                    for (value,sort) in values.iter_mut().zip(&self.sorts[table]){if sort.is_eq_sort(){*value=self.eg.get_canonical_value(*value,sort);}}
+                    markers.stats.directory_resolutions+=1;
+                    let row=self.keys[table].get(&values[..values.len()-1]).map(|slot|(*slot,&self.rows[*slot]));
+                    let Some((slot,row))=row.filter(|(_,r)|r.live && r.values==values) else{markers.stats.rejected_rows+=1;rows.push(None);continue};
+                    rows.push(Some(crate::commit_markers::GroundRow{table,slot:slot as u32,generation:row.generation,values}));
+                }
+                if offset!=values.len(){return Err("receipt trailing values".into())}
+                markers.observe(*id,rows);
+            }
+        }}
+        markers.stats.seconds+=started.elapsed().as_secs_f64();Ok(())
+    }
     fn native_matches(&mut self, ids: &[usize]) -> Result<Vec<Vec<Vec<Value>>>> {
         let qs = ids.iter().map(|i| &self.reference[*i]).collect::<Vec<_>>();
         let mut result = self.eg.run_cell_queries(&qs)?;
@@ -751,6 +785,7 @@ impl Runtime {
                 words.extend([n as u32, (n >> 32) as u32]);
             }
         }
+        words.extend(self.commit_markers.as_mut().map_or_else(||vec![0],|m|m.drain(self.marker_parts)));
         self.stats.prepare_seconds += t.elapsed().as_secs_f64();
         let t = Instant::now();
         let (r, body) = self
@@ -977,6 +1012,7 @@ impl Runtime {
             .sum::<f64>();
         let t = Instant::now();
         self.collect_commits()?;
+        self.collect_marker_receipts(&ids)?;
         self.stats.event_seconds += t.elapsed().as_secs_f64();
         self.stats.ruleset_runs += 1;
         if self.stats.ruleset_runs % 100 == 0 {
@@ -1148,6 +1184,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"work_profile_version":1,"cell_plan_fields":family_program::CELL_METRICS,"search_work_fields":family_program::SEARCH_METRICS,"cell_plan_work":self.cell_plan_work,"join_depth_fields":family_program::DEPTH_METRICS,"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"gpu_optimizations":self.gpu_optimizations,"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"atoms":sink.atoms.len(),"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"commit_markers":self.commit_markers.as_ref().map(|m|&m.stats),"work_profile_version":1,"cell_plan_fields":family_program::CELL_METRICS,"search_work_fields":family_program::SEARCH_METRICS,"cell_plan_work":self.cell_plan_work,"join_depth_fields":family_program::DEPTH_METRICS,"runtime":self.stats,"native_only_rulesets":self.native_stats,"query_costs_by_ruleset":self.query_costs,"query_timing_profile":self.query_timing,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit||self.audit_cell_queries,"audit_scope":if self.audit{"all queries"}else if self.audit_cell_queries{"Cell-supplied queries"}else{"none"},"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"gpu_optimizations":self.gpu_optimizations,"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"extended_queries":self.extended,"cell_query_reuse":self.cell_queries_enabled,"selected_rule_count":self.sinks.len(),"shared_query_groups":self.sharing.group_count,"query_sharing":self.share_queries,"ruleset_memberships":self.sets,"rules":self.sinks.iter().enumerate().map(|(id,sink)|json!({"ruleset":self.owners[id],"rule":sink.name,"atoms":sink.atoms.len(),"stats":self.qstats[id]})).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

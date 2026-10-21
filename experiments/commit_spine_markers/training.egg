@@ -1,0 +1,13 @@
+(datatype Expr (Leaf i64) (Single Expr) (Get Expr i64) (Box Expr))
+(relation Short (Expr Expr))
+(relation Long (Expr Expr))
+(ruleset make-get)
+(ruleset make-box)
+(ruleset consume)
+(rule ((= s (Single x))) ((union (Get s 0) x)) :ruleset make-get :name "make-get")
+(rule ((= x (Get s 0))) ((Box x)) :ruleset make-box :name "make-box")
+(rule ((= s (Single x)) (= y (Get s 0))) ((Short s y)) :ruleset consume :name "short")
+(rule ((= s (Single x)) (= y (Get s 0)) (= b (Box y))) ((Long s b)) :ruleset consume :name "long")
+
+(Single (Leaf 1))
+(run-schedule (saturate (seq make-get make-box)))

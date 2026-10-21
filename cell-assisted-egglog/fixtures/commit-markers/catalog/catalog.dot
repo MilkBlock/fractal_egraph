@@ -1,0 +1,10 @@
+digraph ClosedCatalog { rankdir=TB; node [shape=box];
+c0 [label="SaturatedRuleComposition C0\n4 values / 4 facts"];
+c1 [label="SaturatedRuleComposition C1\n4 values / 3 facts"];
+t0 [label="Trigger 0"];
+t0 -> c0 [label="exact value mapping"];
+t1 [label="Trigger 1"];
+t1 -> c1 [label="exact value mapping"];
+t2 [label="Trigger 2"];
+t2 -> c0 [label="exact value mapping"];
+}

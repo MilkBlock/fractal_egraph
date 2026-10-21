@@ -451,7 +451,7 @@ fn analyzed_structural_projection_coexists_with_full_numeric_queries() {
         let final_report=r.report();
         assert_eq!(final_report["work_profile_version"],1);
         assert!(final_report["rules"].as_array().unwrap().iter().any(|q|q["stats"]["search_work"][0].as_u64().unwrap()>0));
-        if !plan_only {
+        if !plan_only && final_report["cells"]["commit_markers"]!=true {
             assert!(!final_report["cell_plan_work"].as_object().unwrap().is_empty());
             assert!(final_report["cells"]["plans"].as_array().unwrap().iter().all(|p|!p["consumers"].as_array().unwrap().is_empty()));
         }

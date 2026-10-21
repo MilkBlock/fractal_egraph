@@ -12,6 +12,9 @@ serde_json = "1"
 rustc-hash = "2"
 smallvec = "1"
 
+[dev-dependencies]
+egglog = { path = "../egglog", default-features = false, features = ["serde"] }
+
 [profile.release]
 lto = "thin"
 codegen-units = 1

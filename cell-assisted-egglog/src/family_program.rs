@@ -16,7 +16,8 @@ pub(crate) const CELL_METRICS: &[&str] = &[
     "attempts", "probes", "missing_keys", "ready_publications", "segment_checks",
     "segment_hits", "skipped_internal_reads", "port_queries", "port_nonempty_queries", "port_matches",
     "port_probes", "port_candidate_rows", "watch_checks", "watch_wakes",
-    "invalidations", "row_reuses",
+    "invalidations", "row_reuses", "receipt_hints", "receipt_accepted",
+    "receipt_rejected", "receipt_redundant", "receipt_witness_rows",
 ];
 pub(crate) const SEARCH_METRICS: &[&str] = &["starts", "index_probes", "candidate_rows"];
 pub(crate) const DEPTH_METRICS: &[&str] = &[
@@ -35,6 +36,7 @@ pub fn compile(
     certificates: bool,
     event_cells: bool,
     table_routes: bool,
+    commit_markers: bool,
 ) -> Result<Json> {
     if sinks.iter().any(|s|s.native_residuals){return Err("native residual candidates are not a GPU match program".into())}
     if cells.is_some() && connections.is_some(){return Err("select closure projections or complete connections".into())}
@@ -376,7 +378,7 @@ pub fn compile(
                             _ => None,
                         }));
                     }
-                    cell_evidence.push(json!({"plan":id,"rule":q.name,"atoms":&order[..n],"states":alts.iter().filter_map(|(id,_)|(*id!=usize::MAX).then_some(id)).collect::<BTreeSet<_>>(),"connection_sources":connections.and_then(|lib|lib.evidence(q,&order[..n])),"contract":if connection_mode {"complete functional binding range; native key watches"} else {"positive closure projection"},"internal_joins":n-1}));
+                    cell_evidence.push(json!({"plan":id,"query":qi,"rule":q.name,"atoms":&order[..n],"states":alts.iter().filter_map(|(id,_)|(*id!=usize::MAX).then_some(id)).collect::<BTreeSet<_>>(),"connection_sources":connections.and_then(|lib|lib.evidence(q,&order[..n])),"contract":if connection_mode {"complete functional binding range; native key watches"} else {"positive closure projection"},"internal_joins":n-1}));
                     cell_specs.insert(key, id);
                     id
                 };
@@ -679,6 +681,8 @@ pub fn compile(
     shader += &format!("#define CELL_RANGES {}\n",u32::from(ranges_enabled));
     shader += &format!("#define NCM {}u\n#define NSEARCH {}u\n", CELL_METRICS.len(), SEARCH_METRICS.len());
     for (i,name) in CELL_METRICS.iter().enumerate() {shader+=&format!("#define CM_{} {i}u\n",name.to_ascii_uppercase());}
+    let commit_markers=commit_markers && cells.is_some() && certificates && event_cells;
+    shader+=&format!("#define COMMIT_MARKERS {}\n",u32::from(commit_markers));
     let cell_header = 8; // Common revision header for sparse instance reuse.
     shader += &format!(
         "#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n#define CH {cell_header}\n"
@@ -784,7 +788,8 @@ pub fn compile(
     for (id,(qp,qs)) in shape_sizes.iter().enumerate(){
         shader+=&format!("kernel void family_shape_{id}(CTX,uint lane [[thread_position_in_grid]]){{\n if(atomic_load_explicit(routing+7,memory_order_relaxed)||lane>=atomic_load_explicit(routing+28+{id}*6,memory_order_relaxed))return;\n uint at=(atomic_load_explicit(routing+28+{id}*6+5,memory_order_relaxed)+lane)*SEED_WORDS;\n if(COMPACT_BINDINGS)family_execute_compact<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2]);else family_execute<{qp},{qs}>(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],code,0);\n}}\n");
     }
-    let mut config=json!({"version":2,"family_layout":17,"empty_table_pruning":std::env::var("EGGLOG_GPU_EMPTY_TABLE_PRUNING").as_deref()!=Ok("0"),"query_tables":sinks.iter().map(|q|q.atoms.iter().map(|a|tids[&a.function]).collect::<BTreeSet<_>>()).collect::<Vec<_>>(),"binding_connections":connection_mode,"binding_ranges":ranges_enabled,"range_checks":range_check_count,"range_sources":range_sources,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"projection_queries":sinks.iter().enumerate().filter_map(|(i,_)| (cells.is_some() && drivers[i].is_some()).then_some(i)).collect::<Vec<_>>(),"projection_fallback_queries":sinks.iter().enumerate().filter_map(|(i,q)| (cells.is_some() && !q.primitives.is_empty()).then_some(i)).collect::<Vec<_>>(),"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile});
+    let mut config=json!({"version":2,"family_layout":18,"empty_table_pruning":std::env::var("EGGLOG_GPU_EMPTY_TABLE_PRUNING").as_deref()!=Ok("0"),"query_tables":sinks.iter().map(|q|q.atoms.iter().map(|a|tids[&a.function]).collect::<BTreeSet<_>>()).collect::<Vec<_>>(),"binding_connections":connection_mode,"binding_ranges":ranges_enabled,"range_checks":range_check_count,"range_sources":range_sources,"depth_metrics":DEPTH_METRICS,"query_atoms":sinks.iter().map(|s|s.atoms.len()).collect::<Vec<_>>(),"refutation_signatures":signatures_enabled,"domain_tables":domain_tables,"domain_checks":domain_check_count,"refutation_domains":domains_enabled,"refutation":refutation_enabled,"refutation_checks":refutation_count,"staged_constraints":staged_constraints,"compact_binding_workspace":compact_bindings,"query_shapes":query_shapes,"shape_sizes":shape_sizes,"index_tables":index_tables,"table_count":tables.len(),"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"projection_queries":sinks.iter().enumerate().filter_map(|(i,_)| (cells.is_some() && drivers[i].is_some()).then_some(i)).collect::<Vec<_>>(),"projection_fallback_queries":sinks.iter().enumerate().filter_map(|(i,q)| (cells.is_some() && !q.primitives.is_empty()).then_some(i)).collect::<Vec<_>>(),"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile});
+    config["commit_markers"]=json!(commit_markers);
     config["cell_metrics"]=json!(CELL_METRICS);
     config["spine_projection"]=cells.map_or(Json::Null, |lib| lib.projection_work());
     config["search_metrics"]=json!(SEARCH_METRICS);

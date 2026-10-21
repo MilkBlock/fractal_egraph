@@ -497,22 +497,23 @@ final class FamilyExecutor {
  let cellTables:Set<UInt32>,portMeta:[UInt32],portJoinGroup:[UInt32],phaseTiming:Bool,seedProfile:Bool
  var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!,cells:MTLBuffer!,watches:MTLBuffer!,wheads:MTLBuffer!,dirty:MTLBuffer!,state:MTLBuffer!,ports:MTLBuffer!,previous:MTLBuffer!,seedQueue:MTLBuffer!,orderedSeeds:MTLBuffer!,routing:MTLBuffer!,rowCells:MTLBuffer!,instanceMeta:MTLBuffer!,freeCells:MTLBuffer!,registry:MTLBuffer!
  let depthMetrics:[String],cellMetrics:[String],searchMetrics:[String],queryAtoms:[Int]
- let queryTables:[[Int]],emptyTablePruning:Bool
+ let queryTables:[[Int]],emptyTablePruning:Bool,commitMarkers:Bool
  let domainTables:[UInt32]
  var domains:MTLBuffer!,domainLayout:[UInt32]=[],domainWords=0
  let indexTables:[UInt32],tableDegree:[Int],queryShapes:[Int],shapeCount:Int
  var tableLive:[Int],tableBuckets:[Int],slotTable:[Int]=[],slotLive:[Bool]=[],linkCount=0,linkCapacity=1,headLayout:[UInt32]=[]
- var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:29)
+ var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:31)
  var rowSlots=0,rowCap=0,eventCount=0,eventCap=0,buckets=1,outCap=1,epoch=0,seedCap=1
  var watchCount=0,watchCap=0,watchBuckets=1,portCount=0,portCap=0,watchGCs=0,portGCs=0,cellCap=1,cellSlotsReused=0
  var pcursors:[Int],pendingPortEnd=0
  var cursors:[Int],pending:[Int]=[],pendingEnd=0,compactions=0,gpu=0.0,compileSeconds=0.0
  init(_ x:[String:Any])throws{
-  try require(x["version"] as? Int==2 && x["family_layout"] as? Int==17,"family layout: rebuild both Rust and Swift")
+  try require(x["version"] as? Int==2 && x["family_layout"] as? Int==18,"family layout: rebuild both Rust and Swift")
   c=x["columns"] as! Int;p=x["parts"] as! Int;s=x["slots"] as! Int;ni=x["indexes"] as! Int;nq=x["queries"] as! Int;rs=4+3*c;nc=x["cell_plans"] as? Int ?? 0;cs=x["cell_stride"] as? Int ?? 1;ck=x["cell_steps"] as! Int;ec=(x["event_cells"] as? Bool ?? false) && nc>0
   queryShapes=x["query_shapes"] as! [Int];shapeCount=(x["shape_sizes"] as! [[Int]]).count
   cellMetrics=x["cell_metrics"] as! [String];searchMetrics=x["search_metrics"] as! [String]
   depthMetrics=x["depth_metrics"] as! [String];queryAtoms=x["query_atoms"] as! [Int]
+  commitMarkers=x["commit_markers"] as? Bool ?? false
   queryTables=x["query_tables"] as! [[Int]];emptyTablePruning=x["empty_table_pruning"] as! Bool
   indexTables=x["index_tables"] as! [UInt32]
   domainTables=x["domain_tables"] as! [UInt32]
@@ -537,7 +538,7 @@ final class FamilyExecutor {
   if #available(macOS 15.0, *) {options.mathMode = .safe}else{options.fastMathEnabled=false}
   let lib=try d.makeLibrary(source:x["shader"] as! String,options:options)
   var names=["family_patch","family_rebase","family_clear","family_index","family_join","family_domain_clear"]
-  if nc>0 {names += ["family_cell_retire_count","family_cell_allocate","family_registry_finish"]}
+  if nc>0 {names += ["family_cell_retire_count","family_cell_allocate","family_registry_finish","family_install_markers","family_marker_count","family_marker_allocate"]}
   if routingMode>0 {names += ["family_classify","family_classify_tables","family_unit","family_route_dispatch","family_route_scatter","family_routed_join"]}
   if routingMode==3 {names += ["family_shape_dispatch","family_shape_scatter"];names += (0..<shapeCount).map{"family_shape_\($0)"}}
   if ec {names += ["family_wake","family_watch_clear","family_watch_compact","family_cell_dispatch","family_cell_events","family_cell_publish","family_watch_count","family_port_count","family_port_compact","family_port_dispatch","family_port_join","family_port_locality"]}
@@ -573,7 +574,7 @@ final class FamilyExecutor {
   let first=q.makeCommandBuffer()!
   if relevant{encode("family_wake",changes,first)}
   encode("family_patch",changes,first)
-  if cellRelevant{encode("family_cell_retire_count",changes,first)}
+  if cellRelevant{encode("family_cell_retire_count",changes,first);if commitMarkers{encode("family_marker_count",Int(args[30]),first)}}
   if compact{encode("family_rebase",rowSlots,first);encode("family_clear",buckets,first);encode("family_domain_clear",domainWords,first)}
   encode("family_index",compact ? eventCount : changes,first)
   if !cellRelevant{return first}
@@ -590,8 +591,9 @@ final class FamilyExecutor {
   dirty=try grow(dirty,cellCap,Int(ctrl[1]));args[22]=UInt32(cellCap)
   cellSlotsReused+=min(available,needed)
   let evaluate=q.makeCommandBuffer()!
-  if needed>0{encode("family_cell_allocate",changes,evaluate)}
+  if needed>0{encode(commitMarkers ? "family_marker_allocate" : "family_cell_allocate",commitMarkers ? Int(args[30]) : changes,evaluate)}
   encode("family_registry_finish",1,evaluate)
+  if args[30]>0{encode("family_install_markers",Int(args[30]),evaluate)}
   if ec{encode("family_cell_dispatch",1,evaluate);encode("family_cell_events",1,evaluate,16)}
   else{encode("family_cells",newSize,evaluate)}
   try submit(evaluate);try require(counts.contents().assumingMemoryBound(to:UInt32.self)[1]==0,"Cell evaluation failed")
@@ -638,14 +640,18 @@ final class FamilyExecutor {
   for id in pending{cursors[id]=pendingEnd;pcursors[id]=pendingPortEnd};pending=[]
   try require(data.count>=16 && data.count%4==0,"family packet size")
   var w=data.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let total=Int(w[0]),changes=Int(w[1]),nextEpoch=Int(w[3]);var n=Int(w[2])
-  try require(nextEpoch==epoch+1 && total>=rowSlots && w.count==4+4*n+changes*(1+rs),"family epoch/shape")
+  let markerStart=4+4*n+changes*(1+rs)
+  try require(nextEpoch==epoch+1 && total>=rowSlots && w.count>markerStart,"family epoch/shape")
+  let markerData=Array(w[markerStart...]),markerCount=Int(markerData[0])
+  try require(markerData.count==1+markerCount*(4+2*p),"marker receipt shape")
+  w=Array(w[..<markerStart])
   var ids=(0..<n).map{Int(w[4+4*$0])};try require(Set(ids).count==n && ids.allSatisfy{$0<nq},"family query IDs")
-  let requestedIDs=ids;var queryData=data
+  let requestedIDs=ids;var queryData=w.withUnsafeBytes{Data($0)}
   for i in 0..<changes{try require(w[4+4*n+i*(1+rs)]<total,"family row slot")}
   let oldRowSlots=rowSlots,oldData=rows.contents().assumingMemoryBound(to:UInt32.self)
-  let cellRelevant=nc>0 && (0..<changes).contains{ i in
+  let cellRelevant=nc>0 && (markerCount>0 || (0..<changes).contains{ i in
    let at=4+4*n+i*(1+rs),r=Int(w[at]);return cellTables.contains(w[at+1]) || (r<oldRowSlots && cellTables.contains(oldData[r*rs]))
-  }
+  })
   let relevant=ec && cellRelevant
   let before=gpu,newRowCap=try pow2(max(1,total)),newEventCap=try pow2(max(2,2*newRowCap))
   if total>slotTable.count {slotTable += Array(repeating:0,count:total-slotTable.count);slotLive += Array(repeating:false,count:total-slotLive.count)}
@@ -720,8 +726,10 @@ final class FamilyExecutor {
   headLayout.withUnsafeBytes{expanded.append(contentsOf:$0)}
   let domainLayoutOffset=expanded.count/4
   domainLayout.withUnsafeBytes{expanded.append(contentsOf:$0)}
+  let markerOffset=expanded.count/4+1
+  markerData.withUnsafeBytes{expanded.append(contentsOf:$0)}
   packet=expanded.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
-  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),UInt32(locality),UInt32(routingMode),0,UInt32(seedCap),0,UInt32(max(1,watchCap)),UInt32(max(1,portCap)),UInt32(cellCap),0,0,UInt32(linkBaseOffset),UInt32(headLayoutOffset),UInt32(domainLayoutOffset),UInt32(domainWords)]
+  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),UInt32(locality),UInt32(routingMode),0,UInt32(seedCap),0,UInt32(max(1,watchCap)),UInt32(max(1,portCap)),UInt32(cellCap),0,0,UInt32(linkBaseOffset),UInt32(headLayoutOffset),UInt32(domainLayoutOffset),UInt32(domainWords),UInt32(markerOffset),UInt32(markerCount)]
   memset(counts.contents(),0,counts.length)
   var maintenance=try prepareCells(relevant,cellRelevant,changes,compact)
   var maintenanceSeconds=0.0
@@ -920,7 +928,7 @@ do {
         case "family_init":
           try require(family==nil && tables==nil && current==nil,"family already installed")
           family=try FamilyExecutor(message["config"] as! [String:Any])
-          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1,"family_layout":17,"port_locality":family!.locality,"phase_timing":family!.phaseTiming])
+          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1,"family_layout":18,"port_locality":family!.locality,"phase_timing":family!.phaseTiming])
         case "family_step":
           guard let f=family else{throw NSError(domain:"no family",code:1)}
           let (report,body)=try f.advance(readFrame(),ack:message["ack"] as! Int)

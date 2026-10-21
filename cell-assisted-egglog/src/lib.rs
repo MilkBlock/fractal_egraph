@@ -24,6 +24,7 @@ mod table_program;
 mod family_program;
 pub mod cell_prefix;
 mod spine_projection;
+mod commit_markers;
 pub mod table_query;
 pub mod table_live;
 pub mod stable_choice;
