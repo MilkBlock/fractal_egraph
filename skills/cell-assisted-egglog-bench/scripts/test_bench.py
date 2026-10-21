@@ -143,6 +143,35 @@ class WorkflowTests(unittest.TestCase):
             r['gpu']['runtime']['cell_query_bindings']-=1;r['gpu']['cell_work']['range_refutations']+=1;p.write_text(json.dumps(r))
             with self.assertRaises(ValueError):B.join_depth_report(paths,True)
 
+    def test_cell_cases_distinguishes_empty_answers_cache_hits_and_service(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);paths=self.depth_fixture(root);current=root/'current';current.mkdir()
+            r=B.load(paths['s1r1']/'report.json');g=r['gpu']
+            for q in g['rules']:
+                q['stats'].update(emitted_bindings=0,cell_queries=0,cell_bindings=0,dispatches=0,quiet_runs=0,shared_queries=0,cell_nonempty_queries=0)
+            for name in ['s0r1','s1r1']:
+                old=B.load(paths[name]/'report.json')
+                for q in old['gpu']['rules']:
+                    q['stats'].update(emitted_bindings=0,cell_queries=0,cell_bindings=0)
+                (paths[name]/'report.json').write_text(json.dumps(old))
+            ps=[]
+            for i,q in enumerate(g['rules']):
+                ps.append(dict(program_id=i,kind='scalar_query',ruleset=q['ruleset'],rule=q['rule'],seed='Empty' if i==0 else 'Pair',
+                     index_reads=3*i,reused_port_reads=i,seed_evaluations=2*i,resumed_seed_evaluations=i,emitted_bindings=0,live_seed_instances=i,stored_port_paths=i))
+            g['saturation_diagnostics'].update(program_telemetry_version=2,programs=ps,
+                port_reuse=dict(index_reads=3,reused_reads=1,resumed_seed_evaluations=1,stored_paths=1),joint=dict(stats=dict(macro_instances=0),comparison_closure={}))
+            # Empty, complete query responses are handled, but have no cache
+            # lookups or positive answers. Historical after has the same work.
+            g['rules'][0]['stats']['cell_queries']=4
+            old=B.load(paths['s1r1']/'report.json');old['gpu']['rules'][0]['stats']['cell_queries']=4
+            (paths['s1r1']/'report.json').write_text(json.dumps(old))
+            (current/'report.json').write_text(json.dumps(r));(current/'workflow.json').write_text((paths['s1r1']/'workflow.json').read_text())
+            out=B.cell_cases_report(current,paths['s0r1'],paths['s1r1']);a,b=out['programs']
+            self.assertEqual(a['query_service_rate'],1);self.assertEqual(a['nonempty_answer_rate'],0)
+            self.assertIsNone(a['port_read_hit_rate']);self.assertAlmostEqual(b['port_read_hit_rate'],.25)
+            g['saturation_diagnostics']['programs'].pop();(current/'report.json').write_text(json.dumps(r))
+            with self.assertRaises(ValueError):B.cell_cases_report(current,paths['s0r1'],paths['s1r1'])
+
     def test_depth_branch_entries_are_not_seed_reach_probabilities(self):
         with tempfile.TemporaryDirectory() as tmp:
             result=B.join_depth_report(self.depth_fixture(Path(tmp)))

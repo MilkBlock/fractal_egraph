@@ -114,6 +114,7 @@ struct QueryStats {
     emitted_bindings: usize,
     audit_queries: usize,
     cell_queries: usize,
+    cell_nonempty_queries: usize,
     cell_bindings: usize,
     shared_queries: usize,
     shared_bindings: usize,
@@ -851,7 +852,7 @@ impl Runtime {
             if index>=ids.len() || !provided.insert(index){return Err("invalid or duplicate Cell query index".into())}
             let id=ids[index];bindings.sort_unstable();
             if bindings.windows(2).any(|p|p[0]==p[1]){return Err("duplicate Cell query binding".into())}
-            self.qstats[id].cell_queries+=1;self.qstats[id].cell_bindings+=bindings.len();
+            self.qstats[id].cell_queries+=1;self.qstats[id].cell_nonempty_queries+=usize::from(!bindings.is_empty());self.qstats[id].cell_bindings+=bindings.len();
             self.stats.cell_query_rules+=1;self.stats.cell_query_bindings+=bindings.len();
             matches[index]=bindings;
         }

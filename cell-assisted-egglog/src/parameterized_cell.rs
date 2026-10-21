@@ -170,6 +170,7 @@ struct Kernel {
     reuse_ports: bool,
     paths: FxHashMap<Key, PortPath>,
     reused_reads: usize,
+    index_reads: usize,
     resumed_seeds: usize,
 }
 fn known(o: &CellOperand, b: &[bool]) -> bool {
@@ -286,6 +287,7 @@ impl Kernel {
             reuse_ports: true,
             paths: FxHashMap::default(),
             reused_reads: 0,
+            index_reads: 0,
             resumed_seeds: 0,
         }
     }
@@ -472,6 +474,7 @@ impl Kernel {
         lookups: &mut usize,
     ) -> Result<Vec<Vec<Value>>> {
         let mut out = vec![];
+        let reads_before = *lookups;
         let watermark = eg.cell_query_watermark(&self.sink);
         for seed in std::mem::take(&mut self.dirty) {
             self.executions += 1;
@@ -548,6 +551,7 @@ impl Kernel {
         if out.windows(2).any(|p| p[0] == p[1]) {
             return Err("duplicate fixed-program binding".into());
         }
+        self.index_reads += *lookups - reads_before;
         self.bindings += out.len();
         Ok(out)
     }
@@ -1007,6 +1011,22 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len(),"retired_guard_seeds":k.retired_total,"identity_noop_seeds":k.identity_noops,"reused_port_reads":k.reused_reads,"resumed_seed_evaluations":k.resumed_seeds,"stored_port_paths":k.paths.len()})})).collect::<Vec<_>>(),"port_reuse":{"reused_reads":self.kernels.iter().map(|k|k.reused_reads).sum::<usize>(),"resumed_seed_evaluations":self.kernels.iter().map(|k|k.resumed_seeds).sum::<usize>(),"stored_paths":self.kernels.iter().map(|k|k.paths.len()).sum::<usize>(),"shared_row_handles":self.kernels.iter().flat_map(|k|k.paths.values()).map(|p|p.ports.iter().filter(|x|x.as_ref().is_some_and(|(_,r)|r.is_some())).count()).sum::<usize>()},"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
+        // Scalar programs are not in `sets`. Omitting them hid the main
+        // ordinary-Run query provider and made per-Cell reuse misleading.
+        let owners = self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|(*id,(set,"dataflow"))))
+            .chain(self.scalar.iter().flat_map(|(set,g)|g.plans.iter().map(move |(id,_)|(*id,(set,"scalar_query")))))
+            .collect::<BTreeMap<_,_>>();
+        let programs=self.kernels.iter().enumerate().map(|(id,k)| {
+            let (set,kind)=owners[&id];
+            json!({"program_id":id,"kind":kind,"ruleset":set,"rule":k.sink.name,
+                "seed":k.sink.atoms[k.seed].function,
+                "accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),
+                "seed_evaluations":k.executions,"emitted_bindings":k.bindings,
+                "live_seed_instances":k.dependencies.len(),"retired_guard_seeds":k.retired_total,
+                "identity_noop_seeds":k.identity_noops,"index_reads":k.index_reads,
+                "reused_port_reads":k.reused_reads,"resumed_seed_evaluations":k.resumed_seeds,
+                "stored_port_paths":k.paths.len()})
+        }).collect::<Vec<_>>();
+        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"program_telemetry_version":2,"programs":programs,"port_reuse":{"index_reads":self.kernels.iter().map(|k|k.index_reads).sum::<usize>(),"reused_reads":self.kernels.iter().map(|k|k.reused_reads).sum::<usize>(),"resumed_seed_evaluations":self.kernels.iter().map(|k|k.resumed_seeds).sum::<usize>(),"stored_paths":self.kernels.iter().map(|k|k.paths.len()).sum::<usize>(),"shared_row_handles":self.kernels.iter().flat_map(|k|k.paths.values()).map(|p|p.ports.iter().filter(|x|x.as_ref().is_some_and(|(_,r)|r.is_some())).count()).sum::<usize>()},"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

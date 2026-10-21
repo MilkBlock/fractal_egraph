@@ -420,6 +420,83 @@ def join_depth_report(paths, connection_pair=False):
     result['depth_scope']='Actual compact GPU Join. Depth 0 is a valid multi-atom anchor; depth d attempts the d-th non-anchor atom. Deepest-seed bins count each seed evaluation once, including retries. Entry counts can exceed seed counts due to branching; they are not reach probabilities.'
     return result
 
+def cell_cases_report(current, before, after):
+    """Per installed Cell program, not catalog e-classes or individual instances.
+
+    New telemetry may have a different binary. Historical work savings must be
+    an internally matched pair; the new replay must preserve its after counts.
+    """
+    runs={k:load(p/'report.json') for k,p in [('current',current),('before',before),('after',after)]}
+    provenance={k:load(p/'workflow.json') for k,p in [('current',current),('before',before),('after',after)]}
+    for name,r in runs.items():
+        if not exact(r.get('same_commit_verification')) or not r.get('benchmark_finished'):
+            raise ValueError('unverified graph: '+name)
+        g=r['gpu']
+        if not g['cells']['profile'] or not g['cells']['refutation'] or not g['cells']['refutation_signatures'] or g['cells']['refutation_domains']:
+            raise ValueError('case analysis requires the same counted refutation mode')
+        if g['cells'].get('binding_connections',False) or g['cells'].get('binding_ranges',False):
+            raise ValueError('do not mix new port constraints into historical Cell ablation')
+        key=[provenance[name]['snapshot_sha256'],provenance[name]['policy'],r['schedule'],r['assisted_rulesets'],r['same_commit_verification']]
+        if name=='current':identity=key
+        elif identity!=key:raise ValueError('input, policy, schedule or graph differs')
+    for field in ['binary_sha256','worker_sha256']:
+        if provenance['before'][field]!=provenance['after'][field]:raise ValueError('historical ablation binaries differ')
+    if runs['before']['gpu'].get('saturation_diagnostics') or not runs['after']['gpu'].get('saturation_diagnostics'):
+        raise ValueError('expected Cell-off/on historical pair')
+    def rules(g):
+        out={(q['ruleset'],q['rule']):q for q in g['rules']}
+        if len(out)!=len(g['rules']):raise ValueError('duplicate rule')
+        return out
+    indexed={k:rules(r['gpu']) for k,r in runs.items()}
+    if not indexed['before'].keys()==indexed['after'].keys()==indexed['current'].keys():raise ValueError('rule universe differs')
+    for key in indexed['current']:
+        a,b=indexed['current'][key]['stats'],indexed['after'][key]['stats']
+        for f in ['emitted_bindings','eligible_seeds','refuted_seeds','productive_seeds','cell_queries','cell_bindings']:
+            if a[f]!=b[f]:raise ValueError('telemetry replay changed query work: '+f)
+    g=runs['current']['gpu'];cell=g['saturation_diagnostics']
+    if cell.get('program_telemetry_version')!=2:raise ValueError('missing scalar programs/cache denominators; collect telemetry v2')
+    ps=cell['programs'];seen=set()
+    for field,aggregate in [('reused_port_reads','reused_reads'),('index_reads','index_reads'),('resumed_seed_evaluations','resumed_seed_evaluations'),('stored_port_paths','stored_paths')]:
+        if sum(p[field] for p in ps)!=cell['port_reuse'][aggregate]:raise ValueError('incomplete per-program telemetry: '+field)
+    def row_visits(name,key):
+        gpu=runs[name]['gpu'];fields=gpu.get('join_depth_fields',[])
+        if 'live_rows' not in fields:raise ValueError('historical pair lacks row visits by rule')
+        i=fields.index('live_rows');return sum(row[i] for row in indexed[name][key]['stats'].get('depth_work',[]))
+    ratio=lambda a,b:a/b if b else None
+    cases=[]
+    for p in ps:
+        key=(p['ruleset'],p['rule'])
+        if key in seen:raise ValueError('duplicate Cell program')
+        seen.add(key);q=indexed['current'][key];stats=q['stats'];b=indexed['before'][key]['stats'];a=indexed['after'][key]['stats']
+        fresh,hits=p['index_reads'],p['reused_port_reads'];attempts=fresh+hits
+        requests=stats['cell_queries'];nonempty=stats.get('cell_nonempty_queries')
+        if nonempty is None or not 0<=nonempty<=requests:raise ValueError('invalid nonempty query count')
+        if p['resumed_seed_evaluations']>p['seed_evaluations']:raise ValueError('invalid resumed seed count')
+        all_requests=requests+stats['dispatches']+stats['quiet_runs']+stats['shared_queries']
+        cases.append(dict(program_id=p['program_id'],kind=p['kind'],ruleset=p['ruleset'],root=p['seed'],rule=p['rule'],
+             live_instances=p['live_seed_instances'],retired_guard_seeds=p.get('retired_guard_seeds',0),seed_evaluations=p['seed_evaluations'],resumed_seeds=p['resumed_seed_evaluations'],
+             seed_resume_rate=ratio(p['resumed_seed_evaluations'],p['seed_evaluations']),
+             cached_reads=hits,fresh_reads=fresh,port_read_hit_rate=ratio(hits,attempts),
+             cell_query_requests=requests,nonempty_cell_answers=nonempty,nonempty_answer_rate=ratio(nonempty,requests),
+             query_service_rate=ratio(requests,all_requests),cell_query_bindings=stats['cell_bindings'],
+             dataflow_bindings=p['emitted_bindings'],
+             gpu_seeds_before=b['eligible_seeds'],gpu_seeds_after=a['eligible_seeds'],
+             gpu_rows_before=row_visits('before',key),gpu_rows_after=row_visits('after',key),
+             gpu_rows_saved=row_visits('before',key)-row_visits('after',key)))
+    all_saved=runs['before']['gpu']['cell_work']['join_live_row_visits']-runs['after']['gpu']['cell_work']['join_live_row_visits']
+    for name in ['before','after']:
+        if sum(row_visits(name,k) for k in indexed[name])!=runs[name]['gpu']['cell_work']['join_live_row_visits']:
+            raise ValueError('historical per-rule row visits do not conserve totals')
+    return dict(scope='Actual raytrace Pass 3. Per installed parameterized Cell program, not learned catalog cells or per-instance trace. Historical work counts reused; new telemetry is diagnostic, not timing.',
+         provenance={k:dict(directory=str(p),workflow=provenance[k]) for k,p in [('current',current),('before',before),('after',after)]},
+         formulas=dict(port_read_hit_rate='cached_reads / (cached_reads + fresh_reads); cached misses count; no reads => undefined',
+                       seed_resume_rate='evaluations reusing at least one port / all dirty-seed evaluations, including removed seeds',
+                       nonempty_answer_rate='nonempty Cell query answers / all Cell query requests; empty can be a useful proof',
+                       query_service_rate='Cell-handled requests / all requests for that rule; not a cache-hit rate'),
+         programs=cases,port_reuse=cell['port_reuse'],joint=cell['joint']['stats'],comparison_closure=cell['joint']['comparison_closure'],
+         historical_gpu_rows_saved=all_saved,represented_program_rows_saved=sum(p['gpu_rows_saved'] for p in cases),
+         unrepresented_rule_rows_change=all_saved-sum(p['gpu_rows_saved'] for p in cases))
+
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--repo', type=Path, default=REPO)
@@ -433,6 +510,9 @@ def parser():
         if mode=='depth':q.add_argument('--csv',type=Path)
     q = sub.add_parser('depth-pair',help='fixed Cell routing, complete-connection off/on comparison')
     q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
+    q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
+    q = sub.add_parser('cell-cases',help='read per-Cell program cache rates and historical work savings')
+    q.add_argument('--input',type=Path,required=True);q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
     q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
     q = sub.add_parser('history', help='reuse historical evidence; no build or execution')
     q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
@@ -586,6 +666,21 @@ def main(argv=None):
         if a.output and not a.dry_run:
             dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
             with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
+        return 0
+    if a.mode == 'cell-cases':
+        result=cell_cases_report(resolve(a.input),resolve(a.before),resolve(a.after))
+        print('只读汇总已保存的运行；按 Cell 程序统计，不将接管率冒充缓存命中率。')
+        for p in result['programs']:
+            rate=p['port_read_hit_rate']
+            print(p['program_id'],p['kind'],p['root'],'port cache:',f"{100*rate:.2f}%" if rate is not None else 'N/A',
+                  'nonempty:',f"{p['nonempty_cell_answers']}/{p['cell_query_requests']}",'GPU rows saved:',p['gpu_rows_saved'])
+        if a.output and not a.dry_run:
+            dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
+            with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
+        if a.csv and not a.dry_run:
+            dest=resolve(a.csv);dest.parent.mkdir(parents=True,exist_ok=True)
+            with dest.open('x',newline='') as f:
+                writer=csv.DictWriter(f,fieldnames=list(result['programs'][0]),lineterminator='\n');writer.writeheader();writer.writerows(result['programs'])
         return 0
     if a.mode == 'history':
         if a.limit < 1:

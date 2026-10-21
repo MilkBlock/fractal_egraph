@@ -1,0 +1,123 @@
+program_id,kind,ruleset,root,rule,live_instances,retired_guard_seeds,seed_evaluations,resumed_seeds,seed_resume_rate,cached_reads,fresh_reads,port_read_hit_rate,cell_query_requests,nonempty_cell_answers,nonempty_answer_rate,query_service_rate,cell_query_bindings,dataflow_bindings,gpu_seeds_before,gpu_seeds_after,gpu_rows_before,gpu_rows_after,gpu_rows_saved
+0,dataflow,terms,Const,"(rule ((= lhs (Const c ty ass)))
+      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))
+        :ruleset terms )",1543,0,1550,0,0.0,0,0,,0,0,,,0,1548,0,0,0,0,0
+1,dataflow,terms,Arg,"(rule ((= lhs (Arg ty ass)))
+      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))
+        :ruleset terms )",77,0,78,0,0.0,0,0,,0,0,,,0,77,0,0,0,0,0
+2,dataflow,terms,Bop,"(rule ((= lhs (Bop o e1 e2))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2)))
+      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))
+        :ruleset terms )",3486,0,28161,12541,0.44533219701004934,26806,47848,0.35906984220537413,0,0,,,0,16617,223731,0,366140,0,366140
+3,dataflow,terms,Top,"(rule ((= lhs (Top o e1 e2 e3))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2))
+       (= (TCPair t3 c3) (ExtractedExpr e3)))
+      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))
+        :ruleset terms )",938,0,6916,3606,0.5213996529786004,8861,16842,0.3447457495234019,0,0,,,0,4044,329269,0,340324,0,340324
+4,dataflow,terms,Uop,"(rule ((= lhs (Uop o e1))
+       (= (TCPair t1 c1) (ExtractedExpr e1)))
+      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))
+        :ruleset terms )",3,0,15,3,0.2,3,22,0.12,0,0,,,0,9,109389,0,99442,0,99442
+5,dataflow,terms,Get,"(rule ((= lhs (Get tup i))
+       (= (TCPair t1 c1) (ExtractedExpr tup)))
+      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))
+        :ruleset terms )",13341,0,66233,5,7.549106940648921e-05,5,85314,5.860359357235786e-05,0,0,,,0,33806,127016,0,222190,0,222190
+6,dataflow,terms,Single,"(rule ((= lhs (Single e1))
+       (= (TCPair t1 c1) (ExtractedExpr e1)))
+      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))
+        :ruleset terms )",4382,0,27820,2750,0.09884974838245866,2750,33058,0.07679848078641645,0,0,,,0,14610,115710,0,166249,0,166249
+7,dataflow,terms,Concat,"(rule ((= lhs (Concat e1 e2))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2)))
+      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))
+        :ruleset terms )",8147,0,32693,5078,0.1553237696142905,11051,34261,0.2438868290960452,0,0,,,0,6173,227738,0,259146,0,259146
+8,dataflow,terms-helpers,PotentialExtractedExpr,"(rule ((PotentialExtractedExpr expr termandcost))
+      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))
+        :ruleset terms-helpers )",69649,0,72759,0,0.0,0,0,,0,0,,,0,71204,0,0,0,0,0
+9,dataflow,terms-helpers,PotentialExtractedExpr,"(rule ((PotentialExtractedExpr expr (TCPair term cost))
+       (= (ExtractedExpr expr) (TCPair oldterm oldcost))
+       (< cost oldcost))
+      ((set (ExtractedExpr expr) (TCPair term cost)))
+        :ruleset terms-helpers )",69649,73607,202081,55997,0.27710175622646366,56030,536749,0.09452089227182474,0,0,,,0,42713,252035,0,9269688,0,9269688
+10,dataflow,terms-helpers,PotentialExtractedExpr,"(rule ((PotentialExtractedExpr expr (TCPair term cost))
+       (< cost 0))
+      ((panic 'Negative cost'))
+        :ruleset terms-helpers )",69649,0,72759,0,0.0,0,71204,0.0,0,0,,,0,0,71204,0,115131,0,115131
+11,dataflow,terms-helpers-helpers,Smaller,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (< cost1 cost2))
+      ((union lhs (TCPair t1 cost1)))
+        :ruleset terms-helpers-helpers )",73371,0,0,0,,0,0,,0,0,,,0,0,321795,0,703209,0,703209
+12,dataflow,terms-helpers-helpers,Smaller,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (> cost1 cost2))
+      ((union lhs (TCPair t2 cost2)))
+        :ruleset terms-helpers-helpers )",73371,0,0,0,,0,0,,0,0,,,0,0,321795,0,703209,0,703209
+13,dataflow,terms-helpers-helpers,Smaller,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (= cost1 cost2))
+      ((union lhs (TCPair t1 cost1)))
+        :ruleset terms-helpers-helpers )",73371,0,0,0,,0,0,,0,0,,,0,0,321795,0,815247,0,815247
+14,scalar_query,always-run,Function,"(rule ((= expr (Function name tyin tyout out))
+       (= sum (Expr-size out)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",29,0,1487,0,0.0,0,1487,0.0,1798,704,0.39154616240266965,1.0,1458,1458,1121783,0,501850,0,501850
+15,scalar_query,always-run,Const,"(rule ((= expr (Const n ty assum)))
+      ((set (Expr-size expr) 1))
+        :ruleset always-run )",1543,0,1550,0,0.0,0,0,,1798,17,0.009454949944382647,1.0,1548,1548,0,0,0,0,0
+16,scalar_query,always-run,Top,"(rule ((= expr (Top op x y z))
+       (= sum (+ (Expr-size z) (+ (Expr-size y) (Expr-size x)))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",938,0,85049,66693,0.7841714776187845,103094,143633,0.417846445666668,1798,1290,0.7174638487208009,1.0,79484,79666,3367209,0,1246604,0,1246604
+17,scalar_query,always-run,Bop,"(rule ((= expr (Bop op x y))
+       (= sum (+ (Expr-size y) (Expr-size x))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",3486,0,233649,132399,0.5666576788259312,132399,316085,0.29521454500049055,1798,1553,0.8637374860956618,1.0,218786,219726,2252830,0,1552855,0,1552855
+18,scalar_query,always-run,Uop,"(rule ((= expr (Uop op x))
+       (= sum (Expr-size x)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",3,0,8,0,0.0,0,7,0.0,1798,3,0.0016685205784204673,1.0,4,4,1121731,0,422579,0,422579
+19,scalar_query,always-run,Get,"(rule ((= expr (Get tup i))
+       (= sum (Expr-size tup)))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )",13341,0,994600,0,0.0,0,977455,0.0,1798,1637,0.9104560622914349,1.0,957751,957751,1150539,0,1234556,0,1234556
+20,scalar_query,always-run,Concat,"(rule ((= expr (Concat x y))
+       (= sum (+ (Expr-size y) (Expr-size x))))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )",8147,0,356678,134947,0.37834405261888876,134947,539510,0.20008243668610454,1798,1589,0.8837597330367074,1.0,329665,330955,2257003,0,1815871,0,1815871
+21,scalar_query,always-run,Single,"(rule ((= expr (Single x))
+       (= sum (Expr-size x)))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )",4382,0,320520,0,0.0,0,311109,0.0,1798,1586,0.882091212458287,1.0,302564,302564,1133715,0,939707,0,939707
+22,scalar_query,always-run,Switch,"(rule ((= expr (Switch pred inputs branches))
+       (= sum (+ (Expr-size inputs) (+ (ListExpr-size branches) (Expr-size pred)))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",0,0,0,0,,0,0,,1798,0,0.0,1.0,0,0,2243450,0,0,0,0
+23,scalar_query,always-run,If,"(rule ((= expr (If pred inputs then else))
+       (= sum (+ (Expr-size inputs) (+ (Expr-size else) (+ (Expr-size then) (Expr-size pred))))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",168,0,13607,13016,0.9565664731388256,32701,20035,0.6200887439320388,1798,965,0.5367074527252503,1.0,12946,13036,4487242,0,1624328,0,1624328
+24,scalar_query,always-run,DoWhile,"(rule ((= expr (DoWhile in pred-and-output))
+       (= sum (+ (Expr-size pred-and-output) (Expr-size in))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",84,0,7339,6591,0.8980787573238861,6591,7857,0.45618770764119604,1798,973,0.5411568409343716,1.0,7179,7179,2243587,0,1423873,0,1423873
+25,scalar_query,always-run,Arg,"(rule ((= expr (Arg ty assum)))
+      ((set (Expr-size expr) 1))
+        :ruleset always-run )",77,0,78,0,0.0,0,0,,1798,5,0.0027808676307007787,1.0,77,77,0,0,0,0,0
+26,scalar_query,always-run,Call,"(rule ((= expr (Call func arg))
+       (= sum (Expr-size arg)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",121,0,7189,0,0.0,0,7030,0.0,1798,972,0.5406006674082313,1.0,6909,6909,1121931,0,526532,0,526532
+27,scalar_query,always-run,Empty,"(rule ((Empty ty assum))
+      ((set (Expr-size (Empty ty assum)) 0))
+        :ruleset always-run )",5,0,6,0,0.0,0,0,,1798,2,0.0011123470522803114,1.0,5,5,0,0,0,0,0
+28,scalar_query,always-run,Cons,"(rule ((= expr (Cons hd tl))
+       (= sum (+ (ListExpr-size tl) (Expr-size hd))))
+      ((set (ListExpr-size expr) sum))
+        :ruleset always-run )",0,0,0,0,,0,0,,1798,0,0.0,1.0,0,0,1121725,0,0,0,0
+29,scalar_query,always-run,Nil,"(rule ((Nil ))
+      ((set (ListExpr-size (Nil )) 0))
+        :ruleset always-run )",0,0,0,0,,0,0,,1798,0,0.0,1.0,0,0,0,0,0,0,0
+30,scalar_query,always-run,Alloc,"(rule ((= expr (Alloc id e state ty))
+       (= sum (Expr-size e)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )",137,0,668,0,0.0,0,366,0.0,1798,6,0.0033370411568409346,1.0,230,230,1122096,0,289620,0,289620

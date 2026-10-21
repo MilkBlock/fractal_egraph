@@ -352,3 +352,27 @@ fn cell_frontier_filters_lhs_overflow_but_preserves_a_noop_rhs_failure() {
         }
     }
 }
+
+#[test]
+fn per_program_report_includes_scalar_ports_and_real_cache_denominators() {
+    let (mut base,hook)=Runtime::new_joint(&source()).unwrap().detach_joint().unwrap();
+    let commands=base.parse_program(None,"(run work 1)").unwrap();
+    let mut r=table_live::Runtime::new_full(base,&commands,None,false,None).unwrap();
+    r.set_saturation_hook(Box::new(hook));r.set_cell_query_reuse(true);
+    r.input("(Bop (Add) (V 0) (V 1)) (set (Size (V 0)) 10) (set (Size (V 1)) 20)").unwrap();
+    r.run(&commands).unwrap();
+    r.input("(set (Size (V 0)) 3)").unwrap();r.run(&commands).unwrap();
+    r.run(&commands).unwrap(); // Complete empty response is not a positive hit.
+    let report=r.report();let cell=&report["saturation_diagnostics"];
+    assert_eq!(cell["program_telemetry_version"],2);
+    let programs=cell["programs"].as_array().unwrap();
+    let p=programs.iter().find(|p|p["rule"]=="size").unwrap();
+    assert_eq!(p["kind"],"scalar_query");
+    assert!(p["index_reads"].as_u64().unwrap()>0);
+    assert!(p["reused_port_reads"].as_u64().unwrap()>0);
+    assert_eq!(programs.iter().map(|p|p["reused_port_reads"].as_u64().unwrap()).sum::<u64>(),cell["port_reuse"]["reused_reads"].as_u64().unwrap());
+    let rule=report["rules"].as_array().unwrap().iter().find(|q|q["rule"]=="size").unwrap();
+    assert_eq!(rule["stats"]["cell_queries"],3);
+    assert_eq!(rule["stats"]["cell_nonempty_queries"],2);
+    assert_eq!(rule["stats"]["cell_bindings"],2);
+}

@@ -36,6 +36,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 | 需求 | `bench.py` 子命令 |
 |---|---|
+| 每个 Cell 程序的真实缓存率与案例 | `cell-cases --input 诊断目录 --before 历史Cell关闭 --after 历史Cell开启 [--output NEW.json] [--csv NEW.csv]` |
 | 看已有结果，不重新跑 | `report [分析目录或 report.json]` |
 | 查找可复用的完整 Pass-3 历史 | `history --joint-sat` |
 | 固定 Cell 分流，比较完整 binding 约束关闭/开启 | `depth-pair --before DIR --after DIR [--output NEW.json] [--csv NEW.csv]` |
@@ -122,3 +123,8 @@ Cell 完整接口实验：`CELL_BINDING_CONNECTIONS=1` 开启已安装参数化 
 比较这些接口时，固定 `--joint-sat`、普通 Cell 查询分流和原有 refutation 开关，使用同二进制的开关消融。`depth-pair` 校验整图、调度、二进制、worker、逐规则起点与产出数、分层守恒，并报告 `connection_*` / `range_*`；它不把“起点数量相等”说成逐个起点身份完全相同。`connection_unknown` 是失效／未覆盖后回退；完整范围采用可单调放宽的上界，删除后不缩小，重建时重新收紧；新事实和 canonical row 必须先纳入当前 packet 再查。
 
 实际 GPU 快速回归：设置 `CELL_MATRIX_WORKER` 为当前 worker，`CELL_BINDING_CONNECTIONS=1 CELL_BINDING_RANGES=1 CELL_SEARCH_COUNTERS=1`，运行 `cell-assisted-egglog` 的 `full_gpu` 测试；必须覆盖缺失键后续出现、函数更新、union、subsume、索引 rebase 和 i64 极值。完整 `audit --all-rules --joint-sat` 与整图检查仍不可替代。来源局限：当前导出的是已安装参数化 Cell 程序的端口，不是任意 Analyze 闭包的完整关系，也没有证明全部 Cell 形变都已被支持。
+
+
+`cell-cases` 按已安装参数化 Cell 程序统计，而非学习目录里的 e-class，也不是每个实例的独立历史。需要 telemetry v2：报告须包含 scalar 程序，缓存读/索引读分母和非空回答次数。旧报告缺字段时不能用 `emitted_bindings / seed_evaluations` 冒充缓存命中率；必要时只补一次诊断，历史关/开对照继续复用。脚本要求历史对照同二进制，并核验新诊断保持原来的逐规则工作量及整图；不将补采时间用作性能证据。
+
+三种比例分开：端口缓存率 = 缓存读 / (缓存读 + 新索引读)，包括已知缺失端口；非空回答率 = 非空 Cell 查询回答 / Cell 查询请求；查询接管率 = Cell 完整回答 / 该规则全部请求。没有端口读取时缓存率为 N/A，不是 0%。空回答可能避开大量无用起点，缓存率 0% 也可能通过固定接线与依赖订阅省下 Join。另列 fresh-DAG 宏、参数化 dataflow 和内部比较闭包的计数，不能把它们合成“整 Cell 命中”。单条规则的 GPU 工作移除不是该 Cell 的独立耗时贡献。
