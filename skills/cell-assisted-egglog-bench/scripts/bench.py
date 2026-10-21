@@ -42,6 +42,12 @@ def matching_history(repo, snapshot, policy, joint, all_rules=False):
         except (OSError, ValueError, KeyError, TypeError):
             continue  # Incomplete/old diagnostic packets are not timing controls.
 
+def analysis_identity(path):
+    """Hash every catalog input, so edits cannot reuse stale library timing."""
+    root = Path(path)
+    files = [root/'catalog/catalog.json'] + sorted((root/'catalog/states').glob('*.json'))
+    return {str(p.relative_to(root)): sha(p) for p in files}
+
 def inference_identity(a, repo, worker, env):
     binary = repo / 'target/analyzer/release/examples/raytrace_stable_bench'
     resolve = lambda p: p if p.is_absolute() else repo / p
@@ -59,7 +65,8 @@ def inference_identity(a, repo, worker, env):
     return dict(version=1, snapshot=sha(resolve(a.snapshot)), binary=sha(binary),
                 worker=sha(worker), policy=a.policy, joint=a.joint_sat, all_rules=a.all_rules, controls=controls,
                 machine=[platform.node(), platform.system(), platform.release(), platform.machine()],
-                environment_sha256=hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest())
+                environment_sha256=hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest(),
+                analysis=analysis_identity(env["CELL_BENCH_ANALYSIS"]) if env.get("CELL_BENCH_ANALYSIS") else None)
 
 def extraction_identity(a, repo):
     resolve = lambda p: p if p.is_absolute() else repo / p
@@ -531,6 +538,70 @@ def cell_cases_report(current, before, after):
          historical_gpu_rows_saved=all_saved,represented_program_rows_saved=sum(p['gpu_rows_saved'] for p in cases),
          unrepresented_rule_rows_change=all_saved-sum(p['gpu_rows_saved'] for p in cases))
 
+def analyze_credit_report(paths, profiles=None):
+    """Separate library-guided order from validated projection reuse."""
+    records={};identity=None
+    for name,path in paths.items():
+        r=load(path/'report.json');w=load(path/'workflow.json');g=r['gpu'];c=g['cells']
+        if not metrics(r)['timing_eligible'] or not r.get('benchmark_finished') or c.get('profile'):
+            raise ValueError('library credit requires uninstrumented verified graphs')
+        key=[w['snapshot_sha256'],w['binary_sha256'],w['worker_sha256'],w['policy'],r['schedule'],r['assisted_rulesets'],
+             generic_gpu_options(g),g.get('saturation_diagnostics'),
+             [c.get(k) for k in ['refutation','refutation_signatures','refutation_domains','binding_ranges','binding_connections','compact_binding_workspace']]]
+        key += [g['runtime'].get('cell_query_rules'),g['runtime'].get('cell_query_bindings')]
+        # Runtime observation counts are not configuration; compare installed
+        # proof mode and presence, not timers/caches that may differ physically.
+        diag=g.get('saturation_diagnostics') or {}
+        key[7]=[bool(diag),diag.get('joint',{}).get('proofs_enabled')]
+        if identity is None:identity=key
+        elif identity!=key:raise ValueError('library lanes differ in shared executor, input or binaries')
+        expected_library=name!='baseline'
+        if bool(c.get('library'))!=expected_library or bool(c.get('plan_only'))!=(name=='plan_only'):
+            raise ValueError('expected no library / plan-only / certificates lanes')
+        records[name]=dict(directory=str(path),provenance=w,runtime=g['runtime'],library=c.get('library'),
+            projection_plans=len(c.get('plans',[])),projection_queries=len(c.get('projection_queries',[])),
+            primitive_fallback_queries=len(c.get('projection_fallback_queries',[])),
+            gpu_bytes=g['device']['device_bytes'],graph=r['same_commit_verification'])
+    if records['plan_only']['provenance']['inference_identity']['analysis']!=records['candidate']['provenance']['inference_identity']['analysis']:
+        raise ValueError('plan/certificate libraries differ')
+    t={k:v['runtime']['run_seconds'] for k,v in records.items()}
+    result = dict(schema='analyze-library-credit/v1',scope='Actual full raytrace Pass 3; frozen structural Analyze library. No inferred whole-Cell transition or arbitrary closure completeness.',
+        records=records,net_library_seconds=t['baseline']-t['candidate'],net_library_fraction=(t['baseline']-t['candidate'])/t['baseline'],
+        plan_only_seconds=t['baseline']-t['plan_only'],projection_reuse_seconds=t['plan_only']-t['candidate'],
+        accounting='Runtime maintenance/native effects included; setup/Bake/extraction separate. Conditional ordered differences, not independent additive module credits.')
+    if profiles:
+        diagnostics={}
+        for name,path in profiles.items():
+            r=load(path/'report.json');w=load(path/'workflow.json');g=r['gpu'];timed=records[name]
+            if not exact(r.get('same_commit_verification')) or not g['cells']['profile'] or g['cells']['plan_only']!=(name=='plan_only'):
+                raise ValueError('invalid library diagnostic lane')
+            for f in ['snapshot_sha256','binary_sha256','worker_sha256','policy']:
+                if w[f]!=timed['provenance'][f]:raise ValueError('diagnostic differs: '+f)
+            tr=load(Path(timed['directory'])/'report.json')['gpu']
+            if generic_gpu_options(g)!=generic_gpu_options(tr) or g['cells']['plans']!=tr['cells']['plans']:
+                raise ValueError('diagnostic generic options/plans differ')
+            if w['inference_identity']['analysis']!=timed['provenance']['inference_identity']['analysis']:
+                raise ValueError('diagnostic library differs')
+            if [(q['ruleset'],q['rule'],q['stats']['emitted_bindings']) for q in g['rules']]!=[(q['ruleset'],q['rule'],q['stats']['emitted_bindings']) for q in tr['rules']]:
+                raise ValueError('diagnostic changed complete query output')
+            fields=g['join_depth_fields']; ix=fields.index('deepest_seeds')
+            projected=set(g['cells']['projection_queries'])
+            hist=[];consumers=[]
+            for i,q in enumerate(g['rules']):
+                if i in projected:
+                    consumers.append(dict(index=i,ruleset=q['ruleset'],rule=q['rule'],stats=q['stats']))
+                    continue
+                for depth,row in enumerate(q['stats'].get('depth_work',[])):
+                    while len(hist)<=depth:hist.append(0)
+                    hist[depth]+=row[ix]
+            total=sum(hist)
+            diagnostics[name]=dict(directory=str(path),work=g['cell_work'],consumers=consumers,
+                compact_depth_histogram=hist,compact_depth_reach=[sum(hist[d:])/total if total else None for d in range(len(hist))],
+                compact_seeds=total,depth_scope='Compact queries only. The 13 projection queries use the legacy certificate executor and lack complete per-depth row accounting; do not call this whole-workload coverage.',
+                plans=g['cells']['plans'])
+        result['diagnostics']=diagnostics
+    return result
+
 def cell_net_time(before, after):
     """A real net benefit needs an uninstrumented same-binary Cell ablation.
     Never turn profiled counters, mixed GPU versions, or row savings into time.
@@ -663,6 +734,10 @@ def parser():
         q.add_argument('--input',type=Path,required=True);q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
         q.add_argument('--output',type=Path);q.add_argument('--csv',type=Path)
         if mode=='cell-value':q.add_argument('--timing-before',type=Path);q.add_argument('--timing-after',type=Path)
+    q = sub.add_parser('analyze-credit',help='frozen Analyze library: no library / order only / projection reuse')
+    for name in ['baseline','plan-only','candidate']: q.add_argument('--'+name,type=Path,required=True)
+    q.add_argument('--profile-plan',type=Path); q.add_argument('--profile-candidate',type=Path)
+    q.add_argument('--output',type=Path)
     q = sub.add_parser('cell-credit',help='attribute proof-only benefit with generic dataflow kept in both lanes')
     q.add_argument('--baseline',type=Path,required=True);q.add_argument('--candidate',type=Path,required=True);q.add_argument('--output',type=Path)
     q = sub.add_parser('empty-tables',help='generic GPU pruning off/on, without Cell services')
@@ -700,6 +775,9 @@ def parser():
             q.add_argument('--three-lane-check', action='store_true')
             q.add_argument('--all-rules', action='store_true')
             q.add_argument('--joint-sat', action='store_true')
+        if mode in ['run', 'audit']:
+            q.add_argument('--analysis', type=Path, help='frozen Analyze catalog for structural projections; all-rules only')
+            q.add_argument('--analysis-plan-only', action='store_true', help='retain identical library-guided order/backend but disable certificates')
         if mode == 'diff':
             q.add_argument('--inspect'); q.add_argument('--open')
             g = q.add_mutually_exclusive_group(); g.add_argument('--sequential', action='store_true'); g.add_argument('--sort-hoist', action='store_true')
@@ -845,6 +923,16 @@ def main(argv=None):
             with dest.open('x',newline='') as f:
                 writer=csv.DictWriter(f,fieldnames=list(result['programs'][0]),lineterminator='\n');writer.writeheader();writer.writerows(result['programs'])
         return 0
+    if a.mode == 'analyze-credit':
+        if (a.profile_plan is None)!=(a.profile_candidate is None):raise ValueError('both library diagnostic lanes required')
+        profiles={'plan_only':resolve(a.profile_plan),'candidate':resolve(a.profile_candidate)} if a.profile_plan else None
+        result=analyze_credit_report({k:resolve(getattr(a,k)) for k in ['baseline','plan_only','candidate']},profiles)
+        print('Analyze library net seconds:',result['net_library_seconds'],'fraction:',result['net_library_fraction'])
+        print('Library order/backend seconds:',result['plan_only_seconds'],'certificate reuse seconds:',result['projection_reuse_seconds'])
+        if a.output and not a.dry_run:
+            dest=resolve(a.output);dest.parent.mkdir(parents=True,exist_ok=True)
+            with dest.open('x') as f:json.dump(result,f,indent=2);f.write('\n')
+        return 0
     if a.mode == 'cell-credit':
         result=cell_credit_report(resolve(a.baseline),resolve(a.candidate))
         print('仅归因联合闭包证明组；普通查询接管、端口缓存和空回答保留在共同基线。')
@@ -916,6 +1004,12 @@ def main(argv=None):
     if a.mode in ['build', 'extract'] or (a.mode == 'run' and not a.no_extract): targets += ['tiger_output_check']
     build = ['cargo', 'build', '--offline', '--release', '--target-dir', 'target/analyzer'] + [x for t in targets for x in ['--example', t]]
     env = dict(os.environ, RAYON_NUM_THREADS='1', EGGLOG_PROBE_COUNTS_OFF='1', CELL_MATRIX_WORKER=str(worker))
+    if getattr(a, 'analysis_plan_only', False) and not getattr(a, 'analysis', None): raise ValueError('--analysis-plan-only requires --analysis')
+    if getattr(a, 'analysis', None):
+        if not a.all_rules: raise ValueError('--analysis requires --all-rules')
+        env['CELL_BENCH_ANALYSIS']=str(resolve(a.analysis))
+        env['CELL_BENCH_ANALYSIS_PLAN_ONLY']='1' if a.analysis_plan_only else '0'
+        if not a.dry_run: analysis_identity(resolve(a.analysis))
     if getattr(a, 'reuse_controls', None):
         if not a.all_rules: raise ValueError('--reuse-controls requires --all-rules')
         folder=resolve(a.reuse_controls)

@@ -1,0 +1,12 @@
+{
+  "scope": "Actual complete raytrace Pass 3, all 547 original GPU queries, same-submit native oracle. Not pristine fused-native equality.",
+  "audit_complete": true,
+  "queries": 478136,
+  "worker_sha256": "55c80ff3f6a700c05d34459103be1ef19a2bec0f99bce723aeb7eda2e6c67c77",
+  "audit_path": "out/analyze-credit-audit/audit.json",
+  "tests": {
+    "full_gpu": 15,
+    "bench_workflow": 38,
+    "cell_prefix": 5
+  }
+}

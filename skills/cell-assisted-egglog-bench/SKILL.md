@@ -148,3 +148,11 @@ Cell 完整接口实验：`CELL_BINDING_CONNECTIONS=1` 开启已安装参数化 
 GPU 后端从 layout 16 起默认启用必需表为空的批次短路。`EGGLOG_GPU_EMPTY_TABLE_PRUNING=0` 关闭作消融；它归 `gpu_optimizations.empty_table_pruning`，不归 Cell。worker 在处理本批全部增量后的可见行计数上判断，重插/union/rebuild 后重新检查；零 atom 的规则不被短路。整批为空也继续提交维护并推进请求游标。`gpu_empty_table_prunes` / 每规则 `empty_table_prunes` 统计被短路的请求，是原 `dispatches` 的子集，不是内核启动数，也不能直接当作省掉的起点数。
 
 `empty-tables` 比较同二进制的无 Cell 运行，只改变这个开关，保留全部规则/调度和原生 effects；统计用 `CELL_SEARCH_COUNTERS=1`，时间另取无插桩对照。使用已验证 CPU 控制，不重跑未变的 CPU。要对照收益按原深度字段核算，不能把被短路请求乘表行数估算。Cell/refutation/credit 的其它对照必须固定此通用开关；工具会拒绝混用。空表短路没有 Cell credit。该优化只处理整个必需表没有可见行，非空表之间连不上仍由 Join/约束处理。
+
+## 自动 Analyze 库的独立对照
+
+`run/audit --all-rules --analysis DIR` 加载普通 Analyze 的 `catalog/`，与源码编译的 joint observer 分开。`--analysis-plan-only` 保留同库引导的查询顺序和后端，但不启用片段认证/复用；必须同时指定 `--analysis`。公共 CPU dataflow、joint 证明、GPU 通用优化保持一致。库中的所有 catalog/state 文件内容进入缓存指纹，目录名不代表库内容不变。
+
+使用三组同二进制运行：无库、同库 plan-only、同库开启复用。`analyze-credit --baseline DIR --plan-only DIR --candidate DIR [--profile-plan DIR --profile-candidate DIR] --output NEW.json` 核验后分开报告库的总净收益及顺序/片段复用的条件差值。时间不含 setup、Bake、extraction，均须另列；不能拿源码 terms 证明的收益冒充该库收益。复用未变的 CPU 控制；每组只跑一次。
+
+当前接线仅复用已认证的正向、全键结构片段。含 computed primitive 的查询逐条保持完整 GPU 匹配，其他查询保留紧凑工作区/refutation。片段第一次认证与订阅维护不免费；报告 loaded states、共享计划、实际消费者、认证读取、普通/port 探测、watch 检查和 GPU 分配字节。13 条投影查询的旧执行器尚无完整逐层行数，最新诊断曲线只覆盖其余 compact 查询，不能冒称完整工作量。冻结的 If/Single 库在完整 Pass 3 的一次测量为负收益，见 `experiments/analyze_library_credit/README.md`；它不是完整 Pass-3 Bake 库的结论。

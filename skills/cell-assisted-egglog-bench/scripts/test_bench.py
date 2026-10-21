@@ -30,6 +30,37 @@ def fixture():
                 verification=None)
 
 class WorkflowTests(unittest.TestCase):
+
+    def test_analyze_credit_keeps_public_executor_and_rejects_changed_library(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);paths={n:root/n for n in ['baseline','plan_only','candidate']}
+            for name,p in paths.items():
+                p.mkdir();r=fixture();r.update(schedule=['S'],assisted_rulesets=['s'])
+                g=r['gpu'];g.update(device={'device_bytes':100},cells={
+                    'profile':False,'plan_only':name=='plan_only',
+                    'library':None if name=='baseline' else {'loaded_states':[0]},
+                    'plans':[],'projection_queries':[],'projection_fallback_queries':[]})
+                g['runtime']['run_seconds']={'baseline':5,'plan_only':4.5,'candidate':4}[name]
+                w=dict(snapshot_sha256='s',binary_sha256='b',worker_sha256='w',policy='stable',
+                       inference_identity={'analysis':None if name=='baseline' else {'state':'hash'}})
+                (p/'report.json').write_text(json.dumps(r));(p/'workflow.json').write_text(json.dumps(w))
+            result=B.analyze_credit_report(paths)
+            self.assertEqual(result['net_library_seconds'],1)
+            p=paths['candidate']/'workflow.json';w=B.load(p);w['inference_identity']['analysis']={'state':'different'};p.write_text(json.dumps(w))
+            with self.assertRaisesRegex(ValueError,'libraries differ'):B.analyze_credit_report(paths)
+
+    def test_analysis_library_contents_are_part_of_cache_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); a,worker,env,*_=self.make_cache(root)
+            lib=root/'library'; (lib/'catalog/states').mkdir(parents=True)
+            (lib/'catalog/catalog.json').write_text('{}')
+            state=lib/'catalog/states/state-0000.json'; state.write_text('{}')
+            env['CELL_BENCH_ANALYSIS']=str(lib)
+            before=B.inference_identity(a,root,worker,env)
+            state.write_text('{"changed":true}')
+            self.assertNotEqual(before,B.inference_identity(a,root,worker,env))
+
+
     def make_cache(self, root):
         source = root/'input.egg'; source.write_text('; same input')
         worker = root/'worker'; worker.write_text('worker')
