@@ -2,197 +2,25 @@
 //! Keys are finite constructor DAGs, never e-class IDs or a hash-only ordering.
 use crate::Result;
 use egglog::{
-    ArcSort, Core, EGraph, Primitive, PurePrim, PureState, TermDag, TermId, Value,
-    ast::{Command, GenericSchedule, Literal, Schedule, Span},
-    constraint::{SimpleTypeConstraint, TypeConstraint},
-    prelude::{BaseSort, add_base_sort},
-    sort::{BaseValues, Boxed, F, S},
+    EGraph, Value,
+    ast::{Command, GenericSchedule, Schedule, Span},
+    prelude::add_base_sort,
 };
-use std::{
-    cmp::Ordering,
-    collections::{BTreeMap, BTreeSet},
-    hash::{Hash, Hasher},
-    sync::Arc,
-};
+use std::collections::{BTreeMap, BTreeSet};
+#[cfg(test)]
+use std::sync::Arc;
 mod full;
+mod key;
+use key::*;
+pub mod source;
 pub use full::{
     POLICY_HEADER, coverage, initialization_end, key_literal, rewrite_ties, schedule_full,
     setup_full, setup_prepared_full, setup_prepared_with_opaque,
 };
 
 pub const RULESET: &str = "cell-stable-keys";
-const SORT: &str = "CellStructuralKey";
 const PREFIX: &str = "CellStructuralKey-";
 
-#[derive(Clone, Debug)]
-struct Key(Arc<Node>);
-#[derive(Debug)]
-struct Node {
-    anchor: bool,
-    height: usize,
-    label: Arc<str>,
-    children: Vec<Key>,
-    hash: u64,
-}
-impl Key {
-    fn new(label: String, children: Vec<Key>) -> Self {
-        Self::with_label(label.into(), children)
-    }
-    fn with_label(label: Arc<str>, children: Vec<Key>) -> Self {
-        let height = children.iter().map(|k| k.0.height + 1).max().unwrap_or(0);
-        let mut hash = 0xcbf29ce484222325u64;
-        for byte in label
-            .as_bytes()
-            .iter()
-            .copied()
-            .chain(children.iter().flat_map(|k| k.0.hash.to_le_bytes()))
-        {
-            hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3);
-        }
-        Self(Arc::new(Node {
-            anchor: false,
-            height,
-            label,
-            children,
-            hash,
-        }))
-    }
-    fn anchor(self) -> Self {
-        if self.0.anchor {
-            return self;
-        }
-        let mut key = Self::new("\0input-anchor".into(), vec![self]);
-        let node = Arc::get_mut(&mut key.0).unwrap();
-        node.anchor = true;
-        node.height = 0;
-        key
-    }
-}
-impl Hash for Key {
-    fn hash<H: Hasher>(&self, s: &mut H) {
-        self.0.hash.hash(s)
-    }
-}
-impl PartialEq for Key {
-    fn eq(&self, b: &Self) -> bool {
-        Arc::ptr_eq(&self.0, &b.0) || (self.0.hash == b.0.hash && self.cmp(b) == Ordering::Equal)
-    }
-}
-impl Eq for Key {}
-impl Ord for Key {
-    fn cmp(&self, b: &Self) -> Ordering {
-        if Arc::ptr_eq(&self.0, &b.0) {
-            return Ordering::Equal;
-        }
-        b.0.anchor
-            .cmp(&self.0.anchor)
-            .then_with(|| self.0.height.cmp(&b.0.height))
-            .then_with(|| self.0.label.cmp(&b.0.label))
-            .then_with(|| self.0.children.cmp(&b.0.children))
-    }
-}
-impl PartialOrd for Key {
-    fn partial_cmp(&self, b: &Self) -> Option<Ordering> {
-        Some(self.cmp(b))
-    }
-}
-type Stored = Boxed<Key>;
-#[derive(Debug)]
-struct KeySort;
-impl BaseSort for KeySort {
-    type Base = Stored;
-    fn name(&self) -> &str {
-        SORT
-    }
-    fn reconstruct_termdag(&self, b: &BaseValues, v: Value, d: &mut TermDag) -> TermId {
-        let k = b.unwrap::<Stored>(v);
-        // Only a diagnostic rendering. Equality/order always uses the full DAG.
-        d.lit(Literal::String(format!(
-            "key:{}:{:016x}",
-            k.0.0.height, k.0.0.hash
-        )))
-    }
-}
-#[derive(Clone)]
-enum Op {
-    Min,
-    Compare,
-    Decode,
-    Choose,
-    Anchor,
-    Node(Arc<str>),
-    Literal(String),
-}
-#[derive(Clone)]
-struct Prim {
-    name: String,
-    types: Vec<ArcSort>,
-    op: Op,
-}
-impl Primitive for Prim {
-    fn name(&self) -> &str {
-        &self.name
-    }
-    fn get_type_constraints(&self, s: &Span) -> Box<dyn TypeConstraint> {
-        SimpleTypeConstraint::new(self.name(), self.types.clone(), s.clone()).into_box()
-    }
-}
-impl PurePrim for Prim {
-    fn apply<'a, 'db>(&self, s: PureState<'a, 'db>, a: &[Value]) -> Option<Value> {
-        let b = s.base_values();
-        let key = |v| b.unwrap::<Stored>(v);
-        match &self.op {
-            Op::Decode => {
-                full::decode_key(b.unwrap::<S>(a[0]).as_str()).map(|k| b.get(Stored::new(k)))
-            }
-            Op::Compare => Some(b.get(match key(a[0]).cmp(&key(a[1])) {
-                Ordering::Less => -1i64,
-                Ordering::Equal => 0,
-                Ordering::Greater => 1,
-            })),
-            Op::Min => Some(if a[0] == a[1] || key(a[0]) <= key(a[1]) {
-                a[0]
-            } else {
-                a[1]
-            }),
-            Op::Anchor => Some(b.get(Stored::new((*key(a[0])).clone().anchor()))),
-            Op::Choose => {
-                let c0 = b.unwrap::<i64>(a[2]);
-                let c1 = b.unwrap::<i64>(a[3]);
-                Some(if c0 > c1 || (c0 == c1 && key(a[4]) <= key(a[5])) {
-                    a[0]
-                } else {
-                    a[1]
-                })
-            }
-            Op::Node(label) => Some(b.get(Stored::new(Key::with_label(
-                label.clone(),
-                a.iter().map(|v| (*key(*v)).clone()).collect(),
-            )))),
-            Op::Literal(sort) => {
-                let text = match sort.as_str() {
-                    "i64" => b.unwrap::<i64>(a[0]).to_string(),
-                    "f64" => {
-                        let value = b.unwrap::<F>(a[0]);
-                        let bits = if value.is_nan() {
-                            f64::NAN.to_bits()
-                        } else if value.to_bits() & 0x7fff_ffff_ffff_ffff == 0 {
-                            0
-                        } else {
-                            value.to_bits()
-                        };
-                        format!("{bits:016x}")
-                    }
-                    "String" => format!("{:?}", b.unwrap::<S>(a[0]).as_str()),
-                    "bool" => b.unwrap::<bool>(a[0]).to_string(),
-                    "Unit" => "()".into(),
-                    _ => unreachable!(),
-                };
-                Some(b.get(Stored::new(Key::new(format!("{sort}:{text}"), vec![]))))
-            }
-        }
-    }
-}
 fn private(eg: &mut EGraph, source: &str) -> Result<()> {
     let mut cmds = eg.parse_program(None, source)?;
     for c in &mut cmds {

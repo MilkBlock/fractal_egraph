@@ -32,6 +32,15 @@ class Pass3Markers(unittest.TestCase):
         self.execute(path)
         for variant in r['variants'].values():self.execute(Path(variant['path']))
 
+    def test_completion_is_scheduled_only_before_marker_consumers(self):
+        _,r=self.compile(HEADER+'(Single (Leaf 1)) (set (Cost (Leaf 1)) 5) (run make 1) (run use 1)')
+        self.assertEqual(r['maintenance_before'],['use'])
+        for variant in r['variants'].values():
+            source=Path(variant['path']).read_text()
+            make=[line for line in source.splitlines() if line.startswith('(run-schedule ') and '(run make)' in line]
+            self.assertEqual(len(make),1)
+            self.assertNotIn('cell-spine-complete',make[0])
+
     def test_reads_before_and_after_set_are_not_one_timeless_value(self):
         v,c=t.var,t.call
         sig={name:dict(kind='constructor',input=['Expr'],output='Expr') for name in ['A','B']}

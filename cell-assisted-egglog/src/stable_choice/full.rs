@@ -29,32 +29,6 @@ fn encode_key(k: &Key) -> Json {
         k.0.children.iter().map(encode_key).collect::<Vec<_>>()
     ])
 }
-pub(super) fn decode_key(text: &str) -> Option<Key> {
-    fn decode(j: &Json) -> Option<Key> {
-        let xs = j.as_array()?;
-        if xs.len() != 3 {
-            return None;
-        }
-        let anchor = xs[0].as_bool()?;
-        let label = xs[1].as_str()?.to_owned();
-        let children = xs[2]
-            .as_array()?
-            .iter()
-            .map(decode)
-            .collect::<Option<Vec<_>>>()?;
-        if anchor && (label != "\0input-anchor" || children.len() != 1) {
-            return None;
-        }
-        let mut key = Key::new(label, children);
-        if anchor {
-            let n = Arc::get_mut(&mut key.0)?;
-            n.anchor = true;
-            n.height = 0;
-        }
-        Some(key)
-    }
-    decode(&serde_json::from_str::<Json>(text).ok()?)
-}
 pub fn key_literal(eg: &EGraph, value: Value) -> String {
     let k = eg.value_to_base::<Stored>(value);
     format!(
@@ -63,30 +37,7 @@ pub fn key_literal(eg: &EGraph, value: Value) -> String {
     )
 }
 pub(super) fn install_base(eg: &mut EGraph) -> Result<()> {
-    add_base_sort(eg, KeySort, Span::Panic)?;
-    let key = eg.get_sort_by_name(SORT).unwrap().clone();
-    let int = eg.get_sort_by_name("i64").unwrap().clone();
-    let string = eg.get_sort_by_name("String").unwrap().clone();
-    for (name, op, types) in [
-        ("cell-key-min", Op::Min, vec![key.clone(); 3]),
-        ("cell-key-anchor", Op::Anchor, vec![key.clone(); 2]),
-        (
-            "cell-key-cmp",
-            Op::Compare,
-            vec![key.clone(), key.clone(), int],
-        ),
-        ("cell-key-decode", Op::Decode, vec![string, key]),
-    ] {
-        eg.add_pure_primitive(
-            Prim {
-                name: name.into(),
-                types,
-                op,
-            },
-            None,
-        );
-    }
-    Ok(())
+    super::key::install_base(eg)
 }
 // Only the three known eggcc selection shapes are rewritten. An unfamiliar
 // shape is not guessed to have the same selection intent.

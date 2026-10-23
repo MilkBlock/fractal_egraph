@@ -16,12 +16,12 @@ def run(a,repo):
     commands=[]
     if not a.no_build:
         commands += [('build',['cargo','build','--offline','--release','--target-dir','target/analyzer','--example','structural_key_source','--example','lhs_ast'])]
-    commands += [('structural-keys',[str(python),'-m','tools.cell_spine.structural_keys','--source',str(source),'--output',str(output/'sk')]),
+    commands += [('structural-keys',[str(python),'-m','tools.cell_spine.structural_keys','--source',str(source),'--output',str(output/'sk'),'--policy',a.key_policy]),
         ('markers',[str(python),'-m','tools.cell_spine.pass3_markers','--source',str(output/'sk/source_sk.egg'),'--analysis',str(analysis),'--output',str(output/'mk'),'--ast-binary',str(repo/'target/analyzer/release/examples/lhs_ast')])]
     if a.check:
         commands.append(('comparison',[sys.executable,str(repo/'skills/cell-assisted-egglog-bench/scripts/bench.py'),'--repo',str(repo),'program-modes',
             '--source',str(output/'source_sk.egg'),'--marked',str(output/'source_sk_mk.egg'),'--output',str(output/'comparison'),
-            '--worker',str(resolve(a.worker)),'--native-rulesets','sk-portable,sk-portable-freeze']+(['--no-build'] if a.no_build else [])))
+            '--worker',str(resolve(a.worker)),'--native-rulesets','cell-stable-keys,cell-stable-freeze']+(['--no-build'] if a.no_build else [])))
     if a.dry_run:
         for stage,command in commands:print(stage+': '+' '.join(command))
         return 0
@@ -30,9 +30,9 @@ def run(a,repo):
     digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
     report=dict(schema='structural-source-pipeline/v1',status='running',source=str(source),source_sha256=digest(source),
         analysis=str(analysis),stages=[],artifacts={'source.egg':digest(source)},
-        marker_backend='existing Analyze-backed full-key two-atom source adapter',
+        key_policy=a.key_policy,runtime_extension='cell-structural-key-runtime/v1',marker_backend='existing Analyze-backed full-key two-atom source adapter',
         acceptance='SK vs SK+MK on pristine and GPU, plus cross-backend whole-public-graph checks; no claim of original vs SK equivalence',
-        explicit_native_rulesets=['sk-portable','sk-portable-freeze'])
+        explicit_native_rulesets=['cell-stable-keys','cell-stable-freeze'])
     def save(): (output/'pipeline.json').write_text(json.dumps(report,indent=2)+'\n')
     save()
     for stage,command in commands:

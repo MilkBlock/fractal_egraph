@@ -29,7 +29,8 @@ def build_pristine(repo,checkout,no_build=False):
         raise ValueError('untracked files in pristine kernel')
     folder=repo/'out/program-modes/pristine-build';binary=repo/'out/program-modes/pristine'
     harness=repo/'cell-assisted-egglog/src/program_io.rs';lock=repo/'experiments/native_compare/Cargo.lock'
-    identity=dict(kernel_tree=kernel,baseline_commit=git(repo,'rev-parse','egglog-baseline'),harness_sha256=sha(harness),lock_sha256=sha(lock),protocol='program-run/v1')
+    extensions=[repo/'cell-assisted-egglog/src/stable_choice.rs',repo/'cell-assisted-egglog/src/stable_choice/full.rs',repo/'cell-assisted-egglog/src/stable_choice/source.rs',repo/'cell-assisted-egglog/src/stable_choice/key.rs']
+    identity=dict(extension_sources_sha256={str(p.relative_to(repo)):sha(p) for p in extensions[2:]},kernel_tree=kernel,baseline_commit=git(repo,'rev-parse','egglog-baseline'),harness_sha256=sha(harness),lock_sha256=sha(lock),protocol='program-run/v1')
     metadata=binary.with_suffix('.json')
     if metadata.exists() and binary.exists():
         old=json.loads(metadata.read_text())
@@ -37,6 +38,11 @@ def build_pristine(repo,checkout,no_build=False):
     if no_build:raise ValueError('no current verified pristine runner; omit --no-build once')
     (folder/'src').mkdir(parents=True,exist_ok=True)
     (folder/'src/main.rs').write_text(f'''#[path={json.dumps(str(harness))}] mod program_io;
+pub use program_io::Result;
+mod stable_choice {{
+ #[path={json.dumps(str(extensions[3]))}] mod key;
+ #[path={json.dumps(str(extensions[2]))}] pub mod source;
+}}
 fn main()->program_io::Result<()> {{
  let a=std::env::args().skip(1).collect::<Vec<_>>();
  if a.len()!=2 {{return Err("SOURCE OUTPUT".into())}}
@@ -73,8 +79,23 @@ def compare(left,right,tables=None):
         original_sorts={s for n in names for s in left['tables'][n]['input']+[left['tables'][n]['output']]}-base
         unsafe=[n for n,s in right['tables'].items() if n not in names and s['output'] in original_sorts]
         if unsafe:return dict(status='inconclusive',reason='new tables can add alternatives to original sorts; explicit extraction/auxiliary contract required',tables=sorted(unsafe))
-    def atom(v):return (v[0],next(iter(v[1])),next(iter(v[1].values())))
-    def rows(g):return [(r[0],tuple(map(atom,r[1])),atom(r[2]),r[3]) for r in g['rows'] if r[0] in names]
+    key_intern={}
+    def key_ids(graph):
+        ids=[]
+        for node in graph.get('structural_key_dag',[]):
+            children=node['children']
+            if any(not isinstance(i,int) or i<0 or i>=len(ids) for i in children):raise ValueError('invalid/cyclic structural-key DAG')
+            shape=(node['anchor'],node['label'],tuple(ids[i] for i in children))
+            ids.append(key_intern.setdefault(shape,len(key_intern)))
+        return ids
+    key_maps={id(left):key_ids(left),id(right):key_ids(right)}
+    def atom(v,g):
+        if 'key' in v[1]:
+            i=v[1]['key']
+            if not isinstance(i,int) or i<0 or i>=len(key_maps[id(g)]):raise ValueError('missing structural key node')
+            return (v[0],'base',str(key_maps[id(g)][i]))
+        return (v[0],next(iter(v[1])),next(iter(v[1].values())))
+    def rows(g):return [(r[0],tuple(atom(v,g) for v in r[1]),atom(r[2],g),r[3]) for r in g['rows'] if r[0] in names]
     a,b=rows(left),rows(right)
     from collections import Counter
     ca,cb=Counter(r[0] for r in a),Counter(r[0] for r in b)
@@ -176,7 +197,7 @@ def run(a,repo):
             name=label+'-'+backend
             (output/name).symlink_to(dest,target_is_directory=True)
             lanes[name]=dict(directory=str(dest),reused=reused,source=str(source),source_sha256=sha(source),
-                complete=report.get('complete',False),snapshot_complete=report.get('snapshot_complete',False),
+                complete=report.get('complete',False),snapshot_complete=report.get('snapshot_complete',False),runtime_extension=report.get('setup',{}).get('runtime_extension'),
                 run_seconds=report.get('run_seconds'),error=report.get('error'))
     comparisons={}
     def check(label,l,r,project=False):
@@ -199,7 +220,7 @@ def run(a,repo):
     if comparisons.get('marker_effect_pristine',{}).get('status')=='equal' and comparisons.get('backend_marked',{}).get('status')=='different':
         diagnosis.append('The marker rewrite preserves this pristine result, but the marked GPU result differs; inspect backend ordering and query audit.')
     result=dict(schema='program-backend-matrix/v1',diagnosis=diagnosis,lanes=lanes,comparisons=comparisons,pristine=provenance,
-        scope='original source policy, no automatic stable-choice rewrite or Cell assistance; source effects and backend effects reported separately',
+        scope='supplied source policy, explicit source-declared runtime extensions only; pristine names the unchanged baseline kernel, not the absence of extensions; source and backend effects reported separately',
         passed=all(v['complete'] for v in lanes.values()) and all(v['status']=='equal' for v in comparisons.values()))
     write(output/'report.json',result)
     lines=['# Source / backend comparison','',result['scope'],'','| Lane | Seconds | Reused | Complete |','|---|---:|---|---|']

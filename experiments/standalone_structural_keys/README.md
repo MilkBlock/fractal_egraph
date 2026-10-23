@@ -1,151 +1,175 @@
-# Standalone structural keys and the source pipeline
+# Automatically generated shared DAG structural keys
 
-The Analyzer branch already **implements** structural keys. Its `--structural-keys`
-mode inserts helpers and rewrites eggcc's known selection shapes; it is not merely
-a warning about needing a key. However, its `normalized.egg` depends on a custom
-Rust `CellStructuralKey` type and primitives. This fork supplies a standalone
-source representation, then connects the existing source marker transformer and
-pristine/GPU comparison harness:
+The compiler now reuses **automatic-refutation's native `Arc<Node>` keys**. It
+no longer expands a key into a BigRat or BigInt. The generated `.egg` explicitly
+contains its native-extension declaration, key functions, maintenance rules,
+input freezing, selection policy and schedule. The runner only registers the
+named primitives; it does not silently rewrite rules or add schedules.
 
-```
-source.egg → source_sk.egg → source_sk_mk.egg
-             │                    │
-             ├── pristine         ├── pristine
-             └── GPU              └── GPU
-```
-
-Reused policy: `eggcc-structural-keys` commit `a89c4cc`,
-`stable_choice::{rewrite_ties,setup_full,schedule_full}`. Base of this isolated
-worktree: `95e6e44`. The original faster to-hoist-only API remains the default;
-there is no silent new policy in the program runner. The `egglog/` kernel and
-immutable `egglog-baseline` tag are unchanged.
-
-## Representation and exactness
-
-Every constructor sort receives a `CellStructuralKey-Sort` function. Its value
-is a native `Vec<BigRat>` containing `[code, scale, height, anchored]`, not a
-custom Rust sort. A typed structural witness is serialized as a prefix-free
-base-258 word. Concatenation uses exact arithmetic:
+The user-approved acceptance contract is:
 
 ```
-(code_a, scale_a) · (code_b, scale_b)
-    = (code_a + scale_a * code_b, scale_a * scale_b)
+source.egg -> source_sk.egg       may change selection/results
+source_sk.egg -> source_sk_mk.egg must preserve the SK result
 ```
 
-The order is the reused policy's anchor/height/typed-label/children order.
-Numeric comparison of complete words equals lexicographic structural comparison;
-there are no hash collisions or floating-point tolerances. Dynamic i64 labels
-use their signed decimal representation, including i64::MIN. Input witnesses are
-frozen once, after a recognized empty-LHS initialization. Subsequent constructors
-receive keys and union merges keys by the minimum.
+SK is the marker oracle. Neither the original source nor the earlier full Rust
+selection policy is an equivalence gate.
 
-The exact source policy implements `to-hoist`, the equal-cost `Smaller` choice,
-`IVTMin` ties and late equal-cost `ExtractedExpr` improvements. It deliberately
-changes the old allocation/order-sensitive choice. **Original vs SK equivalence
-is not the acceptance contract.** The oracle compares this emitted source with
-the previously implemented Rust structural-key policy. That older policy itself
-only claims selected-program equivalence, not deterministic intermediate graphs
-for arbitrary nonconfluent programs.
+## Shared representation and automatic generation
 
-BigRat computations run in explicit `sk-portable`/`sk-portable-freeze` rulesets.
-GPU mode keeps those sets on the native CPU; original supported queries and
-marker queries still use GPU. Their output includes ordinary i64 comparison
-rows. Both backends consume the exact same source and schedule. No hidden key
-injection takes place in the runner.
+`stable_choice/key.rs` is the same implementation for the main runtime and the
+pristine-kernel extension runner:
 
-## Use
+```
+Key = Arc<Node>
+Node = { anchor, height, typed label, child Key references, cached hash }
+```
 
-From this checkout, build and generate all three sources, then compare the four
-actual runtime lanes (Python 3.9+, solver environment with SCIP or Gurobi):
+Children are referenced, not copied. The cached hash accelerates lookup;
+collisions still require exact structural equality. Order uses input anchors,
+height, typed labels, and child order. A same-pointer comparison finishes
+immediately. No allocation ID or hash-only tie-break is introduced.
+
+From the native parser and schema the compiler automatically:
+
+1. Finds the selection roots and their transitive constructor input sorts.
+2. Emits each `CellStructuralKey-Sort` function and its constructor-key rules.
+3. Freezes input keys once after an empty-LHS one-shot initializer, if present.
+4. Finds rules that write `to-hoist` and schedules maintenance before those
+   rulesets, including combined rulesets containing them.
+
+The default `--key-policy automatic` preserves the main thread's **to-hoist-only**
+policy: prefer greater `Expr-size`, then the smaller structural key. Other
+selection sites are unchanged. `--key-policy full` is explicit and additionally
+rewrites the known Smaller/IVT/equal-cost-improvement shapes; it requires more
+maintenance and has a separate validation result.
+
+For raytrace Pass 3, automatic mode selects **107 of 242 constructors**, with
+maintenance before **boundary-analysis**, not before every Run.
+
+A generated fragment looks like:
+
+```egg
+; cell-structural-key-runtime/v1 {"storage":"shared-native-dag",...}
+(function CellStructuralKey-Expr (Expr) CellStructuralKey
+  :merge (cell-key-min old new) :unextractable)
+(rule ((= e (Pair a b))
+       (= ka (CellStructuralKey-Expr a))
+       (= kb (CellStructuralKey-Expr b)))
+      ((set (CellStructuralKey-Expr e) (cell-key-node-Pair ka kb)))
+      :ruleset cell-stable-keys)
+```
+
+The header shown above is abbreviated; generated files contain the complete
+primitive schema. The key type is registered by that explicit extension.
+
+## Execution boundary
+
+**This is not a bare-pristine standalone program.** It requires the declared
+native DAG extension, as agreed with the user. `program-modes` builds the same
+extension against the immutable `egglog-baseline` kernel and against the current
+runtime. The kernel is unchanged. Reports include `setup.runtime_extension`.
+In GPU mode key maintenance runs natively; original admitted queries remain on
+GPU. Both backends consume the same source. Use `program-modes` for these
+files; do not send an already-generated SK program through a legacy runner
+that installs/reapplies its own hidden stable-choice policy.
+
+Snapshots also retain sharing: `structural_key_dag` is one topologically ordered
+node array, with key-valued rows referring into it. The comparison harness
+interns **exact node descriptions** across the two snapshots before comparing
+facts. It does not compare per-process node IDs or hashes. A 30-level repeated
+Pair test keeps 30 Pair nodes rather than expanding over a billion tree nodes.
+
+## Commands
+
+Use the versioned benchmark skill (Python 3.9+ and the existing solver Python):
 
 ```sh
 /opt/homebrew/bin/python3 skills/cell-assisted-egglog-bench/scripts/bench.py structural-pipeline \
-  --source experiments/standalone_structural_keys/add-pass3.egg \
+  --source /path/to/source.egg \
   --analysis experiments/analyze_library_credit/library \
-  --output out/standalone-keys-add \
-  --worker out/worker/matrix --check
+  --output out/dag-source-new --worker out/worker/matrix
 ```
 
-`--solver-python /path/to/python` chooses the solver installation. `--no-build`
-uses already-built binaries; pristine is still fingerprint-verified. Omit
-`--check` for source generation only. Output directories must be new. A failed
-stage retains its logs and all prior artifacts; `pipeline.json` records commands,
-source/library fingerprints and the failed stage. Unchanged backend lanes reuse
-the existing comparison cache.
+This outputs `source.egg`, `source_sk.egg`, `source_sk_mk.egg`, manifests and logs.
+Add `--check` for the four source/backend checks. **A generated source is not a
+passed check:** a mismatch remains a nonzero exit status with retained evidence.
+Use `--key-policy full` only when that policy is desired. `--no-build` reuses
+verified binaries; `--solver-python` selects an existing solver installation.
 
-Only the first step, without marker selection:
+Run a generated source through the existing interface:
+
+```sh
+/opt/homebrew/bin/python3 skills/cell-assisted-egglog-bench/scripts/bench.py program-modes \
+  --source out/dag-source-new/source_sk.egg \
+  --marked out/dag-source-new/source_sk_mk.egg \
+  --native-rulesets cell-stable-keys,cell-stable-freeze \
+  --worker out/worker/matrix --output out/dag-check-new
+```
+
+The source marker stage remains the existing **two-atom, fully-keyed positive
+view adapter**. This change does not enlarge its design space or claim a new
+Cell closure proof. It preserves the explicit extension header verbatim.
+
+## Verification and limits
+
+`RESULTS-DAG.json` records the new measurements separately from the historical
+BigRat `RESULTS.json`. The latter is obsolete as a current performance claim.
+The new representation runs full raytrace, but its source-marker comparisons
+must be read separately; unchanged selection sites can still expose execution
+order differences. Failed comparisons are not hidden by excluding tables.
+
+The compiler still requires a flat program with declarations/rules before
+inference. Unsupported container fields in relevant constructors fail on actual
+instantiation. Native literal primitives support computed String/f64 values;
+the old finite literal-pool restriction has been removed. All input checks stay
+in the generated program and can fail when they assumed the original selection
+policy.
+
+Focused tests:
 
 ```sh
 cargo build --offline --release --target-dir target/analyzer \
   --example structural_key_source --example lhs_ast
-/opt/homebrew/bin/python3 -m tools.cell_spine.structural_keys \
-  --source experiments/standalone_structural_keys/hoist.egg --output out/standalone-keys-only
-```
-
-The generated source runs on pristine egglog without this Python/Rust compiler,
-custom sort registration, Analyze JSON or a GPU worker. The compiler uses the
-native parser/typed preflight; the small AST printing adapter preserves quoted
-strings rather than introducing another parser.
-
-## Limits that remain explicit
-
-- This is the existing **eggcc selection policy**, not automatic inference of
-  every user merge's desired tie behavior.
-- Flat source, declarations/rules before inference, and ordinary source literals
-  are supported. Includes, stack scopes, mutually recursive `datatypes` groups,
-  and computed String/f64 primitives are rejected. Instantiating a constructor
-  with an unsupported container field fails rather than falling back to IDs.
-- Helper progress participates in the transformed schedule, so this is not a
-  proof that an arbitrary original finite Run or nonconfluent saturation is
-  unchanged. Marker maintenance has its own analogous schedule caveat.
-- Exact rational words can expand DAG witnesses and become expensive. This is a
-  portable correctness/reference encoding, not a compact DAG or performance win.
-- The second source step reuses `pass3_markers`: Analyze-witnessed **two-atom,
-  full-key** constructor fragments. The newer symbolic solver supports larger
-  spines/optional fields but emits a runtime companion plan, not standalone
-  optimized `.egg`; this work does not pretend those two backends are identical.
-- Existing Analyze libraries are inputs, not silently rebuilt or promoted to
-  new closure guarantees. GPU fallback/admission boundaries remain explicit.
-
-See `RESULTS.json` for the checked fixtures and actual runtime comparisons. A
-full raytrace source was generated, but full raytrace SK execution has **not**
-been validated here.
-
-## Verified checks
-
-| Workload | Rust policy → standalone key association | SK / SK+MK × pristine / GPU |
-|---|---:|---|
-| Real eggcc `add` Pass 3 | 209/209 keys, 238 original rows | All four comparisons equal |
-| Active publisher + three consumers | Covered by explicit source checks | All four comparisons equal; 1 marker row, all 3 consumer rows |
-| Strings, floats, booleans, Unit, i64 extrema | 28/28 keys, 35 original rows | Native source/oracle check |
-| Runtime integer production and cyclic union | Exact key-associated original graph | Native source/oracle check |
-
-Four comparisons mean SK vs SK+MK separately on both backends, plus pristine vs
-GPU separately for each source. Marker-effect comparisons project out only the
-new marker relation; cross-backend comparisons include it. No incomplete
-snapshot is accepted as equal. The SK-only source is the control, not the
-allocation-sensitive original source.
-
-14 focused Rust tests (GPU worker enabled) and 16 Python tests pass. The latter
-include complete source transformations, late mutable values, finite Run,
-union-created bindings, subsumption exclusions, strings and rejection behavior.
-The numeric key oracle compares each original row's attached key and its public
-value/equality/visibility, not just the count or histogram of keys.
-
-For the real `add` fixture the marker is selected for consumers that do not
-produce a runtime marker tuple in this input. That fixture validates conversion,
-not a marker benefit. The separate active fixture prevents an all-empty marker
-comparison from being mistaken for a working publisher/consumer path.
-
-Focused regression commands, after building the examples and native test runner:
-
-```sh
-cargo build --offline --release --target-dir target/analyzer \
-  --example structural_key_source --example standalone_key_verify --example lhs_ast
-cargo build --offline --release --example native_math_baseline --example lhs_ast
+cargo build --offline --release --manifest-path cell-assisted-egglog/Cargo.toml \
+  --target-dir target/analyzer --bin cell-assisted-egglog
+/path/to/solver/python -m unittest \
+  tools.cell_spine.test_structural_keys tools.cell_spine.test_pass3_markers
 CELL_MATRIX_WORKER="$PWD/out/worker/matrix" cargo test --offline \
   --manifest-path cell-assisted-egglog/Cargo.toml --target-dir target/key-tests \
   --test program_modes --test stable_choice --test full_structural_keys
-/path/to/solver/python -m unittest \
-  tools.cell_spine.test_structural_keys tools.cell_spine.test_pass3_markers
 ```
+
+## Final full-raytrace result
+
+| Variant | Inference seconds | SK vs SK+marker |
+|---|---:|---|
+| Baseline kernel + DAG extension, SK | 23.968183 | equal |
+| Baseline kernel + DAG extension, SK+marker | 23.560746 | equal |
+| GPU queries + same native extension, SK | 18.136369 | equal |
+| GPU queries + same native extension, SK+marker | 20.853203 | equal |
+
+Preparation and GPU compilation are separate in `RESULTS-DAG.json`. Original
+unmodified-source pristine inference was 22.574276 s in the earlier measured
+control: the new SK native inference adds about 6.2%. These are single
+observations, not averages. They do not establish marker acceleration: this
+raytrace library selects panic-check consumers and produces no marker rows.
+
+The first source-marker adapter inserted completion before every Run. Its native
+result differed. Completion now runs only before actual consumers (and combined
+sets containing them); the exact SK/marked comparison passes on each backend,
+without excluding Smaller or any other original SK table. The old failed reports
+remain in `out/dag-raytrace-pristine` and `out/dag-raytrace-full-pristine`.
+
+**Cross-backend equivalence is still failing** for the same source, including
+Smaller/TCPair/TermConcat differences. `program-modes` retains those failures and
+its nonzero strict four-way exit status. No new extraction-quality conclusion is
+claimed. Final evidence: `out/dag-raytrace-final-check/`. The SK source repeated
+in a fresh pristine process is exactly equal to its first run.
+
+The active small publisher test passes all four comparisons and actually
+produces a marker consumed by three rules. 18 Python, 14 Rust integration, and
+one deliberate hash-collision unit test pass. The obsolete expanded-tree
+`standalone_key_verify` oracle was removed; old Rust ordering is not an acceptance
+requirement for source generation.

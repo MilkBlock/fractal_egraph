@@ -1,8 +1,8 @@
 //! Source policy export: reuse the analyzer branch's three selection rewrites.
 use cell_assisted_egglog::{Result, stable_choice};
 use egglog::{
-    EGraph, ResolvedCall,
-    ast::{Action, Command, Expr, Fact, GenericCommand, GenericExpr, Literal},
+    EGraph,
+    ast::{Action, Command, Expr, Fact, Literal},
 };
 use serde_json::json;
 use std::{
@@ -90,64 +90,6 @@ fn source_literals(c: &Command, out: &mut Vec<serde_json::Value>) {
         _ => {}
     }
 }
-fn validate_resolved(c: &egglog::ast::ResolvedCommand) -> Result<()> {
-    fn expr(e: &egglog::ResolvedExpr) -> Result<()> {
-        if let GenericExpr::Call(_, head, args) = e {
-            if let ResolvedCall::Primitive(p) = head {
-                if ["String", "f64"].contains(&p.output().name()) {
-                    return Err(format!("portable structural keys require source-literal String/f64 values; primitive {} computes {}",p.name(),p.output().name()).into());
-                }
-            }
-            for a in args {
-                expr(a)?
-            }
-        }
-        Ok(())
-    }
-    use egglog::ast::GenericAction as A;
-    fn action(a: &egglog::ast::GenericAction<ResolvedCall, egglog::ResolvedVar>) -> Result<()> {
-        match a {
-            A::Let(_, _, e) | A::Expr(_, e) => expr(e)?,
-            A::Set(_, _, xs, e) => {
-                for x in xs {
-                    expr(x)?
-                }
-                expr(e)?
-            }
-            A::Union(_, a, b) => {
-                expr(a)?;
-                expr(b)?
-            }
-            A::Change(_, _, _, xs) => {
-                for x in xs {
-                    expr(x)?
-                }
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-    match c {
-        GenericCommand::Rule { rule } => {
-            for f in &rule.body {
-                match f {
-                    egglog::ast::GenericFact::Eq(_, a, b) => {
-                        expr(a)?;
-                        expr(b)?
-                    }
-                    egglog::ast::GenericFact::Fact(e) => expr(e)?,
-                }
-            }
-            for a in &rule.head.0 {
-                action(a)?
-            }
-        }
-        GenericCommand::Action(a) => action(a)?,
-        GenericCommand::Function { merge: Some(e), .. } => expr(e)?,
-        _ => {}
-    }
-    Ok(())
-}
 fn main() -> Result<()> {
     let a = std::env::args().skip(1).collect::<Vec<_>>();
     if a.len() != 2 {
@@ -157,9 +99,7 @@ fn main() -> Result<()> {
     let out = Path::new(&a[1]);
     std::fs::create_dir(out)?;
     let mut validator = EGraph::default();
-    for c in validator.resolve_program(Some(a[0].clone()), &source)? {
-        validate_resolved(&c)?;
-    }
+    validator.resolve_program(Some(a[0].clone()), &source)?;
     let mut eg = EGraph::default();
     let mut n = 0;
     let commands =
@@ -192,6 +132,10 @@ fn main() -> Result<()> {
             constructors.insert(name,json!({"input":f.schema().input.iter().map(|s|s.name()).collect::<Vec<_>>(),"output":f.schema().output.name()}));
         }
     }
+    std::fs::write(
+        out.join("source.egg"),
+        commands.iter().map(printed).collect::<Vec<_>>().join("\n"),
+    )?;
     let (policy, rewrites) = stable_choice::rewrite_ties(&commands)?;
     let mut values = Vec::new();
     for c in &commands {
@@ -204,7 +148,7 @@ fn main() -> Result<()> {
     std::fs::write(
         out.join("metadata.json"),
         serde_json::to_vec_pretty(
-            &json!({"commands":policy.iter().map(printed).collect::<Vec<_>>(),"constructors":constructors,"sorts":sorts,"literals":values,"rewrites":rewrites,"origin":"eggcc-structural-keys a89c4cc; reused stable_choice::rewrite_ties"}),
+            &json!({"source_commands":commands.iter().map(printed).collect::<Vec<_>>(),"commands":policy.iter().map(printed).collect::<Vec<_>>(),"constructors":constructors,"sorts":sorts,"literals":values,"rewrites":rewrites,"origin":"eggcc-structural-keys a89c4cc; reused stable_choice::rewrite_ties"}),
         )?,
     )?;
     Ok(())

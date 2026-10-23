@@ -7,10 +7,9 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub fn prepare(source: &Path) -> Result<(EGraph, Vec<Command>, Json)> {
     let start = Instant::now();
     let mut eg = EGraph::default();
-    let commands = eg.parse_program(
-        Some(source.display().to_string()),
-        &std::fs::read_to_string(source)?,
-    )?;
+    let text = std::fs::read_to_string(source)?;
+    let extension = crate::stable_choice::source::install(&mut eg, &text)?;
+    let commands = eg.parse_program(Some(source.display().to_string()), &text)?;
     // Match the existing Pass-3 protocol: initialization is native in every
     // lane; the last/main schedule and following observations are the run region.
     let split = commands
@@ -20,13 +19,20 @@ pub fn prepare(source: &Path) -> Result<(EGraph, Vec<Command>, Json)> {
     eg.run_program(commands[..split].to_vec())?;
     let run = commands[split..].to_vec();
     let metadata = json!({"setup_seconds":start.elapsed().as_secs_f64(),"setup_commands":split,
-        "run_commands":run.iter().map(ToString::to_string).collect::<Vec<_>>(),
+        "runtime_extension":extension,"run_commands":run.iter().map(ToString::to_string).collect::<Vec<_>>(),
         "protocol":"native setup before last schedule; retain checkpoint and execute clone; original source policy"});
     Ok((eg, run, metadata))
 }
-fn value(eg: &EGraph, v: Value, s: &ArcSort) -> Result<Json> {
+fn value(
+    eg: &EGraph,
+    v: Value,
+    s: &ArcSort,
+    keys: &mut crate::stable_choice::source::KeyGraph,
+) -> Result<Json> {
     let v = if s.is_eq_sort() {
         json!({"eq":format!("{:?}",eg.get_canonical_value(v,s))})
+    } else if s.name() == "CellStructuralKey" {
+        json!({"key":keys.intern(eg,v)})
     } else {
         let x = match s.name() {
             "i64" => eg.value_to_base::<i64>(v).to_string(),
@@ -37,16 +43,24 @@ fn value(eg: &EGraph, v: Value, s: &ArcSort) -> Result<Json> {
             "BigInt" => eg.value_to_base::<egglog::sort::Z>(v).to_string(),
             "BigRat" => eg.value_to_base::<egglog::sort::Q>(v).to_string(),
             _ if s.value_type() == Some(std::any::TypeId::of::<egglog::sort::VecContainer>())
-                && s.inner_sorts().iter().map(|s| s.name()).eq(["BigRat"]) =>
+                && s.inner_sorts().len() == 1
+                && ["BigInt", "BigRat"].contains(&s.inner_sorts()[0].name()) =>
             {
                 let values = eg
                     .value_to_container::<egglog::sort::VecContainer>(v)
-                    .ok_or("invalid rational vector")?;
+                    .ok_or("invalid numeric vector")?;
+                let integer = s.inner_sorts()[0].name() == "BigInt";
                 serde_json::to_string(
                     &values
                         .data
                         .iter()
-                        .map(|v| eg.value_to_base::<egglog::sort::Q>(*v).to_string())
+                        .map(|v| {
+                            if integer {
+                                eg.value_to_base::<egglog::sort::Z>(*v).to_string()
+                            } else {
+                                eg.value_to_base::<egglog::sort::Q>(*v).to_string()
+                            }
+                        })
                         .collect::<Vec<_>>(),
                 )?
             }
@@ -63,6 +77,7 @@ fn value(eg: &EGraph, v: Value, s: &ArcSort) -> Result<Json> {
 pub fn snapshot(eg: &EGraph) -> Result<Json> {
     let mut tables = BTreeMap::new();
     let mut rows = vec![];
+    let mut keys = crate::stable_choice::source::KeyGraph::default();
     for name in eg.get_function_names() {
         let f = eg.get_function(&name).unwrap();
         if name.starts_with('@') || f.is_let_binding() {
@@ -79,7 +94,7 @@ pub fn snapshot(eg: &EGraph) -> Result<Json> {
                 .vals
                 .iter()
                 .zip(f.schema().input.iter().chain([&f.schema().output]))
-                .map(|(v, s)| value(eg, *v, s))
+                .map(|(v, s)| value(eg, *v, s, &mut keys))
                 .collect::<Result<Vec<_>>>();
             match values {
                 Ok(mut vs) => {
@@ -93,7 +108,9 @@ pub fn snapshot(eg: &EGraph) -> Result<Json> {
             return Err(e);
         }
     }
-    Ok(json!({"schema":"program-graph/v1","tables":tables,"rows":rows}))
+    Ok(
+        json!({"schema":"program-graph/v1","tables":tables,"rows":rows,"structural_key_dag":keys.nodes}),
+    )
 }
 pub fn save(out: &Path, eg: &EGraph, mut report: Json) -> Result<()> {
     match snapshot(eg) {
