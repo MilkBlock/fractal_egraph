@@ -1,0 +1,60 @@
+{
+  "duration": 451.7916666666667,
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "frames": 10843,
+  "chapters": 15,
+  "voice": "本机中文合成语音 · Tingting",
+  "bytes": 20163380,
+  "sha256": "bc1939d496b2da2fd42e6e6e9210bece11e95326f62604ef340854bb6b071866",
+  "verified": "ffprobe: video/audio length, frame count, dimensions and chapter count",
+  "sources": [
+    "check_statewalk@ae80f82a/dag_in_context/src/tiger/statewalkdp.cpp",
+    "check_statewalk@ae80f82a/dag_in_context/src/tiger/greedy.cpp",
+    "egg_layout@f9a6d1c/experiments/tiger_extraction_markers/results.json"
+  ],
+  "delivery": "out/statewalk-explainer-20261023",
+  "real_ir": {
+    "function": "vec_add",
+    "ir_sha256": "bb5ad89ff4fbd25cb4bc456efa5b87c0b3fe601d4e3484238d6d12a28c0ae513",
+    "rust_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22",
+    "loads": [
+      {
+        "node": "__tmp7068",
+        "label": "b[0]"
+      },
+      {
+        "node": "__tmp7074",
+        "label": "a[1]"
+      },
+      {
+        "node": "__tmp7077",
+        "label": "b[1]"
+      },
+      {
+        "node": "__tmp7082",
+        "label": "a[2]"
+      },
+      {
+        "node": "__tmp7085",
+        "label": "b[2]"
+      },
+      {
+        "node": "__tmp7088",
+        "label": "a[0]"
+      }
+    ],
+    "shared_pointer": "__tmp7097",
+    "pointer_consumers": [
+      "__tmp7101",
+      "__tmp7104",
+      "__tmp7109",
+      "__tmp7115"
+    ],
+    "native_reconstruction_rows": 68,
+    "native_reconstruction_functions": [
+      "vec_add"
+    ]
+  }
+}
