@@ -102,7 +102,7 @@ DEVELOPER_DIR=/Library/Developer/CommandLineTools cargo build --offline --releas
 
 target/analyzer/debug/egg_layout analyze-transfer \
   experiments/observed_transfer_queries/tuple-training.egg out/tuple-library.egg
-python -m tools.cell_spine.compiler --mode scheduled --skip-build --solver gurobi \
+python -m tools.cell_spine.compiler --mode scheduled --static-cost-experiment --skip-build --solver gurobi \
   --source experiments/observed_transfer_queries/tuple-training.egg \
   --certificate-library out/tuple-library.egg --output out/tuple-selected
 target/analyzer/debug/egg_layout run-transfer \
@@ -113,6 +113,9 @@ target/analyzer/debug/egg_layout run-transfer \
 The regular compiler uses `--analysis-dir DIR` alternatively to
 `--certificate-library FILE`. It returns the selected library path for the
 existing bench driver; unchanged closure proofs remain in that library.
+This small historical reproduction explicitly opts into the old static model.
+Production layout selection now requires `--runtime-workload` from the bench
+skill's `planner-corpus` / `planner-prices` pipeline.
 
 ## Full Pass-3 follow-up
 

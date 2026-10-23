@@ -52,3 +52,10 @@ class RuntimeWorkload(unittest.TestCase):
             m['identity']['workloads'].pop();manifest.write_text(json.dumps(m))
             Path(m['cases'][0]['passes'][0]['profile']).write_bytes(b'changed')
             with self.assertRaisesRegex(ValueError,'provenance'):workload.collect(manifest)
+
+    def test_parallel_merge_is_identical_to_serial_including_zero_work_plans(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'out') as temp:
+            folder=Path(temp);manifest,_=self.fixture(folder);m=json.loads(manifest.read_text())
+            another=copy.deepcopy(m['cases'][0]['passes'][0]);another['name']='pass-2'
+            m['cases'][0]['passes'].append(another);manifest.write_text(json.dumps(m))
+            self.assertEqual(workload.collect(manifest),workload.collect(manifest,jobs=2))

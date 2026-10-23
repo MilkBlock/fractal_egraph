@@ -55,12 +55,15 @@ def run(a,repo):
     for number,source in enumerate(sources):
         key=str(source)
         case=by_source.get(key)
-        if case and case['status'] in ('complete','failed'):continue
+        if case and (case['status']=='complete' or (case['status']=='failed' and not a.retry_failed)):continue
         folder=out/f'{number:03}-{source.stem}'
         folder.mkdir(exist_ok=True)
         if case is None:
             case=dict(source=key,source_sha256=sha(source),directory=str(folder),status='running',passes=[])
             state['cases'].append(case);by_source[key]=case
+        elif case['status']=='failed':
+            case.setdefault('failures',[]).append(case.pop('error','unknown failure'))
+            case['status']='running';state['finished']=False
         print(f'[{number+1}/{len(sources)}] {source.name}',flush=True);save(manifest,state)
         try:
             captured=folder/'capture';capture_done=folder/'capture-complete.json'
@@ -78,23 +81,34 @@ def run(a,repo):
                 old=next((p for p in case['passes'] if p['name']==dump.stem),None)
                 if old and old['status']=='complete':continue
                 flat=folder/(dump.stem+'-flat.egg');compressed=folder/(dump.stem+'.jsonl.gz')
-                subprocess.run([str(flatten),str(dump),str(flat)],check=True,cwd=repo)
+                if old and flat.exists():
+                    if sha(flat)!=old['input_sha256']:raise ValueError('interrupted pass input changed; preserve it and use a new capture')
+                else:subprocess.run([str(flatten),str(dump),str(flat)],check=True,cwd=repo)
                 record=dict(name=dump.stem,input=str(flat),input_sha256=sha(flat),profile=str(compressed),status='running')
+                if old:record['previous_attempts']=old.get('previous_attempts',[])+[{k:v for k,v in old.items() if k!='previous_attempts'}]
+                partial=compressed.with_suffix('.partial.gz')
+                if partial.exists():
+                    attempt=1
+                    while partial.with_name(partial.name+f'.attempt-{attempt}').exists():attempt+=1
+                    saved=partial.with_name(partial.name+f'.attempt-{attempt}');partial.rename(saved)
+                    record['previous_partial']=str(saved)
                 if old is not None:case['passes'][case['passes'].index(old)]=record
                 else:case['passes'].append(record)
                 save(manifest,state)
                 print(' ',dump.stem,'profiling',flush=True)
                 command=[str(probe),str(flat),'-'];record['command']=command
-                partial=compressed.with_suffix('.partial.gz');last=b'';lines=0
+                launch=['/usr/bin/time','-l',*command] if sys.platform=='darwin' else command
+                record['launch']=launch;save(manifest,state);last=b'';lines=0
                 with (folder/(dump.stem+'.log')).open('wb') as log, gzip.open(partial,'wb',compresslevel=1) as dest:
-                    child=subprocess.Popen(command,cwd=repo,stdout=subprocess.PIPE,stderr=log)
+                    child=subprocess.Popen(launch,cwd=repo,stdout=subprocess.PIPE,stderr=log)
                     try:
                         for line in child.stdout:dest.write(line);last=line;lines+=1
                         code=child.wait()
                     except BaseException:
                         child.terminate();child.wait();raise
+                record['returncode']=code
                 if code or not last or json.loads(last).get('complete') is not True:
-                    record['status']='failed';raise ValueError(f'{dump.stem} profile failed; partial counts excluded')
+                    record['status']='failed';raise ValueError(f'{dump.stem} profile failed (exit {code}); partial counts excluded; see resource log')
                 partial.replace(compressed);record.update(status='complete',profile_sha256=sha(compressed),records=lines)
                 save(manifest,state)
                 print(' ',dump.stem,'complete;',lines,'count records',flush=True)

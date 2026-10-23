@@ -38,6 +38,14 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(a.solver,'scip')
         self.assertFalse(hasattr(a,'root'))
 
+    def test_runtime_planner_cli_keeps_all_workloads_and_static_pricing_opt_in(self):
+        a=B.parser().parse_args(['planner-corpus','--profile-binary','profiler','--output','out/corpus','--resume'])
+        self.assertIsNone(a.source)
+        self.assertTrue(a.resume)
+        a=B.parser().parse_args(['spine-program','--output','out/demo','--runtime-workload','prices.json','--compile-only'])
+        self.assertEqual(a.runtime_workload,Path('prices.json'))
+        self.assertFalse(a.static_cost_experiment)
+
 
     def test_analyze_credit_keeps_public_executor_and_rejects_changed_library(self):
         with tempfile.TemporaryDirectory() as tmp:
