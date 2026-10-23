@@ -248,3 +248,36 @@ raytrace Pass 3 上只有一个空 marker、六个无成功应用的 consumer；
 运行验证。记录候选数、选中起点/参数、`payload_resumes`、新读/缓存读、原始
 binding数及整图检查。模型最优仅限已导出的固定接线/布局域，估计代价不等于
 耗时。有限 Run 的 RHS不提前，原生融合的既有差异不应被此模式隐藏。
+
+### 同一源码选择 pristine / GPU：定位 marker 改写问题
+
+`program-modes --source 原始.egg [--marked marker版本.egg] --backend
+pristine|native|gpu|both --output NEW` 运行输入本身。默认 `both`；有 `--marked`
+时生成原始/marker × pristine/GPU 四路检查。首次自动离线构建公共 harness，
+pristine 内核必须与不可变 `egglog-baseline:egglog` tree 完全相同且无改动。
+现有 baseline checkout 可以仅在根目录多了其他文件，内核 tree 必须一致。
+不能把当前 fork 的 native 模式冒称 pristine。`--pristine-checkout`可指定位置。
+
+这几条隔离路径不改写 stable choice、不装 Cell observer、不自动 Bake；因此
+marker 源码是唯一源码差别。GPU执行最后一个主schedule，初始化及之后的
+check/extraction等命令按原AST原生执行；pristine使用同样的初始化/clone协议。
+`--query-audit` 对GPU原始Run的完整binding逐批检查，不作为性能计时。
+
+比较分别报告：pristine上改写前后、GPU上改写前后、原源码的后端差异、marker
+源码的后端差异。跨源码只投影掉原源码没有的新表，并在报告列出；绝不忽略
+原表。后端比较包含marker表。检查事实、函数值、等价关系及subsume状态；
+不能完整编码的container或无法锚定的循环必须报inconclusive，不能当成通过。
+顺序敏感merge产生的差异也保留，不自动认定为GPU漏匹配。
+
+每条lane按源码/实际内核二进制/worker/harness/协议指纹缓存。改GPU程序不应
+让未变的pristine结果失效。失败执行保留但不作为成功缓存。单独运行是执行
+检查；四路比较任何不一致或inconclusive都会返回非零退出码。
+
+直接CLI：`cell-assisted-egglog --mode program --backend gpu --source FILE
+--gpu-worker WORKER --output NEW`。pristine将backend改为pristine，并传
+`--pristine-runner out/program-modes/pristine`；它会验证相邻manifest和二进制
+指纹。`program-modes`负责首次构建和自动寻找该runner。
+
+缓存前用原生parser检查文件依赖；含 include/input/output 的程序不复用执行缓存，避免外部文件变动或输出副作用被漏掉。
+
+若新表返回原程序的非primitive sort，可能引入新的extraction候选；不能仅因表名是新增的就忽略，目前报inconclusive，等待明确的辅助表/提取契约。

@@ -767,6 +767,12 @@ def parser():
     q=sub.add_parser('boundary-credit',help='compare source-derived boundary programs off/on; not automatic Bake credit')
     q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
     q.add_argument('--profile-before',type=Path);q.add_argument('--profile-after',type=Path);q.add_argument('--output',type=Path)
+    q=sub.add_parser('program-modes',help='same .egg on immutable pristine or GPU; optional original/marker 2x2 isolation')
+    q.add_argument('--source',type=Path,required=True);q.add_argument('--marked',type=Path)
+    q.add_argument('--backend',choices=['pristine','native','gpu','both'],default='both')
+    q.add_argument('--pristine-checkout',type=Path,default=Path('/Users/mineralsteins/.codex/worktrees/native-baseline/egg_layout'))
+    q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--output',type=Path,required=True)
+    q.add_argument('--no-build',action='store_true');q.add_argument('--query-audit',action='store_true')
     q=sub.add_parser('spine-program',help='compile full scheduled source with optional-parameter spine layouts and validate through the usual runtime')
     q.add_argument('--snapshot',type=Path,default=SNAPSHOT);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--query-selection',type=Path);q.add_argument('--query-profile',type=Path);q.add_argument('--table-profile',type=Path)
@@ -982,6 +988,9 @@ def main(argv=None):
             p=resolve(a.output);p.parent.mkdir(parents=True,exist_ok=True)
             with p.open('x') as f:json.dump(r,f,indent=2);f.write('\n')
         return 0
+    if a.mode=='program-modes':
+        import program_modes
+        return program_modes.run(a,repo)
     if a.mode=='spine-program':
         import scheduled_spines
         return scheduled_spines.run(a,repo)

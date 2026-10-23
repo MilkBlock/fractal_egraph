@@ -40,6 +40,9 @@ use public_snapshot::snapshot;
 
 fn run() -> Result<()> {
     let a = args()?;
+    if a.get("--mode").map(String::as_str)==Some("program") {
+        return cell_assisted_egglog::program_run::run(&a);
+    }
     if !matches!(
         a.get("--report-detail").map(String::as_str),
         None | Some("full" | "summary")

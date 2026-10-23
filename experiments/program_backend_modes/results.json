@@ -1,0 +1,637 @@
+{
+  "scope": "actual immutable pristine vs full GPU; original source policy; no implicit Cell observer/stable choice",
+  "source_kernel_tag": "egglog-baseline",
+  "checks": {
+    "positive": {
+      "schema": "program-backend-matrix/v1",
+      "diagnosis": [],
+      "lanes": {
+        "original-pristine": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/3d8ec1660fd419a28ad67b8173fd268907b4917014ecc7b581a3845c25322ac7",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/original.egg",
+          "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.00021075,
+          "error": null,
+          "identity": {
+            "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+            "runner_sha256": "8ab0e892f89301161a71f87c6dd8b2acf397a57922536fda3bb3864f444c7bfa",
+            "backend": "pristine",
+            "pristine_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+            "worker_sha256": null,
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "original-gpu": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/93b8fdcc33ae5bc37f9e08a6f9b6faaac296ea51ab0b4fd0450dca7c17b1bd70",
+          "reused": false,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/original.egg",
+          "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.008229417,
+          "error": null,
+          "identity": {
+            "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+            "runner_sha256": "937a158ae7b287565f2d6e761b2ac9b0a3a12ca9d2acfec0a7c7a53eb86af642",
+            "backend": "gpu",
+            "pristine_sha256": null,
+            "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+            "query_audit": true,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "marked-pristine": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/8f43c1fb1dc15815e360c5988a49afde8105c8fc85d93fddcd0ddf9953b6a2a5",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/marked.egg",
+          "source_sha256": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.000107625,
+          "error": null,
+          "identity": {
+            "source_sha256": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+            "runner_sha256": "8ab0e892f89301161a71f87c6dd8b2acf397a57922536fda3bb3864f444c7bfa",
+            "backend": "pristine",
+            "pristine_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+            "worker_sha256": null,
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "marked-gpu": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/4224f011b4591d86626c670ed60c17d10bf41f44d73cafb586942b4336b0fc18",
+          "reused": false,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/marked.egg",
+          "source_sha256": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.009759792,
+          "error": null,
+          "identity": {
+            "source_sha256": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+            "runner_sha256": "937a158ae7b287565f2d6e761b2ac9b0a3a12ca9d2acfec0a7c7a53eb86af642",
+            "backend": "gpu",
+            "pristine_sha256": null,
+            "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+            "query_audit": true,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        }
+      },
+      "comparisons": {
+        "marker_effect_pristine": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [
+            "SharedAB"
+          ],
+          "left": "original-pristine",
+          "right": "marked-pristine"
+        },
+        "marker_effect_gpu": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [
+            "SharedAB"
+          ],
+          "left": "original-gpu",
+          "right": "marked-gpu"
+        },
+        "backend_original": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [],
+          "left": "original-pristine",
+          "right": "original-gpu"
+        },
+        "backend_marked": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 9,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [],
+          "left": "marked-pristine",
+          "right": "marked-gpu"
+        }
+      },
+      "pristine": {
+        "kernel_tree": "8153aaea8644d6f511d5b484e4c31448df50651d",
+        "baseline_commit": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+        "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+        "lock_sha256": "043054a02cd3d8ca75caf3a12668ca6525020815f7eb5076e2f9c9dfcdad504b",
+        "protocol": "program-run/v1",
+        "binary_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+        "source_clean": true
+      },
+      "scope": "original source policy, no automatic stable-choice rewrite or Cell assistance; source effects and backend effects reported separately",
+      "passed": true
+    },
+    "negative": {
+      "schema": "program-backend-matrix/v1",
+      "diagnosis": [
+        "The marker rewrite already changes the pristine result; this difference does not require the GPU backend."
+      ],
+      "lanes": {
+        "original-pristine": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/3d8ec1660fd419a28ad67b8173fd268907b4917014ecc7b581a3845c25322ac7",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/original.egg",
+          "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.00021075,
+          "error": null,
+          "identity": {
+            "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+            "runner_sha256": "8ab0e892f89301161a71f87c6dd8b2acf397a57922536fda3bb3864f444c7bfa",
+            "backend": "pristine",
+            "pristine_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+            "worker_sha256": null,
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "original-gpu": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/93b8fdcc33ae5bc37f9e08a6f9b6faaac296ea51ab0b4fd0450dca7c17b1bd70",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/original.egg",
+          "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.008229417,
+          "error": null,
+          "identity": {
+            "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+            "runner_sha256": "937a158ae7b287565f2d6e761b2ac9b0a3a12ca9d2acfec0a7c7a53eb86af642",
+            "backend": "gpu",
+            "pristine_sha256": null,
+            "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+            "query_audit": true,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "marked-pristine": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/de33aafc2ca6482d3716ad749149c83207affd34cb57b9dd01c116cd3a3e5e04",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/bad-marker.egg",
+          "source_sha256": "d8fedb50b47891c3a9ab2e1ec9f96f3b4cee0769a927715bef9a81b77aed05e3",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 3.7166e-05,
+          "error": null,
+          "identity": {
+            "source_sha256": "d8fedb50b47891c3a9ab2e1ec9f96f3b4cee0769a927715bef9a81b77aed05e3",
+            "runner_sha256": "8ab0e892f89301161a71f87c6dd8b2acf397a57922536fda3bb3864f444c7bfa",
+            "backend": "pristine",
+            "pristine_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+            "worker_sha256": null,
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "marked-gpu": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/117c057f3a1c0b92c0746ca02a8d3bfba8168047bd9bac5a63e0c0893fd80f6c",
+          "reused": false,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/bad-marker.egg",
+          "source_sha256": "d8fedb50b47891c3a9ab2e1ec9f96f3b4cee0769a927715bef9a81b77aed05e3",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.011080042,
+          "error": null,
+          "identity": {
+            "source_sha256": "d8fedb50b47891c3a9ab2e1ec9f96f3b4cee0769a927715bef9a81b77aed05e3",
+            "runner_sha256": "937a158ae7b287565f2d6e761b2ac9b0a3a12ca9d2acfec0a7c7a53eb86af642",
+            "backend": "gpu",
+            "pristine_sha256": null,
+            "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+            "query_audit": true,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        }
+      },
+      "comparisons": {
+        "marker_effect_pristine": {
+          "status": "different",
+          "reason": "missing fact",
+          "table": "Hit",
+          "arguments": [
+            [
+              "E",
+              "eq",
+              "Value(0)"
+            ],
+            [
+              "E",
+              "eq",
+              "Value(3)"
+            ]
+          ],
+          "left": "original-pristine",
+          "right": "marked-pristine"
+        },
+        "marker_effect_gpu": {
+          "status": "different",
+          "reason": "missing fact",
+          "table": "Hit",
+          "arguments": [
+            [
+              "E",
+              "eq",
+              "Value(0)"
+            ],
+            [
+              "E",
+              "eq",
+              "Value(3)"
+            ]
+          ],
+          "left": "original-gpu",
+          "right": "marked-gpu"
+        },
+        "backend_original": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [],
+          "left": "original-pristine",
+          "right": "original-gpu"
+        },
+        "backend_marked": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 9,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [],
+          "left": "marked-pristine",
+          "right": "marked-gpu"
+        }
+      },
+      "pristine": {
+        "kernel_tree": "8153aaea8644d6f511d5b484e4c31448df50651d",
+        "baseline_commit": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+        "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+        "lock_sha256": "043054a02cd3d8ca75caf3a12668ca6525020815f7eb5076e2f9c9dfcdad504b",
+        "protocol": "program-run/v1",
+        "binary_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+        "source_clean": true
+      },
+      "scope": "original source policy, no automatic stable-choice rewrite or Cell assistance; source effects and backend effects reported separately",
+      "passed": false
+    },
+    "pass3": {
+      "schema": "program-backend-matrix/v1",
+      "diagnosis": [
+        "The marker rewrite already changes the pristine result; this difference does not require the GPU backend.",
+        "A backend difference exists before marker insertion; do not attribute all marked-program differences to markers."
+      ],
+      "lanes": {
+        "original-pristine": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/7de175ac3ec24d25a2b5791e9aa033d02e9a1730b34d06834d3bf805f4e09515",
+          "reused": true,
+          "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+          "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 22.256545208,
+          "error": null,
+          "identity": {
+            "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+            "runner_sha256": "8ab0e892f89301161a71f87c6dd8b2acf397a57922536fda3bb3864f444c7bfa",
+            "backend": "pristine",
+            "pristine_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+            "worker_sha256": null,
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "original-gpu": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/926a7a0d48a4bdeb0c96e9495cdf775292f27f206502e371c3ea7716be88f3ec",
+          "reused": false,
+          "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+          "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 17.621718584,
+          "error": null,
+          "identity": {
+            "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+            "runner_sha256": "937a158ae7b287565f2d6e761b2ac9b0a3a12ca9d2acfec0a7c7a53eb86af642",
+            "backend": "gpu",
+            "pristine_sha256": null,
+            "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "marked-pristine": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/826b661e3856920b09d3b411c6a5a46ebad14bf66b7ad0b591a8b0296252de1d",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/pass3-source-markers-final/published.egg",
+          "source_sha256": "76c977ab6958a6a742d75696a04d392f2ebfdc31e3c17306f2164faf05da6935",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 22.95319125,
+          "error": null,
+          "identity": {
+            "source_sha256": "76c977ab6958a6a742d75696a04d392f2ebfdc31e3c17306f2164faf05da6935",
+            "runner_sha256": "8ab0e892f89301161a71f87c6dd8b2acf397a57922536fda3bb3864f444c7bfa",
+            "backend": "pristine",
+            "pristine_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+            "worker_sha256": null,
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "marked-gpu": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/630e033cabf4df82ef2204278f61e8200e968e15b5a9589ea59a25d2cf1d7a4d",
+          "reused": false,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/pass3-source-markers-final/published.egg",
+          "source_sha256": "76c977ab6958a6a742d75696a04d392f2ebfdc31e3c17306f2164faf05da6935",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 18.0154575,
+          "error": null,
+          "identity": {
+            "source_sha256": "76c977ab6958a6a742d75696a04d392f2ebfdc31e3c17306f2164faf05da6935",
+            "runner_sha256": "937a158ae7b287565f2d6e761b2ac9b0a3a12ca9d2acfec0a7c7a53eb86af642",
+            "backend": "gpu",
+            "pristine_sha256": null,
+            "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        }
+      },
+      "comparisons": {
+        "marker_effect_pristine": {
+          "status": "different",
+          "reason": "equality partition differs",
+          "table": "to-hoist",
+          "left": "original-pristine",
+          "right": "marked-pristine"
+        },
+        "marker_effect_gpu": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 699068,
+          "mapped_classes": 524631,
+          "projected_out_left": [],
+          "projected_out_right": [
+            "CellSpineView0"
+          ],
+          "left": "original-gpu",
+          "right": "marked-gpu"
+        },
+        "backend_original": {
+          "status": "different",
+          "reason": "row counts differ",
+          "tables": {
+            "Smaller": [
+              72255,
+              73371
+            ],
+            "TCPair": [
+              63060,
+              63038
+            ],
+            "TermConcat": [
+              3629,
+              3607
+            ]
+          },
+          "left": "original-pristine",
+          "right": "original-gpu"
+        },
+        "backend_marked": {
+          "status": "different",
+          "reason": "row counts differ",
+          "tables": {
+            "Smaller": [
+              72255,
+              73371
+            ],
+            "TCPair": [
+              63060,
+              63038
+            ],
+            "TermConcat": [
+              3629,
+              3607
+            ]
+          },
+          "left": "marked-pristine",
+          "right": "marked-gpu"
+        }
+      },
+      "pristine": {
+        "kernel_tree": "8153aaea8644d6f511d5b484e4c31448df50651d",
+        "baseline_commit": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+        "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+        "lock_sha256": "043054a02cd3d8ca75caf3a12668ca6525020815f7eb5076e2f9c9dfcdad504b",
+        "protocol": "program-run/v1",
+        "binary_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+        "source_clean": true
+      },
+      "scope": "original source policy, no automatic stable-choice rewrite or Cell assistance; source effects and backend effects reported separately",
+      "passed": false
+    },
+    "cache_check": {
+      "schema": "program-backend-matrix/v1",
+      "diagnosis": [],
+      "lanes": {
+        "original-pristine": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/3d8ec1660fd419a28ad67b8173fd268907b4917014ecc7b581a3845c25322ac7",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/original.egg",
+          "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.00021075,
+          "error": null,
+          "identity": {
+            "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+            "runner_sha256": "8ab0e892f89301161a71f87c6dd8b2acf397a57922536fda3bb3864f444c7bfa",
+            "backend": "pristine",
+            "pristine_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+            "worker_sha256": null,
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "original-gpu": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/93b8fdcc33ae5bc37f9e08a6f9b6faaac296ea51ab0b4fd0450dca7c17b1bd70",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/original.egg",
+          "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.008229417,
+          "error": null,
+          "identity": {
+            "source_sha256": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1",
+            "runner_sha256": "937a158ae7b287565f2d6e761b2ac9b0a3a12ca9d2acfec0a7c7a53eb86af642",
+            "backend": "gpu",
+            "pristine_sha256": null,
+            "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+            "query_audit": true,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "marked-pristine": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/8f43c1fb1dc15815e360c5988a49afde8105c8fc85d93fddcd0ddf9953b6a2a5",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/marked.egg",
+          "source_sha256": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.000107625,
+          "error": null,
+          "identity": {
+            "source_sha256": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+            "runner_sha256": "8ab0e892f89301161a71f87c6dd8b2acf397a57922536fda3bb3864f444c7bfa",
+            "backend": "pristine",
+            "pristine_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+            "worker_sha256": null,
+            "query_audit": false,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        },
+        "marked-gpu": {
+          "directory": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/program-modes/cache/4224f011b4591d86626c670ed60c17d10bf41f44d73cafb586942b4336b0fc18",
+          "reused": true,
+          "source": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/experiments/program_backend_modes/marked.egg",
+          "source_sha256": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.009759792,
+          "error": null,
+          "identity": {
+            "source_sha256": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+            "runner_sha256": "937a158ae7b287565f2d6e761b2ac9b0a3a12ca9d2acfec0a7c7a53eb86af642",
+            "backend": "gpu",
+            "pristine_sha256": null,
+            "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+            "query_audit": true,
+            "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+            "threads": 1,
+            "protocol": "program-run/v1"
+          }
+        }
+      },
+      "comparisons": {
+        "marker_effect_pristine": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [
+            "SharedAB"
+          ],
+          "left": "original-pristine",
+          "right": "marked-pristine"
+        },
+        "marker_effect_gpu": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [
+            "SharedAB"
+          ],
+          "left": "original-gpu",
+          "right": "marked-gpu"
+        },
+        "backend_original": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [],
+          "left": "original-pristine",
+          "right": "original-gpu"
+        },
+        "backend_marked": {
+          "status": "equal",
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 9,
+          "mapped_classes": 7,
+          "projected_out_left": [],
+          "projected_out_right": [],
+          "left": "marked-pristine",
+          "right": "marked-gpu"
+        }
+      },
+      "pristine": {
+        "kernel_tree": "8153aaea8644d6f511d5b484e4c31448df50651d",
+        "baseline_commit": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+        "harness_sha256": "387d9520444d8251d0389ad21380946fb2e175f5ed55237055f56dc694a7770b",
+        "lock_sha256": "043054a02cd3d8ca75caf3a12668ca6525020815f7eb5076e2f9c9dfcdad504b",
+        "protocol": "program-run/v1",
+        "binary_sha256": "c814c3c7a7d859fe8762f8dc507de434588ec4d2e5ac1d6a83447902d7d68baf",
+        "source_clean": true
+      },
+      "scope": "original source policy, no automatic stable-choice rewrite or Cell assistance; source effects and backend effects reported separately",
+      "passed": true
+    }
+  },
+  "tests": {
+    "skill_protocol_and_comparator": 59,
+    "cli_integration_with_actual_gpu": 4
+  },
+  "source_fingerprints": {
+    "experiments/program_backend_modes/bad-marker.egg": "d8fedb50b47891c3a9ab2e1ec9f96f3b4cee0769a927715bef9a81b77aed05e3",
+    "experiments/program_backend_modes/marked.egg": "0e36fbe59b77df9fdb171f030a7c660dbab5c9cede3558d566934bc4504fd622",
+    "experiments/program_backend_modes/original.egg": "7944993f848d9faac27eac4a0bf640a85c6cf5ac6adf3daf9751430435e0a3c1"
+  }
+}

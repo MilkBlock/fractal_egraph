@@ -349,3 +349,41 @@ For per-batch checking use `audit --all-rules --joint-sat`; this checks dispatch
 queries, not matches replaced by certified execution. Separate whole-graph and
 Tiger gates are still required. See [full-coverage results](../experiments/pass3_full_gpu/RESULTS.md)
 for current performance and the remaining difference from fused native execution.
+
+## Run a complete `.egg` with pristine or GPU execution
+
+Use the same executable with independent source/backend selection:
+
+```sh
+cargo run --release --manifest-path cell-assisted-egglog/Cargo.toml -- \
+  --mode program --backend gpu --source example.egg \
+  --gpu-worker out/commit-marker-worker/matrix --output out/example-gpu
+```
+
+`--backend pristine --pristine-runner out/program-modes/pristine` launches the
+verified immutable upstream kernel. `--backend native` runs this fork's ordinary
+CPU engine and is explicitly **not** pristine. Program mode does not implicitly
+rewrite the source, load a Cell library or install joint saturation shortcuts.
+The GPU runs the last/main schedule; initialization and following observations
+retain native execution. Both lanes retain an initialized checkpoint and execute
+a clone. Execution failures and final typed snapshots are saved in the output.
+
+For automatic pristine build, cached execution and marker isolation:
+
+```sh
+/opt/homebrew/bin/python3 skills/cell-assisted-egglog-bench/scripts/bench.py program-modes \
+  --source original.egg --marked with-markers.egg --backend both \
+  --worker out/commit-marker-worker/matrix --output out/marker-backend-check
+```
+
+The report checks all four edges of the source/backend matrix. Marker comparisons
+include all original public tables; extra tables are listed separately. Backend
+comparisons include marker tables too. Facts, primitive function values, equality
+partitions and subsumption are checked independently of e-class IDs. Unsupported
+snapshot values or ungrounded cycles are inconclusive, never guessed equal.
+The default source policy is unchanged: existing order-sensitive effects can
+produce a real backend disagreement without establishing a missing GPU match.
+
+New auxiliary tables returning an original non-primitive sort are not silently
+projected away: they may introduce new extraction alternatives. Such a comparison
+requires an explicit auxiliary/extraction contract and currently reports inconclusive.
