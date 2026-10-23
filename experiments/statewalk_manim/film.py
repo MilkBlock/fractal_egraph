@@ -81,6 +81,7 @@ class StatewalkFilm(DetailScenes,Scene):
         self.captions.append(dict(key=key,start=start,end=float(self.time),text=speech))
 
     def shot(self,name):
+        self.renderer.update_frame(self,ignore_skipping=True)
         self.renderer.camera.get_image().save(DATA/'stills'/f'{name}.png')
 
     def heading(self,s):

@@ -41,8 +41,10 @@ This is a frozen evidence-backed film, not a general narrator for arbitrary trac
 
 `render.py` scopes `TEXMFROOT`/`TEXMFCNF` to the child renderer so Homebrew
 dvisvgm finds the installed TeX Live files. It uses DVI, not the incompatible
-Ghostscript PDF conversion route. Unchanged speech clips and Manim animations
-can be reused on later renders.
+Ghostscript PDF conversion route. Unchanged speech clips are reused. Preview
+animations may be cached; final rendering disables Manim's animation cache
+because version 0.19 can skip narration and accumulate timeline drift when
+reusing clips. Final frame/audio checks remain strict.
 
 `finish.py` copies the Manim video frames unchanged, normalizes/pads narration,
 adds full Chinese subtitle and chapter tracks, and creates a local chapter player.
@@ -111,6 +113,12 @@ sets. These are evidence checks, not timing benchmarks.
 switch between plain and state-token code, and inspect each original IR node.
 Its data comes from executing the generated function with recording statements;
 the browser is a trace player, not an embedded Python interpreter.
+
+`syntax.py` uses Python's standard tokenizer to share syntax colors between the
+Manim code scenes and both HTML code views. Token spans preserve the exact code;
+Pango/HTML text is escaped. The current execution line remains a separate yellow
+frame/background and does not overwrite keyword/function/number colors. No CDN
+or browser-side syntax library is needed.
 
 To preserve the first edition, use a different output directory:
 

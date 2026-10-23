@@ -36,11 +36,25 @@
     "width": 1920,
     "height": 1080,
     "fps": 30,
-    "bytes": 38669411,
-    "sha256": "f8f2873d03ae3b8fd191cdcd3129d517df53cbe4f150e380451c321c37925480",
+    "bytes": 38985655,
+    "sha256": "508f3b81c34db8010105b8fd72ee7c55d9f8c6912c3701d617e08ca9989e6014",
     "full_decode_passed": true,
     "chapters": 14
   },
   "player_validation": "Both readers: local links and JavaScript syntax checked. No browser UI playback claim.",
-  "visual_checks": "All five added chapters inspected as rendered frames; generated-Python scene also inspected at 1080p."
+  "visual_checks": "All five added chapters inspected as rendered frames; generated-Python scene also inspected at 1080p.",
+  "syntax_highlight": {
+    "updated": "2026-10-24",
+    "shared_palette": true,
+    "lossless_token_spans_checked": true,
+    "escaped_strings_and_comments_checked": true,
+    "generated_python_unchanged": true,
+    "final_animation_cache": false,
+    "raw_narration_reaches_last_cue": true,
+    "visual_review": [
+      "15-loop",
+      "16-state-occurrences",
+      "18-generated-python"
+    ]
+  }
 }

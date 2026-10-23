@@ -1,5 +1,6 @@
 """Dependency propagation, path reconstruction and generated-code scenes."""
 from manim import *
+from syntax import python_lines, markup_line
 
 BLUE = '#58C4DD'
 GREEN = '#83C167'
@@ -32,9 +33,10 @@ def link(a,b,color=GREY_B):
 
 def codeblock(lines,size=23,spacing=.36):
     objects=VGroup()
-    for i,line in enumerate(lines):
+    styled=python_lines('\n'.join(lines))
+    for i,(line,spans) in enumerate(zip(lines,styled)):
         count=len(line)-len(line.lstrip())
-        obj=Text(line.lstrip() or ' ',font='Menlo',font_size=size,disable_ligatures=True)
+        obj=MarkupText(markup_line(spans,trim_start=count),font='Menlo',font_size=size,disable_ligatures=True)
         obj.move_to([count*.105,-i*spacing,0],aligned_edge=LEFT)
         objects.add(obj)
     return objects

@@ -43,6 +43,10 @@ def main():
     (out/'chapters.ffmetadata').write_text('\n'.join(metadata)+'\n')
     raw = out/'media/videos/film/1080p30/StatewalkFilm.mp4'
     final = out/'statewalk-intuition.mp4'
+    raw_audio=json.loads(subprocess.check_output(['ffprobe','-v','error','-select_streams','a:0',
+                          '-show_entries','stream=duration','-of','json',str(raw)],text=True))
+    assert float(raw_audio['streams'][0]['duration']) >= edit['captions'][-1]['end']-.5, \
+        'Narration ends before the last spoken cue; rerender with animation caching disabled'
     subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
                     '-i', str(raw), '-i', str(out/'captions.srt'),
                     '-f', 'ffmetadata', '-i', str(out/'chapters.ffmetadata'),
