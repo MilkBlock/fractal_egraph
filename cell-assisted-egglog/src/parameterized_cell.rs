@@ -22,6 +22,7 @@ pub mod joint;
 mod comparison;
 mod scalar;
 mod generic;
+pub mod environment;
 pub mod boundary;
 mod shared_marker;
 

@@ -5,6 +5,10 @@ slots and checked partial-key wiring; see
 [observed numeric transfers](../observed_transfer_queries/README.md). The older
 terms-only demonstration and timings below remain historical evidence. General
 query authority preserves original Run boundaries and does not certify saturation.
+Referenced constructor/literal global initializers are now retained as native
+environment definitions, with dependency and lexical-scope checks. Later global
+updates are input events; training snapshots and unrelated startup actions are
+not embedded. The two-consumer If example tests both surface and lowered globals.
 
 The multi-producer example can now be exported and executed without retaining
 the original training source, a captured graph, or a history file.

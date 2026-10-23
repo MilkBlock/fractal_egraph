@@ -43,14 +43,21 @@ pub(super) fn from_capture(c: &Captured) -> Result<Bundle> {
         .iter()
         .map(|r| r.rule.ruleset.clone())
         .collect::<BTreeSet<_>>();
+    let mut parser=EGraph::default();
+    let source_commands=crate::visual_rule::surface_program(parser.parse_program(None,&c.preview_source)?);
+    let rule_commands=c.rules.iter().map(|r|Command::Rule{rule:r.rule.clone()}).collect::<Vec<_>>();
+    let mut dependencies=parser.parse_program(None,&c.datatype)?;
+    dependencies.extend(rule_commands.clone());
+    let globals=cell_assisted_egglog::parameterized_cell::environment::referenced_initializers(&source_commands,&dependencies)?;
     let environment = format!(
-        "{}\n{}\n{}",
+        "{}\n{}\n{}\n{}",
         c.datatype,
         sets.iter()
             .filter(|s| !s.is_empty())
             .map(|s| format!("(ruleset {s})"))
             .collect::<Vec<_>>()
             .join("\n"),
+        globals.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n"),
         c.rules
             .iter()
             .map(|r| r.rule.to_string())

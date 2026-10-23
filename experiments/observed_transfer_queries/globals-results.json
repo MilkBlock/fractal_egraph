@@ -1,0 +1,578 @@
+{
+  "scope": "Actual native Analyze export and cold transfer run of two real If consumer bodies, reduced facts; not full Pass-3 benchmark or joint saturation proof.",
+  "commands": [
+    [
+      "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/target/analyzer/release/egg_layout",
+      "analyze",
+      "--source",
+      "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/experiments/observed_transfer_queries/if-two-consumers.egg",
+      "--output",
+      "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-globals-final/analysis",
+      "--bake-certificates",
+      "--save-history"
+    ],
+    [
+      "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/target/analyzer/release/egg_layout",
+      "run-transfer",
+      "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-globals-final/analysis/transfers.egg",
+      "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/experiments/observed_transfer_queries/if-global-updates.egg",
+      "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-globals-final/cold"
+    ]
+  ],
+  "binary_sha256": "d71acf38f9a48b61e66d1d5727677f398f1b84c4976b536e0518800c32ee2a5c",
+  "capture": {
+    "applications": 8,
+    "equality_sorts": [
+      "Assumption",
+      "BaseType",
+      "Expr",
+      "Type",
+      "___HasTypeSort",
+      "___ToSubsumeIfSort"
+    ],
+    "logical_matches": 8,
+    "excluded": 0,
+    "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+  },
+  "programs": 2,
+  "globals": [
+    "DUMMYCTX"
+  ],
+  "query_schemes": [
+    {
+      "ruleset": "non-weakly-linear",
+      "rule": "R0",
+      "root": "If",
+      "strength": "complete_query",
+      "numeric_slots": [
+        {
+          "slot": 5,
+          "name": "i",
+          "sort": "i64"
+        },
+        {
+          "slot": 10,
+          "name": "j",
+          "sort": "i64"
+        }
+      ],
+      "guards": [],
+      "atoms": [
+        {
+          "table": "If",
+          "sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 0
+            },
+            {
+              "Slot": 1
+            },
+            {
+              "Slot": 2
+            },
+            {
+              "Slot": 3
+            },
+            {
+              "Slot": 4
+            }
+          ]
+        },
+        {
+          "table": "Get",
+          "sorts": [
+            "Expr",
+            "i64",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 2
+            },
+            {
+              "Slot": 5
+            },
+            {
+              "Slot": 6
+            }
+          ]
+        },
+        {
+          "table": "Arg",
+          "sorts": [
+            "Type",
+            "Assumption",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 7
+            },
+            {
+              "Slot": 8
+            },
+            {
+              "Slot": 9
+            }
+          ]
+        },
+        {
+          "table": "Get",
+          "sorts": [
+            "Expr",
+            "i64",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 9
+            },
+            {
+              "Slot": 10
+            },
+            {
+              "Slot": 6
+            }
+          ]
+        },
+        {
+          "table": "Get",
+          "sorts": [
+            "Expr",
+            "i64",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 3
+            },
+            {
+              "Slot": 5
+            },
+            {
+              "Slot": 11
+            }
+          ]
+        },
+        {
+          "table": "Arg",
+          "sorts": [
+            "Type",
+            "Assumption",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 7
+            },
+            {
+              "Slot": 12
+            },
+            {
+              "Slot": 13
+            }
+          ]
+        },
+        {
+          "table": "Get",
+          "sorts": [
+            "Expr",
+            "i64",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 13
+            },
+            {
+              "Slot": 10
+            },
+            {
+              "Slot": 11
+            }
+          ]
+        },
+        {
+          "table": "StateT",
+          "sorts": [
+            "BaseType"
+          ],
+          "columns": [
+            {
+              "Slot": 14
+            }
+          ]
+        },
+        {
+          "table": "Base",
+          "sorts": [
+            "BaseType",
+            "Type"
+          ],
+          "columns": [
+            {
+              "Slot": 14
+            },
+            {
+              "Slot": 15
+            }
+          ]
+        },
+        {
+          "table": "HasType",
+          "sorts": [
+            "Expr",
+            "Type",
+            "___HasTypeSort"
+          ],
+          "columns": [
+            {
+              "Slot": 6
+            },
+            {
+              "Slot": 15
+            },
+            {
+              "Slot": 16
+            }
+          ]
+        }
+      ],
+      "steps": [
+        [
+          7,
+          "Key"
+        ],
+        [
+          8,
+          "Key"
+        ],
+        [
+          1,
+          {
+            "Columns": 1
+          }
+        ],
+        [
+          4,
+          "Key"
+        ],
+        [
+          9,
+          "Key"
+        ],
+        [
+          3,
+          "Output"
+        ],
+        [
+          6,
+          "Output"
+        ],
+        [
+          2,
+          "Output"
+        ],
+        [
+          5,
+          "Output"
+        ]
+      ],
+      "effects": "original native RHS, including checked arithmetic and intermediate successor facts"
+    },
+    {
+      "ruleset": "state-edge-passthrough",
+      "rule": "R1",
+      "root": "If",
+      "strength": "complete_query",
+      "numeric_slots": [
+        {
+          "slot": 5,
+          "name": "i",
+          "sort": "i64"
+        },
+        {
+          "slot": 10,
+          "name": "j",
+          "sort": "i64"
+        }
+      ],
+      "guards": [],
+      "atoms": [
+        {
+          "table": "If",
+          "sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 0
+            },
+            {
+              "Slot": 1
+            },
+            {
+              "Slot": 2
+            },
+            {
+              "Slot": 3
+            },
+            {
+              "Slot": 4
+            }
+          ]
+        },
+        {
+          "table": "Get",
+          "sorts": [
+            "Expr",
+            "i64",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 2
+            },
+            {
+              "Slot": 5
+            },
+            {
+              "Slot": 6
+            }
+          ]
+        },
+        {
+          "table": "Arg",
+          "sorts": [
+            "Type",
+            "Assumption",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 7
+            },
+            {
+              "Slot": 8
+            },
+            {
+              "Slot": 9
+            }
+          ]
+        },
+        {
+          "table": "Get",
+          "sorts": [
+            "Expr",
+            "i64",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 9
+            },
+            {
+              "Slot": 10
+            },
+            {
+              "Slot": 6
+            }
+          ]
+        },
+        {
+          "table": "Get",
+          "sorts": [
+            "Expr",
+            "i64",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 3
+            },
+            {
+              "Slot": 5
+            },
+            {
+              "Slot": 11
+            }
+          ]
+        },
+        {
+          "table": "Arg",
+          "sorts": [
+            "Type",
+            "Assumption",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 7
+            },
+            {
+              "Slot": 12
+            },
+            {
+              "Slot": 13
+            }
+          ]
+        },
+        {
+          "table": "Get",
+          "sorts": [
+            "Expr",
+            "i64",
+            "Expr"
+          ],
+          "columns": [
+            {
+              "Slot": 13
+            },
+            {
+              "Slot": 10
+            },
+            {
+              "Slot": 11
+            }
+          ]
+        },
+        {
+          "table": "StateT",
+          "sorts": [
+            "BaseType"
+          ],
+          "columns": [
+            {
+              "Slot": 14
+            }
+          ]
+        },
+        {
+          "table": "Base",
+          "sorts": [
+            "BaseType",
+            "Type"
+          ],
+          "columns": [
+            {
+              "Slot": 14
+            },
+            {
+              "Slot": 15
+            }
+          ]
+        },
+        {
+          "table": "HasType",
+          "sorts": [
+            "Expr",
+            "Type",
+            "___HasTypeSort"
+          ],
+          "columns": [
+            {
+              "Slot": 6
+            },
+            {
+              "Slot": 15
+            },
+            {
+              "Slot": 16
+            }
+          ]
+        },
+        {
+          "table": "DUMMYCTX",
+          "sorts": [
+            "Assumption"
+          ],
+          "columns": [
+            {
+              "Slot": 17
+            }
+          ]
+        }
+      ],
+      "steps": [
+        [
+          7,
+          "Key"
+        ],
+        [
+          8,
+          "Key"
+        ],
+        [
+          10,
+          "Key"
+        ],
+        [
+          1,
+          {
+            "Columns": 1
+          }
+        ],
+        [
+          4,
+          "Key"
+        ],
+        [
+          9,
+          "Key"
+        ],
+        [
+          3,
+          "Output"
+        ],
+        [
+          6,
+          "Output"
+        ],
+        [
+          2,
+          "Output"
+        ],
+        [
+          5,
+          "Output"
+        ]
+      ],
+      "effects": "original native RHS, including checked arithmetic and intermediate successor facts"
+    }
+  ],
+  "cold_passed": true,
+  "cold_stats": {
+    "program_compilations": 0,
+    "loaded_programs": 2,
+    "ruleset_runs": 4,
+    "keyed_reads": 84,
+    "committed_row_events": 20,
+    "union_events": 7,
+    "bootstrap_rows": 1,
+    "native_fallback_runs": 0,
+    "frontier_seconds": 3.0791000000000004e-05,
+    "effect_seconds": 6.3626e-05,
+    "ingest_seconds": 1.8211e-05
+  },
+  "local_ripen_counts": {
+    "Rejected": 16
+  },
+  "local_ripen_limit": "Global-dependent local replay remains rejected. A bootstrap-only trial exposed missing read paths/cache-environment differences and was reverted.",
+  "checks": {
+    "rust_tests": 47,
+    "python_protocol_tests": 40,
+    "shared_gpu_enabled": true,
+    "full_original_graphs": "at every tested Run against same-submit CPU; container rejection uses native checks"
+  }
+}

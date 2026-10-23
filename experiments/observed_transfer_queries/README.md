@@ -72,8 +72,32 @@ The container-rejection control uses native checks because the graph comparator
 cannot encode that sort; it does not silently omit container tables from a
 claimed full comparison.
 
+## Referenced globals and two If consumers
+
+`if-two-consumers.egg` observes both real If consumer bodies in their separate
+rulesets. It exports two programs and the referenced `DUMMYCTX` initialization.
+`if-global-updates.egg` supplies unseen indices, reverses the two Run stages and
+then unions the global with another context. Cold execution and per-Run original
+graph comparisons pass, including the shared CPU/GPU event loop.
+
+Both surface `let` and lowered `:internal-let` plus zero-key `set` are supported.
+The file retains constructor/literal definitions and required earlier global
+dependencies; it does not copy native IDs, unrelated training globals or the
+final value after training updates. Runtime replacements/unions still invalidate
+subscribed ports. Duplicate startup definitions, mutable-table snapshots, late
+initializers and injected unrelated actions are rejected. Merge `old/new` and
+RHS local bindings are not mistaken for globals.
+
+Use the same commands above with `if-two-consumers.egg` / `if-global-updates.egg`.
+The saved example is `results/if-globals-transfers.egg`; its checks are recorded
+in `globals-results.json`. This is query reuse across two rulesets, not a joint
+saturation certificate or a new performance measurement.
+
 The general provider currently accepts constructor-anchored table queries and
 table-bound i64 comparisons. Computed LHS primitives and container columns are
-not silently approximated. Serialization of referenced global initializers such
-as Pass-3 `DUMMYCTX` is a separate remaining limitation. These tests do not claim
-full Pass-3 automatic-library coverage or a universal recursive closure proof.
+not silently approximated. Local ripen's global-dependent replay/certification
+is still incomplete: adding global initialization alone exposed missing read
+paths and a cached-environment mismatch, and did not admit any closed state.
+That trial was reverted; local closure rejection remains conservative while
+portable query transfers work. Full Pass-3 automatic-library coverage and
+universal recursive closure proofs remain outside these tests.

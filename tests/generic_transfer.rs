@@ -10,6 +10,7 @@ const IF: &str = include_str!("../experiments/observed_transfer_queries/if-train
 const SAME: &str = include_str!("../experiments/observed_transfer_queries/if-same-indices.egg");
 const NEW: &str = include_str!("../experiments/observed_transfer_queries/if-new-indices.egg");
 const TUPLE: &str = include_str!("../experiments/observed_transfer_queries/tuple-training.egg");
+const BOTH_IF: &str = include_str!("../experiments/observed_transfer_queries/if-two-consumers.egg");
 
 fn bake(source: &str) -> Bundle {
     transfer::bake_text("observed.egg", source).unwrap()
@@ -28,7 +29,9 @@ fn check(bundle: &Bundle, input: &str) -> Value {
         .filter(|c| matches!(c, Command::RunSchedule(_)))
         .cloned()
         .collect::<Vec<_>>();
-    let mut reference = table_live::Runtime::new_cpu(base.clone(), &schedules).unwrap();
+    // Use the full native-query admission path, including lowered global reads.
+    let mut reference =
+        table_live::Runtime::new_full(base.clone(), &schedules, None, false, None).unwrap();
     let mut pending = String::new();
     for c in commands {
         if matches!(c, Command::Check(..) | Command::Fail(..)) {
@@ -314,84 +317,232 @@ fn ordinary_analyze_exports_numeric_templates_for_a_source_free_cold_process() {
 
 #[test]
 fn exported_query_programs_supply_the_shared_cpu_and_gpu_loop() {
-    let b = bake(IF);
     let worker = std::env::var_os("CELL_MATRIX_WORKER");
-    for gpu in [false, true] {
-        if gpu && worker.is_none() {
-            continue;
-        }
-        let (base, observer) = b.instantiate().unwrap().detach_joint().unwrap();
-        let commands = base.clone().parse_program(None, NEW).unwrap();
-        let schedules = commands
-            .iter()
-            .filter(|c| matches!(c, Command::RunSchedule(_)))
-            .cloned()
-            .collect::<Vec<_>>();
-        let selected = vec!["non-weakly-linear".to_string()];
-        let mut assisted = table_live::Runtime::new_full_assisted(
-            base.clone(),
-            &schedules,
-            gpu.then(|| std::path::Path::new(worker.as_ref().unwrap())),
-            gpu,
-            Some(&selected),
-            Some(Box::new(observer)),
-        )
-        .unwrap();
-        let mut reference = table_live::Runtime::new_cpu(base.clone(), &schedules).unwrap();
-        let mut pending = String::new();
-        for c in commands {
-            if !matches!(c, Command::RunSchedule(_)) {
-                pending += &format!("{c}\n");
+    let both_input = NEW.replace(
+        "(run-schedule (saturate non-weakly-linear))",
+        "(run state-edge-passthrough 1) (run non-weakly-linear 1)",
+    );
+    for (training, input) in [(IF, NEW.to_string()), (BOTH_IF, both_input)] {
+        let b = bake(training);
+        for gpu in [false, true] {
+            if gpu && worker.is_none() {
                 continue;
+            }
+            let (base, observer) = b.instantiate().unwrap().detach_joint().unwrap();
+            let commands = base.clone().parse_program(None, &input).unwrap();
+            let schedules = commands
+                .iter()
+                .filter(|c| matches!(c, Command::RunSchedule(_)))
+                .cloned()
+                .collect::<Vec<_>>();
+            let selected = b.report()["query_schemes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|q| q["ruleset"].as_str().unwrap().to_string())
+                .collect::<std::collections::BTreeSet<_>>()
+                .into_iter()
+                .collect::<Vec<_>>();
+            let mut assisted = table_live::Runtime::new_full_assisted(
+                base.clone(),
+                &schedules,
+                gpu.then(|| std::path::Path::new(worker.as_ref().unwrap())),
+                gpu,
+                Some(&selected),
+                Some(Box::new(observer)),
+            )
+            .unwrap();
+            let mut reference =
+                table_live::Runtime::new_full(base.clone(), &schedules, None, false, None).unwrap();
+            let mut pending = String::new();
+            for c in commands {
+                if !matches!(c, Command::RunSchedule(_)) {
+                    pending += &format!("{c}\n");
+                    continue;
+                }
+                assisted.input(&pending).unwrap();
+                reference.input(&pending).unwrap();
+                pending.clear();
+                assisted.run(std::slice::from_ref(&c)).unwrap();
+                reference.run(std::slice::from_ref(&c)).unwrap();
+                compare::equal(&base, reference.engine(), assisted.engine()).unwrap();
             }
             assisted.input(&pending).unwrap();
             reference.input(&pending).unwrap();
-            pending.clear();
-            assisted.run(std::slice::from_ref(&c)).unwrap();
-            reference.run(std::slice::from_ref(&c)).unwrap();
             compare::equal(&base, reference.engine(), assisted.engine()).unwrap();
+            let report = assisted.report();
+            assert_eq!(
+                report["saturation_diagnostics"]["stats"]["program_compilations"],
+                0
+            );
+            assert_eq!(
+                report["saturation_diagnostics"]["stats"]["loaded_programs"],
+                b.report()["programs"]
+            );
+            assert!(report["runtime"]["cell_query_bindings"].as_u64().unwrap() > 0);
+            assert_eq!(
+                report["runtime"]["skipped_saturations"], 0,
+                "query authority cannot skip saturation"
+            );
         }
-        assisted.input(&pending).unwrap();
-        reference.input(&pending).unwrap();
-        compare::equal(&base, reference.engine(), assisted.engine()).unwrap();
-        let report = assisted.report();
-        assert_eq!(
-            report["saturation_diagnostics"]["stats"]["program_compilations"],
-            0
-        );
-        assert_eq!(
-            report["saturation_diagnostics"]["stats"]["loaded_programs"],
-            1
-        );
-        assert!(report["runtime"]["cell_query_bindings"].as_u64().unwrap() > 0);
-        assert_eq!(
-            report["runtime"]["skipped_saturations"], 0,
-            "query authority cannot skip saturation"
-        );
     }
 }
 
 #[test]
 fn unsupported_container_query_does_not_block_other_observed_programs() {
-    let b = bake(r#"
+    let b = bake(
+        r#"
       (sort Ints (Vec i64))
       (datatype E (N i64) (Box Ints) (Mark i64) (Flag))
       (ruleset s)
       (rule ((N i)) ((Mark i)) :ruleset s :name "number")
       (rule ((Box xs)) ((Flag)) :ruleset s :name "container")
       (N 10) (Box (vec-of 1 2)) (run s 1)
-    "#);
+    "#,
+    );
     assert_eq!(b.report()["programs"], 1);
     assert_eq!(b.report()["query_schemes"][0]["rule"], "number");
     // The graph comparator has no container encoding. Check this rejection
     // boundary through native observations, not by ignoring container tables.
-    assert!(b.report()["evidence"]["query_export_rejections"].as_array().unwrap().iter().any(|r|r["rule"]=="container"));
-    let mut r=b.instantiate().unwrap();
-    assert_eq!(r.stats.bootstrap_rows,0);
-    let mut native=r.engine().clone();
-    let facts="(N 99) (Box (vec-of 3 4))";
-    let checks="(check (Mark 99)) (check (Flag)) (check (Box (vec-of 3 4)))";
-    let schedule=native.parse_program(None,"(run s 1)").unwrap();
-    native.parse_and_run_program(None,&format!("{facts} (run s 1) {checks}")).unwrap();
-    r.input(facts).unwrap();r.run(&schedule).unwrap();r.input(checks).unwrap();
+    assert!(
+        b.report()["evidence"]["query_export_rejections"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["rule"] == "container")
+    );
+    let mut r = b.instantiate().unwrap();
+    assert_eq!(r.stats.bootstrap_rows, 0);
+    let mut native = r.engine().clone();
+    let facts = "(N 99) (Box (vec-of 3 4))";
+    let checks = "(check (Mark 99)) (check (Flag)) (check (Box (vec-of 3 4)))";
+    let schedule = native.parse_program(None, "(run s 1)").unwrap();
+    native
+        .parse_and_run_program(None, &format!("{facts} (run s 1) {checks}"))
+        .unwrap();
+    r.input(facts).unwrap();
+    r.run(&schedule).unwrap();
+    r.input(checks).unwrap();
+}
+
+#[test]
+fn referenced_globals_and_two_rulesets_export_without_training_inputs() {
+    let source=BOTH_IF.replace("(let DUMMYCTX (InFunc \"DUMMY\"))",
+        "(let unused (InFunc \"DO-NOT-EXPORT\"))\n(let initial (InFunc \"DUMMY\"))\n(let DUMMYCTX initial)");
+    let b = bake(&source);
+    assert_eq!(b.report()["programs"], 2);
+    let text = b.text().unwrap();
+    assert!(!text.contains("DO-NOT-EXPORT"));
+    assert!(text.contains("(let initial (InFunc \"DUMMY\"))"));
+    assert!(text.contains("(let DUMMYCTX initial)"));
+    let input = NEW.replace(
+        "(run-schedule (saturate non-weakly-linear))",
+        "(run state-edge-passthrough 1) (run non-weakly-linear 1)",
+    );
+    check(
+        &b,
+        &format!(
+            "{input}\n(union DUMMYCTX (Ctx 42))\n{}",
+            input
+                .replace("180", "280")
+                .replace("181", "281")
+                .replace("182", "282")
+                .replace("183", "283")
+        ),
+    );
+    let lowered=BOTH_IF.replace("(let DUMMYCTX (InFunc \"DUMMY\"))",
+        "(function DUMMYCTX () Assumption :no-merge :internal-let)\n(set (DUMMYCTX) (InFunc \"DUMMY\"))");
+    let b = bake(&lowered);
+    assert_eq!(b.report()["programs"], 2);
+    assert!(
+        b.text()
+            .unwrap()
+            .contains("(set (DUMMYCTX) (InFunc \"DUMMY\"))")
+    );
+    check(&b, &input);
+}
+
+#[test]
+fn global_startup_rejects_table_snapshots_unused_payloads_and_late_initializers() {
+    let text = bake(BOTH_IF).text().unwrap();
+    for extra in [
+        "(let training (V 999))",
+        "(set (DUMMYCTX) (Ctx 9))",
+        "(V 999)",
+    ] {
+        assert!(
+            Bundle::parse(&format!("{text}\n{extra}"))
+                .and_then(|b| b.instantiate())
+                .is_err()
+        );
+    }
+    let source = r#"
+      (datatype E (N i64) (Out E)) (function F (E) E :no-merge)
+      (set (F (N 0)) (N 1))
+      (let global (F (N 0)))
+      (ruleset s) (rule ((N i)) ((Out global)) :ruleset s :name "read-global")
+      (run s 1)
+    "#;
+    let error = transfer::bake_text("mutable-global.egg", source)
+        .err()
+        .unwrap()
+        .to_string();
+    assert!(error.contains("independent of training tables"), "{error}");
+    let late = r#"
+      (datatype E (N i64) (Out E)) (ruleset s) (N 0) (run s 1)
+      (let global (N 1))
+      (rule ((N i)) ((Out global)) :ruleset s :name "read-global")
+      (run s 1)
+    "#;
+    let error = transfer::bake_text("late-global.egg", late)
+        .err()
+        .unwrap()
+        .to_string();
+    assert!(error.contains("before the first Run"), "{error}");
+}
+
+#[test]
+fn flattened_global_exports_initial_value_and_tracks_later_replacement() {
+    let source = r#"
+      (datatype E (N i64) (At i64) (Out i64 E))
+      (function G () E :no-merge :internal-let)
+      (set (G) (N 1))
+      (ruleset s)
+      (rule ((At i)) ((Out i G)) :ruleset s :name "emit")
+      (At 10) (run s 1)
+      (delete (G)) (set (G) (N 2)) (At 11) (run s 1)
+    "#;
+    let b = bake(source);
+    let text = b.text().unwrap();
+    assert!(text.contains("(set (G) (N 1))"));
+    assert!(!text.contains("(N 2)"));
+    check(
+        &b,
+        "(At 30) (run s 1) (check (Out 30 (N 1))) (delete (G)) (set (G) (N 9)) (At 31) (run s 1) (check (Out 30 (N 9))) (check (Out 31 (N 9)))",
+    );
+}
+
+#[test]
+fn merge_binders_are_not_global_environment_dependencies() {
+    let mut parser = egglog::EGraph::default();
+    let source = parser
+        .parse_program(
+            None,
+            r#"
+        (datatype E (N i64))
+        (let old (N 999)) (let new (N 998))
+        (function cost (E) i64 :merge (min old new))
+        (ruleset s)
+        (rule ((= e (N i))) ((set (cost e) 1)) :ruleset s)
+    "#,
+        )
+        .unwrap();
+    let globals = cell_assisted_egglog::parameterized_cell::environment::referenced_initializers(
+        &source, &source,
+    )
+    .unwrap();
+    assert!(
+        globals.is_empty(),
+        "merge old/new are lexical parameters, not training globals"
+    );
 }

@@ -1,0 +1,42 @@
+; @ripsat-certificates {"version":1,"kind":"parameterized"}
+; Parameterized Cell transfers. Native declarations/actions below; no training facts.
+; @cell-transfer {"version":3,"rulesets":[],"schedules":["(run-schedule (repeat 1 (run non-weakly-linear)))","(run-schedule (repeat 1 (run state-edge-passthrough)))"],"queries":[{"ruleset":"non-weakly-linear","rule":"R0","root":"If"},{"ruleset":"state-edge-passthrough","rule":"R1","root":"If"}]}
+; @cell-program {"ruleset":"non-weakly-linear","rule":"R0","shape":{"slots":[["pred","Expr"],["inputs","Expr"],["then_","Expr"],["else_","Expr"],["@If1","Expr"],["i","i64"],["@Get11","Expr"],["arg_ty","Type"],["then_ctx","Assumption"],["@Arg2","Expr"],["j","i64"],["@Get10","Expr"],["else_ctx","Assumption"],["@Arg3","Expr"],["@StateT1","BaseType"],["@Base1","Type"],["@HasType1","___HasTypeSort"]],"atoms":[{"table":"If","sorts":["Expr","Expr","Expr","Expr","Expr"],"columns":[{"Slot":0},{"Slot":1},{"Slot":2},{"Slot":3},{"Slot":4}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":2},{"Slot":5},{"Slot":6}]},{"table":"Arg","sorts":["Type","Assumption","Expr"],"columns":[{"Slot":7},{"Slot":8},{"Slot":9}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":9},{"Slot":10},{"Slot":6}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":3},{"Slot":5},{"Slot":11}]},{"table":"Arg","sorts":["Type","Assumption","Expr"],"columns":[{"Slot":7},{"Slot":12},{"Slot":13}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":13},{"Slot":10},{"Slot":11}]},{"table":"StateT","sorts":["BaseType"],"columns":[{"Slot":14}]},{"table":"Base","sorts":["BaseType","Type"],"columns":[{"Slot":14},{"Slot":15}]},{"table":"HasType","sorts":["Expr","Type","___HasTypeSort"],"columns":[{"Slot":6},{"Slot":15},{"Slot":16}]}],"guards":[],"native_residuals":false},"seed":0,"steps":[[7,"Key"],[8,"Key"],[1,{"Columns":1}],[4,"Key"],[9,"Key"],[3,"Output"],[6,"Output"],[2,"Output"],[5,"Output"]]}
+; @cell-program {"ruleset":"state-edge-passthrough","rule":"R1","shape":{"slots":[["pred","Expr"],["inputs","Expr"],["then_","Expr"],["else_","Expr"],["@If4","Expr"],["i","i64"],["@Get25","Expr"],["arg_ty","Type"],["then_ctx","Assumption"],["@Arg6","Expr"],["j","i64"],["@Get24","Expr"],["else_ctx","Assumption"],["@Arg7","Expr"],["@StateT3","BaseType"],["@Base3","Type"],["@HasType3","___HasTypeSort"],["@DUMMYCTX2","Assumption"]],"atoms":[{"table":"If","sorts":["Expr","Expr","Expr","Expr","Expr"],"columns":[{"Slot":0},{"Slot":1},{"Slot":2},{"Slot":3},{"Slot":4}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":2},{"Slot":5},{"Slot":6}]},{"table":"Arg","sorts":["Type","Assumption","Expr"],"columns":[{"Slot":7},{"Slot":8},{"Slot":9}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":9},{"Slot":10},{"Slot":6}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":3},{"Slot":5},{"Slot":11}]},{"table":"Arg","sorts":["Type","Assumption","Expr"],"columns":[{"Slot":7},{"Slot":12},{"Slot":13}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":13},{"Slot":10},{"Slot":11}]},{"table":"StateT","sorts":["BaseType"],"columns":[{"Slot":14}]},{"table":"Base","sorts":["BaseType","Type"],"columns":[{"Slot":14},{"Slot":15}]},{"table":"HasType","sorts":["Expr","Type","___HasTypeSort"],"columns":[{"Slot":6},{"Slot":15},{"Slot":16}]},{"table":"DUMMYCTX","sorts":["Assumption"],"columns":[{"Slot":17}]}],"guards":[],"native_residuals":false},"seed":0,"steps":[[7,"Key"],[8,"Key"],[10,"Key"],[1,{"Columns":1}],[4,"Key"],[9,"Key"],[3,"Output"],[6,"Output"],[2,"Output"],[5,"Output"]]}
+; @cell-evidence {"source":"native_analyze committed read/write/union records","accepted_records":8,"records_with_committed_changes":8,"rejected_records":0,"rules":[{"rule":"R0","ruleset":"non-weakly-linear","records":4,"read_tables":["If","Get","Arg","HasType","Base","StateT"],"numeric_parameters":[["i","i64"],["j","i64"]],"inserted_outputs":8,"union_witnesses":4,"function_update_records":0,"set_witnesses":0},{"rule":"R1","ruleset":"state-edge-passthrough","records":4,"read_tables":["If","Get","Arg","HasType","Base","StateT"],"numeric_parameters":[["i","i64"],["j","i64"]],"inserted_outputs":32,"union_witnesses":4,"function_update_records":0,"set_witnesses":0}],"connections":[{"producer":"R0","output":"row:head/0/expr/0","consumer":"R1","input":"read:head/0/expr/0","observations":4},{"producer":"R0","output":"var:arg_ty","consumer":"R1","input":"var:arg_ty","observations":4},{"producer":"R0","output":"var:else_","consumer":"R1","input":"var:else_","observations":4},{"producer":"R0","output":"var:else_ctx","consumer":"R1","input":"var:else_ctx","observations":4},{"producer":"R0","output":"var:i","consumer":"R1","input":"var:i","observations":4},{"producer":"R0","output":"var:inputs","consumer":"R1","input":"var:inputs","observations":4},{"producer":"R0","output":"var:j","consumer":"R1","input":"var:j","observations":4},{"producer":"R0","output":"var:pred","consumer":"R1","input":"var:pred","observations":4},{"producer":"R0","output":"var:then_","consumer":"R1","input":"var:then_","observations":4},{"producer":"R0","output":"var:then_ctx","consumer":"R1","input":"var:then_ctx","observations":4}],"scope":"History identifies observed interactions. Complete typed port programs and original guards/actions are validated from source, including unobserved rule branches. Training values and graph instances are not exported.","environment_globals":["DUMMYCTX"],"query_export_rejections":[]}
+
+(datatype Assumption (InFunc String) (Ctx i64))
+(datatype BaseType (StateT))
+(datatype Type (Base BaseType))
+(datatype Expr (V i64) (Arg Type Assumption) (Get Expr i64) (If Expr Expr Expr Expr) (TupleRemoveAt Expr i64) (DropAt Assumption i64 Expr))
+(sort ___HasTypeSort)
+(constructor HasType (Expr Type) ___HasTypeSort)
+(sort ___ToSubsumeIfSort)
+(constructor ToSubsumeIf (Expr Expr Expr Expr) ___ToSubsumeIfSort)
+(ruleset non-weakly-linear)
+(ruleset state-edge-passthrough)
+(let DUMMYCTX (InFunc "DUMMY"))
+(rule ((= outputs (If pred inputs then_ else_))
+       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))
+       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))
+       (HasType (Get then_ i) (Base (StateT ))))
+      ((union (Get outputs i) (Get inputs j)))
+        :ruleset non-weakly-linear :name "R0")
+(rule ((= outputs (If pred inputs then_ else_))
+       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))
+       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))
+       (HasType (Get then_ i) (Base (StateT ))))
+      ((let lhs (Get outputs i))
+       (let new_inputs (TupleRemoveAt inputs j))
+       (let new_then_ctx DUMMYCTX)
+       (let new_else_ctx DUMMYCTX)
+       (let old_then (TupleRemoveAt then_ i))
+       (let old_else (TupleRemoveAt else_ i))
+       (let new_then (DropAt new_then_ctx j old_then))
+       (let new_else (DropAt new_else_ctx j old_else))
+       (let old_outputs (TupleRemoveAt outputs i))
+       (let new_if (If pred new_inputs new_then new_else))
+       (union new_if old_outputs)
+       (union lhs (Get inputs j))
+       (ToSubsumeIf pred inputs then_ else_))
+        :ruleset state-edge-passthrough :name "R1")
