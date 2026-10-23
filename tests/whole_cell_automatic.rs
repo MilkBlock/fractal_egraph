@@ -318,3 +318,37 @@ fn repeated_binding_constraints_cannot_be_satisfied_by_different_values() {
     check(&mut run, &mut native, "(F x x)", "r");
     assert!(!run.instances().is_empty());
 }
+
+#[test]
+fn a_forest_certificate_requires_every_fact_and_equality() {
+    let env=r#"(datatype T (Leaf i64) (P T) (Q T) (R T)) (ruleset r)
+      (rule ((= p (P x)) (= q (Q x)) (= p q)) ((R x)) :ruleset r :name "both")"#;
+    let p:Plan=serde_json::from_value(serde_json::json!({"ruleset":"r","stages":[
+       {"name":"forest","parent":null,"parameters":[{"name":"x","sort":"T"}],
+        "graft":"(P x)","premises":["(P x)","(Q x)","(union (P x) (Q x))"]}]})).unwrap();
+    let (mut run,mut native)=setup(env,p,"(let x (Leaf 7))");
+    check(&mut run,&mut native,"(P x)","r");assert_eq!(run.counters.macro_transitions,0);
+    check(&mut run,&mut native,"(Q x)","r");assert_eq!(run.counters.macro_transitions,0);
+    check(&mut run,&mut native,"(union (P x) (Q x))","r");assert!(run.counters.macro_transitions>0);
+    run.engine().clone().parse_and_run_program(None,"(check (R x))").unwrap();
+}
+
+#[test]
+fn automatic_analyze_catalog_generates_markers_without_a_stage_plan() {
+    let dir=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("experiments/analyze_library_credit/library");
+    let (lib,evidence)=Library::from_analysis(&dir).unwrap();
+    assert!(evidence["unique_entries"].as_u64().unwrap()>=5);
+    let text=lib.certificate_text(evidence).unwrap();
+    let loaded=Library::parse_certificate(&text).unwrap();
+    let mut run=AutomaticRuntime::new(loaded,"").unwrap();
+    let mut native=egglog::EGraph::default();
+    // The checked library contains declarations/rules but no training facts.
+    native.parse_and_run_program(None,text.split_once('\n').unwrap().1).unwrap();
+    check(&mut run,&mut native,"(Single (Arg (Base (IntT)) (InFunc \"heldout\")))","if-tiny");
+    assert!(run.counters.macro_transitions>0);
+    assert!(!run.instances().is_empty());
+    let (header,env)=text.split_once('\n').unwrap();
+    let mut corrupted:serde_json::Value=serde_json::from_str(header.strip_prefix("; @ripsat-certificates ").unwrap()).unwrap();
+    corrupted["states"][0]["rows"].as_array_mut().unwrap().pop();
+    assert!(Library::parse_certificate(&format!("; @ripsat-certificates {corrupted}\n{env}")).is_err());
+}

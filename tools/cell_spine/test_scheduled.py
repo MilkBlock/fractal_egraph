@@ -51,3 +51,21 @@ class ScheduledSpines(unittest.TestCase):
             plan=json.loads((out/'boundary-programs.json').read_text())
             self.assertEqual(plan['schema'],'cell-boundary-programs/v2')
             self.assertTrue(plan['rules'])
+
+    def test_imported_analyze_certificate_reserves_its_queries(self):
+        source=ROOT/'experiments/unified_ripsat_certificates/scalar-training.egg'
+        with tempfile.TemporaryDirectory(dir=ROOT/'out',prefix='scheduled-certificate-') as temp:
+            tmp=Path(temp);library=tmp/'certificates.egg';out=tmp/'compiled'
+            bake=subprocess.run([ROOT/'target/analyzer/debug/egg_layout','analyze-transfer',source,library],cwd=ROOT,capture_output=True,text=True)
+            self.assertEqual(bake.returncode,0,bake.stderr)
+            result=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--mode','scheduled',
+                '--source',source,'--output',out,'--certificate-library',library,'--skip-build'],cwd=ROOT,capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+            proof=json.loads((out/'certificates.json').read_text())
+            self.assertTrue(any(c['strength']=='guarded_closure' for c in proof['certificates']))
+            self.assertTrue(proof['markers'])
+            self.assertEqual((out/'program.egg').read_bytes(),source.read_bytes())
+            self.assertEqual((out/'certificates.egg').read_bytes(),library.read_bytes())
+            # Both numeric queries already belong to the checked library; the
+            # solver cannot silently install a second executor for either one.
+            self.assertFalse(json.loads((out/'boundary-programs.json').read_text())['rules'])

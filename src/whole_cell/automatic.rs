@@ -15,6 +15,30 @@ fn direct_ruleset(body: &egglog::ast::Schedule) -> Option<&str> {
         _ => None,
     }
 }
+// A connected positive LHS cannot draw its witnesses from different data
+// components. Shared variables, ground terms and literals are actual value
+// connections; merely sharing a constructor NAME is not. Wildcards are fresh.
+fn connected_premises(body:&[Fact])->bool {
+    fn walk(e:&Expr,out:&mut BTreeSet<String>)->bool {
+        match e {
+            Expr::Var(_,n)=>{if n!="_"{out.insert(format!("var:{n}"));}false},
+            Expr::Lit(_,v)=>{out.insert(format!("literal:{v:?}"));true},
+            Expr::Call(_,_,xs)=>{
+                let mut ground=true;for x in xs {ground &= walk(x,out);}
+                if ground {out.insert(format!("ground:{e}"));}ground
+            }
+        }
+    }
+    let mut components=body.iter().map(|f|{let mut vars=BTreeSet::new();match f{
+        Fact::Eq(_,a,b)=>{walk(a,&mut vars);walk(b,&mut vars);},Fact::Fact(e)=>{walk(e,&mut vars);}
+    }vars}).collect::<Vec<_>>();
+    if components.is_empty(){return false}
+    let mut joined=components.remove(0);
+    loop {let before=components.len();let mut rest=vec![];
+        for component in components {if joined.is_disjoint(&component){rest.push(component)}else{joined.extend(component)}}
+        components=rest;if components.is_empty(){return true}if components.len()==before{return false}
+    }
+}
 #[derive(Clone)]
 enum Term {
     Var(usize),
@@ -27,6 +51,7 @@ struct Atom {
 }
 struct Trigger {
     atoms: Vec<Atom>,
+    equalities: Vec<(Term,Term)>,
     vars: usize,
     inputs: usize,
 }
@@ -52,6 +77,7 @@ impl Trigger {
         }
         let mut out = Self {
             atoms: vec![],
+            equalities: vec![],
             vars: step.input_types.len(),
             inputs: step.input_types.len(),
         };
@@ -82,6 +108,16 @@ impl Trigger {
         }
         let e = egglog::ast::Parser::default().get_expr_from_string(None, &step.graft)?;
         visit(&e, eg, &names, &mut out)?;
+        for c in eg.parse_program(None,&step.premises.join("\n"))? {
+            match c {
+                Command::Action(Action::Expr(_,e))=>{visit(&e,eg,&names,&mut out)?;},
+                Command::Action(Action::Union(_,a,b))=>{
+                    let a=visit(&a,eg,&names,&mut out)?;let b=visit(&b,eg,&names,&mut out)?;out.equalities.push((a,b));
+                },
+                _=>return Err("unsupported positive seed premise".into()),
+            }
+        }
+
         if out.atoms.is_empty() {
             return Err("automatic graft requires a constructor event".into());
         }
@@ -204,6 +240,8 @@ fn solve(
     out: &mut Vec<Vec<Option<Value>>>,
     visits: &mut usize,
 ) {
+    let value=|t:&Term|match t{Term::Var(i)=>binding[*i],Term::Literal(v)=>Some(*v)};
+    if trigger.equalities.iter().any(|(a,b)|matches!((value(a),value(b)),(Some(a),Some(b)) if a!=b)){return}
     if pending.is_empty() {
         out.push(binding);
         return;
@@ -303,7 +341,7 @@ pub struct SaturationObserver {
 }
 impl SaturationObserver {
     pub fn diagnostics(&self) -> Json {
-        json!({"scope":"positive constructor/union; exact single-ruleset saturation","declined":self.declined,
+        json!({"certificates":self.run.core.lib.certificates.report(),"scope":"positive constructor/union; exact single-ruleset saturation","declined":self.declined,
             "destructive_seen":self.run.destructive_seen,"counters":self.run.counters})
     }
     fn decline(&mut self, reason: &str) -> Result<Option<Json>> {
@@ -426,14 +464,14 @@ impl AutomaticRuntime {
             }
             triggers.push(t);
         }
-        // Single connected constructor premises are sufficient for the component
-        // closure proof. More general positive joins remain executable via fallback.
+        // Connected positive joins have the same component closure proof;
+        // disconnected joins retain original execution.
         let local_rules = core
             .eg
             .parse_program(None, &core.lib.environment)?
             .iter()
             .all(|c| match c {
-                Command::Rule { rule } => rule.body.len() == 1,
+                Command::Rule { rule } => connected_premises(&rule.body),
                 _ => true,
             });
         let schemas = core
@@ -498,7 +536,7 @@ impl AutomaticRuntime {
         &self.core.lib
     }
     pub fn report(&self) -> Json {
-        json!({"counters":self.counters,"instances":self.instances,"transitions":self.transitions,"batch_reports":self.batch_reports,"pending_transitions":self.pending.len(),"native_smooth_matches":self.core.smooth_counts(),
+        json!({"certificates":self.core.lib.certificates.report(),"counters":self.counters,"instances":self.instances,"transitions":self.transitions,"batch_reports":self.batch_reports,"pending_transitions":self.pending.len(),"native_smooth_matches":self.core.smooth_counts(),
         "original_query_watermarks":self.core.original.iter().map(|(s,w)|json!({"rule":s.name,"initial":w,"current":self.core.eg.cell_query_watermark(s)})).collect::<Vec<_>>()})
     }
     /// Commit ordinary constructor facts/union actions. No stage names, Cell IDs,
@@ -568,6 +606,7 @@ impl AutomaticRuntime {
         }
         self.core.eg.run_program(cmds)?;
         self.graft_rulesets.insert(ruleset.into());
+        self.core.lib.certificates.bind_environment(&self.core.eg);
         Ok(())
     }
     pub fn step_grafts(&mut self, ruleset: &str) -> Result<Json> {
@@ -886,7 +925,7 @@ impl AutomaticRuntime {
                 .copied()
                 .collect::<Option<Vec<_>>>();
             let Some(ext) = external else { continue };
-            if !ext
+            if s.premises.is_empty() && !ext
                 .iter()
                 .zip(&s.parameters)
                 .all(|(v, p)| self.inputs.contains(&(p.sort.clone(), *v)))
@@ -1034,6 +1073,9 @@ impl AutomaticRuntime {
                 .iter()
                 .map(|(s, _)| self.core.eg.cell_query_watermark(s))
                 .collect::<Vec<_>>();
+            if !self.core.lib.certificates.permits(step.target,crate::certificate::Strength::FiniteClosure,&self.core.eg) {
+                return Err("missing or stale whole-Cell marker authority".into());
+            }
             let apply_start = Instant::now();
             let (receipts, report) = self.core.emitters[id].apply_many(
                 &mut self.core.eg,

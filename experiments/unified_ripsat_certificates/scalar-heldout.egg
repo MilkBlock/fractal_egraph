@@ -1,0 +1,7 @@
+; Unseen bindings, followed by a function update and its consequences.
+(Pair (Pair (Leaf 90) (Leaf 91)) (Leaf 92))
+(run-schedule (saturate measure))
+(check (= (extent (Pair (Pair (Leaf 90) (Leaf 91)) (Leaf 92))) 3))
+(set (extent (Leaf 90)) 0)
+(run-schedule (saturate measure))
+(check (= (extent (Pair (Pair (Leaf 90) (Leaf 91)) (Leaf 92))) 2))

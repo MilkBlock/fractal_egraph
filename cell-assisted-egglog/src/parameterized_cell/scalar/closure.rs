@@ -18,6 +18,7 @@ pub(in crate::parameterized_cell) struct Stats {
 #[derive(Default)]
 pub(in crate::parameterized_cell) struct Scope {
     pub allowed: bool,
+    certificate: Option<usize>,
     pub helpers: BTreeSet<String>,
     pub active: bool,
     pub model: Option<Model>,
@@ -152,6 +153,21 @@ pub(in crate::parameterized_cell) fn configure(
                 .insert(table, r.eg.prepare_cell_action(&set, "publish")?);
         }
     }
+    for (set,group) in &mut r.scalar {
+        if group.scope.allowed {
+            group.scope.certificate = Some(r.certificates.checked(crate::certificate::Document::guarded("monotone-min-plus-closure/v1",vec![set.clone()],
+                json!({"fields":group.plans.iter().map(|(_,p)|p.field.clone()).collect::<BTreeSet<_>>(),"independent_helpers":group.scope.helpers}),
+                json!({"checker":"typed source min merges and addition DAG; complete affected rule/merge dependency universe",
+                    "runtime_obligations":["current visibility","native activation timestamps","checked integer range","original saturation boundary"]}))));
+            for (id,_) in &group.plans {
+                let k=&r.kernels[*id];
+                r.certificates.marker(group.scope.certificate.unwrap(),k.sink.atoms[k.seed].function.clone(),
+                    k.sink.slots().into_iter().map(|(n,t)|(n.into(),t.into())).collect(),
+                    vec!["native activation timestamps and committed port versions".into(),"checked nonnegative integer range and original saturation scope".into()])?;
+            }
+        }
+    }
+    r.certificates.bind_environment(&r.eg);
     r.identity = r.eg.cell_rule_environment_stamp();
     Ok(())
 }
@@ -454,7 +470,7 @@ pub(in crate::parameterized_cell) fn finish(
     r: &mut Runtime,
     group: &mut Group,
 ) -> Result<egglog_reports::RunReport> {
-    if !group.scope.active {
+    if !group.scope.active || !group.scope.certificate.is_some_and(|id|r.certificates.permits(id,crate::certificate::Strength::GuardedClosure,&r.eg)) {
         return Ok(Default::default());
     }
     let start = std::time::Instant::now();
@@ -507,7 +523,7 @@ impl Runtime {
     pub(in crate::parameterized_cell) fn enter_scalar_scope(&mut self, body: &Schedule) -> bool {
         let mut entered = false;
         for (set, g) in &mut self.scalar {
-            if g.scope.accepts(set, body) {
+            if g.scope.accepts(set, body) && g.scope.certificate.is_some_and(|id|self.certificates.permits(id,crate::certificate::Strength::GuardedClosure,&self.eg)) {
                 g.scope.active = true;
                 g.scope.model = None;
                 entered = true;

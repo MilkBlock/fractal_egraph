@@ -70,6 +70,7 @@ def inference_identity(a, repo, worker, env):
                 machine=[platform.node(), platform.system(), platform.release(), platform.machine()],
                 environment_sha256=hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest(),
                 boundary_programs=sha(env['CELL_BOUNDARY_PROGRAMS']) if env.get('CELL_BOUNDARY_PROGRAMS') else None,
+                certificate_library=sha(env['CELL_CERTIFICATE_LIBRARY']) if env.get('CELL_CERTIFICATE_LIBRARY') else None,
                 analysis=analysis_identity(env["CELL_BENCH_ANALYSIS"]) if env.get("CELL_BENCH_ANALYSIS") else None)
 
 def extraction_identity(a, repo):
@@ -776,6 +777,7 @@ def parser():
     q=sub.add_parser('spine-program',help='compile full scheduled source with optional-parameter spine layouts and validate through the usual runtime')
     q.add_argument('--snapshot',type=Path,default=SNAPSHOT);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--query-selection',type=Path);q.add_argument('--query-profile',type=Path);q.add_argument('--table-profile',type=Path)
+    q.add_argument('--certificate-library',type=Path)
     q.add_argument('--solver-python',type=Path);q.add_argument('--solver',choices=['scip','gurobi'],default='scip')
     q.add_argument('--reuse-controls',type=Path);q.add_argument('--worker',type=Path,default=WORKER)
     q.add_argument('--no-build',action='store_true');q.add_argument('--no-extract',action='store_true');q.add_argument('--compile-only',action='store_true')
@@ -814,6 +816,7 @@ def parser():
             q.add_argument('--all-rules', action='store_true')
             q.add_argument('--joint-sat', action='store_true')
         if mode in ['run', 'audit']:
+            q.add_argument('--certificate-library',type=Path,help='load checked generic closure/query certificates; requires --all-rules --joint-sat')
             q.add_argument('--boundary-programs',type=Path,help='source-derived complete CPU boundary queries; requires --all-rules --joint-sat')
             q.add_argument('--commit-markers',action='store_true',help='publish spine witnesses from committed action receipts; requires --analysis')
             q.add_argument('--analysis', type=Path, help='frozen Analyze catalog for structural projections; all-rules only')
@@ -951,6 +954,7 @@ def finish_cell_metrics(a,repo,worker,out,env):
             if a.joint_sat:args.append('--joint-sat')
             if a.commit_markers:args.append('--commit-markers')
             if getattr(a,'boundary_programs',None):args.extend(['--boundary-programs',str(a.boundary_programs)])
+            if getattr(a,'certificate_library',None):args.extend(['--certificate-library',str(a.certificate_library)])
             if only:args.append('--analysis-plan-only')
             pa=parser().parse_args(args)
             pe=dict(env,CELL_SEARCH_COUNTERS='1',CELL_BENCH_ANALYSIS=str(analysis if analysis.is_absolute() else repo/analysis),
@@ -1139,6 +1143,9 @@ def main(argv=None):
     if a.mode in ['build', 'extract'] or (a.mode == 'run' and not a.no_extract): targets += ['tiger_output_check']
     build = ['cargo', 'build', '--offline', '--release', '--target-dir', 'target/analyzer'] + [x for t in targets for x in ['--example', t]]
     env = dict(os.environ, RAYON_NUM_THREADS='1', EGGLOG_PROBE_COUNTS_OFF='1', CELL_MATRIX_WORKER=str(worker))
+    if getattr(a,'certificate_library',None):
+        if not a.all_rules or not a.joint_sat:raise ValueError('--certificate-library requires --all-rules --joint-sat')
+        env['CELL_CERTIFICATE_LIBRARY']=str(resolve(a.certificate_library))
     if getattr(a,'boundary_programs',None):
         if not a.all_rules or not a.joint_sat:raise ValueError('--boundary-programs requires --all-rules --joint-sat')
         env['CELL_BOUNDARY_PROGRAMS']=str(resolve(a.boundary_programs))

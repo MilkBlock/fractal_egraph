@@ -120,13 +120,21 @@ def select(queries,rows,output,weights,profile=None):
 def compile_program(a,data,root,weights):
     from .compiler import run,digest
     output=a.output;work=output/'work';source=a.source
-    if a.analysis_dir or a.knowledge_library:
-        raise ValueError('scheduled query plans do not yet consume RipSat closure proofs; do not silently treat --analysis-dir or --knowledge-library as used')
+    if a.knowledge_library:raise ValueError('scheduled mode uses --certificate-library; knowledge-library is the symbolic solver format')
+    certificate=getattr(a,'certificate_library',None)
+    if a.analysis_dir:
+        if certificate:raise ValueError('choose analysis-dir or certificate-library')
+        certificate=next((a.analysis_dir/f for f in ['certificates.egg','transfers.egg'] if (a.analysis_dir/f).is_file()),None)
+        if certificate is None:raise ValueError('Analyze directory has no exported closure library; use analyze --bake-certificates')
+    if certificate:
+        (output/'certificates.egg').write_bytes(certificate.read_bytes())
+        certificate=output/'certificates.egg'
     binary=root/'target/analyzer/release/examples/scheduled_spine'
     if not a.skip_build:run(['cargo','build','--offline','--release','--target-dir','target/analyzer','--example','scheduled_spine'])
     sets=set(data['rule_rulesets']);joint={'terms','terms-helpers','terms-helpers-helpers'}<=sets
-    run([binary,source,work/'queries.json']+(['--joint'] if joint else []))
+    run([binary,source,work/'queries.json']+(['--joint'] if joint else [])+(['--certificates',certificate] if certificate else []))
     native=json.loads((work/'queries.json').read_text())
+    write(output/'certificates.json',native.get('certificates'))
     queries=[q for q in native['queries'] if 'plans' in q]
     selected_names=None
     if a.query_selection:
@@ -177,7 +185,9 @@ def compile_program(a,data,root,weights):
         validation='pending native execution; compilation is not validation',
         runtime='cell-assisted original schedule + complete query providers; optional existing joint proofs unchanged',
         analysis_source=str(a.analysis_dir) if a.analysis_dir else None,
-        evidence='typed source query wiring; no new Analyze closure certification',
+        certificate_library=str(certificate) if certificate else None,
+        certificates=native.get('certificates'),
+        evidence='typed query layouts plus separately native-checked imported closures' if certificate else 'typed source query wiring; no new Analyze closure certification',
         profiles={str(p):digest(p/'report.json' if p.is_dir() else p) for p in [a.query_profile,a.table_profile,a.query_selection] if p},
         preserved_source=True,concrete_snapshot=False)
     write(output/'scheduled-plan.json',manifest)
@@ -185,4 +195,4 @@ def compile_program(a,data,root,weights):
         query_count=len(native['queries']),admitted_queries=len([q for q in native['queries'] if 'plans' in q]),
         selected_queries=len(chosen),layouts_considered=decision['choices'],
         program=str(output/'program.egg'),boundary_programs=str(output/'boundary-programs.json'),
-        scope=manifest['evidence'],solver=manifest['solver'])
+        scope=manifest['evidence'],certificate_library=str(certificate) if certificate else None,solver=manifest['solver'])

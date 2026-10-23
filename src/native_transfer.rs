@@ -70,7 +70,8 @@ pub(super) fn from_capture(c: &Captured) -> Result<Bundle> {
     for r in &c.records {
         for (i, port) in r.ports.iter().enumerate() {
             if let Port::Parent(parent, output) = port {
-                let p = &c.records[*parent];
+                // Parent ports index this record's parent list, not the global history.
+                let p = &c.records[r.parents[*parent]];
                 let key = (
                     c.rules[p.rule].rule.name.clone(),
                     output_role(&c.rules[p.rule], &p.outputs[*output]),
@@ -95,7 +96,7 @@ pub(super) fn from_capture(c: &Captured) -> Result<Bundle> {
         "connections":edges.into_iter().map(|((pr,po,cr,ci),n)|json!({"producer":pr,"output":po,"consumer":cr,"input":ci,"observations":n})).collect::<Vec<_>>(),
         "scope":"History identifies observed interactions. Complete typed port programs and original guards/actions are validated from source, including unobserved rule branches. Training values and graph instances are not exported."
     });
-    Bundle::bake_terms(&environment, schedules, evidence)
+    Bundle::bake_certificates(&environment, schedules, evidence)
 }
 pub fn export_file(source: &Path, target: &Path) -> Result<Json> {
     if target.exists() {

@@ -15,7 +15,7 @@ def run(a,repo):
                          ['cargo','build','--offline','--release','--target-dir','target/analyzer','--example','scheduled_spine','--example','raytrace_stable_bench']])
     compile=[str(python),'-m','tools.cell_spine.compiler','--mode','scheduled','--source',str(resolve(a.snapshot)),
              '--output',str(out/'program'),'--solver',a.solver,'--skip-build']
-    for flag in ['query_selection','query_profile','table_profile']:
+    for flag in ['query_selection','query_profile','table_profile','certificate_library']:
         if getattr(a,flag):compile.extend(['--'+flag.replace('_','-'),str(resolve(getattr(a,flag)))])
     commands.append(compile)
     if not a.compile_only:
@@ -25,6 +25,7 @@ def run(a,repo):
             '--boundary-programs',str(out/'program/boundary-programs.json'),
             '--reuse-controls',str(resolve(a.reuse_controls)),'--worker',str(resolve(a.worker)),
             '--output',str(out/'run'),'--no-build','--no-cell-metrics']
+        if a.certificate_library:bench.extend(['--certificate-library',str(out/'program/certificates.egg')])
         if a.no_extract:bench.append('--no-extract')
         commands.append(bench)
     if a.dry_run:

@@ -15,6 +15,18 @@ pub(super) struct Spec {
     rule: Rule,
     fields: BTreeSet<String>,
 }
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Descriptor { pub set:String, pub name:String, pub seed:String, pub field:String }
+impl Spec { pub fn descriptor(&self)->Descriptor {Descriptor{set:self.set.clone(),name:self.name.clone(),seed:self.seed.clone(),field:self.field.clone()}} }
+pub(super) fn restore(eg:&EGraph,commands:&[Command],excluded:&[String],descriptors:&[Descriptor])->Result<Vec<Spec>> {
+    let mut known=discover(eg,commands,excluded);let mut result=vec![];
+    for d in descriptors {
+        let i=known.iter().position(|s|s.descriptor()==*d).ok_or("scalar certificate differs from source semantics")?;
+        result.push(known.remove(i));
+    }
+    Ok(result)
+}
 fn v(e: &Expr) -> Option<&str> {
     if let Expr::Var(_, v) = e {
         Some(v)
@@ -22,7 +34,7 @@ fn v(e: &Expr) -> Option<&str> {
         None
     }
 }
-pub(super) fn discover(eg: &EGraph, commands: &[Command]) -> Vec<Spec> {
+pub(super) fn discover(eg: &EGraph, commands: &[Command], excluded:&[String]) -> Vec<Spec> {
     let mut fields = commands
         .iter()
         .filter_map(|c| match c {
@@ -54,7 +66,7 @@ pub(super) fn discover(eg: &EGraph, commands: &[Command]) -> Vec<Spec> {
     let mut specs = vec![];
     for c in commands {
         let Command::Rule { rule } = c else { continue };
-        if joint::SETS.contains(&rule.ruleset.as_str()) {
+        if excluded.contains(&rule.ruleset) {
             continue;
         }
         let [Action::Set(_, field, keys, _)] = rule.head.0.as_slice() else {

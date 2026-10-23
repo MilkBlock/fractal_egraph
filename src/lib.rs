@@ -20,3 +20,9 @@ pub mod slotted_canon;
 pub mod slotted_dot;
 pub mod slotted_layer;
 pub mod whole_cell;
+
+#[cfg(not(target_arch = "wasm32"))]
+pub use cell_assisted_egglog::certificate;
+#[cfg(target_arch = "wasm32")]
+#[path = "../cell-assisted-egglog/src/certificate.rs"]
+pub mod certificate;

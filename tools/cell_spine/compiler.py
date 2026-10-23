@@ -48,6 +48,17 @@ def shape(acts, params):
 
 def load_candidates(analysis, work):
     from .composition import positive_environment
+    # The marker solver selects representations; only the Rust checker can
+    # authorize a closure. Recheck Analyze seeds against the complete source.
+    import tempfile
+    with tempfile.TemporaryDirectory(dir=work) as checked:
+        result=subprocess.run([os.environ.get('CELL_CERTIFICATE_CHECKER',str(ROOT/'target/release/egg_layout')),'bake-certificates',
+            str(analysis),str(Path(checked)/'certificates.egg')],cwd=ROOT,check=True,capture_output=True,text=True)
+        proof=json.loads(result.stdout)
+        if proof['kind']!='finite':raise ValueError('symbolic Cell substitution requires finite closure certificates')
+        (work/'certificates.egg').write_bytes((Path(checked)/'certificates.egg').read_bytes())
+    (work/'certificates.json').write_text(json.dumps(proof,indent=2)+'\n')
+    admitted={o['candidate_id']:o['certificate'] for o in proof['evidence']['origins']}
     report = json.loads((analysis / 'analysis.json').read_text())['saturated_rule_composition']
     catalog = (report.get('catalog') or {}).get('catalog') or {}
     families = {t['binding_origin']['candidate_id']: t['saturated_rule_composition']
@@ -60,6 +71,8 @@ def load_candidates(analysis, work):
         if not folder.is_absolute():
             folder = ROOT / folder
         try:
+            if cid not in admitted:
+                raise ValueError('no native-rechecked closure certificate for this seed forest')
             if cid not in families:
                 raise ValueError(f"no completed exact certificate ({job.get('state')})")
             r = json.loads((folder / 'ripen.json').read_text())
@@ -103,7 +116,7 @@ def load_candidates(analysis, work):
             roots = {text(e): e for e in expressions(acts)}
             nested = {text(e) for root in roots.values() for child in root.get('args', []) for e in walk(child)}
             roots = [e for raw, e in roots.items() if raw not in nested]
-            candidates.append(dict(id=cid, family=families[cid], acts=acts, roots=roots,
+            candidates.append(dict(id=cid, family=families[cid], certificate=admitted[cid], acts=acts, roots=roots,
                 params=params, param_sorts=param_sorts, nodes=shape(acts, params),
                 lhs_atoms=len(shape(acts, params)) + sum(a['kind']=='union' for a in acts),
                 signatures=data['signatures'], origin=o, snapshot=snapshot,
@@ -596,6 +609,9 @@ def make_library(candidates, plan, edges, environment, signatures, work, prepare
     chosen=prepared['chosen'];transitions=prepared['transitions'];consumers=prepared['consumers']
     selected_layouts={c['family']:next(l for l in c['marker_layouts'] if l['id'] in plan['marker_layouts']) for c in chosen.values()}
     out=runtime_header(chosen,selected_layouts,environment,signatures)
+    out += ['; @ripsat-marker '+json.dumps(dict(family=f,unit=c['id'],certificate=c.get('certificate'),
+        authority='finite_closure',layout=selected_layouts[f]['id'],checker='native saturation and independent delta replay'))
+        for f,c in chosen.items()]
     runtime_rules={r['name']:[markers.lower(r,selected_layouts,signatures)] for r in consumers}
     out += [line for group in runtime_rules.values() for line in group]
     emitted_path=work/'marker-runtime.egg'
@@ -623,6 +639,7 @@ def make_library(candidates, plan, edges, environment, signatures, work, prepare
     retirement=dict(lenses=prepared['lenses'],cyclic_lenses_retained=prepared['blocked'],consumers=prepared['lowered'],retirement_rules=prepared['retire'],
         redundant_inherited_rules_removed=prepared['redundant'],runtime_rules=runtime_rules,marker_layouts=selected_layouts,gate_audit=gate_audit,
         raw_contracts=prepared.get('raw_contracts',{}),costed_transitions=transitions,
+        certificates={f:c.get('certificate') for f,c in chosen.items()},
         interfaces=dict(mode=prepared.get('interface_mode','inline'),selected=[f for f,l in selected_layouts.items() if l.get('interface')=='shared'],
             published=[f for f,l in selected_layouts.items() if l.get('interface')=='published'],
             scope='shared decoders or producer-published correlated seed witnesses; consumers retain active owner markers'),
@@ -703,6 +720,7 @@ def main():
     p.add_argument('--source',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--analysis-dir',type=Path)
+    p.add_argument('--certificate-library',type=Path,help='checked parameterized closure library for scheduled markers')
     p.add_argument('--knowledge-library',type=Path,
                    help='reuse native-validated Cell contracts and learn merge families across fact programs under the same rules')
     p.add_argument('--mode',choices=('auto','symbolic','scheduled','stages'),default='auto')

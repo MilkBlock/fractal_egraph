@@ -1,0 +1,17 @@
+; Structural selection-closure axioms. All table/ruleset names are roles,
+; and sentinel_value is instantiated from the checked source initializer.
+(rule ((Offer expr termandcost))
+ ((set (Selected expr) (Weighted (Missing) sentinel_value)))
+ :ruleset update :name "init")
+(rule ((Offer expr (Weighted term cost))
+ (= (Selected expr) (Weighted oldterm oldcost)) (< cost oldcost))
+ ((set (Selected expr) (Weighted term cost)))
+ :ruleset update :name "improve")
+(rule ((Offer expr (Weighted term cost)) (< cost 0))
+ ((panic "Negative cost")) :ruleset update :name "negative")
+(rule ((= lhs (Choose (Weighted t1 cost1) (Weighted t2 cost2))) (< cost1 cost2))
+ ((union lhs (Weighted t1 cost1))) :ruleset select :name "less")
+(rule ((= lhs (Choose (Weighted t1 cost1) (Weighted t2 cost2))) (> cost1 cost2))
+ ((union lhs (Weighted t2 cost2))) :ruleset select :name "greater")
+(rule ((= lhs (Choose (Weighted t1 cost1) (Weighted t2 cost2))) (= cost1 cost2))
+ ((union lhs (Weighted t1 cost1))) :ruleset select :name "tie")

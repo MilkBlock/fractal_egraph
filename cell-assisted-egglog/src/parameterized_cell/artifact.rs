@@ -32,6 +32,8 @@ pub(super) struct Shape {
     atoms: Vec<Atom>,
     guards: Vec<(u32, [Operand; 2])>,
     native_residuals: bool,
+    #[serde(default,skip_serializing_if="Vec::is_empty")]
+    primitives: Vec<(u32,[Operand;2],Option<Operand>)>,
 }
 impl Shape {
     pub(super) fn of(s: &CellActionSink) -> Self {
@@ -56,6 +58,7 @@ impl Shape {
                 .map(|g| (g.opcode, g.operands.each_ref().map(Operand::from)))
                 .collect(),
             native_residuals: s.native_residuals,
+            primitives:s.primitives.iter().map(|p|(p.opcode,p.args.each_ref().map(Operand::from),p.result.as_ref().map(Operand::from))).collect(),
         }
     }
 }
@@ -125,6 +128,10 @@ struct Header {
     version: u32,
     rulesets: Vec<String>,
     schedules: Vec<String>,
+    #[serde(default,skip_serializing_if="Option::is_none")]
+    selection: Option<contract::Selection>,
+    #[serde(default,skip_serializing_if="Vec::is_empty")]
+    scalars:Vec<scalar::Descriptor>,
 }
 pub struct Bundle {
     header: Header,
@@ -176,15 +183,39 @@ impl Bundle {
                 version: 1,
                 rulesets: runtime.sets.keys().cloned().collect(),
                 schedules,
+                selection: None,
+                scalars: vec![],
             },
             programs,
             environment: environment.into(),
             evidence,
         })
     }
+    /// Unified parameterized closure export. Selection and scalar roles are
+    /// inferred without application names and are rechecked at load time.
+    pub fn bake_certificates(environment:&str,schedules:Vec<String>,evidence:Json)->Result<Self> {
+        let mut eg=EGraph::default();let commands=eg.parse_program(None,environment)?;
+        if !commands.iter().all(declarations_only){return Err("certificate environment contains executable input".into())}
+        eg.run_program(commands.clone())?;
+        let selection=contract::Selection::discover(&eg,&commands).ok();
+        let excluded=selection.as_ref().map(|s|s.sets.to_vec()).unwrap_or_default();
+        let scalar=scalar::discover(&eg,&commands,&excluded);
+        if selection.is_none() && scalar.is_empty(){return Err("no checked parameterized closure scheme; retain native execution".into())}
+        let scalars=scalar.iter().map(scalar::Spec::descriptor).collect::<Vec<_>>();
+        let r=Runtime::certified_commands(commands,selection.clone(),scalar,None)?;
+        let mut programs=vec![];
+        for (i,k) in r.kernels.iter().enumerate(){
+            let set=r.sets.iter().find_map(|(s,ids)|ids.contains(&i).then(||s.clone()))
+                .or_else(||r.scalar.iter().find_map(|(s,g)|g.plans.iter().any(|(id,_)|*id==i).then(||s.clone())))
+                .ok_or("unowned certificate query")?;
+            programs.push(Program{ruleset:set,rule:k.sink.name.clone(),shape:Shape::of(&k.sink),seed:k.seed,steps:k.steps.clone()});
+        }
+        Ok(Self{header:Header{version:2,rulesets:r.sets.keys().cloned().collect(),schedules,selection,scalars},
+            programs,environment:environment.into(),evidence})
+    }
     pub fn text(&self) -> Result<String> {
         let mut s = format!(
-            "; Parameterized Cell transfers. Native declarations/actions below; no training facts.\n; @cell-transfer {}\n",
+            "; @ripsat-certificates {{\"version\":1,\"kind\":\"parameterized\"}}\n; Parameterized Cell transfers. Native declarations/actions below; no training facts.\n; @cell-transfer {}\n",
             serde_json::to_string(&self.header)?
         );
         for p in &self.programs {
@@ -215,7 +246,7 @@ impl Bundle {
             }
         }
         let header = header.ok_or("missing transfer header")?;
-        if header.version != 1 {
+        if ![1,2].contains(&header.version) {
             return Err("unsupported transfer version".into());
         }
         let environment = text
@@ -233,9 +264,9 @@ impl Bundle {
     pub fn load(path: &Path) -> Result<Self> {
         Self::parse(&std::fs::read_to_string(path)?)
     }
-    pub fn instantiate(&self) -> Result<Runtime> {
+    fn validate_header(&self) -> Result<()> {
         if self.programs.is_empty()
-            || self.header.rulesets.is_empty()
+            || (self.header.rulesets.is_empty() && self.header.scalars.is_empty())
             || self
                 .programs
                 .iter()
@@ -248,12 +279,31 @@ impl Bundle {
         {
             return Err("missing or duplicate transfer programs/rulesets".into());
         }
+        if self.header.version == 2 {
+            let sets = self.header.selection.as_ref().map(|s|s.sets.iter().cloned().collect::<BTreeSet<_>>()).unwrap_or_default();
+            if self.header.rulesets != sets.into_iter().collect::<Vec<_>>() {
+                return Err("certificate ruleset coverage differs".into());
+            }
+        }
+        Ok(())
+    }
+    pub fn instantiate(&self) -> Result<Runtime> {
+        self.validate_header()?;
         let mut eg = EGraph::default();
         let cmds = eg.parse_program(None, &self.environment)?;
         if !cmds.iter().all(declarations_only) {
             return Err("transfer file contains executable setup/training input".into());
         }
-        eg.run_program(cmds)?;
+        eg.run_program(cmds.clone())?;
+        if self.header.version==2 {
+            let excluded=self.header.selection.as_ref().map(|s|s.sets.to_vec()).unwrap_or_default();
+            if self.header.rulesets!=excluded.iter().cloned().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>() {
+                return Err("certificate ruleset coverage differs".into());
+            }
+            let specs=scalar::restore(&eg,&cmds,&excluded,&self.header.scalars)?;
+            return Runtime::certified_engine(eg,&cmds,self.header.selection.clone(),specs,Some(&self.programs));
+        }
+        if self.header.selection.is_some() || !self.header.scalars.is_empty(){return Err("closure authority requires certificate version 2".into())}
         let sets = self
             .header
             .rulesets
@@ -262,8 +312,17 @@ impl Bundle {
             .collect::<Vec<_>>();
         Runtime::new_with_plans(eg, &sets, &BTreeMap::new(), vec![], Some(&self.programs))
     }
+    /// Attach checked schemes to an already initialized native engine. Native
+    /// query shapes and the complete CURRENT closure universe are revalidated.
+    pub fn attach(&self,eg:EGraph,commands:&[Command])->Result<Runtime>{
+        self.validate_header()?;
+        if self.header.version!=2{return Err("runtime closure attachment needs a version-2 certificate library".into())}
+        let excluded=self.header.selection.as_ref().map(|s|s.sets.to_vec()).unwrap_or_default();
+        let specs=scalar::restore(&eg,commands,&excluded,&self.header.scalars)?;
+        Runtime::certified_engine(eg,commands,self.header.selection.clone(),specs,Some(&self.programs))
+    }
     pub fn report(&self) -> Json {
-        json!({"version":self.header.version,"programs":self.programs.len(),"rulesets":self.header.rulesets,
+        json!({"selection":self.header.selection,"scalar_schemes":self.header.scalars,"version":self.header.version,"programs":self.programs.len(),"rulesets":self.header.rulesets,
             "schedules":self.header.schedules,"evidence":self.evidence,
             "scope":"Loaded fixed port wiring; original native guards/actions/merge. No history, concrete closure cache, or online wiring discovery. Native installation still compiles schema and action sinks."})
     }

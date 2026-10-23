@@ -3,6 +3,11 @@ use std::path::{Path, PathBuf};
 fn main() -> Result {
     let args: Vec<_> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
+        Some("bake-certificates") if args.len()==3 => {
+            let r=egg_layout::whole_cell::catalog::bake_file(Path::new(&args[1]),Path::new(&args[2]))?;
+            println!("{}",serde_json::to_string_pretty(&r)?);Ok(())
+        }
+
         #[cfg(not(target_arch = "wasm32"))]
         Some("analyze-transfer") if args.len()==3 => {
             let r=native_analyze::transfer::export_file(Path::new(&args[1]),Path::new(&args[2]))?;
@@ -12,6 +17,10 @@ fn main() -> Result {
         Some("run-transfer") if args.len()==4 => {
             let r=native_analyze::transfer::run_file(Path::new(&args[1]),Path::new(&args[2]),Path::new(&args[3]))?;
             println!("{}",serde_json::json!({"passed":r["passed"],"runtime":r["runtime"],"results":Path::new(&args[3]).join("results.json")}));Ok(())
+        }
+        Some("run-certificates") if args.len()==4 => {
+            let r=egg_layout::whole_cell::catalog::run_file(Path::new(&args[1]),Path::new(&args[2]),Path::new(&args[3]))?;
+            println!("{}",serde_json::json!({"passed":r["passed"],"results":Path::new(&args[3]).join("results.json")}));Ok(())
         }
         Some("whole-cell-auto-check") => {
             if args.len()!=6 {return Err("usage: whole-cell-auto-check ENV.egg PLAN.json INPUTS.egg GRAFTS.egg OUTPUT_DIR".into());}
@@ -32,7 +41,7 @@ fn main() -> Result {
         }
         None | Some("--help" | "help" | "-h") => {
             println!(
-                "egg_layout: analyze-transfer SOURCE.egg TRANSFERS.egg\n  run-transfer TRANSFERS.egg INPUTS.egg OUTPUT_DIR\n  analyze --source SOURCE.egg --output DIR [--bake-transfers]\n  whole-cell-auto-check ENV.egg PLAN.json INPUTS.egg GRAFTS.egg OUTPUT_DIR\n  whole-cell-check ENV.egg PLAN.json INPUTS.egg OUTPUT_DIR\n  reuse-adaptive MODE SOURCE.egg OUTPUT_DIR [LIBRARY.json]\n  reuse-virtualize SOURCE.egg LIBRARY.json [AFTER.egg]\n  reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json] [--read-profile]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
+                "egg_layout: bake-certificates ANALYSIS_DIR LIBRARY.egg\n  run-certificates LIBRARY.egg INPUTS.egg OUTPUT_DIR\n  analyze-transfer SOURCE.egg TRANSFERS.egg\n  run-transfer TRANSFERS.egg INPUTS.egg OUTPUT_DIR\n  analyze --source SOURCE.egg --output DIR [--bake-transfers]\n  whole-cell-auto-check ENV.egg PLAN.json INPUTS.egg GRAFTS.egg OUTPUT_DIR\n  whole-cell-check ENV.egg PLAN.json INPUTS.egg OUTPUT_DIR\n  reuse-adaptive MODE SOURCE.egg OUTPUT_DIR [LIBRARY.json]\n  reuse-virtualize SOURCE.egg LIBRARY.json [AFTER.egg]\n  reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json] [--read-profile]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
             );
             Ok(())
         }
@@ -141,7 +150,7 @@ fn main() -> Result {
             let mut i = 1;
             while i < args.len() {
                 match args[i].as_str() {
-                    "--bake-transfers" => bake_transfers=true,
+                    "--bake-transfers" | "--bake-certificates" => bake_transfers=true,
                     "--reuse-plan" => optimize=true,
                     "--reuse-library" => {i+=1;reuse_library=Some(PathBuf::from(args.get(i).ok_or("missing reuse library")?));}
                     "--source" => {

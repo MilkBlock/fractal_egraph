@@ -17,6 +17,7 @@ use smallvec::{SmallVec, smallvec};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 pub mod artifact;
+pub mod contract;
 pub mod joint;
 mod comparison;
 mod scalar;
@@ -682,6 +683,7 @@ pub struct Stats {
 }
 pub struct Runtime {
     eg: EGraph,
+    certificates: crate::certificate::Book,
     kernels: Vec<Kernel>,
     wake_tables: Vec<Vec<usize>>,
     sets: BTreeMap<String, Vec<usize>>,
@@ -788,7 +790,7 @@ impl Runtime {
             boundary.entry(spec.ruleset.clone()).or_default().push(sinks.len());sinks.push(sink);
         }
         let names = names.into_iter().collect::<Vec<_>>();
-        if plans.is_some_and(|p| p.len() != sinks.len()) {
+        if plans.is_some_and(|p| p.len() != sinks.len() - boundary_seeds.len()) {
             return Err("transfer must cover every installed rule exactly once".into());
         }
         let mut used_plans = BTreeSet::new();
@@ -811,7 +813,7 @@ impl Runtime {
                     .enumerate()
                     .find(|(_, p)| {
                         p.rule == sink.name
-                            && groups.get(&p.ruleset).is_some_and(|ids| ids.contains(&id))
+                            && (groups.get(&p.ruleset).is_some_and(|ids| ids.contains(&id)) || scalar.get(&p.ruleset).is_some_and(|g|g.plans.iter().any(|(i,_)|*i==id)))
                     })
                     .ok_or("missing transferred rule or mismatched ruleset")?;
                 if !used_plans.insert(index) {
@@ -839,6 +841,7 @@ impl Runtime {
         let identity = eg.cell_rule_environment_stamp();
         let (feed, initial) = eg.subscribe_cell_commits(&names)?;
         let mut r = Self {
+            certificates: crate::certificate::Book::default(),
             eg,
             kernels,
             wake_tables,
@@ -867,6 +870,18 @@ impl Runtime {
         };
         r.stats.bootstrap_rows = initial.rows.len();
         r.ingest(initial)?;
+        for (kid,k) in r.kernels.iter().enumerate() {
+            use crate::certificate::{Document,Strength};
+            let id=r.certificates.checked(Document{method:"typed-native-query/v1".into(),
+                strength:if k.sink.native_residuals || !k.sink.primitives.is_empty(){Strength::CandidateQuery}else{Strength::CompleteQuery},
+                rulesets:r.sets.iter().filter_map(|(s,ids)|ids.contains(&kid).then(||s.clone())).chain(r.scalar.iter().filter_map(|(s,g)|g.plans.iter().any(|(i,_)|*i==kid).then(||s.clone()))).chain(r.boundary.iter().filter_map(|(s,ids)|ids.contains(&kid).then(||s.clone()))).collect(),
+                contract:json!({"shape":artifact::Shape::of(&k.sink),"seed":k.seed,"steps":k.steps}),
+                evidence:json!({"source":"native typed query compiler","all_atoms_retained":true})});
+            r.certificates.marker(id,k.sink.atoms[k.seed].function.clone(),
+                k.sink.slots().into_iter().map(|(n,s)|(n.into(),s.into())).collect(),
+                vec!["rule environment".into(),"committed row generations".into(),"complete current port fibers".into(),"original incremental watermark".into()])?;
+        }
+        r.certificates.bind_environment(&r.eg);
         Ok(r)
     }
     pub fn engine(&self) -> &EGraph {
@@ -1081,7 +1096,7 @@ impl Runtime {
             }
             GenericSchedule::Saturate(_, x) => {
                 self.sync()?;
-                if self.comparison.is_some() && comparison::Scope::accepts(x) {
+                if self.comparison.as_ref().is_some_and(|c| c.accepts(x)) {
                     let mut scope = self.comparison.take().unwrap();
                     let result = scope.run(self);
                     self.comparison = Some(scope);
@@ -1129,7 +1144,7 @@ impl Runtime {
         if self.failed {
             return Err("failed update program cannot resume".into());
         }
-        if self.eg.cell_rule_environment_stamp() != self.identity {
+        if !self.certificates.current(&self.eg) || self.eg.cell_rule_environment_stamp() != self.identity {
             return Err("rule environment changed".into());
         }
         let result = (|| {
@@ -1168,6 +1183,6 @@ impl Runtime {
                 "reused_port_reads":k.reused_reads,"resumed_seed_evaluations":k.resumed_seeds,
                 "stored_port_paths":k.paths.len()})
         }).collect::<Vec<_>>();
-        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"program_telemetry_version":2,"programs":programs,"port_reuse":{"enabled":self.kernels.iter().all(|k|k.reuse_ports),"index_reads":self.kernels.iter().map(|k|k.index_reads).sum::<usize>(),"reused_reads":self.kernels.iter().map(|k|k.reused_reads).sum::<usize>(),"resumed_seed_evaluations":self.kernels.iter().map(|k|k.resumed_seeds).sum::<usize>(),"stored_paths":self.kernels.iter().map(|k|k.paths.len()).sum::<usize>(),"shared_row_handles":self.kernels.iter().flat_map(|k|k.paths.values()).map(|p|p.ports.iter().filter(|x|x.as_ref().is_some_and(|(_,r)|r.is_some())).count()).sum::<usize>()},"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
+        json!({"certificates":self.certificates.report(),"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"program_telemetry_version":2,"programs":programs,"port_reuse":{"enabled":self.kernels.iter().all(|k|k.reuse_ports),"index_reads":self.kernels.iter().map(|k|k.index_reads).sum::<usize>(),"reused_reads":self.kernels.iter().map(|k|k.reused_reads).sum::<usize>(),"resumed_seed_evaluations":self.kernels.iter().map(|k|k.resumed_seeds).sum::<usize>(),"stored_paths":self.kernels.iter().map(|k|k.paths.len()).sum::<usize>(),"shared_row_handles":self.kernels.iter().flat_map(|k|k.paths.values()).map(|p|p.ports.iter().filter(|x|x.as_ref().is_some_and(|(_,r)|r.is_some())).count()).sum::<usize>()},"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

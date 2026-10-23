@@ -1,0 +1,5 @@
+; The library is imported automatically from the committed If/Single Analyze catalog.
+(Single (Arg (Base (IntT)) (InFunc "unseen-certificate-instance")))
+(run-schedule (saturate if-tiny))
+(check (= (Get (Single (Arg (Base (IntT)) (InFunc "unseen-certificate-instance"))) 0)
+          (Arg (Base (IntT)) (InFunc "unseen-certificate-instance"))))

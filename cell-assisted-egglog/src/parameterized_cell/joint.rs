@@ -2,8 +2,9 @@
 //! The six helpers have an explicit checked contract. Producer constructors,
 //! operand wiring, Term expressions and cost expressions come from source AST.
 use super::*;
-use egglog::ast::{Action, Expr, Fact, Literal, Rule};
+use egglog::ast::{Action, Expr, Fact, Literal};
 
+// Legacy public fixture constants. Discovery and execution use Selection roles.
 pub const SETS: &[&str] = &["terms", "terms-helpers", "terms-helpers-helpers"];
 pub const SCHEDULE: &str = "(run-schedule (saturate (seq terms (saturate (seq terms-helpers (saturate terms-helpers-helpers))))))";
 
@@ -33,6 +34,8 @@ pub struct Counters {
     pub reasons: BTreeMap<String, usize>,
 }
 pub(super) struct Joint {
+    pub(super) roles: contract::Selection,
+    certificate: Option<usize>,
     proofs_enabled: bool,
     producers: Vec<Producer>,
     improve_rule: String,
@@ -61,22 +64,7 @@ fn var(e: &Expr) -> Result<String> {
         Err("joint contract requires a named port".into())
     }
 }
-fn signature(r: &Rule) -> (String, String, String) {
-    (
-        r.ruleset.clone(),
-        r.body
-            .iter()
-            .map(ToString::to_string)
-            .collect::<Vec<_>>()
-            .join(" "),
-        r.head
-            .0
-            .iter()
-            .map(ToString::to_string)
-            .collect::<Vec<_>>()
-            .join(" "),
-    )
-}
+use super::contract::signature;
 fn schedule_key(s: &Schedule) -> String {
     match s {
         GenericSchedule::Sequence(_, xs) => {
@@ -126,14 +114,18 @@ fn subst(e: &Expr, vars: &BTreeMap<String, String>) -> Result<String> {
 }
 impl Joint {
     pub(super) fn compile(eg: &mut EGraph, commands: &[Command]) -> Result<Self> {
-        for name in ["TCPair", "Smaller", "PotentialExtractedExpr", "NoTerm"] {
+        let roles=contract::Selection::discover(eg,commands)?;
+        Self::compile_roles(eg,commands,roles)
+    }
+    pub(super) fn compile_roles(eg:&mut EGraph,commands:&[Command],roles:contract::Selection)->Result<Self>{
+        for name in [roles.pair.as_str(),roles.compare.as_str(),roles.candidate.as_str(),roles.empty.as_str()] {
             if !eg.get_function(name).is_some_and(|f| f.is_constructor()) {
                 return Err(format!("joint helper symbol {name} must be a constructor").into());
             }
         }
-        let tc_schema = eg.get_function("TCPair").unwrap().schema();
+        let tc_schema = eg.get_function(&roles.pair).unwrap().schema();
         let expr_schema = eg
-            .get_function("ExtractedExpr")
+            .get_function(&roles.selected)
             .ok_or("missing ExtractedExpr")?
             .schema();
         if tc_schema.input.len() != 2
@@ -152,52 +144,18 @@ impl Joint {
             return Err("joint contract requires distinct Expr, Term and TermAndCost sorts".into());
         }
         let cost_sort = tc_schema.output.name().to_string();
-        let comparison_safe = comparison::Scope::safe_schema(eg, &cost_sort);
-        let expected = eg.parse_program(None, include_str!("joint_helpers.egg"))?;
-        let want = expected
-            .iter()
-            .filter_map(|c| {
-                if let Command::Rule { rule } = c {
-                    Some(signature(rule))
-                } else {
-                    None
-                }
-            })
-            .collect::<BTreeSet<_>>();
-        let have = commands
-            .iter()
-            .filter_map(|c| {
-                if let Command::Rule { rule } = c {
-                    if SETS[1..].contains(&rule.ruleset.as_str()) {
-                        Some(signature(rule))
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            })
-            .collect::<BTreeSet<_>>();
-        if want != have
-            || SETS[1..]
-                .iter()
-                .map(|s| eg.cell_rule_names(s).map(|r| r.len()))
-                .collect::<std::result::Result<Vec<_>, _>>()?
-                .iter()
-                .sum::<usize>()
-                != want.len()
-        {
-            return Err("joint helper contract does not match installed source".into());
-        }
-        if !commands.iter().any(|c|matches!(c,Command::Function{name,merge:Some(m),..} if name=="ExtractedExpr" && m.to_string()=="(Smaller old new)")){
-            return Err("joint contract requires the original Smaller merge".into())
+        let comparison_safe = comparison::Scope::safe_schema(eg, &cost_sort, &roles);
+        roles.validate_helpers(eg,commands)?;
+        let expected = roles.helpers()?;
+        if !commands.iter().any(|c|matches!(c,Command::Function{name,merge:Some(m),..} if name==&roles.selected && m.to_string()==format!("({} old new)",roles.compare))){
+            return Err("selection closure requires the checked merge".into())
         }
         let mut noop_unions = BTreeMap::new();
         for command in commands {
             let Command::Rule { rule } = command else {
                 continue;
             };
-            if rule.ruleset != SETS[2] {
+            if rule.ruleset != roles.sets[2] {
                 continue;
             }
             let [Action::Union(_, root, target)] = rule.head.0.as_slice() else {
@@ -206,7 +164,7 @@ impl Joint {
             let Some(Fact::Eq(_, lhs, Expr::Call(_, op, args))) = rule.body.first() else {
                 continue;
             };
-            if op == "Smaller" && root.to_string() == lhs.to_string() {
+            if op == &roles.compare && root.to_string() == lhs.to_string() {
                 if let Some(column) = args
                     .iter()
                     .position(|x| x.to_string() == target.to_string())
@@ -248,18 +206,18 @@ impl Joint {
         let Action::Set(_, _, _, sentinel_expr) = &init.head.0[0] else {
             unreachable!()
         };
-        let sentinel_args = call(sentinel_expr, "TCPair")?;
+        let sentinel_args = call(sentinel_expr, &roles.pair)?;
         let Expr::Lit(_, Literal::Int(sentinel)) = sentinel_args[1] else {
             unreachable!()
         };
         let cost_universe_closed = eg.get_function_names().iter().all(|name| {
             eg.get_function(name).unwrap().schema().output.name() != cost_sort
-                || matches!(name.as_str(), "TCPair" | "Smaller" | "ExtractedExpr")
+                || [&roles.pair,&roles.compare,&roles.selected].contains(&name)
         });
         let mut producers = vec![];
         for c in commands {
             let Command::Rule { rule } = c else { continue };
-            if rule.ruleset != "terms" {
+            if rule.ruleset != roles.sets[0] {
                 continue;
             }
             let Some(Fact::Eq(_, root, Expr::Call(_, ctor, args))) = rule.body.first() else {
@@ -283,8 +241,8 @@ impl Joint {
                 let Fact::Eq(_, pair, read) = fact else {
                     return Err("unsupported producer guard".into());
                 };
-                let p = call(pair, "TCPair")?;
-                let read = call(read, "ExtractedExpr")?;
+                let p = call(pair, &roles.pair)?;
+                let read = call(read, &roles.selected)?;
                 if p.len() != 2 || read.len() != 1 {
                     return Err("invalid producer port".into());
                 }
@@ -300,11 +258,11 @@ impl Joint {
             let [Action::Expr(_, rhs)] = rule.head.0.as_slice() else {
                 return Err("joint producer needs one candidate effect".into());
             };
-            let candidate = call(rhs, "PotentialExtractedExpr")?;
+            let candidate = call(rhs, &roles.candidate)?;
             if candidate.len() != 2 || var(&candidate[0])? != root {
                 return Err("candidate has different root".into());
             }
-            let pair = call(&candidate[1], "TCPair")?;
+            let pair = call(&candidate[1], &roles.pair)?;
             if pair.len() != 2 || !cost_expr(&pair[1], &ports.iter().map(|p| p.1.clone()).collect())
             {
                 return Err("unsupported checked cost expression".into());
@@ -333,7 +291,7 @@ impl Joint {
             }
             let mut term_calls = BTreeSet::new();
             calls(&pair[0], &mut term_calls);
-            let original = eg.prepare_cell_action("terms", &rule.name)?;
+            let original = eg.prepare_cell_action(&roles.sets[0], &rule.name)?;
             let slots = original.slots();
             let mut vars = slots
                 .iter()
@@ -362,12 +320,12 @@ impl Joint {
                 let name = if low { "low" } else { "high" };
                 let actions = if low {
                     format!(
-                        "(set (ExtractedExpr {root}) {candidate}) (union (Smaller {sentinel_expr} {candidate}) {candidate})"
+                        "(set ({} {root}) {candidate}) (union ({} {sentinel_expr} {candidate}) {candidate})", roles.selected, roles.compare
                     )
                 } else {
                     String::new()
                 };
-                code.push_str(&format!("(rule ((= 0 ({gate} {}))) ({rhs} (set (ExtractedExpr {root}) {sentinel_expr}) {actions}) :ruleset {set} :name \"{name}\")\n",(0..slots.len()).map(|i|format!("p{i}")).collect::<Vec<_>>().join(" ")));
+                code.push_str(&format!("(rule ((= 0 ({gate} {}))) ({rhs} (set ({} {root}) {sentinel_expr}) {actions}) :ruleset {set} :name \"{name}\")\n",(0..slots.len()).map(|i|format!("p{i}")).collect::<Vec<_>>().join(" "),roles.selected));
             }
             eg.parse_and_run_program(None, &code)?;
             let macros = [
@@ -386,7 +344,7 @@ impl Joint {
                 code,
             });
         }
-        if producers.is_empty() || producers.len() != eg.cell_rule_names("terms")?.len() {
+        if producers.is_empty() || producers.len() != eg.cell_rule_names(&roles.sets[0])?.len() {
             return Err("joint certificate must cover every producer rule".into());
         }
         let roots = producers
@@ -396,7 +354,7 @@ impl Joint {
         if producers.iter().any(|p| !p.term_calls.is_disjoint(&roots)) {
             return Err("producer RHS constructs another producer root".into());
         }
-        let commands = eg.parse_program(None, SCHEDULE)?;
+        let commands = eg.parse_program(None, &roles.schedule())?;
         let Command::RunSchedule(schedule) = &commands[0] else {
             unreachable!()
         };
@@ -407,9 +365,11 @@ impl Joint {
                 _ => panic!("invalid built-in joint schedule"),
             }
         }
-        let comparison = if comparison_safe { Some(comparison::Scope::compile(eg, &cost_sort)?) } else { None };
+        let comparison = if comparison_safe { Some(comparison::Scope::compile(eg, &cost_sort, &roles)?) } else { None };
         Ok(Self {
             proofs_enabled: std::env::var("CELL_JOINT_PROOFS").as_deref()!=Ok("0"),
+            roles,
+            certificate: None,
             producers,
             improve_rule,
             cost_universe_closed,
@@ -433,8 +393,8 @@ impl Joint {
             if !d.visible
                 || d.row.is_none()
                 || r.rows.keys.contains_key(&(d.table, d.key.clone().into()))
-                || name == "PotentialExtractedExpr"
-                || name == "Smaller"
+                || name == &self.roles.candidate
+                || name == &self.roles.compare
             {
                 self.extendable = false;
             }
@@ -447,8 +407,8 @@ impl Joint {
         r.names.iter().position(|s| s == name).unwrap()
     }
     fn selected_cost(&self, r: &Runtime, root: Value) -> Option<(i64, u32)> {
-        let f = Self::table(r, "ExtractedExpr");
-        let tc = Self::table(r, "TCPair");
+        let f = Self::table(r, &self.roles.selected);
+        let tc = Self::table(r, &self.roles.pair);
         let row = r.rows.keys.get(&(f, smallvec![root]))?;
         let value = *row.values.last()?;
         let keys = r.rows.outputs.get(&(tc, value))?;
@@ -468,6 +428,9 @@ impl Joint {
     }
     pub(super) fn try_close(&mut self, r: &mut Runtime) -> Result<Option<bool>> {
         self.counters.boundaries += 1;
+        if !self.certificate.is_some_and(|id|r.certificates.permits(id,crate::certificate::Strength::GuardedClosure,&r.eg)) {
+            return Ok(self.decline("missing or stale closure certificate"));
+        }
         if !self.proofs_enabled {return Ok(self.decline("joint proofs disabled; generic dataflow retained"));}
         if self.closed_epoch == Some(r.epoch) {
             self.counters.skipped_joint_saturations += 1;
@@ -477,17 +440,14 @@ impl Joint {
         // An obsolete key after rebuild is not an invisible fact. Retain the
         // exact current hidden keys, which hashcons must not silently revive.
         if r.rows.hidden.iter().any(|(t, _)| {
-            matches!(
-                r.names[*t].as_str(),
-                "TCPair" | "PotentialExtractedExpr" | "Smaller"
-            )
+            [&self.roles.pair,&self.roles.candidate,&self.roles.compare].contains(&&r.names[*t])
         }) {
             return Ok(self.decline("currently subsumed helper row"));
         }
         if !self.extendable && self.closed_epoch.is_some() {
             return Ok(self.decline("changed existing state or external helper work"));
         }
-        let tc = Self::table(r, "TCPair");
+        let tc = Self::table(r, &self.roles.pair);
         if r.rows
             .outputs
             .iter()
@@ -496,7 +456,7 @@ impl Joint {
             return Ok(self.decline("multiple TCPair alternatives"));
         }
         if self.closed_epoch.is_none()
-            && ["PotentialExtractedExpr", "Smaller"]
+            && [self.roles.candidate.as_str(), self.roles.compare.as_str()]
                 .iter()
                 .any(|n| r.rows.keys.keys().any(|(t, _)| *t == Self::table(r, n)))
         {
@@ -504,7 +464,7 @@ impl Joint {
         }
         let mut pending = BTreeMap::new();
         let mut roots = BTreeSet::new();
-        let f = Self::table(r, "ExtractedExpr");
+        let f = Self::table(r, &self.roles.selected);
         for (i, p) in self.producers.iter().enumerate() {
             let table = Self::table(r, &p.constructor);
             for ((_, key), row) in r.rows.table(table) {
@@ -649,8 +609,8 @@ impl Joint {
         if !self.cost_universe_closed {
             return false;
         }
-        let t = Self::table(r, "TCPair");
-        let smaller = Self::table(r, "Smaller");
+        let t = Self::table(r, &self.roles.pair);
+        let smaller = Self::table(r, &self.roles.compare);
         if r.rows
             .hidden
             .iter()
@@ -671,7 +631,7 @@ impl Joint {
         // immutable: an old union could conceal a conflicting pending minimum.
         let edges = r
             .rows
-            .table(Self::table(r, "Smaller"))
+            .table(Self::table(r, &self.roles.compare))
             .into_iter()
             .map(|(_, row)| (row.values[0], row.values[1], row.values[2]))
             .collect::<Vec<_>>();
@@ -733,13 +693,13 @@ impl Joint {
                 }
             }
         }
-        let improve = r.sets["terms-helpers"]
+        let improve = r.sets[&self.roles.sets[1]]
             .iter()
             .copied()
             .find(|id| r.kernels[*id].sink.name == self.improve_rule)
             .unwrap();
-        let uniform = self.proofs_enabled && self.uniform_costs(r);
-        let mut guarded = r.sets[SETS[2]].clone();
+        let uniform = self.proofs_enabled && self.certificate.is_some_and(|id|r.certificates.permits(id,crate::certificate::Strength::GuardedClosure,&r.eg)) && self.uniform_costs(r);
+        let mut guarded = r.sets[&self.roles.sets[2]].clone();
         guarded.push(improve);
         for id in &guarded {
             r.kernels[*id].retire_guard_failures = uniform;
@@ -776,11 +736,11 @@ impl Joint {
         Ok(updated)
     }
     pub(super) fn complete(&mut self, r: &mut Runtime) -> Result<()> {
-        for set in SETS {
+        for set in &self.roles.sets {
             r.eg.certify_cell_saturation(set)?;
         }
         if !self.proofs_enabled {return Ok(())}
-        let f = Self::table(r, "ExtractedExpr");
+        let f = Self::table(r, &self.roles.selected);
         self.stable.clear();
         for p in &self.producers {
             let table = Self::table(r, &p.constructor);
@@ -798,7 +758,7 @@ impl Joint {
         Ok(())
     }
     pub(super) fn report(&self) -> Json {
-        json!({"credit_contract":"same-dataflow-optional-joint-proofs/v1","proofs_enabled":self.proofs_enabled,"contract":"parameterized terms with certified comparison closure/v3","closed_cost_producer_universe":self.cost_universe_closed,"stats":self.counters,"comparison_closure":self.comparison.as_ref().map(|s|&s.counters),"producer_templates":self.producers.len(),"macro_source":self.producers.iter().map(|p|p.code.clone()).collect::<Vec<_>>(),"concrete_closure_entries":0})
+        json!({"roles":self.roles,"credit_contract":"same-dataflow-optional-joint-proofs/v1","proofs_enabled":self.proofs_enabled,"contract":"parameterized terms with certified comparison closure/v3","closed_cost_producer_universe":self.cost_universe_closed,"stats":self.counters,"comparison_closure":self.comparison.as_ref().map(|s|&s.counters),"producer_templates":self.producers.len(),"macro_source":self.producers.iter().map(|p|p.code.clone()).collect::<Vec<_>>(),"concrete_closure_entries":0})
     }
 }
 
@@ -843,6 +803,9 @@ impl Runtime {
         } else {
             eg.run_program(commands.clone())?;
         }
+        if let Some(path)=std::env::var_os("CELL_CERTIFICATE_LIBRARY") {
+            return artifact::Bundle::load(std::path::Path::new(&path))?.attach(eg,&commands);
+        }
         let joint = Joint::compile(&mut eg, &commands)?;
         // The producer's source constructor is specified by the checked
         // transfer contract, not picked by a cost heuristic among seed plans.
@@ -851,22 +814,50 @@ impl Runtime {
             .iter()
             .map(|p| (p.name.clone(), p.constructor.clone()))
             .collect();
-        let scalar = super::scalar::discover(&eg, &commands);
+        let scalar = super::scalar::discover(&eg, &commands, &joint.roles.sets);
         let boundaries=super::boundary::load(&commands)?;
-        let mut r = Self::new_with_boundaries(eg, SETS, &seeds, scalar, None, &boundaries)?;
-        for id in &r.sets[SETS[2]] {
-            let k = &mut r.kernels[*id];
-            if k.sink.atoms[k.seed].function == "Smaller" {
-                k.noop_union_column = joint.noop_unions.get(&k.sink.name).copied();
-            }
-        }
-        r.joint = Some(joint);
-        r.configure_scalar_closure(&commands)?;
+        let sets=joint.roles.sets.iter().map(String::as_str).collect::<Vec<_>>();
+        let mut r = Self::new_with_boundaries(eg, &sets, &seeds, scalar, None, &boundaries)?;
+        r.install_closure_certificates(Some(joint), &commands)?;
         Ok(r)
     }
+    pub(super) fn certified_commands(commands:Vec<Command>,roles:Option<contract::Selection>,scalar:Vec<super::scalar::Spec>,plans:Option<&[artifact::Program]>)->Result<Self>{
+        let mut eg=EGraph::default();eg.run_program(commands.clone())?;
+        Self::certified_engine(eg,&commands,roles,scalar,plans)
+    }
+    pub(super) fn certified_engine(mut eg:EGraph,commands:&[Command],roles:Option<contract::Selection>,scalar:Vec<super::scalar::Spec>,plans:Option<&[artifact::Program]>)->Result<Self>{
+        let joint=roles.map(|role|Joint::compile_roles(&mut eg,&commands,role)).transpose()?;
+        let seeds=joint.as_ref().map(|j|j.producers.iter().map(|p|(p.name.clone(),p.constructor.clone())).collect()).unwrap_or_default();
+        let sets=joint.as_ref().map(|j|j.roles.sets.iter().map(String::as_str).collect::<Vec<_>>()).unwrap_or_default();
+        let boundaries=super::boundary::load(commands)?;
+        let mut r=Self::new_with_boundaries(eg,&sets,&seeds,scalar,plans,&boundaries)?;
+        r.install_closure_certificates(joint,&commands)?;
+        Ok(r)
+    }
+    fn install_closure_certificates(&mut self,joint:Option<Joint>,commands:&[Command])->Result<()> {
+        if let Some(mut joint)=joint {
+            for id in &self.sets[&joint.roles.sets[2]] {
+                let k=&mut self.kernels[*id];
+                if k.sink.atoms[k.seed].function==joint.roles.compare {k.noop_union_column=joint.noop_unions.get(&k.sink.name).copied();}
+            }
+            let id=self.certificates.checked(crate::certificate::Document::guarded(
+                "parameterized-selection-closure/v1",joint.roles.sets.to_vec(),json!(joint.roles),
+                json!({"checker":"complete source helper universe, typed producer wiring, native effects",
+                    "runtime_obligations":["fresh or incrementally maintained roots","checked numeric evaluation","uniform cost aliases for comparison","no uncertified foreign merge observations"]})));
+            for p in &joint.producers {
+                let k=self.kernels.iter().find(|k|k.sink.name==p.name).ok_or("missing closure producer query")?;
+                self.certificates.marker(id,p.constructor.clone(),k.sink.slots().into_iter().map(|(n,t)|(n.into(),t.into())).collect(),
+                    vec!["committed row identity and dependency versions".into(),"explicit saturation boundary and checked selection obligations".into()])?;
+            }
+            joint.certificate=Some(id);self.joint=Some(joint);
+        }
+        self.configure_scalar_closure(commands)?;
+        self.certificates.bind_environment(&self.eg);
+        Ok(())
+    }
     pub fn detach_joint(mut self) -> Result<(EGraph, Observer)> {
-        if self.joint.is_none() {
-            return Err("no joint proof installed".into());
+        if self.joint.is_none() && self.scalar.is_empty() {
+            return Err("no closure certificate installed".into());
         }
         self.forwarded = Some(vec![]);
         for ids in self.sets.values() {
@@ -901,7 +892,7 @@ impl crate::table_live::SaturationHook for Observer {
     fn query_cells(&mut self,eg:&mut EGraph,set:&str,sinks:&[&CellActionSink])->Result<Vec<(usize,Vec<Vec<Value>>) >> {
         if !self.0.scalar.contains_key(set) && !self.0.boundary.contains_key(set){return Ok(vec![])}
         self.with(eg,|r|{
-            if r.eg.cell_rule_environment_stamp()!=r.identity{return Ok(vec![])}
+            if !r.certificates.current(&r.eg) || r.eg.cell_rule_environment_stamp()!=r.identity{return Ok(vec![])}
             let mut out=if r.scalar.contains_key(set){r.query_scalar(set,sinks)?}else{vec![]};
             if r.boundary.contains_key(set){out.extend(r.query_boundary(set,sinks)?)}
             Ok(out)
@@ -913,7 +904,7 @@ impl crate::table_live::SaturationHook for Observer {
             return Ok(None);
         }
         self.with(eg, |r| {
-            if r.eg.cell_rule_environment_stamp() != r.identity {
+            if !r.certificates.current(&r.eg) || r.eg.cell_rule_environment_stamp() != r.identity {
                 return Ok(None);
             }
             r.run_scalar(set).map(Some)
@@ -927,24 +918,24 @@ impl crate::table_live::SaturationHook for Observer {
     }
     fn try_boundary(&mut self, eg: &mut EGraph, s: &Schedule) -> Result<Option<Json>> {
         self.with(eg,|r|{
-            if r.eg.cell_rule_environment_stamp()!=r.identity{return Ok(None)}
+            if !r.certificates.current(&r.eg) || r.eg.cell_rule_environment_stamp()!=r.identity{return Ok(None)}
             r.sync()?;
             if r.enter_scalar_scope(s){return Ok(None)}
             if !r.joint.as_ref().is_some_and(|j|j.accepts(s)){return Ok(None)}
             let mut j=r.joint.take().unwrap();
             let result=(||{
                 if let Some(updated)=j.try_close(r)? {
-                    return Ok(json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"fresh parameterized terms joint closure"}));
+                    return Ok(json!({"complete":true,"updated":updated,"rulesets":j.roles.sets,"proof":"fresh parameterized terms joint closure"}));
                 }
                 let updated=j.run_dataflow(r,s)?;
-                Ok(json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"parameterized producer/helper waves; certified comparison closure when available"}))
+                Ok(json!({"complete":true,"updated":updated,"rulesets":j.roles.sets,"proof":"parameterized producer/helper waves; certified comparison closure when available"}))
             })();
             r.joint=Some(j);result.map(Some)
         })
     }
     fn after_boundary(&mut self, eg: &mut EGraph, s: &Schedule) -> Result<()> {
         self.with(eg, |r| {
-            if r.eg.cell_rule_environment_stamp() != r.identity {
+            if !r.certificates.current(&r.eg) || r.eg.cell_rule_environment_stamp() != r.identity {
                 return Ok(());
             }
             r.sync()?;

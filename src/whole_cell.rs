@@ -3,6 +3,7 @@
 //! through the native action-only sink and obtains its complete slot frame by
 //! a typed receipt. Original smooth queries remain installed but are not run.
 pub mod automatic;
+pub mod catalog;
 
 use crate::{
     pipeline::Result,
@@ -38,6 +39,9 @@ pub struct Stage {
     /// A native constructor expression over previous parameters, new parameters
     /// and `parent` (the source Cell's root). This supplies the coarse context.
     pub graft: String,
+    /// Complete positive seed forest, including equality preconditions.
+    #[serde(default)]
+    pub premises: Vec<String>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Plan {
@@ -59,12 +63,14 @@ struct Step {
     union_actions: usize,
     actions: Vec<String>,
     graft: String,
+    premises: Vec<String>,
     bake: Json,
 }
 /// Constructed only by native Bake plus independent delta replay verification.
 /// Saved JSON is an inspection artifact, not an unchecked executable loader.
 #[derive(Clone, Serialize)]
 pub struct Library {
+    certificates: crate::certificate::Book,
     environment: String,
     ruleset: String,
     constructors: Vec<String>,
@@ -583,6 +589,7 @@ impl Library {
     pub fn bake(src: &str, plan: &Plan) -> Result<Self> {
         let (base, names, inert, rules) = environment(src, &plan.ruleset)?;
         let mut lib = Self {
+            certificates: Default::default(),
             environment: src.into(),
             ruleset: plan.ruleset.clone(),
             constructors: names,
@@ -663,6 +670,19 @@ impl Library {
                     e
                 }
             });
+            let seed_commands=eg.parse_program(None,&spec.premises.join("\n"))?;
+            for command in seed_commands {
+                let Command::Action(mut action)=command else{return Err("seed premises must be constructor/equality facts".into())};
+                let bind=|e:Expr|e.visit_exprs(&mut |e|match e {
+                    Expr::Var(s,n) if n=="parent"=>spec.parent.as_ref().map(|p|Expr::Var(s.clone(),format!("wc_root_{p}"))).unwrap_or(Expr::Var(s,n)),
+                    Expr::Var(s,n) if ports.contains_key(&n)=>Expr::Var(s,format!("wc_param_{n}")), e=>e});
+                match &mut action {
+                    Action::Expr(_,e)=>{if !positive(e,&lib.constructors.iter().cloned().collect()){return Err("non-positive seed premise".into())}*e=bind(e.clone());},
+                    Action::Union(_,a,b)=>{if !positive(a,&lib.constructors.iter().cloned().collect())||!positive(b,&lib.constructors.iter().cloned().collect()){return Err("non-positive seed equality".into())}*a=bind(a.clone());*b=bind(b.clone());},
+                    _=>return Err("seed premise has an unsupported effect".into()),
+                }
+                eg.run_program(vec![Command::Action(action)])?;
+            }
             eg.parse_and_run_program(None, &format!("(let wc_root_{} {ex})", spec.name))?;
             let done = saturate(&mut eg, &plan.ruleset)?;
             let root = eg.eval_expr(
@@ -727,6 +747,7 @@ impl Library {
                 union_actions,
                 actions,
                 graft: spec.graft.clone(),
+                premises: spec.premises.clone(),
                 bake: done,
             };
             // Verify the compiled delta on a fresh parent snapshot, never on the
@@ -753,6 +774,15 @@ impl Library {
                 return Err("compiled whole-Cell delta disagrees with native saturation".into());
             }
             step.bake["delta_replay_verified"] = json!(true);
+            if target == lib.certificates.documents.len() {
+                lib.certificates.checked(crate::certificate::Document::finite(
+                    &plan.ruleset,json!({"state":target,"scope":desc.scope,"ports":desc.ports}),json!({"native_saturated":true,"delta_replay_verified":true,"entries":[]})));
+            }
+            lib.certificates.documents[target].evidence["entries"].as_array_mut().unwrap().push(
+                json!({"stage":step.name,"graft":step.graft,"input_partition":step.input_partition,"bake":step.bake}));
+            lib.certificates.marker(target,format!("state:{target}"),
+                desc.ports.iter().map(|(n,i)|(n.clone(),desc.values[*i].sort.clone())).collect(),
+                vec!["typed complete receipt".into(),"input alias partition".into(),"positive schema/ruleset scope".into(),"visible ownership coverage".into()])?;
             lib.steps.push(step);
             baked.insert(
                 spec.name.clone(),
@@ -793,6 +823,7 @@ impl Library {
             }),
         )?;
         crate::pipeline::write_json(&directory.join("bake.json"), self)?;
+        crate::pipeline::write_json(&directory.join("certificates.json"), &self.certificates.report())?;
         Ok(())
     }
     pub fn describe(&self) -> Json {
@@ -854,7 +885,7 @@ pub struct Runtime {
     pub events: Vec<Json>,
 }
 impl Runtime {
-    pub fn new(lib: Library, inputs: &str) -> Result<Self> {
+    pub fn new(mut lib: Library, inputs: &str) -> Result<Self> {
         let (mut eg, _, _, _) = environment(&lib.environment, &lib.ruleset)?;
         let cmds = eg.parse_program(None, inputs)?;
         for c in &cmds {
@@ -879,6 +910,7 @@ impl Runtime {
             let watermark = eg.cell_query_watermark(&sink);
             original.push((sink, watermark));
         }
+        lib.certificates.bind_environment(&eg);
         Ok(Self {
             eg,
             lib,
@@ -907,6 +939,7 @@ impl Runtime {
             .join("\n\n")
     }
     pub fn advance(&mut self, name: &str, bindings: &BTreeMap<String, String>) -> Result<Json> {
+        if !self.lib.certificates.current(&self.eg) {return Err("whole-Cell certificate environment changed".into());}
         if self.failed {
             return Err("failed whole-Cell runtime cannot resume".into());
         }
@@ -1091,6 +1124,14 @@ pub fn run_checked(source: &str, plan: &Plan, inputs: &str, out: &std::path::Pat
             }
         });
         expressions.insert(spec.name.clone(), ex.clone());
+        for command in native.parse_program(None,&spec.premises.join("\n"))? {
+            let Command::Action(mut action)=command else{return Err("invalid reference seed premise".into())};
+            let replace=|e:Expr|e.visit_exprs(&mut |e|if matches!(&e,Expr::Var(_,n) if n=="parent") {
+                spec.parent.as_ref().and_then(|p|expressions.get(p)).cloned().unwrap_or(e)
+            }else{e});
+            match &mut action {Action::Expr(_,e)=>*e=replace(e.clone()),Action::Union(_,a,b)=>{*a=replace(a.clone());*b=replace(b.clone());},_=>return Err("invalid reference premise action".into())}
+            let c=Command::Action(action);original+=&format!("{c}\n");native.run_program(vec![c])?;
+        }
         let graft = format!("(let wc_reference_{} {ex})", spec.name);
         original += &format!("{graft}\n(run-schedule (saturate {}))\n", plan.ruleset);
         native.parse_and_run_program(None, &graft)?;

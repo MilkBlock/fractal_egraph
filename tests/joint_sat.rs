@@ -549,3 +549,25 @@ fn credit_baseline_keeps_dataflow_and_ports_while_only_joint_proofs_change() {
     no.set_joint_proofs(true).unwrap();no.run(&schedule).unwrap();
     compare::equal(&base,yes.engine(),no.engine()).unwrap();
 }
+
+#[test]
+fn selection_closure_is_discovered_after_renaming_every_domain_role() {
+    use cell_assisted_egglog::parameterized_cell::Runtime;
+    let mut source=include_str!("../experiments/parameterized_cell/terms.egg").to_string();
+    let mut input=include_str!("../experiments/parameterized_cell/competing_updates.egg").to_string();
+    for (a,b) in [("terms-helpers-helpers","select-pass"),("terms-helpers","update-pass"),("terms","produce-pass"),
+        ("PotentialExtractedExpr","Proposal"),("ExtractedExpr","Chosen"),("TCPair","Scored"),("Smaller","SelectLow"),("NoTerm","Unresolved")] {
+        source=source.replace(a,b);input=input.replace(a,b);
+    }
+    let mut runtime=Runtime::new_joint(&source).unwrap();
+    let commands=runtime.engine().clone().parse_program(None,&input).unwrap();
+    let mut pending=String::new();
+    for c in commands {
+        if matches!(c,egglog::ast::Command::RunSchedule(_)) {
+            runtime.input(&pending).unwrap();pending.clear();runtime.run(&[c]).unwrap();runtime.audit_mirror().unwrap();
+        } else {pending.push_str(&format!("{c}\n"));}
+    }
+    if !pending.is_empty(){runtime.input(&pending).unwrap();}
+    assert_eq!(runtime.report()["joint"]["roles"]["compare"],"SelectLow");
+    assert_eq!(runtime.report()["joint"]["roles"]["sets"][0],"produce-pass");
+}

@@ -281,3 +281,17 @@ check/extraction等命令按原AST原生执行；pristine使用同样的初始�
 缓存前用原生parser检查文件依赖；含 include/input/output 的程序不复用执行缓存，避免外部文件变动或输出副作用被漏掉。
 
 若新表返回原程序的非primitive sort，可能引入新的extraction候选；不能仅因表名是新增的就忽略，目前报inconclusive，等待明确的辅助表/提取契约。
+
+### 通用闭包证书与 marker
+
+`run/audit --all-rules --joint-sat --certificate-library FILE` 将 version-2 的
+参数化证书挂到初始化后的原生引擎。当前 schema、完整规则集合、guard、primitive
+接线都重新检查；库文件内容进入控制缓存指纹，并传递给独立诊断。它可以与
+`--boundary-programs` 同时使用：前者提供闭包权限，后者仅提供完整查询布局。
+`spine-program --certificate-library FILE` 把同库交给布局编译器和正式运行器，
+不能只在编译报告上标记“已使用”。已有证明查询不再被边界布局重复接管。
+
+报告的 `certificates` 使用 `ripsat-certificates/v1`：有限闭包、带运行条件的
+闭包、完整查询和候选查询分开。后两者没有 sat-skip 权限，不能记为闭包收益。
+自动 Analyze 可用 `--bake-certificates` 导出，旧 `--bake-transfers` 仍兼容。
+具体复现和边界见 `experiments/unified_ripsat_certificates/README.md`。

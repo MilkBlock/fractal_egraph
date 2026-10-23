@@ -1223,16 +1223,9 @@ fn execute(
     };
     drop(boundary_emit);
     let mut transfer_report = Json::Null;
-    if bake_transfers {
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            let bundle = transfer::from_capture(&c)?;
-            std::fs::write(out.join("transfers.egg"), bundle.text()?)?;
-            transfer_report = bundle.report();
-        }
-        #[cfg(target_arch = "wasm32")]
-        return Err("parameterized transfer export currently requires the native analyzer".into());
-    }
+    let mut certificate_report = Json::Null;
+    #[cfg(not(target_arch = "wasm32"))]
+    let transfer_candidate = bake_transfers.then(||transfer::from_capture(&c));
     if save_history {
         history::save(&out.join("history.json"), Path::new(name), &c)?;
     }
@@ -1310,6 +1303,29 @@ fn execute(
             crate::graph_render::enqueue(&path)?;
         }
     }
+    if bake_transfers {
+        #[cfg(not(target_arch="wasm32"))]
+        {
+            match transfer_candidate.unwrap() {
+                Ok(bundle)=>{
+                    let text=bundle.text()?;
+                    std::fs::write(out.join("transfers.egg"),&text)?;
+                    std::fs::write(out.join("certificates.egg"),text)?;
+                    transfer_report=bundle.report();
+                    certificate_report=json!({"kind":"parameterized","library":transfer_report});
+                },
+                Err(parameterized_reason)=>{
+                    match crate::whole_cell::catalog::bake_file(out,&out.join("certificates.egg")) {
+                        Ok(value)=>certificate_report=value,
+                        Err(finite_reason)=>certificate_report=json!({"kind":"unavailable","parameterized_reason":parameterized_reason.to_string(),"finite_reason":finite_reason.to_string(),"permission":"none; ordinary execution retained"}),
+                    }
+                }
+            }
+        }
+        #[cfg(target_arch="wasm32")]
+        return Err("certificate export requires native validation".into());
+    }
+    report["certificates"] = certificate_report;
     report["parameterized_transfers"] = transfer_report;
     std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
     std::fs::write(

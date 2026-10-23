@@ -1,0 +1,154 @@
+{
+  "scope": "Actual runtime integration and regression; not a new speedup claim",
+  "math": {
+    "passed": true,
+    "runtime": {
+      "committed_rows": 15,
+      "union_events": 8,
+      "graft_candidate_rows": 534,
+      "macro_transitions": 24,
+      "macro_batches": 6,
+      "rejected_specializations": 0,
+      "invalidated_instances": 0,
+      "coverage_rows_checked": 12,
+      "native_fallbacks": 0,
+      "fallback_smooth_matches": 0,
+      "saturation_boundaries": 1,
+      "skipped_saturations": 1,
+      "stale_grafts": 0,
+      "graft_validation_seconds": 0.00042175000000000003,
+      "macro_apply_seconds": 0.0008312060000000001,
+      "publication_seconds": 0.0014311249999999999,
+      "coverage_seconds": 9.4791e-05
+    },
+    "native_smooth_matches": {
+      "(rewrite (Plus (Plus a b) c) (Plus a (Plus b c)) :ruleset algebra)": 0,
+      "(rewrite (Plus a b) (Plus b a) :ruleset algebra)": 0
+    }
+  },
+  "if_single": {
+    "passed": true,
+    "runtime": {
+      "committed_rows": 6,
+      "union_events": 1,
+      "graft_candidate_rows": 4,
+      "macro_transitions": 1,
+      "macro_batches": 1,
+      "rejected_specializations": 0,
+      "invalidated_instances": 0,
+      "coverage_rows_checked": 1,
+      "native_fallbacks": 1,
+      "fallback_smooth_matches": 1,
+      "saturation_boundaries": 1,
+      "skipped_saturations": 0,
+      "stale_grafts": 0,
+      "graft_validation_seconds": 3.333e-06,
+      "macro_apply_seconds": 3.5083e-05,
+      "publication_seconds": 0.000429917,
+      "coverage_seconds": 6.67e-07
+    }
+  },
+  "scalar": {
+    "passed": true,
+    "runtime": {
+      "program_compilations": 0,
+      "loaded_programs": 2,
+      "ruleset_runs": 0,
+      "keyed_reads": 8,
+      "committed_row_events": 13,
+      "union_events": 0,
+      "bootstrap_rows": 0,
+      "native_fallback_runs": 0,
+      "frontier_seconds": 0.0,
+      "effect_seconds": 0.0,
+      "ingest_seconds": 3.7291e-05
+    },
+    "closures": [
+      {
+        "ruleset": "measure",
+        "rules": 2,
+        "stats": {
+          "runs": 4,
+          "structural_candidates": 7,
+          "lhs_filtered": 0,
+          "min_noops": 3,
+          "native_candidates": 4,
+          "batch_dominated": 0,
+          "other_quiet_runs": 4,
+          "quiet_structural_candidates": 7,
+          "prepare_seconds": 1.0917e-05,
+          "commit_seconds": 4.1581999999999996e-05
+        },
+        "scope_allowed": true,
+        "closure": {
+          "builds": 2,
+          "closed": 2,
+          "deferred_hidden": 0,
+          "deferred_range": 0,
+          "updates": 3,
+          "waves": 3,
+          "evaluated": 4,
+          "lhs_filtered": 0,
+          "seconds": 3.2667e-05
+        }
+      }
+    ]
+  },
+  "pass3": {
+    "run_seconds": 14.754132834,
+    "setup_seconds": 2.754748125,
+    "current_fork_same_commit_cpu_graph": true,
+    "gpu_without_joint_graph": true,
+    "rows": 699068,
+    "eclass_mapping": 524631,
+    "tiger_selected_dag_equal": true,
+    "tiger_functions": 29,
+    "fused_native_equal": false,
+    "fused_native_error": "different final table counts: [(\"Smaller\", Some(72231), Some(73371)), (\"TCPair\", Some(63058), Some(63038)), (\"TermConcat\", Some(3627), Some(3607))]",
+    "certificate_strengths": {
+      "complete_query": 14,
+      "candidate_query": 17,
+      "guarded_closure": 2
+    },
+    "marker_interfaces": 56,
+    "selection": {
+      "boundaries": 12,
+      "skipped_joint_saturations": 0,
+      "quiescent_skips": 0,
+      "macro_instances": 0,
+      "macro_waves": 0,
+      "fallback_boundaries": 12,
+      "dataflow_boundaries": 12,
+      "dataflow_ruleset_runs": 1639,
+      "port_reusing_boundaries": 11,
+      "uniform_cost_boundaries": 12,
+      "reasons": {
+        "changed existing state or external helper work": 11,
+        "multiple producers for one Expr": 1
+      }
+    },
+    "comparison": {
+      "saturations": 1185,
+      "seed_evaluations": 211572,
+      "union_proposals": 89226,
+      "native_batches": 601,
+      "propagated_costs": 89226,
+      "unchanged_saturations": 584,
+      "identity_noop_seeds": 73371,
+      "cost_lookups": 151307,
+      "planning_seconds": 0.2458580830000005,
+      "effect_seconds": 0.7972484129999996
+    }
+  },
+  "reports": [
+    "out/unified-ripsat-pass3/report.json",
+    "out/unified-ripsat-pass3/extraction/cpu-gpu-quality.json",
+    "out/unified-ripsat-certificates/math-run/results.json"
+  ],
+  "regression": {
+    "rust_suites": 120,
+    "bench_python": 59,
+    "marker_compiler_python": 12,
+    "full_gpu_loaded_certificate_test": true
+  }
+}

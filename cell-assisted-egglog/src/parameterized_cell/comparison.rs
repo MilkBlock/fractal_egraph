@@ -1,7 +1,6 @@
 //! The certified Smaller fixed point: derive equality effects without
 //! enumerating TCPair aliases or running three equivalent structural queries.
 //! Enabled only inside the checked joint saturation and uniform-cost scope.
-use super::joint::SETS;
 use super::*;
 
 #[derive(Default, Serialize)]
@@ -20,6 +19,7 @@ pub(super) struct Counters {
 
 pub(super) struct Scope {
     sink: CellActionSink,
+    roles: contract::Selection,
     pub counters: Counters,
 }
 
@@ -27,9 +27,9 @@ impl Scope {
     /// Under these schemas, TermAndCost unions can only rebuild Smaller,
     /// PotentialExtractedExpr and ExtractedExpr. In particular no foreign
     /// order-sensitive merge callback may observe a different union order.
-    pub fn safe_schema(eg: &EGraph, cost_sort: &str) -> bool {
+    pub fn safe_schema(eg: &EGraph, cost_sort: &str, roles:&contract::Selection) -> bool {
         let marker = eg
-            .get_function("PotentialExtractedExpr")
+            .get_function(&roles.candidate)
             .unwrap()
             .schema()
             .output
@@ -69,10 +69,10 @@ impl Scope {
             let s = f.schema();
             s.input.iter().all(|t| !contains(t, &marker))
                 && (!s.input.iter().any(|t| contains(t, cost_sort))
-                    || matches!(name.as_str(), "Smaller" | "PotentialExtractedExpr"))
+                    || [&roles.compare,&roles.candidate].contains(&name))
         })
     }
-    pub fn compile(eg: &mut EGraph, cost_sort: &str) -> Result<Self> {
+    pub fn compile(eg: &mut EGraph, cost_sort: &str, roles:&contract::Selection) -> Result<Self> {
         let mut commands = eg.parse_program(
             None,
             &format!(
@@ -89,21 +89,22 @@ impl Scope {
         }
         eg.run_program(commands)?;
         Ok(Self {
+            roles: roles.clone(),
             sink: eg.prepare_cell_action("joint_comparison_macro", "union")?,
             counters: Counters::default(),
         })
     }
-    pub fn accepts(body: &Schedule) -> bool {
+    pub fn accepts(&self, body: &Schedule) -> bool {
         match body {
-            GenericSchedule::Run(_, r) => r.ruleset == SETS[2] && r.until.is_none(),
-            GenericSchedule::Sequence(_, xs) if xs.len() == 1 => Self::accepts(&xs[0]),
+            GenericSchedule::Run(_, r) => r.ruleset == self.roles.sets[2] && r.until.is_none(),
+            GenericSchedule::Sequence(_, xs) if xs.len() == 1 => self.accepts(&xs[0]),
             _ => false,
         }
     }
     pub fn run(&mut self, r: &mut Runtime) -> Result<bool> {
-        let ids = r.sets[SETS[2]].clone();
-        let smaller = r.names.iter().position(|n| n == "Smaller").unwrap();
-        let tc = r.names.iter().position(|n| n == "TCPair").unwrap();
+        let ids = r.sets[&self.roles.sets[2]].clone();
+        let smaller = r.names.iter().position(|n| n == &self.roles.compare).unwrap();
+        let tc = r.names.iter().position(|n| n == &self.roles.pair).unwrap();
         let mut updated = false;
         self.counters.saturations += 1;
         loop {
@@ -205,7 +206,7 @@ impl Scope {
             r.stats.effect_seconds += elapsed;
             updated |= report.updated;
         }
-        r.eg.certify_cell_saturation(SETS[2])?;
+        r.eg.certify_cell_saturation(&self.roles.sets[2])?;
         self.counters.unchanged_saturations += usize::from(!updated);
         Ok(updated)
     }

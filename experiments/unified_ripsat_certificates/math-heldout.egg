@@ -1,0 +1,4 @@
+(Plus (Plus (Leaf "new-a") (Leaf "new-b")) (Leaf "new-c"))
+(run-schedule (saturate algebra))
+(check (= (Plus (Plus (Leaf "new-a") (Leaf "new-b")) (Leaf "new-c"))
+          (Plus (Leaf "new-a") (Plus (Leaf "new-b") (Leaf "new-c")))))

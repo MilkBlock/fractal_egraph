@@ -14,6 +14,7 @@ use std::time::Instant;
 
 pub mod analyze_program;
 pub mod compile;
+pub mod certificate;
 pub mod live;
 mod live_bake;
 pub mod matrix;
