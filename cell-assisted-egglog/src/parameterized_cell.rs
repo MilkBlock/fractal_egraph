@@ -25,6 +25,8 @@ mod generic;
 pub mod environment;
 pub mod boundary;
 mod shared_marker;
+#[cfg(feature="planner-profile")]
+pub mod profile;
 
 type Key = SmallVec<[Value; 4]>;
 type Binding = SmallVec<[Option<Value>; 16]>;
@@ -215,6 +217,10 @@ struct Kernel {
     index_reads: usize,
     resumed_seeds: usize,
     rows_examined: std::cell::Cell<usize>,
+    #[cfg(feature="planner-profile")]
+    stage_work: std::cell::RefCell<Vec<profile::StageWork>>,
+    #[cfg(feature="planner-profile")]
+    census: std::cell::Cell<bool>,
     delta_rows_skipped: std::cell::Cell<usize>,
     payload_layout: Option<(usize, Vec<usize>)>,
     payload_resumes: std::cell::Cell<usize>,
@@ -339,6 +345,10 @@ impl Kernel {
             index_reads: 0,
             resumed_seeds: 0,
             rows_examined: std::cell::Cell::new(0),
+            #[cfg(feature="planner-profile")]
+            stage_work: Default::default(),
+            #[cfg(feature="planner-profile")]
+            census: std::cell::Cell::new(false),
             delta_rows_skipped: std::cell::Cell::new(0),
             payload_layout: None,
             payload_resumes: std::cell::Cell::new(0),
@@ -387,8 +397,10 @@ impl Kernel {
         for key in keys {
             let row=&rows.keys[&(table,key.clone())];
             self.rows_examined.set(self.rows_examined.get()+1);
+            #[cfg(feature="planner-profile")] self.stage(step,1);
             let mut next=b.clone();
             if unify(&a.columns,&row.values,&mut next){
+                #[cfg(feature="planner-profile")] {self.stage(step,2);if stamp.max(row.stamp)>=watermark{self.stage(step,4);}}
                 self.read_program(eg,rows,step+1,next,stamp.max(row.stamp),watermark,deps,out,lookups,rejections)?;
             }
         }
@@ -447,6 +459,7 @@ impl Kernel {
                 }
             }
             if step == self.steps.len() {
+                #[cfg(feature="planner-profile")] if self.census.get(){return Ok(())}
                 if stamp >= watermark {
                     let b = b
                         .into_iter()
@@ -460,6 +473,7 @@ impl Kernel {
                 }
                 return Ok(());
             }
+            #[cfg(feature="planner-profile")] self.stage(step,0);
             let (i, access) = self.steps[step];
             let a = &self.sink.atoms[i];
             let table = self.tables[i];
@@ -488,17 +502,22 @@ impl Kernel {
                     *reused += 1;
                     let Some(row) = row else { return Ok(()) };
                     self.rows_examined.set(self.rows_examined.get()+1);
+                    #[cfg(feature="planner-profile")] self.stage(step,1);
                     if !unify(&a.columns, &row.values, &mut b) {
                         return Ok(());
                     }
+                    #[cfg(feature="planner-profile")] {self.stage(step,2);if stamp.max(row.stamp)>=watermark{self.stage(step,4);}}
                     stamp = stamp.max(row.stamp);
                     step += 1;
                     continue;
                 }
             }
             *lookups += 1;
+            #[cfg(feature="planner-profile")] self.stage(step,3);
             if let Read::Columns(_,mask,key)=&read {
-                if step+1==self.steps.len() && stamp<watermark {
+                #[cfg(feature="planner-profile")] let census=self.census.get();
+                #[cfg(not(feature="planner-profile"))] let census=false;
+                if !census && step+1==self.steps.len() && stamp<watermark {
                     // Every preceding witness is old. Only the terminal port's
                     // delta can create a new binding. Do not cache this filtered
                     // subset as if it were the complete current port.
@@ -507,8 +526,11 @@ impl Kernel {
                         let mut visited=0;
                         for key in bucket.keys(watermark) {
                             visited+=1;self.rows_examined.set(self.rows_examined.get()+1);
+                            #[cfg(feature="planner-profile")] self.stage(step,1);
                             let row=&rows.keys[&(table,key.clone())];let mut next=b.clone();
-                            if unify(&a.columns,&row.values,&mut next){self.read_program(eg,rows,step+1,next,stamp.max(row.stamp),watermark,deps,out,lookups,rejections)?;}
+                            if unify(&a.columns,&row.values,&mut next){
+                                #[cfg(feature="planner-profile")] {self.stage(step,2);if stamp.max(row.stamp)>=watermark{self.stage(step,4);}}
+                                self.read_program(eg,rows,step+1,next,stamp.max(row.stamp),watermark,deps,out,lookups,rejections)?;}
                         }
                         self.delta_rows_skipped.set(self.delta_rows_skipped.get()+bucket.len-visited);
                     }
@@ -552,9 +574,11 @@ impl Kernel {
             }
             let Some(row) = row else { return Ok(()) };
             self.rows_examined.set(self.rows_examined.get()+1);
+            #[cfg(feature="planner-profile")] self.stage(step,1);
             if !unify(&a.columns, &row.values, &mut b) {
                 return Ok(());
             }
+            #[cfg(feature="planner-profile")] {self.stage(step,2);if stamp.max(row.stamp)>=watermark{self.stage(step,4);}}
             stamp = stamp.max(row.stamp);
             step += 1;
         }

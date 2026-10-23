@@ -41,7 +41,7 @@ class ScheduledSpines(unittest.TestCase):
         source=ROOT/'experiments/cell_spine/fixtures/stages/multi_rulesets.egg'
         with tempfile.TemporaryDirectory(dir=ROOT/'out',prefix='scheduled-contract-') as temp:
             out=Path(temp)/'out'
-            result=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',source,
+            result=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--static-cost-experiment','--source',source,
                 '--output',out,'--skip-build'],cwd=ROOT,capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             report=json.loads((out/'report.json').read_text())
@@ -58,7 +58,7 @@ class ScheduledSpines(unittest.TestCase):
             tmp=Path(temp);library=tmp/'certificates.egg';out=tmp/'compiled'
             bake=subprocess.run([ROOT/'target/analyzer/debug/egg_layout','analyze-transfer',source,library],cwd=ROOT,capture_output=True,text=True)
             self.assertEqual(bake.returncode,0,bake.stderr)
-            result=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--mode','scheduled',
+            result=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--static-cost-experiment','--mode','scheduled',
                 '--source',source,'--output',out,'--certificate-library',library,'--skip-build'],cwd=ROOT,capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             proof=json.loads((out/'certificates.json').read_text())
@@ -129,7 +129,7 @@ class ScheduledSpines(unittest.TestCase):
             tmp=Path(temp);library=tmp/'certificates.egg';out=tmp/'compiled'
             bake=subprocess.run([ROOT/'target/analyzer/debug/egg_layout','analyze-transfer',source,library],cwd=ROOT,capture_output=True,text=True)
             self.assertEqual(bake.returncode,0,bake.stderr)
-            result=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--mode','scheduled',
+            result=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--static-cost-experiment','--mode','scheduled',
                 '--source',source,'--output',out,'--certificate-library',library,'--skip-build'],cwd=ROOT,capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             manifest=json.loads((out/'scheduled-plan.json').read_text())

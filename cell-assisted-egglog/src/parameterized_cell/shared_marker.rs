@@ -54,7 +54,7 @@ pub(super) struct Marker {
 
 /// Alpha normalization preserves table types, argument positions, literals,
 /// aliases and the chosen access order. Guards remain with each consumer.
-fn normalize(k: &Kernel, depth: usize) -> (String, Vec<usize>, Vec<CellQueryAtom>, Vec<usize>) {
+pub(super) fn normalize(k: &Kernel, depth: usize) -> (String, Vec<usize>, Vec<CellQueryAtom>, Vec<usize>) {
     let ids = std::iter::once(k.seed)
         .chain(k.steps[..depth].iter().map(|(i, _)| *i))
         .collect::<Vec<_>>();
@@ -154,6 +154,12 @@ pub(super) fn build(kernels: &mut [Kernel]) -> (Vec<Marker>, Vec<Vec<usize>>) {
     (markers, watch)
 }
 impl Marker {
+    #[cfg(feature="planner-profile")]
+    pub(super) fn profile_snapshot(&self)->[u64;10] {
+        [self.stats.lookups as u64,self.stats.candidate_rows as u64,self.stats.root_refreshes as u64,
+         self.stats.cache_hits as u64,self.stats.invalidations as u64,self.stats.published_bindings as u64,
+         self.stats.decoded_rows as u64,self.bindings as u64,self.cache.len() as u64,self.subscribers.len() as u64]
+    }
     fn remove(&mut self, key: &Key) {
         if let Some(entry) = self.cache.remove(key) {
             self.bindings -= entry.frames.len();

@@ -43,6 +43,7 @@ name = "native_shared_snapshot"
 harness = false
 
 [features]
+planner-profile = ["cell-assisted-egglog/planner-profile"]
 native-read-profile = ["egglog/table-read-profile"]
 native-join-work-profile = ["egglog/join-work-profile"]
 
@@ -57,3 +58,7 @@ harness = false
 [[bench]]
 name = "cell_machine"
 harness = false
+
+[[example]]
+name = "planner_profile"
+required-features = ["planner-profile"]

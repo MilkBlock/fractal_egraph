@@ -810,10 +810,19 @@ def parser():
     q.add_argument('--no-build',action='store_true');q.add_argument('--query-audit',action='store_true');q.add_argument('--native-rulesets',default='',help='explicit comma-separated CPU helper rulesets, same source schedule')
     q.add_argument('--cell-assistance',action='store_true');q.add_argument('--boundary-programs',type=Path)
     q.add_argument('--setup-policy',choices=['source','legacy-stable'],default='source')
+    q=sub.add_parser('planner-prices',help='aggregate all verified workload/round costs for the existing marker solver')
+    q.add_argument('--input',type=Path,required=True);q.add_argument('--output',type=Path,required=True)
+    q=sub.add_parser('planner-corpus',help='actual eggcc pass chain and count-only per-Run candidate workload for marker planning')
+    q.add_argument('--production-repo',type=Path,default=SHARED/'check_statewalk')
+    q.add_argument('--profile-binary',type=Path,required=True)
+    q.add_argument('--source',type=Path,action='append');q.add_argument('--output',type=Path,required=True)
+    q.add_argument('--resume',action='store_true');q.add_argument('--no-build',action='store_true')
     q=sub.add_parser('spine-program',help='compile full scheduled source with optional-parameter spine layouts and validate through the usual runtime')
     q.add_argument('--snapshot',type=Path,default=SNAPSHOT);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--query-selection',type=Path);q.add_argument('--query-profile',type=Path);q.add_argument('--table-profile',type=Path)
     q.add_argument('--certificate-library',type=Path);q.add_argument('--marker-profile',type=Path)
+    q.add_argument('--runtime-workload',type=Path)
+    q.add_argument('--static-cost-experiment',action='store_true')
     q.add_argument('--solver-python',type=Path);q.add_argument('--solver',choices=['scip','gurobi'],default='scip')
     q.add_argument('--reuse-controls',type=Path);q.add_argument('--worker',type=Path,default=WORKER)
     q.add_argument('--no-build',action='store_true');q.add_argument('--no-extract',action='store_true');q.add_argument('--compile-only',action='store_true')
@@ -1044,6 +1053,20 @@ def main(argv=None):
             print('Build isolated Tiger overlay; compare off/cpu/gpu and native cost oracle on', resolve(a.graph)); return 0
         import extraction_markers
         return extraction_markers.run(a,repo)
+    if a.mode=='planner-prices':
+        if a.dry_run:
+            print('Aggregate verified per-Run profiles from',resolve(a.input),'into',resolve(a.output));return 0
+        sys.path.insert(0,str(repo))
+        from tools.cell_spine.workload import collect
+        if resolve(a.output).exists():raise ValueError('pricing output already exists; reuse it or choose a new path')
+        result=collect(resolve(a.input))
+        resolve(a.output).parent.mkdir(parents=True,exist_ok=True)
+        with resolve(a.output).open('x') as f:json.dump(result,f,separators=(',',':'));f.write('\n')
+        print('Measured passes:',len(result['cases']),'Run boundaries:',sum(c['rounds'] for c in result['cases']),'plans:',len(result['plans']))
+        return 0
+    if a.mode=='planner-corpus':
+        import planner_corpus
+        return planner_corpus.run(a,repo)
     if a.mode=='spine-program':
         import scheduled_spines
         return scheduled_spines.run(a,repo)

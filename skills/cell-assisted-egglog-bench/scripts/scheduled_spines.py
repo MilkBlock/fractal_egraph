@@ -15,8 +15,9 @@ def run(a,repo):
                          ['cargo','build','--offline','--release','--target-dir','target/analyzer','--example','scheduled_spine','--example','raytrace_stable_bench']])
     compile=[str(python),'-m','tools.cell_spine.compiler','--mode','scheduled','--source',str(resolve(a.snapshot)),
              '--output',str(out/'program'),'--solver',a.solver,'--skip-build']
-    for flag in ['query_selection','query_profile','table_profile','certificate_library','marker_profile']:
+    for flag in ['query_selection','query_profile','table_profile','certificate_library','marker_profile','runtime_workload']:
         if getattr(a,flag):compile.extend(['--'+flag.replace('_','-'),str(resolve(getattr(a,flag)))])
+    if a.static_cost_experiment:compile.append('--static-cost-experiment')
     commands.append(compile)
     if not a.compile_only:
         if not a.reuse_controls:raise ValueError('--reuse-controls is required unless --compile-only')

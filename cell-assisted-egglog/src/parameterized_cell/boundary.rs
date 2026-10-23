@@ -126,7 +126,7 @@ pub(super) fn compile(
     compile_seed(eg, sink, tables, roots[0])
 }
 
-fn compile_seed(
+pub(super) fn compile_seed(
     eg: &EGraph,
     sink: CellActionSink,
     tables: Vec<usize>,

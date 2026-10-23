@@ -131,14 +131,19 @@ def bounded_layouts(groups,rows,weights):
         dominated_choices=sum(len(o) for _,o,_ in groups)-sum(len(o) for _,o,_ in reduced))
 
 
-def select(queries,rows,output,weights,profile=None,marker_profile=None):
+def select(queries,rows,output,weights,profile=None,marker_profile=None,runtime_workload=None):
     groups=[]
     for q in queries:
         observed=(profile or {}).get((q['ruleset'],q['rule']),{})
-        opts=[v for o in options(q,rows,observed.get('requests',1)) for v in shared_prefix.estimates(o,q,rows,observed.get('requests',1),marker_profile)]
+        if runtime_workload is not None:
+            from . import workload
+            opts=workload.options(q,runtime_workload)
+            if not opts:continue  # unknown work is not zero-cost optimization
+        else:
+            opts=[v for o in options(q,rows,observed.get('requests',1)) for v in shared_prefix.estimates(o,q,rows,observed.get('requests',1),marker_profile)]
         # Fallback stays a legal choice. Without measured work the compiler
         # selects a layout for each admitted requested query; it claims no speedup.
-        fallback=None if profile is None else observed.get('candidate_rows',0)
+        fallback=None if runtime_workload is not None or profile is None else observed.get('candidate_rows',0)
         if fallback==0:continue
         groups.append((q,opts,fallback))
     groups,marker_costs,bounds=bounded_layouts(groups,rows,weights)
@@ -188,6 +193,12 @@ def select(queries,rows,output,weights,profile=None,marker_profile=None):
 def compile_program(a,data,root,weights):
     from .compiler import run,digest
     output=a.output;work=output/'work';source=a.source
+    if not getattr(a,'runtime_workload',None) and not getattr(a,'static_cost_experiment',False):
+        raise ValueError('scheduled marker selection requires --runtime-workload from planner-corpus; --static-cost-experiment is an explicit diagnostic only')
+    if getattr(a,'runtime_workload',None) and getattr(a,'static_cost_experiment',False):
+        raise ValueError('choose runtime workload or explicit static experiment')
+    if getattr(a,'runtime_workload',None) and any(getattr(a,f,None) for f in ['query_profile','table_profile','marker_profile']):
+        raise ValueError('runtime workload must not be mixed with static or single-snapshot pricing profiles')
     if a.knowledge_library:raise ValueError('scheduled mode uses --certificate-library; knowledge-library is the symbolic solver format')
     certificate=getattr(a,'certificate_library',None)
     if a.analysis_dir:
@@ -233,7 +244,19 @@ def compile_program(a,data,root,weights):
         provenance=a.marker_profile.parent/'workflow.json'
         if not provenance.is_file() or json.loads(provenance.read_text()).get('snapshot_sha256')!=digest(source):
             raise ValueError('marker measurements need matching source provenance')
-    decision=select(queries,rows,output,weights,profile,shared_prefix.measurements(a.marker_profile) if getattr(a,'marker_profile',None) else None)
+    runtime_workload=None
+    if getattr(a,'runtime_workload',None):
+        from . import workload
+        runtime_workload=workload.load(a.runtime_workload)
+    decision=select(queries,rows,output,weights,profile,shared_prefix.measurements(a.marker_profile) if getattr(a,'marker_profile',None) else None,runtime_workload)
+    decision['pricing']='runtime-corpus' if runtime_workload is not None else 'static-experimental'
+    if runtime_workload is not None:
+        admitted={(q['ruleset'],q['rule']) for q in decision['selected']}
+        decision['retained_native']=[dict(ruleset=q['ruleset'],rule=q['rule'],reason='no measured executable plan with nonempty work') for q in queries if (q['ruleset'],q['rule']) not in admitted]
+        decision['workload']=dict(path=str(a.runtime_workload),sha256=digest(a.runtime_workload),
+            corpus_sha256=runtime_workload['corpus_sha256'],passes=len(runtime_workload['cases']),
+            rounds=sum(c['rounds'] for c in runtime_workload['cases']),
+            scope=runtime_workload['objective'],limits=runtime_workload['limits'])
     chosen=decision['selected']
     (output/'shared-markers.egg').write_text(shared_prefix.egg(decision['shared_markers']))
     plans=dict(schema='cell-boundary-programs/v2',setup=native['preserved_commands'][:native['setup_commands']],
@@ -268,7 +291,7 @@ def compile_program(a,data,root,weights):
         certificate_library=str(certificate) if certificate else None,
         certificates=native.get('certificates'),parameterized_library=native.get('parameterized_library'),
         evidence='typed query layouts plus separately native-checked imported closures' if certificate else 'typed source query wiring; no new Analyze closure certification',
-        profiles={str(p):digest(p/'report.json' if p.is_dir() else p) for p in [a.query_profile,a.table_profile,a.query_selection,getattr(a,'marker_profile',None)] if p},
+        profiles={str(p):digest(p/'report.json' if p.is_dir() else p) for p in [a.query_profile,a.table_profile,a.query_selection,getattr(a,'marker_profile',None),getattr(a,'runtime_workload',None)] if p},
         preserved_source=True,concrete_snapshot=False)
     write(output/'scheduled-plan.json',manifest)
     return dict(status='scheduled_symbolic',cellified=False,scheduled=True,source_preserved=True,

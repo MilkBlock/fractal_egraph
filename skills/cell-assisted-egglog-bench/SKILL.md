@@ -428,3 +428,11 @@ run/audit/提取入口及历史对照，不另造计时脚本。
 候选访问和 shared-prefix 维护分别计账；若 GPU 候选数不变，不能宣称 GPU search
 获得了 marker 收益。典型回退见 `experiments/parameterized_marker_solver/pass3`：
 初始为空的 HasType 被误认为廉价 anchor，实际运行后出现大量 CPU 分叉搜索。
+
+### 按全样例、每轮实际工作选择 marker
+
+使用 `planner-corpus` 采集真实 eggcc pass 输入的逐 Run 诊断，`planner-prices`
+汇总，再让 `spine-program --runtime-workload` 使用原求解器选布局。不要再用初始
+表大小定价；旧模型仅允许显式 `--static-cost-experiment` 作对照。采集、续跑、
+已选布局转为可执行源码，以及计数口径见 [运行时布局规划](references/planner-workload.md)。
+完整采集需要 manifest 的 `complete: true`，日志 `[96/96]` 只表示启动了最后一个。
