@@ -23,6 +23,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 - 完整 `run --all-rules` 会保存原生、同提交协议 CPU、GPU-off 的完整事实及冻结输入锚点。后续用 `run --all-rules --joint-sat --reuse-controls 旧目录` 只运行新 GPU 候选，重新核对完整事实、值、等价关系和可见性；旧时间明确标为历史。要求输入、调度、分区和选择策略相同，且旧 CPU/GPU 图检查通过。旧目录缺少 `graphs/*.control.json` 时不能使用此模式。
 - 缓存校验使用完整结构比较，不以哈希代替判等。native/CPU 的 Tiger 结果只在提取器和输入/输出指纹均一致时复用；新 GPU 的提取与检查仍执行。只读询问仍用 `report`，不调用 `run`。
 - 基线二进制、输入/调度、线程/worker、选择策略或验证口径改变时，先判断哪部分对照受影响；只有受影响的结果才需要刷新。公共内核变化可能同时影响 CPU 和 GPU。
+- 遇到跨版本绝对时间回退，不能拿新版本内部的 private/shared 消融代替旧方案对照。固定同一计划、worker、提交协议和工具链；必要时隔离重建旧提交。若旧绝对时间无法复现，区分本次配对收益与未归因的历史差额，不把差额全算给修改。已完成案例见 `experiments/loop_marker_regression/README.md`（仓库根目录下）。
 
 ## Cell / Join 改动的固定评价指标
 
@@ -83,6 +84,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 ## 验证和计时的界限
 
 - 单次运行每条路径，不自动取平均。不要同时编译、audit、做图或运行其它 benchmark。
+- 使用 macOS `sample` 等外部采样时，给 `run` 加 `--external-profiler 名称`。它只标记诊断、不启动采样器；所得报告仍保留正确性检查，但不计算加速比、不复用为计时基线。
 - `run` 的稳定策略在 CPU/GPU 共用同一原生 merge；主计时包含结构键维护，输入锚点准备和 worker setup 单列。脚本在整图失败后仍可做 Tiger 检查，但保留失败退出码。
 - `run --joint-sat` 顺序跑原生融合、CPU 同提交协议、GPU 关闭 joint、GPU 开启 joint 四条完整主调度。只有 GPU 开启 joint 装载联合闭包 observer。报告 CPU/GPU 比值及 GPU 关闭÷开启的单独增益；后者必须通过 `joint_verification` 整图门槛，并展示实际 macro 实例数、空转跳过数和回退原因。不能把普通 GPU 收益算成 Cell 收益。控制 GPU worker 在 joint lane 开始前释放。
 - 加速比默认用**同提交协议的 CPU vs GPU**，且要求完整原始事实、值、等价关系、可见性检查通过；失败时不打印有效加速比。Expr 数量、match 数量、TCPair 代价相同都不能替代这一门槛。

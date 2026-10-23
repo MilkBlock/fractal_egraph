@@ -431,6 +431,13 @@ class WorkflowTests(unittest.TestCase):
         self.assertTrue(m['exact_cpu_gpu']);self.assertFalse(m['timing_eligible'])
         self.assertIsNone(m['inference_speedup'])
 
+    def test_external_sampling_is_not_reusable_timing_evidence(self):
+        r=fixture(); r['external_profiler']='macOS sample'
+        m=B.metrics(r)
+        self.assertTrue(m['exact_cpu_gpu'])
+        self.assertFalse(m['timing_eligible'])
+        self.assertIsNone(m['inference_speedup'])
+
     def test_search_atomics_are_not_reported_as_uninstrumented_timing(self):
         r = fixture(); r['gpu']['cells'] = {'profile': True}
         self.assertFalse(B.metrics(r)['timing_eligible'])

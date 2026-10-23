@@ -135,7 +135,7 @@ def metrics(r, quality=None, extraction=None):
     gpu = r['gpu']['runtime']['run_seconds']
     control=r.get('gpu_without_joint')
     joint_ok=not control or exact(r.get('joint_verification'))
-    eligible = ok and joint_ok and r.get('benchmark_finished') is True and audit is False and not r.get('gpu',{}).get('query_timing_profile',False) and not r.get('gpu',{}).get('cells',{}).get('profile',False) and cpu > 0 and gpu > 0
+    eligible = ok and joint_ok and r.get('benchmark_finished') is True and audit is False and not r.get('external_profiler') and not r.get('gpu',{}).get('query_timing_profile',False) and not r.get('gpu',{}).get('cells',{}).get('profile',False) and cpu > 0 and gpu > 0
     result = dict(exact_cpu_gpu=ok, exact_fused_native_gpu=exact(r.get('verification')),
                   timing_eligible=eligible, inference_speedup=cpu / gpu if eligible else None,
                   extraction_passed=bool(quality and quality.get('passed') is True),
@@ -828,6 +828,7 @@ def parser():
             q.add_argument('--reuse-controls', type=Path, help='reuse saved exact native/CPU/GPU-off controls; all-rules only')
             q.add_argument('--no-cell-metrics',action='store_true',help='write available ledger only; skip automatic missing diagnostic companions')
             q.add_argument('--refresh', action='store_true', help='remeasure even if an identical verified result exists')
+            q.add_argument('--external-profiler', help='label an externally sampled run; excludes it from timing/cache reuse (does not launch the profiler)')
         if mode == 'audit':
             q.add_argument('--cell-only', action='store_true')
             q.add_argument('--three-lane-check', action='store_true')
@@ -1216,7 +1217,7 @@ def main(argv=None):
         for c in plan: execute(c)
         if a.mode == 'diff': print('定位环境：', {k:v for k,v in env.items() if k.startswith('PASS3_DIFF_')})
         return 0
-    if a.mode == 'run' and not a.refresh:
+    if a.mode == 'run' and not a.refresh and not a.external_profiler:
         cached = reusable_result(a, repo, worker, env)
         if cached is not None:
             print('输入、二进制、worker、策略及配置一致，复用已验证记录：', cached)
@@ -1234,6 +1235,9 @@ def main(argv=None):
             # A saved graph failure is still useful input for extraction quality.
             if not (a.mode == 'run' and i == 0 and (out / 'report.json').is_file() and load(out / 'report.json').get('benchmark_finished') is True): break
     if a.mode != 'test' and out.is_dir():
+        if getattr(a,'external_profiler',None) and (out/'report.json').is_file():
+            packet=load(out/'report.json'); packet['external_profiler']=a.external_profiler
+            (out/'report.json').write_text(json.dumps(packet,indent=2)+'\n')
         try:
             if not saved_gate(a.mode, out, getattr(a,'three_lane_check',False)): status = status or 1
         except (FileNotFoundError, KeyError): status = status or 1
@@ -1254,7 +1258,7 @@ def main(argv=None):
         (out / ('workflow-extract.json' if a.mode == 'extract' else 'workflow.json')).write_text(json.dumps(provenance, indent=2) + '\n')
         try: report(out, fresh=True)
         except FileNotFoundError: print('未生成完整报告，日志：', log)
-        if status==0 and a.mode in ['run','audit']:
+        if status==0 and a.mode in ['run','audit'] and not getattr(a,'external_profiler',None):
             finish_cell_metrics(a,repo,worker,out,env)
     return status
 
