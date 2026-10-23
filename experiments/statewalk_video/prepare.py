@@ -5,6 +5,7 @@ import json
 import math
 from pathlib import Path
 import subprocess
+import shutil
 from real_ir import export
 
 HERE=Path(__file__).resolve().parent
@@ -14,10 +15,18 @@ def timestamp(t):
     return f'{h:02}:{m:02}:{s:02},{ms:03}'
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--story',type=Path,default=HERE/'story.json');p.add_argument('--reuse-audio',type=Path);p.add_argument('--trace',type=Path);a=p.parse_args()
     out=a.output.resolve();(out/'audio').mkdir(parents=True,exist_ok=True)
     export(HERE.parents[1],out)
-    story=json.loads((HERE/'story.json').read_text());fps=story['fps'];cursor=0;clips=[];chapters=[];srt=[]
+    story=json.loads(a.story.read_text());fps=story['fps'];cursor=0;clips=[];chapters=[];srt=[];reuse={}
+    if a.reuse_audio:
+        old=json.loads((a.reuse_audio/'timeline.json').read_text())
+        assert (old['voice'],old['rate'])==(story['voice'],story['rate'])
+        reuse={c.get('speech',c['text']):Path(c['audio']) for c in old['clips']}
+    if a.trace:
+        from trace_data import export as export_trace
+        export_trace(a.trace,out);shutil.copyfile(a.trace/'trace.jsonl',out/'statewalk-trace.jsonl')
     for ch in story['chapters']:
         start=cursor;cursor+=round(.65*fps)
         for text in ch['clips']:
@@ -25,9 +34,11 @@ def main():
             changed=not source.exists() or source.read_text()!=text
             source.write_text(text)
             if changed or not wav.exists():
-                subprocess.run(['say','-v',story['voice'],'-r',str(story['rate']),'-f',str(source),'-o',str(aiff)],check=True)
-                subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(aiff),'-ar','48000','-ac','1',str(wav)],check=True)
-                aiff.unlink()
+                if text in reuse:shutil.copyfile(reuse[text],wav)
+                else:
+                    subprocess.run(['say','-v',story['voice'],'-r',str(story['rate']),'-f',str(source),'-o',str(aiff)],check=True)
+                    subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(aiff),'-ar','48000','-ac','1',str(wav)],check=True)
+                    aiff.unlink()
             duration=float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(wav)],text=True))
             caption=text.replace('泰格','Tiger').replace('数值叉','数值 x').replace('叉加一','x 加一').replace('梯','t')
             frames=math.ceil(duration*fps);clip=dict(index=i,text=caption,speech=text,start=cursor,frames=frames,audio=str(wav),chapter=ch['id'])

@@ -58,3 +58,47 @@ Outputs under `out/statewalk-film/`:
 
 Media/build outputs are not committed. The script, narration and rendering sources
 are versioned; the voice is clearly disclosed as synthesized.
+
+## Version 2: real search decisions, not only the selected IR
+
+The second edition replaces the illustrative search-state and rejection scenes
+with **actual production Statewalk records** from the same `vec_add` region.
+An isolated Tiger source copy adds diagnostic events only. Its final extraction
+is checked byte-for-byte against the saved production output; timing from this
+instrumented run is not used as performance evidence.
+
+The complete region contains 113 e-classes / 174 e-nodes. It creates 808 DP
+states, visits 1,864 candidates and rejects 399 at the dependency check. These
+are work counts, not unique matching locations. Pure-saturation cache hits are
+recorded directly at the cache-hit branch, including hits which might later be
+discarded; the measured count is **zero**. The video explicitly separates this
+from the cost-bag optimization.
+
+The native trace supplies:
+
+- states #11 and #73 at the same local e-class c9, with different available
+  values and cumulative estimates 613 / 1225;
+- the real first six queue pops, with estimates 0, 1, 1, 2, 612, 612;
+- the Write candidate rejected from #71 because c39 is unavailable;
+- the first Write on the selected path, accepted from #797 into #798;
+- the complete chosen path, reconstructed from native predecessor records.
+
+`trace_data.py` checks every fixed number spoken in the film. A changed trace
+fails preparation rather than silently producing an inaccurate narration.
+The renderer caches immutable vector-card images and the static background;
+this affects only media rendering, not Tiger or its measured results.
+
+```sh
+python3 experiments/statewalk_video/capture.py --output out/statewalk-trace-NEW
+python3 experiments/statewalk_video/prepare.py \
+  --output out/statewalk-film-v2 \
+  --story experiments/statewalk_video/story-v2.json \
+  --reuse-audio out/statewalk-film --trace out/statewalk-trace-NEW
+node experiments/statewalk_video/render.cjs out/statewalk-film-v2 --preview
+node experiments/statewalk_video/render.cjs out/statewalk-film-v2
+python3 experiments/statewalk_video/finish.py --output out/statewalk-film-v2
+```
+
+`--reuse-audio` is optional; use a different output directory from the reuse
+source. The complete JSONL trace and its small visual projection accompany the
+second player as downloads. No production checkout is patched.

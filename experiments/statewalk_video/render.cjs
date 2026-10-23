@@ -9,8 +9,9 @@ const out = path.resolve(process.argv[2]);
 const preview = process.argv.includes('--preview');
 const film = JSON.parse(fs.readFileSync(path.join(out,'timeline.json'),'utf8'));
 const ir = JSON.parse(fs.readFileSync(path.join(out,'ir-demo.json'),'utf8'));
+const trace = fs.existsSync(path.join(out,'trace-demo.json'))?JSON.parse(fs.readFileSync(path.join(out,'trace-demo.json'),'utf8')):null;
 const W=1920,H=1080,FPS=film.fps;
-const canvas=createCanvas(W,H),g=canvas.getContext('2d');
+const canvas=createCanvas(W,H);let g=canvas.getContext('2d');
 GlobalFonts.registerFromPath('/System/Library/Fonts/SFNS.ttf','SF Pro');
 const C={bg:'#08121f',panel:'#101f31',line:'#26394e',text:'#eff5fc',muted:'#93a9bf',cyan:'#55e1e6',mint:'#b7ef99',violet:'#afa4ff',amber:'#ffc181',red:'#ff8297'};
 const font='"SF Pro", "Arial", "Heiti TC", sans-serif';
@@ -28,9 +29,16 @@ function line(pts,color=C.line,width=3,p=1,dashed=false){
 function arrow(a,b,color=C.cyan,p=1){line([a,b],color,3,p);if(p>=.99){let t=Math.atan2(b[1]-a[1],b[0]-a[0]);g.save();g.translate(...b);g.rotate(t);g.fillStyle=color;g.beginPath();g.moveTo(0,0);g.lineTo(-13,-6);g.lineTo(-13,6);g.closePath();g.fill();g.restore();}}
 function glowDot(x,y,color=C.cyan,r=7){g.save();g.shadowColor=color;g.shadowBlur=18;g.fillStyle=color;g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();g.restore();}
 function flow(a,b,t,color=C.cyan){const u=((t*.22)%1+1)%1;glowDot(a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u,color,5);}
+const nodeCache=new Map();
 function node(x,y,w,h,title,sub='',color=C.cyan,active=false){
-  g.save();if(active){g.shadowColor=color+'77';g.shadowBlur=25;}round(x,y,w,h,19,active?color+'18':C.panel,active?color:C.line,active?2.5:1.5);g.restore();
-  text(title,x+w/2,y+h/2-(sub?13:0),30,C.text,600,'center');if(sub)text(sub,x+w/2,y+h/2+23,20,active?color:C.muted,400,'center');
+  const key=JSON.stringify([w,h,title,sub,color,active]);let sprite=nodeCache.get(key);
+  if(!sprite){
+    sprite=createCanvas(w+80,h+80);const old=g;g=sprite.getContext('2d');
+    g.save();if(active){g.shadowColor=color+'77';g.shadowBlur=25;}round(40,40,w,h,19,active?color+'18':C.panel,active?color:C.line,active?2.5:1.5);g.restore();
+    text(title,40+w/2,40+h/2-(sub?13:0),30,C.text,600,'center');if(sub)text(sub,40+w/2,40+h/2+23,20,active?color:C.muted,400,'center');
+    g=old;nodeCache.set(key,sprite);
+  }
+  g.drawImage(sprite,x-40,y-40);
 }
 function circle(x,y,r,label,color=C.cyan,active=false){g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fillStyle=active?color+'20':C.panel;g.fill();g.strokeStyle=active?color:C.line;g.lineWidth=2;g.stroke();text(label,x,y,28,active?color:C.text,600,'center');}
 function reveal(a,fn){g.save();g.globalAlpha*=clamp(a);fn();g.restore();}
@@ -41,10 +49,14 @@ function table(x,y,w,rows,{title='',active=-1,highlight=C.cyan}={}){
   round(x,y,w,64+rows.length*61,18,C.panel,C.line);if(title)text(title,x+24,y+31,23,C.muted,600);
   rows.forEach((r,i)=>{let yy=y+64+i*61;if(i===active)round(x+8,yy+3,w-16,55,9,highlight+'18');line([[x+20,yy],[x+w-20,yy]],C.line,1);text(r[0],x+27,yy+30,25,C.text,500);text(r[1],x+w-28,yy+30,28,i===active?highlight:C.text,600,'right');});
 }
+let backgroundCache=null;
 function background(frame){
+  if(backgroundCache){g.drawImage(backgroundCache,0,0);return;}
+  const old=g;backgroundCache=createCanvas(W,H);g=backgroundCache.getContext('2d');
   const grad=g.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#07111d');grad.addColorStop(.5,'#0c1a2b');grad.addColorStop(1,'#08121e');g.fillStyle=grad;g.fillRect(0,0,W,H);
   g.strokeStyle='#28405620';g.lineWidth=1;g.beginPath();for(let x=0;x<W;x+=64){g.moveTo(x,0);g.lineTo(x,H);}for(let y=0;y<H;y+=64){g.moveTo(0,y);g.lineTo(W,y);}g.stroke();
   const halo=g.createRadialGradient(1550,360,20,1550,360,750);halo.addColorStop(0,'#3e92ad10');halo.addColorStop(1,'#3e92ad00');g.fillStyle=halo;g.fillRect(0,0,W,H);
+  g=old;g.drawImage(backgroundCache,0,0);
 }
 function header(ch,index,frame){
   round(88,54,8,22,4,C.cyan);text('FRACTAL EGRAPH  /  RESEARCH FILM',112,66,19,C.muted,650);
@@ -124,6 +136,18 @@ function scene(ch,frame){
     const labels=['Alloc 结果数组','Write 分量0','Write 分量1','Write 分量2'];
     labels.forEach((v,j)=>{let x=165+j*435;node(x,738,350,73,v,'',C.violet,s>=2);if(j<3)arrow([x+355,775],[x+428,775],s>=2?C.violet:C.line);});
     smallNote(s>=2?'真实共享点：__tmp7097 = Get(Alloc,0)，供三次 PtrAdd 和返回值共同使用。':'第一分量的加法反而最后准备好：状态路径与纯计算就绪顺序，并不相同。',s>=2?C.cyan:C.muted);
+  } else if(ch.id==='state' && trace){
+    const a=trace.state_returns[0],b=trace.state_returns[1];
+    pill('本次区域内的状态 e-class：c9',110,300,520,C.violet);
+    [a,b].forEach((v,j)=>{let yy=378+j*201,color=j?C.mint:C.cyan;round(110,yy,780,173,22,C.panel,color+'99');
+      text(`搜索记录 #${v.id}`,140,yy+37,30,C.text,700);text(`累计估价 ${v.cost}`,855,yy+37,26,color,600,'right');
+      const vals=['a[0]','b[0]','a[1]','b[1]','a[2]','b[2]'];vals.forEach((name,k)=>{let xx=140+k*119,ready=v.values.includes(name);round(xx,yy+78,102,47,10,ready?color+'22':'#0a1624',ready?color:C.line);text(name,xx+51,yy+101,23,ready?color:C.muted,600,'center',mono);});
+      text(`完整可提取集合：${v.available_count} 个类（上方只展示读取值）`,140,yy+150,20,C.muted);
+    });
+    node(1130,465,615,143,'后续要复用 a[1]','记录73已具备；记录11尚未具备',C.mint,s>=1);
+    line([[895,452],[1010,452],[1120,508]],s>=1?C.red:C.line,3,1,true);arrow([895,648],[1120,568],s>=1?C.mint:C.line);
+    pill('同一个 c9 ≠ 同一个搜索状态',1050,713,730,C.amber);
+    smallNote('来源：真实 Statewalk 前驱记录。编号属于本次区域，不是输出文件的 __tmp 变量名。');
   } else if(ch.id==='state'){
     pill('同一个当前位置 m₂',109,309,365,C.violet);
     node(120,392,660,144,'状态 A','位置 m₂  ·  可提取 {x, p}  ·  累计估价 5',C.cyan,true);
@@ -132,6 +156,13 @@ function scene(ch,frame){
     arrow([780,460],[1095,510],s>=1?C.mint:C.line);line([[780,652],[1035,652],[1100,566]],s>=1?C.red:C.line,3,1,true);
     if(s>=1){pill('可继续',851,404,145,C.mint);pill('不能只因成本低就替代 A',818,704,420,C.red);}
     smallNote('“可提取”是可用性信息，不是最终已经选择的纯表达式集合。',s>=2?C.amber:C.muted);
+  } else if(ch.id==='native_queue'){
+    const pops=trace.first_pops.slice(0,6),at=s===0?Math.min(5,Math.floor(p*6)):5;
+    panelTitle('前六次真实弹出（队列尚有后继状态）',110,311,C.cyan);
+    table(110,353,920,pops.map(v=>[`#${v.id}   ${v.label}`,String(v.cost)]),{title:'状态记录 / 操作                             累计估价',active:at,highlight:C.cyan});
+    const v=pops[at];node(1160,378,600,116,`处理记录 #${v.id}`,`${v.label}  ·  估价 ${v.cost}`,C.cyan,true);
+    pill('先检查依赖，再进入队列',1165,544,590,C.mint);pill('按累计估价推进',1165,610,590,C.violet);pill('同分沿用原有选择顺序',1165,676,590,C.amber);
+    smallNote('估价是成本模型的数值，不是毫秒。后面还有四个估价612的读取状态；完整记录可下载。');
   } else if(ch.id==='walk'){
     let readReady=s>=1||p>.34,pureReady=s>=1,writeReady=s>=2;
     panelTitle('副作用路径',111,315,C.violet);panelTitle('纯计算的可提取性',111,574,C.mint);
@@ -144,6 +175,19 @@ function scene(ch,frame){
     pill(writeReady?'依赖就绪':'等待 y 可提取',1436,625,320,writeReady?C.mint:C.amber);
     if(readReady)flow([630,442],[724,442],t,C.violet);if(pureReady)flow([850,652],[962,652],t,C.mint);
     smallNote(s>=3?'纯闭包 = 传播已有节点的可提取性；不运行 rewrite，也不创建新 e-node。':'示意：先满足数据依赖，再推进副作用路径。',s>=3?C.amber:C.muted);
+  } else if(ch.id==='dp' && trace){
+    const accept=s>=2,r=trace.rejection,state=accept?trace.accepted:r.state;
+    pill(`真实搜索记录 #${state.id} · 当前 c${state.position}`,110,302,640,accept?C.mint:C.violet);
+    node(110,388,790,122,'Top(Write, c38, c39, c6)','准备向结果数组写入第一个分量',C.violet,true);
+    const rows=r.children.filter(c=>c.role!=='operator');rows.forEach((c,i)=>{let yy=557+i*69,ok=accept||c.available;
+      text(({address:'写入地址',value:'待写数值',state:'当前状态'})[c.role],145,yy,28,C.text,600);text('c'+c.eclass,420,yy,28,C.muted,500,'left',mono);
+      pill(ok?'已具备':'缺少',610,yy-21,240,ok?C.mint:C.red);
+    });
+    node(1115,390,655,123,'c39 = FAdd(a[0], b[0])',accept?'在选中路径上，依赖已经齐全':'这是原生检查指出的第一个缺失项',accept?C.mint:C.red,true);
+    arrow([915,450],[1100,450],accept?C.mint:C.red);
+    text(accept?'允许继续':'拒绝这次候选',1440,620,62,accept?C.mint:C.red,700,'center');
+    text(accept?`保留后继记录 #${trace.accepted.next.id}`:'地址、状态就绪，也不能跳过数值依赖',1440,699,27,C.muted,400,'center');
+    smallNote(accept?'这里切换到最终选中路径上的另一条记录，并非把记录71直接改成记录797。':'这是 trace 中真实发生的检查，展示了完整依赖校验的一次失败。');
   } else if(ch.id==='dp'){
     panelTitle('候选状态',125,318);table(120,361,765,[['依赖不齐的候选','估价 2'],['合法候选 P','估价 6'],['合法候选 Q','估价 4']],{title:'先检查全部必要依赖',active:s===0?0:2,highlight:s===0?C.red:C.mint});
     if(s===0){line([[154,454],[840,454]],C.red,3);pill('不入队',623,662,220,C.red);}else pill('优先展开 Q',521,662,320,C.mint);
@@ -151,10 +195,18 @@ function scene(ch,frame){
     node(1051,540,290,100,'旧记录：7','',C.muted);node(1481,540,290,100,'新记录：4','保留',C.mint,s>=1);arrow([1355,590],[1467,590],C.mint);
     if(s>=2){pill('保存前驱 → 到达目标 → 回溯路径',1033,702,740,C.cyan);}
     smallNote('队列比较的是累计 Statewalk 估价；完整程序仍由后续提取阶段完成。');
+  } else if(ch.id==='trace_stats'){
+    const a=trace.summary,stats=[[trace.classes,'e-class',C.cyan],[trace.enodes,'e-node',C.mint],[a.done.states,'搜索状态',C.violet],[a.counts.candidate,'候选检查',C.amber]];
+    stats.forEach(([n,label,color],i)=>{let x=110+i*432;round(x,366,397,218,24,C.panel,C.line);text(String(Math.round(n*ease(t/1.3))),x+198,446,70,color,700,'center');text(label,x+198,532,29,C.muted,500,'center');});
+    const fraction=a.missing_dependencies/a.counts.candidate;round(110,645,1695,137,22,C.panel,C.line);
+    text(`${a.missing_dependencies} 次因依赖未齐而拒绝`,145,684,33,C.red,650);text(`${(fraction*100).toFixed(1)}% 的候选检查`,1763,684,28,C.muted,500,'right');
+    round(145,735,1615,15,7,C.line);round(145,735,1615*fraction*ease(t/1.5),15,7,C.red);
+    smallNote('完整诊断记录；计数包含重复检查。插桩前后输出逐字节相同，本页不报告性能。');
   } else if(ch.id==='cache'){
     const cards=[['01','纯闭包缓存','相同状态 + 相同下一步','复用可提取性传播',C.cyan],['02','未来相关信息','忽略已不影响未来的值','减少需要区分的状态',C.mint],['03','持久化状态','多个搜索分支','共享未修改的部分',C.violet]];
     cards.forEach((c,i)=>{let x=110+i*579;round(x,365,540,368,25,C.panel,C.line);text(c[0],x+30,408,30,c[4],650);text(c[1],x+30,483,36,C.text,650);text(c[2],x+30,565,25,C.muted);text(c[3],x+30,626,26,c[4]);line([[x+30,679],[x+500,679]],c[4],3,ease((t-i*.4)/1.3));});
-    smallNote('本次改动的目标：成本账表的复制与合并。不是重新发明这些 Statewalk 缓存。',s>=2?C.amber:C.muted);
+    if(trace){pill(`本例纯闭包缓存命中：${trace.summary.closure_cache_hits} 次`,435,756,1050,C.amber);smallNote('算法支持缓存 ≠ 这个例子已经靠它获益。账表优化的收益另外核算。',C.amber);}
+    else smallNote('本次改动的目标：成本账表的复制与合并。不是重新发明这些 Statewalk 缓存。',s>=2?C.amber:C.muted);
   } else if(ch.id==='sharing'){
     node(575,325,330,105,'t：共享计算','成本 3 · 同一个 e-class',C.cyan,true);
     arrow([642,433],[405,569],C.cyan);arrow([844,433],[1069,569],C.cyan);
@@ -175,13 +227,14 @@ function scene(ch,frame){
     smallNote('合并时生成新表；旧表仍供其他候选使用。没有对所有相同内容做全局去重。');
   } else if(ch.id==='merge'){
     panelTitle('A：总成本4，已有 t=3',110,315,C.mint);panelTitle('B：总成本5，已有 t=3',720,315,C.violet);
-    table(110,360,480,[['10 · t','3'],['20 · A 自身','4 − 3 = 1']],{title:'加入自身剩余开销',active:s>=1?0:-1,highlight:C.mint});
-    table(720,360,480,[['10 · t','3'],['30 · B 自身','5 − 3 = 2']],{title:'加入自身剩余开销',active:s>=1?0:-1,highlight:C.violet});
+    const merging=s===1?Math.min(2,Math.floor(p*3)):-1;
+    table(110,360,480,[['10 · t','3'],['20 · A 自身','4 − 3 = 1']],{title:'加入自身剩余开销',active:merging===0?0:merging===1?1:-1,highlight:C.mint});
+    table(720,360,480,[['10 · t','3'],['30 · B 自身','5 − 3 = 2']],{title:'加入自身剩余开销',active:merging===0?0:merging>=1?1:-1,highlight:C.violet});
     arrow([600,465],[700,465],C.muted);arrow([1212,465],[1290,465],C.cyan);
     const shown=s===0?-1:s===1?Math.min(2,Math.floor(p*3)):2;
     table(1310,360,500,[['10 · t','3'],['20 · A','1'],['30 · B','2']].map((r,i)=>i<=shown?r:['等待归并','—']),{title:'归并后的父账表',active:s===1?shown:-1,highlight:C.cyan});
     round(140,646,1030,117,19,C.panel,C.line);text('孩子自身开销 = 总成本 − 已记账贡献',655,681,31,C.text,600,'center');text('重复 e-class：保留较低贡献值，沿用 Tiger 规则',655,731,25,C.muted,400,'center');
-    if(shown===2)text('合计 6',1560,690,67,C.mint,650,'center');text('共享的 t 只付一次',1560,761,26,C.muted,400,'center');
+    if(shown>=0)text(`合计 ${[3,4,6][shown]}`,1560,690,67,C.mint,650,'center');text('共享的 t 只付一次',1560,761,26,C.muted,400,'center');
     smallNote('有序归并减少散乱访问与分配；缓存表内总额，避免反复求和。');
   } else if(ch.id==='evidence'){
     const phase=clamp((t-.4)/2);round(108,328,820,390,25,C.panel,C.line);round(992,328,820,390,25,C.panel,C.line);

@@ -1,0 +1,69 @@
+{
+  "duration": 483.5833333333333,
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "frames": 11606,
+  "chapters": 16,
+  "voice": "本机中文合成语音 · Tingting",
+  "bytes": 21716779,
+  "sha256": "be7354ba2fa3b90dbf95ef8f02771ab5821c33a3cd79a5db2601714b34a3ec89",
+  "verified": "ffprobe: video/audio length, frame count, dimensions and chapter count",
+  "sources": [
+    "check_statewalk@ae80f82a/dag_in_context/src/tiger/statewalkdp.cpp",
+    "check_statewalk@ae80f82a/dag_in_context/src/tiger/greedy.cpp",
+    "egg_layout@f9a6d1c/experiments/tiger_extraction_markers/results.json"
+  ],
+  "native_trace": {
+    "function_index": 2,
+    "function": {
+      "event": "function",
+      "index": 2,
+      "root": 18017,
+      "heads": [
+        "\\\"vec_add\\\"",
+        "TupleT",
+        "TupleT",
+        "Concat"
+      ]
+    },
+    "counts": {
+      "candidate": 1864,
+      "chosen": 22,
+      "closure": 1465,
+      "done": 1,
+      "function": 1,
+      "init": 1,
+      "node": 174,
+      "pop": 808,
+      "publish": 807,
+      "region": 1
+    },
+    "missing_dependencies": 399,
+    "closure_cache_hits": 0,
+    "output_byte_identical": true,
+    "input_sha256": "204e18abf98fb73d8eef6ed37a29e552d8f973649b6bed6969d643e7a113b7e3",
+    "trace_sha256": "0ea1ac014c5ed5fa6f7d21e7d74e70b7d375e4d50ff29e2ccb8c9dd30668bb21",
+    "done": {
+      "event": "done",
+      "states": 808,
+      "best_cost": 13907
+    },
+    "scope": "Complete diagnostic Statewalk trace of one real region; no timing claim"
+  },
+  "full_decode_verified": true,
+  "delivery": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/statewalk-explainer-v2-20261023",
+  "native_trace_source_sha256": {
+    "time_ilp.cpp": "9e9c1a7891b9592e928146fa2bbcaf9de184ce71e4764672409101255e86119f",
+    "toegglog.cpp": "fb3aa71752a6c7ef50112ca90587da6771c21cfa28a921fb6e9a88def3047d6e",
+    "greedy.cpp": "af1e8b0ad0504d60ed41e33a8f9e76af565ff27d0f255955e163e1e5bf2ea9f8",
+    "json2egraphin.cpp": "1b4bcb11ef01b515b22558c6c4dc27a4cb4b64811beb339e981f4d079dd4429a",
+    "regionalize.cpp": "41b0544800aa08eb38af30396259f0bcbf8f96826f51792bff42f25a696142a6",
+    "ilp.cpp": "d814f9220a9e2b2de4d8c0667d63e3ce87e2cf5964aa8359d446cbe0f52956c9",
+    "egraphin.cpp": "1af1b34930a581cb1b7a16017b922b580d51dee056a4743f5e7ff3ef0d726d29",
+    "tiger.cpp": "297793d39dadc062a6f8db8363d6e9390c61d187c1e62b808a598ad8100ecc34",
+    "debug.cpp": "ba35544dbd151f0957797a3a7c9d629d7958a3d68b490e1b1b5205f2bdf980c1",
+    "statewalkdp.cpp": "59013e35019ca2ec572c0b472305be3d52be3cbdb829cdc5fe65c9844bd21dd2",
+    "main.cpp": "e838dec672447fe5d375650b415406b102690e498e4faf651a8546bac3904005"
+  }
+}

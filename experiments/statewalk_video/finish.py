@@ -27,9 +27,16 @@ def main():
 <section><div><video id="film" controls playsinline preload="metadata" poster="poster.jpg" src="statewalk-explained.mp4"></video><div class="links"><a href="statewalk-explained.mp4" download>下载 1080p 视频</a><a href="captions.srt" download>下载中文字幕</a><a href="vec_add-extracted.egg" download>真实 vec_add IR</a></div><p class="note">DURATION_LABEL · CHAPTER_LABEL章节 · 本机中文合成配音（Tingting）<br>包含真实 raytrace / vec_add 的源码、原始IR和状态路径。教学示例与真实测量已区分。主要收益来自CPU共享成本表示，尚未接入matching marker或在线extraction。</p></div><nav>'''+''.join(items)+'''</nav></section></main>
 <script>const v=document.querySelector('video'),buttons=[...document.querySelectorAll('button')];buttons.forEach(b=>b.onclick=()=>{v.currentTime=+b.dataset.time;v.play()});v.ontimeupdate=()=>{let i=buttons.findLastIndex(b=>+b.dataset.time<=v.currentTime);buttons.forEach((b,j)=>b.classList.toggle('active',i===j))};</script></html>'''
     page=page.replace('DURATION_LABEL',f'{int(data["duration"])//60}分{int(data["duration"])%60:02}秒').replace('CHAPTER_LABEL',str(len(data['chapters'])))
+    trace_file=out/'trace-demo.json'
+    if trace_file.exists():
+        trace=json.loads(trace_file.read_text());s=trace['summary']
+        page=page.replace('真实 vec_add IR</a>', '真实 vec_add IR</a><a href="statewalk-trace.jsonl" download>原生搜索记录</a>')
+        evidence=f'<p class="note">第二版 · 真实 Statewalk 记录<br>{trace["classes"]} 个e-class · {trace["enodes"]} 个e-node · {s["done"]["states"]} 个搜索状态<br>{s["counts"]["candidate"]} 次候选检查 · {s["missing_dependencies"]} 次依赖未齐 · 纯闭包缓存命中 {s["closure_cache_hits"]} 次<br>插桩前后提取文件逐字节相同；本页计数不代表性能测量。</p>'
+        page=page.replace('</video>', '</video>'+evidence)
     (out/'index.html').write_text(page)
     manifest=dict(video=str(video),duration=data['duration'],width=1920,height=1080,fps=data['fps'],frames=data['frames'],chapters=len(data['chapters']),voice=data['voice_disclosure'],bytes=video.stat().st_size,sha256=hashlib.sha256(video.read_bytes()).hexdigest(),verified='ffprobe: video/audio length, frame count, dimensions and chapter count',sources=['check_statewalk@ae80f82a/dag_in_context/src/tiger/statewalkdp.cpp','check_statewalk@ae80f82a/dag_in_context/src/tiger/greedy.cpp','egg_layout@f9a6d1c/experiments/tiger_extraction_markers/results.json'])
     manifest['real_ir']=json.loads((out/'ir-demo.json').read_text())
+    if trace_file.exists():manifest['native_trace']=json.loads(trace_file.read_text())['summary']
     (out/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n');print(json.dumps(manifest,ensure_ascii=False,indent=2))
 
 if __name__=='__main__':main()
