@@ -891,7 +891,7 @@ def commands(a, repo, worker, out):
         c = [['cargo', 'test', '--offline', '--manifest-path', 'egglog/egglog-bridge/Cargo.toml', '--target-dir', 'target/analyzer', '--lib', 'cell_worklist_tests', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--test', 'full_gpu', '--test', 'commit_markers', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--lib', 'stable_choice::tests', '--target-dir', 'target/analyzer'],
-             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'transfer_artifact', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
+             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'transfer_artifact', '--test', 'generic_transfer', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
     else: c = []
     if a.mode=='test': c.append([sys.executable,'-m','unittest','discover','-s',str(repo/'skills/cell-assisted-egglog-bench/scripts'),'-p','test_*.py'])
     if getattr(a, 'reference_output', None): c[-1] += ['--reference-output', str(resolve(a.reference_output))]

@@ -1,0 +1,705 @@
+{
+  "scope": "Tiny real Analyze export and cold native execution; not a Pass-3 speed benchmark. Complete-query authority only for these new schemes.",
+  "binary_sha256": "7718897247bb2bb77c8a3777c0cb76e57ede4acdf5753582e2c8844e98963f79",
+  "cases": {
+    "if": {
+      "source_sha256": "621a654bb15371c5287370e3288acc7baf39f7ef362a27dc122bdcd7a464393e",
+      "input_sha256": "ae4600afb3e62a4b263df3f753aefa02e7f4dc287c702418fc082f013668db5f",
+      "commands": [
+        [
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/target/analyzer/release/egg_layout",
+          "analyze",
+          "--source",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/experiments/observed_transfer_queries/if-training.egg",
+          "--output",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-v3-final/if-analysis",
+          "--bake-certificates",
+          "--save-history"
+        ],
+        [
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/target/analyzer/release/egg_layout",
+          "run-transfer",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-v3-final/if-analysis/transfers.egg",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/experiments/observed_transfer_queries/if-new-indices.egg",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-v3-final/if-cold"
+        ]
+      ],
+      "capture": {
+        "applications": 4,
+        "equality_sorts": [
+          "Assumption",
+          "BaseType",
+          "Expr",
+          "Type",
+          "___HasTypeSort",
+          "___ToSubsumeIfSort"
+        ],
+        "logical_matches": 4,
+        "excluded": 0,
+        "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+      },
+      "programs": 1,
+      "schemes": [
+        {
+          "ruleset": "non-weakly-linear",
+          "rule": "R0",
+          "root": "If",
+          "strength": "complete_query",
+          "numeric_slots": [
+            {
+              "slot": 5,
+              "name": "i",
+              "sort": "i64"
+            },
+            {
+              "slot": 10,
+              "name": "j",
+              "sort": "i64"
+            }
+          ],
+          "guards": [],
+          "atoms": [
+            {
+              "table": "If",
+              "sorts": [
+                "Expr",
+                "Expr",
+                "Expr",
+                "Expr",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 0
+                },
+                {
+                  "Slot": 1
+                },
+                {
+                  "Slot": 2
+                },
+                {
+                  "Slot": 3
+                },
+                {
+                  "Slot": 4
+                }
+              ]
+            },
+            {
+              "table": "Get",
+              "sorts": [
+                "Expr",
+                "i64",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 2
+                },
+                {
+                  "Slot": 5
+                },
+                {
+                  "Slot": 6
+                }
+              ]
+            },
+            {
+              "table": "Arg",
+              "sorts": [
+                "Type",
+                "Assumption",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 7
+                },
+                {
+                  "Slot": 8
+                },
+                {
+                  "Slot": 9
+                }
+              ]
+            },
+            {
+              "table": "Get",
+              "sorts": [
+                "Expr",
+                "i64",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 9
+                },
+                {
+                  "Slot": 10
+                },
+                {
+                  "Slot": 6
+                }
+              ]
+            },
+            {
+              "table": "Get",
+              "sorts": [
+                "Expr",
+                "i64",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 3
+                },
+                {
+                  "Slot": 5
+                },
+                {
+                  "Slot": 11
+                }
+              ]
+            },
+            {
+              "table": "Arg",
+              "sorts": [
+                "Type",
+                "Assumption",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 7
+                },
+                {
+                  "Slot": 12
+                },
+                {
+                  "Slot": 13
+                }
+              ]
+            },
+            {
+              "table": "Get",
+              "sorts": [
+                "Expr",
+                "i64",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 13
+                },
+                {
+                  "Slot": 10
+                },
+                {
+                  "Slot": 11
+                }
+              ]
+            },
+            {
+              "table": "StateT",
+              "sorts": [
+                "BaseType"
+              ],
+              "columns": [
+                {
+                  "Slot": 14
+                }
+              ]
+            },
+            {
+              "table": "Base",
+              "sorts": [
+                "BaseType",
+                "Type"
+              ],
+              "columns": [
+                {
+                  "Slot": 14
+                },
+                {
+                  "Slot": 15
+                }
+              ]
+            },
+            {
+              "table": "HasType",
+              "sorts": [
+                "Expr",
+                "Type",
+                "___HasTypeSort"
+              ],
+              "columns": [
+                {
+                  "Slot": 6
+                },
+                {
+                  "Slot": 15
+                },
+                {
+                  "Slot": 16
+                }
+              ]
+            }
+          ],
+          "steps": [
+            [
+              7,
+              "Key"
+            ],
+            [
+              8,
+              "Key"
+            ],
+            [
+              1,
+              {
+                "Columns": 1
+              }
+            ],
+            [
+              4,
+              "Key"
+            ],
+            [
+              9,
+              "Key"
+            ],
+            [
+              3,
+              "Output"
+            ],
+            [
+              6,
+              "Output"
+            ],
+            [
+              2,
+              "Output"
+            ],
+            [
+              5,
+              "Output"
+            ]
+          ],
+          "effects": "original native RHS, including checked arithmetic and intermediate successor facts"
+        }
+      ],
+      "export_rejections": [],
+      "cold_passed": true,
+      "cold_stats": {
+        "program_compilations": 0,
+        "loaded_programs": 1,
+        "ruleset_runs": 2,
+        "keyed_reads": 11,
+        "committed_row_events": 12,
+        "union_events": 3,
+        "bootstrap_rows": 0,
+        "native_fallback_runs": 0,
+        "frontier_seconds": 1.1417e-05,
+        "effect_seconds": 4.0042e-05,
+        "ingest_seconds": 1.2416e-05
+      }
+    },
+    "tuple": {
+      "source_sha256": "78be4a947ab790f8a9674de5a1fa4b07c5fe58c3349afc00eb1e2fc7b64b88c9",
+      "input_sha256": "370499bb1fcaf70288bff47e5bc0bd4a84e2db86b2647d5db0025a6e3706f92e",
+      "commands": [
+        [
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/target/analyzer/release/egg_layout",
+          "analyze",
+          "--source",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/experiments/observed_transfer_queries/tuple-training.egg",
+          "--output",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-v3-final/tuple-analysis",
+          "--bake-certificates",
+          "--save-history"
+        ],
+        [
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/target/analyzer/release/egg_layout",
+          "run-transfer",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-v3-final/tuple-analysis/transfers.egg",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/experiments/observed_transfer_queries/tuple-updates.egg",
+          "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/observed-transfer-v3-final/tuple-cold"
+        ]
+      ],
+      "capture": {
+        "applications": 20,
+        "equality_sorts": [
+          "Expr",
+          "___AddAllGetsSort",
+          "___AddGetsSort",
+          "___NotJustConcatSort"
+        ],
+        "logical_matches": 34,
+        "excluded": 14,
+        "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+      },
+      "programs": 5,
+      "schemes": [
+        {
+          "ruleset": "always-run",
+          "rule": "R0",
+          "root": "Get",
+          "strength": "complete_query",
+          "numeric_slots": [
+            {
+              "slot": 1,
+              "name": "i",
+              "sort": "i64"
+            }
+          ],
+          "guards": [],
+          "atoms": [
+            {
+              "table": "Get",
+              "sorts": [
+                "Expr",
+                "i64",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 0
+                },
+                {
+                  "Slot": 1
+                },
+                {
+                  "Slot": 2
+                }
+              ]
+            }
+          ],
+          "steps": [],
+          "effects": "original native RHS, including checked arithmetic and intermediate successor facts"
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "R1",
+          "root": "Add-Gets",
+          "strength": "complete_query",
+          "numeric_slots": [
+            {
+              "slot": 4,
+              "name": "n",
+              "sort": "i64"
+            },
+            {
+              "slot": 6,
+              "name": "@tuple-length1",
+              "sort": "i64"
+            }
+          ],
+          "guards": [],
+          "atoms": [
+            {
+              "table": "Concat",
+              "sorts": [
+                "Expr",
+                "Expr",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 0
+                },
+                {
+                  "Slot": 1
+                },
+                {
+                  "Slot": 2
+                }
+              ]
+            },
+            {
+              "table": "Add-Gets",
+              "sorts": [
+                "Expr",
+                "Expr",
+                "i64",
+                "___AddGetsSort"
+              ],
+              "columns": [
+                {
+                  "Slot": 3
+                },
+                {
+                  "Slot": 2
+                },
+                {
+                  "Slot": 4
+                },
+                {
+                  "Slot": 5
+                }
+              ]
+            },
+            {
+              "table": "tuple-length",
+              "sorts": [
+                "Expr",
+                "i64"
+              ],
+              "columns": [
+                {
+                  "Slot": 0
+                },
+                {
+                  "Slot": 6
+                }
+              ]
+            }
+          ],
+          "steps": [
+            [
+              0,
+              "Output"
+            ],
+            [
+              2,
+              "Key"
+            ]
+          ],
+          "effects": "original native RHS, including checked arithmetic and intermediate successor facts"
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "R2",
+          "root": "Add-Gets",
+          "strength": "complete_query",
+          "numeric_slots": [
+            {
+              "slot": 3,
+              "name": "n",
+              "sort": "i64"
+            }
+          ],
+          "guards": [],
+          "atoms": [
+            {
+              "table": "Single",
+              "sorts": [
+                "Expr",
+                "Expr"
+              ],
+              "columns": [
+                {
+                  "Slot": 0
+                },
+                {
+                  "Slot": 1
+                }
+              ]
+            },
+            {
+              "table": "Add-Gets",
+              "sorts": [
+                "Expr",
+                "Expr",
+                "i64",
+                "___AddGetsSort"
+              ],
+              "columns": [
+                {
+                  "Slot": 2
+                },
+                {
+                  "Slot": 1
+                },
+                {
+                  "Slot": 3
+                },
+                {
+                  "Slot": 4
+                }
+              ]
+            }
+          ],
+          "steps": [
+            [
+              0,
+              "Output"
+            ]
+          ],
+          "effects": "original native RHS, including checked arithmetic and intermediate successor facts"
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "R3",
+          "root": "Add-Gets",
+          "strength": "complete_query",
+          "numeric_slots": [
+            {
+              "slot": 2,
+              "name": "n",
+              "sort": "i64"
+            }
+          ],
+          "guards": [],
+          "atoms": [
+            {
+              "table": "Add-Gets",
+              "sorts": [
+                "Expr",
+                "Expr",
+                "i64",
+                "___AddGetsSort"
+              ],
+              "columns": [
+                {
+                  "Slot": 0
+                },
+                {
+                  "Slot": 1
+                },
+                {
+                  "Slot": 2
+                },
+                {
+                  "Slot": 3
+                }
+              ]
+            },
+            {
+              "table": "Not-Just-Concat",
+              "sorts": [
+                "Expr",
+                "___NotJustConcatSort"
+              ],
+              "columns": [
+                {
+                  "Slot": 1
+                },
+                {
+                  "Slot": 4
+                }
+              ]
+            }
+          ],
+          "steps": [
+            [
+              1,
+              "Key"
+            ]
+          ],
+          "effects": "original native RHS, including checked arithmetic and intermediate successor facts"
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "R4",
+          "root": "Add-All-Gets",
+          "strength": "complete_query",
+          "numeric_slots": [
+            {
+              "slot": 2,
+              "name": "offset",
+              "sort": "i64"
+            },
+            {
+              "slot": 3,
+              "name": "pos",
+              "sort": "i64"
+            },
+            {
+              "slot": 5,
+              "name": "@tuple-length3",
+              "sort": "i64"
+            }
+          ],
+          "guards": [
+            [
+              0,
+              [
+                {
+                  "Slot": 3
+                },
+                {
+                  "Slot": 5
+                }
+              ]
+            ]
+          ],
+          "atoms": [
+            {
+              "table": "Add-All-Gets",
+              "sorts": [
+                "Expr",
+                "Expr",
+                "i64",
+                "i64",
+                "___AddAllGetsSort"
+              ],
+              "columns": [
+                {
+                  "Slot": 0
+                },
+                {
+                  "Slot": 1
+                },
+                {
+                  "Slot": 2
+                },
+                {
+                  "Slot": 3
+                },
+                {
+                  "Slot": 4
+                }
+              ]
+            },
+            {
+              "table": "tuple-length",
+              "sorts": [
+                "Expr",
+                "i64"
+              ],
+              "columns": [
+                {
+                  "Slot": 1
+                },
+                {
+                  "Slot": 5
+                }
+              ]
+            }
+          ],
+          "steps": [
+            [
+              1,
+              "Key"
+            ]
+          ],
+          "effects": "original native RHS, including checked arithmetic and intermediate successor facts"
+        }
+      ],
+      "export_rejections": [],
+      "cold_passed": true,
+      "cold_stats": {
+        "program_compilations": 0,
+        "loaded_programs": 5,
+        "ruleset_runs": 10,
+        "keyed_reads": 28,
+        "committed_row_events": 55,
+        "union_events": 12,
+        "bootstrap_rows": 0,
+        "native_fallback_runs": 0,
+        "frontier_seconds": 3.1749e-05,
+        "effect_seconds": 0.000164418,
+        "ingest_seconds": 2.6872999999999995e-05
+      }
+    }
+  },
+  "verification": {
+    "rust_tests": 43,
+    "benchmark_protocol_tests": 40,
+    "gpu_worker": "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/frozen-worker/matrix",
+    "full_graph_checks": "at every Run in generic_transfer for admitted ports; container rejection uses native checks",
+    "source_free_process": true,
+    "no_saturation_skip_from_query_authority": true
+  }
+}

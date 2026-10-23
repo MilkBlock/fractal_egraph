@@ -1,5 +1,11 @@
 # Analyze -> transfer file -> fresh runtime
 
+Version 3 additionally exports observed general queries with symbolic numeric
+slots and checked partial-key wiring; see
+[observed numeric transfers](../observed_transfer_queries/README.md). The older
+terms-only demonstration and timings below remain historical evidence. General
+query authority preserves original Run boundaries and does not certify saturation.
+
 The multi-producer example can now be exported and executed without retaining
 the original training source, a captured graph, or a history file.
 

@@ -14,6 +14,11 @@ The structured-key transformation is separate and is not changed here.
 | Monotone min-plus | Typed source `min` merge and addition DAG, complete affected rule/merge dependency universe | Original synchronous numeric waves in an isolated saturation scope, with visibility, activation and overflow checks |
 | Complete/candidate query | Native typed atoms, slots, guards, primitive bytecode and complete wiring | Reuse query work only; **never** authorize saturation |
 
+Analyze can now export observed connected queries as version-3 parameterized
+programs. Numeric source variables remain slots across training values; literal
+constants remain literal. See [numeric transfer checks](../observed_transfer_queries/README.md).
+This adds complete-query certificates, not a new whole-closure proof method.
+
 `cell-assisted-egglog/src/certificate.rs` is the shared registry and report schema.
 JSON is not authority: finite imports re-run the proof once at cold load;
 parameterized imports revalidate current schemas, source contracts and stored wiring.

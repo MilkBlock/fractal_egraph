@@ -1,0 +1,21 @@
+; @ripsat-certificates {"version":1,"kind":"parameterized"}
+; Parameterized Cell transfers. Native declarations/actions below; no training facts.
+; @cell-transfer {"version":3,"rulesets":[],"schedules":["(run-schedule (repeat 2 (run non-weakly-linear)))"],"queries":[{"ruleset":"non-weakly-linear","rule":"R0","root":"If"}]}
+; @cell-program {"ruleset":"non-weakly-linear","rule":"R0","shape":{"slots":[["pred","Expr"],["inputs","Expr"],["then_","Expr"],["else_","Expr"],["@If1","Expr"],["i","i64"],["@Get11","Expr"],["arg_ty","Type"],["then_ctx","Assumption"],["@Arg2","Expr"],["j","i64"],["@Get10","Expr"],["else_ctx","Assumption"],["@Arg3","Expr"],["@StateT1","BaseType"],["@Base1","Type"],["@HasType1","___HasTypeSort"]],"atoms":[{"table":"If","sorts":["Expr","Expr","Expr","Expr","Expr"],"columns":[{"Slot":0},{"Slot":1},{"Slot":2},{"Slot":3},{"Slot":4}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":2},{"Slot":5},{"Slot":6}]},{"table":"Arg","sorts":["Type","Assumption","Expr"],"columns":[{"Slot":7},{"Slot":8},{"Slot":9}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":9},{"Slot":10},{"Slot":6}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":3},{"Slot":5},{"Slot":11}]},{"table":"Arg","sorts":["Type","Assumption","Expr"],"columns":[{"Slot":7},{"Slot":12},{"Slot":13}]},{"table":"Get","sorts":["Expr","i64","Expr"],"columns":[{"Slot":13},{"Slot":10},{"Slot":11}]},{"table":"StateT","sorts":["BaseType"],"columns":[{"Slot":14}]},{"table":"Base","sorts":["BaseType","Type"],"columns":[{"Slot":14},{"Slot":15}]},{"table":"HasType","sorts":["Expr","Type","___HasTypeSort"],"columns":[{"Slot":6},{"Slot":15},{"Slot":16}]}],"guards":[],"native_residuals":false},"seed":0,"steps":[[7,"Key"],[8,"Key"],[1,{"Columns":1}],[4,"Key"],[9,"Key"],[3,"Output"],[6,"Output"],[2,"Output"],[5,"Output"]]}
+; @cell-evidence {"source":"native_analyze committed read/write/union records","accepted_records":4,"records_with_committed_changes":4,"rejected_records":0,"rules":[{"rule":"R0","ruleset":"non-weakly-linear","records":4,"read_tables":["If","Get","Arg","HasType","Base","StateT"],"numeric_parameters":[["i","i64"],["j","i64"]],"inserted_outputs":8,"union_witnesses":4,"function_update_records":0,"set_witnesses":0}],"connections":[],"scope":"History identifies observed interactions. Complete typed port programs and original guards/actions are validated from source, including unobserved rule branches. Training values and graph instances are not exported.","query_export_rejections":[]}
+
+(datatype Assumption (InFunc String) (Ctx i64))
+(datatype BaseType (StateT))
+(datatype Type (Base BaseType))
+(datatype Expr (V i64) (Arg Type Assumption) (Get Expr i64) (If Expr Expr Expr Expr) (TupleRemoveAt Expr i64) (DropAt Assumption i64 Expr))
+(sort ___HasTypeSort)
+(constructor HasType (Expr Type) ___HasTypeSort)
+(sort ___ToSubsumeIfSort)
+(constructor ToSubsumeIf (Expr Expr Expr Expr) ___ToSubsumeIfSort)
+(ruleset non-weakly-linear)
+(rule ((= outputs (If pred inputs then_ else_))
+       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))
+       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))
+       (HasType (Get then_ i) (Base (StateT ))))
+      ((union (Get outputs i) (Get inputs j)))
+        :ruleset non-weakly-linear :name "R0")

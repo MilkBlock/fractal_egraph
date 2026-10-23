@@ -1,0 +1,24 @@
+; New parameters; retain each original finite Run boundary.
+(set (tuple-length (V 30)) 2)
+(Add-All-Gets (V 90) (V 30) 4 0)
+(run always-run 1)
+(check (Add-All-Gets (V 90) (V 30) 4 1))
+(run always-run 1)
+(check (= (Get (V 90) 5) (Get (V 30) 1)))
+
+; no-merge functions require removing the old row before replacement.
+(delete (tuple-length (V 30)))
+(set (tuple-length (V 30)) 4)
+(run always-run 2)
+(check (= (Get (V 90) 7) (Get (V 30) 3)))
+
+; The missing length port becomes available later.
+(Add-All-Gets (V 91) (V 31) 8 0)
+(run always-run 1)
+(set (tuple-length (V 31)) 4)
+(run always-run 1)
+(check (Add-All-Gets (V 91) (V 31) 8 1))
+(union (V 30) (V 31))
+(run always-run 2)
+(union (V 90) (V 30))
+(run always-run 2)

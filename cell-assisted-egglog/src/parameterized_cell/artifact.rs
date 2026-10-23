@@ -72,6 +72,7 @@ pub struct Program {
     steps: Vec<(usize, Access)>,
 }
 impl Program {
+    pub(super) fn root(&self) -> Option<&str> { self.shape.atoms.get(self.seed).map(|a|a.table.as_str()) }
     pub(super) fn instantiate(
         &self,
         eg: &EGraph,
@@ -103,7 +104,10 @@ impl Program {
                 Access::Output => {
                     eg.cell_sort_is_equality(&a.sorts[n])? && known(&a.columns[n], &bound)
                 }
-                Access::Columns(_)=>return Err("partial-key boundary programs require their source selector, not a v1 transfer artifact".into()),
+                Access::Columns(mask) => mask != 0 && a.columns.len() <= 64
+                    && (a.columns.len() == 64 || mask >> a.columns.len() == 0)
+                    && a.columns.iter().enumerate().all(|(j,o)|
+                        mask & (1u64 << j) == 0 || (a.sorts[j] != "Unit" && known(o, &bound))),
             };
             if !valid {
                 return Err(format!("unbound transfer read in {}", self.rule).into());
@@ -132,6 +136,8 @@ struct Header {
     selection: Option<contract::Selection>,
     #[serde(default,skip_serializing_if="Vec::is_empty")]
     scalars:Vec<scalar::Descriptor>,
+    #[serde(default,skip_serializing_if="Vec::is_empty")]
+    queries:Vec<generic::Query>,
 }
 pub struct Bundle {
     header: Header,
@@ -185,32 +191,39 @@ impl Bundle {
                 schedules,
                 selection: None,
                 scalars: vec![],
+                queries: vec![],
             },
             programs,
             environment: environment.into(),
             evidence,
         })
     }
-    /// Unified parameterized closure export. Selection and scalar roles are
-    /// inferred without application names and are rechecked at load time.
-    pub fn bake_certificates(environment:&str,schedules:Vec<String>,evidence:Json)->Result<Self> {
+    /// Typed parameterized export. Selection/scalar proofs retain their own
+    /// checkers; observed general queries receive complete-query authority only.
+    pub fn bake_certificates(environment:&str,schedules:Vec<String>,mut evidence:Json)->Result<Self> {
         let mut eg=EGraph::default();let commands=eg.parse_program(None,environment)?;
         if !commands.iter().all(declarations_only){return Err("certificate environment contains executable input".into())}
         eg.run_program(commands.clone())?;
         let selection=contract::Selection::discover(&eg,&commands).ok();
         let excluded=selection.as_ref().map(|s|s.sets.to_vec()).unwrap_or_default();
         let scalar=scalar::discover(&eg,&commands,&excluded);
-        if selection.is_none() && scalar.is_empty(){return Err("no checked parameterized closure scheme; retain native execution".into())}
         let scalars=scalar.iter().map(scalar::Spec::descriptor).collect::<Vec<_>>();
-        let r=Runtime::certified_commands(commands,selection.clone(),scalar,None)?;
+        let reserved=commands.iter().filter_map(|c|match c {
+            Command::Rule{rule} if excluded.contains(&rule.ruleset)=>Some((rule.ruleset.clone(),rule.name.clone())),_=>None
+        }).chain(scalars.iter().map(|s|(s.set.clone(),s.name.clone()))).collect();
+        let (queries,rejected)=generic::discover(&mut eg,&evidence,&reserved);
+        if selection.is_none() && scalar.is_empty() && queries.is_empty(){return Err("no checked parameterized closure scheme or observed port program; retain native execution".into())}
+        if evidence.is_object(){evidence["query_export_rejections"]=json!(rejected);}
+        let r=Runtime::certified_engine_queries(eg,&commands,selection.clone(),scalar,None,&queries)?;
         let mut programs=vec![];
         for (i,k) in r.kernels.iter().enumerate(){
             let set=r.sets.iter().find_map(|(s,ids)|ids.contains(&i).then(||s.clone()))
                 .or_else(||r.scalar.iter().find_map(|(s,g)|g.plans.iter().any(|(id,_)|*id==i).then(||s.clone())))
+                .or_else(||r.boundary.iter().find_map(|(s,ids)|ids.contains(&i).then(||s.clone())))
                 .ok_or("unowned certificate query")?;
             programs.push(Program{ruleset:set,rule:k.sink.name.clone(),shape:Shape::of(&k.sink),seed:k.seed,steps:k.steps.clone()});
         }
-        Ok(Self{header:Header{version:2,rulesets:r.sets.keys().cloned().collect(),schedules,selection,scalars},
+        Ok(Self{header:Header{version:if queries.is_empty(){2}else{3},rulesets:r.sets.keys().cloned().collect(),schedules,selection,scalars,queries},
             programs,environment:environment.into(),evidence})
     }
     pub fn text(&self) -> Result<String> {
@@ -246,7 +259,7 @@ impl Bundle {
             }
         }
         let header = header.ok_or("missing transfer header")?;
-        if ![1,2].contains(&header.version) {
+        if ![1,2,3].contains(&header.version) {
             return Err("unsupported transfer version".into());
         }
         let environment = text
@@ -266,11 +279,11 @@ impl Bundle {
     }
     fn validate_header(&self) -> Result<()> {
         if self.programs.is_empty()
-            || (self.header.rulesets.is_empty() && self.header.scalars.is_empty())
+            || (self.header.rulesets.is_empty() && self.header.scalars.is_empty() && self.header.queries.is_empty())
             || self
                 .programs
                 .iter()
-                .map(|p| &p.rule)
+                .map(|p| (&p.ruleset,&p.rule))
                 .collect::<BTreeSet<_>>()
                 .len()
                 != self.programs.len()
@@ -279,7 +292,16 @@ impl Bundle {
         {
             return Err("missing or duplicate transfer programs/rulesets".into());
         }
-        if self.header.version == 2 {
+        if self.header.version < 3 && !self.header.queries.is_empty(){return Err("generic queries require transfer version 3".into())}
+        let query_ids=self.header.queries.iter().map(|q|(&q.ruleset,&q.rule)).collect::<BTreeSet<_>>();
+        if query_ids.len()!=self.header.queries.len(){return Err("duplicate query scheme".into())}
+        for q in &self.header.queries {
+            if self.header.rulesets.contains(&q.ruleset) || self.header.scalars.iter().any(|s|s.set==q.ruleset && s.name==q.rule)
+                || !self.programs.iter().any(|p|p.ruleset==q.ruleset && p.rule==q.rule && p.root()==Some(q.root.as_str())) {
+                return Err("missing, overlapping or mismatched query scheme".into())
+            }
+        }
+        if self.header.version >= 2 {
             let sets = self.header.selection.as_ref().map(|s|s.sets.iter().cloned().collect::<BTreeSet<_>>()).unwrap_or_default();
             if self.header.rulesets != sets.into_iter().collect::<Vec<_>>() {
                 return Err("certificate ruleset coverage differs".into());
@@ -295,13 +317,13 @@ impl Bundle {
             return Err("transfer file contains executable setup/training input".into());
         }
         eg.run_program(cmds.clone())?;
-        if self.header.version==2 {
+        if self.header.version>=2 {
             let excluded=self.header.selection.as_ref().map(|s|s.sets.to_vec()).unwrap_or_default();
             if self.header.rulesets!=excluded.iter().cloned().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>() {
                 return Err("certificate ruleset coverage differs".into());
             }
             let specs=scalar::restore(&eg,&cmds,&excluded,&self.header.scalars)?;
-            return Runtime::certified_engine(eg,&cmds,self.header.selection.clone(),specs,Some(&self.programs));
+            return Runtime::certified_engine_queries(eg,&cmds,self.header.selection.clone(),specs,Some(&self.programs),&self.header.queries);
         }
         if self.header.selection.is_some() || !self.header.scalars.is_empty(){return Err("closure authority requires certificate version 2".into())}
         let sets = self
@@ -316,13 +338,27 @@ impl Bundle {
     /// query shapes and the complete CURRENT closure universe are revalidated.
     pub fn attach(&self,eg:EGraph,commands:&[Command])->Result<Runtime>{
         self.validate_header()?;
-        if self.header.version!=2{return Err("runtime closure attachment needs a version-2 certificate library".into())}
+        if self.header.version<2{return Err("runtime attachment needs a version-2/3 certificate library".into())}
         let excluded=self.header.selection.as_ref().map(|s|s.sets.to_vec()).unwrap_or_default();
         let specs=scalar::restore(&eg,commands,&excluded,&self.header.scalars)?;
-        Runtime::certified_engine(eg,commands,self.header.selection.clone(),specs,Some(&self.programs))
+        Runtime::certified_engine_queries(eg,commands,self.header.selection.clone(),specs,Some(&self.programs),&self.header.queries)
+    }
+    /// Keep an existing finite positive closure proof in preference to a mere
+    /// query plan. Numeric inputs require the symbolic slot program instead of
+    /// reusing a finite graph with training indices frozen in its rows.
+    pub fn prefers_finite(&self)->bool {
+        self.header.selection.is_none() && self.header.scalars.is_empty()
+            && self.programs.iter().all(|p|p.shape.slots.iter().all(|(_,s)|s!="i64" && s!="f64"))
     }
     pub fn report(&self) -> Json {
-        json!({"selection":self.header.selection,"scalar_schemes":self.header.scalars,"version":self.header.version,"programs":self.programs.len(),"rulesets":self.header.rulesets,
+        let queries=self.header.queries.iter().map(|q|{
+            let p=self.programs.iter().find(|p|p.ruleset==q.ruleset && p.rule==q.rule).unwrap();
+            json!({"ruleset":q.ruleset,"rule":q.rule,"root":q.root,"strength":"complete_query",
+                "numeric_slots":p.shape.slots.iter().enumerate().filter(|(_,(_,s))|s=="i64" || s=="f64").map(|(i,(n,s))|json!({"slot":i,"name":n,"sort":s})).collect::<Vec<_>>(),
+                "guards":p.shape.guards,"atoms":p.shape.atoms,"steps":p.steps,
+                "effects":"original native RHS, including checked arithmetic and intermediate successor facts"})
+        }).collect::<Vec<_>>();
+        json!({"selection":self.header.selection,"scalar_schemes":self.header.scalars,"query_schemes":queries,"version":self.header.version,"programs":self.programs.len(),"rulesets":self.header.rulesets,
             "schedules":self.header.schedules,"evidence":self.evidence,
             "scope":"Loaded fixed port wiring; original native guards/actions/merge. No history, concrete closure cache, or online wiring discovery. Native installation still compiles schema and action sinks."})
     }

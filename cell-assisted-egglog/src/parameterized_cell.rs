@@ -21,6 +21,7 @@ pub mod contract;
 pub mod joint;
 mod comparison;
 mod scalar;
+mod generic;
 pub mod boundary;
 mod shared_marker;
 
@@ -798,7 +799,9 @@ impl Runtime {
             boundary.entry(spec.ruleset.clone()).or_default().push(sinks.len());sinks.push(sink);
         }
         let names = names.into_iter().collect::<Vec<_>>();
-        if plans.is_some_and(|p| p.len() != sinks.len() - boundary_seeds.len()) {
+        let external_boundaries=boundary_seeds.iter().filter(|(id,s)|
+            plans.is_none_or(|ps|!ps.iter().any(|p|p.ruleset==s.ruleset && p.rule==sinks[**id].name))).count();
+        if plans.is_some_and(|p| p.len() != sinks.len() - external_boundaries) {
             return Err("transfer must cover every installed rule exactly once".into());
         }
         let mut used_plans = BTreeSet::new();
@@ -814,7 +817,11 @@ impl Runtime {
                 .or_else(|| seeds.get(&sink.name))
                 .map(String::as_str);
             if let Some(spec)=boundary_seeds.get(&id) {
-                kernels.push(boundary::install(&eg,sink,tables,spec)?);
+                if let Some((index,plan))=plans.and_then(|ps|ps.iter().enumerate().find(|(_,p)|p.ruleset==spec.ruleset && p.rule==sink.name)) {
+                    if !used_plans.insert(index){return Err("duplicate transferred rule".into())}
+                    if plan.root()!=Some(spec.root.as_str()){return Err("transferred anchor differs".into())}
+                    kernels.push(plan.instantiate(&eg,sink,tables)?);
+                } else { kernels.push(boundary::install(&eg,sink,tables,spec)?); }
             } else if let Some(plans) = plans {
                 let (index, plan) = plans
                     .iter()
@@ -1053,6 +1060,11 @@ impl Runtime {
                 if r.until.is_none() && self.scalar.contains_key(&r.ruleset) =>
             {
                 Ok(self.run_scalar(&r.ruleset)?.updated)
+            }
+            GenericSchedule::Run(_, r)
+                if r.until.is_none() && self.boundary.contains_key(&r.ruleset) =>
+            {
+                Ok(self.run_boundary(&r.ruleset)?.updated)
             }
             GenericSchedule::Run(_, r)
                 if self.sets.contains_key(&r.ruleset) && r.until.is_none() =>

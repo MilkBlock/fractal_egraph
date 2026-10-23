@@ -826,15 +826,12 @@ impl Runtime {
         r.install_closure_certificates(Some(joint), &commands)?;
         Ok(r)
     }
-    pub(super) fn certified_commands(commands:Vec<Command>,roles:Option<contract::Selection>,scalar:Vec<super::scalar::Spec>,plans:Option<&[artifact::Program]>)->Result<Self>{
-        let mut eg=EGraph::default();eg.run_program(commands.clone())?;
-        Self::certified_engine(eg,&commands,roles,scalar,plans)
-    }
-    pub(super) fn certified_engine(mut eg:EGraph,commands:&[Command],roles:Option<contract::Selection>,scalar:Vec<super::scalar::Spec>,plans:Option<&[artifact::Program]>)->Result<Self>{
+    pub(super) fn certified_engine_queries(mut eg:EGraph,commands:&[Command],roles:Option<contract::Selection>,scalar:Vec<super::scalar::Spec>,plans:Option<&[artifact::Program]>,queries:&[super::generic::Query])->Result<Self>{
         let joint=roles.map(|role|Joint::compile_roles(&mut eg,&commands,role)).transpose()?;
         let seeds=joint.as_ref().map(|j|j.producers.iter().map(|p|(p.name.clone(),p.constructor.clone())).collect()).unwrap_or_default();
         let sets=joint.as_ref().map(|j|j.roles.sets.iter().map(String::as_str).collect::<Vec<_>>()).unwrap_or_default();
-        let boundaries=super::boundary::load(commands)?;
+        let mut boundaries=queries.iter().map(super::generic::Query::spec).collect::<Vec<_>>();
+        boundaries.extend(super::boundary::load(commands)?);
         let mut r=Self::new_with_boundaries(eg,&sets,&seeds,scalar,plans,&boundaries)?;
         r.install_closure_certificates(joint,&commands)?;
         Ok(r)
@@ -861,7 +858,7 @@ impl Runtime {
         Ok(())
     }
     pub fn detach_joint(mut self) -> Result<(EGraph, Observer)> {
-        if self.joint.is_none() && self.scalar.is_empty() {
+        if self.joint.is_none() && self.scalar.is_empty() && self.boundary.is_empty() {
             return Err("no closure certificate installed".into());
         }
         self.forwarded = Some(vec![]);

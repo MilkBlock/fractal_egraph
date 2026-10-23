@@ -353,12 +353,15 @@ impl Runtime {
                 .map(|v| v.into_iter().flatten().collect::<Vec<_>>())
                 .collect::<Vec<_>>();
             group.stats.native_candidates += candidates.iter().map(Vec::len).sum::<usize>();
-            let batches = group
+            let extra_ids = self.boundary.get(set).cloned().unwrap_or_default();
+            let extra = extra_ids.iter().map(|id| self.boundary_matches(*id)).collect::<Result<Vec<_>>>()?;
+            let mut batches = group
                 .plans
                 .iter()
                 .zip(&candidates)
                 .map(|((id, _), b)| (&self.kernels[*id].sink, b.as_slice()))
                 .collect::<Vec<_>>();
+            batches.extend(extra_ids.iter().zip(&extra).map(|(id,b)|(&self.kernels[*id].sink,b.as_slice())));
             group.stats.prepare_seconds += started.elapsed().as_secs_f64();
             let started = std::time::Instant::now();
             let mut report = self.eg.step_cell_mixed_candidates(set, &batches)?;
