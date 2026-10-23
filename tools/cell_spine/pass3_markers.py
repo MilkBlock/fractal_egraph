@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 
 from . import compiler, solver, takeover as t
-from .terms import text,walk,actions
+from .terms import text,walk,actions,egg_string
 from .lhs_coverage import Facts
 from .representation import Congruence
 
@@ -25,11 +25,11 @@ def vars_in(e):return {x['name'] for x in walk(e) if x['kind']=='var'}
 
 
 def render_rule(r,body,head,ruleset=None):
-    action_text=[f'(panic {json.dumps(a["message"])})' if a['kind']=='panic' else actions([a])[0] for a in head]
+    action_text=[f'(panic {egg_string(a["message"])})' if a['kind']=='panic' else actions([a])[0] for a in head]
     result=f'(rule ({" ".join(t.fact_text(f) for f in body)}) ({" ".join(action_text)})'
     name=r['ruleset'] if ruleset is None else ruleset
     if name:result+=f' :ruleset {name}'
-    return result+f' :name {json.dumps(r["name"])}'+(' :naive' if r.get('naive') else '')+')'
+    return result+f' :name {egg_string(r["name"])}'+(' :naive' if r.get('naive') else '')+')'
 
 
 def flatten(rule,sig,globals_=frozenset()):
@@ -205,9 +205,13 @@ def schedule(s):
     return f'(saturate {schedule(s["child"])})'
 
 
-def compile_source(source,analysis,out):
+def compile_source(source,analysis,out,ast_binary=None):
     out.mkdir(parents=True,exist_ok=False)
-    data=compiler.ast(source,out/'source-ast.json');sig=data['signatures']
+    if ast_binary is None:data=compiler.ast(source,out/'source-ast.json')
+    else:
+        compiler.run([ast_binary,source,out/'source-ast.json'])
+        data=json.loads((out/'source-ast.json').read_text())
+    sig=data['signatures']
     if any(PREFIX in c['text'] or REPAIR in c['text'] or SHADOW in c['text'] for c in data['commands']):raise ValueError('reserved marker namespace')
     if data['rewrites']:raise ValueError('this adapter expects native expanded Rule commands; rewrites must be desugared first')
     if any(c['text'].startswith('(include ') for c in data['commands']):raise ValueError('expand includes before marker compilation')
@@ -334,5 +338,6 @@ def compile_source(source,analysis,out):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--source',required=True,type=Path);p.add_argument('--analysis',required=True,type=Path);p.add_argument('--output',required=True,type=Path)
-    a=p.parse_args();r=compile_source(a.source.resolve(),a.analysis.resolve(),a.output.resolve())
+    p.add_argument('--ast-binary',type=Path)
+    a=p.parse_args();r=compile_source(a.source.resolve(),a.analysis.resolve(),a.output.resolve(),a.ast_binary)
     print(json.dumps({k:r[k] for k in ('modified_consumers','variants','selection_scope')}))

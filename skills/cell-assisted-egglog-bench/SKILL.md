@@ -281,3 +281,28 @@ check/extraction等命令按原AST原生执行；pristine使用同样的初始�
 缓存前用原生parser检查文件依赖；含 include/input/output 的程序不复用执行缓存，避免外部文件变动或输出副作用被漏掉。
 
 若新表返回原程序的非primitive sort，可能引入新的extraction候选；不能仅因表名是新增的就忽略，目前报inconclusive，等待明确的辅助表/提取契约。
+
+## 显式结构键源码流水线
+
+`structural-pipeline --source FILE --analysis ANALYZE_DIR --output NEW
+[--solver-python PYTHON] [--worker WORKER] [--check] [--no-build]` 复用既有
+Analyzer 的 eggcc 选择策略，依次导出 `source.egg`、`source_sk.egg`、
+`source_sk_mk.egg`。第一步用原生 `Vec<BigRat>` 表达完整结构键，生成的程序
+不依赖 Rust 自定义 primitive；第二步复用现有 Analyze 正向片段源码转换器。
+这里第二步仍是两原子、全键 adapter，不能称为新版任意长度／可选字段
+symbolic spine 求解器的源码实现。
+
+`--check` 调用 `program-modes`，分别比较 SK 与 SK+MK 在 pristine/GPU 下
+的整图，并比较两个后端。SK 改变的是原有同分选择策略，因此不要将这个
+检查说成“原始 source 与 SK 完全等价”。原有 `a89c4cc` Rust 策略与便携
+源码的独立对照见 `experiments/standalone_structural_keys/`。
+
+GPU 模式显式使用 `--native-rulesets sk-portable,sk-portable-freeze`，由
+CPU 原生执行精确键维护；不支持在 combined Run 中隐式排除部分成员。
+比较缓存包括这个分流配置、源码及二进制指纹。无新闭包证明或 Cell credit。
+`pipeline.json` 保存阶段、输入／库指纹和失败位置，失败不删除先前源码。
+
+精确有理数会随结构见证增长，不声称更快或更省内存。含 computed
+String/f64、实际容器 constructor 参数等不支持的输入必须明确拒绝；
+不能回退到 allocation ID 冒充结构键。全量 raytrace 生成成功也不代表
+全量执行通过。复现命令和结果口径见 [独立结构键](../../experiments/standalone_structural_keys/README.md)。

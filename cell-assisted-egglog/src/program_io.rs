@@ -34,6 +34,23 @@ fn value(eg: &EGraph, v: Value, s: &ArcSort) -> Result<Json> {
             "bool" => eg.value_to_base::<bool>(v).to_string(),
             "String" => eg.value_to_base::<egglog::sort::S>(v).to_string(),
             "Unit" => "()".into(),
+            "BigInt" => eg.value_to_base::<egglog::sort::Z>(v).to_string(),
+            "BigRat" => eg.value_to_base::<egglog::sort::Q>(v).to_string(),
+            _ if s.value_type() == Some(std::any::TypeId::of::<egglog::sort::VecContainer>())
+                && s.inner_sorts().iter().map(|s| s.name()).eq(["BigRat"]) =>
+            {
+                let values = eg
+                    .value_to_container::<egglog::sort::VecContainer>(v)
+                    .ok_or("invalid rational vector")?;
+                serde_json::to_string(
+                    &values
+                        .data
+                        .iter()
+                        .map(|v| eg.value_to_base::<egglog::sort::Q>(*v).to_string())
+                        .collect::<Vec<_>>(),
+                )?
+            }
+
             x => return Err(format!(
                 "graph comparison cannot encode sort {x}; execution is separate from verification"
             )

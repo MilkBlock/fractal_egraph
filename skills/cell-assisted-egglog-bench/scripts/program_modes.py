@@ -103,11 +103,11 @@ def compare(left,right,tables=None):
         projected_out_left=sorted(set(left['tables'])-names),projected_out_right=sorted(set(right['tables'])-names))
 
 
-def lane(repo,binary,source,backend,worker,pristine,cache,audit=False):
+def lane(repo,binary,source,backend,worker,pristine,cache,audit=False,native_rulesets=""):
     identity=dict(source_sha256=sha(source),runner_sha256=sha(pristine) if backend=='pristine' else sha(binary),backend=backend,
         pristine_sha256=sha(pristine) if backend=='pristine' else None,
         worker_sha256=sha(worker) if backend=='gpu' else None,query_audit=bool(backend=='gpu' and audit),
-        harness_sha256=sha(repo/'cell-assisted-egglog/src/program_io.rs'),threads=1,protocol='program-run/v1')
+        harness_sha256=sha(repo/'cell-assisted-egglog/src/program_io.rs'),threads=1,protocol='program-run/v1',native_rulesets=native_rulesets if backend=='gpu' else '')
     # Native parser preflight: do not cache source programs that read external
     # files or whose output side effects must happen on every invocation.
     inspection=subprocess.check_output([str(binary),'--mode','program','--backend','inspect',
@@ -133,7 +133,7 @@ def lane(repo,binary,source,backend,worker,pristine,cache,audit=False):
     log=dest.with_suffix('.log')
     cmd=[str(binary),'--mode','program','--backend',backend,'--source',str(source),'--output',str(dest)]
     if backend=='pristine':cmd+=['--pristine-runner',str(pristine)]
-    if backend=='gpu':cmd+=['--gpu-worker',str(worker),'--query-audit','on' if audit else 'off']
+    if backend=='gpu':cmd+=['--gpu-worker',str(worker),'--query-audit','on' if audit else 'off','--native-rulesets',native_rulesets]
     # Isolation lanes never inherit another task's observer/Bake/profile flags.
     env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_'))}
     env.update(RAYON_NUM_THREADS='1',EGGLOG_PROBE_COUNTS_OFF='1')
@@ -172,7 +172,7 @@ def run(a,repo):
     output.mkdir(parents=True);lanes={}
     for label,source in sources.items():
         for backend in backends:
-            dest,report,reused=lane(repo,binary,source,backend,resolve(a.worker),pristine,repo/'out/program-modes/cache',a.query_audit)
+            dest,report,reused=lane(repo,binary,source,backend,resolve(a.worker),pristine,repo/'out/program-modes/cache',a.query_audit,getattr(a,'native_rulesets',''))
             name=label+'-'+backend
             (output/name).symlink_to(dest,target_is_directory=True)
             lanes[name]=dict(directory=str(dest),reused=reused,source=str(source),source_sha256=sha(source),

@@ -17,6 +17,7 @@ pub fn run(a: &BTreeMap<String, String>) -> Result<()> {
             "--pristine-runner",
             "--gpu-worker",
             "--query-audit",
+            "--native-rulesets",
         ]
         .contains(&key.as_str())
         {
@@ -96,11 +97,12 @@ pub fn run(a: &BTreeMap<String, String>) -> Result<()> {
             out,
             Path::new(required(a, "--gpu-worker")?),
             a.get("--query-audit").is_some_and(|s| s == "on"),
+            a.get("--native-rulesets").map(String::as_str).unwrap_or(""),
         ),
         _ => Err("program backend must be pristine, native or gpu".into()),
     }
 }
-fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool) -> Result<()> {
+fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool, native: &str) -> Result<()> {
     std::fs::create_dir(out)?;
     let (frozen, commands, setup) = match io::prepare(source) {
         Ok(x) => x,
@@ -120,8 +122,62 @@ fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool) -> Result<()> {
         .cloned()
         .collect::<Vec<_>>();
     let start = Instant::now();
-    let admitted =
-        crate::table_live::Runtime::new_full(frozen.clone(), &schedules, Some(worker), audit, None);
+    fn collect(s: &egglog::ast::Schedule, out: &mut std::collections::BTreeSet<String>) {
+        use egglog::ast::GenericSchedule::*;
+        match s {
+            Run(_, r) => {
+                out.insert(r.ruleset.clone());
+            }
+            Sequence(_, xs) => {
+                for x in xs {
+                    collect(x, out)
+                }
+            }
+            Repeat(_, _, s) | Saturate(_, s) => collect(s, out),
+        }
+    }
+    let native = native
+        .split(',')
+        .filter(|s| !s.is_empty())
+        .collect::<std::collections::BTreeSet<_>>();
+    let mut sets = std::collections::BTreeSet::new();
+    for c in &schedules {
+        if let Command::RunSchedule(s) = c {
+            collect(s, &mut sets)
+        }
+    }
+    // Helpers may already have run during native initialization. Validate names
+    // against installed sets, not just the final/main schedule.
+    for name in &native {
+        frozen
+            .cell_ruleset_members(name)
+            .map_err(|_| format!("unknown explicit native ruleset {name:?}"))?;
+    }
+    for set in &sets {
+        if !native.contains(set.as_str())
+            && frozen
+                .cell_ruleset_members(set)?
+                .iter()
+                .any(|(owner, _)| native.contains(owner.as_str()))
+        {
+            return Err(format!("cannot exclude a member of combined ruleset {set:?}; select the whole scheduled set as native").into());
+        }
+    }
+    let selected = sets
+        .into_iter()
+        .filter(|s| !native.contains(s.as_str()))
+        .collect::<Vec<_>>();
+    let admitted = crate::table_live::Runtime::new_full(
+        frozen.clone(),
+        &schedules,
+        Some(worker),
+        audit,
+        if native.is_empty() {
+            None
+        } else {
+            Some(&selected)
+        },
+    );
     let mut runtime = match admitted {
         Ok(r) => r,
         Err(e) => {
@@ -156,7 +212,7 @@ fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool) -> Result<()> {
         json!({"schema":"program-run/v1","backend":"gpu","complete":result.is_ok(),
         "phase":"run","error":result.as_ref().err().map(ToString::to_string),"setup":setup,
         "run_seconds":start.elapsed().as_secs_f64(),"gpu_setup_seconds":device_setup,
-        "runtime":telemetry,"cell_assistance":false,"query_audit":audit,"outputs":outputs,
+        "runtime":telemetry,"cell_assistance":false,"query_audit":audit,"outputs":outputs,"explicit_native_rulesets":native,
         "source_rewritten_by_runner":false,"provenance":{"kernel":"current fork, GPU queries with native effects"}}),
     )?;
     result?;

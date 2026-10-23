@@ -3,6 +3,11 @@ import json
 from . import names
 
 
+def egg_string(value):
+    """The native lexer accepts only backslash, quote, newline and tab escapes."""
+    return '"'+value.replace('\\','\\\\').replace('"','\\"').replace('\n','\\n').replace('\t','\\t')+'"'
+
+
 def text(e, fork=False, signatures=None, params=None):
     params = params or {}
     raw = text(e) if fork or params else None
@@ -12,7 +17,7 @@ def text(e, fork=False, signatures=None, params=None):
     if k == 'var':
         return e['name']
     if k == 'literal':
-        return e['text']
+        return egg_string(e['value']) if e.get('literal_kind')=='string' and 'value' in e else e['text']
     if k != 'call':
         raise ValueError(f'unsupported expression {k}')
     op = e['head']
