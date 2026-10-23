@@ -554,7 +554,10 @@ mod tests {
                 p.prefix_len = 2;
                 p.shared_marker = shared;
                 p.carried_slots = if carry {
-                    (0..raw["shape"]["slots"].as_array().unwrap().len()).collect()
+                    std::iter::once(p.seed).chain(p.steps.iter().take(p.prefix_len).map(|(i,_)|*i))
+                        .flat_map(|i|raw["shape"]["atoms"][i]["columns"].as_array().unwrap())
+                        .filter_map(|o|o["Slot"].as_u64().map(|i|i as usize))
+                        .collect::<BTreeSet<_>>().into_iter().collect()
                 } else {
                     vec![]
                 };

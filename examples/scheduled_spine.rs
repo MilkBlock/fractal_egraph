@@ -30,11 +30,13 @@ fn main() -> Result<()> {
     let mut certificate = None;
     let mut joint = false;
     let mut rebind = None;
+    let mut selected_layouts = None;
     let mut args = a[2..].iter();
     while let Some(flag) = args.next() {
         match flag.as_str() {
             "--joint" => joint = true,
             "--certificates" => certificate = Some(args.next().ok_or("missing certificate file")?),
+            "--select-layouts" => selected_layouts = Some(args.next().ok_or("missing selected layout")?),
             "--rebind" => rebind = Some(args.next().ok_or("missing selected layout")?),
             _ => return Err("unknown scheduled-spine option".into()),
         }
@@ -50,6 +52,8 @@ fn main() -> Result<()> {
         .ok_or("no main schedule")?;
     let mut reserved = BTreeSet::new();
     let mut certificates = serde_json::Value::Null;
+    let mut library = None;
+    let mut layout_queries = BTreeSet::new();
     if joint || certificate.is_some() {
         let r = if let Some(file) = certificate {
             if joint && !explicit {
@@ -57,10 +61,11 @@ fn main() -> Result<()> {
             } else {
                 eg.run_program(cs[..end].to_vec())?;
             }
-            cell_assisted_egglog::parameterized_cell::artifact::Bundle::load(std::path::Path::new(
-                file,
-            ))?
-            .attach(eg, &cs[..end])?
+            let bundle=cell_assisted_egglog::parameterized_cell::artifact::Bundle::load(std::path::Path::new(file))?;
+            layout_queries=bundle.layout_queries_for(&cs[..end])?;
+            let runtime=bundle.attach(eg,&cs[..end])?;
+            library=Some(bundle);
+            runtime
         } else if explicit {
             eg.run_program(cs[..end].to_vec())?;
             Runtime::attach_joint(eg, &cs[..end], Some(&[]))?
@@ -69,13 +74,21 @@ fn main() -> Result<()> {
         };
         certificates = r.report()["certificates"].clone();
         for p in r.report()["programs"].as_array().unwrap() {
-            if let Some(n) = p["rule"].as_str() {
-                reserved.insert(n.to_owned());
+            if let (Some(set),Some(n))=(p["ruleset"].as_str(),p["rule"].as_str()) {
+                let id=(set.to_owned(),n.to_owned());
+                if !layout_queries.contains(&id) {reserved.insert(id);}
             }
         }
         eg = r.detach_joint()?.0;
     } else {
         eg.run_program(cs[..end].to_vec())?;
+    }
+    if let Some(path)=selected_layouts {
+        let mut bundle=library.ok_or("select-layouts needs a certificate library")?;
+        let specs=boundary::load_file(std::path::Path::new(path),&cs[..end])?;
+        bundle.select_layouts(&mut eg,&cs[..end],&specs)?;
+        std::fs::write(&a[1],bundle.text()?)?;
+        return Ok(());
     }
     if let Some(path) = rebind {
         let file = boundary::rebind_file(&mut eg, &cs[..end], std::path::Path::new(path))?;
@@ -112,6 +125,13 @@ fn main() -> Result<()> {
         &selected.into_iter().collect::<Vec<_>>(),
         &reserved,
     )?;
+    for q in report["queries"].as_array_mut().unwrap() {
+        let id=(q["ruleset"].as_str().unwrap().to_owned(),q["rule"].as_str().unwrap().to_owned());
+        if layout_queries.contains(&id) {
+            q["authority"]=serde_json::json!("analyze_complete_query");
+        }
+    }
+    report["parameterized_library"]=serde_json::json!(library.as_ref().map(|b|b.report()));
     report["table_rows"] = serde_json::json!(
         eg.get_function_names()
             .into_iter()

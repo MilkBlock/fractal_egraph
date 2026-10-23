@@ -1,0 +1,6 @@
+(If (V 180) (V 181) (V 182) (V 183))
+(union (Get (V 182) 8) (Get (Arg (Base (StateT)) (Ctx 40)) 9))
+(union (Get (V 183) 8) (Get (Arg (Base (StateT)) (Ctx 41)) 9))
+(HasType (Get (V 182) 8) (Base (StateT)))
+(run-schedule (saturate non-weakly-linear))
+(check (= (Get (If (V 180) (V 181) (V 182) (V 183)) 8) (Get (V 181) 9)))

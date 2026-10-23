@@ -1,5 +1,11 @@
 # Analyze -> transfer file -> fresh runtime
 
+Version 3 additionally exports observed general queries with symbolic numeric
+slots and checked partial-key wiring; see
+[observed numeric transfers](../observed_transfer_queries/README.md). The older
+terms-only demonstration and timings below remain historical evidence. General
+query authority preserves original Run boundaries and does not certify saturation.
+
 The multi-producer example can now be exported and executed without retaining
 the original training source, a captured graph, or a history file.
 
@@ -125,3 +131,10 @@ Evidence: `out/transfer-bench-512-v1`, retained as
 This measures the actual CPU runtime on the small terms family, not full
 raytrace or a new GPU speedup. The historical full Pass-3 measurements were
 not repeated or relabeled as this file-loading experiment.
+
+Version 4 optionally carries a checked marker layout on a general complete-query
+program: prefix length, carried typed slots and shared/private storage. It does
+not increase the proof's authority. The loader rejects unbound payloads and
+rechecks every atom, alias and guard. See
+[`parameterized_marker_solver`](../parameterized_marker_solver/README.md) for
+solver integration and source-rule name transport.

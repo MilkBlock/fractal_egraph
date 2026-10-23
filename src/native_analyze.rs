@@ -1308,11 +1308,17 @@ fn execute(
         {
             match transfer_candidate.unwrap() {
                 Ok(bundle)=>{
-                    let text=bundle.text()?;
-                    std::fs::write(out.join("transfers.egg"),&text)?;
-                    std::fs::write(out.join("certificates.egg"),text)?;
-                    transfer_report=bundle.report();
-                    certificate_report=json!({"kind":"parameterized","library":transfer_report});
+                    let finite=if bundle.prefers_finite(){
+                        crate::whole_cell::catalog::bake_file(out,&out.join("certificates.egg")).ok()
+                    }else{None};
+                    if let Some(value)=finite {certificate_report=value;}
+                    else {
+                        let text=bundle.text()?;
+                        std::fs::write(out.join("transfers.egg"),&text)?;
+                        std::fs::write(out.join("certificates.egg"),text)?;
+                        transfer_report=bundle.report();
+                        certificate_report=json!({"kind":"parameterized","library":transfer_report});
+                    }
                 },
                 Err(parameterized_reason)=>{
                     match crate::whole_cell::catalog::bake_file(out,&out.join("certificates.egg")) {

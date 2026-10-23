@@ -96,6 +96,7 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 - `parameterized` 是实际原生提交上的 CPU 正确性实验：一份 Bop spine 接线及七个规则程序复用不同 Term/代价，逐阶段核对两条 CPU 对照的完整图和同提交协议的匹配计数。它不使用 GPU，不构建具体闭包目录，也未证明整个 terms 族的饱和跳过或性能收益。失败与有限 Run 语义由 `test` 中的 `parameterized_cell` 回归检查。
 - `transition` 是很小的实际运行时消融：同一 p 的两个 producer、外部候选改善 x 后更新 p/q、重复改善、输入 union 和 TCPair 从单一到多个别名。逐阶段核对原生同提交协议及复用开关两侧的完整图和提交绑定数，报告索引读取次数。不开 GPU、不测 Pass-3 加速比；优先用它验证端口接续，再决定是否需要完整计时。输出含独立可运行的 `program.egg`。
 - Bake 文件的冷启动验证已纳入 `test` 的 `transfer_artifact`：原生 Analyze 导出、删除训练源码、独立进程加载，以及逐阶段整图与未见输入对照。需要检查/复现文件格式时读 [TRANSFER_FILE.md](../../experiments/parameterized_cell/TRANSFER_FILE.md)，不要重新编写采集器，也不要因此重跑完整 Pass 3。加载时的 `program_compilations=0` 仅指没有重新搜索接线计划，原生 schema/action sink 仍需安装。
+- 通用数值参数与 v3 转移文件用 `generic_transfer` 回归：If 新索引、元组递归的有限轮次、长度更新、union、混合 min-plus、未观察规则回退和损坏接线。设置 `CELL_MATRIX_WORKER` 同时验证共享 CPU/GPU 循环。它提供完整查询，不据此宣称新的 saturation skip 或 Pass-3 覆盖率；样例见 `experiments/observed_transfer_queries`。
 - `transfer-bench` 使用已有转移文件，不重新 Bake；默认 512 组同一多候选更新样例，可用 `--instances` 改变规模。三条路径各执行一遍，分别统计 setup、输入处理、推理时间，并在计时外逐阶段核对原生完整图。不是 GPU 或 Pass-3 benchmark。已有结果用 `report` 复用；相同源码 dataflow 与文件加载的对照用于判断加载开销，joint 另有局部证书优化，不能混作纯加载消融。
 - `joint-sat` 检查共享 CPU/GPU 运行时的联合闭包宏：新 producer DAG 的边界契约满足时跳过三个 terms ruleset，更新/别名/删除等不满足契约的状态保留完整回退。必须核对每个公开边界的整图，并检查前两个新 Cell 阶段的原始 smooth 匹配为零。`--snapshot FILE` 只验证该快照初始事实上的 terms 子调度，不冒充整个 Pass 3，也不要求它一定命中宏；必须报告实际命中和回退原因。
 - 保留失败的报告、输入/worker/binary 指纹和实际命令。看保存结果必须说“未重新测量”。不部署网站、不采集大 trace、不自动重新 Bake。
@@ -187,6 +188,14 @@ GPU 后端从 layout 16 起默认启用必需表为空的批次短路。`EGGLOG_
 逐查询/逐层工作、固定规则权重曲线及 CPU 工作。`emitted_bindings` 已包含
 `cell_bindings`，不能相加。整个查询移出 GPU 后，其条件深度概率为 N/A；
 其它查询的 seed/重试分布也可能变化，不能声称固定候选因果效应。
+
+已有查询库上增加程序时，用 `boundary-credit --extension`：要求旧程序仍存在且
+接线、锚点和携带参数不变，只允许严格增加程序。按推理二进制校验，不把某侧
+额外运行 Tiger 检查器误判为更换执行器。全局变量经原生 lowering 形成零键表，
+边界程序读取其当前行并订阅更新，不能把当前 e-class ID 烘焙进计划。实际元组
+递归和 If 参数化查询对照见 `experiments/pass3_parameterized_reuse`；这仍是完整
+查询复用，不是自动发现的新饱和闭包族。保留早期小收益和原生融合对照的失败，
+不只汇报较快的一次测量。
 
 现有 raytrace 首个热点的选择文件为
 `experiments/pass3_boundary_programs/loop-context.json`。验证结果：13.386659 →
@@ -394,3 +403,18 @@ Marker 源码补全只安排在实际消费者（以及包含它们的 combined 
 与 GPU 的 SK/SK+marker 严格比较；CPU/GPU 跨后端比较仍失败，严格四路命令仍返回
 非零。不得把源码改写通过说成跨后端通过。该 raytrace 的 marker 实际行数为零，
 不能从其时间差领取 marker/Cell credit；实际 publisher 消费由另一个小回归覆盖。
+
+### 参数化库与 marker 求解器
+
+`spine-program --analysis DIR` 的 scheduled 编译路径现在允许 Analyze 导出的
+`complete_query` 参数程序参与布局选择；已有 `guarded_closure` 保持原证明接线。
+`selected-certificates.egg` 保存同一份选中布局，参数是有类型的 slot，不能把训练
+数值固化成常量。完整规则内容和 native 接线核对后，选中计划替换原程序，禁止双重
+执行。直接 compiler 可用 `--mode scheduled --certificate-library FILE`。
+
+记录 `parameter_interface`、实际携带的数值 slot、shared/private 选择、失效与原
+Run 边界检查。仅增加候选或成功编译不能领取 Cell 性能 credit；若选择了空 payload
+或单原子锚点，应如实报告。求解器模型最优不等于运行最快。参数更新、union、未知
+索引和 source-free 加载的回归见 `tests/generic_transfer.rs`；完整接线及许可限制见
+`experiments/parameterized_marker_solver/README.md`。性能测量仍使用本 skill 原有
+run/audit/提取入口及历史对照，不另造计时脚本。

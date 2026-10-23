@@ -1,0 +1,247 @@
+{
+  "scope": "actual parameterized query layout selection; not a performance benchmark",
+  "cases": [
+    {
+      "name": "tuple-gurobi",
+      "source_sha256": "78be4a947ab790f8a9674de5a1fa4b07c5fe58c3349afc00eb1e2fc7b64b88c9",
+      "solver": {
+        "backend": "gurobi",
+        "python_package_version": "13.0.3",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "scheduled_spine_layouts": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.016822792182210833,
+            "solve_seconds": 0.004507999983616173,
+            "peak_variables": 369,
+            "peak_constraints": 458,
+            "engine_version": "13.0.3",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "choices": 284,
+      "variables": 369,
+      "constraints": 458,
+      "shared_markers": 0,
+      "selected": [
+        {
+          "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+          "anchor_table": "Get",
+          "context_atoms": 1,
+          "stored_slots": [
+            2
+          ],
+          "parameter_interface": {
+            "parameters": [
+              {
+                "slot": 1,
+                "name": "i",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": true
+              }
+            ],
+            "guards": [],
+            "guard_authority": "original complete consumer",
+            "update": "committed row subscriptions; union, visibility and port-value invalidation",
+            "effects": "original native RHS at original Run boundary"
+          },
+          "authority": "analyze_complete_query"
+        },
+        {
+          "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+          "anchor_table": "Add-Gets",
+          "context_atoms": 1,
+          "stored_slots": [
+            5
+          ],
+          "parameter_interface": {
+            "parameters": [
+              {
+                "slot": 4,
+                "name": "n",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": true
+              },
+              {
+                "slot": 6,
+                "name": "@tuple-length1",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": false
+              }
+            ],
+            "guards": [],
+            "guard_authority": "original complete consumer",
+            "update": "committed row subscriptions; union, visibility and port-value invalidation",
+            "effects": "original native RHS at original Run boundary"
+          },
+          "authority": "analyze_complete_query"
+        },
+        {
+          "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+          "anchor_table": "Add-Gets",
+          "context_atoms": 1,
+          "stored_slots": [
+            4
+          ],
+          "parameter_interface": {
+            "parameters": [
+              {
+                "slot": 3,
+                "name": "n",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": true
+              }
+            ],
+            "guards": [],
+            "guard_authority": "original complete consumer",
+            "update": "committed row subscriptions; union, visibility and port-value invalidation",
+            "effects": "original native RHS at original Run boundary"
+          },
+          "authority": "analyze_complete_query"
+        },
+        {
+          "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+          "anchor_table": "Add-Gets",
+          "context_atoms": 1,
+          "stored_slots": [
+            3
+          ],
+          "parameter_interface": {
+            "parameters": [
+              {
+                "slot": 2,
+                "name": "n",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": true
+              }
+            ],
+            "guards": [],
+            "guard_authority": "original complete consumer",
+            "update": "committed row subscriptions; union, visibility and port-value invalidation",
+            "effects": "original native RHS at original Run boundary"
+          },
+          "authority": "analyze_complete_query"
+        },
+        {
+          "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+          "anchor_table": "Add-All-Gets",
+          "context_atoms": 1,
+          "stored_slots": [
+            4
+          ],
+          "parameter_interface": {
+            "parameters": [
+              {
+                "slot": 2,
+                "name": "offset",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": true
+              },
+              {
+                "slot": 3,
+                "name": "pos",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": true
+              },
+              {
+                "slot": 5,
+                "name": "@tuple-length3",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": false
+              }
+            ],
+            "guards": [
+              [
+                0,
+                [
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 5
+                  }
+                ]
+              ]
+            ],
+            "guard_authority": "original complete consumer",
+            "update": "committed row subscriptions; union, visibility and port-value invalidation",
+            "effects": "original native RHS at original Run boundary"
+          },
+          "authority": "analyze_complete_query"
+        }
+      ]
+    },
+    {
+      "name": "if-scip",
+      "source_sha256": "621a654bb15371c5287370e3288acc7baf39f7ef362a27dc122bdcd7a464393e",
+      "solver": {
+        "backend": "scip",
+        "python_package_version": "6.3.0",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "scheduled_spine_layouts": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.10923823030316271,
+            "solve_seconds": 0.19583549999515526,
+            "peak_variables": 4869,
+            "peak_constraints": 24273,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "choices": 4014,
+      "variables": 4869,
+      "constraints": 24273,
+      "shared_markers": 0,
+      "selected": [
+        {
+          "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+          "anchor_table": "Base",
+          "context_atoms": 1,
+          "stored_slots": [
+            15
+          ],
+          "parameter_interface": {
+            "parameters": [
+              {
+                "slot": 5,
+                "name": "i",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": false
+              },
+              {
+                "slot": 10,
+                "name": "j",
+                "sort": "i64",
+                "stored": false,
+                "available_in_prefix": false
+              }
+            ],
+            "guards": [],
+            "guard_authority": "original complete consumer",
+            "update": "committed row subscriptions; union, visibility and port-value invalidation",
+            "effects": "original native RHS at original Run boundary"
+          },
+          "authority": "analyze_complete_query"
+        }
+      ]
+    }
+  ],
+  "gurobi_if": "Rejected by local size-limited license. Identical candidate model solved by SCIP; no pruning.",
+  "checks": "Native complete-graph frontier comparisons, CPU/GPU observer, loaded selected files and negative validation cases; see tests/generic_transfer.rs and tools/cell_spine/test_scheduled.py."
+}

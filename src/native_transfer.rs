@@ -87,7 +87,18 @@ pub(super) fn from_capture(c: &Captured) -> Result<Bundle> {
         "accepted_records":c.records.len(),"records_with_committed_changes":effects,"rejected_records":c.rejected,
         "rules":c.rules.iter().enumerate().map(|(i,rule)| {
             let rs=c.records.iter().filter(|r|r.rule==i).collect::<Vec<_>>();
+            let read_paths=rs.iter().flat_map(|r|r.inputs.iter().filter_map(|i|if let Input::Read(p)=i{rule.calls.get(p)}else{None}))
+                .filter_map(|(position,e)|match e {Expr::Call(_,op,_) if position.starts_with("body/")=>Some((position,op)),_=>None})
+                .collect::<BTreeSet<_>>();
+            let mut read_tables=vec![];
+            for (_,name) in read_paths {if !read_tables.contains(name){read_tables.push(name.clone());}}
+            let numeric_parameters=rs.iter().flat_map(|r|r.inputs.iter().zip(&r.wanted).filter_map(|(input,value)|{
+                let Input::Var(name)=input else{return None};
+                let sort=c.pool.values[*value].sort.as_ref();
+                ["i64","f64"].contains(&sort).then(||(name.clone(),sort.to_string()))
+            })).collect::<BTreeSet<_>>();
             json!({"rule":rule.rule.name,"ruleset":rule.rule.ruleset,"records":rs.len(),
+                "read_tables":read_tables,"numeric_parameters":numeric_parameters,
                 "inserted_outputs":rs.iter().map(|r|r.produced.len()).sum::<usize>(),
                 "union_witnesses":rs.iter().map(|r|r.unions.len()).sum::<usize>(),
                 "function_update_records":rs.iter().filter(|r|r.updated_rows).count(),

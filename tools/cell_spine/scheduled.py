@@ -31,6 +31,21 @@ def context_candidate(q,plan,prefix):
                 signatures=sig,param_sorts={f's{i}':shape['slots'][i][1] for i in params}),atoms
 
 
+def parameter_interface(shape,atoms,carried):
+    """Parameters are typed native slots, never guessed from training values.
+
+    A marker provides a correlated prefix row. Numeric guards still execute in
+    the complete consumer, including when a mutable length/cost port changes.
+    """
+    bound=set.union(set(),*(slots(a) for a in atoms))
+    return dict(parameters=[dict(slot=i,name=n,sort=t,stored=i in carried,
+                    available_in_prefix=i in bound)
+                for i,(n,t) in enumerate(shape['slots']) if t in ('i64','f64')],
+                guards=shape['guards'],guard_authority='original complete consumer',
+                update='committed row subscriptions; union, visibility and port-value invalidation',
+                effects='original native RHS at original Run boundary')
+
+
 def options(q,rows,reuses=1):
     """All fixed-wiring roots, every prefix and original marker layout forms.
 
@@ -75,6 +90,8 @@ def options(q,rows,reuses=1):
                         indexes.append((shape['atoms'][i]['table'],access['Columns']))
                 yield dict(plan=program,layout=layout,stored_slots=carried,
                     complete_prefix=resumes,context_atoms=prefix+1,anchor_table=seed['table'],
+                    parameter_interface=parameter_interface(shape,atoms,carried),
+                    authority=q.get('authority','typed_source_query'),
                     costs=dict(storage=storage,search=search,update=update),indexes=sorted(set(indexes)))
 
 
@@ -185,6 +202,13 @@ def compile_program(a,data,root,weights):
     plans=dict(schema='cell-boundary-programs/v2',setup=native['preserved_commands'][:native['setup_commands']],
         rules=[dict(ruleset=q['ruleset'],rule=q['rule'],root=q['anchor_table'],plan=q['plan']) for q in chosen])
     write(output/'boundary-programs.json',plans)
+    if certificate:
+        # Preserve the imported proof; only complete-query implementations can
+        # be re-laid out. The portable library carries the same selected payload.
+        selected_certificate=output/'selected-certificates.egg'
+        run([binary,source,selected_certificate,'--certificates',certificate,
+             '--select-layouts',output/'boundary-programs.json']+(['--joint'] if joint else []))
+        certificate=selected_certificate
     # Exact source preservation prevents reserved internal parser names, changed
     # rule installation order and auxiliary progress from affecting the program.
     (output/'program.egg').write_bytes(source.read_bytes())
@@ -192,7 +216,7 @@ def compile_program(a,data,root,weights):
         '; No helper rules or marker writes are added to the original saturation.']
     for i,q in enumerate(chosen):
         annotation.append('; @spine '+json.dumps(dict(id=i,ruleset=q['ruleset'],rule=q['rule'],
-            anchor=text(q['layout']['anchor']),payload=q['layout']['payload'],slots=q['stored_slots'],
+            anchor=text(q['layout']['anchor']),payload=q['layout']['payload'],slots=q['stored_slots'],parameters=q['parameter_interface'],
             prefix_atoms=q['context_atoms'],proof='complete native query wiring; not RipSat closure equivalence'),ensure_ascii=False))
     (output/'spines.egg').write_text('\n'.join(annotation)+'\n')
     manifest=dict(schema='scheduled-symbolic-spines/v1',source_sha256=digest(source),
@@ -205,7 +229,7 @@ def compile_program(a,data,root,weights):
         runtime='cell-assisted original schedule + complete query providers; optional existing joint proofs unchanged',
         analysis_source=str(a.analysis_dir) if a.analysis_dir else None,
         certificate_library=str(certificate) if certificate else None,
-        certificates=native.get('certificates'),
+        certificates=native.get('certificates'),parameterized_library=native.get('parameterized_library'),
         evidence='typed query layouts plus separately native-checked imported closures' if certificate else 'typed source query wiring; no new Analyze closure certification',
         profiles={str(p):digest(p/'report.json' if p.is_dir() else p) for p in [a.query_profile,a.table_profile,a.query_selection,getattr(a,'marker_profile',None)] if p},
         preserved_source=True,concrete_snapshot=False)

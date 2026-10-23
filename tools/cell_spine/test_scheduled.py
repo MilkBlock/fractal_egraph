@@ -95,3 +95,61 @@ class ScheduledSpines(unittest.TestCase):
         self.assertEqual(shared_prefix.describe(base)['key'],shared_prefix.describe(rename)['key'])
         changed=copy.deepcopy(base);changed['shape']['atoms'][1]['columns'][0]={'Slot':0}
         self.assertNotEqual(shared_prefix.describe(base)['key'],shared_prefix.describe(changed)['key'])
+
+
+    def test_numeric_parameters_are_shared_without_merging_consumer_guards(self):
+        import copy
+        q=self.fixture();other=copy.deepcopy(q);other['rule']='q2'
+        for query in [q,other]:
+            query['shape']['slots'][3][1]='i64'
+            for atom in query['shape']['atoms']:
+                for i,col in enumerate(atom['columns']):
+                    if col.get('Slot')==3:atom['sorts'][i]='i64'
+            query['shape']['guards']=[[1,[{'Slot':3},{'Literal':'10'}]]]
+            for plan in query['plans']:plan['shape']=query['shape']
+        other['shape']['guards'][0][1][1]={'Literal':'20'}
+        other['shape']['atoms'][-1]['table']='D'
+        from . import shared_prefix
+        measured={}
+        for o in scheduled.options(q,{'A':84},10):
+            if o['plan']['prefix_len']<3:
+                d=shared_prefix.describe(o['plan']);measured[d['body_key']]=dict(peak_bindings=84,lookups=100,candidate_rows=84,root_refreshes=100)
+        profile=dict(markers=measured,queries={('s',r):dict(seed_evaluations=1000,emitted_bindings=1000) for r in ['q','q2']})
+        solver.select('scip')
+        with tempfile.TemporaryDirectory() as tmp:
+            r=scheduled.select([q,other],{'A':84,'Ctx':10000,'Ty':10000,'C':10000,'D':10000},Path(tmp),(1,1,1),marker_profile=profile)
+        self.assertEqual(len(r['selected']),2)
+        self.assertTrue(all(any(p['slot']==3 and p['stored'] for p in o['parameter_interface']['parameters']) for o in r['selected']))
+        self.assertNotEqual(r['selected'][0]['parameter_interface']['guards'],r['selected'][1]['parameter_interface']['guards'])
+        self.assertTrue(any(len(m['consumers'])==2 for m in r['shared_markers']))
+
+    def test_analyze_numeric_queries_enter_solver_and_portable_marker_library(self):
+        source=ROOT/'experiments/observed_transfer_queries/tuple-training.egg'
+        with tempfile.TemporaryDirectory(dir=ROOT/'out',prefix='parametric-marker-') as temp:
+            tmp=Path(temp);library=tmp/'certificates.egg';out=tmp/'compiled'
+            bake=subprocess.run([ROOT/'target/analyzer/debug/egg_layout','analyze-transfer',source,library],cwd=ROOT,capture_output=True,text=True)
+            self.assertEqual(bake.returncode,0,bake.stderr)
+            result=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--mode','scheduled',
+                '--source',source,'--output',out,'--certificate-library',library,'--skip-build'],cwd=ROOT,capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+            manifest=json.loads((out/'scheduled-plan.json').read_text())
+            chosen=manifest['selection']['selected']
+            self.assertEqual(len(chosen),5)
+            self.assertTrue(all(q['authority']=='analyze_complete_query' for q in chosen))
+            native=json.loads((out/'work/queries.json').read_text())
+            self.assertTrue(any(p['stored'] for q in native['queries'] if 'plans' in q
+                for opt in scheduled.options(q,native['table_rows']) for p in opt['parameter_interface']['parameters']))
+            self.assertTrue(any(q['parameter_interface']['guards'] for q in chosen))
+            selected=out/'selected-certificates.egg'
+            self.assertEqual(Path(manifest['certificate_library']),selected)
+            programs=[json.loads(l[len('; @cell-program '):]) for l in selected.read_text().splitlines() if l.startswith('; @cell-program ')]
+            for q in chosen:
+                program=next(p for p in programs if p['ruleset']==q['ruleset'] and p['shape']['atoms']==q['plan']['shape']['atoms'])
+                self.assertEqual(program['marker']['carried_slots'],q['plan']['carried_slots'])
+                self.assertEqual(program['marker']['shared_marker'],q['plan'].get('shared_marker',False))
+            # A new process needs only the selected library and new input, not
+            # training facts, the selection JSON, or an online solver.
+            run=subprocess.run([ROOT/'target/analyzer/debug/egg_layout','run-transfer',selected,
+                ROOT/'experiments/observed_transfer_queries/tuple-updates.egg',tmp/'run'],cwd=ROOT,capture_output=True,text=True)
+            self.assertEqual(run.returncode,0,run.stdout+run.stderr)
+            self.assertEqual(source.read_bytes(),(out/'program.egg').read_bytes())

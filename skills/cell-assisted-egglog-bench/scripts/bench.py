@@ -786,6 +786,7 @@ def parser():
     q.add_argument('--input',type=Path,required=True);q.add_argument('--native',type=Path)
     q.add_argument('--output',type=Path);q.add_argument('--boundary-output',type=Path);q.add_argument('--root')
     q=sub.add_parser('boundary-credit',help='compare source-derived boundary programs off/on; not automatic Bake credit')
+    q.add_argument('--extension',action='store_true',help='compare an existing query library with a strict additive extension; unchanged plans are required')
     q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
     q.add_argument('--profile-before',type=Path);q.add_argument('--profile-after',type=Path);q.add_argument('--output',type=Path)
     q=sub.add_parser('shared-marker-credit',help='same selected plans: private versus shared prefix maintenance')
@@ -907,7 +908,7 @@ def commands(a, repo, worker, out):
         c = [['cargo', 'test', '--offline', '--manifest-path', 'egglog/egglog-bridge/Cargo.toml', '--target-dir', 'target/analyzer', '--lib', 'cell_worklist_tests', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--test', 'full_gpu', '--test', 'commit_markers', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--lib', 'stable_choice::tests', '--target-dir', 'target/analyzer'],
-             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'transfer_artifact', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
+             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--test', 'scalar_cells', '--test', 'scalar_closure', '--test', 'transfer_artifact', '--test', 'generic_transfer', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
     else: c = []
     if a.mode=='test': c.append([sys.executable,'-m','unittest','discover','-s',str(repo/'skills/cell-assisted-egglog-bench/scripts'),'-p','test_*.py'])
     if getattr(a, 'reference_output', None): c[-1] += ['--reference-output', str(resolve(a.reference_output))]
@@ -1022,7 +1023,7 @@ def main(argv=None):
         return hotspots.run(a,resolve)
     if a.mode in ['boundary-credit','shared-marker-credit']:
         import hotspots
-        r=hotspots.compare(resolve(a.before),resolve(a.after),resolve(a.profile_before) if a.profile_before else None,resolve(a.profile_after) if a.profile_after else None,shared=a.mode=='shared-marker-credit')
+        r=hotspots.compare(resolve(a.before),resolve(a.after),resolve(a.profile_before) if a.profile_before else None,resolve(a.profile_after) if a.profile_after else None,shared=a.mode=='shared-marker-credit',extension=getattr(a,'extension',False))
         print(r['before_seconds'],r['after_seconds'],'saved fraction',r['saved_fraction'])
         if a.output:
             p=resolve(a.output);p.parent.mkdir(parents=True,exist_ok=True)
