@@ -129,3 +129,34 @@ out/manim-ce-venv/bin/python experiments/statewalk_manim/finish.py --output out/
 python3 out/statewalk-manim-detail/vec_add_plain.py
 python3 out/statewalk-manim-detail/vec_add_python.py
 ```
+
+## MamboTTS narration
+
+`voice.py` supports the legacy GPT-SoVITS `POST /` API used by
+[MamboTTS](https://github.com/Tsukimisaka/MamboTTS). Run the intended Mambo model
+and reference on the engine host first; the client does not silently switch a
+shared server's models. An SSH tunnel can expose that server only on local
+loopback. The upstream Mambo launcher supplies `manbo-e10.ckpt`,
+`manbo_e8_s168.pth`, and its default `refer.wav` / transcription.
+
+```sh
+# A short real preview, before generating the full narration.
+out/manim-ce-venv/bin/python experiments/statewalk_manim/voice.py \
+  --mambo-url http://127.0.0.1:19880 --output out/mambo-preview.wav
+
+# Use a separate output directory to retain the Tingting edition.
+out/manim-ce-venv/bin/python experiments/statewalk_manim/prepare.py \
+  --output out/statewalk-mambo --speech-backend mambotts \
+  --mambo-url http://127.0.0.1:19880 --mambo-speed 1.0
+out/manim-ce-venv/bin/python experiments/statewalk_manim/render.py --output out/statewalk-mambo --quality final
+out/manim-ce-venv/bin/python experiments/statewalk_manim/finish.py --output out/statewalk-mambo
+```
+
+The engine's reference path is server-side, not a local file upload. Override it
+only with both `--mambo-reference` and its exact `--mambo-prompt`. Bump
+`--voice-revision` when changing server weights/reference under the same name.
+Cache identity includes backend, text, voice settings and output checksum.
+Responses must be WAV and successfully decode before replacing an existing clip;
+an unavailable engine never substitutes silence or the old voice. Narration
+durations drive the existing animation/subtitle timing. Credits and player labels
+identify the actual backend and disclose synthesized speech.

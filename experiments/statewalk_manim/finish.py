@@ -20,6 +20,7 @@ def main():
     args = parser.parse_args()
     out = args.output.resolve()
     edit = json.loads((out/'edit.json').read_text())
+    voice_label=json.loads((out/'audio.json').read_text()).get('narration_label','macOS Tingting（合成语音）')
     assert (edit['width'], edit['height'], edit['fps']) == (1920, 1080, 30)
     duration = round(edit['duration'], 3)
     cues = []
@@ -36,7 +37,7 @@ def main():
         f"{timestamp(c['start'], '.')} --> {timestamp(c['end'], '.')}\n{c['text']}"
         for c in edit['captions'])+'\n', encoding='utf-8')
     metadata = [';FFMETADATA1', 'title=Statewalk：带着钥匙寻找路径',
-                'comment=Original animation rendered with Manim Community 0.19.0. Chinese narration synthesized with macOS Tingting.']
+                'comment=Original Manim Community animation. Narration: '+voice_label]
     for chapter in edit['chapters']:
         metadata += ['[CHAPTER]', 'TIMEBASE=1/1000', f"START={round(chapter['start']*1000)}",
                      f"END={round(chapter['end']*1000)}", 'title='+chapter['title']]
@@ -74,7 +75,7 @@ def main():
                     duration_seconds=duration, width=1920, height=1080, fps=30,
                     frames=int(video['nb_frames']), chapters=edit['chapters'],
                     bytes=final.stat().st_size, sha256=hashlib.sha256(final.read_bytes()).hexdigest(),
-                    full_decode_passed=True, narration='Synthesized Chinese: macOS Tingting',
+                    full_decode_passed=True, narration=voice_label,
                     native_trace=trace['summary'],
                     scope='Actual native Statewalk decisions; illustrative cost tokens. Reuses saved single-run CPU extraction measurements; no new timing or GPU claim.')
     if (out/'dataflow.json').exists():
@@ -88,8 +89,9 @@ def main():
 </style><main><header><small>MANIM COMMUNITY · 原创数学动画</small><h1>Statewalk：从搜索到 Python 数据流</h1><p>从真实 eggcc 向量加法出发，看清可提取信息传播、状态路径重建、Python 数据流生成，以及共享成本。__DURATION__ · 1080p / 30fps · 中文合成旁白</p></header>
 <video id="film" controls playsinline preload="metadata" poster="poster.jpg"><source src="statewalk-intuition.mp4" type="video/mp4"><track kind="subtitles" src="captions.vtt" srclang="zh" label="完整中文旁白"></video>
 <nav>__BUTTONS__</nav><div class="links"><a href="walkthrough.html">逐步执行 Python 数据流</a><a href="statewalk-intuition.mp4" download>下载视频</a><a href="captions.srt" download>完整中文字幕</a><a href="vec_add-source.rs">真实 Rust 源码</a><a href="vec_add-extracted.egg">对应 eggcc IR</a><a href="statewalk-trace.jsonl">原生搜索记录</a><a href="manifest.json">验证与来源</a></div>
-<footer><p>808 个状态、1,864 次候选检查来自同一段真实 Statewalk 记录。筹码成本 3、1、2 是教学数值。407→29 ms 与 2.272→1.735 s 来自已保存的单次 Tiger 对照，不是新 benchmark，也不是 GPU 加速。</p><p>中文旁白由 macOS Tingting 合成；画面由 Manim Community 0.19.0 制作。采用几何对象连续变形的讲解方式，无借用镜头或他人配音。完整旁白字幕可用播放器字幕菜单开启，浏览器对本地字幕的支持不同，独立 SRT 始终可下载。</p></footer></main>
+<footer><p>808 个状态、1,864 次候选检查来自同一段真实 Statewalk 记录。筹码成本 3、1、2 是教学数值。407→29 ms 与 2.272→1.735 s 来自已保存的单次 Tiger 对照，不是新 benchmark，也不是 GPU 加速。</p><p>中文旁白由 macOS Tingting 合成；画面由 Manim Community 0.19.0 制作。画面采用几何对象连续变形；旁白由所标注的语音模型合成。完整旁白字幕可用播放器字幕菜单开启，浏览器对本地字幕的支持不同，独立 SRT 始终可下载。</p></footer></main>
 <script>const film=document.querySelector('#film'),buttons=[...document.querySelectorAll('nav button')];buttons.forEach(b=>b.onclick=()=>{film.currentTime=Number(b.dataset.time);film.play().catch(()=>{});film.scrollIntoView({behavior:'smooth',block:'center'});});film.addEventListener('timeupdate',()=>buttons.forEach((b,i)=>b.classList.toggle('active',film.currentTime>=Number(b.dataset.time)&&(i===buttons.length-1||film.currentTime<Number(buttons[i+1].dataset.time)))));</script></html>'''
+    page=page.replace('中文旁白由 macOS Tingting 合成','中文旁白：'+html.escape(voice_label))
     (out/'index.html').write_text(page.replace('__BUTTONS__',buttons).replace('__DURATION__',f'{int(duration)//60}分{int(duration)%60:02}秒'), encoding='utf-8')
     print(json.dumps({k:manifest[k] for k in ('renderer','duration_seconds','frames','bytes','sha256','full_decode_passed')},ensure_ascii=False))
 

@@ -47,7 +47,8 @@ class Bag(VGroup):
 
 class StatewalkFilm(DetailScenes,Scene):
     def setup(self):
-        self.audio=json.loads((DATA/'audio.json').read_text())['clips']
+        audio_data=json.loads((DATA/'audio.json').read_text())
+        self.audio=audio_data['clips'];self.voice_label=audio_data.get('narration_label','macOS Tingting（合成语音）')
         self.trace=json.loads((DATA/'trace-demo.json').read_text())
         self.ir=json.loads((DATA/'ir-demo.json').read_text())
         self.flow=json.loads((DATA/'dataflow.json').read_text())
@@ -325,6 +326,6 @@ class StatewalkFilm(DetailScenes,Scene):
         self.play(*[FadeOut(m) for m in [label,old,new,old_number,new_number,whole,whole_note,check]],run_time=.7)
         pieces=VGroup(zh('合法路径',40,color=PURPLE_STATE),math('+',size=45),zh('共享成本',40,color=BLUE_VALUE),math('=',size=45),zh('同样答案',40,color=GREEN_READY)).arrange(RIGHT,buff=.25).move_to([0,.6,0])
         self.beat('closing',lambda:self.play(Write(pieces),run_time=1.7))
-        credits=VGroup(zh('Manim Community 0.19 · 中文合成配音 Tingting',21,color=GREY_B),zh('Tiger ae80f82a · 账表优化 f9a6d1c · 真实原生 trace',20,color=GREY_B)).arrange(DOWN,buff=.25).move_to([0,-1.3,0])
+        credits=VGroup(zh('Manim Community 0.19 · '+self.voice_label,21,color=GREY_B),zh('Tiger ae80f82a · 账表优化 f9a6d1c · 真实原生 trace',20,color=GREY_B)).arrange(DOWN,buff=.25).move_to([0,-1.3,0])
         self.beat('boundary',lambda:self.play(FadeIn(credits),run_time=.8))
         self.shot('13-end');self.play(FadeOut(pieces),FadeOut(credits),FadeOut(title),run_time=1.0);self.wait(.4)

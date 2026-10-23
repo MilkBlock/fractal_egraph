@@ -1,0 +1,62 @@
+{
+  "schema": "statewalk-mambo/v1",
+  "voice": "MamboTTS / GPT-SoVITS · 曼波（合成语音）",
+  "source": "https://github.com/Tsukimisaka/MamboTTS/releases/tag/v1.2.1",
+  "runtime": {
+    "pci_driver": "/sys/bus/pci/drivers/nvidia",
+    "gpu": "NVIDIA GeForce RTX 4090, 595.71.05, 24564 MiB",
+    "persistent_boot_vfio_removed": true,
+    "nvidia_not_blacklisted": true,
+    "rebooted": false,
+    "cuda_matrix_result": 256.0,
+    "voice_models": {
+      "manbo_e8_s168.pth": {
+        "bytes": 84998275,
+        "sha256": "80668f169f2c12912adcbbaf5476591b1bff2e35a7f72bc05822baaec1b88073"
+      },
+      "refer.wav": {
+        "bytes": 497006,
+        "sha256": "8e9c9363e3abc02486012b3c889dc73540aebf044019de4426266c19099658c3"
+      },
+      "manbo-e10.ckpt": {
+        "bytes": 155309216,
+        "sha256": "426ac73fe84a8597f60254fe915830f0c3e2412ee41df9d09899911b08911df4"
+      }
+    },
+    "mambo_commit": "00ba77ef54a2e61a52b86582c8ede1619666cf4a",
+    "engine_commit": "b4570b876f5c086819ba84e3215472733c6a7b70"
+  },
+  "audio": {
+    "clips": 50,
+    "speech_seconds": 654.76,
+    "all_clips_nonempty_non_silent": true,
+    "scope": "Actual Mambo GPT-SoVITS synthesis. Audio decoding and signal checks, not ASR or a word-perfect transcription proof."
+  },
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "frames": 21021,
+    "duration_seconds": 700.7,
+    "sha256": "ecc7819c86df7f6a1285fafa2826a6cc71b340eaf8a7b8fac995ea3fd3560a96",
+    "bytes": 38240189,
+    "full_decode_passed": true
+  },
+  "chapters": 14,
+  "unchanged": [
+    "selected IR",
+    "generated Python",
+    "131-case dataflow validation"
+  ],
+  "adapter_validation": [
+    "legacy POST contract",
+    "cache keyed by backend, text and voice settings",
+    "invalid audio leaves previous clip intact",
+    "all actual clips decode to mono 48k PCM"
+  ],
+  "notes": [
+    "Actual GPT-SoVITS v2 synthesis with Mambo release weights; not a mock.",
+    "PyTorch ran on CUDA; the installed ONNX pronunciation frontend reported CUDA provider unavailability and used CPU fallback.",
+    "Old voice edition retained; no reboot or VM data deletion."
+  ]
+}
