@@ -30,6 +30,10 @@ def main():
     data['clips']=clips
     (out/'audio.json').write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
     shutil.copyfile(a.trace/'trace.jsonl',out/'statewalk-trace.jsonl')
+    from dataflow import export as export_dataflow
+    export_dataflow(out)
+    from walkthrough import export as export_walkthrough
+    export_walkthrough(out)
     print(json.dumps(dict(beats=len(clips),speech_seconds=sum(c['duration'] for c in clips.values())),ensure_ascii=False))
 
 if __name__=='__main__':main()

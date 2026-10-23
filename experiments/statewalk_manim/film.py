@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import numpy as np
+from details import DetailScenes
 
 config.background_color = '#101014'
 config.notify_outdated_version = False
@@ -44,11 +45,12 @@ class Bag(VGroup):
         self.brackets.set_color(color)
         super().__init__(self.entries,self.brackets)
 
-class StatewalkFilm(Scene):
+class StatewalkFilm(DetailScenes,Scene):
     def setup(self):
         self.audio=json.loads((DATA/'audio.json').read_text())['clips']
         self.trace=json.loads((DATA/'trace-demo.json').read_text())
         self.ir=json.loads((DATA/'ir-demo.json').read_text())
+        self.flow=json.loads((DATA/'dataflow.json').read_text())
         assert [v['label'] for v in self.ir['loads']]==['b[0]','a[1]','b[1]','a[2]','b[2]','a[0]']
         assert len(self.trace['state_graph'])==808 and self.trace['summary']['closure_cache_hits']==0
         assert self.trace['rejection']['from']==71 and self.trace['accepted']['id']==797
@@ -92,8 +94,13 @@ class StatewalkFilm(Scene):
         self.tuple_demo()
         self.availability()
         self.product_state()
+        self.closure_detail()
         self.gate()
+        self.relaxation_detail()
         self.search()
+        self.unroll_detail()
+        self.fill_dag_detail()
+        self.python_detail()
         self.sharing()
         self.storage()
         self.results()

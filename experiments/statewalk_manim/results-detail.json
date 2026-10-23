@@ -1,0 +1,46 @@
+{
+  "verified": {
+    "candidates": 1864,
+    "closures": 1465,
+    "publishes": 807
+  },
+  "validation_cases": 131,
+  "output": [
+    12.0,
+    24.0,
+    36.0
+  ],
+  "ir_sha256": "d2f123a325867ed90c4f5a5106ef8a2771c917795733616c8fb2b470c4238408",
+  "scope": "Python rechecks native decisions and pure closure deltas; it does not rerun native DP, liveness hashing or greedy choices.",
+  "simplifications": [
+    "Type constructors omitted; PtrAdd and Get aliases inlined.",
+    "Float addition and selected effect order preserved for this finite vec_add demo.",
+    "Integer state token is a teaching device, not native eggcc state representation.",
+    "No general pointer, allocation identity, aliasing or whole-program equivalence claim."
+  ],
+  "format": "Detailed Manim film and generated Python companion",
+  "steps": 14,
+  "source": "check_statewalk@ae80f82a/dag_in_context/src/tiger/{statewalkdp,greedy,tiger}.cpp",
+  "checks": [
+    "Native candidate first_missing witnesses",
+    "Every native pure closure delta",
+    "Publication incremental estimate sums",
+    "131 selected-IR vs generated-Python executions",
+    "Explicit state sequence and stale-token rejection",
+    "Final IEEE double values including signed zeros",
+    "Companion JavaScript syntax and local file references"
+  ],
+  "media": {
+    "duration_seconds": 670.367,
+    "frames": 20111,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "bytes": 38669411,
+    "sha256": "f8f2873d03ae3b8fd191cdcd3129d517df53cbe4f150e380451c321c37925480",
+    "full_decode_passed": true,
+    "chapters": 14
+  },
+  "player_validation": "Both readers: local links and JavaScript syntax checked. No browser UI playback claim.",
+  "visual_checks": "All five added chapters inspected as rendered frames; generated-Python scene also inspected at 1080p."
+}

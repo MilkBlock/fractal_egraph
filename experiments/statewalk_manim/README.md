@@ -69,3 +69,55 @@ states (#71 vs #797); missing dependencies are never silently waived.
 
 Only reproducible sources and text validation results belong in Git. Rendered
 movies, audio, caches, the virtual environment and trace files remain under `out/`.
+
+## Detailed edition: extraction into executable dataflow
+
+The detailed edition adds five chapters and a runnable Python companion:
+
+1. A real transition #73 → #200: Load b1 (c21) enables the Get value (c72),
+   then FAdd (c37). Pure alternatives are OR; the children of one candidate
+   are AND. This step adds 11 extractable classes, including the selected Load.
+2. The queue loop: local effect successors, dependency rejection, estimated
+   cost 1225 + 611 = 1836, relevant-state deduplication and predecessor updates.
+   On-screen pseudocode intentionally omits native data structures/pruning.
+3. `rebuild_egraph_statewalk` expands the repeated effectful c9 occurrences
+   into separate positions and rewires each state edge to its predecessor.
+4. `prune_unextractable_enodes` and `statewalk_greedy_extraction` complete the
+   graph, collect missing dependencies, output them topologically, and reuse
+   previously emitted results. This explanation is source-backed; we do not
+   claim to have instrumented the final greedy queue in the existing trace.
+5. Python generated from the actual selected IR executes on concrete arrays.
+   The selected read order remains b0, a1, b1, a2, b2, a0. Output is [12,24,36].
+
+`dataflow.py` is a deliberately narrow exporter and independent direct
+interpreter for this frozen vec_add IR. It rejects unsupported computation.
+It generates `vec_add_plain.py` (standalone), `vec_add_python.py` (explicit state
+tokens) and its small `dataflow_runtime.py`. Types are omitted, and Get/PtrAdd
+aliases are inlined. Every emitted statement retains its original node ID.
+Integer state tokens illustrate the selected ordering; they are not eggcc's
+native State values. General pointer aliasing and allocation identity are not
+modeled. Tests cover 131 finite input pairs, including signed zeros and wide
+magnitudes, comparing double representations and effect sequences against the
+direct selected-IR interpreter. This is not a general equivalence proof.
+
+The Python pure-closure checker independently replays **all 1,864 candidate
+dependency checks, 1,465 closure deltas, and 807 publication cost additions**.
+It operates on native node records. It does not rerun native DP, reproduce its
+liveness/hash optimizations, or claim a new optimum. The explanatory closure
+uses repeated scans; Tiger uses reverse dependencies, counters and persistent
+sets. These are evidence checks, not timing benchmarks.
+
+`walkthrough.html` lets the reader step through actual recorded Python locals,
+switch between plain and state-token code, and inspect each original IR node.
+Its data comes from executing the generated function with recording statements;
+the browser is a trace player, not an embedded Python interpreter.
+
+To preserve the first edition, use a different output directory:
+
+```sh
+out/manim-ce-venv/bin/python experiments/statewalk_manim/prepare.py --output out/statewalk-manim-detail
+out/manim-ce-venv/bin/python experiments/statewalk_manim/render.py --output out/statewalk-manim-detail --quality final
+out/manim-ce-venv/bin/python experiments/statewalk_manim/finish.py --output out/statewalk-manim-detail
+python3 out/statewalk-manim-detail/vec_add_plain.py
+python3 out/statewalk-manim-detail/vec_add_python.py
+```
