@@ -81,7 +81,15 @@ def extraction_identity(a, repo):
         paths.append(resolve(a.reference_output))
     if not all(p.is_file() for p in paths):
         return None
-    return [sha(p) for p in paths]
+    result=[sha(p) for p in paths]
+    mode=getattr(a,'extraction_markers','off')
+    if mode!='off':
+        for path in sorted((repo/'tools/tiger_markers').glob('*')):
+            if path.suffix in ('.py','.h','.swift'):result.append(sha(path))
+        for path in sorted((SHARED/'check_statewalk/dag_in_context/src/tiger').glob('*')):
+            if path.suffix in ('.cpp','.h'):result.append(sha(path))
+        result.append('marker-mode:'+mode)
+    return result
 
 def reusable_result(a, repo, worker, env):
     identity = inference_identity(a, repo, worker, env)
@@ -731,6 +739,12 @@ def parser():
     p.add_argument('--repo', type=Path, default=REPO)
     p.add_argument('--dry-run', action='store_true')
     sub = p.add_subparsers(dest='mode', required=True)
+    q = sub.add_parser('extraction-markers', help='production Tiger cost-marker CPU/GPU ablation on a saved graph')
+    q.add_argument('--graph', type=Path, required=True)
+    q.add_argument('--output', type=Path, required=True)
+    q.add_argument('--build-dir', type=Path, required=True)
+    q.add_argument('--tiger-checkout', type=Path, default=SHARED / 'check_statewalk')
+    q.add_argument('--reference-output', type=Path)
     q = sub.add_parser('report'); q.add_argument('input', type=Path, nargs='?', default=SAVED)
     for mode in ['interaction','depth']:
         q = sub.add_parser(mode, help='read saved factorial/depth counters; no runs')
@@ -801,6 +815,7 @@ def parser():
             q.add_argument('--output', type=Path)
         if mode in ['run', 'extract']:
             q.add_argument('--reference-output', type=Path)
+            q.add_argument('--extraction-markers', choices=['off','bag','cpu','gpu'], default='off')
         if mode == 'extract': q.add_argument('input', type=Path)
         if mode == 'run':
             q.add_argument('--policy', choices=['stable', 'original'], default='stable')
@@ -841,9 +856,9 @@ def commands(a, repo, worker, out):
         if a.joint_sat: c[0].append('--joint-sat')
         if a.all_rules: c[0].append('--all-rules')
         if not a.no_extract:
-            c += [[sys.executable, str(repo / 'experiments/raytrace_pass3_gpu/extract.py'), str(out), '--tiger', str(resolve(a.tiger))]]
+            c += [[sys.executable, str(repo / 'experiments/raytrace_pass3_gpu/extract.py'), str(out), '--tiger', str(resolve(a.tiger)), '--markers', getattr(a,'extraction_markers','off')]]
     elif a.mode == 'extract':
-        c = [[sys.executable, str(repo / 'experiments/raytrace_pass3_gpu/extract.py'), str(out), '--tiger', str(resolve(a.tiger))]]
+        c = [[sys.executable, str(repo / 'experiments/raytrace_pass3_gpu/extract.py'), str(out), '--tiger', str(resolve(a.tiger)), '--markers', getattr(a,'extraction_markers','off')]]
     elif a.mode == 'audit' and a.all_rules:
         if a.three_lane_check: raise ValueError('use run --all-rules for independent graph checks')
         c = [[binary('raytrace_stable_bench'), source, str(worker), str(out), '--all-rules', '--cell-audit-only' if a.cell_only else '--audit-only'] + (['--joint-sat'] if a.joint_sat else [])]
@@ -995,6 +1010,11 @@ def main(argv=None):
     if a.mode=='program-modes':
         import program_modes
         return program_modes.run(a,repo)
+    if a.mode=='extraction-markers':
+        if a.dry_run:
+            print('Build isolated Tiger overlay; compare off/cpu/gpu and native cost oracle on', resolve(a.graph)); return 0
+        import extraction_markers
+        return extraction_markers.run(a,repo)
     if a.mode=='spine-program':
         import scheduled_spines
         return scheduled_spines.run(a,repo)

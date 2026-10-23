@@ -295,3 +295,25 @@ check/extraction等命令按原AST原生执行；pristine使用同样的初始�
 闭包、完整查询和候选查询分开。后两者没有 sat-skip 权限，不能记为闭包收益。
 自动 Analyze 可用 `--bake-certificates` 导出，旧 `--bake-transfers` 仍兼容。
 具体复现和边界见 `experiments/unified_ripsat_certificates/README.md`。
+
+### 提取专用的共享成本与 GPU 求值
+
+`extract DIR --extraction-markers bag` 或 `run --extraction-markers bag` 使用
+隔离构建的生产 Tiger overlay：保持 greedy/Statewalk 选择与同分顺序，只将
+共享成本集合改为不可变有序表示。`cpu` 额外共享候选成本接线，`gpu` 将这些
+接线交给 Metal 的精确 uint64 算术。默认 `off`；工具不会修改 check_statewalk。
+源码、实际二进制、worker及模式纳入缓存验证，不能复用另一个后端的计时。
+
+`extraction-markers --graph FILE --reference-output TIGER.egg --build-dir NEW
+--output NEW` 在保存的图上跑提取对照，不重跑推理。包含单次 off/bag/cpu/gpu、
+独立原生成本/选择 oracle、完整选定 DAG 比较及重复 GPU 输出确定性检查。
+已验证且输入/二进制相同的历史 lane 自动复用，保留原路径；不选最快一次。
+
+同时报告全局成本估计、候选成本阶段、GPU kernel、启动/传输和整个 Tiger
+时间。不能把未修改阶段的波动或 GPU 微秒 kernel 当成净收益。现有 raytrace
+验证中 bag 的成本估计 407→29 ms，整次提取 2.272→1.735 s；GPU的2,709份
+配方太少，约51 ms启动/求值开销不划算。当前建议 bag，GPU仍为可选路径。
+
+这属于 extraction-specific 表示优化，**不是已有matching marker/RipSat闭包
+证明的credit，也尚未在线维护完整extraction**。原有 fused-native 对照失败
+不得隐藏。实现、限制和结果见 `experiments/tiger_extraction_markers/README.md`。

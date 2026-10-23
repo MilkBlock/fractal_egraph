@@ -7,6 +7,8 @@ from pathlib import Path
 import subprocess
 import shutil
 import time
+import os
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -22,6 +24,8 @@ def main():
     p.add_argument('run', type=Path)
     p.add_argument('--tiger', type=Path, default=Path('/Users/mineralsteins/Repos/egg_related/check_statewalk/target/release/tiger'))
     p.add_argument('--reference-output', type=Path)
+    p.add_argument('--markers', choices=['off','bag','cpu','gpu'], default='off')
+    p.add_argument('--verify-markers', action='store_true')
     a = p.parse_args()
     output = a.run / 'extraction'
     output.mkdir(exist_ok=False)
@@ -31,17 +35,29 @@ def main():
     old = report.get('reused_controls', {}).get('directory')
     old = Path(old) / 'extraction' if old else None
     timing = json.loads((old / 'timing.json').read_text()) if old and (old / 'timing.json').is_file() else {}
+    worker = None
+    if a.markers != 'off':
+        sys.path.insert(0,str(ROOT))
+        from tools.tiger_markers.build import ensure
+        a.tiger, worker = ensure(Path('/Users/mineralsteins/Repos/egg_related/check_statewalk'),ROOT/'out/tiger-marker-tools')
     tiger_hash = sha(a.tiger)
+    worker_hash = sha(worker) if worker else None
+    config = dict(tiger=str(a.tiger),tiger_sha256=tiger_hash,marker_mode=a.markers,
+                  marker_worker_sha256=worker_hash,marker_verification=a.verify_markers)
+    env = {k:v for k,v in os.environ.items() if not k.startswith('TIGER_EXTRACTION_')}
+    env.update(TIGER_EXTRACTION_MARKERS=a.markers,TIGER_EXTRACTION_VERIFY='1' if a.verify_markers else '0')
+    if worker:env['TIGER_EXTRACTION_WORKER']=str(worker)
     lanes = report.get('extraction_lanes', ['native', 'cpu', 'gpu'])
     if lanes not in (['native','cpu','gpu'],['native','markers']):raise ValueError('unsupported extraction lanes')
     for lane in lanes:
         graph = a.run / 'graphs' / (lane + '.json')
         target = output / (lane + '.egg')
         cached = next((r for r in timing.get('runs', []) if r['lane'] == lane), None)
-        if lane in ('native','cpu') and cached and timing.get('tiger_sha256') == tiger_hash and cached.get('returncode') == 0 and cached.get('input_sha256') == sha(graph) and (old / (lane + '.egg')).is_file() and cached.get('output_sha256') == sha(old / (lane + '.egg')):
+        same_mode = timing.get('marker_mode','off') == a.markers and timing.get('marker_worker_sha256') == worker_hash and timing.get('marker_verification',False) == a.verify_markers
+        if lane in ('native','cpu') and cached and same_mode and timing.get('tiger_sha256') == tiger_hash and cached.get('returncode') == 0 and cached.get('input_sha256') == sha(graph) and (old / (lane + '.egg')).is_file() and cached.get('output_sha256') == sha(old / (lane + '.egg')):
             shutil.copyfile(old / (lane + '.egg'), target)
             records.append(dict(cached, reused_from=str(old)))
-            (output / 'timing.json').write_text(json.dumps(dict(tiger=str(a.tiger), tiger_sha256=tiger_hash, runs=records), indent=2) + '\n')
+            (output / 'timing.json').write_text(json.dumps(dict(config, runs=records), indent=2) + '\n')
             continue
         # Match production's serde_json::to_string_pretty contract. Its C++
         # reader tokenizes whitespace, so compact JSON is not accepted.
@@ -54,11 +70,11 @@ def main():
         del data
         with pretty.open('rb') as inp, target.open('wb') as out, (output / (lane + '.stderr')).open('wb') as err:
             start = time.perf_counter()
-            result = subprocess.run([str(a.tiger), '--ilp-solver', 'cbc'], stdin=inp, stdout=out, stderr=err)
+            result = subprocess.run([str(a.tiger), '--ilp-solver', 'cbc'], stdin=inp, stdout=out, stderr=err, env=env)
             seconds = time.perf_counter() - start
         records.append(dict(lane=lane, seconds=seconds, returncode=result.returncode,
                             input_sha256=sha(graph), output_sha256=sha(target)))
-        (output / 'timing.json').write_text(json.dumps(dict(tiger=str(a.tiger), tiger_sha256=sha(a.tiger), runs=records), indent=2) + '\n')
+        (output / 'timing.json').write_text(json.dumps(dict(config, runs=records), indent=2) + '\n')
         result.check_returncode()
         pretty.unlink()
     checker = ROOT / 'target/analyzer/release/examples/tiger_output_check'

@@ -1,0 +1,213 @@
+{
+  "schema": "tiger-extraction-markers/v1",
+  "graph": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/boundary-loop/graphs/gpu.json",
+  "input_sha256": "204e18abf98fb73d8eef6ed37a29e552d8f973649b6bed6969d643e7a113b7e3",
+  "tiger_sha256": "f0dd1537072dd00c994129245a7bf1e21c2ad0d92cd74c8a8cafc94d27e0d261",
+  "worker_sha256": "cfb86f70daaa47edaebd194d0baadc4d11a97585dd497a79abde401199d8ecce",
+  "machine": "MineralSteinsdeMacBook-Pro.local",
+  "runs": [
+    {
+      "mode": "off",
+      "seconds": 2.2717457500111777,
+      "timing_eligible": true,
+      "returncode": 0,
+      "output_sha256": "bb5ad89ff4fbd25cb4bc456efa5b87c0b3fe601d4e3484238d6d12a28c0ae513",
+      "stats": [
+        {
+          "estimate_seconds": 0.407059166
+        },
+        {
+          "native_candidate_seconds": 0.001031625
+        }
+      ]
+    },
+    {
+      "mode": "bag",
+      "seconds": 1.7353883340256289,
+      "timing_eligible": true,
+      "returncode": 0,
+      "output_sha256": "bb5ad89ff4fbd25cb4bc456efa5b87c0b3fe601d4e3484238d6d12a28c0ae513",
+      "stats": [
+        {
+          "estimate_seconds": 0.029404208
+        },
+        {
+          "native_candidate_seconds": 0.001019292
+        },
+        {
+          "merges": 62983,
+          "input_entries": 8831164,
+          "output_entries": 7773128,
+          "max_entries": 858
+        }
+      ]
+    },
+    {
+      "mode": "cpu",
+      "seconds": 1.6464887089969125,
+      "timing_eligible": true,
+      "returncode": 0,
+      "output_sha256": "bb5ad89ff4fbd25cb4bc456efa5b87c0b3fe601d4e3484238d6d12a28c0ae513",
+      "stats": [
+        {
+          "estimate_seconds": 0.031069375
+        },
+        {
+          "mode": "cpu",
+          "owners": 7501,
+          "recipes": 2709,
+          "port_reads": 5099,
+          "request_bytes": 0,
+          "compile_seconds": 0.001893334,
+          "evaluate_seconds": 2.2666e-05,
+          "scatter_seconds": 0.000128667,
+          "verified_costs": 0
+        },
+        {
+          "merges": 62983,
+          "input_entries": 8831164,
+          "output_entries": 7773128,
+          "max_entries": 858
+        }
+      ]
+    },
+    {
+      "mode": "gpu",
+      "seconds": 1.7143321670009755,
+      "timing_eligible": true,
+      "returncode": 0,
+      "output_sha256": "bb5ad89ff4fbd25cb4bc456efa5b87c0b3fe601d4e3484238d6d12a28c0ae513",
+      "stats": [
+        {
+          "estimate_seconds": 0.028202459
+        },
+        {
+          "kernel_seconds": 2.8083333745598793e-05,
+          "recipes": 2709
+        },
+        {
+          "mode": "gpu",
+          "owners": 7501,
+          "recipes": 2709,
+          "port_reads": 5099,
+          "request_bytes": 271944,
+          "compile_seconds": 0.001748083,
+          "evaluate_seconds": 0.051072125,
+          "scatter_seconds": 0.000223625,
+          "verified_costs": 0
+        },
+        {
+          "merges": 62983,
+          "input_entries": 8831164,
+          "output_entries": 7773128,
+          "max_entries": 858
+        }
+      ]
+    },
+    {
+      "mode": "gpu-verify",
+      "seconds": 2.2080612080171704,
+      "timing_eligible": false,
+      "returncode": 0,
+      "output_sha256": "bb5ad89ff4fbd25cb4bc456efa5b87c0b3fe601d4e3484238d6d12a28c0ae513",
+      "stats": [
+        {
+          "classes": 18054,
+          "root": -1,
+          "passed": true
+        },
+        {
+          "estimate_seconds": 0.4351835
+        },
+        {
+          "kernel_seconds": 1.804166822694242e-05,
+          "recipes": 2709
+        },
+        {
+          "mode": "gpu",
+          "owners": 7501,
+          "recipes": 2709,
+          "port_reads": 5099,
+          "request_bytes": 271944,
+          "compile_seconds": 0.001817541,
+          "evaluate_seconds": 0.059905292,
+          "scatter_seconds": 0.000213792,
+          "verified_costs": 7501
+        },
+        {
+          "merges": 62983,
+          "input_entries": 8831164,
+          "output_entries": 7773128,
+          "max_entries": 858
+        }
+      ]
+    }
+  ],
+  "scope": "Actual production Tiger extraction; immutable shared cost bags plus optional exact integer CPU/Metal recipes. Not existing matching-marker or RipSat closure reuse.",
+  "quality": {
+    "passed": true,
+    "outputs": [
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/tiger-extraction-marker-bags-run/off.egg",
+        "selected_rows": 8007,
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/tiger-extraction-marker-bags-run/bag.egg",
+        "selected_rows": 8007,
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/tiger-extraction-marker-bags-run/cpu.egg",
+        "selected_rows": 8007,
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/tiger-extraction-marker-bags-run/gpu.egg",
+        "selected_rows": 8007,
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/tiger-extraction-marker-bags-run/gpu-verify.egg",
+        "selected_rows": 8007,
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/boundary-loop/extraction/gpu.egg",
+        "selected_rows": 8007,
+        "function_count": 29
+      }
+    ],
+    "all_selected_dags_equal": true,
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  },
+  "gpu_repeat_byte_identical": true,
+  "all_modes_byte_identical": true,
+  "bag_speedup": 1.3090705437331975,
+  "cpu_speedup": 1.37975179398296,
+  "gpu_speedup": 1.3251491127214468,
+  "standard_pipeline": {
+    "source_run": "out/boundary-loop",
+    "candidate_run": "out/tiger-marker-standard-extract",
+    "all_three_lanes_byte_identical_to_saved_tiger": true,
+    "same_commit_cpu_gpu": true,
+    "preexisting_fused_native_difference": true,
+    "exit_code": 1
+  },
+  "tests": {
+    "python_bench_suite": 63,
+    "random_bag_operations": 4000,
+    "native_costs": 6400,
+    "recipes": 80,
+    "changed_cost_recipes": 3,
+    "gpu_repeats_equal": true
+  },
+  "limitations": [
+    "No online egglog-to-extraction event integration",
+    "No automatic matching-marker-to-extraction ABI",
+    "GPU recipe startup/transport costs exceed this batch computation",
+    "No RSS claim",
+    "Whole process timing variation outside modified phases is not marker credit"
+  ],
+  "quality_sha256": "1f224c41d26e41014cbab9e7c124e057daac697105ca3ddc611d00c14be12b89"
+}
