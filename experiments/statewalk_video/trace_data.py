@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 
-def export(folder,out):
+def export(folder,out,include_all=False):
     folder=Path(folder);events=[json.loads(s) for s in (folder/'trace.jsonl').read_text().splitlines()]
     summary=json.loads((folder/'summary.json').read_text());assert summary['output_byte_identical']
     assert any('vec_add' in s for s in summary['function']['heads'])
@@ -67,5 +67,6 @@ def export(folder,out):
     assert [(v['id'],v['cost']) for v in views[:2]]==[(11,613),(73,1225)]
     assert (rejection['from'],rejection['first_missing'],accepted['id'],accepted['next']['id'])==(71,39,797,798)
     assert [p['cost'] for p in pops[:6]]==[0,1,1,2,612,612]
+    if include_all:meta['state_graph']=[project(states[i]) for i in sorted(states)];meta['pops']=pops
     (out/'trace-demo.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2)+'\n')
     return meta

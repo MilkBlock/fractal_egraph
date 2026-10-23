@@ -1,0 +1,57 @@
+{
+  "renderer": "Manim Community 0.19.0",
+  "duration_seconds": 392.1,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "frames": 11763,
+  "bytes": 22120462,
+  "sha256": "1f08a648fbc789805a5f07164475f459a4c5f45d71bdf49cf12a9d5e13ae37e4",
+  "full_decode_passed": true,
+  "narration": "Synthesized Chinese: macOS Tingting",
+  "native_trace": {
+    "function_index": 2,
+    "function": {
+      "event": "function",
+      "index": 2,
+      "root": 18017,
+      "heads": [
+        "\\\"vec_add\\\"",
+        "TupleT",
+        "TupleT",
+        "Concat"
+      ]
+    },
+    "counts": {
+      "candidate": 1864,
+      "chosen": 22,
+      "closure": 1465,
+      "done": 1,
+      "function": 1,
+      "init": 1,
+      "node": 174,
+      "pop": 808,
+      "publish": 807,
+      "region": 1
+    },
+    "missing_dependencies": 399,
+    "closure_cache_hits": 0,
+    "output_byte_identical": true,
+    "input_sha256": "204e18abf98fb73d8eef6ed37a29e552d8f973649b6bed6969d643e7a113b7e3",
+    "trace_sha256": "0ea1ac014c5ed5fa6f7d21e7d74e70b7d375e4d50ff29e2ccb8c9dd30668bb21",
+    "done": {
+      "event": "done",
+      "states": 808,
+      "best_cost": 13907
+    },
+    "scope": "Complete diagnostic Statewalk trace of one real region; no timing claim"
+  },
+  "scope": "Actual native Statewalk decisions; illustrative cost tokens. Reuses saved single-run CPU extraction measurements; no new timing or GPU claim.",
+  "chapters": 9,
+  "visual_checks": [
+    "13 representative native Manim stills",
+    "full final movie decoded successfully",
+    "video and padded audio lengths agree within 100 ms"
+  ],
+  "player_validation": "Local assets and JavaScript syntax checked; browser preview blocked by file URL policy."
+}
