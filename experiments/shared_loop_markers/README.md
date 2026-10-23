@@ -105,6 +105,11 @@ speedup**. The useful result is that source-selected consumers now share actual
 state and prefix work. Both controls already have loop-query takeover; its old
 6.95% benefit must not be credited to this new sharing mechanism.
 
+The later [regression investigation](../loop_marker_regression/README.md)
+rebuilds the old source controls and keeps these selected plans: unfixed
+12.854072 s versus fixed 12.340255 s. It removes redundant CPU commit maintenance;
+it does not add marker sharing credit or erase these earlier measurements.
+
 GPU Join-depth histograms and the fixed-rule-weight survival curves are identical
 for the 310 common active queries. Sharing moves no further query off the GPU.
 The DAG stores 336 derived prefix frames / 2,016 payload scalar slots and 252

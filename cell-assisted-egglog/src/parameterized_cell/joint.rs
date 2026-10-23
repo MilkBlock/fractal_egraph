@@ -384,9 +384,13 @@ impl Joint {
         })
     }
     pub(super) fn observes(&mut self, r: &Runtime, batch: &CellCommitBatch) {
-        if !self.proofs_enabled {return}
+        // This is a one-way invalidation until complete() certifies a new
+        // boundary. The ordinary mirrors/subscriptions still consume every
+        // event in Runtime::ingest; only redundant proof checks stop here.
+        if !self.proofs_enabled || !self.extendable {return}
         if !batch.unions.is_empty() || !batch.clears.is_empty() {
             self.extendable = false;
+            return;
         }
         for d in &batch.rows {
             let name = &r.names[d.table];
@@ -397,6 +401,7 @@ impl Joint {
                 || name == &self.roles.compare
             {
                 self.extendable = false;
+                return;
             }
         }
     }

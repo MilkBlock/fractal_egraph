@@ -111,12 +111,14 @@ impl Rows {
         rows
     }
 
-    fn change(&mut self, table: usize, key: Key, row: Option<Row>) -> Vec<Read> {
+    // Append to the batch's notification buffer. A temporary Vec per row used
+    // to allocate (and often grow) even for one ordinary keyed replacement.
+    fn change(&mut self, table: usize, key: Key, row: Option<Row>, reads: &mut Vec<Read>) {
         let id = (table, key.clone());
         if self.keys.get(&id).map(Arc::as_ref) == row.as_ref() {
-            return vec![];
+            return;
         }
-        let mut reads = vec![Read::Key(table, key.clone())];
+        reads.push(Read::Key(table, key.clone()));
         for &(t,mask) in self.projections.range((table,0)..=(table,u64::MAX)) {
             if let Some(old)=self.keys.get(&id) {
                 let k=projected_key(&old.values,mask);
@@ -152,7 +154,6 @@ impl Rows {
             }
             self.keys.insert(id, Arc::new(row));
         }
-        reads
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, serde::Deserialize)]
@@ -930,8 +931,7 @@ impl Runtime {
                 .map(|((_, k), _)| k.clone())
                 .collect::<Vec<_>>();
             for k in keys {
-                let reads = self.rows.change(t, k, None);
-                changed.extend(reads);
+                self.rows.change(t, k, None, &mut changed);
             }
         }
         for delta in &mut batch.rows {
@@ -955,8 +955,7 @@ impl Runtime {
             } else {
                 None
             };
-            let reads = self.rows.change(t, Key::from_slice(&delta.key), row);
-            changed.extend(reads);
+            self.rows.change(t, Key::from_slice(&delta.key), row, &mut changed);
         }
         if has_union || hidden_changed || !changed.is_empty() {
             self.epoch = self
@@ -1001,6 +1000,7 @@ impl Runtime {
         };
         for (i, name) in self.names.iter().enumerate() {
             let n = self.feed.tables[i].keys;
+            let mut discarded = vec![];
             self.eg.function_for_each(name, |r| {
                 if r.subsumed {
                     expected
@@ -1016,7 +1016,9 @@ impl Runtime {
                             values,
                             stamp: r.timestamp.rep(),
                         }),
+                        &mut discarded,
                     );
+                    discarded.clear();
                 }
             })?;
         }
