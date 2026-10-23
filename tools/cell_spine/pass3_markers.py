@@ -116,7 +116,7 @@ def witnesses(body,types,cells):
     return hits
 
 
-def publications(rule,views,sig):
+def publications(rule,views,sig,allow_partial_keys=False):
     """Compile only connections among observations in this application.
 
     LHS rows and constructed RHS rows are known. Equality closure includes
@@ -174,10 +174,12 @@ def publications(rule,views,sig):
             root,call=f['args'];following=[]
             for old in partial:
                 selected_rows=rows.get(call['head'],[])
-                if depth:
+                if depth and all(a['kind']!='var' or a['name'] in old for a in call['args']):
                     key=tuple(cg.find(cg.add(old[a['name']] if a['kind']=='var' else a)) for a in call['args'])
                     found=keys.get(call['head'],{}).get(key)
                     selected_rows=[] if found is None else [found]
+                elif depth and not allow_partial_keys:
+                    raise ValueError('publisher requires a fully keyed continuation')
                 for row in selected_rows:
                     b=dict(old);ok=True
                     for pat,val in zip(call['args']+[root],row):

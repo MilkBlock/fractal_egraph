@@ -1,0 +1,44 @@
+{
+  "counter": {
+    "comparisons": {
+      "marker_effect_native": {
+        "status": "equal",
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 23,
+        "mapped_classes": 20,
+        "projected_out_left": [],
+        "projected_out_right": [
+          "CellSelectedSpine0"
+        ],
+        "left": "original-native",
+        "right": "marked-native"
+      }
+    },
+    "scope": "actual native original/marked source comparison; correctness only, no timing claim"
+  },
+  "if": {
+    "comparisons": {
+      "marker_effect_native": {
+        "status": "equal",
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 99,
+        "mapped_classes": 83,
+        "projected_out_left": [],
+        "projected_out_right": [
+          "CellSelectedSpine0",
+          "CellSelectedSpine1",
+          "CellSelectedSpine2",
+          "CellSelectedSpine3",
+          "CellSelectedSpine4",
+          "CellSelectedSpine5",
+          "CellSelectedSpine6",
+          "CellSelectedSpine7",
+          "CellSelectedSpine8"
+        ],
+        "left": "original-native",
+        "right": "marked-native"
+      }
+    },
+    "scope": "actual native original/marked source comparison; correctness only, no timing claim"
+  }
+}

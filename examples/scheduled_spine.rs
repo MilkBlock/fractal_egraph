@@ -31,10 +31,12 @@ fn main() -> Result<()> {
     let mut joint = false;
     let mut rebind = None;
     let mut selected_layouts = None;
+    let mut all_schedules=false;
     let mut args = a[2..].iter();
     while let Some(flag) = args.next() {
         match flag.as_str() {
             "--joint" => joint = true,
+            "--all-schedules" => all_schedules=true,
             "--certificates" => certificate = Some(args.next().ok_or("missing certificate file")?),
             "--select-layouts" => selected_layouts = Some(args.next().ok_or("missing selected layout")?),
             "--rebind" => rebind = Some(args.next().ok_or("missing selected layout")?),
@@ -96,9 +98,9 @@ fn main() -> Result<()> {
         return Ok(());
     }
     let mut selected = BTreeSet::new();
-    if let Command::RunSchedule(s) = &cs[end] {
-        sets(s, &mut selected)
-    }
+    if all_schedules {
+        for c in &cs {if let Command::RunSchedule(s)=c {sets(s,&mut selected)}}
+    } else if let Command::RunSchedule(s) = &cs[end] {sets(s, &mut selected)}
     selected.remove("cell-stable-keys");
     selected.remove("cell-stable-freeze");
     loop {
@@ -131,6 +133,7 @@ fn main() -> Result<()> {
             q["authority"]=serde_json::json!("analyze_complete_query");
         }
     }
+    report["protected_queries"]=serde_json::json!(reserved);
     report["parameterized_library"]=serde_json::json!(library.as_ref().map(|b|b.report()));
     report["table_rows"] = serde_json::json!(
         eg.get_function_names()

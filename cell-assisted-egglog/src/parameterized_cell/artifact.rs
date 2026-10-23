@@ -169,7 +169,7 @@ pub struct Bundle {
     environment: String,
     pub evidence: Json,
 }
-fn declarations_only(c: &Command) -> bool {
+pub(super) fn declarations_only(c: &Command) -> bool {
     matches!(
         c,
         Command::Datatype { .. }
@@ -227,7 +227,8 @@ impl Bundle {
     /// checkers; observed general queries receive complete-query authority only.
     pub fn bake_certificates(environment:&str,schedules:Vec<String>,mut evidence:Json)->Result<Self> {
         let mut eg=EGraph::default();let commands=eg.parse_program(None,environment)?;
-        if !commands.iter().all(declarations_only){return Err("certificate environment contains executable input".into())}
+        let globals=environment::validate(&commands)?;let has_globals=!globals.is_empty();
+        if evidence.is_object(){evidence["environment_globals"]=json!(globals);}
         eg.run_program(commands.clone())?;
         let selection=contract::Selection::discover(&eg,&commands).ok();
         let excluded=selection.as_ref().map(|s|s.sets.to_vec()).unwrap_or_default();
@@ -248,7 +249,7 @@ impl Bundle {
                 .ok_or("unowned certificate query")?;
             programs.push(Program{ruleset:set,rule:k.sink.name.clone(),shape:Shape::of(&k.sink),seed:k.seed,steps:k.steps.clone(),marker:None});
         }
-        Ok(Self{header:Header{version:if queries.is_empty(){2}else{3},rulesets:r.sets.keys().cloned().collect(),schedules,selection,scalars,queries},
+        Ok(Self{header:Header{version:if queries.is_empty() && !has_globals{2}else{3},rulesets:r.sets.keys().cloned().collect(),schedules,selection,scalars,queries},
             programs,environment:environment.into(),evidence})
     }
     pub fn text(&self) -> Result<String> {
@@ -345,9 +346,7 @@ impl Bundle {
         self.validate_header()?;
         let mut eg = EGraph::default();
         let cmds = eg.parse_program(None, &self.environment)?;
-        if !cmds.iter().all(declarations_only) {
-            return Err("transfer file contains executable setup/training input".into());
-        }
+        environment::validate(&cmds)?;
         eg.run_program(cmds.clone())?;
         if self.header.version>=2 {
             let excluded=self.header.selection.as_ref().map(|s|s.sets.to_vec()).unwrap_or_default();

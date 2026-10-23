@@ -718,6 +718,8 @@ def cellify(data, library, *, initial=None):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--source',type=Path,required=True)
+    p.add_argument('--selected-layouts',type=Path,help='lower an existing native-checked typed layout directly; never run a solver')
+    p.add_argument('--source-markers',action='store_true',help='emit executable source markers and successor publishers from --selected-layouts')
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--analysis-dir',type=Path)
     p.add_argument('--certificate-library',type=Path,help='checked parameterized closure library for scheduled markers')
@@ -748,6 +750,15 @@ def main():
     p.add_argument('--skip-build',action='store_true')
     a=p.parse_args()
     from . import solver
+    if a.selected_layouts or a.source_markers:
+        if not (a.selected_layouts and a.source_markers):
+            p.error('--source-markers requires --selected-layouts; automatic choice needs runtime measurements')
+        if not a.skip_build:
+            run(['cargo','build','--offline','--release','--target-dir','target/analyzer','--example','scheduled_spine','--example','lhs_ast'])
+        from .selected_source import compile_source
+        report=compile_source(a.source,a.selected_layouts,a.output)
+        print(json.dumps(dict(status='selected_source_markers',output=report['output'],publish_actions=report['publish_actions'],solver_invoked=False)))
+        return
     solver.select(a.solver)
     weights=(a.storage_weight,a.search_weight,a.update_weight)
     if not all(math.isfinite(w) and w>=0 for w in weights) or not any(weights):

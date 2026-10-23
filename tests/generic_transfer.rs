@@ -28,7 +28,7 @@ fn check(bundle: &Bundle, input: &str) -> Value {
         .filter(|c| matches!(c, Command::RunSchedule(_)))
         .cloned()
         .collect::<Vec<_>>();
-    let mut reference = table_live::Runtime::new_cpu(base.clone(), &schedules).unwrap();
+    let mut reference = table_live::Runtime::new_full(base.clone(), &schedules, None, false, None).unwrap();
     let mut pending = String::new();
     for c in commands {
         if matches!(c, Command::Check(..) | Command::Fail(..)) {
@@ -337,7 +337,7 @@ fn exported_query_programs_supply_the_shared_cpu_and_gpu_loop() {
             Some(Box::new(observer)),
         )
         .unwrap();
-        let mut reference = table_live::Runtime::new_cpu(base.clone(), &schedules).unwrap();
+        let mut reference = table_live::Runtime::new_full(base.clone(), &schedules, None, false, None).unwrap();
         let mut pending = String::new();
         for c in commands {
             if !matches!(c, Command::RunSchedule(_)) {
@@ -486,4 +486,15 @@ fn solver_selected_files_match_native_at_all_input_frontiers() {
         let bundle=Bundle::load(&std::path::Path::new(&path).join(directory).join("selected-certificates.egg")).unwrap();
         check(&bundle,input);
     }
+}
+
+#[test]
+fn selected_parameter_markers_preserve_referenced_global_updates() {
+    let source=include_str!("../experiments/observed_transfer_queries/if-two-consumers.egg");
+    let bundle=bake(source);
+    assert_eq!(bundle.report()["query_schemes"].as_array().unwrap().len(),2);
+    assert_eq!(bundle.report()["evidence"]["environment_globals"],serde_json::json!(["DUMMYCTX"]));
+    let selected=marked(&bundle,true);
+    let r=check(&selected,include_str!("../experiments/observed_transfer_queries/if-global-updates.egg"));
+    assert_eq!(r["stats"]["program_compilations"],0);
 }
