@@ -27,6 +27,21 @@ class ParameterizedSourceMarkers(unittest.TestCase):
         p=subprocess.run([ROOT/'target/analyzer/release/examples/native_math_baseline',path],capture_output=True,text=True)
         self.assertEqual(p.returncode,0,p.stdout+p.stderr)
 
+    def test_private_zero_prefix_remains_a_runtime_plan_without_fake_source_marker(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'out') as temp:
+            out=Path(temp);source=ROOT/'experiments/parameterized_source_markers/counter.egg'
+            self.compile(source,out,'State')
+            layout=out/'selected.json';selected=json.loads(layout.read_text())
+            for spec in selected['rules']:spec['plan'].update(prefix_len=0,carried_slots=[],shared_marker=False)
+            layout.write_text(json.dumps(selected))
+            report=compile_source(source,layout,out/'private',joint=False)
+            self.assertEqual(report['markers'],[])
+            self.assertEqual(report['publish_actions'],0)
+            self.assertEqual(report['runtime_rule_count'],len(selected['rules']))
+            self.assertEqual((out/'private/source_sk_mk.egg').read_bytes(),source.read_bytes())
+            runtime=json.loads((out/'private/runtime-layout.json').read_text())
+            self.assertEqual(len(runtime['rules']),len(selected['rules']))
+
     def test_two_if_consumers_share_the_full_spine_but_not_global_state(self):
         with tempfile.TemporaryDirectory(dir=ROOT/'out') as temp:
             temp=Path(temp);source=temp/'input.egg'

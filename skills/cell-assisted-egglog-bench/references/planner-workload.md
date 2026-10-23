@@ -77,6 +77,9 @@ primitive evaluation and unchanged original Run boundaries. Mutable selected
 roots retain their original consumers. View-completion helpers remain necessary
 for new input and union-enabled combinations; do not claim all maintenance
 joins disappeared. `markers.json` lists converted and retained consumers.
-`runtime-layout.json` is empty to avoid running a second copy of those queries.
+`runtime-layout.json` excludes rewritten consumers to avoid running them twice,
+but retains private or mutable-root plans whose source consumers were unchanged.
+When the solver selects no materialized prefix, the source is preserved byte for
+byte; the emitter must not manufacture one-atom markers or drop the runtime plans.
 Source correctness examples are in `experiments/parameterized_source_markers`;
 they are not a full Pass-3 source-backend speed claim.

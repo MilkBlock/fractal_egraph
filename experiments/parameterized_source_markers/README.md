@@ -39,6 +39,11 @@ union-enabled combinations still require exact view completion before an
 original consumer Run. This fallback is retained; this change does not prove
 that all repair joins have disappeared or that Pass 3 is faster.
 
+A private zero-prefix plan selects no materialized marker. The source backend
+keeps that consumer and its runtime plan, rather than inventing a one-atom
+receipt. `runtime-layout.json` contains only consumers not rewritten into source
+markers. If none are rewritten, the output source is byte-identical to the input.
+
 ## Safety and evidence
 
 The source backend materializes only immutable visible constructor/relation

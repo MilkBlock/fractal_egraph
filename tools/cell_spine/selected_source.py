@@ -147,6 +147,8 @@ def lower(data,specs,protected=()):
     lowered_specs=[];retained=[]
     for spec in specs:
         spec=copy.deepcopy(spec);p=spec['plan'];shape=p['shape']
+        if not p.get('shared_marker') and p['prefix_len']==0:
+            retained.append(dict(rule=spec['rule'],ruleset=spec['ruleset'],reason='private query plan selects no materialized source prefix'));continue
         ids=[p['seed']]+[i for i,_ in p['steps'][:p['prefix_len']]]
         stable=[i for i in ids if sig.get(shape['atoms'][i]['table'],{}).get('kind') in ('constructor','relation') and shape['atoms'][i]['table'] not in changed]
         if p['seed'] not in stable:
@@ -261,11 +263,18 @@ def compile_source(source,layout,out,root=compiler.ROOT,joint=None):
             if d['method']=='parameterized-selection-closure/v1':protected.update(d['rulesets'])
     code,report=lower(data,specs,protected)
     headers=[s for s in source.read_text().splitlines() if s.startswith('; cell-structural-key-runtime/v1 ')]
-    target=out/'source_sk_mk.egg';target.write_text('\n'.join(headers)+'\n'+code)
-    # The rewritten consumers belong to the source backend now, not to the
-    # original runtime provider. All other Cell services remain installed.
-    empty=out/'empty-layout.json';empty.write_text(json.dumps(dict(schema='cell-boundary-programs/v2',setup=[],rules=[])))
-    compiler.run([native,target,out/'runtime-layout.json']+(['--joint'] if joint else [])+['--rebind',empty])
+    target=out/'source_sk_mk.egg'
+    unchanged=not report['lowered_queries'] and not report['publish_actions']
+    if unchanged:target.write_bytes(source.read_bytes())
+    else:target.write_text('\n'.join(headers)+'\n'+code)
+    # Only rewritten consumers leave the runtime provider. Retained private or
+    # mutable-root plans remain usable on their original LHS; do not manufacture
+    # one-atom source markers that the solver never selected.
+    rewritten={(q['ruleset'],q['rule']) for q in report['lowered_queries']}
+    kept=[s for s in specs if (s['ruleset'],s['rule']) not in rewritten]
+    runtime_layout=out/'retained-layout.json';runtime_layout.write_text(json.dumps(dict(schema='cell-boundary-programs/v2',setup=[],rules=kept)))
+    compiler.run([native,target,out/'runtime-layout.json']+(['--joint'] if joint else [])+['--rebind',runtime_layout])
+    report.update(runtime_rule_count=len(kept),source_preserved=unchanged)
     report.update(schema='selected-spine-source/v1',source_sha256=compiler.digest(source),output_sha256=compiler.digest(target),
         selected_layout_sha256=compiler.digest(layout),runtime_layout_sha256=compiler.digest(out/'runtime-layout.json'),
         source=str(source),output=str(target),selection_scope='same selected typed roots, prefixes, payloads and consumers; no two-atom reselection',
