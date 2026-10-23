@@ -188,6 +188,14 @@ GPU 后端从 layout 16 起默认启用必需表为空的批次短路。`EGGLOG_
 `cell_bindings`，不能相加。整个查询移出 GPU 后，其条件深度概率为 N/A；
 其它查询的 seed/重试分布也可能变化，不能声称固定候选因果效应。
 
+已有查询库上增加程序时，用 `boundary-credit --extension`：要求旧程序仍存在且
+接线、锚点和携带参数不变，只允许严格增加程序。按推理二进制校验，不把某侧
+额外运行 Tiger 检查器误判为更换执行器。全局变量经原生 lowering 形成零键表，
+边界程序读取其当前行并订阅更新，不能把当前 e-class ID 烘焙进计划。实际元组
+递归和 If 参数化查询对照见 `experiments/pass3_parameterized_reuse`；这仍是完整
+查询复用，不是自动发现的新饱和闭包族。保留早期小收益和原生融合对照的失败，
+不只汇报较快的一次测量。
+
 现有 raytrace 首个热点的选择文件为
 `experiments/pass3_boundary_programs/loop-context.json`。验证结果：13.386659 →
 12.455758 s（单次同二进制配对，约 6.95%）；目标 GPU 行访问 31,846,434 → 0，

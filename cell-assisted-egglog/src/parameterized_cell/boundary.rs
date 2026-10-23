@@ -2,6 +2,19 @@
 //! This is source-derived context reuse, not a new saturation/absence theorem.
 use super::*;
 
+/// Global bindings are ordinary zero-key tables in the native lowered query.
+/// Keep their rows and versions in the same subscription graph as other ports;
+/// never freeze a global Value into a portable plan. The extended compiler is
+/// used only to expose these tables, not to admit computed primitive slots.
+pub(super) fn prepare(eg: &mut EGraph, set: &str, name: &str) -> Result<CellActionSink> {
+    let sink = eg.prepare_cell_action(set, name)
+        .or_else(|_| eg.prepare_gpu_cell_action(set, name))?;
+    if !eg.cell_query_is_seminaive(&sink) || !sink.primitives.is_empty() || sink.native_residuals {
+        return Err("boundary program requires a seminaive table query with bound guards".into());
+    }
+    Ok(sink)
+}
+
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Spec {
@@ -233,7 +246,7 @@ pub fn inspect(eg: &mut EGraph, sets: &[String], reserved: &BTreeSet<String>) ->
                 if reserved.contains(&name) {
                     return Err("already served by existing parameterized program".into());
                 }
-                let sink = eg.prepare_cell_action(set, &name)?;
+                let sink = prepare(eg, set, &name)?;
                 if !eg.cell_query_is_seminaive(&sink)
                     || !sink.primitives.is_empty()
                     || sink.native_residuals
@@ -257,7 +270,7 @@ pub fn inspect(eg: &mut EGraph, sets: &[String], reserved: &BTreeSet<String>) ->
                     {
                         continue;
                     }
-                    let current = eg.prepare_cell_action(set, &name)?;
+                    let current = prepare(eg, set, &name)?;
                     let tables = (0..current.atoms.len()).collect();
                     if let Ok(k) = compile_seed(eg, current, tables, seed) {
                         plans.push(Plan {
@@ -314,6 +327,46 @@ impl Runtime {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn global_ports_follow_union_and_late_matches_at_each_run() {
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, r#"
+          (datatype E (N i64) (Pair E E))
+          (let anchor (N 20))
+          (relation Port (E E)) (relation Hit (E E)) (ruleset s)
+          (rule ((= r (Pair x y)) (Port y anchor)) ((Hit r anchor)) :ruleset s :name "q")
+          (Pair (N 1) (N 2)) (Port (N 2) (N 21))
+        "#).unwrap();
+        assert!(eg.prepare_cell_action("s", "q").is_err());
+        let spec = Spec { ruleset: "s".into(), rule: "q".into(), root: "Pair".into(), plan: None };
+        let mut r = Runtime::new_with_boundaries(eg, &[], &BTreeMap::new(), vec![], None, &[spec]).unwrap();
+        for input in ["", "(union (N 20) (N 21))", "(Pair (N 3) (N 4))",
+            "(Port (N 4) (N 20))", "(delete (Port (N 4) (N 20)))", "(Port (N 4) (N 20))"] {
+            if !input.is_empty() { r.input(input).unwrap(); }
+            let sink = prepare(&mut r.eg, "s", "q").unwrap();
+            let query = r.eg.prepare_cell_query(&sink).unwrap();
+            let mut expected = r.eg.run_cell_queries(&[&query]).unwrap().pop().unwrap();
+            expected.sort(); expected.dedup();
+            let answer = r.query_boundary("s", &[&sink]).unwrap();
+            assert_eq!(answer[0].1, expected, "after {input}");
+            r.eg.apply_completed_cell_ruleset(&[(&sink, &answer[0].1)]).unwrap();
+            r.sync().unwrap();
+            r.audit_mirror().unwrap();
+        }
+        assert!(r.report()["programs"][0]["emitted_bindings"].as_u64().unwrap() > 0);
+    }
+
+    #[test]
+    fn global_fallback_does_not_admit_unimplemented_primitive_evaluation() {
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, r#"
+          (datatype E (N i64)) (let anchor (N 0))
+          (relation Hit (E)) (ruleset s)
+          (rule ((= e (N i)) (< (+ i 1) 10)) ((Hit anchor)) :ruleset s :name "q")
+        "#).unwrap();
+        assert!(prepare(&mut eg, "s", "q").is_err());
+    }
+
     #[test]
     fn native_frontier_matches_after_missing_ports_union_visibility_and_reinsert() {
         let mut eg = EGraph::default();

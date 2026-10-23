@@ -46,19 +46,27 @@ def run(a,resolve):
     return 0
 
 
-def compare(before,after,profile_before=None,profile_after=None,shared=False):
+def compare(before,after,profile_before=None,profile_after=None,shared=False,extension=False):
+    if shared and extension:raise ValueError('choose sharing or extension comparison')
     def packet(path):
         p=Path(path);r=read(p);w=read(p/'workflow.json');g=r['gpu']
         if not (r.get('same_commit_verification') or {}).get('exact_rows_values_equivalence_visibility'):
             raise ValueError('boundary comparison needs exact same-commit graphs')
         return r,g,w
     a,ga,wa=packet(before);b,gb,wb=packet(after)
-    for key in ['snapshot_sha256','binary_sha256','worker_sha256','policy']:
+    # Extraction may be deferred on one side. Compare the inference executable,
+    # not the optional presence of tiger_output_check in the workflow's tools.
+    binary=lambda w:w.get('inference_identity',{}).get('binary',w.get('binary_sha256'))
+    if binary(wa)!=binary(wb):raise ValueError('boundary control differs: inference binary')
+    for key in ['snapshot_sha256','worker_sha256','policy']:
         if wa.get(key)!=wb.get(key):raise ValueError('boundary control differs: '+key)
     ia,ib=wa['inference_identity'],wb['inference_identity']
     if shared:
         if not ia.get('boundary_programs') or ia.get('boundary_programs')!=ib.get('boundary_programs'):
             raise ValueError('shared marker control needs identical selected query plans')
+    elif extension:
+        if not ia.get('boundary_programs') or not ib.get('boundary_programs'):
+            raise ValueError('extension requires a library on both sides')
     elif ia.get('boundary_programs') is not None or ib.get('boundary_programs') is None:
         raise ValueError('expected boundary programs off/on')
     for key in ['analysis','joint','all_rules']:
@@ -69,6 +77,15 @@ def compare(before,after,profile_before=None,profile_after=None,shared=False):
     if ga.get('gpu_optimizations')!=gb.get('gpu_optimizations') or ga.get('query_sharing')!=gb.get('query_sharing'):
         raise ValueError('common GPU executor optimization differs')
     da,db=ga['saturation_diagnostics'],gb['saturation_diagnostics']
+    added=[]
+    if extension:
+        def plans(d):
+            return {(p['ruleset'],p['rule']):(p['seed'],p['accesses'],p.get('payload_layout'))
+                    for p in d['programs'] if p['kind']=='boundary_query'}
+        old,new=plans(da),plans(db)
+        if not old.keys()<new.keys() or any(new[k]!=p for k,p in old.items()):
+            raise ValueError('extension must preserve existing query wiring and add programs')
+        added=[dict(ruleset=k[0],rule=k[1]) for k in sorted(new.keys()-old.keys())]
     if shared:
         if da.get('shared_markers') or not db.get('shared_markers'):raise ValueError('expected shared-prefix maintenance off/on')
         wiring=lambda d:[(p['ruleset'],p['rule'],p['seed'],p['accesses'],p.get('payload_layout')) for p in d['programs']]
@@ -102,6 +119,9 @@ def compare(before,after,profile_before=None,profile_after=None,shared=False):
         saved_fraction=1-seconds(gb)/seconds(ga),
         cpu_programs=[p for p in gb['saturation_diagnostics']['programs'] if p['kind']=='boundary_query'],
         scope='net source-derived boundary-context reuse with unchanged joint proofs and GPU backend; not automatic Analyze library or new sat-proof credit')
+    if extension:
+        result.update(schema='boundary-extension-comparison/v1',added_programs=added,
+            cpu_programs_before=[p for p in da['programs'] if p['kind']=='boundary_query'])
     if shared:
         result.update(schema='shared-marker-comparison/v1',shared_markers=db['shared_markers'],
             cpu_programs_before=[p for p in da['programs'] if p['kind']=='boundary_query'],

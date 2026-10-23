@@ -1,0 +1,35 @@
+{
+  "schema": "cell-boundary-programs/v1",
+  "rules": [
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "root": "DoWhile"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+      "root": "Get"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+      "root": "Add-Gets"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+      "root": "Add-Gets"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+      "root": "Add-Gets"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+      "root": "Add-All-Gets"
+    }
+  ]
+}

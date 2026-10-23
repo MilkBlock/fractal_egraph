@@ -789,7 +789,7 @@ impl Runtime {
         let mut boundary_seeds=BTreeMap::new();
         for spec in boundaries {
             if !supplied.insert((spec.ruleset.clone(),spec.rule.clone())){return Err("boundary rule is already supplied by a Cell program".into())}
-            let sink=eg.prepare_cell_action(&spec.ruleset,&spec.rule)?;
+            let sink=boundary::prepare(&mut eg,&spec.ruleset,&spec.rule)?;
             if !eg.cell_query_is_seminaive(&sink) || !sink.primitives.is_empty() || sink.native_residuals {
                 return Err("boundary program requires a seminaive structural query".into())
             }

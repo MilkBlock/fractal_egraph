@@ -1,0 +1,45 @@
+{
+  "schema": "cell-boundary-programs/v1",
+  "rules": [
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "root": "DoWhile"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+      "root": "Get"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+      "root": "Add-Gets"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+      "root": "Add-Gets"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+      "root": "Add-Gets"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+      "root": "Add-All-Gets"
+    },
+    {
+      "ruleset": "non-weakly-linear",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+      "root": "If"
+    },
+    {
+      "ruleset": "state-edge-passthrough",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+      "root": "If"
+    }
+  ]
+}

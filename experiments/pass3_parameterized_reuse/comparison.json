@@ -1,0 +1,1117 @@
+{
+  "schema": "boundary-extension-comparison/v1",
+  "before": "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/parametric-baseline-v2",
+  "after": "/Users/mineralsteins/.codex/worktrees/pass3-parametric-reuse/egg_layout/out/parametric-combined-v2",
+  "before_seconds": 13.944484875,
+  "after_seconds": 12.720856,
+  "saved_seconds": 1.223628875000001,
+  "saved_fraction": 0.0877500234658185,
+  "cpu_programs": [
+    {
+      "program_id": 31,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "HasArgType",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Const",
+          "access": {
+            "Columns": 4
+          }
+        }
+      ],
+      "seed_evaluations": 1182,
+      "emitted_bindings": 123254,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 1346,
+      "candidate_rows": 126320,
+      "terminal_delta_rows_skipped": 1048146,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 2814,
+      "resumed_seed_evaluations": 956,
+      "stored_port_paths": 84,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 32,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+      "seed": "Get",
+      "accesses": [],
+      "seed_evaluations": 39817,
+      "emitted_bindings": 22672,
+      "live_seed_instances": 13341,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "candidate_rows": 0,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 33,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Concat",
+          "access": "Output"
+        },
+        {
+          "table": "tuple-length",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 28309,
+      "emitted_bindings": 10654,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 37039,
+      "candidate_rows": 25221,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 782,
+      "resumed_seed_evaluations": 782,
+      "stored_port_paths": 17351,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 34,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Single",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 26369,
+      "emitted_bindings": 14194,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 22768,
+      "candidate_rows": 14194,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 18641,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 35,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Not-Just-Concat",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 25972,
+      "emitted_bindings": 1981,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 22371,
+      "candidate_rows": 1981,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 18641,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 36,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+      "seed": "Add-All-Gets",
+      "accesses": [
+        {
+          "table": "tuple-length",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 8444,
+      "emitted_bindings": 5868,
+      "live_seed_instances": 7171,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 7815,
+      "candidate_rows": 7815,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 7171,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 37,
+      "kind": "boundary_query",
+      "ruleset": "non-weakly-linear",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+      "seed": "If",
+      "accesses": [
+        {
+          "table": "StateT",
+          "access": "Key"
+        },
+        {
+          "table": "Base",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Get",
+          "access": "Key"
+        },
+        {
+          "table": "HasType",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 374,
+      "emitted_bindings": 0,
+      "live_seed_instances": 167,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 3367,
+      "candidate_rows": 3255,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 159,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 38,
+      "kind": "boundary_query",
+      "ruleset": "state-edge-passthrough",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+      "seed": "If",
+      "accesses": [
+        {
+          "table": "StateT",
+          "access": "Key"
+        },
+        {
+          "table": "Base",
+          "access": "Key"
+        },
+        {
+          "table": "DUMMYCTX",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Get",
+          "access": "Key"
+        },
+        {
+          "table": "HasType",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 461,
+      "emitted_bindings": 4,
+      "live_seed_instances": 168,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 5551,
+      "candidate_rows": 6121,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 191,
+      "resumed_seed_evaluations": 61,
+      "stored_port_paths": 168,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    }
+  ],
+  "scope": "net source-derived boundary-context reuse with unchanged joint proofs and GPU backend; not automatic Analyze library or new sat-proof credit",
+  "added_programs": [
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )"
+    },
+    {
+      "ruleset": "non-weakly-linear",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )"
+    },
+    {
+      "ruleset": "state-edge-passthrough",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )"
+    }
+  ],
+  "cpu_programs_before": [
+    {
+      "program_id": 31,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "HasArgType",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Const",
+          "access": {
+            "Columns": 4
+          }
+        }
+      ],
+      "seed_evaluations": 1182,
+      "emitted_bindings": 123254,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 1346,
+      "candidate_rows": 126320,
+      "terminal_delta_rows_skipped": 1048146,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 2814,
+      "resumed_seed_evaluations": 956,
+      "stored_port_paths": 84,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    }
+  ],
+  "query_changes": [
+    {
+      "ruleset": "non-weakly-linear",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+      "gpu_rows_before": 1664447,
+      "gpu_rows_after": 0,
+      "seeds_before": 80714,
+      "seeds_after": 0,
+      "cell_queries_before": 0,
+      "cell_queries_after": 1,
+      "depths_before": [
+        {
+          "entries": 80714,
+          "link_visits": 0,
+          "live_rows": 0,
+          "prefixes": 80714,
+          "key_checks": 186911,
+          "refutations": 71280,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 9944,
+          "deepest_seeds": 71280,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 9434,
+          "link_visits": 9434,
+          "live_rows": 9434,
+          "prefixes": 3867,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 5567,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 3867,
+          "link_visits": 6295,
+          "live_rows": 6295,
+          "prefixes": 6295,
+          "key_checks": 4468,
+          "refutations": 506,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 36,
+          "deepest_seeds": 0,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 5789,
+          "link_visits": 1647225,
+          "live_rows": 1647225,
+          "prefixes": 2063,
+          "key_checks": 2749,
+          "refutations": 981,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 309,
+          "deepest_seeds": 3503,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 1082,
+          "link_visits": 899,
+          "live_rows": 899,
+          "prefixes": 169,
+          "key_checks": 99,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 203,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 169,
+          "link_visits": 341,
+          "live_rows": 341,
+          "prefixes": 91,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 70,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 91,
+          "link_visits": 236,
+          "live_rows": 236,
+          "prefixes": 198,
+          "key_checks": 198,
+          "refutations": 189,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 46,
+          "deepest_seeds": 82,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 9,
+          "link_visits": 13,
+          "live_rows": 13,
+          "prefixes": 11,
+          "key_checks": 11,
+          "refutations": 9,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 4,
+          "deepest_seeds": 7,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 2,
+          "link_visits": 4,
+          "live_rows": 4,
+          "prefixes": 0,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 2,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 0,
+          "link_visits": 0,
+          "live_rows": 0,
+          "prefixes": 0,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 0,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        }
+      ],
+      "depths_after": [],
+      "conditional_survival_before": [
+        1.0,
+        0.11688182967019352,
+        0.047909904105855244,
+        0.047909904105855244,
+        0.004509750476992839,
+        0.0019946973263622173,
+        0.0011274376192482098,
+        0.00011150481948608668,
+        2.4778848774685927e-05,
+        0.0
+      ],
+      "conditional_survival_after": null,
+      "probability_scope": "no conditional depth probability when query has moved entirely off GPU"
+    },
+    {
+      "ruleset": "state-edge-passthrough",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+      "gpu_rows_before": 1433752,
+      "gpu_rows_after": 0,
+      "seeds_before": 87030,
+      "seeds_after": 0,
+      "cell_queries_before": 0,
+      "cell_queries_after": 6,
+      "depths_before": [
+        {
+          "entries": 87030,
+          "link_visits": 0,
+          "live_rows": 0,
+          "prefixes": 87030,
+          "key_checks": 202586,
+          "refutations": 77404,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 11058,
+          "deepest_seeds": 77404,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 9626,
+          "link_visits": 9626,
+          "live_rows": 9626,
+          "prefixes": 4821,
+          "key_checks": 1,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 4805,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 4821,
+          "link_visits": 4273,
+          "live_rows": 4273,
+          "prefixes": 4273,
+          "key_checks": 2090,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 548,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 4273,
+          "link_visits": 5105,
+          "live_rows": 5093,
+          "prefixes": 4570,
+          "key_checks": 1952,
+          "refutations": 413,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 114,
+          "deepest_seeds": 1654,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 4157,
+          "link_visits": 1469227,
+          "live_rows": 1404002,
+          "prefixes": 108026,
+          "key_checks": 214452,
+          "refutations": 100741,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 23498,
+          "deepest_seeds": 2081,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 7285,
+          "link_visits": 3920,
+          "live_rows": 3908,
+          "prefixes": 1353,
+          "key_checks": 157,
+          "refutations": 24,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 7,
+          "deepest_seeds": 294,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 1329,
+          "link_visits": 6383,
+          "live_rows": 6381,
+          "prefixes": 2900,
+          "key_checks": 2804,
+          "refutations": 2727,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 426,
+          "deepest_seeds": 131,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 173,
+          "link_visits": 432,
+          "live_rows": 419,
+          "prefixes": 234,
+          "key_checks": 232,
+          "refutations": 219,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 51,
+          "deepest_seeds": 101,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 15,
+          "link_visits": 38,
+          "live_rows": 38,
+          "prefixes": 23,
+          "key_checks": 23,
+          "refutations": 17,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 5,
+          "deepest_seeds": 9,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 6,
+          "link_visits": 8,
+          "live_rows": 8,
+          "prefixes": 4,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 2,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 4,
+          "link_visits": 4,
+          "live_rows": 4,
+          "prefixes": 4,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 4,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 1,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        }
+      ],
+      "depths_after": [],
+      "conditional_survival_before": [
+        1.0,
+        0.1106055383201195,
+        0.055394691485694585,
+        0.04909801217970815,
+        0.030093071354705275,
+        0.006181776398942893,
+        0.002803630931862576,
+        0.0012984028495920947,
+        0.00013788348845225783,
+        3.447087211306446e-05,
+        1.149029070435482e-05
+      ],
+      "conditional_survival_after": null,
+      "probability_scope": "no conditional depth probability when query has moved entirely off GPU"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+      "gpu_rows_before": 54263,
+      "gpu_rows_after": 0,
+      "seeds_before": 44295,
+      "seeds_after": 0,
+      "cell_queries_before": 0,
+      "cell_queries_after": 1798,
+      "depths_before": [
+        {
+          "entries": 44295,
+          "link_visits": 0,
+          "live_rows": 0,
+          "prefixes": 44295,
+          "key_checks": 8040,
+          "refutations": 6154,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 1627,
+          "deepest_seeds": 6154,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 38141,
+          "link_visits": 35282,
+          "live_rows": 35149,
+          "prefixes": 15410,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 26292,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 15410,
+          "link_visits": 19124,
+          "live_rows": 19114,
+          "prefixes": 10654,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 10654,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 11849,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        }
+      ],
+      "depths_after": [],
+      "conditional_survival_before": [
+        1.0,
+        0.8610678406140648,
+        0.26750197539225645
+      ],
+      "conditional_survival_after": null,
+      "probability_scope": "no conditional depth probability when query has moved entirely off GPU"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+      "gpu_rows_before": 31028,
+      "gpu_rows_after": 0,
+      "seeds_before": 29248,
+      "seeds_after": 0,
+      "cell_queries_before": 0,
+      "cell_queries_after": 1798,
+      "depths_before": [
+        {
+          "entries": 29248,
+          "link_visits": 0,
+          "live_rows": 0,
+          "prefixes": 29248,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 0,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 29248,
+          "link_visits": 31141,
+          "live_rows": 31028,
+          "prefixes": 14194,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 14194,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 29248,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        }
+      ],
+      "depths_after": [],
+      "conditional_survival_before": [
+        1.0,
+        1.0
+      ],
+      "conditional_survival_after": null,
+      "probability_scope": "no conditional depth probability when query has moved entirely off GPU"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+      "gpu_rows_before": 15252,
+      "gpu_rows_after": 0,
+      "seeds_before": 27485,
+      "seeds_after": 0,
+      "cell_queries_before": 0,
+      "cell_queries_after": 1798,
+      "depths_before": [
+        {
+          "entries": 27485,
+          "link_visits": 0,
+          "live_rows": 0,
+          "prefixes": 27485,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 0,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 27485,
+          "link_visits": 15252,
+          "live_rows": 15252,
+          "prefixes": 1981,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 1981,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 27485,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        }
+      ],
+      "depths_after": [],
+      "conditional_survival_before": [
+        1.0,
+        1.0
+      ],
+      "conditional_survival_after": null,
+      "probability_scope": "no conditional depth probability when query has moved entirely off GPU"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+      "gpu_rows_before": 14038,
+      "gpu_rows_after": 0,
+      "seeds_before": 15929,
+      "seeds_after": 0,
+      "cell_queries_before": 0,
+      "cell_queries_after": 1798,
+      "depths_before": [
+        {
+          "entries": 15929,
+          "link_visits": 0,
+          "live_rows": 0,
+          "prefixes": 15929,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 0,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 0,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        },
+        {
+          "entries": 15929,
+          "link_visits": 14038,
+          "live_rows": 14038,
+          "prefixes": 5868,
+          "key_checks": 0,
+          "refutations": 0,
+          "matched_leaves": 5868,
+          "domain_checks": 0,
+          "signature_refutations": 0,
+          "deepest_seeds": 15929,
+          "connection_checks": 0,
+          "connection_refutations": 0,
+          "connection_unknown": 0,
+          "range_checks": 0,
+          "range_refutations": 0
+        }
+      ],
+      "depths_after": [],
+      "conditional_survival_before": [
+        1.0,
+        1.0
+      ],
+      "conditional_survival_after": null,
+      "probability_scope": "no conditional depth probability when query has moved entirely off GPU"
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+      "gpu_rows_before": 0,
+      "gpu_rows_after": 0,
+      "seeds_before": 0,
+      "seeds_after": 0,
+      "cell_queries_before": 0,
+      "cell_queries_after": 1798,
+      "depths_before": [],
+      "depths_after": [],
+      "conditional_survival_before": null,
+      "conditional_survival_after": null,
+      "probability_scope": "no conditional depth probability when query has moved entirely off GPU"
+    }
+  ],
+  "gpu_total_rows": [
+    10405823,
+    7193043
+  ],
+  "common_rule_fixed_weights": {
+    "rules": 305,
+    "weight": "before eligible seeds; queries moved off GPU excluded",
+    "before": [
+      1.0,
+      0.5682465783343937,
+      0.02999154213022457,
+      0.008965440567256582,
+      0.0034817532121293395,
+      0.0008604545162091093,
+      0.0004995591110436212,
+      0.00020472925818984823,
+      4.2646793096741416e-05,
+      3.364905929309366e-05,
+      1.8611750744531657e-05,
+      1.83652374896372e-05,
+      6.162831372361477e-07,
+      4.930265097889181e-07,
+      4.930265097889181e-07,
+      4.930265097889181e-07,
+      1.2325662744722953e-07,
+      1.2325662744722953e-07,
+      1.2325662744722953e-07
+    ],
+    "after": [
+      1.0,
+      0.5682465783343937,
+      0.02999154213022457,
+      0.008965440567256582,
+      0.0034817532121293395,
+      0.0008604545162091093,
+      0.0004995591110436212,
+      0.00020472925818984823,
+      4.2646793096741416e-05,
+      3.364905929309366e-05,
+      1.8611750744531657e-05,
+      1.83652374896372e-05,
+      6.162831372361477e-07,
+      4.930265097889181e-07,
+      4.930265097889181e-07,
+      4.930265097889181e-07,
+      1.2325662744722953e-07,
+      1.2325662744722953e-07,
+      1.2325662744722953e-07
+    ],
+    "fixed_candidate_identity": false
+  }
+}
