@@ -22,6 +22,7 @@ pub mod joint;
 mod comparison;
 mod scalar;
 pub mod boundary;
+mod shared_marker;
 
 type Key = SmallVec<[Value; 4]>;
 type Binding = SmallVec<[Option<Value>; 16]>;
@@ -214,6 +215,9 @@ struct Kernel {
     delta_rows_skipped: std::cell::Cell<usize>,
     payload_layout: Option<(usize, Vec<usize>)>,
     payload_resumes: std::cell::Cell<usize>,
+    share_prefix: bool,
+    shared: Option<shared_marker::Use>,
+    shared_prefix_uses: usize,
 }
 fn known(o: &CellOperand, b: &[bool]) -> bool {
     match o {
@@ -335,6 +339,7 @@ impl Kernel {
             delta_rows_skipped: std::cell::Cell::new(0),
             payload_layout: None,
             payload_resumes: std::cell::Cell::new(0),
+            share_prefix:false,shared:None,shared_prefix_uses:0,
         }
     }
     fn wake(&mut self, read: &Read) {
@@ -685,6 +690,8 @@ pub struct Runtime {
     eg: EGraph,
     certificates: crate::certificate::Book,
     kernels: Vec<Kernel>,
+    shared_markers:Vec<shared_marker::Marker>,
+    marker_watch:Vec<Vec<usize>>,
     wake_tables: Vec<Vec<usize>>,
     sets: BTreeMap<String, Vec<usize>>,
     names: Vec<String>,
@@ -838,12 +845,14 @@ impl Runtime {
                 if let Access::Columns(mask)=access {projections.insert((k.tables[*atom],*mask));}
             }
         }
+        let (shared_markers,marker_watch)=shared_marker::build(&mut kernels);
         let identity = eg.cell_rule_environment_stamp();
         let (feed, initial) = eg.subscribe_cell_commits(&names)?;
         let mut r = Self {
             certificates: crate::certificate::Book::default(),
             eg,
             kernels,
+            shared_markers,marker_watch,
             wake_tables,
             sets: groups,
             names,
@@ -881,6 +890,7 @@ impl Runtime {
                 k.sink.slots().into_iter().map(|(n,s)|(n.into(),s.into())).collect(),
                 vec!["rule environment".into(),"committed row generations".into(),"complete current port fibers".into(),"original incremental watermark".into()])?;
         }
+        for m in &r.shared_markers{m.register(&mut r.certificates,r.boundary.keys().cloned().collect())?;}
         r.certificates.bind_environment(&r.eg);
         Ok(r)
     }
@@ -959,6 +969,7 @@ impl Runtime {
                 let table = match &read {
                     Read::Key(t, _) | Read::Output(t, _) | Read::Columns(t,..) => *t,
                 };
+                if !self.shared_markers.is_empty(){shared_marker::wake(&mut self.shared_markers,&self.marker_watch,&read,&mut self.kernels);}
                 for id in &self.wake_tables[table] {
                     let k = &mut self.kernels[*id];
                     if k.watch {
@@ -985,6 +996,7 @@ impl Runtime {
     pub fn audit_mirror(&self) -> Result<usize> {
         let mut expected = Rows {
             reverse: self.rows.reverse.clone(),
+            projections:self.rows.projections.clone(),
             ..Rows::default()
         };
         for (i, name) in self.names.iter().enumerate() {
@@ -1181,8 +1193,8 @@ impl Runtime {
                 "terminal_delta_rows_skipped":k.delta_rows_skipped.get(),
                 "payload_layout":k.payload_layout,"payload_resumes":k.payload_resumes.get(),
                 "reused_port_reads":k.reused_reads,"resumed_seed_evaluations":k.resumed_seeds,
-                "stored_port_paths":k.paths.len()})
+                "stored_port_paths":k.paths.len(),"shared_marker":k.shared.as_ref().map(|u|u.marker),"shared_prefix_uses":k.shared_prefix_uses})
         }).collect::<Vec<_>>();
-        json!({"certificates":self.certificates.report(),"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"program_telemetry_version":2,"programs":programs,"port_reuse":{"enabled":self.kernels.iter().all(|k|k.reuse_ports),"index_reads":self.kernels.iter().map(|k|k.index_reads).sum::<usize>(),"reused_reads":self.kernels.iter().map(|k|k.reused_reads).sum::<usize>(),"resumed_seed_evaluations":self.kernels.iter().map(|k|k.resumed_seeds).sum::<usize>(),"stored_paths":self.kernels.iter().map(|k|k.paths.len()).sum::<usize>(),"shared_row_handles":self.kernels.iter().flat_map(|k|k.paths.values()).map(|p|p.ports.iter().filter(|x|x.as_ref().is_some_and(|(_,r)|r.is_some())).count()).sum::<usize>()},"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
+        json!({"shared_markers":self.shared_markers.iter().map(|m|m.report()).collect::<Vec<_>>(),"certificates":self.certificates.report(),"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"program_telemetry_version":2,"programs":programs,"port_reuse":{"enabled":self.kernels.iter().all(|k|k.reuse_ports),"index_reads":self.kernels.iter().map(|k|k.index_reads).sum::<usize>(),"reused_reads":self.kernels.iter().map(|k|k.reused_reads).sum::<usize>(),"resumed_seed_evaluations":self.kernels.iter().map(|k|k.resumed_seeds).sum::<usize>(),"stored_paths":self.kernels.iter().map(|k|k.paths.len()).sum::<usize>(),"shared_row_handles":self.kernels.iter().flat_map(|k|k.paths.values()).map(|p|p.ports.iter().filter(|x|x.as_ref().is_some_and(|(_,r)|r.is_some())).count()).sum::<usize>()},"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

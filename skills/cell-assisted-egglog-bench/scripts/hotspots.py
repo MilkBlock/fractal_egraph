@@ -46,7 +46,7 @@ def run(a,resolve):
     return 0
 
 
-def compare(before,after,profile_before=None,profile_after=None):
+def compare(before,after,profile_before=None,profile_after=None,shared=False):
     def packet(path):
         p=Path(path);r=read(p);w=read(p/'workflow.json');g=r['gpu']
         if not (r.get('same_commit_verification') or {}).get('exact_rows_values_equivalence_visibility'):
@@ -56,7 +56,10 @@ def compare(before,after,profile_before=None,profile_after=None):
     for key in ['snapshot_sha256','binary_sha256','worker_sha256','policy']:
         if wa.get(key)!=wb.get(key):raise ValueError('boundary control differs: '+key)
     ia,ib=wa['inference_identity'],wb['inference_identity']
-    if ia.get('boundary_programs') is not None or ib.get('boundary_programs') is None:
+    if shared:
+        if not ia.get('boundary_programs') or ia.get('boundary_programs')!=ib.get('boundary_programs'):
+            raise ValueError('shared marker control needs identical selected query plans')
+    elif ia.get('boundary_programs') is not None or ib.get('boundary_programs') is None:
         raise ValueError('expected boundary programs off/on')
     for key in ['analysis','joint','all_rules']:
         if ia.get(key)!=ib.get(key):raise ValueError('common inference contract differs')
@@ -66,6 +69,10 @@ def compare(before,after,profile_before=None,profile_after=None):
     if ga.get('gpu_optimizations')!=gb.get('gpu_optimizations') or ga.get('query_sharing')!=gb.get('query_sharing'):
         raise ValueError('common GPU executor optimization differs')
     da,db=ga['saturation_diagnostics'],gb['saturation_diagnostics']
+    if shared:
+        if da.get('shared_markers') or not db.get('shared_markers'):raise ValueError('expected shared-prefix maintenance off/on')
+        wiring=lambda d:[(p['ruleset'],p['rule'],p['seed'],p['accesses'],p.get('payload_layout')) for p in d['programs']]
+        if wiring(da)!=wiring(db):raise ValueError('shared marker control changed query wiring or payload')
     if (da.get('joint') or {}).get('proofs_enabled')!=(db.get('joint') or {}).get('proofs_enabled'):
         raise ValueError('common saturation proofs differ')
     if (da.get('port_reuse') or {}).get('enabled')!=(db.get('port_reuse') or {}).get('enabled'):
@@ -95,11 +102,33 @@ def compare(before,after,profile_before=None,profile_after=None):
         saved_fraction=1-seconds(gb)/seconds(ga),
         cpu_programs=[p for p in gb['saturation_diagnostics']['programs'] if p['kind']=='boundary_query'],
         scope='net source-derived boundary-context reuse with unchanged joint proofs and GPU backend; not automatic Analyze library or new sat-proof credit')
+    if shared:
+        result.update(schema='shared-marker-comparison/v1',shared_markers=db['shared_markers'],
+            cpu_programs_before=[p for p in da['programs'] if p['kind']=='boundary_query'],
+            scope='same query plans and payloads, shared prefix DAG off/on; actual maintenance and remaining search included, not saturation proof credit')
+    if shared:
+        def work(d):
+            ps=[p for p in d['programs'] if p['kind']=='boundary_query'];ms=d.get('shared_markers',[])
+            return dict(index_reads=sum(p['index_reads'] for p in ps)+sum(m['stats']['lookups'] for m in ms),
+                row_visits=sum(p['candidate_rows'] for p in ps)+sum(m['stats']['candidate_rows'] for m in ms if m['prefix_atoms']>1),
+                root_checks=sum(p['seed_evaluations'] for p in ps),
+                additional_seed_reads=sum(m['stats']['candidate_rows'] for m in ms if m['prefix_atoms']==1),
+                prefix_refreshes=sum(m['stats']['root_refreshes'] for m in ms),
+                prefix_cache_hits=sum(m['stats']['cache_hits'] for m in ms),
+                shared_prefix_bindings=sum(m['live_bindings'] for m in ms),
+                shared_payload_values=sum(m['live_bindings']*len(m['stored_slots']) for m in ms),
+                shared_dependency_edges=sum(m['dependency_edges'] for m in ms))
+        result['cpu_work']=[work(da),work(db)]
+        result['row_scope']='Non-seed row visits; root checks and additional shared seed reads reported separately.'
+        result['storage_scope']='Shared payload scalar slots and dependency edges only; not RSS or total allocator bytes.'
     if bool(profile_before)!=bool(profile_after):raise ValueError('both diagnostic runs required')
     if profile_before:
         _,pa,pwa=packet(profile_before);_,pb,pwb=packet(profile_after)
-        for timed,profile,pw in [(wa,pa,pwa),(wb,pb,pwb)]:
-            for key in ['snapshot_sha256','binary_sha256','worker_sha256','policy']:
+        for timed,timed_gpu,profile,pw in [(wa,ga,pa,pwa),(wb,gb,pb,pwb)]:
+            binary=lambda w:w.get('inference_identity',{}).get('binary',w.get('binary_sha256'))
+            if binary(timed)!=binary(pw):raise ValueError('diagnostic inference binary differs')
+            if shared and bool(profile['saturation_diagnostics'].get('shared_markers'))!=bool(timed_gpu['saturation_diagnostics'].get('shared_markers')):raise ValueError('diagnostic shared-marker mode differs')
+            for key in ['snapshot_sha256','worker_sha256','policy']:
                 if timed.get(key)!=pw.get(key):raise ValueError('diagnostic binary/input differs')
             if timed['inference_identity'].get('boundary_programs')!=pw['inference_identity'].get('boundary_programs'):raise ValueError('diagnostic boundary plan differs')
             if not profile['cells']['profile']:raise ValueError('diagnostic counters missing')

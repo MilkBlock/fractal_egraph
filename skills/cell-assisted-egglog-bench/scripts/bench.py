@@ -782,6 +782,9 @@ def parser():
     q=sub.add_parser('boundary-credit',help='compare source-derived boundary programs off/on; not automatic Bake credit')
     q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
     q.add_argument('--profile-before',type=Path);q.add_argument('--profile-after',type=Path);q.add_argument('--output',type=Path)
+    q=sub.add_parser('shared-marker-credit',help='same selected plans: private versus shared prefix maintenance')
+    q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
+    q.add_argument('--profile-before',type=Path);q.add_argument('--profile-after',type=Path);q.add_argument('--output',type=Path)
     q=sub.add_parser('program-modes',help='same .egg on immutable pristine or GPU; optional original/marker 2x2 isolation')
     q.add_argument('--source',type=Path,required=True);q.add_argument('--marked',type=Path)
     q.add_argument('--backend',choices=['pristine','native','gpu','both'],default='both')
@@ -791,7 +794,7 @@ def parser():
     q=sub.add_parser('spine-program',help='compile full scheduled source with optional-parameter spine layouts and validate through the usual runtime')
     q.add_argument('--snapshot',type=Path,default=SNAPSHOT);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--query-selection',type=Path);q.add_argument('--query-profile',type=Path);q.add_argument('--table-profile',type=Path)
-    q.add_argument('--certificate-library',type=Path)
+    q.add_argument('--certificate-library',type=Path);q.add_argument('--marker-profile',type=Path)
     q.add_argument('--solver-python',type=Path);q.add_argument('--solver',choices=['scip','gurobi'],default='scip')
     q.add_argument('--reuse-controls',type=Path);q.add_argument('--worker',type=Path,default=WORKER)
     q.add_argument('--no-build',action='store_true');q.add_argument('--no-extract',action='store_true');q.add_argument('--compile-only',action='store_true')
@@ -999,9 +1002,9 @@ def main(argv=None):
     if a.mode=='hotspots':
         import hotspots
         return hotspots.run(a,resolve)
-    if a.mode=='boundary-credit':
+    if a.mode in ['boundary-credit','shared-marker-credit']:
         import hotspots
-        r=hotspots.compare(resolve(a.before),resolve(a.after),resolve(a.profile_before) if a.profile_before else None,resolve(a.profile_after) if a.profile_after else None)
+        r=hotspots.compare(resolve(a.before),resolve(a.after),resolve(a.profile_before) if a.profile_before else None,resolve(a.profile_after) if a.profile_after else None,shared=a.mode=='shared-marker-credit')
         print(r['before_seconds'],r['after_seconds'],'saved fraction',r['saved_fraction'])
         if a.output:
             p=resolve(a.output);p.parent.mkdir(parents=True,exist_ok=True)

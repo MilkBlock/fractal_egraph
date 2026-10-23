@@ -69,3 +69,29 @@ class ScheduledSpines(unittest.TestCase):
             # Both numeric queries already belong to the checked library; the
             # solver cannot silently install a second executor for either one.
             self.assertFalse(json.loads((out/'boundary-programs.json').read_text())['rules'])
+
+    def test_solver_pays_common_prefix_once_and_preserves_aliases(self):
+        import copy
+        from . import shared_prefix
+        solver.select('scip');q=self.fixture();other=copy.deepcopy(q);other['rule']='q2'
+        other['shape']['atoms'][-1]['table']='D'
+        for p in other['plans']:p['shape']=other['shape']
+        observed={}
+        for o in scheduled.options(q,{'A':84},10):
+            if o['plan']['prefix_len']<3:
+                d=shared_prefix.describe(o['plan']);observed[d['body_key']]=dict(peak_bindings=84,lookups=100,candidate_rows=84,root_refreshes=100)
+        profile=dict(markers=observed,queries={('s',r):dict(seed_evaluations=1000,emitted_bindings=1000) for r in ['q','q2']})
+        with tempfile.TemporaryDirectory() as tmp:
+            plan=scheduled.select([q,other],{'A':84,'Ctx':10000,'Ty':10000,'C':10000,'D':10000},Path(tmp),(1,1,1),marker_profile=profile)
+            shared=[m for m in plan['shared_markers'] if len(m['consumers'])==2 and len(m['definition']['body']['atoms'])>1]
+            self.assertTrue(shared,plan)
+            self.assertTrue(all(q['plan']['shared_marker'] for q in plan['selected']))
+            definition=shared_prefix.egg(plan['shared_markers']);self.assertIn('(relation SharedSpine',definition)
+        base=copy.deepcopy(q['plans'][0]);base['prefix_len']=1;base['carried_slots']=list(range(9))
+        rename=copy.deepcopy(base)
+        for a in rename['shape']['atoms']:
+            for c in a['columns']:
+                if 'Slot' in c:c['Slot']=8-c['Slot']
+        self.assertEqual(shared_prefix.describe(base)['key'],shared_prefix.describe(rename)['key'])
+        changed=copy.deepcopy(base);changed['shape']['atoms'][1]['columns'][0]={'Slot':0}
+        self.assertNotEqual(shared_prefix.describe(base)['key'],shared_prefix.describe(changed)['key'])

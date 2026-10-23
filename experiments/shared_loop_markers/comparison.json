@@ -1,0 +1,428 @@
+{
+  "schema": "shared-marker-comparison/v1",
+  "before": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/shared-loop-private",
+  "after": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/shared-loop-reuse",
+  "before_seconds": 14.390996083,
+  "after_seconds": 14.319295667,
+  "saved_seconds": 0.07170041599999877,
+  "saved_fraction": 0.004982310855097705,
+  "cpu_programs": [
+    {
+      "program_id": 31,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((DoWhile in pred-and-output)\n       (ContextOf in ctx))\n      ((ContextOf (DoWhile in pred-and-output) ctx))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        }
+      ],
+      "seed_evaluations": 226,
+      "emitted_bindings": 84,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "candidate_rows": 0,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        1,
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0,
+      "shared_marker": 1,
+      "shared_prefix_uses": 84
+    },
+    {
+      "program_id": 32,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "HasArgType",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Const",
+          "access": {
+            "Columns": 4
+          }
+        }
+      ],
+      "seed_evaluations": 1182,
+      "emitted_bindings": 123254,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 1013,
+      "candidate_rows": 123254,
+      "terminal_delta_rows_skipped": 1048146,
+      "payload_layout": [
+        3,
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          10,
+          11
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0,
+      "shared_marker": 3,
+      "shared_prefix_uses": 1013
+    }
+  ],
+  "scope": "same query plans and payloads, shared prefix DAG off/on; actual maintenance and remaining search included, not saturation proof credit",
+  "shared_markers": [
+    {
+      "signature": "{\"body\":\"{\\\"atoms\\\":[{\\\"table\\\":\\\"DoWhile\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"Expr\\\"}]}],\\\"accesses\\\":[]}\",\"carried\":[0,1,2]}",
+      "body_key": "{\"atoms\":[{\"table\":\"DoWhile\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"Expr\"}]}],\"accesses\":[]}",
+      "root": "DoWhile",
+      "prefix_atoms": 1,
+      "stored_slots": [
+        0,
+        1,
+        2
+      ],
+      "consumers": [],
+      "parent": null,
+      "children": [
+        1
+      ],
+      "live_roots": 84,
+      "live_bindings": 84,
+      "dependency_edges": 0,
+      "stats": {
+        "root_refreshes": 84,
+        "cache_hits": 54,
+        "invalidations": 0,
+        "lookups": 0,
+        "candidate_rows": 84,
+        "published_bindings": 84,
+        "decoded_rows": 0,
+        "peak_bindings": 84,
+        "refresh_seconds": 2.8998999999999984e-05
+      }
+    },
+    {
+      "signature": "{\"body\":\"{\\\"atoms\\\":[{\\\"table\\\":\\\"DoWhile\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"Expr\\\"}]},{\\\"table\\\":\\\"ContextOf\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":3,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":4,\\\"sort\\\":\\\"___ContextOfSort\\\"}]}],\\\"accesses\\\":[{\\\"Columns\\\":1}]}\",\"carried\":[0,1,2,3,4]}",
+      "body_key": "{\"atoms\":[{\"table\":\"DoWhile\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"Expr\"}]},{\"table\":\"ContextOf\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":3,\"sort\":\"Assumption\"},{\"Slot\":4,\"sort\":\"___ContextOfSort\"}]}],\"accesses\":[{\"Columns\":1}]}",
+      "root": "DoWhile",
+      "prefix_atoms": 2,
+      "stored_slots": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "consumers": [
+        31
+      ],
+      "parent": 0,
+      "children": [
+        2
+      ],
+      "live_roots": 84,
+      "live_bindings": 84,
+      "dependency_edges": 84,
+      "stats": {
+        "root_refreshes": 138,
+        "cache_hits": 165,
+        "invalidations": 54,
+        "lookups": 138,
+        "candidate_rows": 84,
+        "published_bindings": 84,
+        "decoded_rows": 0,
+        "peak_bindings": 84,
+        "refresh_seconds": 0.00017020999999999998
+      }
+    },
+    {
+      "signature": "{\"body\":\"{\\\"atoms\\\":[{\\\"table\\\":\\\"DoWhile\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"Expr\\\"}]},{\\\"table\\\":\\\"ContextOf\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":3,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":4,\\\"sort\\\":\\\"___ContextOfSort\\\"}]},{\\\"table\\\":\\\"ContextOf\\\",\\\"columns\\\":[{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":5,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":6,\\\"sort\\\":\\\"___ContextOfSort\\\"}]}],\\\"accesses\\\":[{\\\"Columns\\\":1},{\\\"Columns\\\":1}]}\",\"carried\":[0,1,2,3,4,5,6]}",
+      "body_key": "{\"atoms\":[{\"table\":\"DoWhile\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"Expr\"}]},{\"table\":\"ContextOf\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":3,\"sort\":\"Assumption\"},{\"Slot\":4,\"sort\":\"___ContextOfSort\"}]},{\"table\":\"ContextOf\",\"columns\":[{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":5,\"sort\":\"Assumption\"},{\"Slot\":6,\"sort\":\"___ContextOfSort\"}]}],\"accesses\":[{\"Columns\":1},{\"Columns\":1}]}",
+      "root": "DoWhile",
+      "prefix_atoms": 3,
+      "stored_slots": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "consumers": [],
+      "parent": 1,
+      "children": [
+        3
+      ],
+      "live_roots": 84,
+      "live_bindings": 84,
+      "dependency_edges": 84,
+      "stats": {
+        "root_refreshes": 165,
+        "cache_hits": 0,
+        "invalidations": 81,
+        "lookups": 111,
+        "candidate_rows": 84,
+        "published_bindings": 84,
+        "decoded_rows": 0,
+        "peak_bindings": 84,
+        "refresh_seconds": 0.00015012199999999996
+      }
+    },
+    {
+      "signature": "{\"body\":\"{\\\"atoms\\\":[{\\\"table\\\":\\\"DoWhile\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"Expr\\\"}]},{\\\"table\\\":\\\"ContextOf\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":3,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":4,\\\"sort\\\":\\\"___ContextOfSort\\\"}]},{\\\"table\\\":\\\"ContextOf\\\",\\\"columns\\\":[{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":5,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":6,\\\"sort\\\":\\\"___ContextOfSort\\\"}]},{\\\"table\\\":\\\"HasArgType\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":7,\\\"sort\\\":\\\"Type\\\"},{\\\"Slot\\\":8,\\\"sort\\\":\\\"___HasArgTypeSort\\\"}]}],\\\"accesses\\\":[{\\\"Columns\\\":1},{\\\"Columns\\\":1},{\\\"Columns\\\":1}]}\",\"carried\":[0,1,2,3,4,5,6,7,8]}",
+      "body_key": "{\"atoms\":[{\"table\":\"DoWhile\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"Expr\"}]},{\"table\":\"ContextOf\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":3,\"sort\":\"Assumption\"},{\"Slot\":4,\"sort\":\"___ContextOfSort\"}]},{\"table\":\"ContextOf\",\"columns\":[{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":5,\"sort\":\"Assumption\"},{\"Slot\":6,\"sort\":\"___ContextOfSort\"}]},{\"table\":\"HasArgType\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":7,\"sort\":\"Type\"},{\"Slot\":8,\"sort\":\"___HasArgTypeSort\"}]}],\"accesses\":[{\"Columns\":1},{\"Columns\":1},{\"Columns\":1}]}",
+      "root": "DoWhile",
+      "prefix_atoms": 4,
+      "stored_slots": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "consumers": [
+        32
+      ],
+      "parent": 2,
+      "children": [],
+      "live_roots": 84,
+      "live_bindings": 84,
+      "dependency_edges": 84,
+      "stats": {
+        "root_refreshes": 165,
+        "cache_hits": 929,
+        "invalidations": 81,
+        "lookups": 84,
+        "candidate_rows": 84,
+        "published_bindings": 84,
+        "decoded_rows": 0,
+        "peak_bindings": 84,
+        "refresh_seconds": 0.000168791
+      }
+    }
+  ],
+  "cpu_programs_before": [
+    {
+      "program_id": 31,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((DoWhile in pred-and-output)\n       (ContextOf in ctx))\n      ((ContextOf (DoWhile in pred-and-output) ctx))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        }
+      ],
+      "seed_evaluations": 226,
+      "emitted_bindings": 84,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 138,
+      "candidate_rows": 84,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        1,
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 30,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 32,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "HasArgType",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Const",
+          "access": {
+            "Columns": 4
+          }
+        }
+      ],
+      "seed_evaluations": 1182,
+      "emitted_bindings": 123254,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 1346,
+      "candidate_rows": 123533,
+      "terminal_delta_rows_skipped": 1048146,
+      "payload_layout": [
+        3,
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          10,
+          11
+        ]
+      ],
+      "payload_resumes": 929,
+      "reused_port_reads": 27,
+      "resumed_seed_evaluations": 27,
+      "stored_port_paths": 84,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    }
+  ],
+  "cpu_work": [
+    {
+      "index_reads": 1484,
+      "row_visits": 123617,
+      "root_checks": 1408,
+      "additional_seed_reads": 0,
+      "prefix_refreshes": 0,
+      "prefix_cache_hits": 0,
+      "shared_prefix_bindings": 0,
+      "shared_payload_values": 0,
+      "shared_dependency_edges": 0
+    },
+    {
+      "index_reads": 1346,
+      "row_visits": 123506,
+      "root_checks": 1408,
+      "additional_seed_reads": 84,
+      "prefix_refreshes": 552,
+      "prefix_cache_hits": 1148,
+      "shared_prefix_bindings": 336,
+      "shared_payload_values": 2016,
+      "shared_dependency_edges": 252
+    }
+  ],
+  "row_scope": "Non-seed row visits; root checks and additional shared seed reads reported separately.",
+  "storage_scope": "Shared payload scalar slots and dependency edges only; not RSS or total allocator bytes.",
+  "query_changes": [],
+  "gpu_total_rows": [
+    10393521,
+    10393521
+  ],
+  "common_rule_fixed_weights": {
+    "rules": 310,
+    "weight": "before eligible seeds; queries moved off GPU excluded",
+    "before": [
+      1.0,
+      0.5630655840025325,
+      0.03151986095391112,
+      0.009661314069158706,
+      0.0037307116854261423,
+      0.0009174174936464657,
+      0.0005241703075677984,
+      0.00021298898322547505,
+      4.3003945014678085e-05,
+      3.2969691177919866e-05,
+      1.8157221228419636e-05,
+      1.7798855019963984e-05,
+      5.972770140927512e-07,
+      4.778216112742009e-07,
+      4.778216112742009e-07,
+      4.778216112742009e-07,
+      1.1945540281855023e-07,
+      1.1945540281855023e-07,
+      1.1945540281855023e-07
+    ],
+    "after": [
+      1.0,
+      0.5630655840025325,
+      0.03151986095391112,
+      0.009661314069158706,
+      0.0037307116854261423,
+      0.0009174174936464657,
+      0.0005241703075677984,
+      0.00021298898322547505,
+      4.3003945014678085e-05,
+      3.2969691177919866e-05,
+      1.8157221228419636e-05,
+      1.7798855019963984e-05,
+      5.972770140927512e-07,
+      4.778216112742009e-07,
+      4.778216112742009e-07,
+      4.778216112742009e-07,
+      1.1945540281855023e-07,
+      1.1945540281855023e-07,
+      1.1945540281855023e-07
+    ],
+    "fixed_candidate_identity": false
+  }
+}

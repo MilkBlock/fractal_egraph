@@ -317,3 +317,22 @@ check/extraction等命令按原AST原生执行；pristine使用同样的初始�
 这属于 extraction-specific 表示优化，**不是已有matching marker/RipSat闭包
 证明的credit，也尚未在线维护完整extraction**。原有 fused-native 对照失败
 不得隐藏。实现、限制和结果见 `experiments/tiger_extraction_markers/README.md`。
+
+### 求解器生成的跨 consumer 前缀 marker
+
+`spine-program --marker-profile PILOT/report.json --table-profile PILOT/report.json`
+使用同源码的真实前缀行数及维护计数。`--query-selection` 选择工作负载，不固定
+根/布局。产物包含可读的 `shared-markers.egg` 和可执行 `boundary-programs.json`。
+`CELL_SHARED_MARKER_PROFILE=1` 仅对 v1 边界计划启用完整前缀诊断，须配合
+`CELL_SEARCH_COUNTERS=1`，不把这次运行用作计时；完整匹配层可能很大。
+
+`CELL_SHARED_MARKERS=0/1` 对同一生成计划做私有缓存/共享前缀 DAG 消融。
+`shared-marker-credit --before DIR --after DIR [--profile-before DIR --profile-after DIR]`
+要求相同计划、原始完整 binding、规则环境、二进制及公共优化；维护成本计入
+推理时间。诊断只比较推理二进制，不能因为计时另列了 Tiger 检查器就判为不同
+执行器。保留原生融合的既有差异，不放宽同提交 CPU/GPU 门槛。
+
+账表逐 marker 报一次共享维护，并区分非 seed 行访问、额外共享 seed 读取、
+原有 root 检查；命中包括同 consumer 重访，不自动算跨规则 credit。共享帧/slot
+数量不是 RSS。两边已经接管查询时，不把之前移走 GPU 查询的收益再记一次。
+详见 `experiments/shared_loop_markers/README.md`。

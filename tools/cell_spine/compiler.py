@@ -741,6 +741,7 @@ def main():
     p.add_argument('--lhs-coverage',choices=('off','report','entries'),default='off',
                    help='index rule LHS coverage; entries additionally emits certified alternative ingresses into existing Cells')
     p.add_argument('--query-selection',type=Path,help='explicit query workload; root hints are ignored, all anchors remain solver choices')
+    p.add_argument('--marker-profile',type=Path,help='saved shared-prefix cardinality and refresh work; used only for pricing')
     p.add_argument('--query-profile',type=Path,help='saved diagnostic Pass-3 report for original-query work')
     p.add_argument('--table-profile',type=Path,help='saved original table cardinalities for structural pricing')
     p.add_argument('--keep-duplicate-spines',action='store_true',help='ablation: retain distinct variables for identical physical representations')

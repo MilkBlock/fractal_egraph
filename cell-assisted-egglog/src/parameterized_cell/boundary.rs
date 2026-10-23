@@ -21,6 +21,8 @@ pub struct Plan {
     steps: Vec<(usize, Access)>,
     pub prefix_len: usize,
     pub carried_slots: Vec<usize>,
+    #[serde(default,skip_serializing_if="std::ops::Not::not")]
+    pub shared_marker: bool,
 }
 
 #[derive(serde::Deserialize)]
@@ -193,6 +195,7 @@ fn instantiate(eg: &EGraph, sink: CellActionSink, tables: Vec<usize>, p: &Plan) 
         return Err("invalid scheduled spine wiring or payload".into());
     }
     k.payload_layout = Some((p.prefix_len, p.carried_slots.clone()));
+    k.share_prefix=p.shared_marker && std::env::var("CELL_SHARED_MARKERS").as_deref()!=Ok("0");
     Ok(k)
 }
 
@@ -212,7 +215,11 @@ pub(super) fn install(
         }
         instantiate(eg, sink, tables, p)
     } else {
-        compile(eg, sink, tables, &spec.root)
+        let mut k=compile(eg, sink, tables, &spec.root)?;
+        if std::env::var("CELL_SHARED_MARKER_PROFILE").as_deref()==Ok("1") {
+            k.payload_layout=Some((k.steps.len(),(0..k.slot_count).collect()));k.share_prefix=true;
+        }
+        Ok(k)
     }
 }
 
@@ -259,6 +266,7 @@ pub fn inspect(eg: &mut EGraph, sets: &[String], reserved: &BTreeSet<String>) ->
                             steps: k.steps,
                             prefix_len: 0,
                             carried_slots: vec![],
+                            shared_marker:false,
                         });
                     }
                 }
@@ -296,8 +304,7 @@ impl Runtime {
         }
         let mut out = vec![];
         for (id, i) in selected {
-            let rows =
-                self.kernels[id].matches(&self.eg, &self.rows, &mut self.stats.keyed_reads)?;
+            let rows = self.boundary_matches(id)?;
             out.push((i, rows));
         }
         Ok(out)

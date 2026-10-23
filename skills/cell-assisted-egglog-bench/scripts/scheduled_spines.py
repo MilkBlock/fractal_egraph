@@ -15,7 +15,7 @@ def run(a,repo):
                          ['cargo','build','--offline','--release','--target-dir','target/analyzer','--example','scheduled_spine','--example','raytrace_stable_bench']])
     compile=[str(python),'-m','tools.cell_spine.compiler','--mode','scheduled','--source',str(resolve(a.snapshot)),
              '--output',str(out/'program'),'--solver',a.solver,'--skip-build']
-    for flag in ['query_selection','query_profile','table_profile','certificate_library']:
+    for flag in ['query_selection','query_profile','table_profile','certificate_library','marker_profile']:
         if getattr(a,flag):compile.extend(['--'+flag.replace('_','-'),str(resolve(getattr(a,flag)))])
     commands.append(compile)
     if not a.compile_only:

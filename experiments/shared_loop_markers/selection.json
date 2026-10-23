@@ -1,0 +1,427 @@
+{
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "solver": {
+    "backend": "scip",
+    "python_package_version": "6.3.0",
+    "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+    "threads": 1,
+    "models": {
+      "scheduled_spine_layouts": {
+        "models": 1,
+        "solve_calls": 1,
+        "api_build_seconds": 0.1159308351634536,
+        "solve_seconds": 0.19329766600276344,
+        "peak_variables": 914,
+        "peak_constraints": 3749,
+        "engine_version": "10.0.2",
+        "nonoptimal_solves": 0
+      }
+    }
+  },
+  "choices": 690,
+  "objective": 185082.0,
+  "selected": [
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((DoWhile in pred-and-output)\n       (ContextOf in ctx))\n      ((ContextOf (DoWhile in pred-and-output) ctx))\n        :ruleset always-run )",
+      "root": "DoWhile",
+      "prefix_atoms": 2,
+      "stored_slots": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "shared": true,
+      "costs": {
+        "storage": 0,
+        "update": 0,
+        "search": 1214
+      }
+    },
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "root": "DoWhile",
+      "prefix_atoms": 4,
+      "stored_slots": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        10,
+        11
+      ],
+      "shared": true,
+      "costs": {
+        "storage": 0,
+        "update": 0,
+        "search": 140984
+      }
+    }
+  ],
+  "shared_markers": [
+    {
+      "id": 0,
+      "definition": {
+        "body": {
+          "atoms": [
+            {
+              "table": "DoWhile",
+              "columns": [
+                {
+                  "Slot": 0,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 1,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 2,
+                  "sort": "Expr"
+                }
+              ]
+            }
+          ],
+          "accesses": []
+        },
+        "body_key": "{\"accesses\":[],\"atoms\":[{\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"Expr\"}],\"table\":\"DoWhile\"}]}",
+        "carried": [
+          0,
+          1,
+          2
+        ],
+        "slots": [
+          0,
+          1,
+          2
+        ],
+        "key": "{\"body\":\"{\\\"accesses\\\":[],\\\"atoms\\\":[{\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"Expr\\\"}],\\\"table\\\":\\\"DoWhile\\\"}]}\",\"carried\":[0,1,2]}"
+      },
+      "consumers": [
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((DoWhile in pred-and-output)\n       (ContextOf in ctx))\n      ((ContextOf (DoWhile in pred-and-output) ctx))\n        :ruleset always-run )",
+          "direct": false
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "direct": false
+        }
+      ],
+      "costs": {
+        "storage": 336,
+        "update": 84
+      }
+    },
+    {
+      "id": 1,
+      "definition": {
+        "body": {
+          "atoms": [
+            {
+              "table": "DoWhile",
+              "columns": [
+                {
+                  "Slot": 0,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 1,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 2,
+                  "sort": "Expr"
+                }
+              ]
+            },
+            {
+              "table": "ContextOf",
+              "columns": [
+                {
+                  "Slot": 0,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 3,
+                  "sort": "Assumption"
+                },
+                {
+                  "Slot": 4,
+                  "sort": "___ContextOfSort"
+                }
+              ]
+            },
+            {
+              "table": "ContextOf",
+              "columns": [
+                {
+                  "Slot": 1,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 5,
+                  "sort": "Assumption"
+                },
+                {
+                  "Slot": 6,
+                  "sort": "___ContextOfSort"
+                }
+              ]
+            },
+            {
+              "table": "HasArgType",
+              "columns": [
+                {
+                  "Slot": 0,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 7,
+                  "sort": "Type"
+                },
+                {
+                  "Slot": 8,
+                  "sort": "___HasArgTypeSort"
+                }
+              ]
+            }
+          ],
+          "accesses": [
+            {
+              "Columns": 1
+            },
+            {
+              "Columns": 1
+            },
+            {
+              "Columns": 1
+            }
+          ]
+        },
+        "body_key": "{\"accesses\":[{\"Columns\":1},{\"Columns\":1},{\"Columns\":1}],\"atoms\":[{\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"Expr\"}],\"table\":\"DoWhile\"},{\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":3,\"sort\":\"Assumption\"},{\"Slot\":4,\"sort\":\"___ContextOfSort\"}],\"table\":\"ContextOf\"},{\"columns\":[{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":5,\"sort\":\"Assumption\"},{\"Slot\":6,\"sort\":\"___ContextOfSort\"}],\"table\":\"ContextOf\"},{\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":7,\"sort\":\"Type\"},{\"Slot\":8,\"sort\":\"___HasArgTypeSort\"}],\"table\":\"HasArgType\"}]}",
+        "carried": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "slots": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          10,
+          11
+        ],
+        "key": "{\"body\":\"{\\\"accesses\\\":[{\\\"Columns\\\":1},{\\\"Columns\\\":1},{\\\"Columns\\\":1}],\\\"atoms\\\":[{\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"Expr\\\"}],\\\"table\\\":\\\"DoWhile\\\"},{\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":3,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":4,\\\"sort\\\":\\\"___ContextOfSort\\\"}],\\\"table\\\":\\\"ContextOf\\\"},{\\\"columns\\\":[{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":5,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":6,\\\"sort\\\":\\\"___ContextOfSort\\\"}],\\\"table\\\":\\\"ContextOf\\\"},{\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":7,\\\"sort\\\":\\\"Type\\\"},{\\\"Slot\\\":8,\\\"sort\\\":\\\"___HasArgTypeSort\\\"}],\\\"table\\\":\\\"HasArgType\\\"}]}\",\"carried\":[0,1,2,3,4,5,6,7,8]}"
+      },
+      "consumers": [
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "direct": true
+        }
+      ],
+      "costs": {
+        "storage": 840,
+        "update": 168
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "body": {
+          "atoms": [
+            {
+              "table": "DoWhile",
+              "columns": [
+                {
+                  "Slot": 0,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 1,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 2,
+                  "sort": "Expr"
+                }
+              ]
+            },
+            {
+              "table": "ContextOf",
+              "columns": [
+                {
+                  "Slot": 0,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 3,
+                  "sort": "Assumption"
+                },
+                {
+                  "Slot": 4,
+                  "sort": "___ContextOfSort"
+                }
+              ]
+            },
+            {
+              "table": "ContextOf",
+              "columns": [
+                {
+                  "Slot": 1,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 5,
+                  "sort": "Assumption"
+                },
+                {
+                  "Slot": 6,
+                  "sort": "___ContextOfSort"
+                }
+              ]
+            }
+          ],
+          "accesses": [
+            {
+              "Columns": 1
+            },
+            {
+              "Columns": 1
+            }
+          ]
+        },
+        "body_key": "{\"accesses\":[{\"Columns\":1},{\"Columns\":1}],\"atoms\":[{\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"Expr\"}],\"table\":\"DoWhile\"},{\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":3,\"sort\":\"Assumption\"},{\"Slot\":4,\"sort\":\"___ContextOfSort\"}],\"table\":\"ContextOf\"},{\"columns\":[{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":5,\"sort\":\"Assumption\"},{\"Slot\":6,\"sort\":\"___ContextOfSort\"}],\"table\":\"ContextOf\"}]}",
+        "carried": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "slots": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "key": "{\"body\":\"{\\\"accesses\\\":[{\\\"Columns\\\":1},{\\\"Columns\\\":1}],\\\"atoms\\\":[{\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"Expr\\\"}],\\\"table\\\":\\\"DoWhile\\\"},{\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":3,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":4,\\\"sort\\\":\\\"___ContextOfSort\\\"}],\\\"table\\\":\\\"ContextOf\\\"},{\\\"columns\\\":[{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":5,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":6,\\\"sort\\\":\\\"___ContextOfSort\\\"}],\\\"table\\\":\\\"ContextOf\\\"}]}\",\"carried\":[0,1,2,3,4,5,6]}"
+      },
+      "consumers": [
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "direct": false
+        }
+      ],
+      "costs": {
+        "storage": 672,
+        "update": 195
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "body": {
+          "atoms": [
+            {
+              "table": "DoWhile",
+              "columns": [
+                {
+                  "Slot": 0,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 1,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 2,
+                  "sort": "Expr"
+                }
+              ]
+            },
+            {
+              "table": "ContextOf",
+              "columns": [
+                {
+                  "Slot": 0,
+                  "sort": "Expr"
+                },
+                {
+                  "Slot": 3,
+                  "sort": "Assumption"
+                },
+                {
+                  "Slot": 4,
+                  "sort": "___ContextOfSort"
+                }
+              ]
+            }
+          ],
+          "accesses": [
+            {
+              "Columns": 1
+            }
+          ]
+        },
+        "body_key": "{\"accesses\":[{\"Columns\":1}],\"atoms\":[{\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"Expr\"}],\"table\":\"DoWhile\"},{\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":3,\"sort\":\"Assumption\"},{\"Slot\":4,\"sort\":\"___ContextOfSort\"}],\"table\":\"ContextOf\"}]}",
+        "carried": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "slots": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "key": "{\"body\":\"{\\\"accesses\\\":[{\\\"Columns\\\":1}],\\\"atoms\\\":[{\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"Expr\\\"}],\\\"table\\\":\\\"DoWhile\\\"},{\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":3,\\\"sort\\\":\\\"Assumption\\\"},{\\\"Slot\\\":4,\\\"sort\\\":\\\"___ContextOfSort\\\"}],\\\"table\\\":\\\"ContextOf\\\"}]}\",\"carried\":[0,1,2,3,4]}"
+      },
+      "consumers": [
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((DoWhile in pred-and-output)\n       (ContextOf in ctx))\n      ((ContextOf (DoWhile in pred-and-output) ctx))\n        :ruleset always-run )",
+          "direct": true
+        },
+        {
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "direct": false
+        }
+      ],
+      "costs": {
+        "storage": 504,
+        "update": 222
+      }
+    }
+  ],
+  "scope": "optimal in exported root/fixed-order/prefix and original anchor/outside/all layout domain; structural work estimate, not globally optimal Join order or elapsed time"
+}

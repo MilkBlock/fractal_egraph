@@ -99,6 +99,12 @@ def build(path, baseline=None):
             hit_rate=ratio(st.get('cell_nonempty_queries'),st.get('cell_queries')),
             new_reads=fresh,cached_reads=cache,cache_hit_rate=ratio(cache,cache+fresh if cache is not None and fresh is not None else None),
             status='source-compiled execution; not independent Cell proof credit'))
+    for i,m in enumerate(d.get('shared_markers',[])):
+        stats=m['stats'];requests=stats['root_refreshes']+stats['cache_hits']
+        rows.append(row('shared_prefix',str(i),label=f"{m['root']}: {m['prefix_atoms']} atoms",consumers=m['consumers'],
+            requests=requests,hits=stats['cache_hits'],hit_rate=ratio(stats['cache_hits'],requests),
+            new_reads=stats['lookups'],cached_reads=stats['cache_hits'],cpu_candidate_rows=stats['candidate_rows'],
+            status=f"{m['live_roots']} roots / {m['live_bindings']} bindings; parent={m.get('parent')}; shared maintenance counted once, no saturation credit"))
     if d.get('joint'):
         j=d['joint'];stats=j.get('stats',{});comp=j.get('comparison_closure',{})
         rows.append(row('proof_group','terms-joint-closure-proofs',label='joint closure proofs',
@@ -138,7 +144,7 @@ def build(path, baseline=None):
             'program_hit_rate':'nonempty complete query answers / query requests',
             'candidate_rows':'live row visits before binding constraints, including retry attempts; not unique rows, matches or mutations',
             'credit':'per-object seconds remain null without an isolated valid timing ablation; shared groups must not be summed again through parent Cells'},
-        rows=rows,groups=groups,plan_counters=raw,plan_definitions=plans,source_program_counters=d.get('programs',[]),proof_group_counters=d.get('joint'),
+        rows=rows,groups=groups,plan_counters=raw,plan_definitions=plans,shared_prefix_counters=d.get('shared_markers',[]),source_program_counters=d.get('programs',[]),proof_group_counters=d.get('joint'),
         runtime_seconds=g.get('runtime',{}).get('run_seconds'),
         timing_eligible=not c.get('profile') and not g.get('audit') and not g.get('query_timing_profile') and verified(r),
         shared_costs={'commit_marker_cpu_work':g.get('commit_markers'),'bake_seconds':None,'allocated_gpu_bytes':g.get('device',{}).get('device_bytes'),
@@ -177,15 +183,16 @@ def write(path, baseline=None, output=None, timing=None):
         'analyzed_cell':['id','plans','consumers','net_seconds','status'],
         'shared_projection':['id','owners','requests','hits','hit_rate','port_requests','port_hits','port_hit_rate','new_reads','cached_reads','watch_checks','skipped_reads'],
         'source_program':['id','label','requests','hits','hit_rate','new_reads','cached_reads','cache_hit_rate','net_seconds'],
+        'shared_prefix':['id','label','consumers','requests','hits','hit_rate','new_reads','cpu_candidate_rows','status'],
         'proof_group':['id','requests','hits','hit_rate','net_seconds','status'],
         'consumer':['id','label','plans','requests','candidates_before','candidates_after','candidates_saved','status'],
     }
-    for kind in ['analyzed_cell','shared_projection','source_program','proof_group','consumer']:
+    for kind in ['analyzed_cell','shared_projection','source_program','shared_prefix','proof_group','consumer']:
         entries=[r for r in result['rows'] if r['kind']==kind]
         if not entries:continue
         columns=layouts[kind]
-        titles={'analyzed_cell':'Analyze Cell','shared_projection':'共享片段','source_program':'源码编译程序','proof_group':'闭包证明组','consumer':'原始查询'}
-        labels={'id':'ID','label':'对象','owners':'来源 Cell','plans':'共享片段','consumers':'查询 ID','requests':'请求','hits':'命中','hit_rate':'命中率','port_requests':'端口请求','port_hits':'端口非空回答','port_hit_rate':'端口命中率','new_reads':'新读取','cached_reads':'缓存读取','cache_hit_rate':'缓存率','watch_checks':'订阅检查','skipped_reads':'跳过读取','candidates_before':'原候选访问','candidates_after':'现候选访问','candidates_saved':'省去候选访问','net_seconds':'独立净收益秒','status':'口径'}
+        titles={'analyzed_cell':'Analyze Cell','shared_projection':'共享片段','source_program':'源码编译程序','proof_group':'闭包证明组','consumer':'原始查询','shared_prefix':'共享前缀 marker'}
+        labels={'id':'ID','label':'对象','owners':'来源 Cell','plans':'共享片段','consumers':'查询 ID','requests':'请求','hits':'命中','hit_rate':'命中率','port_requests':'端口请求','port_hits':'端口非空回答','port_hit_rate':'端口命中率','new_reads':'新读取','cached_reads':'缓存读取','cache_hit_rate':'缓存率','watch_checks':'订阅检查','skipped_reads':'跳过读取','candidates_before':'原候选访问','candidates_after':'现候选访问','candidates_saved':'省去候选访问','net_seconds':'独立净收益秒','status':'口径','cpu_candidate_rows':'CPU 行访问'}
         lines += ['## '+titles[kind],'','| '+' | '.join(labels[k] for k in columns)+' |','|'+'|'.join(['---']*len(columns))+'|']
         lines += ['| '+' | '.join((f'{100*r[k]:.2f}%' if k.endswith('_rate') and r.get(k) is not None else display(r.get(k))) for k in columns)+' |' for r in entries];lines.append('')
     lines += ['## 共享归因组','', '```json',json.dumps(result['groups'],ensure_ascii=False,indent=2),'```','',

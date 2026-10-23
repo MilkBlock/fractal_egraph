@@ -8,7 +8,7 @@ Closure proofs and query-layout plans are deliberately different evidence kinds.
 import copy
 import json
 from pathlib import Path
-from . import markers, solver, takeover as t
+from . import markers, solver, takeover as t, shared_prefix
 from .terms import text
 
 
@@ -78,24 +78,29 @@ def options(q,rows,reuses=1):
                     costs=dict(storage=storage,search=search,update=update),indexes=sorted(set(indexes)))
 
 
-def select(queries,rows,output,weights,profile=None):
+def select(queries,rows,output,weights,profile=None,marker_profile=None):
     groups=[]
     for q in queries:
         observed=(profile or {}).get((q['ruleset'],q['rule']),{})
-        opts=list(options(q,rows,observed.get('requests',1)))
+        opts=[v for o in options(q,rows,observed.get('requests',1)) for v in shared_prefix.estimates(o,q,rows,observed.get('requests',1),marker_profile)]
         # Fallback stays a legal choice. Without measured work the compiler
         # selects a layout for each admitted requested query; it claims no speedup.
         fallback=None if profile is None else observed.get('candidate_rows',0)
         if fallback==0:continue
         groups.append((q,opts,fallback))
     with solver.Model('scheduled_spine_layouts') as m:
-        variables=[];index_users={};objective=[]
+        variables=[];index_users={};objective=[];marker_users={};marker_costs={};marker_defs={}
         for qi,(q,opts,fallback) in enumerate(groups):
             xs=[]
             for oi,opt in enumerate(opts):
                 x=m.addVar(vtype=solver.BINARY,name=f'q{qi}_layout{oi}');xs.append(x)
                 c=opt['costs'];objective.append(x*(weights[0]*c['storage']+weights[1]*c['search']+weights[2]*c['update']))
                 for index in opt['indexes']:index_users.setdefault(index,[]).append(x)
+                if opt.get('shared'):
+                    for required in opt['required_markers']:
+                        key=required['definition']['key'];marker_users.setdefault(key,[]).append(x);marker_defs[key]=required['definition']
+                        costs=marker_costs.setdefault(key,dict(storage=0,update=0))
+                        for field in costs:costs[field]=max(costs[field],required['costs'][field])
             if fallback is not None:
                 raw=m.addVar(vtype=solver.BINARY,name=f'q{qi}_original');xs.append(raw);objective.append(raw*weights[1]*fallback)
             m.addConstr(solver.quicksum(xs)==1,name=f'q{qi}_one_executor');variables.append(xs)
@@ -104,13 +109,22 @@ def select(queries,rows,output,weights,profile=None):
             for x in users:m.addConstr(y>=x)
             m.addConstr(y<=solver.quicksum(users))
             objective.append(y*weights[0]*max(1,rows.get(index[0],1)))
+        for mi,(key,users) in enumerate(sorted(marker_users.items())):
+            y=m.addVar(vtype=solver.BINARY,name=f'marker{mi}')
+            for x in users:m.addConstr(y>=x)
+            m.addConstr(y<=solver.quicksum(users))
+            c=marker_costs[key];objective.append(y*(weights[0]*c['storage']+weights[2]*c['update']))
         m.setObjective(solver.quicksum(objective));m.optimize()
         if m.Status!=solver.OPTIMAL:raise ValueError('scheduled layout solver did not prove optimality')
         chosen=[]
         for (q,opts,fallback),xs in zip(groups,variables):
             i=next(i for i,x in enumerate(xs) if m.value(x)>.5)
             if i<len(opts):chosen.append(dict(ruleset=q['ruleset'],rule=q['rule'],**opts[i]))
-        result=dict(objective=m.ObjVal,variables=m.NumVars,constraints=m.NumConstrs,
+        shared=[]
+        for key in sorted({m['definition']['key'] for o in chosen if o.get('shared') for m in o['required_markers']}):
+            users=[dict(ruleset=o['ruleset'],rule=o['rule'],direct=o['shared']['key']==key) for o in chosen if o.get('shared') and any(m['definition']['key']==key for m in o['required_markers'])]
+            shared.append(dict(id=len(shared),definition=marker_defs[key],consumers=users,costs=marker_costs[key]))
+        result=dict(shared_markers=shared,objective=m.ObjVal,variables=m.NumVars,constraints=m.NumConstrs,
             choices=sum(len(g[1]) for g in groups),selected=chosen,
             scope='optimal in exported root/fixed-order/prefix and original anchor/outside/all layout domain; structural work estimate, not globally optimal Join order or elapsed time')
         m.write(str(output/'scheduled-selection.lp'));m.write(str(output/'scheduled-selection.sol'))
@@ -159,10 +173,15 @@ def compile_program(a,data,root,weights):
     if a.table_profile:
         r=json.loads(a.table_profile.read_text())
         if r.get('source_sha256') and r['source_sha256']!=digest(source):raise ValueError('table profile source mismatch')
-        rows=r.get('exact_original_schema',{}).get('tables',r.get('table_rows'))
+        rows=r.get('exact_original_schema',{}).get('tables',r.get('table_rows',r.get('same_commit_verification',{}).get('tables')))
         if rows is None:raise ValueError('table profile needs exact_original_schema.tables or table_rows')
-    decision=select(queries,rows,output,weights,profile)
+    if getattr(a,'marker_profile',None):
+        provenance=a.marker_profile.parent/'workflow.json'
+        if not provenance.is_file() or json.loads(provenance.read_text()).get('snapshot_sha256')!=digest(source):
+            raise ValueError('marker measurements need matching source provenance')
+    decision=select(queries,rows,output,weights,profile,shared_prefix.measurements(a.marker_profile) if getattr(a,'marker_profile',None) else None)
     chosen=decision['selected']
+    (output/'shared-markers.egg').write_text(shared_prefix.egg(decision['shared_markers']))
     plans=dict(schema='cell-boundary-programs/v2',setup=native['preserved_commands'][:native['setup_commands']],
         rules=[dict(ruleset=q['ruleset'],rule=q['rule'],root=q['anchor_table'],plan=q['plan']) for q in chosen])
     write(output/'boundary-programs.json',plans)
@@ -188,7 +207,7 @@ def compile_program(a,data,root,weights):
         certificate_library=str(certificate) if certificate else None,
         certificates=native.get('certificates'),
         evidence='typed query layouts plus separately native-checked imported closures' if certificate else 'typed source query wiring; no new Analyze closure certification',
-        profiles={str(p):digest(p/'report.json' if p.is_dir() else p) for p in [a.query_profile,a.table_profile,a.query_selection] if p},
+        profiles={str(p):digest(p/'report.json' if p.is_dir() else p) for p in [a.query_profile,a.table_profile,a.query_selection,getattr(a,'marker_profile',None)] if p},
         preserved_source=True,concrete_snapshot=False)
     write(output/'scheduled-plan.json',manifest)
     return dict(status='scheduled_symbolic',cellified=False,scheduled=True,source_preserved=True,
