@@ -6,6 +6,7 @@ markers.layouts for every prefix/anchor/payload, not the two-atom source adapter
 Closure proofs and query-layout plans are deliberately different evidence kinds.
 """
 import copy
+from fractions import Fraction
 import json
 from pathlib import Path
 from . import markers, solver, takeover as t, shared_prefix
@@ -95,6 +96,41 @@ def options(q,rows,reuses=1):
                     costs=dict(storage=storage,search=search,update=update),indexes=sorted(set(indexes)))
 
 
+def bounded_layouts(groups,rows,weights):
+    """Exact incumbent bound, not a search budget or fanout truncation.
+
+    All charges are nonnegative. Independent private choices give a feasible
+    global upper bound (duplicated index charges only overestimate that cost).
+    A choice whose mandatory charges alone exceed it cannot be in an optimum,
+    even if every other consumer shares all its indexes and markers for free.
+    Compute marker charges BEFORE elimination, preserving the original model.
+    """
+    if any(w<0 for w in weights):raise ValueError('layout charges must be nonnegative')
+    markers={}
+    for _,opts,_ in groups:
+        for o in opts:
+            for r in o.get('required_markers',[]) if o.get('shared') else []:
+                c=markers.setdefault(r['definition']['key'],dict(storage=0,update=0))
+                for f in c:c[f]=max(c[f],r['costs'][f])
+    def charge(o):
+        c=o['costs']
+        # Compare exact sums of the same floating coefficients sent to the
+        # solver; do not round a tied layout out of the feasible domain.
+        total=Fraction(weights[0]*c['storage']+weights[1]*c['search']+weights[2]*c['update'])
+        total+=sum(Fraction(weights[0]*max(1,rows.get(t,1))) for t,_ in o['indexes'])
+        if o.get('shared'):
+            for key in {r['definition']['key'] for r in o['required_markers']}:
+                c=markers[key];total+=Fraction(weights[0]*c['storage']+weights[2]*c['update'])
+        return total
+    upper=sum(min([charge(o) for o in opts if not o.get('shared')]+
+                  ([Fraction(weights[1]*fallback)] if fallback is not None else [])) for _,opts,fallback in groups)
+    # Equality is kept: multiple co-optimal representations remain available.
+    reduced=[(q,[o for o in opts if charge(o)<=upper],f) for q,opts,f in groups]
+    return reduced,markers,dict(feasible_upper_bound=float(upper),
+        original_choices=sum(len(o) for _,o,_ in groups),
+        dominated_choices=sum(len(o) for _,o,_ in groups)-sum(len(o) for _,o,_ in reduced))
+
+
 def select(queries,rows,output,weights,profile=None,marker_profile=None):
     groups=[]
     for q in queries:
@@ -105,8 +141,9 @@ def select(queries,rows,output,weights,profile=None,marker_profile=None):
         fallback=None if profile is None else observed.get('candidate_rows',0)
         if fallback==0:continue
         groups.append((q,opts,fallback))
+    groups,marker_costs,bounds=bounded_layouts(groups,rows,weights)
     with solver.Model('scheduled_spine_layouts') as m:
-        variables=[];index_users={};objective=[];marker_users={};marker_costs={};marker_defs={}
+        variables=[];index_users={};objective=[];marker_users={};marker_defs={}
         for qi,(q,opts,fallback) in enumerate(groups):
             xs=[]
             for oi,opt in enumerate(opts):
@@ -142,7 +179,7 @@ def select(queries,rows,output,weights,profile=None,marker_profile=None):
             users=[dict(ruleset=o['ruleset'],rule=o['rule'],direct=o['shared']['key']==key) for o in chosen if o.get('shared') and any(m['definition']['key']==key for m in o['required_markers'])]
             shared.append(dict(id=len(shared),definition=marker_defs[key],consumers=users,costs=marker_costs[key]))
         result=dict(shared_markers=shared,objective=m.ObjVal,variables=m.NumVars,constraints=m.NumConstrs,
-            choices=sum(len(g[1]) for g in groups),selected=chosen,
+            choices=bounds['original_choices'],solver_choices=sum(len(g[1]) for g in groups),exact_elimination=bounds,selected=chosen,
             scope='optimal in exported root/fixed-order/prefix and original anchor/outside/all layout domain; structural work estimate, not globally optimal Join order or elapsed time')
         m.write(str(output/'scheduled-selection.lp'));m.write(str(output/'scheduled-selection.sol'))
     return result

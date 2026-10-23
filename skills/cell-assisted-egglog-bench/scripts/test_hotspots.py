@@ -69,5 +69,25 @@ class Hotspots(unittest.TestCase):
             (b/'report.json').write_text(json.dumps(after))
             with self.assertRaisesRegex(ValueError,'preserve'):hotspots.compare(a,b,extension=True)
 
+    def test_layout_comparison_preserves_family_and_reports_cpu_work(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);a=root/'a';b=root/'b';a.mkdir();b.mkdir()
+            program=dict(kind='boundary_query',ruleset='s',rule='q',seed='If',accesses=[],index_reads=3,candidate_rows=4,seed_evaluations=2)
+            gpu=dict(runtime=dict(run_seconds=2),cells=dict(profile=False),query_timing_profile=False,audit=False,
+                rules=[dict(rule='q',ruleset='s',stats=dict(emitted_bindings=3))],saturation_diagnostics=dict(programs=[program]))
+            report=dict(same_commit_verification=dict(exact_rows_values_equivalence_visibility=True),gpu=gpu,schedule=[],assisted_rulesets=[])
+            workflow=dict(snapshot_sha256='s',binary_sha256='b',worker_sha256='w',policy='stable',inference_identity=dict(boundary_programs='p',joint=True,all_rules=True))
+            for path in [a,b]:
+                (path/'report.json').write_text(json.dumps(report));(path/'workflow.json').write_text(json.dumps(workflow))
+            report['gpu']['saturation_diagnostics']['programs'][0]['seed']='HasType'
+            report['gpu']['saturation_diagnostics']['programs'][0]['candidate_rows']=400
+            (b/'report.json').write_text(json.dumps(report))
+            result=hotspots.compare(a,b,layouts=True)
+            self.assertEqual([w['row_visits'] for w in result['cpu_work']],[4,400])
+            with self.assertRaisesRegex(ValueError,'preserve'):hotspots.compare(a,b,extension=True)
+            report['gpu']['saturation_diagnostics']['programs'][0]['rule']='other'
+            (b/'report.json').write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError,'query family'):hotspots.compare(a,b,layouts=True)
+
 
 if __name__=='__main__':unittest.main()

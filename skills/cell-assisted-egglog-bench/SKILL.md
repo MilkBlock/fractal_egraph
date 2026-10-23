@@ -418,3 +418,13 @@ Run 边界检查。仅增加候选或成功编译不能领取 Cell 性能 credit
 索引和 source-free 加载的回归见 `tests/generic_transfer.rs`；完整接线及许可限制见
 `experiments/parameterized_marker_solver/README.md`。性能测量仍使用本 skill 原有
 run/audit/提取入口及历史对照，不另造计时脚本。
+
+### 参数化布局的性能对照
+
+`boundary-credit --layouts --before DIR --after DIR` 比较同一批参数化查询的
+不同 anchor/payload；可同时传两侧 `--profile-before/after` 生成固定权重的 Join
+深度分布。它要求同二进制、worker、原调度、原证明使用量、完整 binding 计数与
+整图一致，不能和 `--extension` 或 shared-marker 消融混用。新增 CPU root、index、
+候选访问和 shared-prefix 维护分别计账；若 GPU 候选数不变，不能宣称 GPU search
+获得了 marker 收益。典型回退见 `experiments/parameterized_marker_solver/pass3`：
+初始为空的 HasType 被误认为廉价 anchor，实际运行后出现大量 CPU 分叉搜索。

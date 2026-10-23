@@ -113,3 +113,11 @@ target/analyzer/debug/egg_layout run-transfer \
 The regular compiler uses `--analysis-dir DIR` alternatively to
 `--certificate-library FILE`. It returns the selected library path for the
 existing bench driver; unchanged closure proofs remain in that library.
+
+## Full Pass-3 follow-up
+
+The [full-input check](pass3/README.md) measures a benefit from the fixed
+parameterized programs but a large regression from the automatic static layout.
+It documents the wrong-root cost-model defect and the exact incumbent-bound
+repair needed to make the full model solvable. Do not extrapolate the tiny
+fixture validation above to a Pass-3 marker speedup.

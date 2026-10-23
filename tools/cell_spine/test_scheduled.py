@@ -153,3 +153,20 @@ class ScheduledSpines(unittest.TestCase):
                 ROOT/'experiments/observed_transfer_queries/tuple-updates.egg',tmp/'run'],cwd=ROOT,capture_output=True,text=True)
             self.assertEqual(run.returncode,0,run.stdout+run.stderr)
             self.assertEqual(source.read_bytes(),(out/'program.egg').read_bytes())
+
+
+    def test_incumbent_bound_keeps_joint_sharing_and_removes_only_losers(self):
+        def private(c):return dict(costs=dict(storage=0,search=c,update=0),indexes=[],shared=None)
+        shared=dict(costs=dict(storage=0,search=0,update=0),indexes=[],shared={'key':'m'},
+            required_markers=[dict(definition={'key':'m'},costs=dict(storage=10,update=0))])
+        groups=[({},[private(6),shared,private(1e30)],None) for _ in range(2)]
+        kept,charges,bound=scheduled.bounded_layouts(groups,{},(1,1,1))
+        self.assertEqual(bound['feasible_upper_bound'],12)
+        self.assertEqual(bound['dominated_choices'],2)
+        self.assertTrue(all(shared in opts for _,opts,_ in kept))
+        self.assertEqual(charges['m']['storage'],10)
+        solver.select('scip')
+        with tempfile.TemporaryDirectory() as tmp:
+            result=scheduled.select([self.fixture()],dict(A=100000,Ctx=1000000,Ty=1000000,C=1000000),Path(tmp),(1,1,1))
+        self.assertGreater(result['exact_elimination']['dominated_choices'],0)
+        self.assertEqual(len(result['selected']),1)

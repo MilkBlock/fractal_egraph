@@ -787,6 +787,7 @@ def parser():
     q.add_argument('--output',type=Path);q.add_argument('--boundary-output',type=Path);q.add_argument('--root')
     q=sub.add_parser('boundary-credit',help='compare source-derived boundary programs off/on; not automatic Bake credit')
     q.add_argument('--extension',action='store_true',help='compare an existing query library with a strict additive extension; unchanged plans are required')
+    q.add_argument('--layouts',action='store_true',help='compare the same query family with different selected anchors and payloads')
     q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
     q.add_argument('--profile-before',type=Path);q.add_argument('--profile-after',type=Path);q.add_argument('--output',type=Path)
     q=sub.add_parser('shared-marker-credit',help='same selected plans: private versus shared prefix maintenance')
@@ -1023,7 +1024,7 @@ def main(argv=None):
         return hotspots.run(a,resolve)
     if a.mode in ['boundary-credit','shared-marker-credit']:
         import hotspots
-        r=hotspots.compare(resolve(a.before),resolve(a.after),resolve(a.profile_before) if a.profile_before else None,resolve(a.profile_after) if a.profile_after else None,shared=a.mode=='shared-marker-credit',extension=getattr(a,'extension',False))
+        r=hotspots.compare(resolve(a.before),resolve(a.after),resolve(a.profile_before) if a.profile_before else None,resolve(a.profile_after) if a.profile_after else None,shared=a.mode=='shared-marker-credit',extension=getattr(a,'extension',False),layouts=getattr(a,'layouts',False))
         print(r['before_seconds'],r['after_seconds'],'saved fraction',r['saved_fraction'])
         if a.output:
             p=resolve(a.output);p.parent.mkdir(parents=True,exist_ok=True)

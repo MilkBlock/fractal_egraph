@@ -1,0 +1,1712 @@
+{
+  "schema": "parameterized-marker-pass3-check/v1",
+  "runtime_source": "e0b2ba8",
+  "scope": "one timed run per lane; same binary and worker; existing native/CPU controls reused; actual full saved Pass-3 runtime; not pristine parity",
+  "solver_repair": "exact nonnegative-cost incumbent elimination; identical optimal-layout objective, no budget",
+  "lanes": [
+    {
+      "name": "baseline",
+      "directory": "out/param-marker-merged-baseline",
+      "workflow": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/param-marker-merged-baseline",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+        "source_head": "e0b2ba89f73786a975ebb0e7c1950798cd77af82",
+        "dirty_files": " M tools/cell_spine/pass3_markers.py\n?? tools/cell_spine/selected_source.py\n",
+        "no_build": true,
+        "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "d5b661b63d98e7bc84c501fc906b4f450fd4757ca00f139e96a59f7b97260a14"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "d5b661b63d98e7bc84c501fc906b4f450fd4757ca00f139e96a59f7b97260a14",
+          "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "a8ea3618c7f34252377f80bd8b9d97f3dd285aaedc425fff6a65bb03dd8f2eaa",
+          "boundary_programs": "8fc6a6d9df8afffd8bd02a9b9aab62f9e7ac0cbe82986180f06912df98672804",
+          "certificate_library": null,
+          "analysis": null
+        }
+      },
+      "runtime": {
+        "setup_seconds": 2.7547185,
+        "run_seconds": 14.129014083,
+        "event_seconds": 1.7945785070000044,
+        "native_rhs_seconds": 3.680828281000086,
+        "native_action_search_apply_seconds": 0.44356580300000065,
+        "native_insert_merge_seconds": 0.393946818,
+        "native_rebuild_seconds": 2.4486069160000006,
+        "ruleset_runs": 6890,
+        "row_events": 2425040,
+        "union_events": 239476,
+        "bootstrap_events": 13437,
+        "prepare_seconds": 0.03646917500000011,
+        "roundtrip_seconds": 4.198043884999992,
+        "decode_seconds": 0.044290925000000016,
+        "device_seconds": 2.178908457426587,
+        "gpu_maintenance_seconds": null,
+        "gpu_matching_seconds": null,
+        "native_query_seconds": 0.0,
+        "audit_seconds": 0.0,
+        "dispatches": 2761,
+        "gpu_empty_table_prunes": 6918,
+        "uploaded_bytes": 102423460,
+        "downloaded_bytes": 17424828,
+        "first_upload_bytes": 1075140,
+        "unchanged_notifications": 0,
+        "workers": 1,
+        "shader_compiles": 1,
+        "reused_slots": 194408,
+        "peak_live_rows": 693079,
+        "output_high_water": 24042,
+        "saturation_boundaries": 2636,
+        "skipped_saturations": 12,
+        "partial_saturations": 0,
+        "saturation_hook_seconds": 2.065636082,
+        "cell_query_rules": 32364,
+        "cell_query_bindings": 2041860,
+        "cell_query_seconds": 0.9121817140000005,
+        "shared_query_requests": 0,
+        "shared_query_bindings": 0,
+        "native_only_runs": 460,
+        "native_only_seconds": 1.3174560620000006
+      },
+      "cell_stats": {
+        "program_compilations": 1,
+        "loaded_programs": 0,
+        "ruleset_runs": 1639,
+        "keyed_reads": 3302525,
+        "committed_row_events": 1821888,
+        "union_events": 239476,
+        "bootstrap_rows": 12701,
+        "native_fallback_runs": 0,
+        "frontier_seconds": 0.6994736400000007,
+        "effect_seconds": 1.021330096999999,
+        "ingest_seconds": 1.3117629630000311
+      },
+      "same_commit_verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      },
+      "boundary_programs": [
+        {
+          "program_id": 31,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "seed": "DoWhile",
+          "accesses": [
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "HasArgType",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "Const",
+              "access": {
+                "Columns": 4
+              }
+            }
+          ],
+          "seed_evaluations": 1182,
+          "emitted_bindings": 123254,
+          "live_seed_instances": 84,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 1346,
+          "candidate_rows": 126320,
+          "terminal_delta_rows_skipped": 1048146,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 2814,
+          "resumed_seed_evaluations": 956,
+          "stored_port_paths": 84,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        }
+      ],
+      "shared_markers": [],
+      "closure_summary": {
+        "stats": {
+          "boundaries": 12,
+          "skipped_joint_saturations": 0,
+          "quiescent_skips": 0,
+          "macro_instances": 0,
+          "macro_waves": 0,
+          "fallback_boundaries": 12,
+          "dataflow_boundaries": 12,
+          "dataflow_ruleset_runs": 1639,
+          "port_reusing_boundaries": 11,
+          "uniform_cost_boundaries": 12,
+          "reasons": {
+            "changed existing state or external helper work": 11,
+            "multiple producers for one Expr": 1
+          }
+        },
+        "comparison_closure": {
+          "saturations": 1185,
+          "seed_evaluations": 211572,
+          "union_proposals": 89226,
+          "native_batches": 601,
+          "propagated_costs": 89226,
+          "unchanged_saturations": 584,
+          "identity_noop_seeds": 73371,
+          "cost_lookups": 151307,
+          "planning_seconds": 0.25228875800000006,
+          "effect_seconds": 0.8038335369999997
+        }
+      }
+    },
+    {
+      "name": "combined",
+      "directory": "out/param-marker-merged-combined",
+      "workflow": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/param-marker-merged-combined",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+        "source_head": "e0b2ba89f73786a975ebb0e7c1950798cd77af82",
+        "dirty_files": " M tools/cell_spine/pass3_markers.py\n M tools/cell_spine/scheduled.py\n M tools/cell_spine/test_scheduled.py\n?? tools/cell_spine/selected_source.py\n",
+        "no_build": true,
+        "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "d5b661b63d98e7bc84c501fc906b4f450fd4757ca00f139e96a59f7b97260a14"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "d5b661b63d98e7bc84c501fc906b4f450fd4757ca00f139e96a59f7b97260a14",
+          "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "0660e2731e8f74bb8f33e031a621792e47e148c19fc70a5e571e457b0fbe4b27",
+          "boundary_programs": "93af8c2e34d0709eeecddb001d460aa7d5efee5c8527697aec59606221c01456",
+          "certificate_library": null,
+          "analysis": null
+        }
+      },
+      "runtime": {
+        "setup_seconds": 2.709333834,
+        "run_seconds": 12.765186334,
+        "event_seconds": 1.508366490000004,
+        "native_rhs_seconds": 3.5639744940000964,
+        "native_action_search_apply_seconds": 0.3982937829999999,
+        "native_insert_merge_seconds": 0.3404914320000008,
+        "native_rebuild_seconds": 2.4666650759999977,
+        "ruleset_runs": 6890,
+        "row_events": 2425040,
+        "union_events": 239476,
+        "bootstrap_events": 13437,
+        "prepare_seconds": 0.03076956100000003,
+        "roundtrip_seconds": 3.7905711550000065,
+        "decode_seconds": 0.039718188000000015,
+        "device_seconds": 1.9719072075386066,
+        "gpu_maintenance_seconds": null,
+        "gpu_matching_seconds": null,
+        "native_query_seconds": 0.0,
+        "audit_seconds": 0.0,
+        "dispatches": 2704,
+        "gpu_empty_table_prunes": 6913,
+        "uploaded_bytes": 102393712,
+        "downloaded_bytes": 16168340,
+        "first_upload_bytes": 1075140,
+        "unchanged_notifications": 0,
+        "workers": 1,
+        "shader_compiles": 1,
+        "reused_slots": 194408,
+        "peak_live_rows": 693079,
+        "output_high_water": 23679,
+        "saturation_boundaries": 2636,
+        "skipped_saturations": 12,
+        "partial_saturations": 0,
+        "saturation_hook_seconds": 1.8750017899999998,
+        "cell_query_rules": 41361,
+        "cell_query_bindings": 2097233,
+        "cell_query_seconds": 0.737646374000002,
+        "shared_query_requests": 0,
+        "shared_query_bindings": 0,
+        "native_only_runs": 460,
+        "native_only_seconds": 1.1506741560000004
+      },
+      "cell_stats": {
+        "program_compilations": 1,
+        "loaded_programs": 0,
+        "ruleset_runs": 1639,
+        "keyed_reads": 3401436,
+        "committed_row_events": 1920808,
+        "union_events": 239476,
+        "bootstrap_rows": 12706,
+        "native_fallback_runs": 0,
+        "frontier_seconds": 0.5969439019999998,
+        "effect_seconds": 0.9717113210000005,
+        "ingest_seconds": 1.0809534729999954
+      },
+      "same_commit_verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      },
+      "boundary_programs": [
+        {
+          "program_id": 31,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "seed": "DoWhile",
+          "accesses": [
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "HasArgType",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "Const",
+              "access": {
+                "Columns": 4
+              }
+            }
+          ],
+          "seed_evaluations": 1182,
+          "emitted_bindings": 123254,
+          "live_seed_instances": 84,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 1346,
+          "candidate_rows": 126320,
+          "terminal_delta_rows_skipped": 1048146,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 2814,
+          "resumed_seed_evaluations": 956,
+          "stored_port_paths": 84,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 32,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+          "seed": "Get",
+          "accesses": [],
+          "seed_evaluations": 39817,
+          "emitted_bindings": 22672,
+          "live_seed_instances": 13341,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 0,
+          "candidate_rows": 0,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 0,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 33,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+          "seed": "Add-Gets",
+          "accesses": [
+            {
+              "table": "Concat",
+              "access": "Output"
+            },
+            {
+              "table": "tuple-length",
+              "access": "Key"
+            }
+          ],
+          "seed_evaluations": 28309,
+          "emitted_bindings": 10654,
+          "live_seed_instances": 18641,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 37039,
+          "candidate_rows": 25221,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 782,
+          "resumed_seed_evaluations": 782,
+          "stored_port_paths": 17351,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 34,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+          "seed": "Add-Gets",
+          "accesses": [
+            {
+              "table": "Single",
+              "access": "Output"
+            }
+          ],
+          "seed_evaluations": 26369,
+          "emitted_bindings": 14194,
+          "live_seed_instances": 18641,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 22768,
+          "candidate_rows": 14194,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 18641,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 35,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+          "seed": "Add-Gets",
+          "accesses": [
+            {
+              "table": "Not-Just-Concat",
+              "access": "Key"
+            }
+          ],
+          "seed_evaluations": 25972,
+          "emitted_bindings": 1981,
+          "live_seed_instances": 18641,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 22371,
+          "candidate_rows": 1981,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 18641,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 36,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+          "seed": "Add-All-Gets",
+          "accesses": [
+            {
+              "table": "tuple-length",
+              "access": "Key"
+            }
+          ],
+          "seed_evaluations": 8444,
+          "emitted_bindings": 5868,
+          "live_seed_instances": 7171,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 7815,
+          "candidate_rows": 7815,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 7171,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 37,
+          "kind": "boundary_query",
+          "ruleset": "non-weakly-linear",
+          "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+          "seed": "If",
+          "accesses": [
+            {
+              "table": "StateT",
+              "access": "Key"
+            },
+            {
+              "table": "Base",
+              "access": "Key"
+            },
+            {
+              "table": "Get",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "Get",
+              "access": "Key"
+            },
+            {
+              "table": "HasType",
+              "access": "Key"
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Arg",
+              "access": "Output"
+            },
+            {
+              "table": "Arg",
+              "access": "Output"
+            }
+          ],
+          "seed_evaluations": 374,
+          "emitted_bindings": 0,
+          "live_seed_instances": 167,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 3367,
+          "candidate_rows": 3255,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 159,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 38,
+          "kind": "boundary_query",
+          "ruleset": "state-edge-passthrough",
+          "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+          "seed": "If",
+          "accesses": [
+            {
+              "table": "StateT",
+              "access": "Key"
+            },
+            {
+              "table": "Base",
+              "access": "Key"
+            },
+            {
+              "table": "DUMMYCTX",
+              "access": "Key"
+            },
+            {
+              "table": "Get",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "Get",
+              "access": "Key"
+            },
+            {
+              "table": "HasType",
+              "access": "Key"
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Arg",
+              "access": "Output"
+            },
+            {
+              "table": "Arg",
+              "access": "Output"
+            }
+          ],
+          "seed_evaluations": 461,
+          "emitted_bindings": 4,
+          "live_seed_instances": 168,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 5551,
+          "candidate_rows": 6121,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": null,
+          "payload_resumes": 0,
+          "reused_port_reads": 191,
+          "resumed_seed_evaluations": 61,
+          "stored_port_paths": 168,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        }
+      ],
+      "shared_markers": [],
+      "closure_summary": {
+        "stats": {
+          "boundaries": 12,
+          "skipped_joint_saturations": 0,
+          "quiescent_skips": 0,
+          "macro_instances": 0,
+          "macro_waves": 0,
+          "fallback_boundaries": 12,
+          "dataflow_boundaries": 12,
+          "dataflow_ruleset_runs": 1639,
+          "port_reusing_boundaries": 11,
+          "uniform_cost_boundaries": 12,
+          "reasons": {
+            "changed existing state or external helper work": 11,
+            "multiple producers for one Expr": 1
+          }
+        },
+        "comparison_closure": {
+          "saturations": 1185,
+          "seed_evaluations": 211572,
+          "union_proposals": 89226,
+          "native_batches": 601,
+          "propagated_costs": 89226,
+          "unchanged_saturations": 584,
+          "identity_noop_seeds": 73371,
+          "cost_lookups": 151307,
+          "planning_seconds": 0.22647548100000048,
+          "effect_seconds": 0.7743334589999998
+        }
+      },
+      "cpu-gpu-quality.json": {
+        "passed": true,
+        "functions": [
+          29,
+          29
+        ],
+        "file": "out/param-marker-merged-combined/extraction/cpu-gpu-quality.json"
+      },
+      "quality.json": {
+        "passed": false,
+        "functions": [
+          29,
+          29,
+          29
+        ],
+        "file": "out/param-marker-merged-combined/extraction/quality.json"
+      }
+    },
+    {
+      "name": "selected",
+      "directory": "out/param-marker-merged-selected",
+      "workflow": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/param-marker-merged-selected",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+        "source_head": "e0b2ba89f73786a975ebb0e7c1950798cd77af82",
+        "dirty_files": " M tools/cell_spine/pass3_markers.py\n M tools/cell_spine/scheduled.py\n M tools/cell_spine/test_scheduled.py\n?? tools/cell_spine/selected_source.py\n",
+        "no_build": true,
+        "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "d5b661b63d98e7bc84c501fc906b4f450fd4757ca00f139e96a59f7b97260a14"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "d5b661b63d98e7bc84c501fc906b4f450fd4757ca00f139e96a59f7b97260a14",
+          "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "6f40001548dcf94683d7e18dc38dfe1282e7c24ecfe8bccddb2a9b12ada83894",
+          "boundary_programs": "23308fc673e83a9af5b1c83392e15a950ae1c8ccd99d85064cb862c20396b745",
+          "certificate_library": null,
+          "analysis": null
+        }
+      },
+      "runtime": {
+        "setup_seconds": 2.799726583,
+        "run_seconds": 17.459500375,
+        "event_seconds": 1.9501401319999998,
+        "native_rhs_seconds": 3.6384135980000596,
+        "native_action_search_apply_seconds": 0.43920536499999996,
+        "native_insert_merge_seconds": 0.3911580329999998,
+        "native_rebuild_seconds": 2.422062163999999,
+        "ruleset_runs": 6890,
+        "row_events": 2425040,
+        "union_events": 239476,
+        "bootstrap_events": 13437,
+        "prepare_seconds": 0.03489120499999993,
+        "roundtrip_seconds": 4.139603257000002,
+        "decode_seconds": 0.04173239700000003,
+        "device_seconds": 2.344481542269932,
+        "gpu_maintenance_seconds": null,
+        "gpu_matching_seconds": null,
+        "native_query_seconds": 0.0,
+        "audit_seconds": 0.0,
+        "dispatches": 2704,
+        "gpu_empty_table_prunes": 6913,
+        "uploaded_bytes": 102393712,
+        "downloaded_bytes": 16168340,
+        "first_upload_bytes": 1075140,
+        "unchanged_notifications": 0,
+        "workers": 1,
+        "shader_compiles": 1,
+        "reused_slots": 194408,
+        "peak_live_rows": 693079,
+        "output_high_water": 23679,
+        "saturation_boundaries": 2636,
+        "skipped_saturations": 12,
+        "partial_saturations": 0,
+        "saturation_hook_seconds": 2.124554002999999,
+        "cell_query_rules": 41361,
+        "cell_query_bindings": 2097233,
+        "cell_query_seconds": 4.099965971999951,
+        "shared_query_requests": 0,
+        "shared_query_bindings": 0,
+        "native_only_runs": 460,
+        "native_only_seconds": 1.3529005009999997
+      },
+      "cell_stats": {
+        "program_compilations": 1,
+        "loaded_programs": 0,
+        "ruleset_runs": 1639,
+        "keyed_reads": 20313662,
+        "committed_row_events": 1920808,
+        "union_events": 239476,
+        "bootstrap_rows": 12706,
+        "native_fallback_runs": 0,
+        "frontier_seconds": 0.7339805250000022,
+        "effect_seconds": 1.0301069449999998,
+        "ingest_seconds": 1.4951230089999943
+      },
+      "same_commit_verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      },
+      "boundary_programs": [
+        {
+          "program_id": 31,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+          "seed": "Get",
+          "accesses": [],
+          "seed_evaluations": 39817,
+          "emitted_bindings": 22672,
+          "live_seed_instances": 13341,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 0,
+          "candidate_rows": 0,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": [
+            0,
+            [
+              2
+            ]
+          ],
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 0,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 32,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+          "seed": "Add-Gets",
+          "accesses": [
+            {
+              "table": "Concat",
+              "access": "Output"
+            },
+            {
+              "table": "tuple-length",
+              "access": "Key"
+            }
+          ],
+          "seed_evaluations": 28309,
+          "emitted_bindings": 10654,
+          "live_seed_instances": 18641,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 37821,
+          "candidate_rows": 25221,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": [
+            0,
+            [
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 0,
+          "shared_marker": 0,
+          "shared_prefix_uses": 24708
+        },
+        {
+          "program_id": 33,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+          "seed": "Add-Gets",
+          "accesses": [
+            {
+              "table": "Single",
+              "access": "Output"
+            }
+          ],
+          "seed_evaluations": 26369,
+          "emitted_bindings": 14194,
+          "live_seed_instances": 18641,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 22768,
+          "candidate_rows": 14194,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": [
+            0,
+            [
+              1,
+              2,
+              3,
+              4
+            ]
+          ],
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 0,
+          "shared_marker": 0,
+          "shared_prefix_uses": 22768
+        },
+        {
+          "program_id": 34,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+          "seed": "Add-Gets",
+          "accesses": [
+            {
+              "table": "Not-Just-Concat",
+              "access": "Key"
+            }
+          ],
+          "seed_evaluations": 25972,
+          "emitted_bindings": 1981,
+          "live_seed_instances": 18641,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 22371,
+          "candidate_rows": 1981,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": [
+            0,
+            [
+              0,
+              1,
+              2,
+              3
+            ]
+          ],
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 0,
+          "shared_marker": 0,
+          "shared_prefix_uses": 22371
+        },
+        {
+          "program_id": 35,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+          "seed": "Add-All-Gets",
+          "accesses": [
+            {
+              "table": "tuple-length",
+              "access": "Key"
+            }
+          ],
+          "seed_evaluations": 8444,
+          "emitted_bindings": 5868,
+          "live_seed_instances": 7171,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 7815,
+          "candidate_rows": 7815,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": [
+            0,
+            [
+              4
+            ]
+          ],
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 7171,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 36,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "seed": "HasArgType",
+          "accesses": [
+            {
+              "table": "DoWhile",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "Const",
+              "access": {
+                "Columns": 4
+              }
+            }
+          ],
+          "seed_evaluations": 34152,
+          "emitted_bindings": 123254,
+          "live_seed_instances": 19160,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 26831,
+          "candidate_rows": 126433,
+          "terminal_delta_rows_skipped": 1052549,
+          "payload_layout": [
+            0,
+            [
+              11
+            ]
+          ],
+          "payload_resumes": 0,
+          "reused_port_reads": 2233,
+          "resumed_seed_evaluations": 778,
+          "stored_port_paths": 19151,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 37,
+          "kind": "boundary_query",
+          "ruleset": "non-weakly-linear",
+          "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+          "seed": "HasType",
+          "accesses": [
+            {
+              "table": "StateT",
+              "access": "Key"
+            },
+            {
+              "table": "Base",
+              "access": "Key"
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Arg",
+              "access": "Output"
+            },
+            {
+              "table": "Get",
+              "access": {
+                "Columns": 2
+              }
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Arg",
+              "access": "Output"
+            },
+            {
+              "table": "If",
+              "access": {
+                "Columns": 12
+              }
+            }
+          ],
+          "seed_evaluations": 26971,
+          "emitted_bindings": 0,
+          "live_seed_instances": 21503,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 2810394,
+          "candidate_rows": 4173413,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": [
+            0,
+            [
+              16
+            ]
+          ],
+          "payload_resumes": 0,
+          "reused_port_reads": 0,
+          "resumed_seed_evaluations": 0,
+          "stored_port_paths": 18045,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        },
+        {
+          "program_id": 38,
+          "kind": "boundary_query",
+          "ruleset": "state-edge-passthrough",
+          "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+          "seed": "HasType",
+          "accesses": [
+            {
+              "table": "StateT",
+              "access": "Key"
+            },
+            {
+              "table": "Base",
+              "access": "Key"
+            },
+            {
+              "table": "DUMMYCTX",
+              "access": "Key"
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Arg",
+              "access": "Output"
+            },
+            {
+              "table": "Get",
+              "access": {
+                "Columns": 2
+              }
+            },
+            {
+              "table": "Get",
+              "access": "Output"
+            },
+            {
+              "table": "Arg",
+              "access": "Output"
+            },
+            {
+              "table": "If",
+              "access": {
+                "Columns": 12
+              }
+            }
+          ],
+          "seed_evaluations": 30960,
+          "emitted_bindings": 4,
+          "live_seed_instances": 19160,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 14084483,
+          "candidate_rows": 25461043,
+          "terminal_delta_rows_skipped": 0,
+          "payload_layout": [
+            0,
+            [
+              16
+            ]
+          ],
+          "payload_resumes": 0,
+          "reused_port_reads": 1344,
+          "resumed_seed_evaluations": 448,
+          "stored_port_paths": 19160,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        }
+      ],
+      "shared_markers": [
+        {
+          "signature": "{\"body\":\"{\\\"atoms\\\":[{\\\"table\\\":\\\"Add-Gets\\\",\\\"columns\\\":[{\\\"Slot\\\":0,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":1,\\\"sort\\\":\\\"Expr\\\"},{\\\"Slot\\\":2,\\\"sort\\\":\\\"i64\\\"},{\\\"Slot\\\":3,\\\"sort\\\":\\\"___AddGetsSort\\\"}]}],\\\"accesses\\\":[]}\",\"carried\":[0,1,2,3]}",
+          "body_key": "{\"atoms\":[{\"table\":\"Add-Gets\",\"columns\":[{\"Slot\":0,\"sort\":\"Expr\"},{\"Slot\":1,\"sort\":\"Expr\"},{\"Slot\":2,\"sort\":\"i64\"},{\"Slot\":3,\"sort\":\"___AddGetsSort\"}]}],\"accesses\":[]}",
+          "root": "Add-Gets",
+          "prefix_atoms": 1,
+          "stored_slots": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "consumers": [
+            32,
+            33,
+            34
+          ],
+          "parent": null,
+          "children": [],
+          "live_roots": 18641,
+          "live_bindings": 18641,
+          "dependency_edges": 0,
+          "stats": {
+            "root_refreshes": 22338,
+            "cache_hits": 47509,
+            "invalidations": 3697,
+            "lookups": 0,
+            "candidate_rows": 22338,
+            "published_bindings": 22338,
+            "decoded_rows": 0,
+            "peak_bindings": 19748,
+            "refresh_seconds": 0.007303945999999333
+          }
+        }
+      ],
+      "closure_summary": {
+        "stats": {
+          "boundaries": 12,
+          "skipped_joint_saturations": 0,
+          "quiescent_skips": 0,
+          "macro_instances": 0,
+          "macro_waves": 0,
+          "fallback_boundaries": 12,
+          "dataflow_boundaries": 12,
+          "dataflow_ruleset_runs": 1639,
+          "port_reusing_boundaries": 11,
+          "uniform_cost_boundaries": 12,
+          "reasons": {
+            "changed existing state or external helper work": 11,
+            "multiple producers for one Expr": 1
+          }
+        },
+        "comparison_closure": {
+          "saturations": 1185,
+          "seed_evaluations": 211572,
+          "union_proposals": 89226,
+          "native_batches": 601,
+          "propagated_costs": 89226,
+          "unchanged_saturations": 584,
+          "identity_noop_seeds": 73371,
+          "cost_lookups": 151307,
+          "planning_seconds": 0.2727532899999996,
+          "effect_seconds": 0.8107397339999994
+        }
+      },
+      "cpu-gpu-quality.json": {
+        "passed": true,
+        "functions": [
+          29,
+          29
+        ],
+        "file": "out/param-marker-merged-selected/extraction/cpu-gpu-quality.json"
+      },
+      "quality.json": {
+        "passed": false,
+        "functions": [
+          29,
+          29,
+          29
+        ],
+        "file": "out/param-marker-merged-selected/extraction/quality.json"
+      }
+    }
+  ],
+  "audit": {
+    "complete": true,
+    "error": null,
+    "scope": "Cell-supplied queries",
+    "queries": 41361,
+    "file": "out/param-marker-merged-selected-audit/audit.json",
+    "sha256": "6007ad41857d0dc7f75b61ef4a478a477498883d4eeccd7bdf2737a960321eb4"
+  },
+  "audit_workflow": {
+    "mode": "audit",
+    "policy": null,
+    "commands": [
+      [
+        "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+        "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+        "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/param-marker-merged-selected-audit",
+        "--all-rules",
+        "--cell-audit-only",
+        "--joint-sat"
+      ]
+    ],
+    "returncode": 0,
+    "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+    "source_head": "e0b2ba89f73786a975ebb0e7c1950798cd77af82",
+    "dirty_files": " M skills/cell-assisted-egglog-bench/scripts/bench.py\n M skills/cell-assisted-egglog-bench/scripts/hotspots.py\n M skills/cell-assisted-egglog-bench/scripts/test_hotspots.py\n M tools/cell_spine/pass3_markers.py\n M tools/cell_spine/scheduled.py\n M tools/cell_spine/test_scheduled.py\n?? experiments/parameterized_marker_solver/pass3/\n?? tools/cell_spine/selected_source.py\n",
+    "no_build": true,
+    "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+    "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "binary_sha256": {
+      "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "d5b661b63d98e7bc84c501fc906b4f450fd4757ca00f139e96a59f7b97260a14"
+    }
+  },
+  "selection": {
+    "objective": 26127.0,
+    "variables": 3571,
+    "constraints": 9750,
+    "choices": 9112,
+    "solver_choices": 3350,
+    "exact_elimination": {
+      "feasible_upper_bound": 30518.0,
+      "original_choices": 9112,
+      "dominated_choices": 5762
+    },
+    "solver": {
+      "backend": "scip",
+      "python_package_version": "6.3.0",
+      "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+      "threads": 1,
+      "models": {
+        "scheduled_spine_layouts": {
+          "models": 1,
+          "solve_calls": 1,
+          "api_build_seconds": 0.07127699337434024,
+          "solve_seconds": 0.9942307909950614,
+          "peak_variables": 3571,
+          "peak_constraints": 9750,
+          "engine_version": "10.0.2",
+          "nonoptimal_solves": 0
+        }
+      }
+    },
+    "plans_sha256": "23308fc673e83a9af5b1c83392e15a950ae1c8ccd99d85064cb862c20396b745"
+  },
+  "original_compiler_failure": "SCIP: invalid objective value: objective value is infinite"
+}

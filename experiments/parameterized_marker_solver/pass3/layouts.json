@@ -1,0 +1,775 @@
+{
+  "schema": "boundary-layout-comparison/v1",
+  "before": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/param-marker-merged-combined",
+  "after": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/param-marker-merged-selected",
+  "before_seconds": 12.765186334,
+  "after_seconds": 17.459500375,
+  "saved_seconds": -4.694314041000002,
+  "saved_fraction": -0.3677434796620809,
+  "cpu_programs": [
+    {
+      "program_id": 31,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+      "seed": "Get",
+      "accesses": [],
+      "seed_evaluations": 39817,
+      "emitted_bindings": 22672,
+      "live_seed_instances": 13341,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "candidate_rows": 0,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        0,
+        [
+          2
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 32,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Concat",
+          "access": "Output"
+        },
+        {
+          "table": "tuple-length",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 28309,
+      "emitted_bindings": 10654,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 37821,
+      "candidate_rows": 25221,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        0,
+        [
+          2,
+          3,
+          4,
+          5
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0,
+      "shared_marker": 0,
+      "shared_prefix_uses": 24708
+    },
+    {
+      "program_id": 33,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Single",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 26369,
+      "emitted_bindings": 14194,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 22768,
+      "candidate_rows": 14194,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        0,
+        [
+          1,
+          2,
+          3,
+          4
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0,
+      "shared_marker": 0,
+      "shared_prefix_uses": 22768
+    },
+    {
+      "program_id": 34,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Not-Just-Concat",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 25972,
+      "emitted_bindings": 1981,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 22371,
+      "candidate_rows": 1981,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        0,
+        [
+          0,
+          1,
+          2,
+          3
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0,
+      "shared_marker": 0,
+      "shared_prefix_uses": 22371
+    },
+    {
+      "program_id": 35,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+      "seed": "Add-All-Gets",
+      "accesses": [
+        {
+          "table": "tuple-length",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 8444,
+      "emitted_bindings": 5868,
+      "live_seed_instances": 7171,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 7815,
+      "candidate_rows": 7815,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        0,
+        [
+          4
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 7171,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 36,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "seed": "HasArgType",
+      "accesses": [
+        {
+          "table": "DoWhile",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Const",
+          "access": {
+            "Columns": 4
+          }
+        }
+      ],
+      "seed_evaluations": 34152,
+      "emitted_bindings": 123254,
+      "live_seed_instances": 19160,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 26831,
+      "candidate_rows": 126433,
+      "terminal_delta_rows_skipped": 1052549,
+      "payload_layout": [
+        0,
+        [
+          11
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 2233,
+      "resumed_seed_evaluations": 778,
+      "stored_port_paths": 19151,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 37,
+      "kind": "boundary_query",
+      "ruleset": "non-weakly-linear",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+      "seed": "HasType",
+      "accesses": [
+        {
+          "table": "StateT",
+          "access": "Key"
+        },
+        {
+          "table": "Base",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        },
+        {
+          "table": "Get",
+          "access": {
+            "Columns": 2
+          }
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        },
+        {
+          "table": "If",
+          "access": {
+            "Columns": 12
+          }
+        }
+      ],
+      "seed_evaluations": 26971,
+      "emitted_bindings": 0,
+      "live_seed_instances": 21503,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 2810394,
+      "candidate_rows": 4173413,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        0,
+        [
+          16
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 18045,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 38,
+      "kind": "boundary_query",
+      "ruleset": "state-edge-passthrough",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+      "seed": "HasType",
+      "accesses": [
+        {
+          "table": "StateT",
+          "access": "Key"
+        },
+        {
+          "table": "Base",
+          "access": "Key"
+        },
+        {
+          "table": "DUMMYCTX",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        },
+        {
+          "table": "Get",
+          "access": {
+            "Columns": 2
+          }
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        },
+        {
+          "table": "If",
+          "access": {
+            "Columns": 12
+          }
+        }
+      ],
+      "seed_evaluations": 30960,
+      "emitted_bindings": 4,
+      "live_seed_instances": 19160,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 14084483,
+      "candidate_rows": 25461043,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": [
+        0,
+        [
+          16
+        ]
+      ],
+      "payload_resumes": 0,
+      "reused_port_reads": 1344,
+      "resumed_seed_evaluations": 448,
+      "stored_port_paths": 19160,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    }
+  ],
+  "scope": "same parameterized query family with changed anchors/payloads; not new closure-proof credit",
+  "cpu_programs_before": [
+    {
+      "program_id": 31,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "seed": "DoWhile",
+      "accesses": [
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "ContextOf",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "HasArgType",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Const",
+          "access": {
+            "Columns": 4
+          }
+        }
+      ],
+      "seed_evaluations": 1182,
+      "emitted_bindings": 123254,
+      "live_seed_instances": 84,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 1346,
+      "candidate_rows": 126320,
+      "terminal_delta_rows_skipped": 1048146,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 2814,
+      "resumed_seed_evaluations": 956,
+      "stored_port_paths": 84,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 32,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+      "seed": "Get",
+      "accesses": [],
+      "seed_evaluations": 39817,
+      "emitted_bindings": 22672,
+      "live_seed_instances": 13341,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 0,
+      "candidate_rows": 0,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 0,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 33,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Concat",
+          "access": "Output"
+        },
+        {
+          "table": "tuple-length",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 28309,
+      "emitted_bindings": 10654,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 37039,
+      "candidate_rows": 25221,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 782,
+      "resumed_seed_evaluations": 782,
+      "stored_port_paths": 17351,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 34,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Single",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 26369,
+      "emitted_bindings": 14194,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 22768,
+      "candidate_rows": 14194,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 18641,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 35,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+      "seed": "Add-Gets",
+      "accesses": [
+        {
+          "table": "Not-Just-Concat",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 25972,
+      "emitted_bindings": 1981,
+      "live_seed_instances": 18641,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 22371,
+      "candidate_rows": 1981,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 18641,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 36,
+      "kind": "boundary_query",
+      "ruleset": "always-run",
+      "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+      "seed": "Add-All-Gets",
+      "accesses": [
+        {
+          "table": "tuple-length",
+          "access": "Key"
+        }
+      ],
+      "seed_evaluations": 8444,
+      "emitted_bindings": 5868,
+      "live_seed_instances": 7171,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 7815,
+      "candidate_rows": 7815,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 7171,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 37,
+      "kind": "boundary_query",
+      "ruleset": "non-weakly-linear",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+      "seed": "If",
+      "accesses": [
+        {
+          "table": "StateT",
+          "access": "Key"
+        },
+        {
+          "table": "Base",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Get",
+          "access": "Key"
+        },
+        {
+          "table": "HasType",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 374,
+      "emitted_bindings": 0,
+      "live_seed_instances": 167,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 3367,
+      "candidate_rows": 3255,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 0,
+      "resumed_seed_evaluations": 0,
+      "stored_port_paths": 159,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    },
+    {
+      "program_id": 38,
+      "kind": "boundary_query",
+      "ruleset": "state-edge-passthrough",
+      "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+      "seed": "If",
+      "accesses": [
+        {
+          "table": "StateT",
+          "access": "Key"
+        },
+        {
+          "table": "Base",
+          "access": "Key"
+        },
+        {
+          "table": "DUMMYCTX",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": {
+            "Columns": 1
+          }
+        },
+        {
+          "table": "Get",
+          "access": "Key"
+        },
+        {
+          "table": "HasType",
+          "access": "Key"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Get",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        },
+        {
+          "table": "Arg",
+          "access": "Output"
+        }
+      ],
+      "seed_evaluations": 461,
+      "emitted_bindings": 4,
+      "live_seed_instances": 168,
+      "retired_guard_seeds": 0,
+      "identity_noop_seeds": 0,
+      "index_reads": 5551,
+      "candidate_rows": 6121,
+      "terminal_delta_rows_skipped": 0,
+      "payload_layout": null,
+      "payload_resumes": 0,
+      "reused_port_reads": 191,
+      "resumed_seed_evaluations": 61,
+      "stored_port_paths": 168,
+      "shared_marker": null,
+      "shared_prefix_uses": 0
+    }
+  ],
+  "cpu_work": [
+    {
+      "index_reads": 100257,
+      "row_visits": 184907,
+      "root_checks": 130928,
+      "additional_seed_reads": 0,
+      "prefix_refreshes": 0,
+      "prefix_cache_hits": 0,
+      "shared_prefix_bindings": 0,
+      "shared_payload_values": 0,
+      "shared_dependency_edges": 0
+    },
+    {
+      "index_reads": 17012483,
+      "row_visits": 29810100,
+      "root_checks": 220994,
+      "additional_seed_reads": 22338,
+      "prefix_refreshes": 22338,
+      "prefix_cache_hits": 47509,
+      "shared_prefix_bindings": 18641,
+      "shared_payload_values": 74564,
+      "shared_dependency_edges": 0
+    }
+  ],
+  "row_scope": "Non-seed row visits; root checks and additional shared seed reads reported separately.",
+  "storage_scope": "Shared payload scalar slots and dependency edges only; not RSS or total allocator bytes.",
+  "query_changes": [],
+  "gpu_total_rows": [
+    7193043,
+    7193043
+  ],
+  "common_rule_fixed_weights": {
+    "rules": 305,
+    "weight": "before eligible seeds; queries moved off GPU excluded",
+    "before": [
+      1.0,
+      0.5682465783343937,
+      0.02999154213022457,
+      0.008965440567256582,
+      0.0034817532121293395,
+      0.0008604545162091093,
+      0.0004995591110436212,
+      0.00020472925818984823,
+      4.2646793096741416e-05,
+      3.364905929309366e-05,
+      1.8611750744531657e-05,
+      1.83652374896372e-05,
+      6.162831372361477e-07,
+      4.930265097889181e-07,
+      4.930265097889181e-07,
+      4.930265097889181e-07,
+      1.2325662744722953e-07,
+      1.2325662744722953e-07,
+      1.2325662744722953e-07
+    ],
+    "after": [
+      1.0,
+      0.5682465783343937,
+      0.02999154213022457,
+      0.008965440567256582,
+      0.0034817532121293395,
+      0.0008604545162091093,
+      0.0004995591110436212,
+      0.00020472925818984823,
+      4.2646793096741416e-05,
+      3.364905929309366e-05,
+      1.8611750744531657e-05,
+      1.83652374896372e-05,
+      6.162831372361477e-07,
+      4.930265097889181e-07,
+      4.930265097889181e-07,
+      4.930265097889181e-07,
+      1.2325662744722953e-07,
+      1.2325662744722953e-07,
+      1.2325662744722953e-07
+    ],
+    "fixed_candidate_identity": false
+  }
+}

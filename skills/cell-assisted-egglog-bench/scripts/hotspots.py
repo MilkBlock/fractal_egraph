@@ -46,8 +46,8 @@ def run(a,resolve):
     return 0
 
 
-def compare(before,after,profile_before=None,profile_after=None,shared=False,extension=False):
-    if shared and extension:raise ValueError('choose sharing or extension comparison')
+def compare(before,after,profile_before=None,profile_after=None,shared=False,extension=False,layouts=False):
+    if sum([shared,extension,layouts])>1:raise ValueError('choose sharing, extension or layout comparison')
     def packet(path):
         p=Path(path);r=read(p);w=read(p/'workflow.json');g=r['gpu']
         if not (r.get('same_commit_verification') or {}).get('exact_rows_values_equivalence_visibility'):
@@ -64,7 +64,7 @@ def compare(before,after,profile_before=None,profile_after=None,shared=False,ext
     if shared:
         if not ia.get('boundary_programs') or ia.get('boundary_programs')!=ib.get('boundary_programs'):
             raise ValueError('shared marker control needs identical selected query plans')
-    elif extension:
+    elif extension or layouts:
         if not ia.get('boundary_programs') or not ib.get('boundary_programs'):
             raise ValueError('extension requires a library on both sides')
     elif ia.get('boundary_programs') is not None or ib.get('boundary_programs') is None:
@@ -86,6 +86,9 @@ def compare(before,after,profile_before=None,profile_after=None,shared=False,ext
         if not old.keys()<new.keys() or any(new[k]!=p for k,p in old.items()):
             raise ValueError('extension must preserve existing query wiring and add programs')
         added=[dict(ruleset=k[0],rule=k[1]) for k in sorted(new.keys()-old.keys())]
+    if layouts:
+        ids=lambda d:{(p['ruleset'],p['rule']) for p in d['programs'] if p['kind']=='boundary_query'}
+        if ids(da)!=ids(db):raise ValueError('layout comparison must preserve the query family')
     if shared:
         if da.get('shared_markers') or not db.get('shared_markers'):raise ValueError('expected shared-prefix maintenance off/on')
         wiring=lambda d:[(p['ruleset'],p['rule'],p['seed'],p['accesses'],p.get('payload_layout')) for p in d['programs']]
@@ -126,7 +129,11 @@ def compare(before,after,profile_before=None,profile_after=None,shared=False,ext
         result.update(schema='shared-marker-comparison/v1',shared_markers=db['shared_markers'],
             cpu_programs_before=[p for p in da['programs'] if p['kind']=='boundary_query'],
             scope='same query plans and payloads, shared prefix DAG off/on; actual maintenance and remaining search included, not saturation proof credit')
-    if shared:
+    if layouts:
+        result.update(schema='boundary-layout-comparison/v1',
+            cpu_programs_before=[p for p in da['programs'] if p['kind']=='boundary_query'],
+            scope='same parameterized query family with changed anchors/payloads; not new closure-proof credit')
+    if shared or layouts:
         def work(d):
             ps=[p for p in d['programs'] if p['kind']=='boundary_query'];ms=d.get('shared_markers',[])
             return dict(index_reads=sum(p['index_reads'] for p in ps)+sum(m['stats']['lookups'] for m in ms),
