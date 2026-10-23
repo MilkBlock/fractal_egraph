@@ -1,0 +1,146 @@
+{
+  "scope": "complete scheduled input, solver-selected symbolic query spine; not a new automatically baked RipSat closure library",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "source_unchanged": true,
+  "binary_sha256_timing": {
+    "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "16ac39482799d2cb17b472d5c9ead159f6bc1207a4e489c33bd0c2d30ae75cd4"
+  },
+  "binary_sha256_final_audit": {
+    "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "5f73b7ec74fb92b16b65586f3ec3aff9b5c3d458bee25e9e14541b2632736a27"
+  },
+  "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+  "compiled_plan_sha256": "9f53fa2ac703db19826fe13f7219930b2bd95af420166fc8bdd88beeebbf5521",
+  "recompilation_byte_identical": true,
+  "query_count": 547,
+  "admitted_queries": 461,
+  "selected_queries": 1,
+  "layouts": 317,
+  "selected": [
+    {
+      "ruleset": "always-run",
+      "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+      "anchor_table": "DoWhile",
+      "stored_slots": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "context_atoms": 5,
+      "costs": {
+        "storage": 14,
+        "search": 11928,
+        "update": 420
+      },
+      "anchor": {
+        "kind": "call",
+        "head": "DoWhile!",
+        "args": [
+          {
+            "kind": "var",
+            "name": "s0"
+          },
+          {
+            "kind": "var",
+            "name": "s1"
+          }
+        ]
+      },
+      "payload": "outside"
+    }
+  ],
+  "program": {
+    "program_id": 31,
+    "kind": "boundary_query",
+    "ruleset": "always-run",
+    "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+    "seed": "DoWhile",
+    "accesses": [
+      {
+        "table": "ContextOf",
+        "access": {
+          "Columns": 1
+        }
+      },
+      {
+        "table": "ContextOf",
+        "access": {
+          "Columns": 1
+        }
+      },
+      {
+        "table": "HasArgType",
+        "access": {
+          "Columns": 1
+        }
+      },
+      {
+        "table": "Const",
+        "access": {
+          "Columns": 4
+        }
+      }
+    ],
+    "seed_evaluations": 1182,
+    "emitted_bindings": 123254,
+    "live_seed_instances": 84,
+    "retired_guard_seeds": 0,
+    "identity_noop_seeds": 0,
+    "index_reads": 1346,
+    "candidate_rows": 123533,
+    "terminal_delta_rows_skipped": 1048146,
+    "payload_layout": [
+      4,
+      [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    ],
+    "payload_resumes": 929,
+    "reused_port_reads": 27,
+    "resumed_seed_evaluations": 27,
+    "stored_port_paths": 84
+  },
+  "inference_seconds": 12.646926958,
+  "historical_manual_boundary_seconds": 12.455757875,
+  "additional_speedup_demonstrated": false,
+  "same_commit_graph_passed": true,
+  "gpu_off_graph_passed": true,
+  "final_audit_complete": true,
+  "final_audit_queries": 32364,
+  "tiger_cpu_gpu": true,
+  "tiger_fused_native": false,
+  "tests": {
+    "rust_library": 16,
+    "python_layout_and_source_regressions": 21,
+    "bench_protocol": 53
+  },
+  "provenance": {
+    "compilation": "out/scheduled-spine-reproduced/program",
+    "timing": "out/scheduled-spine-pass3-run",
+    "final_audit": "out/scheduled-spine-final-audit",
+    "historical_manual": "out/boundary-loop"
+  },
+  "limits": [
+    "Source-derived matching plans, not Analyze-derived closure transfers.",
+    "Original program requires the auxiliary runtime for optimization; spines.egg is an inspection annotation.",
+    "All constructors can seed a query; one structural read order per seed; original layout forms are anchor/outside/all, not arbitrary field subsets.",
+    "Only the explicitly selected loop hotspot was executed with a solver-selected replacement; other admitted queries were not benchmarked with replacements.",
+    "The final rebuild adds stricter loader validation and checks actual carried values before resume. Final native-frontier audit is fresh; timing is from the earlier checked build.",
+    "Additional index/RSS bytes and incremental Cell-proof credit were not measured."
+  ]
+}

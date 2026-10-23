@@ -1,6 +1,7 @@
 //! A fixed parameterized Cell update program, not a catalog of concrete closures.
 //! Native compiled atoms supply the wiring and native RHS supply every effect.
-//! Only key/output-determined programs are admitted. No original LHS query runs.
+//! Typed key/output/partial-key programs retain complete bindings and native guards.
+//! No original LHS query runs inside these providers.
 use crate::Result;
 use egglog::{
     EGraph, Value,
@@ -167,12 +168,14 @@ struct PortPath {
     seed: Arc<Row>,
     ports: Vec<Option<(Read, Option<Arc<Row>>)>>,
     visited: usize,
+    payload: Option<(usize, Vec<(usize, Value)>, u32)>,
 }
 impl PortPath {
     fn invalidate(&mut self, read: &Read) {
         for port in &mut self.ports {
             if port.as_ref().is_some_and(|(r, _)| r == read) {
                 *port = None;
+                self.payload = None;
             }
         }
     }
@@ -208,6 +211,8 @@ struct Kernel {
     resumed_seeds: usize,
     rows_examined: std::cell::Cell<usize>,
     delta_rows_skipped: std::cell::Cell<usize>,
+    payload_layout: Option<(usize, Vec<usize>)>,
+    payload_resumes: std::cell::Cell<usize>,
 }
 fn known(o: &CellOperand, b: &[bool]) -> bool {
     match o {
@@ -327,6 +332,8 @@ impl Kernel {
             resumed_seeds: 0,
             rows_examined: std::cell::Cell::new(0),
             delta_rows_skipped: std::cell::Cell::new(0),
+            payload_layout: None,
+            payload_resumes: std::cell::Cell::new(0),
         }
     }
     fn wake(&mut self, read: &Read) {
@@ -396,7 +403,40 @@ impl Kernel {
         let mut b = b;
         let mut stamp = stamp;
         let mut step = step;
+        if step == 0 && self.payload_layout.is_some() {
+            if let Some(p) = path.as_mut() {
+                if let Some((prefix, values, old_stamp)) = &p.payload {
+                    let required = self.sink.atoms[self.seed].columns.iter()
+                        .chain(self.steps[..*prefix].iter()
+                            .flat_map(|(i, _)| self.sink.atoms[*i].columns.iter()))
+                        .filter_map(|x| match x { CellOperand::Slot(i) => Some(*i), _ => None })
+                        .collect::<BTreeSet<_>>();
+                    let complete = required.iter().all(|i|
+                        b[*i].is_some() || values.iter().any(|(slot, _)| slot == i));
+                    if complete && p.ports.len() >= *prefix
+                        && p.ports[..*prefix].iter().all(Option::is_some)
+                    {
+                        for (i, v) in values { b[*i] = Some(*v); }
+                        for port in &p.ports[..*prefix] {
+                            deps.push(port.as_ref().unwrap().0.clone());
+                        }
+                        stamp = stamp.max(*old_stamp);
+                        step = *prefix;
+                        p.visited = *prefix;
+                        self.payload_resumes.set(self.payload_resumes.get() + 1);
+                    }
+                }
+            }
+        }
         loop {
+            if let (Some((prefix, slots)), Some(p)) = (&self.payload_layout, path.as_mut()) {
+                if step > 0 && step <= *prefix && p.ports.len() >= step
+                    && p.ports[..step].iter().all(Option::is_some)
+                {
+                    p.payload = Some((step,
+                        slots.iter().filter_map(|i| b[*i].map(|v| (*i, v))).collect(), stamp));
+                }
+            }
             if step == self.steps.len() {
                 if stamp >= watermark {
                     let b = b
@@ -578,6 +618,7 @@ impl Kernel {
                         seed: row.clone(),
                         ports: vec![],
                         visited: 0,
+                        payload: None,
                     })
             });
             if let Some(p) = path.as_mut() {
@@ -732,16 +773,18 @@ impl Runtime {
                 .filter(|n| !selected.contains(n))
                 .collect();
         }
+        let mut supplied=groups.iter().flat_map(|(set,ids)|ids.iter().map(|i|(set.clone(),sinks[*i].name.clone())))
+            .chain(scalar.iter().flat_map(|(set,g)|g.plans.iter().map(|(i,_)|(set.clone(),sinks[*i].name.clone())))).collect::<BTreeSet<_>>();
         let mut boundary=BTreeMap::<String,Vec<usize>>::new();
         let mut boundary_seeds=BTreeMap::new();
         for spec in boundaries {
-            if sinks.iter().any(|s|s.name==spec.rule){return Err("boundary rule is already supplied by a Cell program".into())}
+            if !supplied.insert((spec.ruleset.clone(),spec.rule.clone())){return Err("boundary rule is already supplied by a Cell program".into())}
             let sink=eg.prepare_cell_action(&spec.ruleset,&spec.rule)?;
             if !eg.cell_query_is_seminaive(&sink) || !sink.primitives.is_empty() || sink.native_residuals {
                 return Err("boundary program requires a seminaive structural query".into())
             }
             names.extend(sink.atoms.iter().map(|a|a.function.clone()));
-            boundary_seeds.insert(sinks.len(),spec.root.clone());
+            boundary_seeds.insert(sinks.len(),spec.clone());
             boundary.entry(spec.ruleset.clone()).or_default().push(sinks.len());sinks.push(sink);
         }
         let names = names.into_iter().collect::<Vec<_>>();
@@ -760,8 +803,8 @@ impl Runtime {
                 .get(&id)
                 .or_else(|| seeds.get(&sink.name))
                 .map(String::as_str);
-            if let Some(root)=boundary_seeds.get(&id) {
-                kernels.push(boundary::compile(&eg,sink,tables,root)?);
+            if let Some(spec)=boundary_seeds.get(&id) {
+                kernels.push(boundary::install(&eg,sink,tables,spec)?);
             } else if let Some(plans) = plans {
                 let (index, plan) = plans
                     .iter()
@@ -1121,6 +1164,7 @@ impl Runtime {
                 "identity_noop_seeds":k.identity_noops,"index_reads":k.index_reads,
                 "candidate_rows":k.rows_examined.get(),
                 "terminal_delta_rows_skipped":k.delta_rows_skipped.get(),
+                "payload_layout":k.payload_layout,"payload_resumes":k.payload_resumes.get(),
                 "reused_port_reads":k.reused_reads,"resumed_seed_evaluations":k.resumed_seeds,
                 "stored_port_paths":k.paths.len()})
         }).collect::<Vec<_>>();

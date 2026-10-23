@@ -852,7 +852,7 @@ impl Runtime {
             .map(|p| (p.name.clone(), p.constructor.clone()))
             .collect();
         let scalar = super::scalar::discover(&eg, &commands);
-        let boundaries=super::boundary::load()?;
+        let boundaries=super::boundary::load(&commands)?;
         let mut r = Self::new_with_boundaries(eg, SETS, &seeds, scalar, None, &boundaries)?;
         for id in &r.sets[SETS[2]] {
             let k = &mut r.kernels[*id];

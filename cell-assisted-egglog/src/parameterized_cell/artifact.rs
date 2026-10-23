@@ -27,14 +27,14 @@ struct Atom {
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Shape {
-    slots: Vec<(String, String)>,
+pub(super) struct Shape {
+    pub(super) slots: Vec<(String, String)>,
     atoms: Vec<Atom>,
     guards: Vec<(u32, [Operand; 2])>,
     native_residuals: bool,
 }
 impl Shape {
-    fn of(s: &CellActionSink) -> Self {
+    pub(super) fn of(s: &CellActionSink) -> Self {
         Self {
             slots: s
                 .slots()

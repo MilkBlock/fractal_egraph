@@ -31,6 +31,14 @@ def fixture():
 
 class WorkflowTests(unittest.TestCase):
 
+    def test_scheduled_spine_cli_keeps_query_selection_separate_from_root(self):
+        a=B.parser().parse_args(['spine-program','--output','out/demo','--query-selection','selection.json','--compile-only'])
+        self.assertEqual(a.mode,'spine-program')
+        self.assertTrue(a.compile_only)
+        self.assertEqual(a.solver,'scip')
+        self.assertFalse(hasattr(a,'root'))
+
+
     def test_analyze_credit_keeps_public_executor_and_rejects_changed_library(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);paths={n:root/n for n in ['baseline','plan_only','candidate']}

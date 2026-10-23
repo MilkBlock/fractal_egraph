@@ -8,7 +8,7 @@ from pathlib import Path
 COLUMNS = ['kind','id','label','owners','plans','consumers','requests','hits','hit_rate',
            'port_requests','port_hits','port_hit_rate','new_reads','cached_reads','cache_hit_rate',
            'watch_checks','skipped_reads','candidates_before','candidates_after','candidates_saved',
-           'cpu_candidate_rows','net_seconds','status']
+           'cpu_candidate_rows','payload_resumes','net_seconds','status']
 
 def read(path):
     path=Path(path)
@@ -94,7 +94,7 @@ def build(path, baseline=None):
         q=by_rule.get((p['ruleset'],p['rule']),{});st=q.get('stats',{})
         fresh,cache=p.get('index_reads'),p.get('reused_port_reads')
         rows.append(row('source_program',str(p['program_id']),label=p['seed'],
-            cpu_candidate_rows=p.get('candidate_rows'),
+            cpu_candidate_rows=p.get('candidate_rows'),payload_resumes=p.get('payload_resumes'),
             requests=st.get('cell_queries'),hits=st.get('cell_nonempty_queries'),
             hit_rate=ratio(st.get('cell_nonempty_queries'),st.get('cell_queries')),
             new_reads=fresh,cached_reads=cache,cache_hit_rate=ratio(cache,cache+fresh if cache is not None and fresh is not None else None),

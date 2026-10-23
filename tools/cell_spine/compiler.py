@@ -705,7 +705,7 @@ def main():
     p.add_argument('--analysis-dir',type=Path)
     p.add_argument('--knowledge-library',type=Path,
                    help='reuse native-validated Cell contracts and learn merge families across fact programs under the same rules')
-    p.add_argument('--mode',choices=('auto','symbolic','stages'),default='auto')
+    p.add_argument('--mode',choices=('auto','symbolic','scheduled','stages'),default='auto')
     p.add_argument('--storage-weight',type=float,default=1.)
     p.add_argument('--search-weight',type=float,default=1.)
     p.add_argument('--update-weight',type=float,default=1.)
@@ -722,6 +722,9 @@ def main():
                    help='inline, auto/shared decoders, or publisher: also consider correlated witnesses published in Summary by the creating action')
     p.add_argument('--lhs-coverage',choices=('off','report','entries'),default='off',
                    help='index rule LHS coverage; entries additionally emits certified alternative ingresses into existing Cells')
+    p.add_argument('--query-selection',type=Path,help='explicit query workload; root hints are ignored, all anchors remain solver choices')
+    p.add_argument('--query-profile',type=Path,help='saved diagnostic Pass-3 report for original-query work')
+    p.add_argument('--table-profile',type=Path,help='saved original table cardinalities for structural pricing')
     p.add_argument('--keep-duplicate-spines',action='store_true',help='ablation: retain distinct variables for identical physical representations')
     p.add_argument('--skip-build',action='store_true')
     a=p.parse_args()
@@ -751,6 +754,11 @@ def main():
         (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         print(json.dumps({'status':report['status']})); return
     problem=compatible_program(data)
+    if a.mode=='scheduled' or (problem and a.mode=='auto'):
+        from .scheduled import compile_program
+        report.update(compile_program(a,data,ROOT,weights))
+        (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
+        print(json.dumps({'status':report['status'],'selected_queries':report['selected_queries']}));return
     if problem:
         raise ValueError('Cell Bake unsupported: '+problem+'. No snapshot fallback was produced; use the explicit snapshot export only for debugging.')
     solver.module() # Fail before native analysis; never change backends silently.

@@ -224,3 +224,27 @@ raytrace Pass 3 上只有一个空 marker、六个无成功应用的 consumer；
 `run/audit --all-rules --analysis DIR --commit-markers` 启用编译后的 producer 发布器；`CELL_COMMIT_MARKERS=1` 是底层开关。只在原始 Run 提交/merge/rebuild 成功后，将已给出的行和 binding 转成 GPU marker 凭据。后续 spine 延续已有行身份；无凭据或失效时保留完整查询。首次未知后缀仍可能需要查找。普通路径不开启；当前 worker layout 18。
 
 账表必须同时报告 `commit_marker_cpu_work`（应用、行观察、CPU 目录定位、拒绝、接线、传输和处理时间）及 per-plan `receipt_*`，不能把 CPU 定位成本藏在“GPU 认证读取为零”后面。Publisher 的静态数量不等于 live Cell 数，观察到的应用不等于提交 mutation。自动诊断保留这个开关，plan-only 基线不发布 marker。正确性回归已加入 skill 的 `test`；用例和限制见 `experiments/commit_spine_markers/README.md`。本次完整 Pass 3 只验证整图和工作计数，没有新的无插桩加速比。
+
+
+### 完整 Pass 3 的符号化查询 spine
+
+`spine-program --output NEW --query-selection FILE --query-profile DIAG_DIR
+--table-profile TABLE_JSON --reuse-controls CONTROL_DIR` 接受整个 `.egg`，调用
+原 `markers.layouts` 枚举任意前缀内的锚点、anchor/outside/all 参数布局，再
+用现有 SCIP/Gurobi 接口联合选择查询实现和共享部分键索引。`--query-selection`
+只指定待优化的原始查询，文件中的 root 提示不会固定起点；省略时考虑全部
+可编译查询。`--compile-only` 只生成程序和计划。使用 Python 3.9+。
+
+`program.egg` 原样保留全部调度、RHS、函数更新、merge、subsume及输入；
+`boundary-programs.json` 是运行器加载的 v2 有类型计划，`spines.egg` 是可读的
+布局注释。该模式不额外插入 helper Run，不让 marker 维护影响 saturation
+判停。携带的前缀参数在提交事件失效后重新绑定，多结果端口保留全部分支。
+这是符号化查询复用，不是具体阶段缓存，也不是新增自动 RipSat 闭包证明。
+当前完整程序的初始化仍原生执行，优化接入最后一个主 schedule；未选择或
+不支持的查询保留现有执行路径。源码/初始化变化、接线变化、guard变化必须
+拒绝旧计划。完整 source 的 `.egg` 单独执行仍是原程序；优化需要辅助运行器。
+
+验收复用已有 `run`、`audit --cell-only` 和 `extract`，不能把“编译成功”作为
+运行验证。记录候选数、选中起点/参数、`payload_resumes`、新读/缓存读、原始
+binding数及整图检查。模型最优仅限已导出的固定接线/布局域，估计代价不等于
+耗时。有限 Run 的 RHS不提前，原生融合的既有差异不应被此模式隐藏。

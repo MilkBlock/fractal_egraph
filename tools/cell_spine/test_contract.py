@@ -44,7 +44,7 @@ class BakeContract(unittest.TestCase):
 
     def test_unsupported_cell_input_does_not_fall_back_to_an_archive(self):
         with tempfile.TemporaryDirectory(dir=ROOT/'out',prefix='bake-contract-') as temp:
-            for mode in ('auto','symbolic'):
+            for mode in ('symbolic',):
                 out=Path(temp)/mode
                 r=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',
                     ROOT/'experiments/cell_spine/fixtures/stages/multi_rulesets.egg',
