@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 
 from . import compiler, solver, takeover as t
-from .terms import text,walk,actions
+from .terms import text,walk,actions,egg_string
 from .lhs_coverage import Facts
 from .representation import Congruence
 
@@ -25,11 +25,11 @@ def vars_in(e):return {x['name'] for x in walk(e) if x['kind']=='var'}
 
 
 def render_rule(r,body,head,ruleset=None):
-    action_text=[f'(panic {json.dumps(a["message"])})' if a['kind']=='panic' else actions([a])[0] for a in head]
+    action_text=[f'(panic {egg_string(a["message"])})' if a['kind']=='panic' else actions([a])[0] for a in head]
     result=f'(rule ({" ".join(t.fact_text(f) for f in body)}) ({" ".join(action_text)})'
     name=r['ruleset'] if ruleset is None else ruleset
     if name:result+=f' :ruleset {name}'
-    return result+f' :name {json.dumps(r["name"])}'+(' :naive' if r.get('naive') else '')+')'
+    return result+f' :name {egg_string(r["name"])}'+(' :naive' if r.get('naive') else '')+')'
 
 
 def flatten(rule,sig,globals_=frozenset()):
@@ -197,17 +197,21 @@ def publications(rule,views,sig):
     return list({(a['head'],tuple(map(text,a['args']))):a for a in out}.values())
 
 
-def schedule(s):
+def schedule(s,consumers):
     k=s['kind']
-    if k=='run':return f'(seq (run {REPAIR}) {s["text"]})'
-    if k=='seq':return '(seq '+' '.join(schedule(x) for x in s['children'])+')'
-    if k=='repeat':return f'(repeat {s["count"]} {schedule(s["child"])})'
-    return f'(saturate {schedule(s["child"])})'
+    if k=='run':return f'(seq (run {REPAIR}) {s["text"]})' if s['ruleset'] in consumers else s['text']
+    if k=='seq':return '(seq '+' '.join(schedule(x,consumers) for x in s['children'])+')'
+    if k=='repeat':return f'(repeat {s["count"]} {schedule(s["child"],consumers)})'
+    return f'(saturate {schedule(s["child"],consumers)})'
 
 
-def compile_source(source,analysis,out):
+def compile_source(source,analysis,out,ast_binary=None):
     out.mkdir(parents=True,exist_ok=False)
-    data=compiler.ast(source,out/'source-ast.json');sig=data['signatures']
+    if ast_binary is None:data=compiler.ast(source,out/'source-ast.json')
+    else:
+        compiler.run([ast_binary,source,out/'source-ast.json'])
+        data=json.loads((out/'source-ast.json').read_text())
+    sig=data['signatures']
     if any(PREFIX in c['text'] or REPAIR in c['text'] or SHADOW in c['text'] for c in data['commands']):raise ValueError('reserved marker namespace')
     if data['rewrites']:raise ValueError('this adapter expects native expanded Rule commands; rewrites must be desugared first')
     if any(c['text'].startswith('(include ') for c in data['commands']):raise ValueError('expand includes before marker compilation')
@@ -280,6 +284,11 @@ def compile_source(source,analysis,out):
             for o in view['occurrences']:by_rule[o['rule']].append((view,o))
         model.write(out/'selection.lp');model.write(out/'selection.sol')
     original={r['ordinal']:r for r in data['rules']};variants={}
+    consumers={original[rid]['ruleset'] for rid in by_rule}
+    while True:
+        parents={name for name,children in data.get('combined_rulesets',{}).items() if any(c in consumers for c in children)}
+        if parents<=consumers:break
+        consumers|=parents
     for mode in ('shared','published'):
         replacements={};pub_count=0
         for rid,rule in original.items():
@@ -313,20 +322,21 @@ def compile_source(source,analysis,out):
                 lines += [f'(ruleset {SHADOW}{i})' for i in sorted(replacements)]
             if c['ordinal']==install and replacements:
                 lines+=declarations+repair+[replacements[i] for i in sorted(replacements)]
-            if c['kind']=='schedule' and views:lines.append('(run-schedule '+schedule(c['schedule'])+')')
+            if c['kind']=='schedule' and views:lines.append('(run-schedule '+schedule(c['schedule'],consumers)+')')
             elif c['ordinal'] in replacements:
                 r=by_command[c['ordinal']];lines.append(render_rule(r,r['body'],r['head'],f'{SHADOW}{c["ordinal"]}'))
             else:lines.append(c['text'])
-        dest=out/f'{mode}.egg';dest.write_text('\n'.join(lines)+'\n')
+        extension=[line for line in source.read_text().splitlines() if line.startswith('; cell-structural-key-runtime/v1 ')]
+        dest=out/f'{mode}.egg';dest.write_text('\n'.join(extension+lines)+'\n')
         variants[mode]=dict(path=str(dest),publish_actions=pub_count,changed_rules=len(replacements),sha256=compiler.digest(dest))
     library_files=[analysis/'catalog/catalog.json']+sorted((analysis/'catalog/states').glob('*.json'))
     report=dict(schema='pass3-source-markers/v1',source=str(source),source_sha256=compiler.digest(source),analysis=str(analysis),
         analysis_sha256={str(p.relative_to(analysis)):compiler.digest(p) for p in library_files},
         cells=[name for name,_ in cells],markers=views,variants=variants,modified_consumers=len(by_rule),
-        scheduled_rulesets=sorted(active),
+        scheduled_rulesets=sorted(active),maintenance_before=sorted(consumers),
         structural_objective=primary,tie_break='maximum shared occurrences at the same structural objective',
         rejected_tables=sorted(changed),solver=solver.statistics(),
-        guarantee='exact positive constructor views completed before every original Run; original mutable reads/guards/RHS retained; no Cell closed-world assumption',
+        guarantee='exact positive constructor views completed before each marker-consuming original Run; original mutable reads/guards/RHS retained; no Cell closed-world assumption',
         boundary='auxiliary writes and changed enumeration may affect nonconfluent saturation; full native graph and extraction checks are required before adoption',
         selection_scope='non-overlapping fully-keyed two-atom shared fragments in scheduled rules, witnessed in Analyze; structural schema cover, not native-work global optimum')
     (out/'markers.json').write_text(json.dumps(report,indent=2)+'\n');return report
@@ -334,5 +344,6 @@ def compile_source(source,analysis,out):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--source',required=True,type=Path);p.add_argument('--analysis',required=True,type=Path);p.add_argument('--output',required=True,type=Path)
-    a=p.parse_args();r=compile_source(a.source.resolve(),a.analysis.resolve(),a.output.resolve())
+    p.add_argument('--ast-binary',type=Path)
+    a=p.parse_args();r=compile_source(a.source.resolve(),a.analysis.resolve(),a.output.resolve(),a.ast_binary)
     print(json.dumps({k:r[k] for k in ('modified_consumers','variants','selection_scope')}))

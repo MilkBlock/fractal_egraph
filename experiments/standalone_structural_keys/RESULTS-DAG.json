@@ -1,0 +1,249 @@
+{
+  "schema": "shared-dag-structural-keys-results/v1",
+  "scope": "actual full raytrace Pass 3, default automatic-refutation to-hoist policy",
+  "source": {
+    "schema": "structural-key-source/v3",
+    "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "output_sha256": "1a6d3b5a5543ff704b72ccf601b12fd0cd3bc7c2fea88191a25bb4d654c5a56d",
+    "native_rulesets": [
+      "cell-stable-keys",
+      "cell-stable-freeze"
+    ],
+    "policy": "automatic",
+    "key_roots": [
+      "Expr"
+    ],
+    "key_sorts": [
+      "Assumption",
+      "BaseType",
+      "BinaryOp",
+      "Constant",
+      "Expr",
+      "ListExpr",
+      "Node",
+      "Term",
+      "TernaryOp",
+      "Type",
+      "TypeList",
+      "UnaryOp"
+    ],
+    "key_constructors": 107,
+    "declared_constructors": 242,
+    "maintenance_before": [
+      "boundary-analysis"
+    ],
+    "runtime_extension": "cell-structural-key-runtime/v1",
+    "representation": "automatic-refutation Arc<Node> DAG, cached hashes plus exact equality, frozen input anchors",
+    "acceptance": "source_sk == source_sk_mk; source.egg and old full-selection policy are not equivalence oracles",
+    "limits": [
+      "Requires the explicitly declared native runtime extension; not executable on bare pristine without registration.",
+      "Default automatic policy changes to-hoist only; --policy full also changes known Smaller/IVT choices.",
+      "Unsupported relevant container fields fail when instantiated.",
+      "No claim of arbitrary nonconfluent backend determinism."
+    ]
+  },
+  "acceptance": "source_sk/source_sk_mk equality within each backend; cross-backend checks retained separately and fail",
+  "comparisons": {
+    "marker_effect_pristine": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 786534,
+      "mapped_classes": 524663,
+      "projected_out_left": [],
+      "projected_out_right": [
+        "CellSpineView0"
+      ],
+      "left": "original-pristine",
+      "right": "marked-pristine"
+    },
+    "marker_effect_gpu": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 787663,
+      "mapped_classes": 524631,
+      "projected_out_left": [],
+      "projected_out_right": [
+        "CellSpineView0"
+      ],
+      "left": "original-gpu",
+      "right": "marked-gpu"
+    },
+    "backend_original": {
+      "status": "different",
+      "reason": "row counts differ",
+      "tables": {
+        "CellStructuralKey-Term": [
+          63054,
+          63038
+        ],
+        "Smaller": [
+          72194,
+          73371
+        ],
+        "TCPair": [
+          63054,
+          63038
+        ],
+        "TermConcat": [
+          3623,
+          3607
+        ]
+      },
+      "left": "original-pristine",
+      "right": "original-gpu"
+    },
+    "backend_marked": {
+      "status": "different",
+      "reason": "row counts differ",
+      "tables": {
+        "CellStructuralKey-Term": [
+          63054,
+          63038
+        ],
+        "Smaller": [
+          72194,
+          73371
+        ],
+        "TCPair": [
+          63054,
+          63038
+        ],
+        "TermConcat": [
+          3623,
+          3607
+        ]
+      },
+      "left": "marked-pristine",
+      "right": "marked-gpu"
+    }
+  },
+  "same_source_pristine_repeat": {
+    "status": "equal",
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 786534,
+    "mapped_classes": 524663,
+    "projected_out_left": [],
+    "projected_out_right": []
+  },
+  "lanes": {
+    "original-pristine": {
+      "run_seconds": 23.968182708,
+      "setup_seconds": 0.225074959,
+      "gpu_setup_seconds": null,
+      "table_rows": 786534,
+      "structural_key_dag_nodes": 102036,
+      "marker_rows": 0,
+      "complete": true,
+      "runtime_extension": {
+        "bases": [
+          "String",
+          "bool",
+          "f64",
+          "i64"
+        ],
+        "name": "cell-structural-key-runtime/v1",
+        "nodes": 107,
+        "source_controls_rules_and_schedule": true,
+        "storage": "shared immutable Arc DAG; cached hash with exact structural equality"
+      },
+      "source_sha256": "1a6d3b5a5543ff704b72ccf601b12fd0cd3bc7c2fea88191a25bb4d654c5a56d",
+      "reused": true
+    },
+    "original-gpu": {
+      "run_seconds": 18.136369,
+      "setup_seconds": 0.260522084,
+      "gpu_setup_seconds": 2.652825666,
+      "table_rows": 787663,
+      "structural_key_dag_nodes": 102020,
+      "marker_rows": 0,
+      "complete": true,
+      "runtime_extension": {
+        "bases": [
+          "String",
+          "bool",
+          "f64",
+          "i64"
+        ],
+        "name": "cell-structural-key-runtime/v1",
+        "nodes": 107,
+        "source_controls_rules_and_schedule": true,
+        "storage": "shared immutable Arc DAG; cached hash with exact structural equality"
+      },
+      "source_sha256": "1a6d3b5a5543ff704b72ccf601b12fd0cd3bc7c2fea88191a25bb4d654c5a56d",
+      "reused": true
+    },
+    "marked-pristine": {
+      "run_seconds": 23.560746125,
+      "setup_seconds": 0.22087075,
+      "gpu_setup_seconds": null,
+      "table_rows": 786534,
+      "structural_key_dag_nodes": 102036,
+      "marker_rows": 0,
+      "complete": true,
+      "runtime_extension": {
+        "bases": [
+          "String",
+          "bool",
+          "f64",
+          "i64"
+        ],
+        "name": "cell-structural-key-runtime/v1",
+        "nodes": 107,
+        "source_controls_rules_and_schedule": true,
+        "storage": "shared immutable Arc DAG; cached hash with exact structural equality"
+      },
+      "source_sha256": "c28f8338b35b144c76892fc818c5f9c5e14664a6d336e907843413319515be83",
+      "reused": true
+    },
+    "marked-gpu": {
+      "run_seconds": 20.853202834,
+      "setup_seconds": 0.251163125,
+      "gpu_setup_seconds": 2.452695042,
+      "table_rows": 787663,
+      "structural_key_dag_nodes": 102020,
+      "marker_rows": 0,
+      "complete": true,
+      "runtime_extension": {
+        "bases": [
+          "String",
+          "bool",
+          "f64",
+          "i64"
+        ],
+        "name": "cell-structural-key-runtime/v1",
+        "nodes": 107,
+        "source_controls_rules_and_schedule": true,
+        "storage": "shared immutable Arc DAG; cached hash with exact structural equality"
+      },
+      "source_sha256": "c28f8338b35b144c76892fc818c5f9c5e14664a6d336e907843413319515be83",
+      "reused": false
+    }
+  },
+  "reference_original_pristine": {
+    "source": "out/structural-raytrace-raw-pristine",
+    "run_seconds": 22.574275667,
+    "setup_seconds": 0.148822666,
+    "historical": true
+  },
+  "tests": {
+    "rust_integration": 14,
+    "python": 18,
+    "rust_unit": 1
+  },
+  "notes": [
+    "No original-source/SK equivalence is required or claimed.",
+    "Pristine denotes the unchanged baseline kernel plus the explicitly declared shared native DAG extension.",
+    "Raytrace generated marker rows are zero; these timings are not evidence of marker/Cell acceleration.",
+    "The active small fixture separately produces one marker row and three consumer rows.",
+    "The old all-Run marker completion caused a pristine mismatch. Consumer-only completion now passes without excluding original tables.",
+    "CPU/GPU cross-backend graphs still differ; the strict four-way check retains nonzero exit status."
+  ],
+  "active_fixture_checks": {
+    "marker_effect_pristine": "equal",
+    "marker_effect_gpu": "equal",
+    "backend_original": "equal",
+    "backend_marked": "equal"
+  },
+  "native_sk_over_original_time_ratio": 1.0617475865698616
+}

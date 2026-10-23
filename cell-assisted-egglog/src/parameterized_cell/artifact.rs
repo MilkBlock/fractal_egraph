@@ -36,6 +36,15 @@ pub(super) struct Shape {
     primitives: Vec<(u32,[Operand;2],Option<Operand>)>,
 }
 impl Shape {
+    /// Offline rebind may rename parser-generated variables. Slot indices,
+    /// sorts, aliases, complete atoms and all guards must stay identical.
+    pub(super) fn same_wiring(&self, other: &Self) -> bool {
+        let mut renamed = self.clone();
+        for ((name,_),(replacement,_)) in renamed.slots.iter_mut().zip(&other.slots) {
+            *name = replacement.clone();
+        }
+        renamed == *other
+    }
     pub(super) fn of(s: &CellActionSink) -> Self {
         Self {
             slots: s

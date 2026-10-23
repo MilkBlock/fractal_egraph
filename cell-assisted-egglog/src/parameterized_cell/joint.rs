@@ -808,10 +808,16 @@ impl Runtime {
         } else {
             eg.run_program(commands.clone())?;
         }
+        Self::attach_joint(eg, &commands, None)
+    }
+    /// Attach checked Cell services to an already initialized source program.
+    /// Do not install a selection policy or replay its setup/schedules again.
+    pub fn attach_joint(mut eg: EGraph, commands: &[Command], boundaries: Option<&[boundary::Spec]>) -> Result<Self> {
         if let Some(path)=std::env::var_os("CELL_CERTIFICATE_LIBRARY") {
-            return artifact::Bundle::load(std::path::Path::new(&path))?.attach(eg,&commands);
+            if boundaries.is_some() {return Err("explicit boundary plans with certificate environment override are unsupported".into())}
+            return artifact::Bundle::load(std::path::Path::new(&path))?.attach(eg,commands);
         }
-        let joint = Joint::compile(&mut eg, &commands)?;
+        let joint = Joint::compile(&mut eg, commands)?;
         // The producer's source constructor is specified by the checked
         // transfer contract, not picked by a cost heuristic among seed plans.
         let seeds = joint
@@ -819,11 +825,12 @@ impl Runtime {
             .iter()
             .map(|p| (p.name.clone(), p.constructor.clone()))
             .collect();
-        let scalar = super::scalar::discover(&eg, &commands, &joint.roles.sets);
-        let boundaries=super::boundary::load(&commands)?;
+        let scalar = super::scalar::discover(&eg, commands, &joint.roles.sets);
+        let loaded;
+        let boundaries = match boundaries {Some(b)=>b,None=>{loaded=super::boundary::load(commands)?;&loaded}};
         let sets=joint.roles.sets.iter().map(String::as_str).collect::<Vec<_>>();
-        let mut r = Self::new_with_boundaries(eg, &sets, &seeds, scalar, None, &boundaries)?;
-        r.install_closure_certificates(Some(joint), &commands)?;
+        let mut r = Self::new_with_boundaries(eg, &sets, &seeds, scalar, None, boundaries)?;
+        r.install_closure_certificates(Some(joint), commands)?;
         Ok(r)
     }
     pub(super) fn certified_commands(commands:Vec<Command>,roles:Option<contract::Selection>,scalar:Vec<super::scalar::Spec>,plans:Option<&[artifact::Program]>)->Result<Self>{

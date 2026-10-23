@@ -32,6 +32,7 @@ pub mod stable_choice;
 pub mod parameterized_cell;
 pub mod program;
 pub mod program_io;
+mod program_assistance;
 pub mod program_run;
 pub mod numeric;
 pub mod numeric_native;

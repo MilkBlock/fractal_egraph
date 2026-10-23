@@ -1,6 +1,10 @@
 import copy
 from pathlib import Path
 import unittest
+import tempfile
+import subprocess
+import json
+from unittest.mock import patch
 import program_modes as p
 
 
@@ -13,6 +17,22 @@ def graph(a=1,b=2):
 
 
 class ProgramModes(unittest.TestCase):
+    def test_failure_after_report_is_not_a_successful_cached_lane(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);(root/'cell-assisted-egglog/src').mkdir(parents=True)
+            (root/'cell-assisted-egglog/src/program_io.rs').write_text('harness')
+            binary=root/'binary';binary.write_text('binary')
+            source=root/'source';source.write_text('source')
+            worker=root/'worker';worker.write_text('worker')
+            def fail(cmd,**kwargs):
+                dest=Path(cmd[cmd.index('--output')+1]);dest.mkdir()
+                p.write(dest/'report.json',dict(complete=True,snapshot_complete=False))
+                return subprocess.CompletedProcess(cmd,-9)
+            with patch.object(p.subprocess,'check_output',return_value='{"cache_safe":true}'),patch.object(p.subprocess,'run',side_effect=fail) as run:
+                _,r,reused=p.lane(root,binary,source,'gpu',worker,None,root/'cache')
+                self.assertFalse(r['complete']);self.assertFalse(reused)
+                _,_,reused=p.lane(root,binary,source,'gpu',worker,None,root/'cache')
+                self.assertFalse(reused);self.assertEqual(run.call_count,2)
     def test_ids_are_not_semantics(self):
         self.assertEqual(p.compare(graph(),graph(100,200))['status'],'equal')
     def test_function_updates_and_visibility_are_observable(self):

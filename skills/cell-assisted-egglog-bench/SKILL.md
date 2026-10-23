@@ -338,3 +338,59 @@ check/extraction等命令按原AST原生执行；pristine使用同样的初始�
 原有 root 检查；命中包括同 consumer 重访，不自动算跨规则 credit。共享帧/slot
 数量不是 RSS。两边已经接管查询时，不把之前移走 GPU 查询的收益再记一次。
 详见 `experiments/shared_loop_markers/README.md`。
+## 显式共享 DAG 结构键源码
+
+### 显式源码与相同 Cell 服务的合并门槛
+
+`explicit-keys-bench --source RAW --sk SK --marked SK_MK --layout 已选v2布局
+--worker WORKER --output NEW` 使用同一个二进制跑三条 GPU 路径，全部启用同一套
+参数化查询和联合闭包证书。只校验并重绑定旧布局，不调用求解器。允许改写造成的
+变量改名，但槽位位置、类型、别名、全部 atom、guard、参数选择与接线不能变。
+普通加载仍严格检查源码；重绑定通过 `scheduled_spine SOURCE NEW.json --joint
+--rebind OLD.json` 显式执行。
+
+旧对照明确请求 `legacy-stable` 安装方式，SK/SK_MK 只执行源码声明的结构键和
+调度，禁止再安装一次旧策略。`program-modes --backend gpu --cell-assistance
+--boundary-programs FILE --native-rulesets cell-stable-keys,cell-stable-freeze`
+提供实际运行入口。`--setup-policy legacy-stable` 仅用于原始输入的对照。
+此辅助入口目前要求可重新认证的 selection 闭包；不支持的规则契约会报错。
+
+逐源码检查全部原始表、函数值、等价和可见性；仅列明并投影新增辅助表。
+生产 Tiger 比较三条路径的真实选定 DAG。另检查实际 Cell 服务/闭包计数。
+推理时间来自内部运行期计时，不含初始化、shader 编译、导出或 extraction。
+原生 probe atomic 通过真实 API 关闭。失败/被终止进程即使已写 report，也不能
+缓存为成功；共享结构键的 Debug 只输出有界诊断，不展开 DAG。
+
+未改的 lane 按源码、完整布局、二进制、worker、辅助开关和显式 CPU ruleset
+指纹复用。`--marker-maintenance native` 是单独的 CPU 补全消融，默认仍 GPU。
+不通过重跑挑最快值；两条显式路径任一慢于同二进制旧对照就不满足性能门槛。
+`--no-extract` 只适合诊断，不能得到可合并结论。只读查看用 `report DIR`。
+当前结果和未满足的条件见 `experiments/explicit_keys_cells/README.md`。
+
+`structural-pipeline --source FILE --analysis DIR --output NEW [--key-policy automatic|full]
+[--check] [--no-build]` 自动生成 source → SK → SK+marker。默认 `automatic`
+复用主线程的共享 `Arc<Node>` DAG、输入锚定与 to-hoist 选择，自动查找需维护
+的 ruleset。`full` 才额外改写 Smaller/IVT 等已知选择。禁止恢复为展开整树的
+BigRat/BigInt 编码；它们已在完整 raytrace 上失败。
+
+用户已批准原生扩展：生成源码的 `cell-structural-key-runtime/v1` 注释显式
+声明键 primitive/schema，规则与调度仍全部位于 `.egg`。`program-modes`
+按这个声明注册同一份实现。pristine 指不可变原版内核加显式扩展，不得说成
+裸 pristine 无扩展运行。报告 `setup.runtime_extension`，扩展代码进入构建指纹。
+GPU 使用 `--native-rulesets cell-stable-keys,cell-stable-freeze`，键维护在 CPU。
+
+正确性门槛是 **SK 与 SK+marker 等价**，不要求 source 与 SK 等价。比较事实、
+函数值、等价关系与可见性；键通过共享 DAG 的精确结构比较，不比较本地ID或哈希。
+仍保留跨后端诊断，任何失败不可用“只差中间表”抹去。`--check` 失败时保留源码
+和报告；不得用空 marker、静默回退或删除失败检查来宣称优化有效。
+
+第二步仍是现有两原子全键 marker 源码 adapter，不是任意 spine 求解器的源码
+后端。新结果见 `experiments/standalone_structural_keys/RESULTS-DAG.json`；
+原先 `RESULTS.json` 仅为失败长数值路线的历史记录。复现及限制见同目录 README。
+
+
+Marker 源码补全只安排在实际消费者（以及包含它们的 combined ruleset）之前，
+不再插到每个 Run 前。完整 raytrace 的默认 DAG 策略已分别通过 pristine+扩展
+与 GPU 的 SK/SK+marker 严格比较；CPU/GPU 跨后端比较仍失败，严格四路命令仍返回
+非零。不得把源码改写通过说成跨后端通过。该 raytrace 的 marker 实际行数为零，
+不能从其时间差领取 marker/Cell credit；实际 publisher 消费由另一个小回归覆盖。

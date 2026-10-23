@@ -29,17 +29,21 @@ fn main() -> Result<()> {
     }
     let mut certificate = None;
     let mut joint = false;
+    let mut rebind = None;
     let mut args = a[2..].iter();
     while let Some(flag) = args.next() {
         match flag.as_str() {
             "--joint" => joint = true,
             "--certificates" => certificate = Some(args.next().ok_or("missing certificate file")?),
+            "--rebind" => rebind = Some(args.next().ok_or("missing selected layout")?),
             _ => return Err("unknown scheduled-spine option".into()),
         }
     }
     EGraph::set_num_threads(1);
     let mut eg = EGraph::default();
-    let cs = eg.parse_program(Some(a[0].clone()), &std::fs::read_to_string(&a[0])?)?;
+    let text = std::fs::read_to_string(&a[0])?;
+    let explicit = cell_assisted_egglog::stable_choice::source::install(&mut eg, &text)?.is_some();
+    let cs = eg.parse_program(Some(a[0].clone()), &text)?;
     let end = cs
         .iter()
         .rposition(|c| matches!(c, Command::RunSchedule(_)))
@@ -48,7 +52,7 @@ fn main() -> Result<()> {
     let mut certificates = serde_json::Value::Null;
     if joint || certificate.is_some() {
         let r = if let Some(file) = certificate {
-            if joint {
+            if joint && !explicit {
                 cell_assisted_egglog::stable_choice::setup(&mut eg, &cs[..end])?;
             } else {
                 eg.run_program(cs[..end].to_vec())?;
@@ -57,6 +61,9 @@ fn main() -> Result<()> {
                 file,
             ))?
             .attach(eg, &cs[..end])?
+        } else if explicit {
+            eg.run_program(cs[..end].to_vec())?;
+            Runtime::attach_joint(eg, &cs[..end], Some(&[]))?
         } else {
             Runtime::new_joint_stable_commands(cs[..end].to_vec())?
         };
@@ -70,11 +77,17 @@ fn main() -> Result<()> {
     } else {
         eg.run_program(cs[..end].to_vec())?;
     }
+    if let Some(path) = rebind {
+        let file = boundary::rebind_file(&mut eg, &cs[..end], std::path::Path::new(path))?;
+        std::fs::write(&a[1], serde_json::to_vec_pretty(&file)?)?;
+        return Ok(());
+    }
     let mut selected = BTreeSet::new();
     if let Command::RunSchedule(s) = &cs[end] {
         sets(s, &mut selected)
     }
     selected.remove("cell-stable-keys");
+    selected.remove("cell-stable-freeze");
     loop {
         let before = selected.clone();
         for c in &cs {

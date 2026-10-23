@@ -155,6 +155,12 @@ def report(path, fresh=False):
         choices = ['report.json', 'stable-time.json', 'results.json', 'summary.json', 'time.json', 'check.json', 'audit.json', 'diff.json', 'cpu-pair.json']
         path = next((path / n for n in choices if (path / n).is_file()), path / 'report.json')
     r = load(path)
+    if r.get('schema')=='explicit-key-cell-bench/v1':
+        import explicit_keys_bench
+        r=explicit_keys_bench.evaluate(r)
+        for name,lane in r['lanes'].items():print(name,lane['run_seconds'],'s; reused:',lane['reused'])
+        print('整图:',r['graph_passed'],'Cell 服务:',r['services_match'],'Tiger:',r['extraction_passed'],'无实测回退:',r['no_observed_regression'])
+        return
     if r.get('schema')=='pass3-egg-markers/v1':
         print('生成 .egg 的原生 CPU 执行；不是 GPU 或整 Cell sat-skip。')
         print('历史原生秒数：',r['native_historical']['run_seconds'],'；marker 秒数：',r['run_seconds'])
@@ -785,12 +791,23 @@ def parser():
     q=sub.add_parser('shared-marker-credit',help='same selected plans: private versus shared prefix maintenance')
     q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
     q.add_argument('--profile-before',type=Path);q.add_argument('--profile-after',type=Path);q.add_argument('--output',type=Path)
+    q=sub.add_parser('structural-pipeline',help='generate shared DAG keys and source markers with an explicit native extension')
+    q.add_argument('--key-policy',choices=['automatic','full'],default='automatic')
+    q.add_argument('--source',type=Path,required=True);q.add_argument('--analysis',type=Path,required=True)
+    q.add_argument('--output',type=Path,required=True);q.add_argument('--solver-python',type=Path)
+    q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--check',action='store_true');q.add_argument('--no-build',action='store_true')
+    q=sub.add_parser('explicit-keys-bench',help='fixed-layout Cell comparison: legacy keys vs explicit SK vs SK+marker, no solver')
+    for flag in ['source','sk','marked','layout','output']:q.add_argument('--'+flag,type=Path,required=True)
+    q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--no-build',action='store_true');q.add_argument('--no-extract',action='store_true')
+    q.add_argument('--marker-maintenance',choices=['native','gpu'],default='gpu',help='where the explicit cell-spine-complete helper runs; source schedule is unchanged')
     q=sub.add_parser('program-modes',help='same .egg on immutable pristine or GPU; optional original/marker 2x2 isolation')
     q.add_argument('--source',type=Path,required=True);q.add_argument('--marked',type=Path)
     q.add_argument('--backend',choices=['pristine','native','gpu','both'],default='both')
     q.add_argument('--pristine-checkout',type=Path,default=Path('/Users/mineralsteins/.codex/worktrees/native-baseline/egg_layout'))
     q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--output',type=Path,required=True)
-    q.add_argument('--no-build',action='store_true');q.add_argument('--query-audit',action='store_true')
+    q.add_argument('--no-build',action='store_true');q.add_argument('--query-audit',action='store_true');q.add_argument('--native-rulesets',default='',help='explicit comma-separated CPU helper rulesets, same source schedule')
+    q.add_argument('--cell-assistance',action='store_true');q.add_argument('--boundary-programs',type=Path)
+    q.add_argument('--setup-policy',choices=['source','legacy-stable'],default='source')
     q=sub.add_parser('spine-program',help='compile full scheduled source with optional-parameter spine layouts and validate through the usual runtime')
     q.add_argument('--snapshot',type=Path,default=SNAPSHOT);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--query-selection',type=Path);q.add_argument('--query-profile',type=Path);q.add_argument('--table-profile',type=Path)
@@ -1011,6 +1028,12 @@ def main(argv=None):
             p=resolve(a.output);p.parent.mkdir(parents=True,exist_ok=True)
             with p.open('x') as f:json.dump(r,f,indent=2);f.write('\n')
         return 0
+    if a.mode=='structural-pipeline':
+        import structural_pipeline
+        return structural_pipeline.run(a,repo)
+    if a.mode=='explicit-keys-bench':
+        import explicit_keys_bench
+        return explicit_keys_bench.run(a,repo)
     if a.mode=='program-modes':
         import program_modes
         return program_modes.run(a,repo)

@@ -25,7 +25,7 @@ pub struct Plan {
     pub shared_marker: bool,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 struct File {
     schema: String,
@@ -37,6 +37,18 @@ pub(super) fn load(commands: &[Command]) -> Result<Vec<Spec>> {
     let Some(path) = std::env::var_os("CELL_BOUNDARY_PROGRAMS") else {
         return Ok(vec![]);
     };
+    load_file(std::path::Path::new(&path), commands)
+}
+pub fn load_file(path: &std::path::Path, commands: &[Command]) -> Result<Vec<Spec>> {
+    let f = read_file(path)?;
+    if f.setup
+        .is_some_and(|s| s != commands.iter().map(ToString::to_string).collect::<Vec<_>>())
+    {
+        return Err("scheduled spine setup/source mismatch".into());
+    }
+    Ok(f.rules)
+}
+fn read_file(path: &std::path::Path) -> Result<File> {
     let f: File = serde_json::from_slice(&std::fs::read(path)?)?;
     if !["cell-boundary-programs/v1", "cell-boundary-programs/v2"].contains(&f.schema.as_str()) {
         return Err("unknown boundary program format".into());
@@ -47,12 +59,24 @@ pub(super) fn load(commands: &[Command]) -> Result<Vec<Spec>> {
     {
         return Err("boundary schema does not match its plan contract".into());
     }
-    if f.setup
-        .is_some_and(|s| s != commands.iter().map(ToString::to_string).collect::<Vec<_>>())
-    {
-        return Err("scheduled spine setup/source mismatch".into());
+    Ok(f)
+}
+/// Offline transport of a selected layout, not a new solver. Every complete
+/// native query, guard and wiring is checked before binding it to new setup.
+pub fn rebind_file(eg: &mut EGraph, commands: &[Command], path: &std::path::Path) -> Result<Json> {
+    let mut file = read_file(path)?;
+    if file.schema != "cell-boundary-programs/v2" {return Err("rebind requires a fully selected v2 layout".into())}
+    for spec in &mut file.rules {
+        let sink = eg.prepare_cell_action(&spec.ruleset, &spec.rule)?;
+        let shape = artifact::Shape::of(&sink);
+        let plan = spec.plan.as_mut().ok_or("missing selected layout")?;
+        if !plan.shape.same_wiring(&shape) {return Err(format!("rebind changed complete query wiring/guard: {}",spec.rule).into())}
+        plan.shape = shape;
+        let tables = (0..sink.atoms.len()).collect();
+        install(eg, sink, tables, spec)?;
     }
-    Ok(f.rules)
+    file.setup = Some(commands.iter().map(ToString::to_string).collect());
+    Ok(serde_json::to_value(file)?)
 }
 
 pub(super) fn compile(
@@ -314,6 +338,33 @@ impl Runtime {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn offline_rebind_allows_only_alpha_names_not_alias_or_guard_changes() {
+        let mut eg=EGraph::default();
+        let commands=eg.parse_program(None,r#"
+          (datatype E (N i64) (Loop E E)) (relation Ctx (E E))
+          (relation Hit (E E)) (ruleset s)
+          (rule ((= r (Loop x y)) (Ctx y z)) ((Hit r z)) :ruleset s :name "q")
+        "#).unwrap();
+        eg.run_program(commands.clone()).unwrap();
+        let report=inspect(&mut eg,&["s".into()],&BTreeSet::new()).unwrap();
+        let mut p:Plan=serde_json::from_value(report["queries"][0]["plans"][0].clone()).unwrap();
+        let live=p.shape.clone();
+        for (name,_) in &mut p.shape.slots {*name=format!("other-{name}");}
+        assert!(p.shape.same_wiring(&live));
+        let mut alias=serde_json::to_value(&live).unwrap();
+        alias["atoms"][0]["columns"][0]=serde_json::json!({"Slot":999});
+        assert!(!serde_json::from_value::<artifact::Shape>(alias).unwrap().same_wiring(&live));
+        let path=std::env::temp_dir().join(format!("rebind-test-{}-{}.json",std::process::id(),std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));
+        let file=File{schema:"cell-boundary-programs/v2".into(),setup:Some(vec!["old setup".into()]),rules:vec![Spec{ruleset:"s".into(),rule:"q".into(),root:"Loop".into(),plan:Some(p)}]};
+        std::fs::write(&path,serde_json::to_vec(&file).unwrap()).unwrap();
+        assert!(load_file(&path,&commands).is_err());
+        let rebound=rebind_file(&mut eg,&commands,&path).unwrap();
+        assert_eq!(rebound["rules"][0]["plan"]["shape"],serde_json::to_value(live).unwrap());
+        std::fs::write(&path,serde_json::to_vec(&rebound).unwrap()).unwrap();
+        assert_eq!(load_file(&path,&commands).unwrap().len(),1);
+        std::fs::remove_file(path).unwrap();
+    }
     #[test]
     fn native_frontier_matches_after_missing_ports_union_visibility_and_reinsert() {
         let mut eg = EGraph::default();

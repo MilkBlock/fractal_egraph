@@ -12,6 +12,9 @@ use egglog::{
 use serde_json::{Value as Json, json};
 use std::{collections::BTreeMap, error::Error, fs, io::Write};
 
+#[path = "support/egg_source.rs"]
+mod egg_source;
+
 fn expression(expr: &Expr) -> Json {
     match expr {
         Expr::Var(_, name) => json!({"kind": "var", "name": name}),
@@ -113,7 +116,9 @@ fn schedule(s: &egglog::ast::Schedule) -> Json {
 fn schedule_tree(s: &egglog::ast::Schedule) -> Json {
     use egglog::ast::GenericSchedule as S;
     match s {
-        S::Run(_, cfg) => json!({"kind":"run","ruleset":cfg.ruleset,"text":s.to_string()}),
+        S::Run(_, cfg) => {
+            json!({"kind":"run","ruleset":cfg.ruleset,"text":egg_source::schedule_text(s)})
+        }
         S::Sequence(_, xs) => {
             json!({"kind":"seq","children":xs.iter().map(schedule_tree).collect::<Vec<_>>()})
         }
@@ -182,7 +187,7 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
                 declarations.push(declaration);
             }
             _ => other_commands.push(json!({
-                "command_ordinal": command_ordinal, "text": command.to_string(),
+                "command_ordinal": command_ordinal, "text": egg_source::printed(command),
             })),
         }
     }
@@ -261,7 +266,7 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
             if let Command::RunSchedule(s) = c { Some(schedule(s)) } else {None}
         }).collect::<Vec<_>>(),
         "commands": commands.iter().enumerate().map(|(ordinal, c)| json!({
-            "ordinal": ordinal, "text": c.to_string(),
+            "ordinal": ordinal, "text": egg_source::printed(c),
             "schedule":if let Command::RunSchedule(s)=c {schedule_tree(s)} else {Json::Null},
             "kind": match c {
                 Command::Action(_) => "action", Command::RunSchedule(_) => "schedule",

@@ -118,3 +118,80 @@ fn cache_preflight_uses_native_parser_and_does_not_read_includes() {
     assert!(!dir.join("unused").exists());
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn explicit_native_helpers_keep_the_same_source_schedule() {
+    let Some(worker) = std::env::var_os("CELL_MATRIX_WORKER") else {
+        return;
+    };
+    let dir = folder();
+    let source = dir.join("source.egg");
+    std::fs::write(&source,"(relation P (i64)) (relation Q (i64)) (relation R (i64)) (ruleset helper) (ruleset consumer) (rule ((P x)) ((Q (+ x 1))) :ruleset helper) (rule ((Q x)) ((R (+ x 1))) :ruleset consumer) (P 7) (run-schedule (seq (run helper) (run consumer))) (check (R 9)) (fail (check (R 10)))").unwrap();
+    let out = dir.join("out");
+    let r = invoke(
+        &source,
+        &out,
+        "gpu",
+        &[
+            "--gpu-worker",
+            worker.to_str().unwrap(),
+            "--query-audit",
+            "on",
+            "--native-rulesets",
+            "helper",
+        ],
+    );
+    assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
+    let report: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(out.join("report.json")).unwrap()).unwrap();
+    assert_eq!(
+        report["explicit_native_rulesets"],
+        serde_json::json!(["helper"])
+    );
+    let rules = report["runtime"]["rules"].as_array().unwrap();
+    assert_eq!(rules.len(), 1);
+    assert_eq!(rules[0]["ruleset"], "consumer");
+    let bad = invoke(
+        &source,
+        &dir.join("bad"),
+        "gpu",
+        &[
+            "--gpu-worker",
+            worker.to_str().unwrap(),
+            "--native-rulesets",
+            "unknown",
+        ],
+    );
+    assert!(!bad.status.success());
+    assert!(String::from_utf8_lossy(&bad.stderr).contains("unknown explicit native ruleset"));
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn explicit_source_attaches_cell_closures_without_reinstalling_keys() {
+    let Some(worker) = std::env::var_os("CELL_MATRIX_WORKER") else { return };
+    let dir=folder();let source=dir.join("source.egg");
+    let text=format!("; cell-structural-key-runtime/v1 {{\"nodes\":[],\"bases\":[]}}\n{}\n\
+        (ruleset cell-stable-keys) (ruleset cell-stable-freeze)\n\
+        (set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2))\n\
+        (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3))\n\
+        (Bop (Add) (V 0) (V 1))\n{}\n\
+        (check (= (ExtractedExpr (Bop (Add) (V 0) (V 1))) (TCPair (TermBop (Add) (TermLeaf 0) (TermLeaf 1)) 6)))",
+        include_str!("../../experiments/parameterized_cell/terms.egg"),
+        cell_assisted_egglog::parameterized_cell::joint::SCHEDULE);
+    std::fs::write(&source,text).unwrap();
+    let out=dir.join("assisted");
+    let args=["--gpu-worker",worker.to_str().unwrap(),"--cell-assistance","on","--native-rulesets","cell-stable-keys,cell-stable-freeze"];
+    let r=invoke(&source,&out,"gpu",&args);
+    assert!(r.status.success(),"{}",String::from_utf8_lossy(&r.stderr));
+    let report:serde_json::Value=serde_json::from_slice(&std::fs::read(out.join("report.json")).unwrap()).unwrap();
+    assert_eq!(report["cell_assistance"],true);
+    assert_eq!(report["source_rewritten_by_runner"],false);
+    assert!(report["runtime"]["runtime"]["skipped_saturations"].as_u64().unwrap()>0);
+    assert!(report["runtime"]["saturation_diagnostics"]["joint"]["stats"]["macro_instances"].as_u64().unwrap()>0);
+    let mut duplicate=args.to_vec();duplicate.extend(["--setup-policy","legacy-stable"]);
+    let bad=invoke(&source,&dir.join("duplicate"),"gpu",&duplicate);
+    assert!(!bad.status.success());
+    assert!(String::from_utf8_lossy(&bad.stderr).contains("cannot also install legacy"));
+    std::fs::remove_dir_all(dir).unwrap();
+}

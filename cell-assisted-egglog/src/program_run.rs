@@ -17,6 +17,11 @@ pub fn run(a: &BTreeMap<String, String>) -> Result<()> {
             "--pristine-runner",
             "--gpu-worker",
             "--query-audit",
+            "--native-rulesets",
+            "--cell-assistance",
+            "--boundary-programs",
+            "--setup-policy",
+            "--export-extraction",
         ]
         .contains(&key.as_str())
         {
@@ -30,7 +35,23 @@ pub fn run(a: &BTreeMap<String, String>) -> Result<()> {
     }
     let source = Path::new(required(a, "--source")?);
     let out = Path::new(required(a, "--output")?);
+    let assisted = match a.get("--cell-assistance").map(String::as_str).unwrap_or("off") {
+        "on" => true, "off" => false, _ => return Err("cell-assistance expects on/off".into())
+    };
+    let policy = a.get("--setup-policy").map(String::as_str).unwrap_or("source");
+    if !["source","legacy-stable"].contains(&policy) {return Err("setup-policy expects source or legacy-stable".into())}
+    let layout = a.get("--boundary-programs").map(Path::new);
+    if (assisted || policy != "source" || layout.is_some()) && required(a,"--backend")? != "gpu" {
+        return Err("Cell assistance/setup policy currently requires the GPU backend".into());
+    }
+    if !assisted && (policy != "source" || layout.is_some()) {return Err("layout/setup-policy requires explicit cell-assistance on".into())}
+    let export = match a.get("--export-extraction").map(String::as_str).unwrap_or("off") {
+        "on" => true, "off" => false, _ => return Err("export-extraction expects on/off".into())
+    };
     EGraph::set_num_threads(1);
+    // These are timing/execution lanes, not native join-counter profiles.
+    // EGGLOG_PROBE_COUNTS_OFF is not a native API; use the actual toggle.
+    egglog::set_probe_counts_enabled(false);
     match required(a, "--backend")? {
         "inspect" => {
             fn closed(c: &Command) -> bool {
@@ -96,13 +117,19 @@ pub fn run(a: &BTreeMap<String, String>) -> Result<()> {
             out,
             Path::new(required(a, "--gpu-worker")?),
             a.get("--query-audit").is_some_and(|s| s == "on"),
+            a.get("--native-rulesets").map(String::as_str).unwrap_or(""),
+            assisted, policy, layout, export,
         ),
         _ => Err("program backend must be pristine, native or gpu".into()),
     }
 }
-fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool) -> Result<()> {
+fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool, native: &str,
+       assisted:bool, policy:&str, layout:Option<&Path>, export:bool) -> Result<()> {
     std::fs::create_dir(out)?;
-    let (frozen, commands, setup) = match io::prepare(source) {
+    let prepared = if assisted {
+        crate::program_assistance::prepare(source,policy,layout).map(|(e,c,s,h)|(e,c,s,Some(h)))
+    } else {io::prepare(source).map(|(e,c,s)|(e,c,s,None))};
+    let (frozen, commands, setup, hook) = match prepared {
         Ok(x) => x,
         Err(e) => {
             std::fs::write(
@@ -120,8 +147,65 @@ fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool) -> Result<()> {
         .cloned()
         .collect::<Vec<_>>();
     let start = Instant::now();
-    let admitted =
-        crate::table_live::Runtime::new_full(frozen.clone(), &schedules, Some(worker), audit, None);
+    fn collect(s: &egglog::ast::Schedule, out: &mut std::collections::BTreeSet<String>) {
+        use egglog::ast::GenericSchedule::*;
+        match s {
+            Run(_, r) => {
+                out.insert(r.ruleset.clone());
+            }
+            Sequence(_, xs) => {
+                for x in xs {
+                    collect(x, out)
+                }
+            }
+            Repeat(_, _, s) | Saturate(_, s) => collect(s, out),
+        }
+    }
+    let mut native = native
+        .split(',')
+        .filter(|s| !s.is_empty())
+        .collect::<std::collections::BTreeSet<_>>();
+    if policy == "legacy-stable" {native.insert(crate::stable_choice::RULESET);}
+    let mut sets = std::collections::BTreeSet::new();
+    for c in &schedules {
+        if let Command::RunSchedule(s) = c {
+            collect(s, &mut sets)
+        }
+    }
+    // Helpers may already have run during native initialization. Validate names
+    // against installed sets, not just the final/main schedule.
+    for name in &native {
+        frozen
+            .cell_ruleset_members(name)
+            .map_err(|_| format!("unknown explicit native ruleset {name:?}"))?;
+    }
+    for set in &sets {
+        if !native.contains(set.as_str())
+            && frozen
+                .cell_ruleset_members(set)?
+                .iter()
+                .any(|(owner, _)| native.contains(owner.as_str()))
+        {
+            return Err(format!("cannot exclude a member of combined ruleset {set:?}; select the whole scheduled set as native").into());
+        }
+    }
+    let selected = sets
+        .into_iter()
+        .filter(|s| !native.contains(s.as_str()))
+        .collect::<Vec<_>>();
+    let admitted = crate::table_live::Runtime::new_full_configured(
+        frozen.clone(),
+        &schedules,
+        Some(worker),
+        audit,
+        if native.is_empty() {
+            None
+        } else {
+            Some(&selected)
+        },
+        hook,
+        Default::default(),
+    );
     let mut runtime = match admitted {
         Ok(r) => r,
         Err(e) => {
@@ -136,6 +220,7 @@ fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool) -> Result<()> {
     let device_setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
     let result = runtime.run(&schedules);
+    let inference_seconds = start.elapsed().as_secs_f64();
     let telemetry = runtime.report();
     let mut eg = runtime.into_engine();
     // These commands follow the last schedule, so no future GPU frontier can
@@ -155,10 +240,15 @@ fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool) -> Result<()> {
         &eg,
         json!({"schema":"program-run/v1","backend":"gpu","complete":result.is_ok(),
         "phase":"run","error":result.as_ref().err().map(ToString::to_string),"setup":setup,
-        "run_seconds":start.elapsed().as_secs_f64(),"gpu_setup_seconds":device_setup,
-        "runtime":telemetry,"cell_assistance":false,"query_audit":audit,"outputs":outputs,
-        "source_rewritten_by_runner":false,"provenance":{"kernel":"current fork, GPU queries with native effects"}}),
+        "run_seconds":inference_seconds,"gpu_setup_seconds":device_setup,
+        "runtime":telemetry,"cell_assistance":assisted,"query_audit":audit,"native_probe_counters":false,"outputs":outputs,"explicit_native_rulesets":native,
+        "source_rewritten_by_runner":policy!="source","provenance":{"kernel":"current fork, GPU queries with native effects"}}),
     )?;
+    if export {
+        let graph=eg.serialize(egglog::SerializeConfig::default());
+        if !graph.is_complete(){return Err("incomplete extraction graph".into())}
+        serde_json::to_writer_pretty(std::io::BufWriter::new(std::fs::File::create(out.join("extraction-input.json"))?), &graph.egraph)?;
+    }
     result?;
     Ok(())
 }

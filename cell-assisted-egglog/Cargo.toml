@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-egglog = { path = "../egglog", default-features = false }
+egglog = { path = "../egglog", default-features = false, features = ["serde"] }
 egglog-numeric-id = { path = "../egglog/numeric-id" }
 egglog-reports = { path = "../egglog/egglog-reports" }
 serde = { version = "1", features = ["derive"] }

@@ -1,0 +1,161 @@
+{
+  "schema": "standalone-structural-keys-validation/v1",
+  "scope": "actual native pristine/GPU program execution, plus independent reused-Rust-policy key comparison; not a speedup claim",
+  "base_commit": "95e6e44",
+  "reused_policy_commit": "a89c4cc",
+  "baseline_commit": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+  "kernel_changed": false,
+  "tests": {
+    "rust": 14,
+    "python": 16
+  },
+  "pipelines": {
+    "active-markers": {
+      "output": "out/structural-checked-markers",
+      "status": "checked",
+      "source_sha256": "313db40299593dd0549582f62716b603761fa16fdc1ecb3b51715a0d65a4a040",
+      "artifacts": {
+        "source.egg": "313db40299593dd0549582f62716b603761fa16fdc1ecb3b51715a0d65a4a040",
+        "source_sk.egg": "05e3513fba6fe9180ea2bc4ffbb28906a565588aa7fbd6e47ef0b32dfe9eeb0c",
+        "source_sk_mk.egg": "71259c1bd5705fa909eaf7c64b442f31454f154582f3509aa168ad7ef1b05af4"
+      },
+      "checks": {
+        "marker_effect_pristine": "equal",
+        "marker_effect_gpu": "equal",
+        "backend_original": "equal",
+        "backend_marked": "equal"
+      },
+      "marker_schemas": 1,
+      "rewritten_consumers": 3,
+      "publication_actions_in_source": 1,
+      "lanes": {
+        "original-pristine": {
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.001723333,
+          "reused": true,
+          "marker_rows": 0,
+          "seen_rows": {
+            "Seen0": 1,
+            "Seen1": 1,
+            "Seen2": 1
+          },
+          "setup_seconds": 0.013078166
+        },
+        "original-gpu": {
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.011769959,
+          "reused": false,
+          "marker_rows": 0,
+          "seen_rows": {
+            "Seen0": 1,
+            "Seen1": 1,
+            "Seen2": 1
+          },
+          "setup_seconds": 0.0127085,
+          "gpu_setup_seconds": 0.054185625
+        },
+        "marked-pristine": {
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.00136,
+          "reused": true,
+          "marker_rows": 1,
+          "seen_rows": {
+            "Seen0": 1,
+            "Seen1": 1,
+            "Seen2": 1
+          },
+          "setup_seconds": 0.008004834
+        },
+        "marked-gpu": {
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.012605,
+          "reused": false,
+          "marker_rows": 1,
+          "seen_rows": {
+            "Seen0": 1,
+            "Seen1": 1,
+            "Seen2": 1
+          },
+          "setup_seconds": 0.009185791,
+          "gpu_setup_seconds": 0.042013166
+        }
+      }
+    },
+    "eggcc-add-pass3": {
+      "output": "out/structural-checked-add",
+      "status": "checked",
+      "source_sha256": "0e7c5499810c1b28ed54aad26dcb9af0c494dacfcc0c928cd92af511915aef35",
+      "artifacts": {
+        "source.egg": "0e7c5499810c1b28ed54aad26dcb9af0c494dacfcc0c928cd92af511915aef35",
+        "source_sk.egg": "1d01e9b5a0f0093ae72ccc8a9db5c8753bd64b3fe7e8d9e10aea4ad61cf5c7d3",
+        "source_sk_mk.egg": "72408822122809318300756a48ae5ee3e32d5e0e9868319327a03e07e4610b2b"
+      },
+      "checks": {
+        "marker_effect_pristine": "equal",
+        "marker_effect_gpu": "equal",
+        "backend_original": "equal",
+        "backend_marked": "equal"
+      },
+      "marker_schemas": 1,
+      "rewritten_consumers": 6,
+      "publication_actions_in_source": 0,
+      "lanes": {
+        "original-pristine": {
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.252124916,
+          "reused": false,
+          "marker_rows": 0,
+          "seen_rows": {},
+          "setup_seconds": 0.35604975
+        },
+        "original-gpu": {
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.462802208,
+          "reused": false,
+          "marker_rows": 0,
+          "seen_rows": {},
+          "setup_seconds": 0.361407291,
+          "gpu_setup_seconds": 2.654137583
+        },
+        "marked-pristine": {
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.244845209,
+          "reused": false,
+          "marker_rows": 0,
+          "seen_rows": {},
+          "setup_seconds": 0.353995084
+        },
+        "marked-gpu": {
+          "complete": true,
+          "snapshot_complete": true,
+          "run_seconds": 0.372382,
+          "reused": false,
+          "marker_rows": 0,
+          "seen_rows": {},
+          "setup_seconds": 0.353254792,
+          "gpu_setup_seconds": 2.438538917
+        }
+      }
+    }
+  },
+  "limits": [
+    "Real add Pass-3 and targeted fixtures validated; full raytrace only generated, not executed.",
+    "SK changes original tie semantics; the old Rust SK policy is the source-conversion oracle.",
+    "Key maintenance runs on CPU in GPU mode; exact rational growth is not a speed or storage optimization.",
+    "The source marker stage still selects two-atom full-key fragments; no arbitrary-spine source backend claim."
+  ],
+  "exact_reference_association": {
+    "reference_key_rows": 209,
+    "portable_key_rows": 209,
+    "exact_key_association": true,
+    "original_rows": 238,
+    "max_key_bits": 6153
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "explicit-key-cell-bench/v1",
+  "scope": "same-binary actual GPU runtime with identical selected layouts and checked Cell services; no solver",
+  "binary_sha256": "6c0804597ad29f43f45ca50db4d58c8fec2764ac52f5a53d0398e612b4f834cd",
+  "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+  "selected_layout_sha256": "1332acb50268d4f23daaf7c541955086191006867686ef95a10c4adc38763c21",
+  "comparisons": {
+    "legacy->explicit-sk": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 699068,
+      "mapped_classes": 524631,
+      "projected_out_left": [],
+      "projected_out_right": [
+        "CellStructuralKey-Assumption",
+        "CellStructuralKey-BaseType",
+        "CellStructuralKey-BinaryOp",
+        "CellStructuralKey-Constant",
+        "CellStructuralKey-Expr",
+        "CellStructuralKey-ListExpr",
+        "CellStructuralKey-Node",
+        "CellStructuralKey-Term",
+        "CellStructuralKey-TernaryOp",
+        "CellStructuralKey-Type",
+        "CellStructuralKey-TypeList",
+        "CellStructuralKey-UnaryOp"
+      ]
+    },
+    "explicit-sk->explicit-markers": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 787663,
+      "mapped_classes": 524631,
+      "projected_out_left": [],
+      "projected_out_right": [
+        "CellSpineView0"
+      ]
+    }
+  },
+  "graph_passed": true,
+  "extraction_passed": true,
+  "services_match": true,
+  "no_observed_regression": false,
+  "ready_to_merge": false,
+  "lanes": {
+    "legacy": {
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "run_seconds": 12.735385665999999,
+      "ratio_to_legacy": 1.0,
+      "cell_assistance": true,
+      "source_rewritten_by_runner": true,
+      "cell_query_rules": 34162,
+      "cell_query_bindings": 2041944,
+      "skipped_saturations": 12
+    },
+    "explicit-sk": {
+      "source_sha256": "1a6d3b5a5543ff704b72ccf601b12fd0cd3bc7c2fea88191a25bb4d654c5a56d",
+      "run_seconds": 12.618744458,
+      "ratio_to_legacy": 0.9908411719080169,
+      "cell_assistance": true,
+      "source_rewritten_by_runner": false,
+      "cell_query_rules": 34162,
+      "cell_query_bindings": 2041944,
+      "skipped_saturations": 12
+    },
+    "explicit-markers": {
+      "source_sha256": "c28f8338b35b144c76892fc818c5f9c5e14664a6d336e907843413319515be83",
+      "run_seconds": 13.523111542,
+      "ratio_to_legacy": 1.0618533192993922,
+      "cell_assistance": true,
+      "source_rewritten_by_runner": false,
+      "cell_query_rules": 34162,
+      "cell_query_bindings": 2041944,
+      "skipped_saturations": 12
+    }
+  },
+  "native_marker_maintenance_seconds": 14.267056541
+}
