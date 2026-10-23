@@ -1,0 +1,2256 @@
+{
+  "schema": "runtime-marker-workload-result/v1",
+  "scope": "actual assisted-runtime saved raytrace Pass 3; one paired run; not pristine or held-out generalization",
+  "corpus": {
+    "summary": {
+      "workloads": 96,
+      "passes": 288,
+      "run_boundaries": 411633,
+      "admitted_query_shapes": 609,
+      "observed_query_shapes": 514,
+      "alternative_plans": 1700,
+      "observed_plans": 1508,
+      "structural_prefixes": 4881,
+      "rejected_rules": 336
+    },
+    "manifest": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/marker-workload-all-passing/manifest.json",
+    "manifest_sha256": "a411a1a694796344be0b8a7ce7d05077680362bd97041e096f4018b4f1ca81a1",
+    "prices": "out/marker-workload-prices.json",
+    "prices_sha256": "8937490c702b38c82bc6c4aadcf220df60282bbe0f16b58bf3a01aa4da712317",
+    "limits": "shared maintenance coalesces same-version census work by maximum; exact union of consumer dirty-root sets is not recorded, so this is an estimate rather than a proven bound; not measured wall time or a new closure proof"
+  },
+  "selection": {
+    "objective": 12750628.0,
+    "choices": 2219,
+    "solver_choices": 739,
+    "shared_markers": 0,
+    "plans": [
+      {
+        "ruleset": "always-run",
+        "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+        "root": "Get",
+        "plan": {
+          "shape": {
+            "slots": [
+              [
+                "x",
+                "Expr"
+              ],
+              [
+                "i",
+                "i64"
+              ],
+              [
+                "@Get19",
+                "Expr"
+              ]
+            ],
+            "atoms": [
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 2
+                  }
+                ]
+              }
+            ],
+            "guards": [],
+            "native_residuals": false
+          },
+          "seed": 0,
+          "steps": [],
+          "prefix_len": 0,
+          "carried_slots": []
+        },
+        "costs": {
+          "search": 1353738,
+          "storage": 21964,
+          "update": 0
+        },
+        "evidence": "measured_private"
+      },
+      {
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+        "root": "Add-Gets",
+        "plan": {
+          "shape": {
+            "slots": [
+              [
+                "left",
+                "Expr"
+              ],
+              [
+                "right",
+                "Expr"
+              ],
+              [
+                "@Concat7",
+                "Expr"
+              ],
+              [
+                "orig",
+                "Expr"
+              ],
+              [
+                "n",
+                "i64"
+              ],
+              [
+                "@Add-Gets5",
+                "___AddGetsSort"
+              ],
+              [
+                "@tuple-length7",
+                "i64"
+              ]
+            ],
+            "atoms": [
+              {
+                "table": "Concat",
+                "sorts": [
+                  "Expr",
+                  "Expr",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 2
+                  }
+                ]
+              },
+              {
+                "table": "Add-Gets",
+                "sorts": [
+                  "Expr",
+                  "Expr",
+                  "i64",
+                  "___AddGetsSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 2
+                  },
+                  {
+                    "Slot": 4
+                  },
+                  {
+                    "Slot": 5
+                  }
+                ]
+              },
+              {
+                "table": "tuple-length",
+                "sorts": [
+                  "Expr",
+                  "i64"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 6
+                  }
+                ]
+              }
+            ],
+            "guards": [],
+            "native_residuals": false
+          },
+          "seed": 1,
+          "steps": [
+            [
+              0,
+              "Output"
+            ],
+            [
+              2,
+              "Key"
+            ]
+          ],
+          "prefix_len": 0,
+          "carried_slots": []
+        },
+        "costs": {
+          "search": 6125046,
+          "storage": 34696,
+          "update": 0
+        },
+        "evidence": "measured_private"
+      },
+      {
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+        "root": "Single",
+        "plan": {
+          "shape": {
+            "slots": [
+              [
+                "e",
+                "Expr"
+              ],
+              [
+                "@Single11",
+                "Expr"
+              ],
+              [
+                "orig",
+                "Expr"
+              ],
+              [
+                "n",
+                "i64"
+              ],
+              [
+                "@Add-Gets9",
+                "___AddGetsSort"
+              ]
+            ],
+            "atoms": [
+              {
+                "table": "Single",
+                "sorts": [
+                  "Expr",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 1
+                  }
+                ]
+              },
+              {
+                "table": "Add-Gets",
+                "sorts": [
+                  "Expr",
+                  "Expr",
+                  "i64",
+                  "___AddGetsSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 2
+                  },
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 4
+                  }
+                ]
+              }
+            ],
+            "guards": [],
+            "native_residuals": false
+          },
+          "seed": 0,
+          "steps": [
+            [
+              1,
+              {
+                "Columns": 2
+              }
+            ]
+          ],
+          "prefix_len": 0,
+          "carried_slots": []
+        },
+        "costs": {
+          "search": 2548319,
+          "storage": 8112,
+          "update": 0
+        },
+        "evidence": "measured_private"
+      },
+      {
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+        "root": "Not-Just-Concat",
+        "plan": {
+          "shape": {
+            "slots": [
+              [
+                "orig",
+                "Expr"
+              ],
+              [
+                "something",
+                "Expr"
+              ],
+              [
+                "n",
+                "i64"
+              ],
+              [
+                "@Add-Gets11",
+                "___AddGetsSort"
+              ],
+              [
+                "@Not-Just-Concat1",
+                "___NotJustConcatSort"
+              ]
+            ],
+            "atoms": [
+              {
+                "table": "Add-Gets",
+                "sorts": [
+                  "Expr",
+                  "Expr",
+                  "i64",
+                  "___AddGetsSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 2
+                  },
+                  {
+                    "Slot": 3
+                  }
+                ]
+              },
+              {
+                "table": "Not-Just-Concat",
+                "sorts": [
+                  "Expr",
+                  "___NotJustConcatSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 4
+                  }
+                ]
+              }
+            ],
+            "guards": [],
+            "native_residuals": false
+          },
+          "seed": 1,
+          "steps": [
+            [
+              0,
+              {
+                "Columns": 2
+              }
+            ]
+          ],
+          "prefix_len": 0,
+          "carried_slots": []
+        },
+        "costs": {
+          "search": 235965,
+          "storage": 4582,
+          "update": 0
+        },
+        "evidence": "measured_private"
+      },
+      {
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+        "root": "Add-All-Gets",
+        "plan": {
+          "shape": {
+            "slots": [
+              [
+                "orig",
+                "Expr"
+              ],
+              [
+                "something",
+                "Expr"
+              ],
+              [
+                "offset",
+                "i64"
+              ],
+              [
+                "pos",
+                "i64"
+              ],
+              [
+                "@Add-All-Gets4",
+                "___AddAllGetsSort"
+              ],
+              [
+                "@tuple-length9",
+                "i64"
+              ]
+            ],
+            "atoms": [
+              {
+                "table": "Add-All-Gets",
+                "sorts": [
+                  "Expr",
+                  "Expr",
+                  "i64",
+                  "i64",
+                  "___AddAllGetsSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 2
+                  },
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 4
+                  }
+                ]
+              },
+              {
+                "table": "tuple-length",
+                "sorts": [
+                  "Expr",
+                  "i64"
+                ],
+                "columns": [
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 5
+                  }
+                ]
+              }
+            ],
+            "guards": [
+              [
+                0,
+                [
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 5
+                  }
+                ]
+              ]
+            ],
+            "native_residuals": false
+          },
+          "seed": 0,
+          "steps": [
+            [
+              1,
+              "Key"
+            ]
+          ],
+          "prefix_len": 0,
+          "carried_slots": []
+        },
+        "costs": {
+          "search": 788334,
+          "storage": 8184,
+          "update": 0
+        },
+        "evidence": "measured_private"
+      },
+      {
+        "ruleset": "always-run",
+        "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+        "root": "DoWhile",
+        "plan": {
+          "shape": {
+            "slots": [
+              [
+                "inputs",
+                "Expr"
+              ],
+              [
+                "pred-and-body",
+                "Expr"
+              ],
+              [
+                "@DoWhile113",
+                "Expr"
+              ],
+              [
+                "loop-input-ctx",
+                "Assumption"
+              ],
+              [
+                "@ContextOf116",
+                "___ContextOfSort"
+              ],
+              [
+                "loop-output-ctx",
+                "Assumption"
+              ],
+              [
+                "@ContextOf117",
+                "___ContextOfSort"
+              ],
+              [
+                "c",
+                "Constant"
+              ],
+              [
+                "out-type",
+                "Type"
+              ],
+              [
+                "@Const168",
+                "Expr"
+              ],
+              [
+                "in-type",
+                "Type"
+              ],
+              [
+                "@HasArgType139",
+                "___HasArgTypeSort"
+              ]
+            ],
+            "atoms": [
+              {
+                "table": "DoWhile",
+                "sorts": [
+                  "Expr",
+                  "Expr",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 2
+                  }
+                ]
+              },
+              {
+                "table": "ContextOf",
+                "sorts": [
+                  "Expr",
+                  "Assumption",
+                  "___ContextOfSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 4
+                  }
+                ]
+              },
+              {
+                "table": "ContextOf",
+                "sorts": [
+                  "Expr",
+                  "Assumption",
+                  "___ContextOfSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 5
+                  },
+                  {
+                    "Slot": 6
+                  }
+                ]
+              },
+              {
+                "table": "Const",
+                "sorts": [
+                  "Constant",
+                  "Type",
+                  "Assumption",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 7
+                  },
+                  {
+                    "Slot": 8
+                  },
+                  {
+                    "Slot": 5
+                  },
+                  {
+                    "Slot": 9
+                  }
+                ]
+              },
+              {
+                "table": "HasArgType",
+                "sorts": [
+                  "Expr",
+                  "Type",
+                  "___HasArgTypeSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 10
+                  },
+                  {
+                    "Slot": 11
+                  }
+                ]
+              }
+            ],
+            "guards": [],
+            "native_residuals": false
+          },
+          "seed": 0,
+          "steps": [
+            [
+              1,
+              {
+                "Columns": 1
+              }
+            ],
+            [
+              2,
+              {
+                "Columns": 1
+              }
+            ],
+            [
+              4,
+              {
+                "Columns": 1
+              }
+            ],
+            [
+              3,
+              {
+                "Columns": 4
+              }
+            ]
+          ],
+          "prefix_len": 0,
+          "carried_slots": []
+        },
+        "costs": {
+          "search": 1204418,
+          "storage": 84,
+          "update": 0
+        },
+        "evidence": "measured_private"
+      },
+      {
+        "ruleset": "non-weakly-linear",
+        "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+        "root": "Arg",
+        "plan": {
+          "shape": {
+            "slots": [
+              [
+                "pred",
+                "Expr"
+              ],
+              [
+                "inputs",
+                "Expr"
+              ],
+              [
+                "then_",
+                "Expr"
+              ],
+              [
+                "else_",
+                "Expr"
+              ],
+              [
+                "@If178",
+                "Expr"
+              ],
+              [
+                "i",
+                "i64"
+              ],
+              [
+                "@Get469",
+                "Expr"
+              ],
+              [
+                "arg_ty",
+                "Type"
+              ],
+              [
+                "then_ctx",
+                "Assumption"
+              ],
+              [
+                "@Arg200",
+                "Expr"
+              ],
+              [
+                "j",
+                "i64"
+              ],
+              [
+                "@Get468",
+                "Expr"
+              ],
+              [
+                "else_ctx",
+                "Assumption"
+              ],
+              [
+                "@Arg201",
+                "Expr"
+              ],
+              [
+                "@StateT23",
+                "BaseType"
+              ],
+              [
+                "@Base180",
+                "Type"
+              ],
+              [
+                "@HasType258",
+                "___HasTypeSort"
+              ]
+            ],
+            "atoms": [
+              {
+                "table": "If",
+                "sorts": [
+                  "Expr",
+                  "Expr",
+                  "Expr",
+                  "Expr",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 2
+                  },
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 4
+                  }
+                ]
+              },
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 2
+                  },
+                  {
+                    "Slot": 5
+                  },
+                  {
+                    "Slot": 6
+                  }
+                ]
+              },
+              {
+                "table": "Arg",
+                "sorts": [
+                  "Type",
+                  "Assumption",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 7
+                  },
+                  {
+                    "Slot": 8
+                  },
+                  {
+                    "Slot": 9
+                  }
+                ]
+              },
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 9
+                  },
+                  {
+                    "Slot": 10
+                  },
+                  {
+                    "Slot": 6
+                  }
+                ]
+              },
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 5
+                  },
+                  {
+                    "Slot": 11
+                  }
+                ]
+              },
+              {
+                "table": "Arg",
+                "sorts": [
+                  "Type",
+                  "Assumption",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 7
+                  },
+                  {
+                    "Slot": 12
+                  },
+                  {
+                    "Slot": 13
+                  }
+                ]
+              },
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 13
+                  },
+                  {
+                    "Slot": 10
+                  },
+                  {
+                    "Slot": 11
+                  }
+                ]
+              },
+              {
+                "table": "StateT",
+                "sorts": [
+                  "BaseType"
+                ],
+                "columns": [
+                  {
+                    "Slot": 14
+                  }
+                ]
+              },
+              {
+                "table": "Base",
+                "sorts": [
+                  "BaseType",
+                  "Type"
+                ],
+                "columns": [
+                  {
+                    "Slot": 14
+                  },
+                  {
+                    "Slot": 15
+                  }
+                ]
+              },
+              {
+                "table": "HasType",
+                "sorts": [
+                  "Expr",
+                  "Type",
+                  "___HasTypeSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 6
+                  },
+                  {
+                    "Slot": 15
+                  },
+                  {
+                    "Slot": 16
+                  }
+                ]
+              }
+            ],
+            "guards": [],
+            "native_residuals": false
+          },
+          "seed": 2,
+          "steps": [
+            [
+              7,
+              "Key"
+            ],
+            [
+              8,
+              "Key"
+            ],
+            [
+              3,
+              {
+                "Columns": 1
+              }
+            ],
+            [
+              9,
+              "Key"
+            ],
+            [
+              1,
+              "Output"
+            ],
+            [
+              5,
+              {
+                "Columns": 1
+              }
+            ],
+            [
+              6,
+              "Key"
+            ],
+            [
+              4,
+              "Output"
+            ],
+            [
+              0,
+              {
+                "Columns": 12
+              }
+            ]
+          ],
+          "prefix_len": 0,
+          "carried_slots": []
+        },
+        "costs": {
+          "search": 85856,
+          "storage": 75,
+          "update": 0
+        },
+        "evidence": "measured_private"
+      },
+      {
+        "ruleset": "state-edge-passthrough",
+        "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+        "root": "Arg",
+        "plan": {
+          "shape": {
+            "slots": [
+              [
+                "pred",
+                "Expr"
+              ],
+              [
+                "inputs",
+                "Expr"
+              ],
+              [
+                "then_",
+                "Expr"
+              ],
+              [
+                "else_",
+                "Expr"
+              ],
+              [
+                "@If143",
+                "Expr"
+              ],
+              [
+                "i",
+                "i64"
+              ],
+              [
+                "@Get335",
+                "Expr"
+              ],
+              [
+                "arg_ty",
+                "Type"
+              ],
+              [
+                "then_ctx",
+                "Assumption"
+              ],
+              [
+                "@Arg134",
+                "Expr"
+              ],
+              [
+                "j",
+                "i64"
+              ],
+              [
+                "@Get334",
+                "Expr"
+              ],
+              [
+                "else_ctx",
+                "Assumption"
+              ],
+              [
+                "@Arg135",
+                "Expr"
+              ],
+              [
+                "@StateT19",
+                "BaseType"
+              ],
+              [
+                "@Base159",
+                "Type"
+              ],
+              [
+                "@HasType231",
+                "___HasTypeSort"
+              ],
+              [
+                "___DUMMYCTX22",
+                "Assumption"
+              ]
+            ],
+            "atoms": [
+              {
+                "table": "If",
+                "sorts": [
+                  "Expr",
+                  "Expr",
+                  "Expr",
+                  "Expr",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 0
+                  },
+                  {
+                    "Slot": 1
+                  },
+                  {
+                    "Slot": 2
+                  },
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 4
+                  }
+                ]
+              },
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 2
+                  },
+                  {
+                    "Slot": 5
+                  },
+                  {
+                    "Slot": 6
+                  }
+                ]
+              },
+              {
+                "table": "Arg",
+                "sorts": [
+                  "Type",
+                  "Assumption",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 7
+                  },
+                  {
+                    "Slot": 8
+                  },
+                  {
+                    "Slot": 9
+                  }
+                ]
+              },
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 9
+                  },
+                  {
+                    "Slot": 10
+                  },
+                  {
+                    "Slot": 6
+                  }
+                ]
+              },
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 3
+                  },
+                  {
+                    "Slot": 5
+                  },
+                  {
+                    "Slot": 11
+                  }
+                ]
+              },
+              {
+                "table": "Arg",
+                "sorts": [
+                  "Type",
+                  "Assumption",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 7
+                  },
+                  {
+                    "Slot": 12
+                  },
+                  {
+                    "Slot": 13
+                  }
+                ]
+              },
+              {
+                "table": "Get",
+                "sorts": [
+                  "Expr",
+                  "i64",
+                  "Expr"
+                ],
+                "columns": [
+                  {
+                    "Slot": 13
+                  },
+                  {
+                    "Slot": 10
+                  },
+                  {
+                    "Slot": 11
+                  }
+                ]
+              },
+              {
+                "table": "StateT",
+                "sorts": [
+                  "BaseType"
+                ],
+                "columns": [
+                  {
+                    "Slot": 14
+                  }
+                ]
+              },
+              {
+                "table": "Base",
+                "sorts": [
+                  "BaseType",
+                  "Type"
+                ],
+                "columns": [
+                  {
+                    "Slot": 14
+                  },
+                  {
+                    "Slot": 15
+                  }
+                ]
+              },
+              {
+                "table": "HasType",
+                "sorts": [
+                  "Expr",
+                  "Type",
+                  "___HasTypeSort"
+                ],
+                "columns": [
+                  {
+                    "Slot": 6
+                  },
+                  {
+                    "Slot": 15
+                  },
+                  {
+                    "Slot": 16
+                  }
+                ]
+              },
+              {
+                "table": "DUMMYCTX",
+                "sorts": [
+                  "Assumption"
+                ],
+                "columns": [
+                  {
+                    "Slot": 17
+                  }
+                ]
+              }
+            ],
+            "guards": [],
+            "native_residuals": false
+          },
+          "seed": 2,
+          "steps": [
+            [
+              7,
+              "Key"
+            ],
+            [
+              8,
+              "Key"
+            ],
+            [
+              10,
+              "Key"
+            ],
+            [
+              3,
+              {
+                "Columns": 1
+              }
+            ],
+            [
+              9,
+              "Key"
+            ],
+            [
+              1,
+              "Output"
+            ],
+            [
+              5,
+              {
+                "Columns": 1
+              }
+            ],
+            [
+              6,
+              "Key"
+            ],
+            [
+              4,
+              "Output"
+            ],
+            [
+              0,
+              {
+                "Columns": 12
+              }
+            ]
+          ],
+          "prefix_len": 0,
+          "carried_slots": []
+        },
+        "costs": {
+          "search": 331178,
+          "storage": 77,
+          "update": 0
+        },
+        "evidence": "measured_private"
+      }
+    ]
+  },
+  "comparison": {
+    "schema": "boundary-layout-comparison/v1",
+    "before": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/runtime-priced-baseline",
+    "after": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/runtime-priced-candidate",
+    "before_seconds": 12.81030825,
+    "after_seconds": 12.578382667,
+    "saved_seconds": 0.23192558300000066,
+    "saved_fraction": 0.018104605952788067,
+    "cpu_programs": [
+      {
+        "program_id": 31,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+        "seed": "Get",
+        "accesses": [],
+        "seed_evaluations": 39817,
+        "emitted_bindings": 22672,
+        "live_seed_instances": 13341,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 0,
+        "candidate_rows": 0,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 0,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 32,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+        "seed": "Add-Gets",
+        "accesses": [
+          {
+            "table": "Concat",
+            "access": "Output"
+          },
+          {
+            "table": "tuple-length",
+            "access": "Key"
+          }
+        ],
+        "seed_evaluations": 28309,
+        "emitted_bindings": 10654,
+        "live_seed_instances": 18641,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 37039,
+        "candidate_rows": 25221,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "reused_port_reads": 782,
+        "resumed_seed_evaluations": 782,
+        "stored_port_paths": 17351,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 33,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+        "seed": "Single",
+        "accesses": [
+          {
+            "table": "Add-Gets",
+            "access": {
+              "Columns": 2
+            }
+          }
+        ],
+        "seed_evaluations": 30157,
+        "emitted_bindings": 14194,
+        "live_seed_instances": 4382,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 20746,
+        "candidate_rows": 14194,
+        "terminal_delta_rows_skipped": 9853,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 190,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 34,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+        "seed": "Not-Just-Concat",
+        "accesses": [
+          {
+            "table": "Add-Gets",
+            "access": {
+              "Columns": 2
+            }
+          }
+        ],
+        "seed_evaluations": 6220,
+        "emitted_bindings": 1981,
+        "live_seed_instances": 4405,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 5495,
+        "candidate_rows": 1981,
+        "terminal_delta_rows_skipped": 174,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 4191,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 35,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+        "seed": "Add-All-Gets",
+        "accesses": [
+          {
+            "table": "tuple-length",
+            "access": "Key"
+          }
+        ],
+        "seed_evaluations": 8444,
+        "emitted_bindings": 5868,
+        "live_seed_instances": 7171,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 7815,
+        "candidate_rows": 7815,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 7171,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 36,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+        "seed": "DoWhile",
+        "accesses": [
+          {
+            "table": "ContextOf",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "ContextOf",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "HasArgType",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "Const",
+            "access": {
+              "Columns": 4
+            }
+          }
+        ],
+        "seed_evaluations": 1182,
+        "emitted_bindings": 123254,
+        "live_seed_instances": 84,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 1346,
+        "candidate_rows": 126320,
+        "terminal_delta_rows_skipped": 1048146,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "reused_port_reads": 2814,
+        "resumed_seed_evaluations": 956,
+        "stored_port_paths": 84,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 37,
+        "kind": "boundary_query",
+        "ruleset": "non-weakly-linear",
+        "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+        "seed": "Arg",
+        "accesses": [
+          {
+            "table": "StateT",
+            "access": "Key"
+          },
+          {
+            "table": "Base",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "HasType",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": "Output"
+          },
+          {
+            "table": "Arg",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "Get",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": "Output"
+          },
+          {
+            "table": "If",
+            "access": {
+              "Columns": 12
+            }
+          }
+        ],
+        "seed_evaluations": 75,
+        "emitted_bindings": 0,
+        "live_seed_instances": 75,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 1922,
+        "candidate_rows": 1931,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 75,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 38,
+        "kind": "boundary_query",
+        "ruleset": "state-edge-passthrough",
+        "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+        "seed": "Arg",
+        "accesses": [
+          {
+            "table": "StateT",
+            "access": "Key"
+          },
+          {
+            "table": "Base",
+            "access": "Key"
+          },
+          {
+            "table": "DUMMYCTX",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "HasType",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": "Output"
+          },
+          {
+            "table": "Arg",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "Get",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": "Output"
+          },
+          {
+            "table": "If",
+            "access": {
+              "Columns": 12
+            }
+          }
+        ],
+        "seed_evaluations": 118,
+        "emitted_bindings": 4,
+        "live_seed_instances": 77,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 6562,
+        "candidate_rows": 9203,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "reused_port_reads": 120,
+        "resumed_seed_evaluations": 40,
+        "stored_port_paths": 77,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      }
+    ],
+    "scope": "same parameterized query family with changed anchors/payloads; not new closure-proof credit",
+    "cpu_programs_before": [
+      {
+        "program_id": 31,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+        "seed": "DoWhile",
+        "accesses": [
+          {
+            "table": "ContextOf",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "ContextOf",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "HasArgType",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "Const",
+            "access": {
+              "Columns": 4
+            }
+          }
+        ],
+        "seed_evaluations": 1182,
+        "emitted_bindings": 123254,
+        "live_seed_instances": 84,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 1346,
+        "candidate_rows": 126320,
+        "terminal_delta_rows_skipped": 1048146,
+        "payload_layout": null,
+        "payload_resumes": 0,
+        "reused_port_reads": 2814,
+        "resumed_seed_evaluations": 956,
+        "stored_port_paths": 84,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 32,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )",
+        "seed": "Get",
+        "accesses": [],
+        "seed_evaluations": 39817,
+        "emitted_bindings": 22672,
+        "live_seed_instances": 13341,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 0,
+        "candidate_rows": 0,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": null,
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 0,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 33,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+        "seed": "Add-Gets",
+        "accesses": [
+          {
+            "table": "Concat",
+            "access": "Output"
+          },
+          {
+            "table": "tuple-length",
+            "access": "Key"
+          }
+        ],
+        "seed_evaluations": 28309,
+        "emitted_bindings": 10654,
+        "live_seed_instances": 18641,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 37039,
+        "candidate_rows": 25221,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": null,
+        "payload_resumes": 0,
+        "reused_port_reads": 782,
+        "resumed_seed_evaluations": 782,
+        "stored_port_paths": 17351,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 34,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+        "seed": "Add-Gets",
+        "accesses": [
+          {
+            "table": "Single",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 26369,
+        "emitted_bindings": 14194,
+        "live_seed_instances": 18641,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 22768,
+        "candidate_rows": 14194,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": null,
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 18641,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 35,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+        "seed": "Add-Gets",
+        "accesses": [
+          {
+            "table": "Not-Just-Concat",
+            "access": "Key"
+          }
+        ],
+        "seed_evaluations": 25972,
+        "emitted_bindings": 1981,
+        "live_seed_instances": 18641,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 22371,
+        "candidate_rows": 1981,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": null,
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 18641,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 36,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+        "seed": "Add-All-Gets",
+        "accesses": [
+          {
+            "table": "tuple-length",
+            "access": "Key"
+          }
+        ],
+        "seed_evaluations": 8444,
+        "emitted_bindings": 5868,
+        "live_seed_instances": 7171,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 7815,
+        "candidate_rows": 7815,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": null,
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 7171,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 37,
+        "kind": "boundary_query",
+        "ruleset": "non-weakly-linear",
+        "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((union (Get outputs i) (Get inputs j)))\n        :ruleset non-weakly-linear )",
+        "seed": "If",
+        "accesses": [
+          {
+            "table": "StateT",
+            "access": "Key"
+          },
+          {
+            "table": "Base",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "Get",
+            "access": "Key"
+          },
+          {
+            "table": "HasType",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": "Output"
+          },
+          {
+            "table": "Get",
+            "access": "Output"
+          },
+          {
+            "table": "Arg",
+            "access": "Output"
+          },
+          {
+            "table": "Arg",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 374,
+        "emitted_bindings": 0,
+        "live_seed_instances": 167,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 3367,
+        "candidate_rows": 3255,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": null,
+        "payload_resumes": 0,
+        "reused_port_reads": 0,
+        "resumed_seed_evaluations": 0,
+        "stored_port_paths": 159,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      },
+      {
+        "program_id": 38,
+        "kind": "boundary_query",
+        "ruleset": "state-edge-passthrough",
+        "rule": "(rule ((= outputs (If pred inputs then_ else_))\n       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))\n       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))\n       (HasType (Get then_ i) (Base (StateT ))))\n      ((let lhs (Get outputs i))\n       (let new_inputs (TupleRemoveAt inputs j))\n       (let new_then_ctx DUMMYCTX)\n       (let new_else_ctx DUMMYCTX)\n       (let old_then (TupleRemoveAt then_ i))\n       (let old_else (TupleRemoveAt else_ i))\n       (let new_then (DropAt new_then_ctx j old_then))\n       (let new_else (DropAt new_else_ctx j old_else))\n       (let old_outputs (TupleRemoveAt outputs i))\n       (let new_if (If pred new_inputs new_then new_else))\n       (union new_if old_outputs)\n       (union lhs (Get inputs j))\n       (ToSubsumeIf pred inputs then_ else_))\n        :ruleset state-edge-passthrough )",
+        "seed": "If",
+        "accesses": [
+          {
+            "table": "StateT",
+            "access": "Key"
+          },
+          {
+            "table": "Base",
+            "access": "Key"
+          },
+          {
+            "table": "DUMMYCTX",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "Get",
+            "access": "Key"
+          },
+          {
+            "table": "HasType",
+            "access": "Key"
+          },
+          {
+            "table": "Get",
+            "access": "Output"
+          },
+          {
+            "table": "Get",
+            "access": "Output"
+          },
+          {
+            "table": "Arg",
+            "access": "Output"
+          },
+          {
+            "table": "Arg",
+            "access": "Output"
+          }
+        ],
+        "seed_evaluations": 461,
+        "emitted_bindings": 4,
+        "live_seed_instances": 168,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 5551,
+        "candidate_rows": 6121,
+        "terminal_delta_rows_skipped": 0,
+        "payload_layout": null,
+        "payload_resumes": 0,
+        "reused_port_reads": 191,
+        "resumed_seed_evaluations": 61,
+        "stored_port_paths": 168,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      }
+    ],
+    "cpu_work": [
+      {
+        "index_reads": 100257,
+        "row_visits": 184907,
+        "root_checks": 130928,
+        "additional_seed_reads": 0,
+        "prefix_refreshes": 0,
+        "prefix_cache_hits": 0,
+        "shared_prefix_bindings": 0,
+        "shared_payload_values": 0,
+        "shared_dependency_edges": 0
+      },
+      {
+        "index_reads": 80925,
+        "row_visits": 186665,
+        "root_checks": 114322,
+        "additional_seed_reads": 0,
+        "prefix_refreshes": 0,
+        "prefix_cache_hits": 0,
+        "shared_prefix_bindings": 0,
+        "shared_payload_values": 0,
+        "shared_dependency_edges": 0
+      }
+    ],
+    "row_scope": "Non-seed row visits; root checks and additional shared seed reads reported separately.",
+    "storage_scope": "Shared payload scalar slots and dependency edges only; not RSS or total allocator bytes.",
+    "query_changes": [],
+    "gpu_total_rows": [
+      7193043,
+      7193043
+    ],
+    "common_rule_fixed_weights": {
+      "rules": 305,
+      "weight": "before eligible seeds; queries moved off GPU excluded",
+      "before": [
+        1.0,
+        0.5682465783343937,
+        0.02999154213022457,
+        0.008965440567256582,
+        0.0034817532121293395,
+        0.0008604545162091093,
+        0.0004995591110436212,
+        0.00020472925818984823,
+        4.2646793096741416e-05,
+        3.364905929309366e-05,
+        1.8611750744531657e-05,
+        1.83652374896372e-05,
+        6.162831372361477e-07,
+        4.930265097889181e-07,
+        4.930265097889181e-07,
+        4.930265097889181e-07,
+        1.2325662744722953e-07,
+        1.2325662744722953e-07,
+        1.2325662744722953e-07
+      ],
+      "after": [
+        1.0,
+        0.5682465783343937,
+        0.02999154213022457,
+        0.008965440567256582,
+        0.0034817532121293395,
+        0.0008604545162091093,
+        0.0004995591110436212,
+        0.00020472925818984823,
+        4.2646793096741416e-05,
+        3.364905929309366e-05,
+        1.8611750744531657e-05,
+        1.83652374896372e-05,
+        6.162831372361477e-07,
+        4.930265097889181e-07,
+        4.930265097889181e-07,
+        4.930265097889181e-07,
+        1.2325662744722953e-07,
+        1.2325662744722953e-07,
+        1.2325662744722953e-07
+      ],
+      "fixed_candidate_identity": false
+    },
+    "all_rule_depth_arrays_equal": true
+  },
+  "lanes": {
+    "baseline": {
+      "directory": "out/runtime-priced-baseline",
+      "report_sha256": "95e9ad81fa1e8223c41d98167d34924d4feb79abee54e5c1cad41456ea24de26",
+      "workflow": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/runtime-priced-baseline",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+        "source_head": "b154dba7868d65b3194c0f5eff606169cd5760c2",
+        "dirty_files": "",
+        "no_build": true,
+        "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "d907637844ebfe175e7981e3cd4f4a424b9d951935372560a4d8363b03db6fc9"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "d907637844ebfe175e7981e3cd4f4a424b9d951935372560a4d8363b03db6fc9",
+          "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "0660e2731e8f74bb8f33e031a621792e47e148c19fc70a5e571e457b0fbe4b27",
+          "boundary_programs": "93af8c2e34d0709eeecddb001d460aa7d5efee5c8527697aec59606221c01456",
+          "certificate_library": null,
+          "analysis": null
+        }
+      },
+      "run_seconds": 12.81030825,
+      "cell_query_seconds": 0.7684573860000048,
+      "exact_same_commit_graph": true,
+      "rows": 699068,
+      "mapped_eclasses": 524631,
+      "tiger_same_commit_passed": true,
+      "functions": 29,
+      "fused_native_quality_passed": false
+    },
+    "candidate": {
+      "directory": "out/runtime-priced-candidate",
+      "report_sha256": "4a380c6e66a9a7284f9d288459d23ed9770db0e08d1161664b3749f63055aaf3",
+      "workflow": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/runtime-priced-candidate",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+        "source_head": "b154dba7868d65b3194c0f5eff606169cd5760c2",
+        "dirty_files": "",
+        "no_build": true,
+        "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "d907637844ebfe175e7981e3cd4f4a424b9d951935372560a4d8363b03db6fc9"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "d907637844ebfe175e7981e3cd4f4a424b9d951935372560a4d8363b03db6fc9",
+          "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "bc06c2720bde84e594595b321c49d069b234b3ef175258922f2a545bf3f6686b",
+          "boundary_programs": "9631ac92cdec47d441ab9f28885bf4756e82a1339f5da3d6f7521ad2e0269c42",
+          "certificate_library": null,
+          "analysis": null
+        }
+      },
+      "run_seconds": 12.578382667,
+      "cell_query_seconds": 0.7082010350000065,
+      "exact_same_commit_graph": true,
+      "rows": 699068,
+      "mapped_eclasses": 524631,
+      "tiger_same_commit_passed": true,
+      "functions": 29,
+      "fused_native_quality_passed": false
+    }
+  },
+  "source_lowering": {
+    "source_preserved": true,
+    "runtime_rule_count": 8,
+    "publish_actions": 0,
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "output_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "selected_layout_sha256": "9631ac92cdec47d441ab9f28885bf4756e82a1339f5da3d6f7521ad2e0269c42",
+    "directory": "out/runtime-priced-pass3/source"
+  },
+  "audit": {
+    "path": "out/runtime-priced-candidate-audit/audit.json",
+    "passed": true,
+    "scope": "Cell-supplied queries",
+    "counters": {
+      "audit_seconds": 3.219385010000022
+    },
+    "queries": 41361
+  }
+}
