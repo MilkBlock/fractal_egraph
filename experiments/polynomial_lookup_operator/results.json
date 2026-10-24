@@ -1,0 +1,1363 @@
+{
+  "scope": "standalone frozen-snapshot operator exploration; failed performance hypothesis; no production runtime or NVIDIA result",
+  "snapshot": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/pass3-compact-layout/graphs/cpu.control.json",
+  "profile": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/marker-workload-all-passing/095-raytrace/pass-3.jsonl.gz",
+  "runs": {
+    "tcpair_raw_eight_gemm_2048": {
+      "scope": "deduplicated first-step partial lookups from admitted source seed plans on frozen tables; not actual per-Run requests or complete rule matches",
+      "lookup_indices_exact_after_bucket_check": true,
+      "expected_row_indices": 63038,
+      "returned_candidate_pages": 63066,
+      "false_candidate_pages": 28,
+      "candidate_page_precision": 0.9995560206767513,
+      "cpu_bucket_row_checks": 63066,
+      "no_missing_matching_rows": true,
+      "matrix_to_reference_gemm_throughput": 0.42912834298340896,
+      "matrix_gpu_vs_same_filter_hash_ratio": 29.315138065655457,
+      "matrix_effective_tflops": 2.3439069586820853,
+      "reference_gemm_tflops": 5.462018524310584,
+      "input_sha256": "bd4341b937853c94a13906eb8ce5a6a4daabad53931d30223bf31035762aae7a",
+      "gpu": {
+        "prepare_seconds": 0.0012029166682623327,
+        "device": "Apple M3 Max",
+        "polynomial_gpu_seconds": 0.04106195829808712,
+        "polynomial_host_submit_wait_seconds": 0.0739986666594632,
+        "polynomial_float_operations": 96245409792,
+        "exact_filter_and_handle_agreement": true,
+        "candidate_pages": 63066,
+        "hash_gpu_seconds": 0.001400708337314427,
+        "hash_host_submit_wait_seconds": 0.003180833358783275,
+        "pages": 497,
+        "coefficients": 128,
+        "reference_gemm_seconds": 0.0003931666724383831,
+        "queries": 63038,
+        "scope": "standalone Metal/MPS operator; includes powers/GEMMs/modular reconstruction; no native inference speedup or NVIDIA Tensor Core claim",
+        "reference_gemm_float_operations": 2147483648
+      },
+      "manifest": {
+        "queries_in_header": 609,
+        "rejected_queries_in_header": 55,
+        "source_seed_plans": 6,
+        "target": "TCPair",
+        "rows": 63038,
+        "arity": 3,
+        "groups": [
+          {
+            "mask": 2,
+            "rules": 1,
+            "root_generated_requests": 126076,
+            "distinct_requests": 15712
+          },
+          {
+            "mask": 4,
+            "rules": 4,
+            "root_generated_requests": 289762,
+            "distinct_requests": 63038
+          }
+        ],
+        "snapshot_sha256": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+        "profile_header_source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/marker-workload-all-passing/095-raytrace/pass-3.jsonl.gz",
+        "profile_sha256": "3c0339a2762dbdf55a15493e499c689e3299d3dad70f869df51fc061231d5a65",
+        "mask_evaluated": 4,
+        "page_rows": 127,
+        "pages": 497,
+        "coefficients": 128,
+        "degree_min": 46,
+        "degree_max": 127,
+        "coefficient_nonzero_fraction": 0.9960754107981221,
+        "filter_payload_bytes": 763392,
+        "hash_bitmap_bytes": 4580352,
+        "query_points": 63038,
+        "logical_matrix_entries": 31329886,
+        "scope": "deduplicated first-step partial lookups from admitted source seed plans on frozen tables; not actual per-Run requests or complete rule matches"
+      },
+      "warning": "page filtering is more work than a global exact hash lookup; dense arithmetic throughput is not inference speedup"
+    },
+    "tcpair_raw_stacked_2048": {
+      "scope": "deduplicated first-step partial lookups from admitted source seed plans on frozen tables; not actual per-Run requests or complete rule matches",
+      "lookup_indices_exact_after_bucket_check": true,
+      "expected_row_indices": 63038,
+      "returned_candidate_pages": 63066,
+      "false_candidate_pages": 28,
+      "candidate_page_precision": 0.9995560206767513,
+      "cpu_bucket_row_checks": 63066,
+      "no_missing_matching_rows": true,
+      "matrix_to_reference_gemm_throughput": 0.3936032622326935,
+      "matrix_gpu_vs_same_filter_hash_ratio": 25.117817669196423,
+      "matrix_effective_tflops": 2.1480473569233944,
+      "reference_gemm_tflops": 5.457392158638905,
+      "input_sha256": "bd4341b937853c94a13906eb8ce5a6a4daabad53931d30223bf31035762aae7a",
+      "gpu": {
+        "queries": 63038,
+        "hash_host_submit_wait_seconds": 0.0035750833339989185,
+        "exact_filter_and_handle_agreement": true,
+        "coefficients": 128,
+        "polynomial_host_submit_wait_seconds": 0.11947479168884456,
+        "layout": "two stacked GEMMs; all digit quadrants used",
+        "candidate_pages": 63066,
+        "reference_gemm_float_operations": 2147483648,
+        "device": "Apple M3 Max",
+        "prepare_seconds": 0.001278333307709545,
+        "hash_gpu_seconds": 0.0017838333151303232,
+        "reference_gemm_seconds": 0.0003934999695047736,
+        "pages": 497,
+        "scope": "standalone Metal/MPS operator; includes powers/GEMMs/modular reconstruction; no native inference speedup or NVIDIA Tensor Core claim",
+        "polynomial_float_operations": 96245409792,
+        "polynomial_gpu_seconds": 0.044805999961681664
+      },
+      "manifest": {
+        "queries_in_header": 609,
+        "rejected_queries_in_header": 55,
+        "source_seed_plans": 6,
+        "target": "TCPair",
+        "rows": 63038,
+        "arity": 3,
+        "groups": [
+          {
+            "mask": 2,
+            "rules": 1,
+            "root_generated_requests": 126076,
+            "distinct_requests": 15712
+          },
+          {
+            "mask": 4,
+            "rules": 4,
+            "root_generated_requests": 289762,
+            "distinct_requests": 63038
+          }
+        ],
+        "snapshot_sha256": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+        "profile_header_source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/marker-workload-all-passing/095-raytrace/pass-3.jsonl.gz",
+        "profile_sha256": "3c0339a2762dbdf55a15493e499c689e3299d3dad70f869df51fc061231d5a65",
+        "mask_evaluated": 4,
+        "page_rows": 127,
+        "pages": 497,
+        "coefficients": 128,
+        "degree_min": 46,
+        "degree_max": 127,
+        "coefficient_nonzero_fraction": 0.9960754107981221,
+        "filter_payload_bytes": 763392,
+        "hash_bitmap_bytes": 4580352,
+        "query_points": 63038,
+        "logical_matrix_entries": 31329886,
+        "scope": "deduplicated first-step partial lookups from admitted source seed plans on frozen tables; not actual per-Run requests or complete rule matches"
+      },
+      "warning": "page filtering is more work than a global exact hash lookup; dense arithmetic throughput is not inference speedup"
+    },
+    "tcpair_raw_stacked_8192": {
+      "scope": "deduplicated first-step partial lookups from admitted source seed plans on frozen tables; not actual per-Run requests or complete rule matches",
+      "lookup_indices_exact_after_bucket_check": true,
+      "expected_row_indices": 63038,
+      "returned_candidate_pages": 63066,
+      "false_candidate_pages": 28,
+      "candidate_page_precision": 0.9995560206767513,
+      "cpu_bucket_row_checks": 63066,
+      "no_missing_matching_rows": true,
+      "matrix_to_reference_gemm_throughput": 0.5120080835096994,
+      "matrix_gpu_vs_same_filter_hash_ratio": 25.36256647608647,
+      "matrix_effective_tflops": 5.153036499543577,
+      "reference_gemm_tflops": 10.064365515912717,
+      "input_sha256": "bd4341b937853c94a13906eb8ce5a6a4daabad53931d30223bf31035762aae7a",
+      "gpu": {
+        "hash_gpu_seconds": 0.0007364166667684913,
+        "polynomial_host_submit_wait_seconds": 0.046895416686311364,
+        "hash_host_submit_wait_seconds": 0.0025514583103358746,
+        "prepare_seconds": 0.001594083325471729,
+        "candidate_pages": 63066,
+        "exact_filter_and_handle_agreement": true,
+        "device": "Apple M3 Max",
+        "polynomial_float_operations": 96245409792,
+        "coefficients": 128,
+        "scope": "standalone Metal/MPS operator; includes powers/GEMMs/modular reconstruction; no native inference speedup or NVIDIA Tensor Core claim",
+        "pages": 497,
+        "batch": 8192,
+        "reference_gemm_float_operations": 2147483648,
+        "queries": 63038,
+        "polynomial_gpu_seconds": 0.01867741666501388,
+        "layout": "two stacked GEMMs; all digit quadrants used",
+        "reference_gemm_seconds": 0.0002133749658241868
+      },
+      "manifest": {
+        "queries_in_header": 609,
+        "rejected_queries_in_header": 55,
+        "source_seed_plans": 6,
+        "target": "TCPair",
+        "rows": 63038,
+        "arity": 3,
+        "groups": [
+          {
+            "mask": 2,
+            "rules": 1,
+            "root_generated_requests": 126076,
+            "distinct_requests": 15712
+          },
+          {
+            "mask": 4,
+            "rules": 4,
+            "root_generated_requests": 289762,
+            "distinct_requests": 63038
+          }
+        ],
+        "snapshot_sha256": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+        "profile_header_source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/marker-workload-all-passing/095-raytrace/pass-3.jsonl.gz",
+        "profile_sha256": "3c0339a2762dbdf55a15493e499c689e3299d3dad70f869df51fc061231d5a65",
+        "mask_evaluated": 4,
+        "page_rows": 127,
+        "pages": 497,
+        "coefficients": 128,
+        "degree_min": 46,
+        "degree_max": 127,
+        "coefficient_nonzero_fraction": 0.9960754107981221,
+        "filter_payload_bytes": 763392,
+        "hash_bitmap_bytes": 4580352,
+        "query_points": 63038,
+        "logical_matrix_entries": 31329886,
+        "scope": "deduplicated first-step partial lookups from admitted source seed plans on frozen tables; not actual per-Run requests or complete rule matches"
+      },
+      "warning": "page filtering is more work than a global exact hash lookup; dense arithmetic throughput is not inference speedup"
+    },
+    "get_raw_stacked_2048": {
+      "scope": "deduplicated first-step partial lookups from admitted source seed plans on frozen tables; not actual per-Run requests or complete rule matches",
+      "lookup_indices_exact_after_bucket_check": true,
+      "expected_row_indices": 4436,
+      "returned_candidate_pages": 4440,
+      "false_candidate_pages": 4,
+      "candidate_page_precision": 0.9990990990990991,
+      "cpu_bucket_row_checks": 4448,
+      "no_missing_matching_rows": true,
+      "matrix_to_reference_gemm_throughput": 0.4186574550729461,
+      "matrix_gpu_vs_same_filter_hash_ratio": 18.907332427129315,
+      "matrix_effective_tflops": 1.2611748999956955,
+      "reference_gemm_tflops": 3.0124267099840627,
+      "input_sha256": "8f463e9b312f1479e84180fe71ab162caad7ababc3d2d45b1ca4ad14690985e5",
+      "gpu": {
+        "layout": "two stacked GEMMs; all digit quadrants used",
+        "device": "Apple M3 Max",
+        "queries": 8824,
+        "exact_filter_and_handle_agreement": true,
+        "hash_gpu_seconds": 0.00012049998622387648,
+        "pages": 106,
+        "prepare_seconds": 0.00040625000838190317,
+        "hash_host_submit_wait_seconds": 0.00042841664981096983,
+        "scope": "standalone Metal/MPS operator; includes powers/GEMMs/modular reconstruction; no native inference speedup or NVIDIA Tensor Core claim",
+        "reference_gemm_float_operations": 2147483648,
+        "polynomial_float_operations": 2873376768,
+        "reference_gemm_seconds": 0.0007128749857656658,
+        "batch": 2048,
+        "polynomial_gpu_seconds": 0.0022783332969993353,
+        "polynomial_host_submit_wait_seconds": 0.10108070832211524,
+        "candidate_pages": 4440,
+        "coefficients": 128
+      },
+      "manifest": {
+        "queries_in_header": 609,
+        "rejected_queries_in_header": 55,
+        "source_seed_plans": 36,
+        "target": "Get",
+        "rows": 13341,
+        "arity": 3,
+        "groups": [
+          {
+            "mask": 1,
+            "rules": 11,
+            "root_generated_requests": 90480,
+            "distinct_requests": 19189
+          },
+          {
+            "mask": 3,
+            "rules": 2,
+            "root_generated_requests": 9023,
+            "distinct_requests": 8824
+          },
+          {
+            "mask": 4,
+            "rules": 11,
+            "root_generated_requests": 259890,
+            "distinct_requests": 19189
+          }
+        ],
+        "snapshot_sha256": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+        "profile_header_source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/marker-workload-all-passing/095-raytrace/pass-3.jsonl.gz",
+        "profile_sha256": "3c0339a2762dbdf55a15493e499c689e3299d3dad70f869df51fc061231d5a65",
+        "mask_evaluated": 3,
+        "page_rows": 127,
+        "pages": 106,
+        "coefficients": 128,
+        "degree_min": 6,
+        "degree_max": 127,
+        "coefficient_nonzero_fraction": 0.9874459512578616,
+        "filter_payload_bytes": 162816,
+        "hash_bitmap_bytes": 976896,
+        "query_points": 8824,
+        "logical_matrix_entries": 935344,
+        "scope": "deduplicated first-step partial lookups from admitted source seed plans on frozen tables; not actual per-Run requests or complete rule matches"
+      },
+      "warning": "page filtering is more work than a global exact hash lookup; dense arithmetic throughput is not inference speedup"
+    }
+  },
+  "shared_factor_audit": {
+    "scope": "static shared-factor projection of all admitted query shapes on frozen canonical tables; no Run timing, no guards/RHS executed, no Cell credit",
+    "snapshot_sha256": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+    "profile_sha256": "3c0339a2762dbdf55a15493e499c689e3299d3dad70f869df51fc061231d5a65",
+    "summary": {
+      "admitted_queries": 609,
+      "rejected_queries": 55,
+      "atom_occurrences": 1845,
+      "distinct_factors": 437,
+      "shared_factors": 248,
+      "queries_only_scalar_unary_binary_factors": 515,
+      "queries_only_scalar_unary_binary_factors_and_forest": 498,
+      "queries_with_guards": 41,
+      "factor_arities": {
+        "1": 223,
+        "2": 105,
+        "0": 67,
+        "3": 32,
+        "4": 8,
+        "5": 2
+      },
+      "binary_nonempty_factors": 58,
+      "binary_nonzeros": 525287,
+      "binary_rectangular_slots": 7012972288,
+      "binary_tile_slots": {
+        "32": 108499968,
+        "64": 293093376,
+        "128": 670187520
+      }
+    },
+    "limits": [
+      "Per-factor sorted axes are an optimistic geometry probe, not a shared cross-factor coordinate allocation.",
+      "Local variables remain in original row payloads; materializing only projected keys loses full bindings.",
+      "Guards may connect projected-away variables; exact joint payload validation remains necessary.",
+      "A forest result concerns only atom equalities before guard residuals.",
+      "Small interface arity does not imply low rank, dense tiles, or inexpensive live maintenance."
+    ]
+  },
+  "most_shared_factors": [
+    {
+      "table": "HasType",
+      "sorts": [
+        "Expr",
+        "Type",
+        "___HasTypeSort"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ]
+      ],
+      "keep_local_slots": [
+        0,
+        1
+      ],
+      "query_ids": [
+        213,
+        214,
+        223,
+        224,
+        293,
+        294,
+        295,
+        296,
+        297,
+        298,
+        299,
+        300,
+        301,
+        302,
+        303,
+        304,
+        339,
+        340,
+        341,
+        342,
+        343,
+        344,
+        345,
+        346,
+        373,
+        389,
+        434,
+        435,
+        436,
+        437,
+        439,
+        446,
+        458,
+        486,
+        488,
+        560,
+        562,
+        564,
+        567,
+        568,
+        570,
+        571,
+        573,
+        575,
+        576,
+        577,
+        579,
+        580,
+        581,
+        582,
+        584,
+        586,
+        588,
+        590,
+        592,
+        595
+      ],
+      "uses": 70,
+      "interface_arity": 2,
+      "projected_keys": 19160,
+      "row_payloads": 19160,
+      "shape": [
+        19160,
+        912
+      ],
+      "rectangular_slots": 17473920,
+      "density": 0.0010964912280701754,
+      "tiles": {
+        "32": {
+          "nonempty_tiles": 4234,
+          "allocated_slots": 4335616,
+          "density": 0.0044192105573925364
+        },
+        "64": {
+          "nonempty_tiles": 2100,
+          "allocated_slots": 8601600,
+          "density": 0.0022274925595238094
+        },
+        "128": {
+          "nonempty_tiles": 891,
+          "allocated_slots": 14598144,
+          "density": 0.0013124956158810325
+        }
+      }
+    },
+    {
+      "table": "ContextOf",
+      "sorts": [
+        "Expr",
+        "Assumption",
+        "___ContextOfSort"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ]
+      ],
+      "keep_local_slots": [
+        0
+      ],
+      "query_ids": [
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        92,
+        210,
+        221,
+        222,
+        223,
+        224,
+        225,
+        318,
+        319,
+        320,
+        321,
+        348,
+        349,
+        350,
+        373,
+        478,
+        481,
+        486,
+        487,
+        489,
+        511,
+        512,
+        513
+      ],
+      "uses": 41,
+      "interface_arity": 1,
+      "projected_keys": 19160,
+      "row_payloads": 19160
+    },
+    {
+      "table": "ExprIsResolved",
+      "sorts": [
+        "Expr",
+        "___ExprIsResolvedSort"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ]
+      ],
+      "keep_local_slots": [
+        0
+      ],
+      "query_ids": [
+        226,
+        227,
+        281,
+        282,
+        283,
+        284,
+        285,
+        286,
+        287,
+        288,
+        289,
+        290,
+        291,
+        292,
+        351,
+        353,
+        354,
+        355,
+        356,
+        357,
+        358,
+        359,
+        360,
+        361,
+        363,
+        365,
+        367,
+        494,
+        495,
+        496,
+        497,
+        498,
+        499,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505
+      ],
+      "uses": 58,
+      "interface_arity": 1,
+      "projected_keys": 19173,
+      "row_payloads": 19173
+    },
+    {
+      "table": "HasArgType",
+      "sorts": [
+        "Expr",
+        "Type",
+        "___HasArgTypeSort"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ]
+      ],
+      "keep_local_slots": [
+        0
+      ],
+      "query_ids": [
+        92,
+        210,
+        221,
+        222,
+        318,
+        319,
+        320,
+        321,
+        348,
+        451,
+        478,
+        481,
+        489,
+        490,
+        492,
+        493,
+        511,
+        512,
+        513,
+        514,
+        516,
+        517,
+        540,
+        541,
+        542,
+        543,
+        544,
+        545,
+        546,
+        547,
+        548,
+        549,
+        550,
+        551,
+        552,
+        554,
+        555
+      ],
+      "uses": 37,
+      "interface_arity": 1,
+      "projected_keys": 19160,
+      "row_payloads": 19160
+    },
+    {
+      "table": "IntB",
+      "sorts": [
+        "i64",
+        "Bound"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ]
+      ],
+      "keep_local_slots": [
+        1
+      ],
+      "query_ids": [
+        306,
+        308,
+        309,
+        318,
+        322,
+        323,
+        324,
+        325,
+        326,
+        327,
+        328,
+        329,
+        330,
+        331,
+        332,
+        333,
+        334,
+        339,
+        340,
+        341,
+        342,
+        345,
+        346,
+        347,
+        348,
+        377,
+        378,
+        379,
+        380,
+        381,
+        382,
+        440,
+        512,
+        513
+      ],
+      "uses": 51,
+      "interface_arity": 1,
+      "projected_keys": 18,
+      "row_payloads": 18
+    },
+    {
+      "table": "Bop",
+      "sorts": [
+        "BinaryOp",
+        "Expr",
+        "Expr",
+        "Expr"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ],
+        [
+          "slot",
+          3
+        ]
+      ],
+      "keep_local_slots": [
+        0,
+        1,
+        2
+      ],
+      "query_ids": [
+        57,
+        305,
+        322,
+        323,
+        324,
+        325,
+        326,
+        327,
+        328,
+        329,
+        330,
+        331,
+        332,
+        333,
+        334,
+        379,
+        380,
+        381,
+        382,
+        384,
+        385,
+        386,
+        468,
+        469,
+        483,
+        571,
+        573,
+        577
+      ],
+      "uses": 32,
+      "interface_arity": 3,
+      "projected_keys": 3486,
+      "row_payloads": 3486
+    },
+    {
+      "table": "hi-bound",
+      "sorts": [
+        "Expr",
+        "Bound"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ]
+      ],
+      "keep_local_slots": [
+        0,
+        1
+      ],
+      "query_ids": [
+        306,
+        307,
+        318,
+        319,
+        321,
+        323,
+        324,
+        325,
+        326,
+        327,
+        328,
+        330,
+        331,
+        333,
+        334,
+        339,
+        342,
+        346,
+        348,
+        350,
+        378,
+        380,
+        382,
+        440,
+        512,
+        513
+      ],
+      "uses": 30,
+      "interface_arity": 2,
+      "projected_keys": 878,
+      "row_payloads": 878,
+      "shape": [
+        878,
+        20
+      ],
+      "rectangular_slots": 17560,
+      "density": 0.05,
+      "tiles": {
+        "32": {
+          "nonempty_tiles": 28,
+          "allocated_slots": 28672,
+          "density": 0.030622209821428572
+        },
+        "64": {
+          "nonempty_tiles": 14,
+          "allocated_slots": 57344,
+          "density": 0.015311104910714286
+        },
+        "128": {
+          "nonempty_tiles": 7,
+          "allocated_slots": 114688,
+          "density": 0.007655552455357143
+        }
+      }
+    },
+    {
+      "table": "lo-bound",
+      "sorts": [
+        "Expr",
+        "Bound"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ]
+      ],
+      "keep_local_slots": [
+        0,
+        1
+      ],
+      "query_ids": [
+        306,
+        307,
+        318,
+        319,
+        320,
+        322,
+        324,
+        325,
+        326,
+        328,
+        329,
+        331,
+        332,
+        333,
+        334,
+        340,
+        341,
+        345,
+        347,
+        349,
+        377,
+        379,
+        381,
+        440,
+        512,
+        513
+      ],
+      "uses": 30,
+      "interface_arity": 2,
+      "projected_keys": 878,
+      "row_payloads": 878,
+      "shape": [
+        878,
+        20
+      ],
+      "rectangular_slots": 17560,
+      "density": 0.05,
+      "tiles": {
+        "32": {
+          "nonempty_tiles": 28,
+          "allocated_slots": 28672,
+          "density": 0.030622209821428572
+        },
+        "64": {
+          "nonempty_tiles": 14,
+          "allocated_slots": 57344,
+          "density": 0.015311104910714286
+        },
+        "128": {
+          "nonempty_tiles": 7,
+          "allocated_slots": 114688,
+          "density": 0.007655552455357143
+        }
+      }
+    },
+    {
+      "table": "Const",
+      "sorts": [
+        "Constant",
+        "Type",
+        "Assumption",
+        "Expr"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ],
+        [
+          "slot",
+          3
+        ]
+      ],
+      "keep_local_slots": [
+        0,
+        3
+      ],
+      "query_ids": [
+        305,
+        375,
+        454,
+        455,
+        459,
+        460,
+        461,
+        462,
+        463,
+        464,
+        465,
+        466,
+        467,
+        470,
+        471,
+        472,
+        473,
+        474,
+        475,
+        476,
+        477
+      ],
+      "uses": 24,
+      "interface_arity": 2,
+      "projected_keys": 1543,
+      "row_payloads": 1543,
+      "shape": [
+        36,
+        1543
+      ],
+      "rectangular_slots": 55548,
+      "density": 0.027777777777777776,
+      "tiles": {
+        "32": {
+          "nonempty_tiles": 88,
+          "allocated_slots": 90112,
+          "density": 0.017123135653409092
+        },
+        "64": {
+          "nonempty_tiles": 25,
+          "allocated_slots": 102400,
+          "density": 0.015068359375
+        },
+        "128": {
+          "nonempty_tiles": 13,
+          "allocated_slots": 212992,
+          "density": 0.007244403545673077
+        }
+      }
+    },
+    {
+      "table": "Base",
+      "sorts": [
+        "BaseType",
+        "Type"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ]
+      ],
+      "keep_local_slots": [
+        0,
+        1
+      ],
+      "query_ids": [
+        294,
+        296,
+        302,
+        304,
+        446,
+        458,
+        488,
+        560,
+        562,
+        564,
+        567,
+        568,
+        575,
+        576,
+        577,
+        579,
+        584,
+        586,
+        588
+      ],
+      "uses": 21,
+      "interface_arity": 2,
+      "projected_keys": 9,
+      "row_payloads": 9,
+      "shape": [
+        9,
+        9
+      ],
+      "rectangular_slots": 81,
+      "density": 0.1111111111111111,
+      "tiles": {
+        "32": {
+          "nonempty_tiles": 1,
+          "allocated_slots": 1024,
+          "density": 0.0087890625
+        },
+        "64": {
+          "nonempty_tiles": 1,
+          "allocated_slots": 4096,
+          "density": 0.002197265625
+        },
+        "128": {
+          "nonempty_tiles": 1,
+          "allocated_slots": 16384,
+          "density": 0.00054931640625
+        }
+      }
+    },
+    {
+      "table": "Bop",
+      "sorts": [
+        "BinaryOp",
+        "Expr",
+        "Expr",
+        "Expr"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ],
+        [
+          "slot",
+          3
+        ]
+      ],
+      "keep_local_slots": [
+        0,
+        1
+      ],
+      "query_ids": [
+        293,
+        294,
+        295,
+        296,
+        297,
+        462,
+        464,
+        466,
+        470,
+        472,
+        474,
+        476,
+        479,
+        480,
+        484,
+        566,
+        567,
+        568
+      ],
+      "uses": 18,
+      "interface_arity": 2,
+      "projected_keys": 2455,
+      "row_payloads": 3486,
+      "shape": [
+        19,
+        2263
+      ],
+      "rectangular_slots": 42997,
+      "density": 0.057097006767914044,
+      "tiles": {
+        "32": {
+          "nonempty_tiles": 71,
+          "allocated_slots": 72704,
+          "density": 0.03376705545774648
+        },
+        "64": {
+          "nonempty_tiles": 36,
+          "allocated_slots": 147456,
+          "density": 0.016649034288194444
+        },
+        "128": {
+          "nonempty_tiles": 18,
+          "allocated_slots": 294912,
+          "density": 0.008324517144097222
+        }
+      }
+    },
+    {
+      "table": "PointsToCells",
+      "sorts": [
+        "Expr",
+        "Pointees",
+        "Pointees"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ]
+      ],
+      "keep_local_slots": [
+        0
+      ],
+      "query_ids": [
+        389,
+        426,
+        427,
+        428,
+        429,
+        430,
+        431,
+        432,
+        433,
+        434,
+        435,
+        436,
+        437,
+        438,
+        439,
+        440,
+        441,
+        442
+      ],
+      "uses": 18,
+      "interface_arity": 1,
+      "projected_keys": 0,
+      "row_payloads": 0
+    },
+    {
+      "table": "DoWhile",
+      "sorts": [
+        "Expr",
+        "Expr",
+        "Expr"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ]
+      ],
+      "keep_local_slots": [
+        1
+      ],
+      "query_ids": [
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        214,
+        303,
+        304,
+        375
+      ],
+      "uses": 17,
+      "interface_arity": 1,
+      "projected_keys": 50,
+      "row_payloads": 84
+    },
+    {
+      "table": "ExprIsPure",
+      "sorts": [
+        "Expr",
+        "___ExprIsPureSort"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ]
+      ],
+      "keep_local_slots": [
+        0
+      ],
+      "query_ids": [
+        54,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        67,
+        207,
+        208,
+        223,
+        224,
+        487
+      ],
+      "uses": 30,
+      "interface_arity": 1,
+      "projected_keys": 5402,
+      "row_payloads": 5402
+    },
+    {
+      "table": "DropAtInternal",
+      "sorts": [
+        "Type",
+        "Assumption",
+        "i64",
+        "Expr",
+        "Expr"
+      ],
+      "columns": [
+        [
+          "slot",
+          0
+        ],
+        [
+          "slot",
+          1
+        ],
+        [
+          "slot",
+          2
+        ],
+        [
+          "slot",
+          3
+        ],
+        [
+          "slot",
+          4
+        ]
+      ],
+      "keep_local_slots": [
+        3
+      ],
+      "query_ids": [
+        277,
+        278,
+        279,
+        280,
+        281,
+        282,
+        283,
+        284,
+        285,
+        286,
+        287,
+        288,
+        289,
+        290,
+        291,
+        292
+      ],
+      "uses": 16,
+      "interface_arity": 1,
+      "projected_keys": 16,
+      "row_payloads": 16
+    }
+  ],
+  "worker_binaries_sha256": {
+    "out/polynomial-gpu/worker-unfused": "514d1ff489c92413a8399b5bde2bb62bc90efde8f092a1db459bb70c3d69f93b",
+    "out/polynomial-gpu/worker-fused": "4e68e419bf0ec93f20f54bd1f0a838316510f9f03bf9ba3dd9c4d339965699d9",
+    "out/polynomial-gpu/worker-batched": "3feb18fe6992a44fd574fd3f8176eb4bd5d495d7bcf6f95d96ad9c23dab9e5a1"
+  },
+  "discarded": "Target-table dictionary-ordinal prototype excluded; all runs above use raw 64-bit IDs/i64 patterns.",
+  "statistics": "Each layout measured once. No best-of repeated trials or inferential speed claims. Changing reference/device clock rates limit cross-run layout attribution."
+}
