@@ -7,6 +7,11 @@ fn main()->Result<()> {
     EGraph::set_num_threads(1);egglog::set_probe_counts_enabled(false);
     let mut eg=EGraph::default();let source=std::fs::read_to_string(&a[0])?;
     cell_assisted_egglog::stable_choice::source::install(&mut eg,&source)?;
+    let mut helpers=std::collections::BTreeSet::new();
+    for line in source.lines().filter_map(|s|s.strip_prefix(cell_assisted_egglog::stable_choice::source::HEADER)) {
+        let spec:serde_json::Value=serde_json::from_str(line)?;
+        for s in spec["native_rulesets"].as_array().into_iter().flatten(){helpers.insert(s.as_str().ok_or("invalid native helper")?.to_owned());}
+    }
     let commands=eg.parse_program(Some(a[0].clone()),&source)?;
     let mut out:Box<dyn Write>=if a[1]=="-"{Box::new(std::io::BufWriter::new(std::io::stdout()))}else{Box::new(std::io::BufWriter::new(std::fs::File::create(&a[1])?))};
     let mut profiler=None;let mut pending=vec![];let mut epoch=0;
@@ -14,7 +19,7 @@ fn main()->Result<()> {
         if let Command::RunSchedule(s)=c {
             if profiler.is_none(){
                 eg.run_program(std::mem::take(&mut pending))?;
-                let p=Profiler::new(std::mem::take(&mut eg),&commands[..i])?;
+                let p=Profiler::new_excluding(std::mem::take(&mut eg),&commands[..i],&helpers)?;
                 serde_json::to_writer(&mut out,&serde_json::json!({"epoch":epoch,"header":p.header}))?;writeln!(out)?;
                 profiler=Some(p);
             }

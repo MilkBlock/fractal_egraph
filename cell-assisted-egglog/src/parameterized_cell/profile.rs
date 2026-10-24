@@ -26,9 +26,10 @@ pub struct Profiler {
     prefix_totals:Vec<Vec<u64>>,
 }
 impl Profiler {
-    pub fn new(mut eg:EGraph,commands:&[Command])->Result<Self> {
+    pub fn new(eg:EGraph,commands:&[Command])->Result<Self> {Self::new_excluding(eg,commands,&BTreeSet::new())}
+    pub fn new_excluding(mut eg:EGraph,commands:&[Command],helpers:&BTreeSet<String>)->Result<Self> {
         let sets=commands.iter().filter_map(|c|if let Command::AddRuleset(_,s)=c {Some(s.clone())} else {None})
-            .chain(std::iter::once(String::new())).collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
+            .chain(std::iter::once(String::new())).filter(|s|!helpers.contains(s)).collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
         let combined=commands.iter().filter_map(|c|if let Command::UnstableCombinedRuleset(_,s,children)=c {Some((s.clone(),children.clone()))}else{None}).collect();
         let report=boundary::inspect(&mut eg,&sets,&BTreeSet::new())?;
         let mut admitted=vec![];let mut rejected=vec![];

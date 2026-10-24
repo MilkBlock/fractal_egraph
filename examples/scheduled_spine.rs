@@ -162,8 +162,12 @@ fn main() -> Result<()> {
     } else if let Command::RunSchedule(s) = &cs[end] {
         sets(s, &mut selected)
     }
-    selected.remove("cell-stable-keys");
-    selected.remove("cell-stable-freeze");
+    for line in text.lines().filter_map(|s|s.strip_prefix(cell_assisted_egglog::stable_choice::source::HEADER)) {
+        let spec:serde_json::Value=serde_json::from_str(line)?;
+        for s in spec["native_rulesets"].as_array().into_iter().flatten() {
+            selected.remove(s.as_str().ok_or("invalid native helper ruleset")?);
+        }
+    }
     loop {
         let before = selected.clone();
         for c in &cs {

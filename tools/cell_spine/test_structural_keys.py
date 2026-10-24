@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from .compiler import ROOT
 from .structural_keys import compile_source,HEADER,HELPER
+from .key_demand import CHOICE
 from .pass3_markers import compile_source as mark
 sys.path.insert(0,str(ROOT/'skills/cell-assisted-egglog-bench/scripts'))
 from program_modes import compare
@@ -44,11 +45,12 @@ class SourceDag(unittest.TestCase):
     def test_repeated_subtree_stays_a_shared_dag_in_runtime_and_snapshot(self):
         depth=30
         source=self.out/'source.egg'
-        lines=['(datatype Expr (N i64) (Pair Expr Expr))',
+        lines=[CHOICE+json.dumps(dict(function='choose',tie_break='structural')),
+            '(datatype Expr (N i64) (Pair Expr Expr))',
             '(function Expr-size (Expr) i64 :merge (max old new))',
             '(function to-hoist (Expr Expr) Expr :merge new)','(ruleset r)','(let x0 (N 1))']
         lines += [f'(let x{i} (Pair x{i-1} x{i-1}))' for i in range(1,depth+1)]
-        lines += ['(run r 1)'];source.write_text('\n'.join(lines))
+        lines += ['(function choose () Expr :merge new)',f'(set (choose) x{depth})','(run r 1)'];source.write_text('\n'.join(lines))
         compile_source(source,self.out/'sk');g=self.execute(self.out/'sk/source_sk.egg',self.out/'native')
         nodes=g['structural_key_dag'];pairs=[n for n in nodes if n['label']=='Expr:Pair']
         self.assertEqual(len(pairs),depth)
@@ -57,7 +59,7 @@ class SourceDag(unittest.TestCase):
 
     def test_dynamic_literals_are_supported_by_the_native_extension(self):
         source=self.out/'source.egg'
-        source.write_text('''(datatype Expr (S String))
+        source.write_text(CHOICE+json.dumps(dict(function='to-hoist',score='Expr-size',order='max',tie_break='structural'))+'\n'+'''(datatype Expr (S String))
 (function Expr-size (Expr) i64 :merge (min old new))
 (function to-hoist (Expr Expr) Expr :merge new)
 (relation Candidate (Expr)) (ruleset grow) (ruleset pick)
@@ -87,7 +89,7 @@ class SourceDag(unittest.TestCase):
 (function to-hoist (Expr Expr) Expr :merge new)
 (relation Analysis (Expr Unrelated)) (ruleset r) (Analysis (N 1) (Ignored 2)) (run r 1)''')
         report=compile_source(source,self.out/'sk')
-        self.assertEqual(report['key_sorts'],['Expr','Unrelated']);self.assertEqual(report['key_constructors'],2)
+        self.assertEqual(report['key_sorts'],[]);self.assertEqual(report['key_constructors'],0)
         self.execute(self.out/'sk/source_sk.egg',self.out/'native')
 
     def test_function_names_do_not_enable_a_hidden_selection_policy(self):

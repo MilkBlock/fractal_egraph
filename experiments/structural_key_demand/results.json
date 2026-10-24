@@ -1,0 +1,228 @@
+{
+  "schema": "key-demand-validation/v1",
+  "kernel_fix_commit": "4ad40e8",
+  "runtime": "actual saved Raytrace Pass 3 CPU/GPU, native effects",
+  "default_pruning": {
+    "schema": "program-backend-matrix/v1",
+    "performance": {
+      "marker_effect_gpu": {
+        "eligible": true,
+        "left": "original-gpu",
+        "right": "marked-gpu",
+        "delta_seconds": 0.5619797909999988,
+        "ratio": 1.0309166969225894,
+        "change_percent": 3.091669692258936,
+        "reason": null
+      }
+    },
+    "diagnosis": [],
+    "lanes": {
+      "original-gpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/18b4d181d605276dacda99e7d36b8cab0edbd3053fd4e2f65883e55a72880e74",
+        "reused": false,
+        "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+        "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "complete": true,
+        "snapshot_complete": true,
+        "runtime_extension": null,
+        "run_seconds": 18.177226125,
+        "setup_seconds": 0.169183,
+        "gpu_setup_seconds": 2.837737875,
+        "table_rows": 699068,
+        "runtime": {
+          "setup_seconds": 2.832392125,
+          "run_seconds": 18.17721425,
+          "event_seconds": 0.847158083000004,
+          "native_rhs_seconds": 5.881896726999892,
+          "native_action_search_apply_seconds": 0.5733862239999993,
+          "native_insert_merge_seconds": 0.5283221249999993,
+          "native_rebuild_seconds": 4.2699191600000015,
+          "ruleset_runs": 10091,
+          "row_events": 2458173,
+          "union_events": 239476,
+          "bootstrap_events": 109,
+          "prepare_seconds": 0.07177630899999994,
+          "roundtrip_seconds": 11.073412536000037,
+          "decode_seconds": 0.18009500599999978,
+          "device_seconds": 6.460113999375608,
+          "gpu_maintenance_seconds": null,
+          "gpu_matching_seconds": null,
+          "native_query_seconds": 0.0,
+          "audit_seconds": 0.0,
+          "dispatches": 7260,
+          "gpu_empty_table_prunes": 10272,
+          "uploaded_bytes": 184473232,
+          "downloaded_bytes": 75558228,
+          "first_upload_bytes": 8756,
+          "unchanged_notifications": 0,
+          "workers": 1,
+          "shader_compiles": 1,
+          "reused_slots": 194410,
+          "peak_live_rows": 693079,
+          "output_high_water": 46177,
+          "saturation_boundaries": 4263,
+          "skipped_saturations": 0,
+          "partial_saturations": 0,
+          "saturation_hook_seconds": 0.0,
+          "cell_query_rules": 0,
+          "cell_query_bindings": 0,
+          "cell_query_seconds": 0.00019652500000000422,
+          "shared_query_requests": 0,
+          "shared_query_bindings": 0,
+          "native_only_runs": 0,
+          "native_only_seconds": 0.0
+        },
+        "native_only_rulesets": {},
+        "error": null
+      },
+      "marked-gpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/dee37b9f35aab3b1a85f904678da01d023e22b059fe12de3408247d92ab725f5",
+        "reused": false,
+        "source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg",
+        "source_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+        "complete": true,
+        "snapshot_complete": true,
+        "runtime_extension": {
+          "name": "cell-structural-key-runtime/v1",
+          "nodes": 0,
+          "bases": [],
+          "registration_skipped": true,
+          "source_controls_rules_and_schedule": true
+        },
+        "run_seconds": 18.739205916,
+        "setup_seconds": 0.174731458,
+        "gpu_setup_seconds": 2.8528725,
+        "table_rows": 699068,
+        "runtime": {
+          "setup_seconds": 2.847264708,
+          "run_seconds": 18.739193084,
+          "event_seconds": 0.8600527090000014,
+          "native_rhs_seconds": 5.996311768999952,
+          "native_action_search_apply_seconds": 0.5738599589999988,
+          "native_insert_merge_seconds": 0.5414760759999994,
+          "native_rebuild_seconds": 4.354922997000001,
+          "ruleset_runs": 10091,
+          "row_events": 2458173,
+          "union_events": 239476,
+          "bootstrap_events": 109,
+          "prepare_seconds": 0.07327529299999994,
+          "roundtrip_seconds": 11.499962554000007,
+          "decode_seconds": 0.19142571799999947,
+          "device_seconds": 6.780101666401606,
+          "gpu_maintenance_seconds": null,
+          "gpu_matching_seconds": null,
+          "native_query_seconds": 0.0,
+          "audit_seconds": 0.0,
+          "dispatches": 7260,
+          "gpu_empty_table_prunes": 10272,
+          "uploaded_bytes": 184473232,
+          "downloaded_bytes": 75558228,
+          "first_upload_bytes": 8756,
+          "unchanged_notifications": 0,
+          "workers": 1,
+          "shader_compiles": 1,
+          "reused_slots": 194410,
+          "peak_live_rows": 693079,
+          "output_high_water": 46177,
+          "saturation_boundaries": 4263,
+          "skipped_saturations": 0,
+          "partial_saturations": 0,
+          "saturation_hook_seconds": 0.0,
+          "cell_query_rules": 0,
+          "cell_query_bindings": 0,
+          "cell_query_seconds": 0.00020727100000000518,
+          "shared_query_requests": 0,
+          "shared_query_bindings": 0,
+          "native_only_runs": 0,
+          "native_only_seconds": 0.0
+        },
+        "native_only_rulesets": {},
+        "error": null
+      }
+    },
+    "comparisons": {
+      "marker_effect_gpu": {
+        "status": "equal",
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "mapped_classes": 524631,
+        "projected_out_left": [],
+        "projected_out_right": [],
+        "left": "original-gpu",
+        "right": "marked-gpu"
+      }
+    },
+    "pristine": null,
+    "scope": "supplied source policy, explicit source-declared runtime extensions only; pristine names the unchanged baseline kernel, not the absence of extensions; source and backend effects reported separately",
+    "passed": true
+  },
+  "explicit_policy": {
+    "source": "cell-choice/v1: structural max of Expr-size for the discovered to-hoist selector",
+    "source_sha256": "f972b389e903beea951408e8e9e92bac1232049abda30cb1067c8fdd4265575f",
+    "cpu_seconds": 27.563569541,
+    "gpu_seconds": 18.080169792,
+    "rows": 725432,
+    "cpu_gpu": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 725432,
+      "mapped_classes": 537813,
+      "projected_out_left": [],
+      "projected_out_right": []
+    },
+    "native_helpers": {
+      "cell-key-ready-check": {
+        "runs": 12,
+        "seconds": 3.7208999999999996e-05,
+        "search_apply_seconds": 0.0,
+        "insert_merge_seconds": 0.0,
+        "rebuild_seconds": 0.0,
+        "matches": 0
+      },
+      "cell-key-request-0": {
+        "runs": 12,
+        "seconds": 0.022111042,
+        "search_apply_seconds": 0.021292751,
+        "insert_merge_seconds": 0.000129332,
+        "rebuild_seconds": 0.0,
+        "matches": 570
+      },
+      "cell-stable-keys": {
+        "runs": 999,
+        "seconds": 1.622921629999999,
+        "search_apply_seconds": 1.4646584839999996,
+        "insert_merge_seconds": 0.016835754999999977,
+        "rebuild_seconds": 0.018219415000000003,
+        "matches": 196483
+      }
+    },
+    "key_rows": 12829,
+    "needed_value_rows": 12829,
+    "candidate_rows": 353,
+    "comparison_to_unanchored_policy": {
+      "status": "different",
+      "reason": "equality partition differs",
+      "table": "to-hoist"
+    }
+  },
+  "historical_all_type_generation": {
+    "commit": "4485acf",
+    "key_sorts": 94,
+    "key_rows": 524631,
+    "helper_seconds": 15.916260398,
+    "run_seconds": 35.214278,
+    "warning": "historical binary and original arrival-order policy; not a same-semantics speedup denominator"
+  },
+  "verification": {
+    "python_acceptance_tests": 29,
+    "bench_protocol_tests": 69,
+    "typed_primitive_tests": 11,
+    "mergefn_tests": 2,
+    "typed_select_tests": 2
+  },
+  "limits": [
+    "First complete finite witnesses are anchored, not recomputed as whole-eclass canonical minima.",
+    "All eligible candidates request keys; no lazy same-score-only collision optimization.",
+    "No full Pass-3 marker profiling rerun and no pristine extraction quality claim."
+  ]
+}

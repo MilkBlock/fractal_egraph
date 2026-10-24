@@ -364,9 +364,18 @@ Cell observer；native/pristine 不装。运行区间从最后一个定义后的
 程序采集每轮真实工作量，复用通用 spine 求解器和源码 publisher，不用静态价格
 或固定两原子 adapter。离线 profiling 计入编译成本，不计作运行时加速。
 
-结构键按 constructor 类型导出，原 merge/选择策略保持原样。不再按
-`to-hoist`、`Smaller` 等名称重写。无法编码的字段所在 sort 保留原执行并报告。
-这次不承诺消除原程序的顺序敏感性。
+结构键从实际消费者反向保留。未声明选择用途时不生成键表、规则或维护 Run；
+已展开的原始正文逐字保留，空扩展不注册 sort/primitive。不能因发现 `merge new`
+就改变其语义。需要稳定选择时，在 source 中添加 `cell-choice/v1` 注释，指定
+function、可选 unary i64 score、min/max 和 structural tie_break。声明才是授权；
+语法识别出的 ranked-choice 候选只是报告建议，不按 `to-hoist` 名字启用。
+
+启用后只计算候选及其构造子依赖的键，仅在实际写者的 Run 前发布需求、计算并
+验证就绪。完整算出的构造见证会固定为 anchor，union 合并已有键；它是稳定历史
+结构，不是不断变化的整个 e-class 的最小规范形式。请求 LHS 的 Join 也是成本，
+需要计入 helper 时间。需要但无法编码的字段、fresh RHS 候选、缺失见证/score
+必须显式失败，不准静默漏匹配。该策略改变同分选择，因此只和同策略 CPU 对照；
+不能拿旧 `merge new` 的 graph 当它的语义 oracle。见 `experiments/structural_key_demand`。
 
 最终源码的 `cell-runtime/v1` 注释携带完整 typed query 接线、marker 表名和
 精确程序身份。`cell-assisted-egglog --mode program --backend cpu|gpu --source FILE
