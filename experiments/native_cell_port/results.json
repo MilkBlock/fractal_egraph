@@ -1,0 +1,398 @@
+{
+  "schema": "native-source-port-report/v1",
+  "date": "2026-10-24",
+  "source_commit": "74e7d9b",
+  "kernel_prerequisite_commit": "e0891f0",
+  "upstream_kernel": "ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+  "official_eggcc": "ae80f82a",
+  "experimental_wrapper": "08771f9f69de51cc8cdc58e3760b7f00a03e40d8",
+  "actual_runtime": true,
+  "gpu": false,
+  "scope": "Official raytrace three-pass chain and production Tiger. Only Pass 3 receives generated Cell declarations; the table times that pass including native setup/Cell attachment but excluding parsing, diagnostics and extraction.",
+  "source_artifacts": {
+    "source.egg": {
+      "path": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-raytrace-canonical-v2/source.egg",
+      "sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f"
+    },
+    "source_sk.egg": {
+      "path": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-raytrace-canonical-v2/source_sk.egg",
+      "sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4"
+    },
+    "source_sk_mk.egg": {
+      "path": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-raytrace-canonical-v2/source_sk_mk.egg",
+      "sha256": "6dbb0f51c153ba75c18bd08d0a12f4f016fa7d07c969e0415d79db8c96ca72c5"
+    }
+  },
+  "compiler": {
+    "schema": "native-source-pipeline/v1",
+    "gpu": false,
+    "keys": {
+      "schema": "structural-key-source/v5",
+      "source": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-raytrace-canonical-v2/source.egg",
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "output_sha256": "4ffdfd0e82989dc36278e6444ee202f9c138482d6eb5eb8b9a98c74e55db2b2d",
+      "native_rulesets": [],
+      "policy": "automatic",
+      "key_roots": [],
+      "key_sorts": [],
+      "key_constructors": 0,
+      "declared_constructors": 242,
+      "maintenance_before": [],
+      "runtime_extension": "cell-structural-key-runtime/v1",
+      "key_demand": {
+        "candidates": [
+          {
+            "function": "to-hoist",
+            "output": "Expr",
+            "merge": "new",
+            "writers": [
+              "boundary-analysis"
+            ],
+            "ranked_guards": [
+              {
+                "score": "Expr-size",
+                "order": "max",
+                "best": "to-hoist-size"
+              }
+            ],
+            "authority": "suggestion only; original merge preserved unless source opts in"
+          }
+        ],
+        "selected": [],
+        "roots": [],
+        "sorts": [],
+        "reasons": {},
+        "consumers": [],
+        "write_rules": [],
+        "top_writes": {},
+        "ignored_declarations": [],
+        "guarantee": "only source-declared ordering reads root the key dependency graph"
+      },
+      "representation": "anchored constructor-witness keys; candidate-rooted demand and positive readiness validation",
+      "original_choices_preserved": true,
+      "original_body_preserved": true,
+      "pruned_key_sorts": [
+        "Assumption",
+        "BaseType",
+        "BinaryOp",
+        "Bound",
+        "Constant",
+        "Expr",
+        "ExprSet",
+        "IVTRes",
+        "IntInterval",
+        "IntOrInfinity",
+        "List<PtrPointees>",
+        "List<i64+IntInterval>",
+        "ListExpr",
+        "ListTerm",
+        "MyBool",
+        "Node",
+        "Pointees",
+        "ProgramType",
+        "PtrPointees",
+        "Term",
+        "TermAndCost",
+        "TernaryOp",
+        "Type",
+        "TypeList",
+        "UnaryOp",
+        "___AccumBopSort",
+        "___AddAllGetsSort",
+        "___AddGetsSort",
+        "___All<PointsNowherePtrPointees>Sort",
+        "___AtList<PtrPointees>Sort",
+        "___AtList<i64+IntInterval>Sort",
+        "___BinaryOpIsPureSort",
+        "___BodyContainsExprSort",
+        "___BodyContainsListExprSort",
+        "___ContextOfSort",
+        "___DebugExprSort",
+        "___DemandAtList<PtrPointees>Sort",
+        "___DemandAtList<i64+IntInterval>Sort",
+        "___DemandDontAliasSort",
+        "___DidMemOptimizationSort",
+        "___DontAliasSort",
+        "___ExpectTypeSort",
+        "___ExprIsPureSort",
+        "___ExprIsResolvedSort",
+        "___ExprIsValidSort",
+        "___ExtractedExprCacheSort",
+        "___FunctionHasTypeSort",
+        "___HasArgTypeSort",
+        "___HasTypeSort",
+        "___IVTNewInputsAnalysisDemandSort",
+        "___InlinedCallSort",
+        "___InvCodeMotionCandidateSort",
+        "___IsEmptyList<PtrPointees>Sort",
+        "___IsEmptyList<i64+IntInterval>Sort",
+        "___IsIsEvenSort",
+        "___IsNonEmptyList<PtrPointees>Sort",
+        "___IsNonEmptyList<i64+IntInterval>Sort",
+        "___ListExprIsPureSort",
+        "___ListExprIsResolvedSort",
+        "___ListExprIsValidSort",
+        "___LoopIsFiniteSort",
+        "___NTZIterationsSort",
+        "___NoAliasSort",
+        "___NotJustConcatSort",
+        "___PointerishTypeListSort",
+        "___PointerishTypeSort",
+        "___PointsNowherePtrPointeesSort",
+        "___PointsNowhereSort",
+        "___PotentialExtractedExprSort",
+        "___PureBaseTypeSort",
+        "___PureTypeListSort",
+        "___PureTypeSort",
+        "___RELIESONCONTEXTSort",
+        "___ResolvedIntIntervalSort",
+        "___ResolvedIntOrInfinitySort",
+        "___ResolvedList<PtrPointees>Sort",
+        "___ResolvedList<i64+IntInterval>Sort",
+        "___ResolvedPointeesSort",
+        "___ResolvedPtrPointeesSort",
+        "___SuffixAtList<PtrPointees>Sort",
+        "___SuffixAtList<i64+IntInterval>Sort",
+        "___TernaryOpIsPureSort",
+        "___ToSubsumeIfSort",
+        "___UnaryOpIsPureSort",
+        "___bop>stringSort",
+        "___bopoftypeSort",
+        "___bpredoftypeSort",
+        "___isinvExprSort",
+        "___isinvListExprSort",
+        "___isinvListExprhelperSort",
+        "___leadingExprSort",
+        "___leadingExprlistSort",
+        "___lsrinvSort",
+        "___top>stringSort",
+        "___uop>stringSort"
+      ],
+      "selected_choices": [],
+      "acceptance": "original facts/equality/visibility preserved",
+      "limits": [
+        "No implicit selection policy; suggestions do not activate keys.",
+        "Needed unsupported fields and fresh RHS candidates reject compilation.",
+        "Demand includes all currently eligible candidates, not only numeric ties.",
+        "Unavailable finite key witnesses or scores fail before the original choice Run.",
+        "No claim of arbitrary nonconfluent backend determinism."
+      ],
+      "reused_identical_empty_key_stage": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg"
+    },
+    "markers": {
+      "schema": "self-contained-marker-stage/v1",
+      "input_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+      "output_sha256": "6dbb0f51c153ba75c18bd08d0a12f4f016fa7d07c969e0415d79db8c96ca72c5",
+      "only_input": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-raytrace-canonical-v2/source_sk.egg",
+      "pricing": "verified execution of preceding source_sk.egg; no external corpus or static prices",
+      "output": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-raytrace-canonical-v2/markers/build-1/source_sk_mk.egg",
+      "reused_profile": true,
+      "closure_owned_queries": 31,
+      "gpu_fallback_priced": false,
+      "selected_queries": 327,
+      "lowered_queries": 0,
+      "retained_query_contexts": 327,
+      "marker_tables": 0,
+      "runtime_marker_consumers": 273,
+      "source_lowering_obligation": {
+        "kind": "ordered-merge-frontier",
+        "functions": [
+          "to-hoist"
+        ],
+        "decision": "preserve source consumers; use selected runtime marker wiring"
+      },
+      "rhs_publications": 0,
+      "solver": {
+        "backend": "scip",
+        "python_package_version": "6.3.0",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "scheduled_spine_layouts": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.39132507488830015,
+            "solve_seconds": 9.08052554196911,
+            "peak_variables": 34695,
+            "peak_constraints": 81752,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "guarantee": "complete typed query plans and source-checked declared closure programs; original effects and Run boundaries",
+      "limitations": [
+        "Unsupported queries retain original execution. Profiling is offline compilation cost.",
+        "Selection minimizes measured work estimates, not elapsed time; no speedup is implied."
+      ]
+    }
+  },
+  "lanes": {
+    "source": {
+      "execution_seconds": 21.510332084,
+      "tuples_including_auxiliary": 697922,
+      "cache_hit": false,
+      "runtime": {},
+      "tiger_printed_program_sha256": "066191481588858cfd71568ab2ac989be39edab5ec17e860bff12e029b47916e",
+      "evidence": "/Users/mineralsteins/.codex/worktrees/native-cell-techreport/egg_layout/out/native-full-timing/pass3-source.json"
+    },
+    "source_sk": {
+      "execution_seconds": 20.797741875,
+      "tuples_including_auxiliary": 697922,
+      "cache_hit": true,
+      "runtime": {},
+      "tiger_printed_program_sha256": "066191481588858cfd71568ab2ac989be39edab5ec17e860bff12e029b47916e",
+      "evidence": "/Users/mineralsteins/.codex/worktrees/native-cell-techreport/egg_layout/out/native-full-timing/pass3-source-sk.json"
+    },
+    "full_cells": {
+      "execution_seconds": 9.729543708,
+      "tuples_including_auxiliary": 699071,
+      "cache_hit": true,
+      "runtime": {
+        "runs": 6431,
+        "cell_runs": 6423,
+        "complete_cell_bindings": 2747060,
+        "audit_queries": 0,
+        "skipped_saturations": 12,
+        "cell_query_seconds": 1.616361072000008,
+        "native_batch_seconds": 4.28839889299993
+      },
+      "tiger_printed_program_sha256": "59fedb5bf772d57671f63d9520a6ca907af9d80923ceb4843f7aa7de45835a17",
+      "evidence": "/Users/mineralsteins/.codex/worktrees/native-cell-techreport/egg_layout/out/native-full-timing/pass3-marker.json"
+    },
+    "query_only": {
+      "execution_seconds": 17.569856625,
+      "tuples_including_auxiliary": 697940,
+      "cache_hit": true,
+      "runtime": {
+        "runs": 10125,
+        "cell_runs": 6423,
+        "complete_cell_bindings": 2747156,
+        "audit_queries": 0,
+        "skipped_saturations": 0,
+        "cell_query_seconds": 1.5173821099999618,
+        "native_batch_seconds": 14.051462888000348
+      },
+      "tiger_printed_program_sha256": "59fedb5bf772d57671f63d9520a6ca907af9d80923ceb4843f7aa7de45835a17",
+      "evidence": "/Users/mineralsteins/.codex/worktrees/native-cell-techreport/egg_layout/out/native-full-query-only/pass3.json"
+    },
+    "ordered_writers_native": {
+      "execution_seconds": 17.628677667,
+      "tuples_including_auxiliary": 697938,
+      "cache_hit": true,
+      "runtime": {
+        "runs": 10122,
+        "cell_runs": 6399,
+        "complete_cell_bindings": 2744732,
+        "audit_queries": 0,
+        "skipped_saturations": 0,
+        "cell_query_seconds": 1.519759267999952,
+        "native_batch_seconds": 14.103411933000254
+      },
+      "tiger_printed_program_sha256": "59fedb5bf772d57671f63d9520a6ca907af9d80923ceb4843f7aa7de45835a17",
+      "evidence": "/Users/mineralsteins/.codex/worktrees/native-cell-techreport/egg_layout/out/native-full-ordered/pass3.json"
+    },
+    "attach_only": {
+      "execution_seconds": 21.907870958,
+      "tuples_including_auxiliary": 697922,
+      "cache_hit": true,
+      "runtime": {
+        "runs": 10121,
+        "cell_runs": 0,
+        "complete_cell_bindings": 0,
+        "audit_queries": 0,
+        "skipped_saturations": 0,
+        "cell_query_seconds": 0.0,
+        "native_batch_seconds": 20.75729095099984
+      },
+      "tiger_printed_program_sha256": "066191481588858cfd71568ab2ac989be39edab5ec17e860bff12e029b47916e",
+      "evidence": "/Users/mineralsteins/.codex/worktrees/native-cell-techreport/egg_layout/out/native-full-attach-only/pass3.json"
+    }
+  },
+  "correctness": {
+    "small_pipeline": {
+      "source_sk": {
+        "status": "equal",
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 23,
+        "mapped_classes": 20,
+        "projected_out_left": [],
+        "projected_out_right": []
+      },
+      "source_sk_mk": {
+        "status": "equal",
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 23,
+        "mapped_classes": 20,
+        "projected_out_left": [],
+        "projected_out_right": []
+      }
+    },
+    "unit_tests_passed": 6,
+    "native_binding_audits": 264339,
+    "audit_same_tiger_as_timed_full": true,
+    "full_graph": {
+      "status": "different",
+      "reason": "row counts differ",
+      "tables": {
+        "Smaller": [
+          72198,
+          73373
+        ],
+        "TCPair": [
+          63051,
+          63038
+        ],
+        "TermConcat": [
+          3620,
+          3607
+        ]
+      }
+    },
+    "tiger_same_as_native": false
+  },
+  "performance_acceptance": false,
+  "limitations": [
+    "The observed 20.80 -> 9.73 seconds is NOT an accepted speedup: the original-row and selected-DAG checks fail.",
+    "Timing lanes were executed once and are preserved historical observations within this task; per-lane executable bytes were not archived. Do not treat them as an approved reusable benchmark cache.",
+    "The complete copied compiler reused a validated existing native profile for the exact archived empty-key SK artifact. No GPU pricing or execution was used.",
+    "Full-frame native binding audits verify sets at those frontiers, not native enumeration or commit-order equivalence.",
+    "Direct source-declared noncommutative writers were returned to native queries; that alone did not remove the final difference."
+  ],
+  "focused_diagnosis": {
+    "prestate_equal": true,
+    "prestate_checked_rows": 305549,
+    "round": 2154,
+    "ruleset": "terms-helpers",
+    "logical_trace_events": 597,
+    "guard_surviving_bindings": 377,
+    "same_binding_multiset": true,
+    "same_binding_order": false,
+    "root_in_native_coordinates": 228,
+    "candidate_ids": {
+      "Initial": 280061,
+      "A": 284935,
+      "B": 285386
+    },
+    "candidate_cost": 3,
+    "actual_after_states": {
+      "native": {
+        "expr_id": 228,
+        "merge_tree": "Smaller(Smaller(Initial, A), B)",
+        "trace_reproduces_actual_typed_rows": true
+      },
+      "cell": {
+        "expr_id": 228,
+        "merge_tree": "Smaller(Smaller(Initial, B), A)",
+        "trace_reproduces_actual_typed_rows": true
+      }
+    },
+    "limitation": "Exact prestate and concrete Run witness; not a proof that all earlier Runs were equal.",
+    "tests_passed": 12
+  },
+  "port_commits": {
+    "kernel_and_extension": "a12e74d",
+    "experimental_wrapper": "8effb9c",
+    "official_eggcc": "a5fc2cbc"
+  }
+}
