@@ -736,6 +736,13 @@ pub struct Runtime {
     pub stats: Stats,
 }
 impl Runtime {
+    /// Load only the explicitly supplied complete-query plans. No discovery or
+    /// application-specific closure compiler runs here.
+    pub fn from_declared_queries(eg:EGraph, specs:&[boundary::Spec])->Result<Self> {
+        let mut r=Self::new_with_boundaries(eg,&[],&BTreeMap::new(),vec![],None,specs)?;
+        r.certificates.bind_environment(&r.eg);
+        Ok(r)
+    }
     pub fn new(eg: EGraph, sets: &[&str]) -> Result<Self> {
         Self::new_with_seeds(eg, sets, &BTreeMap::new())
     }

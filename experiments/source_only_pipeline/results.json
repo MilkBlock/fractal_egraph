@@ -1,0 +1,94 @@
+{
+  "schema": "source-only-pipeline-check/v1",
+  "parent_commit": "105fa3a",
+  "runtime": "actual native and Metal assisted runtime; correctness test, not performance benchmark",
+  "sample": "experiments/parameterized_source_markers/counter.egg",
+  "input_sha256": "ada89b024ca59717352c896150fb60f1b16c7278d4736c91430256ad841d4e0d",
+  "final_sha256": "599ee8ae836b1e560dfdfe7d0ec131e699fb7c316dd067143d1b236555ea0651",
+  "runner_sha256": "441c55bb1bb14bd37a08a6571db49990cdd13be5a0080e1bc511fc953c3dc0f5",
+  "original_vs_marked_native": {
+    "marker_effect_native": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 23,
+      "mapped_classes": 20,
+      "projected_out_left": [],
+      "projected_out_right": [
+        "CellStructuralKey-E"
+      ],
+      "left": "original-native",
+      "right": "marked-native"
+    }
+  },
+  "original_vs_marked_gpu": {
+    "marker_effect_gpu": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 23,
+      "mapped_classes": 20,
+      "projected_out_left": [],
+      "projected_out_right": [
+        "CellStructuralKey-E"
+      ],
+      "left": "original-gpu",
+      "right": "marked-gpu"
+    }
+  },
+  "final_native_vs_gpu": {
+    "status": "equal",
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 33,
+    "mapped_classes": 20,
+    "projected_out_left": [],
+    "projected_out_right": []
+  },
+  "planner": {
+    "schema": "self-contained-marker-stage/v1",
+    "input_sha256": "bf31bd876d36430a66e57731712b350122beda613767e951571ff0eaef5640df",
+    "output_sha256": "599ee8ae836b1e560dfdfe7d0ec131e699fb7c316dd067143d1b236555ea0651",
+    "only_input": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/source-only-pipeline-verified/sk/source_sk.egg",
+    "pricing": "verified execution of preceding source_sk.egg; no external corpus or static prices",
+    "selected_queries": 2,
+    "lowered_queries": 0,
+    "retained_query_contexts": 2,
+    "marker_tables": 0,
+    "rhs_publications": 0,
+    "solver": {
+      "backend": "scip",
+      "python_package_version": "6.3.0",
+      "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+      "threads": 1,
+      "models": {
+        "scheduled_spine_layouts": {
+          "models": 1,
+          "solve_calls": 1,
+          "api_build_seconds": 0.10134645574726164,
+          "solve_seconds": 0.0076579590095207095,
+          "peak_variables": 22,
+          "peak_constraints": 20,
+          "engine_version": "10.0.2",
+          "nonoptimal_solves": 0
+        }
+      }
+    },
+    "guarantee": "complete typed query plans; original effects and Run boundaries; no inferred saturation certificate",
+    "limitations": [
+      "Unsupported queries retain original execution. Profiling is offline compilation cost.",
+      "Selection minimizes measured work estimates, not elapsed time; no speedup is implied."
+    ]
+  },
+  "runtime_query_invocations": 12,
+  "emitted_query_bindings": 12,
+  "logical_bindings_are_not_committed_mutations": true,
+  "implicit_joint": null,
+  "implicit_scalar": [],
+  "validations": {
+    "source_only_and_lowering_and_keys": "16 tests passed, including actual GPU",
+    "workload_and_scheduled_selection": "14 tests passed (part of 17 with source lowering)",
+    "bench_skill": "68 tests passed",
+    "native_program": "6 tests passed",
+    "native_event_loop": "11 tests passed",
+    "parameterized_transfers": "19 tests passed"
+  },
+  "no_pass3_speedup_claim": true
+}

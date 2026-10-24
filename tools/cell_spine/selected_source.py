@@ -252,7 +252,7 @@ def compile_source(source,layout,out,root=compiler.ROOT,joint=None):
     native=root/'target/analyzer/release/examples/scheduled_spine';ast=root/'target/analyzer/release/examples/lhs_ast'
     compiler.run([ast,source,out/'ast.json'])
     data=json.loads((out/'ast.json').read_text())
-    if joint is None:joint={'terms','terms-helpers','terms-helpers-helpers'}<=set(data['rule_rulesets'])
+    if joint is None:joint=False
     compiler.run([native,source,out/'rebound.json']+(['--joint'] if joint else [])+['--rebind',layout])
     compiler.run([native,source,out/'native.json']+(['--joint'] if joint else []))
     specs=json.loads((out/'rebound.json').read_text())['rules']
@@ -266,7 +266,8 @@ def compile_source(source,layout,out,root=compiler.ROOT,joint=None):
     target=out/'source_sk_mk.egg'
     unchanged=not report['lowered_queries'] and not report['publish_actions']
     if unchanged:target.write_bytes(source.read_bytes())
-    else:target.write_text('\n'.join(headers)+'\n'+code)
+    else:target.write_text('\n'.join(headers)+'\n'+'; cell-marker-tables/v1 '+json.dumps(dict(
+        tables=[PREFIX+str(m['id']) for m in report['markers'] if not m['alias']]),separators=(',',':'))+'\n'+code)
     # Only rewritten consumers leave the runtime provider. Retained private or
     # mutable-root plans remain usable on their original LHS; do not manufacture
     # one-atom source markers that the solver never selected.
@@ -274,7 +275,10 @@ def compile_source(source,layout,out,root=compiler.ROOT,joint=None):
     kept=[s for s in specs if (s['ruleset'],s['rule']) not in rewritten]
     runtime_layout=out/'retained-layout.json';runtime_layout.write_text(json.dumps(dict(schema='cell-boundary-programs/v2',setup=[],rules=kept)))
     compiler.run([native,target,out/'runtime-layout.json']+(['--joint'] if joint else [])+['--rebind',runtime_layout])
-    report.update(runtime_rule_count=len(kept),source_preserved=unchanged)
+    sealed=out/'sealed.egg'
+    compiler.run([native,target,sealed,'--seal',out/'runtime-layout.json'])
+    sealed.replace(target)
+    report.update(runtime_rule_count=len(kept),source_preserved=unchanged,inline_cell_declarations=True)
     report.update(schema='selected-spine-source/v1',source_sha256=compiler.digest(source),output_sha256=compiler.digest(target),
         selected_layout_sha256=compiler.digest(layout),runtime_layout_sha256=compiler.digest(out/'runtime-layout.json'),
         source=str(source),output=str(target),selection_scope='same selected typed roots, prefixes, payloads and consumers; no two-atom reselection',
@@ -282,5 +286,5 @@ def compile_source(source,layout,out,root=compiler.ROOT,joint=None):
     (out/'markers.json').write_text(json.dumps(report,indent=2)+'\n');return report
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--source',type=Path,required=True);p.add_argument('--selected-layouts',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--no-joint',action='store_true')
-    a=p.parse_args();compile_source(a.source,a.selected_layouts,a.output,joint=not a.no_joint)
+    p=argparse.ArgumentParser();p.add_argument('--source',type=Path,required=True);p.add_argument('--selected-layouts',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
+    a=p.parse_args();compile_source(a.source,a.selected_layouts,a.output,joint=False)

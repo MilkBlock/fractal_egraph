@@ -212,7 +212,7 @@ def compile_program(a,data,root,weights):
         certificate=output/'certificates.egg'
     binary=root/'target/analyzer/release/examples/scheduled_spine'
     if not a.skip_build:run(['cargo','build','--offline','--release','--target-dir','target/analyzer','--example','scheduled_spine'])
-    sets=set(data['rule_rulesets']);joint={'terms','terms-helpers','terms-helpers-helpers'}<=sets
+    joint=False  # Proof services require an explicit previous-stage certificate, never ruleset-name recognition.
     run([binary,source,work/'queries.json']+(['--joint'] if joint else [])+(['--certificates',certificate] if certificate else []))
     native=json.loads((work/'queries.json').read_text())
     write(output/'certificates.json',native.get('certificates'))

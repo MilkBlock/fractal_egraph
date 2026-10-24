@@ -156,10 +156,9 @@ def report(path, fresh=False):
         path = next((path / n for n in choices if (path / n).is_file()), path / 'report.json')
     r = load(path)
     if r.get('schema')=='explicit-key-cell-bench/v1':
-        import explicit_keys_bench
-        r=explicit_keys_bench.evaluate(r)
+        print("历史显式键对照；其隐式服务执行入口已移除，不重新认证。")
         for name,lane in r['lanes'].items():print(name,lane['run_seconds'],'s; reused:',lane['reused'])
-        print('整图:',r['graph_passed'],'Cell 服务:',r['services_match'],'Tiger:',r['extraction_passed'],'无实测回退:',r['no_observed_regression'])
+        print('整图:',r['graph_passed'],'Cell 服务:',r.get('services_match'),'Tiger:',r['extraction_passed'],'无实测回退:',r.get('no_observed_regression'))
         return
     if r.get('schema')=='pass3-egg-markers/v1':
         print('生成 .egg 的原生 CPU 执行；不是 GPU 或整 Cell sat-skip。')
@@ -794,22 +793,17 @@ def parser():
     q.add_argument('--before',type=Path,required=True);q.add_argument('--after',type=Path,required=True)
     q.add_argument('--profile-before',type=Path);q.add_argument('--profile-after',type=Path);q.add_argument('--output',type=Path)
     q=sub.add_parser('structural-pipeline',help='generate shared DAG keys and source markers with an explicit native extension')
-    q.add_argument('--key-policy',choices=['automatic','full'],default='automatic')
-    q.add_argument('--source',type=Path,required=True);q.add_argument('--analysis',type=Path,required=True)
+    q.add_argument('--solver',choices=['scip','gurobi'],default='scip')
+    q.add_argument('--source',type=Path,required=True)
     q.add_argument('--output',type=Path,required=True);q.add_argument('--solver-python',type=Path)
     q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--check',action='store_true');q.add_argument('--no-build',action='store_true')
-    q=sub.add_parser('explicit-keys-bench',help='fixed-layout Cell comparison: legacy keys vs explicit SK vs SK+marker, no solver')
-    for flag in ['source','sk','marked','layout','output']:q.add_argument('--'+flag,type=Path,required=True)
-    q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--no-build',action='store_true');q.add_argument('--no-extract',action='store_true')
-    q.add_argument('--marker-maintenance',choices=['native','gpu'],default='gpu',help='where the explicit cell-spine-complete helper runs; source schedule is unchanged')
     q=sub.add_parser('program-modes',help='same .egg on immutable pristine or GPU; optional original/marker 2x2 isolation')
     q.add_argument('--source',type=Path,required=True);q.add_argument('--marked',type=Path)
-    q.add_argument('--backend',choices=['pristine','native','gpu','both'],default='both')
+    q.add_argument('--backend',choices=['pristine','native','cpu','gpu','both'],default='both')
     q.add_argument('--pristine-checkout',type=Path,default=Path('/Users/mineralsteins/.codex/worktrees/native-baseline/egg_layout'))
     q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--no-build',action='store_true');q.add_argument('--query-audit',action='store_true');q.add_argument('--native-rulesets',default='',help='explicit comma-separated CPU helper rulesets, same source schedule')
-    q.add_argument('--cell-assistance',action='store_true');q.add_argument('--boundary-programs',type=Path)
-    q.add_argument('--setup-policy',choices=['source','legacy-stable'],default='source')
+    q.add_argument('--cell-assistance',action='store_true',help='require inline Cell declarations (otherwise loaded automatically when present)')
     q=sub.add_parser('planner-prices',help='aggregate all verified workload/round costs for the existing marker solver')
     q.add_argument('--input',type=Path,required=True);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--jobs',type=int,default=1,help='parallel pass readers; all profiles are included')
@@ -1044,9 +1038,6 @@ def main(argv=None):
     if a.mode=='structural-pipeline':
         import structural_pipeline
         return structural_pipeline.run(a,repo)
-    if a.mode=='explicit-keys-bench':
-        import explicit_keys_bench
-        return explicit_keys_bench.run(a,repo)
     if a.mode=='program-modes':
         import program_modes
         return program_modes.run(a,repo)

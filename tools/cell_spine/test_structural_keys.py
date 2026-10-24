@@ -36,11 +36,8 @@ class SourceDag(unittest.TestCase):
                 self.assertEqual(compare(a,b,set(a['tables']))['status'],'equal')
                 self.assertEqual(sk.read_text().splitlines()[0],mk.read_text().splitlines()[0])
                 self.assertNotIn('BigRat',sk.read_text());self.assertNotIn('BigInt',sk.read_text())
-                if fixture=='automatic':
-                    self.assertEqual(report['maintenance_before'],['pick'])
-                    ordinary=[line for line in sk.read_text().splitlines() if line.startswith('(run-schedule ') and '(run ordinary)' in line]
-                    self.assertEqual(len(ordinary),1);self.assertNotIn(HELPER,ordinary[0])
-                else:
+                self.assertTrue(report['original_choices_preserved'])
+                if fixture=='markers':
                     self.assertEqual(m['modified_consumers'],3)
                     self.assertTrue(any(row[0]=='CellSpineView0' for row in b['rows']))
 
@@ -69,11 +66,9 @@ class SourceDag(unittest.TestCase):
 (S "a") (run grow 1) (run pick 1) (check (= (to-hoist (S "a") (S "a")) (S "ab")))''')
         compile_source(source,self.out/'sk');self.execute(self.out/'sk/source_sk.egg',self.out/'native')
 
-    def test_full_selection_policy_is_explicit_and_remains_available(self):
-        report=compile_source(ROOT/'experiments/standalone_structural_keys/hoist.egg',self.out/'sk',policy='full')
-        self.assertIn('Term',report['key_roots'])
-        self.assertIn('terms-helpers',report['maintenance_before'])
-        self.execute(self.out/'sk/source_sk.egg',self.out/'native')
+    def test_application_specific_selection_policy_is_removed(self):
+        with self.assertRaisesRegex(ValueError,'application-specific'):
+            compile_source(ROOT/'experiments/standalone_structural_keys/hoist.egg',self.out/'sk',policy='full')
 
     def test_no_equivalence_claim_uses_only_hashes_or_local_dag_ids(self):
         def graph(nodes,root):return dict(tables={'k':dict(input=[],output='CellStructuralKey')},rows=[['k',[],['CellStructuralKey',{'key':root}],False]],structural_key_dag=nodes)
@@ -92,9 +87,10 @@ class SourceDag(unittest.TestCase):
 (function to-hoist (Expr Expr) Expr :merge new)
 (relation Analysis (Expr Unrelated)) (ruleset r) (Analysis (N 1) (Ignored 2)) (run r 1)''')
         report=compile_source(source,self.out/'sk')
-        self.assertEqual(report['key_sorts'],['Expr']);self.assertEqual(report['key_constructors'],1)
+        self.assertEqual(report['key_sorts'],['Expr','Unrelated']);self.assertEqual(report['key_constructors'],2)
         self.execute(self.out/'sk/source_sk.egg',self.out/'native')
 
-    def test_wrong_selection_schema_is_not_guessed(self):
+    def test_function_names_do_not_enable_a_hidden_selection_policy(self):
         src=self.out/'input.egg';src.write_text('(datatype Expr (N i64)) (function to-hoist (Expr) Expr :merge new) (ruleset r) (N 1) (run r 1)')
-        with self.assertRaisesRegex(ValueError,'eggcc schema'):compile_source(src,self.out/'sk')
+        compile_source(src,self.out/'sk')
+        self.assertIn('(function to-hoist (Expr) Expr :merge new)',(self.out/'sk/source_sk.egg').read_text())

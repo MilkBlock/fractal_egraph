@@ -263,15 +263,16 @@ binding数及整图检查。模型最优仅限已导出的固定接线/布局域
 ### 同一源码选择 pristine / GPU：定位 marker 改写问题
 
 `program-modes --source 原始.egg [--marked marker版本.egg] --backend
-pristine|native|gpu|both --output NEW` 运行输入本身。默认 `both`；有 `--marked`
+pristine|native|cpu|gpu|both --output NEW` 运行输入本身。默认 `both`；有 `--marked`
 时生成原始/marker × pristine/GPU 四路检查。首次自动离线构建公共 harness，
 pristine 内核必须与不可变 `egglog-baseline:egglog` tree 完全相同且无改动。
 现有 baseline checkout 可以仅在根目录多了其他文件，内核 tree 必须一致。
 不能把当前 fork 的 native 模式冒称 pristine。`--pristine-checkout`可指定位置。
 
-这几条隔离路径不改写 stable choice、不装 Cell observer、不自动 Bake；因此
-marker 源码是唯一源码差别。GPU执行最后一个主schedule，初始化及之后的
-check/extraction等命令按原AST原生执行；pristine使用同样的初始化/clone协议。
+这些路径不改写 stable choice、不自动 Bake。cpu/GPU 只装载输入文件明确声明的
+Cell observer；native/pristine 不装。运行区间从最后一个定义后的第一个 Run
+开始，后续 Run、动作、check/extraction 按原 AST 顺序执行。之前的初始化
+原生执行；各后端使用相同初始化/clone 边界。
 `--query-audit` 对GPU原始Run的完整binding逐批检查，不作为性能计时。
 
 比较分别报告：pristine上改写前后、GPU上改写前后、原源码的后端差异、marker
@@ -347,62 +348,38 @@ check/extraction等命令按原AST原生执行；pristine使用同样的初始�
 原有 root 检查；命中包括同 consumer 重访，不自动算跨规则 credit。共享帧/slot
 数量不是 RSS。两边已经接管查询时，不把之前移走 GPU 查询的收益再记一次。
 详见 `experiments/shared_loop_markers/README.md`。
-## 显式共享 DAG 结构键源码
+## 自包含的源码流水线
 
-### 显式源码与相同 Cell 服务的合并门槛
+`structural-pipeline --source FILE --output NEW [--solver scip|gurobi] [--check]`
+依次生成 `source_sk.egg`、`source_sk_mk.egg`。不再接受 `--analysis`、外部布局或
+应用专用 key policy。每阶段只读取上一阶段的 `.egg`。marker 阶段运行该 SK
+程序采集每轮真实工作量，复用通用 spine 求解器和源码 publisher，不用静态价格
+或固定两原子 adapter。离线 profiling 计入编译成本，不计作运行时加速。
 
-`explicit-keys-bench --source RAW --sk SK --marked SK_MK --layout 已选v2布局
---worker WORKER --output NEW` 使用同一个二进制跑三条 GPU 路径，全部启用同一套
-参数化查询和联合闭包证书。只校验并重绑定旧布局，不调用求解器。允许改写造成的
-变量改名，但槽位位置、类型、别名、全部 atom、guard、参数选择与接线不能变。
-普通加载仍严格检查源码；重绑定通过 `scheduled_spine SOURCE NEW.json --joint
---rebind OLD.json` 显式执行。
+结构键按 constructor 类型导出，原 merge/选择策略保持原样。不再按
+`to-hoist`、`Smaller` 等名称重写。无法编码的字段所在 sort 保留原执行并报告。
+这次不承诺消除原程序的顺序敏感性。
 
-旧对照明确请求 `legacy-stable` 安装方式，SK/SK_MK 只执行源码声明的结构键和
-调度，禁止再安装一次旧策略。`program-modes --backend gpu --cell-assistance
---boundary-programs FILE --native-rulesets cell-stable-keys,cell-stable-freeze`
-提供实际运行入口。`--setup-policy legacy-stable` 仅用于原始输入的对照。
-此辅助入口目前要求可重新认证的 selection 闭包；不支持的规则契约会报错。
+最终源码的 `cell-runtime/v1` 注释携带完整 typed query 接线、marker 表名和
+精确程序身份。`cell-assisted-egglog --mode program --backend cpu|gpu --source FILE
+--output NEW` 自动读取，GPU 另给 `--gpu-worker FILE`。不再接受
+`--setup-policy`、`--boundary-programs`，也拒绝同名环境变量及外部证书库覆盖。
+`--cell-assistance off` 只做相同源码上的服务消融；`on` 要求存在内嵌声明。
+`program-modes --backend cpu|gpu` 是对应 bench 入口。`native`/`pristine` 是不装
+Cell observer 的源码对照，仍执行源码里的真实 marker 规则。
 
-逐源码检查全部原始表、函数值、等价和可见性；仅列明并投影新增辅助表。
-生产 Tiger 比较三条路径的真实选定 DAG。另检查实际 Cell 服务/闭包计数。
-推理时间来自内部运行期计时，不含初始化、shader 编译、导出或 extraction。
-原生 probe atomic 通过真实 API 关闭。失败/被终止进程即使已写 report，也不能
-缓存为成功；共享结构键的 Debug 只输出有界诊断，不展开 DAG。
+运行时校验全程序、全部 query atom、类型、alias、guard、读取顺序及 payload，
+不依据规则名字再发现或注入专用 shortcut。输出 `cells.json`，记录文件声明的
+marker 行数和实际查询上下文、端口读取与复用。完整查询接线不是 RipSat 饱和
+证明，不授予隐式 sat-skip。
 
-未改的 lane 按源码、完整布局、二进制、worker、辅助开关和显式 CPU ruleset
-指纹复用。`--marker-maintenance native` 是单独的 CPU 补全消融，默认仍 GPU。
-不通过重跑挑最快值；两条显式路径任一慢于同二进制旧对照就不满足性能门槛。
-`--no-extract` 只适合诊断，不能得到可合并结论。只读查看用 `report DIR`。
-当前结果和未满足的条件见 `experiments/explicit_keys_cells/README.md`。
+必须测试只复制最终 `.egg`、移除上游源码和所有 sidecar 后仍能执行；损坏接线
+或改变源码必须拒绝。比较原始表事实、函数值、等价关系与可见性，新增辅助表
+仅在不影响原始 sort 替代项时可投影。不得以空 marker 或缓存命中宣称加速。
+旧 `explicit-keys-bench` 隐式安装专用服务的入口已删除，历史报告仅保留为历史。
 
-`structural-pipeline --source FILE --analysis DIR --output NEW [--key-policy automatic|full]
-[--check] [--no-build]` 自动生成 source → SK → SK+marker。默认 `automatic`
-复用主线程的共享 `Arc<Node>` DAG、输入锚定与 to-hoist 选择，自动查找需维护
-的 ruleset。`full` 才额外改写 Smaller/IVT 等已知选择。禁止恢复为展开整树的
-BigRat/BigInt 编码；它们已在完整 raytrace 上失败。
-
-用户已批准原生扩展：生成源码的 `cell-structural-key-runtime/v1` 注释显式
-声明键 primitive/schema，规则与调度仍全部位于 `.egg`。`program-modes`
-按这个声明注册同一份实现。pristine 指不可变原版内核加显式扩展，不得说成
-裸 pristine 无扩展运行。报告 `setup.runtime_extension`，扩展代码进入构建指纹。
-GPU 使用 `--native-rulesets cell-stable-keys,cell-stable-freeze`，键维护在 CPU。
-
-正确性门槛是 **SK 与 SK+marker 等价**，不要求 source 与 SK 等价。比较事实、
-函数值、等价关系与可见性；键通过共享 DAG 的精确结构比较，不比较本地ID或哈希。
-仍保留跨后端诊断，任何失败不可用“只差中间表”抹去。`--check` 失败时保留源码
-和报告；不得用空 marker、静默回退或删除失败检查来宣称优化有效。
-
-第二步仍是现有两原子全键 marker 源码 adapter，不是任意 spine 求解器的源码
-后端。新结果见 `experiments/standalone_structural_keys/RESULTS-DAG.json`；
-原先 `RESULTS.json` 仅为失败长数值路线的历史记录。复现及限制见同目录 README。
-
-
-Marker 源码补全只安排在实际消费者（以及包含它们的 combined ruleset）之前，
-不再插到每个 Run 前。完整 raytrace 的默认 DAG 策略已分别通过 pristine+扩展
-与 GPU 的 SK/SK+marker 严格比较；CPU/GPU 跨后端比较仍失败，严格四路命令仍返回
-非零。不得把源码改写通过说成跨后端通过。该 raytrace 的 marker 实际行数为零，
-不能从其时间差领取 marker/Cell credit；实际 publisher 消费由另一个小回归覆盖。
+显式 `cell-structural-key-runtime/v1` 扩展只注册通用 key primitive；维护规则和
+调度在文件中。pristine 指不可变原版内核加该声明扩展，不是裸 upstream。
 
 ### 参数化库与 marker 求解器
 

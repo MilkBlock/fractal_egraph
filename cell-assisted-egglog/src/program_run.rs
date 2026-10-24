@@ -1,5 +1,5 @@
-//! Same source, independently selected execution backend. No implicit stable
-//! choice rewrite, Bake, Cell observer, source markers or shader CPU fallback.
+//! Execute one self-contained source. Cell plans are declared in its comments;
+//! no application-specific setup rewrite or external plan is loaded.
 use crate::{Result, program_io as io};
 use egglog::{EGraph, ast::Command};
 use serde_json::json;
@@ -19,8 +19,6 @@ pub fn run(a: &BTreeMap<String, String>) -> Result<()> {
             "--query-audit",
             "--native-rulesets",
             "--cell-assistance",
-            "--boundary-programs",
-            "--setup-policy",
             "--export-extraction",
         ]
         .contains(&key.as_str())
@@ -35,18 +33,29 @@ pub fn run(a: &BTreeMap<String, String>) -> Result<()> {
     }
     let source = Path::new(required(a, "--source")?);
     let out = Path::new(required(a, "--output")?);
-    let assisted = match a.get("--cell-assistance").map(String::as_str).unwrap_or("off") {
-        "on" => true, "off" => false, _ => return Err("cell-assistance expects on/off".into())
-    };
-    let policy = a.get("--setup-policy").map(String::as_str).unwrap_or("source");
-    if !["source","legacy-stable"].contains(&policy) {return Err("setup-policy expects source or legacy-stable".into())}
-    let layout = a.get("--boundary-programs").map(Path::new);
-    if (assisted || policy != "source" || layout.is_some()) && required(a,"--backend")? != "gpu" {
-        return Err("Cell assistance/setup policy currently requires the GPU backend".into());
+    let assistance = a
+        .get("--cell-assistance")
+        .map(String::as_str)
+        .unwrap_or("auto");
+    if !["auto", "on", "off"].contains(&assistance) {
+        return Err("cell-assistance expects auto/on/off".into());
     }
-    if !assisted && (policy != "source" || layout.is_some()) {return Err("layout/setup-policy requires explicit cell-assistance on".into())}
-    let export = match a.get("--export-extraction").map(String::as_str).unwrap_or("off") {
-        "on" => true, "off" => false, _ => return Err("export-extraction expects on/off".into())
+    for key in ["CELL_BOUNDARY_PROGRAMS", "CELL_CERTIFICATE_LIBRARY"] {
+        if std::env::var_os(key).is_some() {
+            return Err(format!(
+                "{key} is not an input to program mode; embed the plan in source_sk_mk.egg"
+            )
+            .into());
+        }
+    }
+    let export = match a
+        .get("--export-extraction")
+        .map(String::as_str)
+        .unwrap_or("off")
+    {
+        "on" => true,
+        "off" => false,
+        _ => return Err("export-extraction expects on/off".into()),
     };
     EGraph::set_num_threads(1);
     // These are timing/execution lanes, not native join-counter profiles.
@@ -112,30 +121,55 @@ pub fn run(a: &BTreeMap<String, String>) -> Result<()> {
             }
             Ok(())
         }
-        "gpu" => gpu(
+        "gpu" | "cpu" => gpu(
             source,
             out,
-            Path::new(required(a, "--gpu-worker")?),
+            if required(a, "--backend")? == "gpu" {
+                Some(Path::new(required(a, "--gpu-worker")?))
+            } else {
+                None
+            },
             a.get("--query-audit").is_some_and(|s| s == "on"),
             a.get("--native-rulesets").map(String::as_str).unwrap_or(""),
-            assisted, policy, layout, export,
+            assistance,
+            export,
         ),
-        _ => Err("program backend must be pristine, native or gpu".into()),
+        _ => Err("program backend must be pristine, native, cpu or gpu".into()),
     }
 }
-fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool, native: &str,
-       assisted:bool, policy:&str, layout:Option<&Path>, export:bool) -> Result<()> {
+fn gpu(
+    source: &Path,
+    out: &Path,
+    worker: Option<&Path>,
+    audit: bool,
+    native: &str,
+    assistance: &str,
+    export: bool,
+) -> Result<()> {
     std::fs::create_dir(out)?;
-    let prepared = if assisted {
-        crate::program_assistance::prepare(source,policy,layout).map(|(e,c,s,h)|(e,c,s,Some(h)))
-    } else {io::prepare(source).map(|(e,c,s)|(e,c,s,None))};
+    let backend = if worker.is_some() { "gpu" } else { "cpu" };
+    let text = std::fs::read_to_string(source)?;
+    let (_, all, _) = io::load(source)?;
+    let document = crate::source_cells::Document::parse(&text, &all)?;
+    if assistance == "on" && document.is_none() {
+        return Err("no Cell declarations in source; run the marker stage first".into());
+    }
+    let assisted = assistance != "off" && document.is_some();
+    let prepared = io::prepare(source).and_then(|(eg, c, s)| {
+        let (eg, h) = if assisted {
+            document.as_ref().unwrap().attach(eg)?
+        } else {
+            (eg, None)
+        };
+        Ok((eg, c, s, h))
+    });
     let (frozen, commands, setup, hook) = match prepared {
         Ok(x) => x,
         Err(e) => {
             std::fs::write(
                 out.join("report.json"),
                 serde_json::to_vec_pretty(
-                    &json!({"backend":"gpu","complete":false,"phase":"setup","error":e.to_string()}),
+                    &json!({"backend":backend,"complete":false,"phase":"setup","error":e.to_string()}),
                 )?,
             )?;
             return Err(e);
@@ -164,8 +198,25 @@ fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool, native: &str,
     let mut native = native
         .split(',')
         .filter(|s| !s.is_empty())
+        .map(str::to_owned)
         .collect::<std::collections::BTreeSet<_>>();
-    if policy == "legacy-stable" {native.insert(crate::stable_choice::RULESET);}
+    if let Some(d) = &document {
+        native.extend(d.native_rulesets.iter().cloned());
+    }
+    // The preceding key stage explicitly declares its helper execution sets.
+    for line in text
+        .lines()
+        .filter_map(|s| s.strip_prefix(crate::stable_choice::source::HEADER))
+    {
+        let spec: serde_json::Value = serde_json::from_str(line)?;
+        for s in spec["native_rulesets"].as_array().into_iter().flatten() {
+            native.insert(
+                s.as_str()
+                    .ok_or("invalid source native ruleset")?
+                    .to_owned(),
+            );
+        }
+    }
     let mut sets = std::collections::BTreeSet::new();
     for c in &schedules {
         if let Command::RunSchedule(s) = c {
@@ -196,7 +247,7 @@ fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool, native: &str,
     let admitted = crate::table_live::Runtime::new_full_configured(
         frozen.clone(),
         &schedules,
-        Some(worker),
+        worker,
         audit,
         if native.is_empty() {
             None
@@ -212,42 +263,56 @@ fn gpu(source: &Path, out: &Path, worker: &Path, audit: bool, native: &str,
             io::save(
                 out,
                 &frozen,
-                json!({"backend":"gpu","complete":false,"phase":"gpu_setup","error":e.to_string(),"setup":setup}),
+                json!({"backend":backend,"complete":false,"phase":"gpu_setup","error":e.to_string(),"setup":setup}),
             )?;
             return Err(e);
         }
     };
     let device_setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
-    let result = runtime.run(&schedules);
+    let mut outputs = vec![];
+    let result = (|| -> Result<()> {
+        for c in commands {
+            if matches!(&c, Command::RunSchedule(_)) {
+                runtime.run(&[c])?;
+            } else {
+                outputs.extend(
+                    runtime
+                        .input_commands(vec![c])?
+                        .iter()
+                        .map(ToString::to_string),
+                );
+            }
+        }
+        Ok(())
+    })();
     let inference_seconds = start.elapsed().as_secs_f64();
     let telemetry = runtime.report();
-    let mut eg = runtime.into_engine();
-    // These commands follow the last schedule, so no future GPU frontier can
-    // observe their mutations. Execute their original AST, including fail,
-    // extraction, stack restoration and checks, without print/reparse.
-    let tail = commands
-        .into_iter()
-        .filter(|c| !matches!(c, Command::RunSchedule(_)))
-        .collect();
-    let result = result.and_then(|_| Ok(eg.run_program(tail)?));
-    let outputs = result
-        .as_ref()
-        .ok()
-        .map(|xs| xs.iter().map(ToString::to_string).collect::<Vec<_>>());
+    let eg = runtime.into_engine();
     io::save(
         out,
         &eg,
-        json!({"schema":"program-run/v1","backend":"gpu","complete":result.is_ok(),
+        json!({"schema":"program-run/v1","backend":backend,"complete":result.is_ok(),
         "phase":"run","error":result.as_ref().err().map(ToString::to_string),"setup":setup,
         "run_seconds":inference_seconds,"gpu_setup_seconds":device_setup,
         "runtime":telemetry,"cell_assistance":assisted,"query_audit":audit,"native_probe_counters":false,"outputs":outputs,"explicit_native_rulesets":native,
-        "source_rewritten_by_runner":policy!="source","provenance":{"kernel":"current fork, GPU queries with native effects"}}),
+        "source_rewritten_by_runner":false,"provenance":{"kernel":"current fork, same-submit queries with native effects"}}),
     )?;
+    if let Some(d) = &document {
+        let mut cells = d.report(&eg);
+        cells["runtime"] = telemetry["saturation_diagnostics"].clone();
+        cells["assistance_enabled"] = json!(assisted);
+        std::fs::write(out.join("cells.json"), serde_json::to_vec_pretty(&cells)?)?;
+    }
     if export {
-        let graph=eg.serialize(egglog::SerializeConfig::default());
-        if !graph.is_complete(){return Err("incomplete extraction graph".into())}
-        serde_json::to_writer_pretty(std::io::BufWriter::new(std::fs::File::create(out.join("extraction-input.json"))?), &graph.egraph)?;
+        let graph = eg.serialize(egglog::SerializeConfig::default());
+        if !graph.is_complete() {
+            return Err("incomplete extraction graph".into());
+        }
+        serde_json::to_writer_pretty(
+            std::io::BufWriter::new(std::fs::File::create(out.join("extraction-input.json"))?),
+            &graph.egraph,
+        )?;
     }
     result?;
     Ok(())

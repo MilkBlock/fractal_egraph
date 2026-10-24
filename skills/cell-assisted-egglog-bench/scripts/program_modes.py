@@ -130,8 +130,8 @@ def lane(repo,binary,source,backend,worker,pristine,cache,audit=False,native_rul
         worker_sha256=sha(worker) if backend=='gpu' else None,query_audit=bool(backend=='gpu' and audit),
         harness_sha256=sha(repo/'cell-assisted-egglog/src/program_io.rs'),threads=1,protocol='program-run/v1',native_rulesets=native_rulesets if backend=='gpu' else '')
     if assistance:
-        if backend!='gpu':raise ValueError('Cell assistance requires GPU lane')
-        identity['assistance']={k:(sha(v) if k=='boundary-programs' else v) for k,v in assistance.items()}
+        if backend not in ('gpu','cpu'):raise ValueError('Cell assistance requires cpu/gpu lane')
+        identity['assistance']=dict(assistance)
     # Native parser preflight: do not cache source programs that read external
     # files or whose output side effects must happen on every invocation.
     inspection=subprocess.check_output([str(binary),'--mode','program','--backend','inspect',
@@ -186,11 +186,8 @@ def run(a,repo):
     backends=['pristine','gpu'] if a.backend=='both' else [a.backend]
     assistance=None
     if getattr(a,'cell_assistance',False):
-        if backends!=['gpu']:raise ValueError('Cell assistance is explicit: use --backend gpu')
-        assistance={'cell-assistance':'on','setup-policy':getattr(a,'setup_policy','source')}
-        if getattr(a,'boundary_programs',None):assistance['boundary-programs']=resolve(a.boundary_programs)
-    elif getattr(a,'boundary_programs',None) or getattr(a,'setup_policy','source')!='source':
-        raise ValueError('layout/setup-policy requires --cell-assistance')
+        if backends not in (['gpu'],['cpu']):raise ValueError('assistance uses --backend cpu/gpu; native/pristine are reference lanes')
+        assistance={'cell-assistance':'on'}
     pristine=None;provenance=None
     if 'pristine' in backends:pristine,provenance=build_pristine(repo,resolve(a.pristine_checkout),a.no_build)
     if not a.no_build:
@@ -224,6 +221,7 @@ def run(a,repo):
         left=json.loads((Path(lanes[l]['directory'])/'graph.json').read_text())
         right=json.loads((Path(lanes[r]['directory'])/'graph.json').read_text())
         comparisons[label]=dict(compare(left,right,set(left['tables']) if project else None),left=l,right=r)
+    check('marker_effect_cpu','original-cpu','marked-cpu',True)
     check('marker_effect_native','original-native','marked-native',True)
     check('marker_effect_pristine','original-pristine','marked-pristine',True)
     check('marker_effect_gpu','original-gpu','marked-gpu',True)

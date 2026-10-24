@@ -11,20 +11,44 @@ pub fn load(source: &Path) -> Result<(EGraph, Vec<Command>, Option<Json>)> {
     Ok((eg, commands, extension))
 }
 
+/// The execution region starts at the first schedule after the last schema,
+/// rule or global-binding declaration. Earlier initialization remains native;
+/// every following Run/action/check keeps its original position.
+pub fn run_start(commands: &[Command]) -> usize {
+    let last = commands.iter().rposition(|c| {
+        matches!(
+            c,
+            Command::Datatype { .. }
+                | Command::Datatypes { .. }
+                | Command::Sort { .. }
+                | Command::Constructor { .. }
+                | Command::Function { .. }
+                | Command::Relation { .. }
+                | Command::AddRuleset(..)
+                | Command::UnstableCombinedRuleset(..)
+                | Command::Rule { .. }
+                | Command::Rewrite(..)
+                | Command::BiRewrite(..)
+                | Command::Action(egglog::ast::Action::Let(..))
+        )
+    });
+    commands
+        .iter()
+        .enumerate()
+        .find(|(i, c)| last.is_none_or(|n| *i > n) && matches!(c, Command::RunSchedule(_)))
+        .map(|(i, _)| i)
+        .unwrap_or(commands.len())
+}
+
 pub fn prepare(source: &Path) -> Result<(EGraph, Vec<Command>, Json)> {
     let start = Instant::now();
     let (mut eg, commands, extension) = load(source)?;
-    // Match the existing Pass-3 protocol: initialization is native in every
-    // lane; the last/main schedule and following observations are the run region.
-    let split = commands
-        .iter()
-        .rposition(|c| matches!(c, Command::RunSchedule(_)))
-        .unwrap_or(0);
+    let split = run_start(&commands);
     eg.run_program(commands[..split].to_vec())?;
     let run = commands[split..].to_vec();
     let metadata = json!({"setup_seconds":start.elapsed().as_secs_f64(),"setup_commands":split,
         "runtime_extension":extension,"run_commands":run.iter().map(ToString::to_string).collect::<Vec<_>>(),
-        "protocol":"native setup before last schedule; retain checkpoint and execute clone; original source policy"});
+        "protocol":"native declaration/setup prefix; sequential execution region; original source policy"});
     Ok((eg, run, metadata))
 }
 fn value(

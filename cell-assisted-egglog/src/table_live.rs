@@ -631,18 +631,27 @@ impl Runtime {
         Ok(())
     }
     pub fn input(&mut self, code: &str) -> Result<()> {
-        let commands = self.eg.parse_program(None, code)?;
-        if commands
-            .iter()
-            .any(|c| !matches!(c, Command::Action(_) | Command::Check(..)))
-        {
-            return Err(
-                "live input accepts facts/actions/checks, not schema or schedule changes".into(),
-            );
-        }
-        self.eg.run_program(commands)?;
-        self.collect_commits()?;
+        let commands=self.eg.parse_program(None,code)?;
+        self.input_commands(commands)?;
         Ok(())
+    }
+    /// Execute source actions/observations in place between Run boundaries.
+    /// Keep the AST: printing internal wildcard/global names is not round-trip safe.
+    pub fn input_commands(&mut self,commands:Vec<Command>)->Result<Vec<egglog::CommandOutput>> {
+        fn allowed(c:&Command)->bool {
+            match c {
+                Command::Action(..)|Command::Check(..)|Command::Extract(..)|Command::PrintSize(..)|
+                Command::PrintFunction(..)|Command::PrintOverallStatistics(..)=>true,
+                Command::Fail(_,c)=>allowed(c),
+                _=>false,
+            }
+        }
+        if commands.iter().any(|c|!allowed(c)) {
+            return Err("live input accepts actions/observations, not schema or schedule changes".into())
+        }
+        let outputs=self.eg.run_program(commands)?;
+        self.collect_commits()?;
+        Ok(outputs)
     }
     fn collect_commits(&mut self) -> Result<()> {
         let forwarded = if let Some(hook) = &mut self.saturation_hook {

@@ -38,7 +38,8 @@ class ParameterizedSourceMarkers(unittest.TestCase):
             self.assertEqual(report['markers'],[])
             self.assertEqual(report['publish_actions'],0)
             self.assertEqual(report['runtime_rule_count'],len(selected['rules']))
-            self.assertEqual((out/'private/source_sk_mk.egg').read_bytes(),source.read_bytes())
+            self.assertEqual((out/'private/source_sk_mk.egg').read_text().split('\n',1)[1],source.read_text())
+            self.assertTrue(report['inline_cell_declarations'])
             runtime=json.loads((out/'private/runtime-layout.json').read_text())
             self.assertEqual(len(runtime['rules']),len(selected['rules']))
 

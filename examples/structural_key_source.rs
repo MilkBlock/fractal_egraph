@@ -1,4 +1,4 @@
-//! Source policy export: reuse the analyzer branch's three selection rewrites.
+//! Export normalized source and constructor schemas, without application policy.
 use cell_assisted_egglog::{Result, stable_choice};
 use egglog::{
     EGraph,
@@ -127,7 +127,11 @@ fn main() -> Result<()> {
     let mut sorts = BTreeSet::new();
     for name in eg.get_function_names() {
         let f = eg.get_function(&name).unwrap();
-        if f.is_constructor() && !f.is_let_binding() && !name.starts_with('@') {
+        if f.is_constructor()
+            && !f.is_let_binding()
+            && !name.starts_with('@')
+            && !f.schema().output.name().starts_with('@')
+        {
             sorts.insert(f.schema().output.name().to_string());
             constructors.insert(name,json!({"input":f.schema().input.iter().map(|s|s.name()).collect::<Vec<_>>(),"output":f.schema().output.name()}));
         }
@@ -136,19 +140,14 @@ fn main() -> Result<()> {
         out.join("source.egg"),
         commands.iter().map(printed).collect::<Vec<_>>().join("\n"),
     )?;
-    let (policy, rewrites) = stable_choice::rewrite_ties(&commands)?;
     let mut values = Vec::new();
     for c in &commands {
         source_literals(c, &mut values)
     }
     std::fs::write(
-        out.join("policy.egg"),
-        policy.iter().map(printed).collect::<Vec<_>>().join("\n"),
-    )?;
-    std::fs::write(
         out.join("metadata.json"),
         serde_json::to_vec_pretty(
-            &json!({"source_commands":commands.iter().map(printed).collect::<Vec<_>>(),"commands":policy.iter().map(printed).collect::<Vec<_>>(),"constructors":constructors,"sorts":sorts,"literals":values,"rewrites":rewrites,"origin":"eggcc-structural-keys a89c4cc; reused stable_choice::rewrite_ties"}),
+            &json!({"source_commands":commands.iter().map(printed).collect::<Vec<_>>(),"constructors":constructors,"sorts":sorts,"literals":values,"origin":"native normalized source and constructor schemas; no selection rewrite"}),
         )?,
     )?;
     Ok(())
