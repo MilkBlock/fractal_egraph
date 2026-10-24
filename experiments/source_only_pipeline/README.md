@@ -41,13 +41,21 @@ This no longer forces identical choices for an originally order-sensitive merge.
 query plans, selected anchors, slot mappings, guards, cache choices, and marker
 table names. The copy of commands is compared, never executed. All plans are
 validated against the actual native query compiler. It is not a cryptographic
-signature: a new program can have a new validated plan. A statement in a comment
+signature: a new program can have a new validated plan. Query declarations alone
 cannot authorize skipping unmatched LHS conditions or skipping saturation.
+The optional `closures` field now carries structurally checked selection/scalar
+roles and fixed programs. The loader validates the complete helper universe and
+native wiring before enabling guarded saturation. No old library or named
+application shortcut is implicitly loaded.
 
 Only certified positive source prefixes become physical markers. Their producer
 rules publish them directly; source completion rules handle initial facts and
 new union aliases. Mutable ports stay residual. The same selected-source backend
-now seals **all** its output files, including private-only plans.
+now seals **all** its output files, including private-only plans. For non-Unit
+`merge old/new`, materialized source views have an unresolved incremental
+frontier obligation: retain the original rules and use the declared runtime
+prefix markers with their original watermarks. Physical source rewriting also
+preserves the insertion order of the whole affected ruleset.
 
 The runtime reads these declarations automatically on `--backend cpu` or `gpu`.
 `native` and `pristine` are unassisted references. `--cell-assistance off` is a
@@ -58,8 +66,9 @@ A new AST input method avoids printing/reparsing internal names.
 
 `cells.json` records declared query contexts, actual source marker row counts,
 live instances, port reads and cache reuse through the existing runtime report.
-These are **complete-query contexts**, not newly discovered RipSat closure
-certificates. The old named shortcuts receive no credit in this path. Offline
+Complete-query contexts and explicit closure declarations are reported separately;
+the former are not saturated-closure certificates. The old named shortcuts
+receive no credit in this path. Offline
 source profiling and solver work are compilation costs, not runtime speedups.
 
 ## Reproduce
@@ -101,8 +110,9 @@ Actual native CPU/GPU runtime tests, not a standalone simulation:
 - Renaming the constructors and consumers, including using `terms` as a ruleset
   name, does not install a selection closure or change the discovered query count.
 
-The compact checked result is in `results.json`. This change does not claim a new
-Pass-3 speedup, universal source lowering, or automatic inference of new saturated
+The original compact fixture result is in `results.json`; the subsequent full
+Pass-3 repair is recorded in `experiments/source_pipeline_recovery`. This does
+not establish universal source lowering or automatic inference of new saturated
 Cell theorems. The solver can still select private contexts rather than shared
 markers. Unsupported source transformations fail explicitly; unsupported query
 shapes that need no rewrite retain original matching.

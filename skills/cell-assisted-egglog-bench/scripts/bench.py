@@ -804,7 +804,12 @@ def parser():
     q.add_argument('--pristine-checkout',type=Path,default=Path('/Users/mineralsteins/.codex/worktrees/native-baseline/egg_layout'))
     q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--no-build',action='store_true');q.add_argument('--query-audit',action='store_true');q.add_argument('--native-rulesets',default='',help='explicit comma-separated CPU helper rulesets, same source schedule')
-    q.add_argument('--cell-assistance',action='store_true',help='require inline Cell declarations (otherwise loaded automatically when present)')
+    q.add_argument('--cell-assistance',nargs='?',const='on',choices=['on','off'],help='require or disable inline Cell services; omitted loads declarations automatically')
+    q.add_argument('--search-counters',action='store_true',help='collect GPU per-query work; diagnostic times are ineligible for speed ratios')
+    q.add_argument('--export-extraction',action='store_true',help='save the actual final engine graph for production Tiger verification')
+    q=sub.add_parser('program-verify',help='compare saved source-program CPU/GPU lanes and production Tiger outputs without rerunning inference')
+    q.add_argument('--reference',type=Path,required=True);q.add_argument('--candidate',type=Path,required=True)
+    q.add_argument('--output',type=Path,required=True);q.add_argument('--tiger',type=Path,default=TIGER)
     q=sub.add_parser('planner-prices',help='aggregate all verified workload/round costs for the existing marker solver')
     q.add_argument('--input',type=Path,required=True);q.add_argument('--output',type=Path,required=True)
     q.add_argument('--jobs',type=int,default=1,help='parallel pass readers; all profiles are included')
@@ -1042,6 +1047,9 @@ def main(argv=None):
     if a.mode=='program-modes':
         import program_modes
         return program_modes.run(a,repo)
+    if a.mode=='program-verify':
+        import program_verify
+        return program_verify.run(a,repo)
     if a.mode=='extraction-markers':
         if a.dry_run:
             print('Build isolated Tiger overlay; compare off/cpu/gpu and native cost oracle on', resolve(a.graph)); return 0

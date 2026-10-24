@@ -18,6 +18,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 pub mod artifact;
 pub mod contract;
+pub mod declared;
 pub mod joint;
 mod comparison;
 mod scalar;

@@ -48,7 +48,7 @@ def main():
     env.update(TIGER_EXTRACTION_MARKERS=a.markers,TIGER_EXTRACTION_VERIFY='1' if a.verify_markers else '0')
     if worker:env['TIGER_EXTRACTION_WORKER']=str(worker)
     lanes = report.get('extraction_lanes', ['native', 'cpu', 'gpu'])
-    if lanes not in (['native','cpu','gpu'],['native','markers'],['legacy','explicit-sk','explicit-markers']):raise ValueError('unsupported extraction lanes')
+    if lanes not in (['native','cpu','gpu'],['cpu','gpu'],['native','markers'],['legacy','explicit-sk','explicit-markers']):raise ValueError('unsupported extraction lanes')
     for lane in lanes:
         graph = a.run / 'graphs' / (lane + '.json')
         target = output / (lane + '.egg')

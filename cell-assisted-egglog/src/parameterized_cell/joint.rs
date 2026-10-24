@@ -849,6 +849,14 @@ impl Runtime {
         r.install_closure_certificates(joint,&commands)?;
         Ok(r)
     }
+    pub(super) fn declared_engine(mut eg:EGraph,commands:&[Command],roles:Option<contract::Selection>,scalar:Vec<super::scalar::Spec>,plans:Option<&[artifact::Program]>,boundaries:&[boundary::Spec])->Result<Self>{
+        let joint=roles.map(|r|Joint::compile_roles(&mut eg,commands,r)).transpose()?;
+        let seeds=joint.as_ref().map(|j|j.producers.iter().map(|p|(p.name.clone(),p.constructor.clone())).collect()).unwrap_or_default();
+        let sets=joint.as_ref().map(|j|j.roles.sets.iter().map(String::as_str).collect::<Vec<_>>()).unwrap_or_default();
+        let mut r=Self::new_with_boundaries(eg,&sets,&seeds,scalar,plans,boundaries)?;
+        r.install_closure_certificates(joint,commands)?;
+        Ok(r)
+    }
     fn install_closure_certificates(&mut self,joint:Option<Joint>,commands:&[Command])->Result<()> {
         if let Some(mut joint)=joint {
             for id in &self.sets[&joint.roles.sets[2]] {

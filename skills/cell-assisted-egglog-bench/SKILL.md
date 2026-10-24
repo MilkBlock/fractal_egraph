@@ -364,6 +364,16 @@ Cell observer；native/pristine 不装。运行区间从最后一个定义后的
 程序采集每轮真实工作量，复用通用 spine 求解器和源码 publisher，不用静态价格
 或固定两原子 adapter。离线 profiling 计入编译成本，不计作运行时加速。
 
+marker 编译同时测量同一个 SK 输入的普通 GPU 工作，保留“原执行器”作为求解器
+选项，并计入各查询订阅到的提交更新。不能强制所有有数据的查询都创建 Cell。
+GPU 计数来自独立诊断，不把插桩耗时作为性能证据。`program-modes --search-counters`
+负责此模式，计数模式进入缓存身份且禁用加速比。
+
+已有完整 profile 可用 `python -m tools.cell_spine.source_pipeline --source SK
+--output 原marker目录 --resume --gpu-worker WORKER` 接续。它核对唯一输入和压缩
+profile 的完整性及 SHA，在新 `build-N` 写结果；不覆盖旧生成文件和失败记录，
+不接受其它源码或跨样例 profile 冒充当前输入。最终 `.egg` 不依赖这些缓存文件。
+
 结构键从实际消费者反向保留。未声明选择用途时不生成键表、规则或维护 Run；
 已展开的原始正文逐字保留，空扩展不注册 sort/primitive。不能因发现 `merge new`
 就改变其语义。需要稳定选择时，在 source 中添加 `cell-choice/v1` 注释，指定
@@ -389,6 +399,29 @@ Cell observer 的源码对照，仍执行源码里的真实 marker 规则。
 不依据规则名字再发现或注入专用 shortcut。输出 `cells.json`，记录文件声明的
 marker 行数和实际查询上下文、端口读取与复用。完整查询接线不是 RipSat 饱和
 证明，不授予隐式 sat-skip。
+
+同一注释可携带 `closures`：由本文件的完整规则集合检查得到的 selection/scalar
+角色及固定端口程序。运行时校验声明、完整 helper 集合、guard、effects 和接线，
+只在原始 Saturate 边界使用闭包证明；普通 Run 不提前闭包。它不读取旧证书库，
+不按规则/表名称安装服务。闭包负责的规则不再被 marker 重写或重复接管。
+
+物理源码 marker 可能改变旧匹配出现的增量边界。存在非 Unit 的 `merge old/new`
+时，当前编译器保留原消费者和原始增量游标，将选中的 marker 接线留在注释中，
+由运行时共享前缀实现。必须区分“物理 marker 表”和“运行时 marker”，不能把后者
+报成 `.egg` 新增行，也不能声称已完成任意顺序敏感程序的物理改写证明。
+
+同源服务开关对照用 `program-modes --cell-assistance off`；原来的不带值
+`--cell-assistance` 等价于 `on`。完整最终验收还需：
+
+- 独立 CPU 参照：`program-modes --backend cpu --source SK --cell-assistance off
+  --export-extraction ...`。
+- GPU 候选审计：`program-modes --backend gpu --source SK_MK --query-audit
+  --export-extraction ...`；该时间不计入性能结论。
+- `program-verify --reference CPU-lane --candidate GPU-lane --output NEW` 比较原始
+  全图并调用生产 Tiger 比较所选 DAG，复用保存的图，不重跑推理。CPU 参照不能启用
+  Cell 服务，不能以带同一闭包的 CPU 对照冒充独立验证。
+- 独立无插桩计时，核对其图与审计图一致；旧版历史时间仅作绝对性能门槛，同策略
+  当前关/开对照才能用来计算配对加速比。
 
 必须测试只复制最终 `.egg`、移除上游源码和所有 sidecar 后仍能执行；损坏接线
 或改变源码必须拒绝。比较原始表事实、函数值、等价关系与可见性，新增辅助表

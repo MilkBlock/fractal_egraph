@@ -18,6 +18,18 @@ from program_modes import compare
 HEADER='; cell-runtime/v1 '
 
 class SourcePipeline(unittest.TestCase):
+    def test_profile_checkpoint_cannot_be_reused_for_changed_source_or_trace(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'out') as temp:
+            root=Path(temp);raw=ROOT/'experiments/parameterized_source_markers/counter.egg'
+            keys(raw,root/'sk');source=root/'sk/source_sk.egg'
+            markers(source,root/'mk');original=source.read_bytes()
+            source.write_bytes(original+b'\n; different input\n')
+            with self.assertRaisesRegex(ValueError,'exact preceding source'):
+                markers(source,root/'mk',resume=True)
+            source.write_bytes(original);(root/'mk/profile.jsonl.gz').write_bytes(b'bad')
+            with self.assertRaisesRegex(ValueError,'exact preceding source'):
+                markers(source,root/'mk',resume=True)
+
     @classmethod
     def setUpClass(cls):
         cls.temp=tempfile.TemporaryDirectory(dir=ROOT/'out',prefix='source-only-')

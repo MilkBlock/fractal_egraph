@@ -18,8 +18,9 @@ def run(a,repo):
         commands += [('build',['cargo','build','--offline','--release','--target-dir','target/analyzer','--example','structural_key_source','--example','lhs_ast','--example','scheduled_spine'])]
     if not a.no_build:
         commands += [('build-profiler',['cargo','build','--offline','--release','--target-dir','target/analyzer','--features','planner-profile','--example','planner_profile'])]
+        commands += [('build-runtime',['cargo','build','--offline','--release','--manifest-path','cell-assisted-egglog/Cargo.toml','--target-dir','target/analyzer','--bin','cell-assisted-egglog'])]
     commands += [('structural-keys',[str(python),'-m','tools.cell_spine.structural_keys','--source',str(source),'--output',str(output/'sk')]),
-        ('markers',[str(python),'-m','tools.cell_spine.source_pipeline','--source',str(output/'sk/source_sk.egg'),'--output',str(output/'mk'),'--solver',a.solver])]
+        ('markers',[str(python),'-m','tools.cell_spine.source_pipeline','--source',str(output/'sk/source_sk.egg'),'--output',str(output/'mk'),'--solver',a.solver,'--gpu-worker',str(resolve(a.worker))])]
     if a.check:
         commands.append(('comparison',[sys.executable,str(repo/'skills/cell-assisted-egglog-bench/scripts/bench.py'),'--repo',str(repo),'program-modes',
             '--source',str(output/'source_sk.egg'),'--marked',str(output/'source_sk_mk.egg'),'--output',str(output/'comparison'),
@@ -27,6 +28,9 @@ def run(a,repo):
     if a.dry_run:
         for stage,command in commands:print(stage+': '+' '.join(command))
         return 0
+    if not a.no_build:
+        from program_modes import ensure_worker
+        ensure_worker(repo,resolve(a.worker))
     output.mkdir(parents=True)
     (output/'source.egg').write_bytes(source.read_bytes())
     digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()

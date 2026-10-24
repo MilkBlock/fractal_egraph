@@ -33,11 +33,13 @@ fn main() -> Result<()> {
     let mut seal = None;
     let mut selected_layouts = None;
     let mut all_schedules = false;
+    let mut source_closures = false;
     let mut args = a[2..].iter();
     while let Some(flag) = args.next() {
         match flag.as_str() {
             "--joint" => joint = true,
             "--all-schedules" => all_schedules = true,
+            "--closures" => source_closures = true,
             "--certificates" => certificate = Some(args.next().ok_or("missing certificate file")?),
             "--select-layouts" => {
                 selected_layouts = Some(args.next().ok_or("missing selected layout")?)
@@ -52,6 +54,9 @@ fn main() -> Result<()> {
     let text = std::fs::read_to_string(&a[0])?;
     let explicit = cell_assisted_egglog::stable_choice::source::install(&mut eg, &text)?.is_some();
     let cs = eg.parse_program(Some(a[0].clone()), &text)?;
+    if source_closures || seal.is_some() {
+        cell_assisted_egglog::source_cells::Document::check_commands(&cs)?;
+    }
     let end = cell_assisted_egglog::program_io::run_start(&cs);
     if end == cs.len() {
         return Err("no schedule after declarations".into());
@@ -93,6 +98,10 @@ fn main() -> Result<()> {
     } else {
         eg.run_program(cs[..end].to_vec())?;
     }
+    let declared_closures = if source_closures {
+        cell_assisted_egglog::parameterized_cell::declared::Closures::discover(eg.clone(),&cs[..end])?
+    } else {None};
+    if let Some(c)=&declared_closures {reserved.extend(c.protected_queries());}
     if let Some(path) = seal {
         if joint || certificate.is_some() {
             return Err("source sealing cannot install implicit proof services".into());
@@ -127,8 +136,9 @@ fn main() -> Result<()> {
             queries,
             native_rulesets: native_rulesets.into_iter().collect(),
             marker_tables: marker_tables.into_iter().collect(),
+            closures: declared_closures,
         };
-        d.attach(eg)?;
+        d.attach(eg,&cs)?;
         std::fs::write(
             &a[1],
             format!(
@@ -202,6 +212,7 @@ fn main() -> Result<()> {
         }
     }
     report["protected_queries"] = serde_json::json!(reserved);
+    report["declared_closures"] = serde_json::json!(declared_closures);
     report["parameterized_library"] = serde_json::json!(library.as_ref().map(|b| b.report()));
     report["table_rows"] = serde_json::json!(
         eg.get_function_names()

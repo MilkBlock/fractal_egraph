@@ -11,6 +11,15 @@ from .compiler import ROOT
 
 
 class RuntimeWorkload(unittest.TestCase):
+    def test_gpu_baseline_is_a_legal_solver_choice(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'out') as temp:
+            folder=Path(temp);manifest,header=self.fixture(folder);cost=workload.collect(manifest)
+            self.assertTrue(any(q['committed_input_updates']>0 for q in cost['queries'].values()))
+            cost['gpu_fallback']={workload.query_key(q):dict(work=0) for q in header['queries']}
+            solver.select('scip')
+            result=scheduled.select(header['queries'],{},folder,(1,1,1),runtime_workload=cost)
+            self.assertEqual(result['selected'],[])
+
     def test_runtime_pricing_rejects_mixed_static_profiles_before_execution(self):
         a=SimpleNamespace(output=Path('unused'),source=Path('unused'),runtime_workload=Path('runtime.json'),static_cost_experiment=False,query_profile=None,table_profile=Path('static.json'))
         with self.assertRaisesRegex(ValueError,'must not be mixed'):

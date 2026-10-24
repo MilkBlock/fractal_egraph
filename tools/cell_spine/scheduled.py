@@ -145,7 +145,11 @@ def select(queries,rows,output,weights,profile=None,marker_profile=None,runtime_
             opts=[v for o in options(q,rows,observed.get('requests',1)) for v in shared_prefix.estimates(o,q,rows,observed.get('requests',1),marker_profile)]
         # Fallback stays a legal choice. Without measured work the compiler
         # selects a layout for each admitted requested query; it claims no speedup.
-        fallback=None if runtime_workload is not None or profile is None else observed.get('candidate_rows',0)
+        if runtime_workload is not None and 'gpu_fallback' in runtime_workload:
+            key=workload.query_key(q)
+            if key not in runtime_workload['gpu_fallback']:continue # unknown baseline cost: retain its executor
+            fallback=runtime_workload['gpu_fallback'][key]['work']
+        else:fallback=None if runtime_workload is not None or profile is None else observed.get('candidate_rows',0)
         if fallback==0:continue
         groups.append((q,opts,fallback))
     groups,marker_costs,bounds=bounded_layouts(groups,rows,weights)

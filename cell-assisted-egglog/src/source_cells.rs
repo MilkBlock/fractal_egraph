@@ -20,8 +20,20 @@ pub struct Document {
     pub queries: Vec<boundary::Spec>,
     pub native_rulesets: Vec<String>,
     pub marker_tables: Vec<String>,
+    #[serde(default, skip_serializing_if="Option::is_none")]
+    pub closures: Option<crate::parameterized_cell::declared::Closures>,
 }
 impl Document {
+    pub fn check_commands(commands:&[Command])->Result<()> {
+        fn closed(c:&Command)->bool {
+            match c {
+                Command::Include(..)|Command::Input{..}|Command::Push(..)|Command::Pop(..)=>false,
+                Command::Fail(_,c)=>closed(c),_=>true,
+            }
+        }
+        if !commands.iter().all(closed) {return Err("inline Cell source must be self-contained without stack scopes".into());}
+        Ok(())
+    }
     pub fn parse(text: &str, commands: &[Command]) -> Result<Option<Self>> {
         let headers = text
             .lines()
@@ -33,19 +45,7 @@ impl Document {
         let Some(header) = headers.first() else {
             return Ok(None);
         };
-        fn self_contained(c: &Command) -> bool {
-            match c {
-                Command::Include(..)
-                | Command::Input { .. }
-                | Command::Push(..)
-                | Command::Pop(..) => false,
-                Command::Fail(_, c) => self_contained(c),
-                _ => true,
-            }
-        }
-        if !commands.iter().all(self_contained) {
-            return Err("inline Cell source must be self-contained without stack scopes".into());
-        }
+        Self::check_commands(commands)?;
         let d: Self = serde_json::from_str(header)?;
         if d.schema != "cell-runtime/v1"
             || d.commands != commands.iter().map(ToString::to_string).collect::<Vec<_>>()
@@ -65,6 +65,7 @@ impl Document {
     pub fn attach(
         &self,
         eg: EGraph,
+        commands: &[Command],
     ) -> Result<(EGraph, Option<Box<dyn crate::table_live::SaturationHook>>)> {
         for s in &self.native_rulesets {
             eg.cell_ruleset_members(s)?;
@@ -74,17 +75,20 @@ impl Document {
                 return Err(format!("unknown declared marker table {t}").into());
             }
         }
-        if self.queries.is_empty() {
+        if self.queries.is_empty() && self.closures.is_none() {
             return Ok((eg, None));
         }
         // No query discovery, named-rule recognizer, imported library or env
         // sidecar. The generic compiler validates every slot/guard/access.
-        let r = Runtime::from_declared_queries(eg, &self.queries)?;
+        let r = if let Some(c) = &self.closures {
+            c.attach(eg,commands,&self.queries)?
+        } else { Runtime::from_declared_queries(eg, &self.queries)? };
         let (eg, hook) = r.detach_joint()?;
         Ok((eg, Some(Box::new(hook))))
     }
     pub fn report(&self, eg: &EGraph) -> Json {
-        json!({"schema":"source-cell-observations/v1","authority":"complete native query; no implicit RipSat closure or sat-skip",
+        json!({"schema":"source-cell-observations/v1","authority":"source-declared complete queries and checked closure programs; no implicit services",
+            "declared_closures":self.closures,
             "declared_queries":self.queries.iter().map(|q|json!({"ruleset":q.ruleset,"rule":q.rule,"root":q.root})).collect::<Vec<_>>(),
             "markers":self.marker_tables.iter().map(|t|json!({"table":t,"rows":eg.get_size(t)})).collect::<Vec<_>>(),
             "source_is_only_plan_input":true})

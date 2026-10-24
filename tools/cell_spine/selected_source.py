@@ -158,6 +158,9 @@ def lower(data,specs,protected=()):
         p['prefix_len']=len(stable)-1
         available={o['Slot'] for i in stable for o in shape['atoms'][i]['columns'] if 'Slot' in o}
         p['carried_slots']=[i for i in p['carried_slots'] if i in available]
+        d=shared_prefix.describe(p)
+        if len(d['body']['atoms'])==1 and len(d['carried'])==len(d['slots']):
+            retained.append(dict(rule=spec['rule'],ruleset=spec['ruleset'],reason='existing table already is the complete marker; preserve source consumer'));continue
         lowered_specs.append(spec)
     markers,uses=definitions(lowered_specs)
     for m in markers:
@@ -170,7 +173,8 @@ def lower(data,specs,protected=()):
         spec=u['spec'];key=(spec['ruleset'],spec['rule']);r=rules[key];p=spec['plan'];shape=p['shape']
         if shape.get('native_residuals') or shape.get('primitives'):raise ValueError('source lowering requires exact structural query plus numeric guards')
         flat,binding=source_binding(r,shape,sig,globals_)
-        names=[f'cell_selected_q{qi}_s{i}' for i in range(len(shape['slots']))]
+        names=[next((n for n,v in binding.items() if v==dict(Slot=i)),f'cell_selected_q{qi}_s{i:04d}') for i in range(len(shape['slots']))]
+        u['source_names']=names
         coordinates=[names[i] for i in u['coordinates']]
         body=read_marker(markers[u['marker']],coordinates,f'cell_selected_q{qi}_receipt')
         covered={p['seed']}|{i for i,_ in p['steps'][:p['prefix_len']]}
@@ -214,7 +218,7 @@ def lower(data,specs,protected=()):
             # An already consumed prefix needs no redundant self-publication.
             old_marker=next((u for u in uses if (u['spec']['ruleset'],u['spec']['rule'])==(r['ruleset'],r['name'])),None)
             if old_marker is not None:
-                qi=uses.index(old_marker);coords=[f'cell_selected_q{qi}_s{i}' for i in old_marker['coordinates']]
+                coords=[old_marker['source_names'][i] for i in old_marker['coordinates']]
                 if emitted==publish(markers[old_marker['marker']],coords):continue
             publication.append(emitted)
         if body is not None or publication:
@@ -233,6 +237,14 @@ def lower(data,specs,protected=()):
         return '('+s['kind']+' '+(str(s['count'])+' ' if s['kind']=='repeat' else '')+schedule(s['child'])+')'
     first_run=min(c['ordinal'] for c in data['commands'] if c['kind']=='schedule')
     if any(r['command_ordinal']>first_run for r in data['rules']):raise ValueError('declare rules before inference')
+    # Ruleset membership is insertion ordered. Moving only rewritten rules to
+    # the end changes native commit order (observable for :merge old/new).
+    # Reinstall the entire affected ruleset, in its original source order.
+    affected={r['ruleset'] for r in data['rules'] if r['command_ordinal'] in replacements}
+    for r in data['rules']:
+        if r['ruleset'] in affected and r['command_ordinal'] not in replacements:
+            replacements[r['command_ordinal']]=old.render_rule(r,r['body'],r['head'])
+    replacements=dict(sorted(replacements.items()))
     install=max(r['command_ordinal'] for r in data['rules'])+1;first=min(replacements) if replacements else install
     by_ordinal={r['command_ordinal']:r for r in data['rules']};lines=[]
     for c in data['commands']:
@@ -254,14 +266,34 @@ def compile_source(source,layout,out,root=compiler.ROOT,joint=None):
     data=json.loads((out/'ast.json').read_text())
     if joint is None:joint=False
     compiler.run([native,source,out/'rebound.json']+(['--joint'] if joint else [])+['--rebind',layout])
-    compiler.run([native,source,out/'native.json']+(['--joint'] if joint else []))
+    compiler.run([native,source,out/'native.json']+(['--joint'] if joint else ['--closures']))
     specs=json.loads((out/'rebound.json').read_text())['rules']
     evidence=json.loads((out/'native.json').read_text());protected=set()
     if 'protected_queries' in evidence:protected={tuple(p) for p in evidence['protected_queries']}
     else:
         for d in (evidence.get('certificates') or {}).get('certificates',[]):
             if d['method']=='parameterized-selection-closure/v1':protected.update(d['rulesets'])
-    code,report=lower(data,specs,protected)
+    protected_specs=[s for s in specs if (s['ruleset'],s['rule']) in protected]
+    specs=[s for s in specs if (s['ruleset'],s['rule']) not in protected]
+    # A materialized source view may deliver an old match at a new frontier.
+    # Replaying it is observable for an ordered merge. Until that scheduling
+    # equivalence is proved, keep the source rule and execute its declared
+    # marker wiring with the ORIGINAL query watermark. No rule-name exception.
+    ordered=[]
+    for name,sig in data['signatures'].items():
+        merge=sig.get('merge') or {}
+        if sig.get('output')!='Unit' and merge.get('kind')=='var' and merge.get('name') in ('old','new'):
+            ordered.append(name)
+    if ordered:
+        code=source.read_text()
+        report=dict(marker_backend='declared runtime prefix markers; original incremental query identity',
+            retained_native=[],markers=[],lowered_queries=[],publish_actions=0,
+            protected_publisher_rulesets=sorted(protected),maintenance_before=[],helper_ruleset=None,
+            runtime_rule_count=0,solver_invoked=False,
+            source_lowering_obligation=dict(kind='ordered-merge-frontier',functions=sorted(ordered),
+                decision='preserve source consumers; use selected runtime marker wiring'))
+    else:code,report=lower(data,specs,protected)
+    report['closure_owned_queries']=[dict(ruleset=s['ruleset'],rule=s['rule']) for s in protected_specs]
     headers=[s for s in source.read_text().splitlines() if s.startswith('; cell-structural-key-runtime/v1 ')]
     target=out/'source_sk_mk.egg'
     unchanged=not report['lowered_queries'] and not report['publish_actions']
@@ -276,9 +308,10 @@ def compile_source(source,layout,out,root=compiler.ROOT,joint=None):
     runtime_layout=out/'retained-layout.json';runtime_layout.write_text(json.dumps(dict(schema='cell-boundary-programs/v2',setup=[],rules=kept)))
     compiler.run([native,target,out/'runtime-layout.json']+(['--joint'] if joint else [])+['--rebind',runtime_layout])
     sealed=out/'sealed.egg'
-    compiler.run([native,target,sealed,'--seal',out/'runtime-layout.json'])
+    compiler.run([native,target,sealed,'--closures','--seal',out/'runtime-layout.json'])
     sealed.replace(target)
     report.update(runtime_rule_count=len(kept),source_preserved=unchanged,inline_cell_declarations=True)
+    report['runtime_marker_consumers']=sum(bool(s['plan'].get('shared_marker')) for s in kept)
     report.update(schema='selected-spine-source/v1',source_sha256=compiler.digest(source),output_sha256=compiler.digest(target),
         selected_layout_sha256=compiler.digest(layout),runtime_layout_sha256=compiler.digest(out/'runtime-layout.json'),
         source=str(source),output=str(target),selection_scope='same selected typed roots, prefixes, payloads and consumers; no two-atom reselection',

@@ -157,7 +157,7 @@ fn gpu(
     let assisted = assistance != "off" && document.is_some();
     let prepared = io::prepare(source).and_then(|(eg, c, s)| {
         let (eg, h) = if assisted {
-            document.as_ref().unwrap().attach(eg)?
+            document.as_ref().unwrap().attach(eg,&all)?
         } else {
             (eg, None)
         };

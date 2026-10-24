@@ -124,7 +124,7 @@ def compare(left,right,tables=None):
         projected_out_left=sorted(set(left['tables'])-names),projected_out_right=sorted(set(right['tables'])-names))
 
 
-def lane(repo,binary,source,backend,worker,pristine,cache,audit=False,native_rulesets="",assistance=None):
+def lane(repo,binary,source,backend,worker,pristine,cache,audit=False,native_rulesets="",assistance=None,profile=False,export=False):
     identity=dict(source_sha256=sha(source),runner_sha256=sha(pristine) if backend=='pristine' else sha(binary),backend=backend,
         pristine_sha256=sha(pristine) if backend=='pristine' else None,
         worker_sha256=sha(worker) if backend=='gpu' else None,query_audit=bool(backend=='gpu' and audit),
@@ -132,6 +132,10 @@ def lane(repo,binary,source,backend,worker,pristine,cache,audit=False,native_rul
     if assistance:
         if backend not in ('gpu','cpu'):raise ValueError('Cell assistance requires cpu/gpu lane')
         identity['assistance']=dict(assistance)
+    if profile:
+        if backend!='gpu':raise ValueError('search counters require the GPU backend')
+        identity['search_counters']=True
+    if export:identity['export_extraction']=True
     # Native parser preflight: do not cache source programs that read external
     # files or whose output side effects must happen on every invocation.
     inspection=subprocess.check_output([str(binary),'--mode','program','--backend','inspect',
@@ -149,7 +153,7 @@ def lane(repo,binary,source,backend,worker,pristine,cache,audit=False,native_rul
         if old.get('backend')=='pristine':old['runner_sha256']=old.get('pristine_sha256')
         if old!=identity:continue
         report=json.loads((saved/'report.json').read_text())
-        if report.get('complete') and (not report.get('snapshot_complete') or (saved/'graph.json').exists()):return saved,report,True
+        if report.get('complete') and (not report.get('snapshot_complete') or (saved/'graph.json').exists()) and (not export or (saved/'extraction-input.json').exists()):return saved,report,True
     if dest.exists():
         # Preserve failed runs. Never make a failure a successful cached lane.
         dest=cache/(key+'-'+str(time.time_ns()))
@@ -158,10 +162,14 @@ def lane(repo,binary,source,backend,worker,pristine,cache,audit=False,native_rul
     cmd=[str(binary),'--mode','program','--backend',backend,'--source',str(source),'--output',str(dest)]
     if backend=='pristine':cmd+=['--pristine-runner',str(pristine)]
     if backend=='gpu':cmd+=['--gpu-worker',str(worker),'--query-audit','on' if audit else 'off','--native-rulesets',native_rulesets]
+    if export:
+        if backend not in ('cpu','gpu'):raise ValueError('extraction export requires cpu/gpu program lanes')
+        cmd+=['--export-extraction','on']
     for k,v in (assistance or {}).items():cmd+=['--'+k,str(v)]
     # Isolation lanes never inherit another task's observer/Bake/profile flags.
     env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_'))}
     env.update(RAYON_NUM_THREADS='1',EGGLOG_PROBE_COUNTS_OFF='1')
+    if profile:env['CELL_SEARCH_COUNTERS']='1'
     with log.open('w') as f:r=subprocess.run(cmd,cwd=repo,env=env,stdout=f,stderr=subprocess.STDOUT)
     dest.mkdir(parents=True,exist_ok=True)
     if not (dest/'report.json').exists():write(dest/'report.json',dict(complete=False,backend=backend,error='runner failed before report; see run.log'))
@@ -189,6 +197,15 @@ def timing_comparisons(lanes,comparisons,audit=False):
     return result
 
 
+def ensure_worker(repo,worker):
+    fingerprint=worker.with_name(worker.name+'.skill-build.json')
+    shader=repo/'cell-assisted-egglog/matrix.swift'
+    known=json.loads(fingerprint.read_text()) if fingerprint.is_file() else {}
+    if worker.is_file() and known.get('source_sha256')==sha(shader) and known.get('binary_sha256')==sha(worker):return
+    worker.parent.mkdir(parents=True,exist_ok=True)
+    subprocess.run(['xcrun','swiftc','-O',str(shader),'-o',str(worker)],cwd=repo,check=True)
+    write(fingerprint,dict(source_sha256=sha(shader),binary_sha256=sha(worker)))
+
 def run(a,repo):
     resolve=lambda p:p if p.is_absolute() else repo/p
     output=resolve(a.output)
@@ -200,19 +217,13 @@ def run(a,repo):
     assistance=None
     if getattr(a,'cell_assistance',False):
         if backends not in (['gpu'],['cpu']):raise ValueError('assistance uses --backend cpu/gpu; native/pristine are reference lanes')
-        assistance={'cell-assistance':'on'}
+        assistance={'cell-assistance':'on' if a.cell_assistance is True else a.cell_assistance}
     pristine=None;provenance=None
     if 'pristine' in backends:pristine,provenance=build_pristine(repo,resolve(a.pristine_checkout),a.no_build)
     if not a.no_build:
         subprocess.run(['cargo','build','--offline','--release','--manifest-path','cell-assisted-egglog/Cargo.toml','--target-dir','target/analyzer','--bin','cell-assisted-egglog'],cwd=repo,check=True)
     if 'gpu' in backends and not a.no_build:
-        worker=resolve(a.worker);fingerprint=worker.with_name(worker.name+'.skill-build.json')
-        shader=repo/'cell-assisted-egglog/matrix.swift'
-        known=json.loads(fingerprint.read_text()) if fingerprint.is_file() else {}
-        if not (worker.is_file() and known.get('source_sha256')==sha(shader) and known.get('binary_sha256')==sha(worker)):
-            worker.parent.mkdir(parents=True,exist_ok=True)
-            subprocess.run(['xcrun','swiftc','-O',str(shader),'-o',str(worker)],cwd=repo,check=True)
-            write(fingerprint,dict(source_sha256=sha(shader),binary_sha256=sha(worker)))
+        ensure_worker(repo,resolve(a.worker))
     if not binary.is_file():raise ValueError('missing current program runner')
     if 'gpu' in backends and not resolve(a.worker).is_file():raise ValueError('missing GPU worker')
     sources={'original':resolve(a.source)}
@@ -221,7 +232,7 @@ def run(a,repo):
     output.mkdir(parents=True);lanes={}
     for label,source in sources.items():
         for backend in backends:
-            dest,report,reused=lane(repo,binary,source,backend,resolve(a.worker),pristine,repo/'out/program-modes/cache',a.query_audit,getattr(a,'native_rulesets',''),assistance)
+            dest,report,reused=lane(repo,binary,source,backend,resolve(a.worker),pristine,repo/'out/program-modes/cache',a.query_audit,getattr(a,'native_rulesets',''),assistance,getattr(a,'search_counters',False),getattr(a,'export_extraction',False))
             name=label+'-'+backend
             (output/name).symlink_to(dest,target_is_directory=True)
             lanes[name]=dict(directory=str(dest),reused=reused,source=str(source),source_sha256=sha(source),
@@ -254,8 +265,8 @@ def run(a,repo):
         diagnosis.append('A backend difference exists before marker insertion; do not attribute all marked-program differences to markers.')
     if comparisons.get('marker_effect_pristine',{}).get('status')=='equal' and comparisons.get('backend_marked',{}).get('status')=='different':
         diagnosis.append('The marker rewrite preserves this pristine result, but the marked GPU result differs; inspect backend ordering and query audit.')
-    performance=timing_comparisons(lanes,comparisons,a.query_audit)
-    result=dict(schema='program-backend-matrix/v1',performance=performance,diagnosis=diagnosis,lanes=lanes,comparisons=comparisons,pristine=provenance,
+    performance=timing_comparisons(lanes,comparisons,a.query_audit or getattr(a,'search_counters',False))
+    result=dict(schema='program-backend-matrix/v1',performance=performance,diagnosis=diagnosis,lanes=lanes,comparisons=comparisons,pristine=provenance,search_counters=getattr(a,'search_counters',False),
         scope='supplied source policy, explicit source-declared runtime extensions only; pristine names the unchanged baseline kernel, not the absence of extensions; source and backend effects reported separately',
         passed=all(v['complete'] for v in lanes.values()) and all(v['status']=='equal' for v in comparisons.values()))
     write(output/'report.json',result)

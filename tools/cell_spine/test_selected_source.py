@@ -9,6 +9,35 @@ from .selected_source import compile_source
 
 
 class ParameterizedSourceMarkers(unittest.TestCase):
+    def test_ordered_merge_keeps_original_rule_frontiers_and_declares_runtime_markers(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'out') as temp:
+            out=Path(temp);source=out/'ordered.egg'
+            code=(ROOT/'experiments/parameterized_source_markers/counter.egg').read_text()
+            code=code.replace('(ruleset s)','(function picked (E) E :merge new)\n(ruleset s)')
+            source.write_text(code)
+            target,report=self.compile(source,out,'State')
+            self.assertTrue(report['source_preserved'])
+            self.assertEqual(report['source_lowering_obligation']['functions'],['picked'])
+            self.assertEqual(report['lowered_queries'],[])
+            self.assertEqual(report['runtime_marker_consumers'],2)
+            self.assertEqual(target.read_text().split('\n',1)[1],code)
+
+    def test_rewritten_rules_keep_original_ruleset_order(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'out') as temp:
+            out=Path(temp);source=out/'input.egg'
+            code=(ROOT/'experiments/parameterized_source_markers/counter.egg').read_text()
+            code=code.replace('(ruleset s)','(relation Extra (E i64))\n(ruleset s)')
+            needle='(rule ((= state (State x n)) (= port (Port x)) (= len (limit x)) (> n 0)'
+            code=code.replace(needle,'(rule ((State x n)) ((Extra x n)) :ruleset s :name "untouched")\n'+needle)
+            source.write_text(code);self.compile(source,out,'State')
+            layout=out/'selected.json';d=json.loads(layout.read_text())
+            d['rules']=[r for r in d['rules'] if r['rule']!='untouched'];layout.write_text(json.dumps(d))
+            compile_source(source,layout,out/'partial',joint=False);target=out/'partial/source_sk_mk.egg'
+            ast=out/'result.json'
+            subprocess.run([ROOT/'target/analyzer/release/examples/lhs_ast',target,ast],check=True,capture_output=True)
+            data=json.loads(ast.read_text())
+            self.assertEqual([r['name'] for r in data['rules'] if r['ruleset']=='s'],['advance','untouched','observe'])
+
     def compile(self,source,out,root):
         native=out/'native.json'
         subprocess.run([ROOT/'target/analyzer/release/examples/scheduled_spine',source,native,'--all-schedules'],check=True,capture_output=True)

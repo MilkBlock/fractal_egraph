@@ -93,6 +93,10 @@ pub struct Program {
     marker: Option<MarkerLayout>,
 }
 impl Program {
+    pub(super) fn from_kernel(set:&str,k:&Kernel)->Self {
+        Self {ruleset:set.into(),rule:k.sink.name.clone(),shape:Shape::of(&k.sink),
+            seed:k.seed,steps:k.steps.clone(),marker:None}
+    }
     pub(super) fn root(&self) -> Option<&str> { self.shape.atoms.get(self.seed).map(|a|a.table.as_str()) }
     pub(super) fn instantiate(
         &self,

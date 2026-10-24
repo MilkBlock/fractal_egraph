@@ -41,7 +41,7 @@ def _read_profiles(tasks):
                     for qid,q in enumerate(header['queries']):
                         key=query_key(q);qids[qid]=key
                         query_tables[key]={table_ids[a['table']] for a in q['shape']['atoms']}
-                        queries.setdefault(key,dict(ruleset=q['ruleset'],rule=q['rule'],shape=shape_key(q['shape']),requests=0,observations=0,empty_requests=0,nonempty_requests=0))
+                        queries.setdefault(key,dict(ruleset=q['ruleset'],rule=q['rule'],shape=shape_key(q['shape']),requests=0,observations=0,empty_requests=0,nonempty_requests=0,committed_input_updates=0))
                     rejected.extend(dict(case=identity,rule=q.get('rule'),ruleset=q.get('ruleset'),reason=q.get('retained_native','unsupported column sort')) for q in header.get('rejected',[]))
                     for p in header['plans']:
                         key=canonical([qids[p['query']],plan_key(p['plan'])]);ids[p['id']]=key
@@ -58,6 +58,9 @@ def _read_profiles(tasks):
                 live_tables={t:live for t,live,_ in r['tables']}
                 for t,live,updates in r['tables']:
                     table_versions[t]+=updates
+                changed={t:n for t,_,n in r['tables'] if n}
+                for key,tables in query_tables.items():
+                    queries[key]['committed_input_updates']+=sum(changed.get(t,0) for t in tables)
                 observations={x[0]:x[1:] for x in r['plans']};active_queries=set()
                 for stage in r['stages']:
                     pid=stage['plan'];p=plans[ids[pid]];active_queries.add(p['query'])
@@ -97,7 +100,7 @@ def _merge_profiles(dst,src):
     for key,q in src['queries'].items():
         if key not in dst['queries']:dst['queries'][key]=q
         else:
-            for f in ['requests','observations','empty_requests','nonempty_requests']:dst['queries'][key][f]+=q[f]
+            for f in ['requests','observations','empty_requests','nonempty_requests','committed_input_updates']:dst['queries'][key][f]+=q[f]
     for key,p in src['plans'].items():
         if key not in dst['plans']:dst['plans'][key]=p;continue
         d=dst['plans'][key]
@@ -181,17 +184,18 @@ def options(q,workload):
             # step. These are storage/work estimates, not measured bytes/time.
             path_fields=measured['live_prefixes'][0]*(1+len(measured['steps'])) if measured['steps'] else 0
             path_writes=sum(min(roots,s.get('lookups',0)) for s in measured['steps'])
+            watch_updates=observation.get('committed_input_updates',0)
             private['costs']=dict(search=measured['root_evaluations']+sum(sum(s.get(k,0) for k in ('entries','rows','lookups')) for s in measured['steps'])+measured['bindings'],
-                storage=path_fields,update=path_writes)
+                storage=path_fields,update=path_writes+watch_updates)
             private['cost_evidence']=dict(kind='measured_private_with_path_estimate',cases=measured['cases'],requests=measured['requests'],
-                path_fields_bound=path_fields,path_writes_bound=path_writes)
+                path_fields_bound=path_fields,path_writes_bound=path_writes,committed_input_updates=watch_updates)
             result.append(private)
             # Without saved ports, each entered stage needs a lookup. Its
             # terminal delta optimization may visit fewer old rows, so keeping
             # observed visits is an estimate, not an exact no-cache measurement.
             lost_reads=sum(max(0,s.get('entries',0)-s.get('lookups',0)) for s in measured['steps'])
             result.append(dict(private,plan=dict(private['plan'],cache_ports=False),
-                costs=dict(storage=0,update=0,search=private['costs']['search']+lost_reads),
+                costs=dict(storage=0,update=watch_updates,search=private['costs']['search']+lost_reads),
                 cost_evidence=dict(kind='measured_stages_no_path_estimate',cases=measured['cases'],requests=measured['requests'],
                     additional_lookups=lost_reads,limits='terminal stale-row pruning may lower no-cache work')))
         requirements=[]
