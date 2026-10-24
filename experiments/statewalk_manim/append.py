@@ -43,12 +43,14 @@ def frame_hashes(video, dest, frames):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--base',type=Path,required=True);p.add_argument('--extension',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--base',type=Path,required=True);p.add_argument('--extension',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--part',choices=['closure','known'],default='closure');a=p.parse_args()
     base,ext,out=[x.resolve() for x in [a.base,a.extension,a.output]]
     if out in [base,ext]:raise ValueError('Use a new output directory')
     old=json.loads((base/'manifest.json').read_text());base_video=base/'statewalk-intuition.mp4'
     if sha(base_video)!=old['sha256']:raise ValueError('Base video changed')
-    extra_video=ext/'media/videos/closure_appendix/1080p30/ClosureAppendix.mp4'
+    module,scene=('closure_appendix','ClosureAppendix') if a.part=='closure' else ('known_appendix','KnownAppendix')
+    extra_video=ext/'media/videos'/module/'1080p30'/f'{scene}.mp4'
     b,e=probe(base_video),probe(extra_video)
     for key in ['width','height','r_frame_rate','codec_name','pix_fmt','time_base']:
         if b[key]!=e[key]:raise ValueError(f'Incompatible stream {key}')
@@ -65,6 +67,8 @@ def main():
     (out/'edit.json').write_text(json.dumps(edit,ensure_ascii=False,indent=2)+'\n')
     for name in ['trace-demo.json','ir-demo.json','statewalk-trace.jsonl','vec_add-source.rs','vec_add-extracted.egg','dataflow.json','dataflow_runtime.py','vec_add_python.py','vec_add_plain.py','walkthrough.html']:
         shutil.copy2(base/name,out/name)
+    for folder in [base,ext]:
+        if (folder/'known-evidence.json').exists():shutil.copy2(folder/'known-evidence.json',out/'known-evidence.json')
     (out/'stills').mkdir(exist_ok=True)
     for folder in [base/'stills',ext/'stills']:
         for f in folder.glob('*.png'):shutil.copy2(f,out/'stills'/f.name)
@@ -93,14 +97,17 @@ def main():
     after=frame_hashes(final,out/'prefix.framemd5',count)
     assert len(before)==len(after)==count and before==after,'Original decoded frames changed'
     manifest=json.loads((out/'manifest.json').read_text())
-    manifest['appendix']=dict(start_seconds=count/30,duration_seconds=extra_count/30,
+    manifest['appendix']=dict(part=a.part,start_seconds=count/30,duration_seconds=extra_count/30,
         previous_video_sha256=old['sha256'],new_chapters=len(edit['chapters'])-len(old['chapters']),
         preserved_prefix_frames=count,decoded_prefix_identical=True,
-        scope='Appendix uses teaching diagrams grounded in eggcc interfaces and two verified vec_add records. No new inference benchmark. Audio is sample-aligned and normalized for the complete film.')
+        scope='Appendix uses teaching diagrams and saved vec_add evidence. Known/liveness lessons additionally check all masks against the unchanged native liveness source block. No new inference benchmark. Audio is sample-aligned and normalized for the complete film.')
+    manifest['appendices']=old.get('appendices',([old['appendix']] if 'appendix' in old else []))+[manifest['appendix']]
     (out/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     page=out/'index.html';html=page.read_text()
-    html=html.replace('<h1>Statewalk：从搜索到 Python 数据流</h1>', '<h1>Statewalk：数据流、Pure closure 与 If</h1>')
-    html=html.replace('<nav>',f'<p>新增内容从 {count//30//60:02}:{count//30%60:02} 开始：状态元组、纯闭包、成本账本与 If 分支接口。原版前 {count} 帧逐帧核对一致。</p><nav>')
+    title='Statewalk：数据流、Pure closure 与 If' if a.part=='closure' else 'Statewalk：逐步拆解 known 与 live_known'
+    topics='状态元组、纯闭包、成本账本与 If 分支接口' if a.part=='closure' else '加入已知集合、纯闭包逐波传播、未来需求与状态判等'
+    html=html.replace('<h1>Statewalk：从搜索到 Python 数据流</h1>',f'<h1>{title}</h1>')
+    html=html.replace('<nav>',f'<p>新增内容从 {count//30//60:02}:{count//30%60:02} 开始：{topics}。原版前 {count} 帧逐帧核对一致。</p><nav>')
     page.write_text(html)
     print(json.dumps(manifest['appendix'],ensure_ascii=False))
 

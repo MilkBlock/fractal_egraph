@@ -1,0 +1,52 @@
+{
+  "schema": "statewalk-known-lessons/v1",
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "frames": 43224,
+    "duration_seconds": 1440.8,
+    "bytes": 76517222,
+    "sha256": "3cf3790d02f4784a890f321d757beff916c5660db1d823079f22f0eb277402e3",
+    "full_decode_passed": true
+  },
+  "appendix": {
+    "part": "known",
+    "start_seconds": 1083.2666666666667,
+    "duration_seconds": 357.53333333333336,
+    "previous_video_sha256": "6d6a15e052c010fb1db6704f4502587e1b392a628262e657bcb71b7801740f5a",
+    "new_chapters": 8,
+    "preserved_prefix_frames": 32498,
+    "decoded_prefix_identical": true,
+    "scope": "Appendix uses teaching diagrams and saved vec_add evidence. Known/liveness lessons additionally check all masks against the unchanged native liveness source block. No new inference benchmark. Audio is sample-aligned and normalized for the complete film."
+  },
+  "new_chapters": 8,
+  "new_narration_clips": 17,
+  "total_chapters": 30,
+  "total_subtitle_cues": 86,
+  "original_subtitle_prefix_unchanged": true,
+  "original_ir_python_trace_unchanged": true,
+  "validated_closures": 1465,
+  "validated_liveness_masks": 28,
+  "native_liveness_masks_equal": true,
+  "teaching_counts": {
+    "before_known": 52,
+    "after_seed": 53,
+    "after_closure": 63,
+    "pure_waves": [
+      1,
+      4,
+      3,
+      2
+    ],
+    "initial_common": 45,
+    "early_dynamic_pure": 14,
+    "early_filtered_dynamic_pure": 0,
+    "late_known": 96,
+    "late_dynamic_pure": 41,
+    "late_live_known": 16,
+    "late_omitted_from_key": 25
+  },
+  "voice_validation": "All 17 synthesized clips decode to non-silent 48k mono PCM; request hashes and cue durations checked. Not an acoustic ASR proof.",
+  "scope": "Known sets reconstructed and closure deltas checked against saved native trace. Liveness masks recomputed and compared with the unchanged C++ source block on that exact regional graph. No timing or collision-free native hashing claim."
+}

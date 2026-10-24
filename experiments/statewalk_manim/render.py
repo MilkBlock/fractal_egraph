@@ -11,14 +11,15 @@ HERE=Path(__file__).resolve().parent
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--quality',choices=['preview','final'],default='final')
-    p.add_argument('--part',choices=['original','closure'],default='original');a=p.parse_args()
+    p.add_argument('--part',choices=['original','closure','known'],default='original');a=p.parse_args()
     out=a.output.resolve();env=dict(os.environ,STATEWALK_MANIM_DIR=str(out))
     # Homebrew dvisvgm and TeX Live can resolve different kpathsea roots.
     # Scope the correction to this render, without changing system config.
     env['TEXMFROOT']=subprocess.check_output(['kpsewhich','--var-value=TEXMFROOT'],text=True).strip()
     env['TEXMFCNF']=str(Path(subprocess.check_output(['kpsewhich','texmf.cnf'],text=True).strip()).parent)
     preview=a.quality=='preview'
-    source,scene=('film.py','StatewalkFilm') if a.part=='original' else ('closure_appendix.py','ClosureAppendix')
+    source,scene={'original':('film.py','StatewalkFilm'),'closure':('closure_appendix.py','ClosureAppendix'),
+                  'known':('known_appendix.py','KnownAppendix')}[a.part]
     command=[sys.executable,'-m','manim','render','-ql' if preview else '-qh','--fps','15' if preview else '30','--renderer','cairo','--media_dir',str(out/'media'),'--verbosity','WARNING',str(HERE/source),scene]
     # Manim 0.19 can skip add_sound after a cached animation, and accumulated
     # Scene.time can drift from cached clip durations. Final narration must be

@@ -235,3 +235,55 @@ the new movie's prefix. The old MP4 is never overwritten. The new full narration
 mix is normalized; bit-identical old audio samples are not claimed.
 
 Tests: `python -m unittest discover -s experiments/statewalk_manim -p 'test_*.py'`.
+
+## Stepwise known / live_known continuation
+
+`known_appendix.py` expands the two teaching pseudocode lines into individual
+operations, using the same node-lighting style as the pure-region lesson:
+
+- Record #73 starts with 52 known classes. Candidate c21 reads c45/c55/c9, all
+  present. Set union adds membership for an already-existing class; it is not
+  egglog equality union, graph insertion, or concrete execution of Load.
+- One chosen effect result plus four pure waves of 1/4/3/2 classes gives 63
+  known classes. c72 (Get) and c37 (FAdd) are shown with their exact inputs.
+  Wave grouping is pedagogical, not a claim about native queue pop order.
+- The 63 entries comprise 45 common initial entries, 4 dynamic effect entries
+  and 14 dynamic pure entries. All 14 pure entries remain live at this point.
+  The other 49 entries are not described as dead computation.
+- Record #798, after a Write at c5, retains 96 known classes. Its 41 dynamic
+  pure entries project to 16 live entries for keying; the other 25 remain in
+  the full record. Static initial entries and effect position are explained
+  separately. Availability is not an already-paid cost bag.
+- Future relevance follows all possible effect successors in the fixed regional
+  candidate graph, then recursively traces their pure dependencies. It is not
+  prediction of future egglog rewrites and not just the immediately next step.
+- Toy comparisons explain same-position key reuse, retaining the cheaper arrival,
+  and why a possibly-needed missing input must keep keys distinct.
+
+`known_evidence.py` reconstructs the known sets from the saved diagnostic trace
+and verifies all 1,465 closure deltas. It independently compiles the **unchanged
+liveness source block** from the pinned Tiger against that same 113-class region.
+All 28 effect-position masks must match the readable Python reconstruction.
+This checks the masks, not collision-freedom or every runtime hash update. The
+movie explicitly distinguishes mathematical sets from finite hash summaries.
+No original eggcc source is modified and no inference benchmark is rerun.
+
+```sh
+out/manim-ce-venv/bin/python experiments/statewalk_manim/prepare.py \
+  --output out/statewalk-known-appendix \
+  --narration experiments/statewalk_manim/known_narration.json \
+  --speech-backend mambotts --mambo-url http://127.0.0.1:19880 \
+  --voice-revision mambo-v1.2.1-426ac73f-80668f16
+out/manim-ce-venv/bin/python experiments/statewalk_manim/known_evidence.py \
+  --trace out/statewalk-known-appendix/statewalk-trace.jsonl \
+  --output out/statewalk-known-appendix/known-evidence.json \
+  --oracle-dir out/statewalk-known-appendix/liveness-check
+out/manim-ce-venv/bin/python experiments/statewalk_manim/render.py \
+  --output out/statewalk-known-appendix --part known --quality final
+out/manim-ce-venv/bin/python experiments/statewalk_manim/append.py \
+  --base out/statewalk-mambo-extended --extension out/statewalk-known-appendix \
+  --part known --output out/statewalk-mambo-known
+```
+
+Successive additions retain their provenance in `appendices`. As before, the
+complete prior movie's decoded frames and its subtitle cues are preserved.
