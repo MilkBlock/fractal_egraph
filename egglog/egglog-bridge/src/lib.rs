@@ -1218,6 +1218,10 @@ impl MergeFn {
         egraph: &mut EGraph,
     ) -> Box<core_relations::MergeFn> {
         let resolved = self.resolve(function_name, egraph);
+        // Preserve the idempotent shortcut for a top-level function merge
+        // (see egglog#287). A nested lookup may return a different sort; it
+        // must never substitute the outer row's `cur` for its own result.
+        let function_merge = matches!(self, MergeFn::Function(..));
 
         Box::new(move |state, cur, new, out| {
             let timestamp = new[schema_math.ts_col()];
@@ -1227,7 +1231,11 @@ impl MergeFn {
             let ret_val = {
                 let cur = cur[schema_math.ret_val_col()];
                 let new = new[schema_math.ret_val_col()];
-                let out = resolved.run(state, cur, new, timestamp);
+                let out = if function_merge && cur == new {
+                    cur
+                } else {
+                    resolved.run(state, cur, new, timestamp)
+                };
                 changed |= cur != out;
                 out
             };
@@ -1375,11 +1383,6 @@ impl ResolvedMergeFn {
                 }
             }
             ResolvedMergeFn::Function { func, args, panic } => {
-                // see github.com/egraphs-good/egglog/pull/287
-                if cur == new {
-                    return cur;
-                }
-
                 let args = args
                     .iter()
                     .map(|arg| arg.run(state, cur, new, ts))

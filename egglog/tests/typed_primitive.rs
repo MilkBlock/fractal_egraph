@@ -20,6 +20,32 @@ use egglog::{
     WritePrim, WriteState, prelude::*,
 };
 
+#[test]
+fn merge_equal_values_still_evaluate_nested_function_reads() {
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(None, r#"
+        (function lookup (i64) i64 :no-merge)
+        (set (lookup 2) 9)
+        (function f () i64 :merge (+ (lookup old) 1))
+        (set (f) 2)
+        (set (f) 2)
+        (check (= (f) 10))
+    "#).unwrap();
+}
+
+#[test]
+fn merge_equal_values_keep_the_top_level_function_shortcut() {
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(None, r#"
+        (function lookup (i64) i64 :no-merge)
+        (set (lookup 2) 9)
+        (function f () i64 :merge (lookup old))
+        (set (f) 2)
+        (set (f) 2)
+        (check (= (f) 2))
+    "#).unwrap();
+}
+
 // --- shared test fixtures ---
 
 /// A pure primitive that adds two i64s. Trivially safe in every context.
