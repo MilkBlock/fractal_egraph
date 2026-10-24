@@ -15,9 +15,10 @@ ROOT=HERE.parents[1]
 def main():
     p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True)
     p.add_argument('--trace',type=Path,default=ROOT/'out/statewalk-film-v2-trace-checked')
+    p.add_argument('--narration',type=Path,default=HERE/'narration.json')
     add_options(p);a=p.parse_args()
     out=a.output.resolve();(out/'audio').mkdir(parents=True,exist_ok=True)
-    data=json.loads((HERE/'narration.json').read_text());clips={}
+    data=json.loads(a.narration.read_text());clips={}
     settings=settings_for(a,data);data['narration_label']=description(settings)
     data['speech_settings']=settings
     if settings['backend']=='mambotts':

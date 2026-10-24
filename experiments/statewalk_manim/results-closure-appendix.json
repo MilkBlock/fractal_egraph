@@ -1,0 +1,58 @@
+{
+  "schema": "statewalk-closure-appendix/v1",
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "frames": 32498,
+    "duration_seconds": 1083.267,
+    "bytes": 56744897,
+    "sha256": "6d6a15e052c010fb1db6704f4502587e1b392a628262e657bcb71b7801740f5a",
+    "full_decode_passed": true
+  },
+  "appendix": {
+    "start_seconds": 733.7333333333333,
+    "duration_seconds": 349.53333333333336,
+    "previous_video_sha256": "8eaf8aa9a1c16c1580f5db18aef145853dec087e3488e886557b51161fbe0a37",
+    "new_chapters": 8,
+    "preserved_prefix_frames": 22012,
+    "decoded_prefix_identical": true,
+    "scope": "Appendix uses teaching diagrams grounded in eggcc interfaces and two verified vec_add records. No new inference benchmark. Audio is sample-aligned and normalized for the complete film."
+  },
+  "chapters": 22,
+  "new_chapters": 8,
+  "subtitle_cues": 69,
+  "new_narration_clips": 19,
+  "original_subtitles_unchanged": true,
+  "original_ir_python_trace_unchanged": true,
+  "audio_validation": "All 19 new clips are actual mono 48k PCM, nonempty and non-silent; request hashes and cue durations checked. Not an acoustic transcription proof.",
+  "source_proof": {
+    "revision": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+    "source_hashes": {
+      "dag_in_context/src/tiger/json2egraphin.cpp": "1b4bcb11ef01b515b22558c6c4dc27a4cb4b64811beb339e981f4d079dd4429a",
+      "dag_in_context/src/tiger/statewalkdp.cpp": "7eefd661e4b0f1f8e68919506ffa975146253f7dc8ffae43b700289a3a46af31",
+      "dag_in_context/src/tiger/greedy.cpp": "af1e8b0ad0504d60ed41e33a8f9e76af565ff27d0f255955e163e1e5bf2ea9f8",
+      "dag_in_context/src/schema.egg": "cbf82f3ddb22f60f364ee59e9ecf15ff2bd468f1d561ccb48e93e65a1fd0144b",
+      "dag_in_context/src/add_context.rs": "624803831a00ab9e30ac81267c60f2851f7b477f051b0174907f5f5a744f54cf",
+      "dag_in_context/src/utility/context_of.egg": "990a9847123c02ba85fa299f0a24db883399b6c1ad9abfc35691b514fb132563",
+      "dag_in_context/src/interpreter.rs": "dd991459c2baa77f52ba03a0533147c4b134a2da0ed343f105cb049e415f0491",
+      "dag_in_context/src/optimizations/passthrough.egg": "f2421d8f62d35e4080e3ac72603519c76c685a04b3ee9d0b2a643a94636ca82e",
+      "dag_in_context/src/interval_analysis.egg": "b18729ef499e2d5257e80f091468cf3d7f80686280a5c4d65e93766511a888dd"
+    },
+    "scope": "Teaching diagrams from the actual source interfaces; no newly measured trace or cost benchmark."
+  },
+  "visual_review": [
+    "20-effect-tuple",
+    "21-partial-pure-region",
+    "22-closure-grown",
+    "23-alternative-zero",
+    "24-candidate-cycle",
+    "25-state-versus-available",
+    "26-two-jobs",
+    "27-greedy-counterexample",
+    "28-if-contexts",
+    "29-if-is-not-union",
+    "30-conditional-state-passthrough",
+    "31-four-kinds-of-information"
+  ]
+}

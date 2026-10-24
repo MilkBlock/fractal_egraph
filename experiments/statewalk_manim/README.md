@@ -185,3 +185,53 @@ The correction regenerates 16 of 50 Mambo clips, including the shared-cost `A/B/
 example. Frontend checks verify letter segmentation and `A=EY1`, `B=B IY1`,
 `T=T IY1` phonemes. These checks and audio decoding are not an acoustic ASR proof;
 the short `first-read-preview.wav` is retained for listening.
+
+## Appended lessons: pure closure, bags, and If
+
+`closure_appendix.py` renders an independent Manim continuation. It covers:
+
+- State-carrying tuples versus ordinary value projections; Tiger's type flag is
+  distinct from eggcc's `ExprIsPure` analysis.
+- A maximal connected pure region becoming extractable in two separate waves.
+- An integer expression gaining a constant-zero alternative, and why that does
+  not authorize deleting effects still required by the state chain.
+- Cyclic candidate e-graphs even for a loop-free selected program.
+- Real vec_add records #11 and #73: both at c9, with 49 versus 52 extractable
+  classes. The displayed read values are explicitly only a subset.
+- Availability versus candidate-cost bookkeeping, and a sharing counterexample
+  to greedy local choice (8 versus 6, with illustrative costs).
+- The actual `(If pred inputs then else)` interface, scoped `InIf` assumptions,
+  one conditional output without unioning distinct branch states, and the
+  guarded state-edge-passthrough transformation.
+
+The new geometric examples are teaching diagrams, not fabricated native trace
+events. The two vec_add records are checked against the saved actual trace.
+Relevant upstream sources at `ae80f82a` are `schema.egg`, `add_context.rs`,
+`utility/context_of.egg`, `interpreter.rs`, `interval_analysis.egg`,
+`optimizations/passthrough.egg`, and the Tiger type/closure/cost implementations.
+The original film's benchmark claims are not changed or refreshed.
+
+```sh
+out/manim-ce-venv/bin/python experiments/statewalk_manim/prepare.py \
+  --output out/statewalk-closure-appendix \
+  --narration experiments/statewalk_manim/closure_narration.json \
+  --speech-backend mambotts --mambo-url http://127.0.0.1:19880 \
+  --voice-revision mambo-v1.2.1-426ac73f-80668f16
+out/manim-ce-venv/bin/python experiments/statewalk_manim/render.py \
+  --output out/statewalk-closure-appendix --part closure --quality final
+out/manim-ce-venv/bin/python experiments/statewalk_manim/append.py \
+  --base out/statewalk-mambo-identifiers \
+  --extension out/statewalk-closure-appendix \
+  --output out/statewalk-mambo-extended
+```
+
+The base is the complete local production directory, with `audio.json`, edit,
+stills and evidence, rather than only the distributed MP4. `append.py` preserves
+the old video packets, offsets the new chapters/captions by the exact old frame
+count, and aligns the two narration tracks to 48-kHz sample boundaries. It uses
+lossless ALAC for the intermediate audio before the usual final normalization.
+It decodes the finished movie and compares every old frame's decoded hash with
+the new movie's prefix. The old MP4 is never overwritten. The new full narration
+mix is normalized; bit-identical old audio samples are not claimed.
+
+Tests: `python -m unittest discover -s experiments/statewalk_manim -p 'test_*.py'`.

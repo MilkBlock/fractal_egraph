@@ -105,6 +105,9 @@ class StatewalkFilm(DetailScenes,Scene):
         self.sharing()
         self.storage()
         self.results()
+        self.finish_edit()
+
+    def finish_edit(self):
         for i,c in enumerate(self.chapters):c['end']=self.chapters[i+1]['start'] if i+1<len(self.chapters) else float(self.time)
         (DATA/'edit.json').write_text(json.dumps(dict(duration=float(self.time),chapters=self.chapters,captions=self.captions,renderer='Manim Community 0.19.0',width=config.pixel_width,height=config.pixel_height,fps=config.frame_rate),ensure_ascii=False,indent=2)+'\n')
 
