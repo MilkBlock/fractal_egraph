@@ -1,8 +1,9 @@
 # Complete source-pipeline port to native egglog
 
-**The complete implementation is ported and executes in official eggcc. Native
-performance acceptance has not passed.** This report deliberately keeps those
-two statements separate.
+**The complete implementation is ported and executes in official eggcc.** The
+subsequent stable-selection/export repair passes the final-result gate; see
+[the repair results](STABLE_RESULTS.md). An optimized solver-selected native
+speedup is still unverified. The original-policy failure below remains as history.
 
 ## What was copied
 

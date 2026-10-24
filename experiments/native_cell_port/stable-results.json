@@ -1,0 +1,263 @@
+{
+  "schema": "stable-selection-extraction/v1",
+  "date": "2026-10-25",
+  "gpu": false,
+  "acceptance": "final selected DAG and official printed IR; intermediate merge trees are diagnostic",
+  "official_runs": [
+    {
+      "stage": "sk",
+      "returncode": 0,
+      "diagnostic_wall_seconds": 72.20497137500206,
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/cell-native-eggcc/target/release/eggcc",
+        "benchmarks/passing/raytrace/raytrace.rs",
+        "--run-mode",
+        "optimized-pretty-print",
+        "--run-data-out",
+        "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-stable-export-official/sk-run.json"
+      ],
+      "ir_sha256": "ca52f060fbf1d95632c807b07f59d12da735ae42fa660877ec88e73a3ecb6960"
+    },
+    {
+      "stage": "mk",
+      "returncode": 0,
+      "diagnostic_wall_seconds": 69.34222512500128,
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/cell-native-eggcc/target/release/eggcc",
+        "benchmarks/passing/raytrace/raytrace.rs",
+        "--run-mode",
+        "optimized-pretty-print",
+        "--run-data-out",
+        "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-stable-export-official/mk-run.json"
+      ],
+      "ir_sha256": "ca52f060fbf1d95632c807b07f59d12da735ae42fa660877ec88e73a3ecb6960"
+    }
+  ],
+  "same_official_ir": true,
+  "pass3_cache_hit": {
+    "sk": true,
+    "mk": true
+  },
+  "cell_runs": 11124,
+  "complete_cell_bindings": 2967639,
+  "native_query_audits": 477053,
+  "selected_dag": {
+    "passed": true,
+    "outputs": [
+      {
+        "file": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-stable-selection-keyed/result-check/production-export/native.egg",
+        "reconstruction_seconds": 0.107517917,
+        "selected_rows": 8032,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-stable-selection-keyed/result-check/production-export/cell.egg",
+        "reconstruction_seconds": 0.103172667,
+        "selected_rows": 8032,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      }
+    ],
+    "checks": [
+      {
+        "candidate": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-stable-selection-keyed/result-check/production-export/cell.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8031,
+          "eclass_mapping": 8031,
+          "tables": {
+            "Add": 1,
+            "Alloc": 132,
+            "And": 1,
+            "Arg": 1,
+            "Bool": 2,
+            "BoolT": 1,
+            "Bop": 2250,
+            "Call": 85,
+            "Concat": 1507,
+            "Const": 27,
+            "Div": 1,
+            "DoWhile": 58,
+            "DumC": 1,
+            "Eq": 1,
+            "FAdd": 1,
+            "FDiv": 1,
+            "FGreaterEq": 1,
+            "FGreaterThan": 1,
+            "FLessThan": 1,
+            "FMul": 1,
+            "FSub": 1,
+            "Float": 16,
+            "FloatT": 1,
+            "Free": 1,
+            "Function": 29,
+            "Get": 2402,
+            "GreaterThan": 1,
+            "If": 111,
+            "Int": 9,
+            "IntT": 1,
+            "LessThan": 1,
+            "Load": 1,
+            "Neg": 1,
+            "Not": 1,
+            "Or": 1,
+            "PointerT": 5,
+            "Print": 1,
+            "PtrAdd": 1,
+            "Single": 873,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 44,
+            "TNil": 1,
+            "Top": 431,
+            "TupleT": 19,
+            "Uop": 2,
+            "Write": 1
+          }
+        },
+        "error": null
+      }
+    ],
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  },
+  "export": [
+    {
+      "nodes": 53624,
+      "classes": 40331,
+      "tables": 79,
+      "witness_tables": 16,
+      "optimization_replayed": false,
+      "lane": "native",
+      "export_and_schema_seconds": 2.590955459047109,
+      "sha256": "8d0e9bb98d0933d1437aea50dd0cd831189c7e7245df47460233558b582bcd55",
+      "tiger_returncode": 0
+    },
+    {
+      "nodes": 53624,
+      "classes": 40331,
+      "tables": 79,
+      "witness_tables": 16,
+      "optimization_replayed": false,
+      "lane": "cell",
+      "export_and_schema_seconds": 2.0776298330165446,
+      "sha256": "8d0e9bb98d0933d1437aea50dd0cd831189c7e7245df47460233558b582bcd55",
+      "tiger_returncode": 0
+    }
+  ],
+  "ranking_comparison": {
+    "coverage": [
+      {
+        "keyed_expr_roots": 5068,
+        "unkeyed_expr_roots": 2354,
+        "unkeyed_selected_terms": 0,
+        "keyed_hoist_roots": 48,
+        "unkeyed_hoist_roots": 36
+      },
+      {
+        "keyed_expr_roots": 5068,
+        "unkeyed_expr_roots": 2354,
+        "unkeyed_selected_terms": 0,
+        "keyed_hoist_roots": 48,
+        "unkeyed_hoist_roots": 36
+      }
+    ],
+    "rankings": {
+      "ExtractedExpr": {
+        "unmatched_roots": 0,
+        "different_rankings": 0
+      },
+      "to-hoist": {
+        "unmatched_roots": 0,
+        "different_rankings": 0
+      }
+    },
+    "non_term_public_projection": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 412072,
+      "mapped_classes": 319063,
+      "projected_out_left": [],
+      "projected_out_right": []
+    },
+    "scope": "Exact structural ranking keys for covered roots; unkeyed roots are not certified by this metric. Tiger selected DAG is an independent acceptance gate."
+  },
+  "configuration": "broad source-derived correctness layout, not a newly profiled solver optimum",
+  "performance_claim": false,
+  "profiling_repeated_for_export": false,
+  "tests": {
+    "native_extension": 18,
+    "python_source_and_cache": 26,
+    "exact_key_order": 2
+  },
+  "artifacts": {
+    "official": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-stable-export-official",
+    "saved_graph_check": "/Users/mineralsteins/Repos/egg_related/cell-native-egglog/out/native-stable-selection-keyed/result-check/production-export"
+  },
+  "commits": {
+    "native_extension": "75a4295",
+    "experimental_wrapper": "2ec4fb3",
+    "official_eggcc": "6333aedd",
+    "profile_cache": "bc18953"
+  }
+}
