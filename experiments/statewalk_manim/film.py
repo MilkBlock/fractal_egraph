@@ -78,8 +78,7 @@ class StatewalkFilm(DetailScenes,Scene):
         elapsed=float(self.time)-start
         if elapsed<clip['duration']:self.wait(clip['duration']-elapsed,frozen_frame=True)
         self.wait(.3,frozen_frame=True)
-        speech=clip['speech'].replace('泰格','Tiger').replace('梯','t')
-        self.captions.append(dict(key=key,start=start,end=float(self.time),text=speech))
+        self.captions.append(dict(key=key,start=start,end=float(self.time),text=clip['subtitle']))
 
     def shot(self,name):
         self.renderer.update_frame(self,ignore_skipping=True)

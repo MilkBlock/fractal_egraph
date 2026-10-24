@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 from voice import add_options, settings_for, synthesize, description
+from pronunciation import spoken_text
 
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[1]
@@ -25,11 +26,12 @@ def main():
     from trace_data import export
     from real_ir import export as export_ir
     export(a.trace,out,include_all=True);export_ir(ROOT,out)
-    for key,caption,speech in data['beats']:
+    for key,caption,subtitle in data['beats']:
+        speech=spoken_text(subtitle)
         src=out/'audio'/f'{key}.txt';wav=src.with_suffix('.wav')
         synthesize(speech,wav,settings);src.write_text(speech)
         duration=float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(wav)],text=True))
-        clips[key]=dict(caption=caption,speech=speech,audio=str(wav),duration=duration)
+        clips[key]=dict(caption=caption,subtitle=subtitle,speech=speech,audio=str(wav),duration=duration)
         print(f'[voice] {key}: {duration:.2f}s',flush=True)
     data['clips']=clips
     (out/'audio.json').write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')

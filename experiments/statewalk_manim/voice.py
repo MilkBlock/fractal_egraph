@@ -14,6 +14,7 @@ import tempfile
 import urllib.error
 import urllib.request
 import wave
+from pronunciation import spoken_text
 
 
 def digest(path):
@@ -93,6 +94,6 @@ if __name__=='__main__':
     p.add_argument('--output',type=Path,required=True);p.add_argument('--beat',default='opening')
     add_options(p);p.set_defaults(speech_backend='mambotts');args=p.parse_args()
     script=json.loads((Path(__file__).with_name('narration.json')).read_text())
-    speech=next(s for key,caption,s in script['beats'] if key==args.beat)
+    speech=spoken_text(next(s for key,caption,s in script['beats'] if key==args.beat))
     settings=settings_for(args,script);synthesize(speech,args.output,settings)
     print(json.dumps(dict(file=str(args.output),voice=description(settings),sha256=digest(args.output)),ensure_ascii=False))

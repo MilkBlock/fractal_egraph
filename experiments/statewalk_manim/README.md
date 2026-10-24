@@ -160,3 +160,28 @@ Responses must be WAV and successfully decode before replacing an existing clip;
 an unavailable engine never substitutes silence or the old voice. Narration
 durations drive the existing animation/subtitle timing. Credits and player labels
 identify the actual backend and disclose synthesized speech.
+
+### Identifier pronunciation
+
+`narration.json` keeps the actual displayed identifiers (`a0`, `b1`, `A`, `B`,
+`t`) in its full narration text. `pronunciation.py` derives a separate TTS string:
+for example, `b0` becomes `字母 B，零`. It never renames `a/b` to `甲/乙`.
+The adapter uses the engine's Chinese/English segmentation, where standalone
+uppercase `A`, `B`, `T` have letter pronunciations. Chinese numerical subscripts
+are explicitly separated from the letter.
+
+`prepare.py` records both `subtitle` and `speech` for every clip. Manim and the
+subtitle packager use `subtitle` directly; they do not reverse transliterations
+or derive display text from speech. Final packaging rejects a subtitle mismatch.
+Changed speech invalidates only that clip's audio cache, while the final render
+recomputes the timeline for new narration durations.
+
+```sh
+out/manim-ce-venv/bin/python -m unittest discover \
+  -s experiments/statewalk_manim -p 'test_pronunciation.py'
+```
+
+The correction regenerates 16 of 50 Mambo clips, including the shared-cost `A/B/t`
+example. Frontend checks verify letter segmentation and `A=EY1`, `B=B IY1`,
+`T=T IY1` phonemes. These checks and audio decoding are not an acoustic ASR proof;
+the short `first-read-preview.wav` is retained for listening.

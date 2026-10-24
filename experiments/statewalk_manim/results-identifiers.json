@@ -1,0 +1,119 @@
+{
+  "schema": "statewalk-mambo-identifier-fix/v1",
+  "voice": "MamboTTS / GPT-SoVITS · 曼波（合成语音）",
+  "previous_video_sha256": "ecc7819c86df7f6a1285fafa2826a6cc71b340eaf8a7b8fac995ea3fd3560a96",
+  "changed_beats": [
+    "first_read",
+    "middle_read",
+    "remaining_read",
+    "split_state",
+    "closure_enter",
+    "closure_and",
+    "unroll_occurrence",
+    "unroll_python",
+    "fill_skeleton",
+    "python_reads",
+    "shared_problem",
+    "double_count",
+    "pay_once",
+    "own_cost",
+    "merge_t",
+    "merge_rest"
+  ],
+  "audio": {
+    "clips": 50,
+    "changed": 16,
+    "reused": 34,
+    "all_clips_decode": true,
+    "scope": "Canonical text, request/hash and signal validation; not ASR."
+  },
+  "pronunciation_frontend": {
+    "phones": {
+      "A": [
+        "EY1"
+      ],
+      "B": [
+        "B",
+        "IY1"
+      ],
+      "T": [
+        "T",
+        "IY1"
+      ]
+    },
+    "segments": [
+      {
+        "lang": "zh",
+        "text": "字母 ",
+        "effective_language": "zh"
+      },
+      {
+        "lang": "en",
+        "text": "B，",
+        "effective_language": "en"
+      },
+      {
+        "lang": "ja",
+        "text": "零。",
+        "effective_language": "zh"
+      },
+      {
+        "lang": "zh",
+        "text": "字母 ",
+        "effective_language": "zh"
+      },
+      {
+        "lang": "en",
+        "text": "A，",
+        "effective_language": "en"
+      },
+      {
+        "lang": "zh",
+        "text": "一。字母 ",
+        "effective_language": "zh"
+      },
+      {
+        "lang": "en",
+        "text": "T。",
+        "effective_language": "en"
+      }
+    ],
+    "text_language": "zh",
+    "scope": "Frontend segmentation and phonemes verified; not an acoustic transcription test.",
+    "english_source_sha256": "77837d1dfe2a21664d7cc3162e21f623e09cae93f1c96f0fa91ae97718fc0afb"
+  },
+  "first_read": {
+    "subtitle": "真实选中路径的第一次读取，是b0。它亮起来了，但第一项加法还缺a0。所以，加号仍然不能亮。",
+    "speech": "真实选中路径的第一次读取，是字母 B，零。它亮起来了，但第一项加法还缺字母 A，零。所以，加号仍然不能亮。",
+    "duration": 13.64
+  },
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "frames": 22012,
+    "duration_seconds": 733.733,
+    "bytes": 39368491,
+    "sha256": "8eaf8aa9a1c16c1580f5db18aef145853dec087e3488e886557b51161fbe0a37",
+    "full_decode_passed": true
+  },
+  "subtitle_cues": 50,
+  "all_subtitles_match_canonical_text": true,
+  "all_audio_fit_cues": true,
+  "dataflow_validation": {
+    "native_replay": {
+      "candidates": 1864,
+      "closures": 1465,
+      "publishes": 807
+    },
+    "python_inputs": 131,
+    "sample_output": [
+      12.0,
+      24.0,
+      36.0
+    ]
+  },
+  "native_trace_unchanged": true,
+  "generated_python_and_ir_unchanged": true,
+  "preview_sha256": "9dbe9a761e94f0361c401a56c68f1acdb47dc909cb92d93566f5536ebb4b8cfa"
+}

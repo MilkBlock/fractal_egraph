@@ -20,11 +20,14 @@ def main():
     args = parser.parse_args()
     out = args.output.resolve()
     edit = json.loads((out/'edit.json').read_text())
-    voice_label=json.loads((out/'audio.json').read_text()).get('narration_label','macOS Tingting（合成语音）')
+    audio_data=json.loads((out/'audio.json').read_text())
+    voice_label=audio_data.get('narration_label','macOS Tingting（合成语音）')
     assert (edit['width'], edit['height'], edit['fps']) == (1920, 1080, 30)
     duration = round(edit['duration'], 3)
     cues = []
     for i, cue in enumerate(edit['captions'], 1):
+        assert cue['text']==audio_data['clips'][cue['key']]['subtitle'], \
+            'Subtitle must use canonical narration, not TTS pronunciation text'
         assert 0 <= cue['start'] < cue['end'] <= duration
         if i > 1:
             assert edit['captions'][i-2]['end'] <= cue['start']
