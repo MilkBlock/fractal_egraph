@@ -36,7 +36,11 @@ pub struct Plan {
     pub carried_slots: Vec<usize>,
     #[serde(default,skip_serializing_if="std::ops::Not::not")]
     pub shared_marker: bool,
+    /// A physical implementation choice, independent of query completeness.
+    #[serde(default="enabled")]
+    pub cache_ports: bool,
 }
+pub(super) fn enabled() -> bool { true }
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -237,6 +241,7 @@ fn instantiate(eg: &EGraph, sink: CellActionSink, tables: Vec<usize>, p: &Plan) 
         return Err("marker payload is not bound by its prefix".into());
     }
     k.payload_layout = Some((p.prefix_len, p.carried_slots.clone()));
+    k.reuse_ports=p.cache_ports;
     k.share_prefix=p.shared_marker && std::env::var("CELL_SHARED_MARKERS").as_deref()!=Ok("0");
     Ok(k)
 }
@@ -309,6 +314,7 @@ pub fn inspect(eg: &mut EGraph, sets: &[String], reserved: &BTreeSet<(String, St
                             prefix_len: 0,
                             carried_slots: vec![],
                             shared_marker:false,
+                            cache_ports:true,
                         });
                     }
                 }
@@ -476,7 +482,7 @@ mod tests {
     }
     #[test]
     fn selected_payloads_match_native_through_function_updates_and_aliases() {
-        for payload in [false, true] {
+        for (payload,cache) in [(false,false),(true,false),(false,true),(true,true)] {
             let mut eg = EGraph::default();
             eg.parse_and_run_program(
                 None,
@@ -502,6 +508,7 @@ mod tests {
                 }
             }
             p.prefix_len = p.steps.len();
+            p.cache_ports=cache;
             if payload {
                 p.carried_slots = (0..p.shape.slots.len()).collect();
             }
@@ -537,8 +544,9 @@ mod tests {
                 assert_eq!(got[0].1, expected, "payload={payload}, after {input}");
                 r.eg.apply_completed_cell_ruleset(&[(&sink, &got[0].1)])
                     .unwrap();
+                if !cache {assert!(r.kernels[0].paths.is_empty());assert_eq!(r.kernels[0].reused_reads,0);}
             }
-            if payload {
+            if payload && cache {
                 assert!(r.kernels[0].payload_resumes.get() > 0);
             }
         }

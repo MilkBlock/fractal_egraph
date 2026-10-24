@@ -399,6 +399,9 @@ fn unsupported_container_query_does_not_block_other_observed_programs() {
 // Exercise storage layouts independently of cost selection. The Python tests
 // drive the real solver; here each native frontier checks even omitted payloads.
 fn marked(bundle: &Bundle, numeric_only: bool) -> Bundle {
+    selected_mode(bundle,numeric_only,true,true)
+}
+fn selected_mode(bundle: &Bundle, numeric_only: bool, shared: bool, cache: bool) -> Bundle {
     use cell_assisted_egglog::parameterized_cell::boundary;
     let mut engine=bundle.instantiate().unwrap().engine().clone();
     let sets=bundle.layout_queries().into_iter().map(|(s,_)|s).collect::<std::collections::BTreeSet<_>>().into_iter().collect::<Vec<_>>();
@@ -410,13 +413,21 @@ fn marked(bundle: &Bundle, numeric_only: bool) -> Bundle {
             p["prefix_len"]=serde_json::json!(p["steps"].as_array().unwrap().len());
             p["carried_slots"]=serde_json::json!(p["shape"]["slots"].as_array().unwrap().iter().enumerate()
                 .filter(|(_,s)|!numeric_only || s[1]=="i64").map(|(i,_)|i).collect::<Vec<_>>());
-            p["shared_marker"]=true.into();
+            p["shared_marker"]=shared.into();
+            p["cache_ports"]=cache.into();
             serde_json::from_value::<boundary::Spec>(serde_json::json!({"ruleset":q["ruleset"],"rule":q["rule"],
                 "root":p["shape"]["atoms"][p["seed"].as_u64().unwrap() as usize]["table"],"plan":p})).unwrap()
         }).collect::<Vec<_>>();
     let environment=bundle.text().unwrap();
     let commands=engine.parse_program(None,&environment).unwrap();
     let mut out=bundle.clone();out.select_layouts(&mut engine,&commands,&specs).unwrap();out
+}
+
+#[test]
+fn selected_no_path_mode_survives_portable_reload_and_each_update_frontier() {
+    let selected=selected_mode(&bake(TUPLE),false,false,false);
+    let r=check(&selected,include_str!("../experiments/observed_transfer_queries/tuple-updates.egg"));
+    assert!(r["programs"].as_array().unwrap().iter().all(|p|p["cache_ports"]==false && p["stored_port_paths"]==0 && p["reused_port_reads"]==0));
 }
 
 #[test]

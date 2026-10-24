@@ -742,7 +742,7 @@ def main():
                    help='inline, auto/shared decoders, or publisher: also consider correlated witnesses published in Summary by the creating action')
     p.add_argument('--lhs-coverage',choices=('off','report','entries'),default='off',
                    help='index rule LHS coverage; entries additionally emits certified alternative ingresses into existing Cells')
-    p.add_argument('--query-selection',type=Path,help='explicit query workload; root hints are ignored, all anchors remain solver choices')
+    p.add_argument('--query-selection',type=Path,help='diagnostic query subset only; default selects over all scheduled consumers, with no preferred rule or root')
     p.add_argument('--static-cost-experiment',action='store_true',help='explicit legacy model experiment; never the default scheduled marker selector')
     p.add_argument('--runtime-workload',type=Path,help='verified per-Run corpus costs; unmeasured layouts retain native execution')
     p.add_argument('--marker-profile',type=Path,help='saved shared-prefix cardinality and refresh work; used only for pricing')

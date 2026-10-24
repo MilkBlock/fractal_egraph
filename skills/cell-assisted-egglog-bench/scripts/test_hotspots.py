@@ -84,10 +84,20 @@ class Hotspots(unittest.TestCase):
             (b/'report.json').write_text(json.dumps(report))
             result=hotspots.compare(a,b,layouts=True)
             self.assertEqual([w['row_visits'] for w in result['cpu_work']],[4,400])
+            report['gpu']['saturation_diagnostics']['port_reuse']={'enabled':False}
+            report['gpu']['saturation_diagnostics']['programs'][0]['cache_ports']=False
+            (b/'report.json').write_text(json.dumps(report))
+            hotspots.compare(a,b,layouts=True)  # selected boundary cache policy may differ
             with self.assertRaisesRegex(ValueError,'preserve'):hotspots.compare(a,b,extension=True)
             report['gpu']['saturation_diagnostics']['programs'][0]['rule']='other'
             (b/'report.json').write_text(json.dumps(report))
             with self.assertRaisesRegex(ValueError,'query family'):hotspots.compare(a,b,layouts=True)
+            report['gpu']['saturation_diagnostics']['programs'][0]['rule']='q'
+            protected=dict(program,rule='protected',kind='dataflow',cache_ports=True)
+            old=json.loads((a/'report.json').read_text());old['gpu']['saturation_diagnostics']['programs'].append(protected)
+            report['gpu']['saturation_diagnostics']['programs'].append(dict(protected,cache_ports=False))
+            (a/'report.json').write_text(json.dumps(old));(b/'report.json').write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError,'existing Cell'):hotspots.compare(a,b,layouts=True)
 
 
 if __name__=='__main__':unittest.main()

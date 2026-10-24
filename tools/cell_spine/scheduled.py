@@ -84,7 +84,9 @@ def options(q,rows,reuses=1):
                 storage=len(carried)+prefix
                 search=root_rows*(1+remaining)*max(1,reuses)
                 update=root_rows*(1+prefix)
-                program=copy.deepcopy(p);program.update(prefix_len=prefix,carried_slots=carried)
+                # Shape and access order are immutable throughout selection.
+                # Payload alternatives do not need their own copy of the AST.
+                program=dict(p,prefix_len=prefix,carried_slots=carried)
                 indexes=[]
                 for i,access in program['steps']:
                     if isinstance(access,dict) and 'Columns' in access:
@@ -221,6 +223,10 @@ def compile_program(a,data,root,weights):
         available={(q['ruleset'],q['rule']) for q in queries}
         if not selected_names<=available:raise ValueError('requested query not admitted: '+str(selected_names-available))
         queries=[q for q in queries if (q['ruleset'],q['rule']) in selected_names]
+    from .contexts import discover
+    domain=discover(queries)
+    domain['selection_scope']='diagnostic_subset' if selected_names is not None else 'whole_scheduled_program'
+    write(output/'context-domain.json',domain)
     rows=native['table_rows'];profile=None
     if a.query_profile:
         # Reuse the existing bench summarizer rather than inventing a counter.
@@ -250,9 +256,16 @@ def compile_program(a,data,root,weights):
         runtime_workload=workload.load(a.runtime_workload)
     decision=select(queries,rows,output,weights,profile,shared_prefix.measurements(a.marker_profile) if getattr(a,'marker_profile',None) else None,runtime_workload)
     decision['pricing']='runtime-corpus' if runtime_workload is not None else 'static-experimental'
+    decision['domain']=dict(domain['summary'],scope=domain['selection_scope'],limitations=domain['scope'])
+    decision['implementation_modes']=dict(
+        shared=sum(bool(q.get('shared')) for q in decision['selected']),
+        cached_private=sum(not q.get('shared') and q['plan'].get('cache_ports',True) for q in decision['selected']),
+        uncached_private=sum(not q.get('shared') and not q['plan'].get('cache_ports',True) for q in decision['selected']))
     if runtime_workload is not None:
         admitted={(q['ruleset'],q['rule']) for q in decision['selected']}
-        decision['retained_native']=[dict(ruleset=q['ruleset'],rule=q['rule'],reason='no measured executable plan with nonempty work') for q in queries if (q['ruleset'],q['rule']) not in admitted]
+        decision['retained_native']=[dict(ruleset=q['ruleset'],rule=q['rule'],reason=
+            'ordinary executor already prunes an empty input at every observed frontier' if runtime_workload['queries'].get(workload.query_key(q),{}).get('nonempty_requests')==0
+            else 'no measured executable plan with nonempty work') for q in queries if (q['ruleset'],q['rule']) not in admitted]
         decision['workload']=dict(path=str(a.runtime_workload),sha256=digest(a.runtime_workload),
             corpus_sha256=runtime_workload['corpus_sha256'],passes=len(runtime_workload['cases']),
             rounds=sum(c['rounds'] for c in runtime_workload['cases']),

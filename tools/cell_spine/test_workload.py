@@ -33,6 +33,8 @@ class RuntimeWorkload(unittest.TestCase):
             self.assertTrue(all(p['requests']>0 for p in cost['plans'].values()))
             q=header['queries'][0];opts=workload.options(q,cost)
             self.assertTrue(opts);self.assertTrue(all(o['cost_evidence']['kind'].startswith('measured') for o in opts))
+            self.assertEqual({o['plan']['cache_ports'] for o in opts if not o.get('shared')},{False,True})
+            self.assertTrue(all(o['costs']['storage']==0 for o in opts if not o.get('shared') and not o['plan']['cache_ports']))
             solver.select('scip')
             a=scheduled.select(header['queries'],{},folder,(1,1,1),runtime_workload=cost)
             b=scheduled.select(header['queries'],{'State':10**30,'Port':0},folder,(1,1,1),runtime_workload=cost)
@@ -40,6 +42,8 @@ class RuntimeWorkload(unittest.TestCase):
             self.assertEqual([x['plan'] for x in a['selected']],[x['plan'] for x in b['selected']])
             unknown=copy.deepcopy(q);unknown['shape']['guards'].append([0,[{'Slot':0},{'Literal':'999'}]])
             self.assertEqual(workload.options(unknown,cost),[])
+            empty=copy.deepcopy(cost);empty['queries'][workload.query_key(q)]['nonempty_requests']=0
+            self.assertEqual(workload.options(q,empty),[])
             self.assertTrue(any(p['live_prefixes'][0]>1 for p in cost['plans'].values()))
 
     def test_incomplete_or_modified_evidence_never_becomes_zero_cost(self):
@@ -59,3 +63,17 @@ class RuntimeWorkload(unittest.TestCase):
             another=copy.deepcopy(m['cases'][0]['passes'][0]);another['name']='pass-2'
             m['cases'][0]['passes'].append(another);manifest.write_text(json.dumps(m))
             self.assertEqual(workload.collect(manifest),workload.collect(manifest,jobs=2))
+
+    def test_solver_derives_path_retention_from_repeated_reads_not_rule_names(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'out') as temp:
+            folder=Path(temp);manifest,header=self.fixture(folder);cost=workload.collect(manifest)
+            q=copy.deepcopy(next(q for q in header['queries'] if q['plans'][0]['steps']))
+            q['plans']=q['plans'][:1];key=workload.canonical([workload.query_key(q),workload.plan_key(q['plans'][0])])
+            cost['prefixes']={}  # isolate the two private implementations
+            p=cost['plans'][key];p['live_prefixes'][0]=10
+            solver.select('scip')
+            for entries,expected in [(10,False),(10000,True)]:
+                p['root_evaluations']=entries
+                for s in p['steps']:s.update(entries=entries,rows=entries,lookups=10)
+                choice=scheduled.select([q],{},folder,(1,1,1),runtime_workload=cost)['selected'][0]
+                self.assertEqual(choice['plan']['cache_ports'],expected)

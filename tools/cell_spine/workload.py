@@ -36,11 +36,12 @@ def _read_profiles(tasks):
                 if 'header' in r:
                     header=r['header'];
                     if header['schema']!='marker-round-profile/v1':raise ValueError('unknown profile schema')
-                    ids={};qids={};table_versions=[0]*len(header['tables']);versions={}
+                    ids={};qids={};query_tables={};table_versions=[0]*len(header['tables']);versions={}
                     table_ids={name:i for i,name in enumerate(header['tables'])};prefix_defs={}
                     for qid,q in enumerate(header['queries']):
                         key=query_key(q);qids[qid]=key
-                        queries.setdefault(key,dict(ruleset=q['ruleset'],rule=q['rule'],shape=shape_key(q['shape']),requests=0,observations=0))
+                        query_tables[key]={table_ids[a['table']] for a in q['shape']['atoms']}
+                        queries.setdefault(key,dict(ruleset=q['ruleset'],rule=q['rule'],shape=shape_key(q['shape']),requests=0,observations=0,empty_requests=0,nonempty_requests=0))
                     rejected.extend(dict(case=identity,rule=q.get('rule'),ruleset=q.get('ruleset'),reason=q.get('retained_native','unsupported column sort')) for q in header.get('rejected',[]))
                     for p in header['plans']:
                         key=canonical([qids[p['query']],plan_key(p['plan'])]);ids[p['id']]=key
@@ -54,6 +55,7 @@ def _read_profiles(tasks):
                 if 'unmeasured' in r:raise ValueError('unmeasured Run boundary: '+r['unmeasured'])
                 if not r.get('verified') or header is None:raise ValueError('unverified/missing round header')
                 rounds+=1
+                live_tables={t:live for t,live,_ in r['tables']}
                 for t,live,updates in r['tables']:
                     table_versions[t]+=updates
                 observations={x[0]:x[1:] for x in r['plans']};active_queries=set()
@@ -80,7 +82,9 @@ def _read_profiles(tasks):
                         shared['update_work']+=max(0,work-old)
                         shared['peak_bindings']=max(shared['peak_bindings'],stage['live_prefixes'][depth])
                         if identity not in shared['cases']:shared['cases'].append(identity)
-                for key in active_queries:queries[key]['requests']+=1;queries[key]['observations']+=1
+                for key in active_queries:
+                    q=queries[key];q['requests']+=1;q['observations']+=1
+                    q['empty_requests' if any(live_tables[t]==0 for t in query_tables[key]) else 'nonempty_requests']+=1
         if not finished:raise ValueError('truncated profile')
         cases.append(dict(case=identity,rounds=rounds));sources.append(dict(path=str(path),sha256=part['profile_sha256'],input_sha256=part['input_sha256']))
     return dict(queries=queries,plans=plans,prefixes=prefixes,cases=cases,sources=sources,rejected=rejected)
@@ -93,7 +97,7 @@ def _merge_profiles(dst,src):
     for key,q in src['queries'].items():
         if key not in dst['queries']:dst['queries'][key]=q
         else:
-            for f in ['requests','observations']:dst['queries'][key][f]+=q[f]
+            for f in ['requests','observations','empty_requests','nonempty_requests']:dst['queries'][key][f]+=q[f]
     for key,p in src['plans'].items():
         if key not in dst['plans']:dst['plans'][key]=p;continue
         d=dst['plans'][key]
@@ -147,26 +151,54 @@ def load(path):
 
 def options(q,workload):
     from . import scheduled
-    if query_key(q) not in workload['queries']:return []
-    result=[]
+    qkey=query_key(q)
+    if qkey not in workload['queries']:return []
+    observation=workload['queries'][qkey]
+    # The ordinary GPU/native executor already short-circuits an empty input.
+    # Do not replace that zero-binding work by a newly maintained context.
+    if observation.get('nonempty_requests')==0:return []
+    measured_plans={canonical([p['seed'],p['steps']]):workload['plans'].get(canonical([qkey,plan_key(p)])) for p in q['plans']}
+    result=[];seen=set();descriptions={}
+    def describe(plan):
+        key=(plan['seed'],canonical(plan['steps']),plan['prefix_len'],tuple(plan['carried_slots']))
+        if key not in descriptions:descriptions[key]=shared_prefix.describe(plan)
+        return descriptions[key]
     # Only the structural domain is enumerated here. Discard every static price.
     for o in scheduled.options(q,{}):
-        measured=workload['plans'].get(canonical([query_key(q),plan_key(o['plan'])]))
-        if not measured or measured['query']!=query_key(q) or not measured['requests']:continue
+        order=canonical([o['plan']['seed'],o['plan']['steps']])
+        measured=measured_plans[order]
+        if not measured or measured['query']!=qkey or not measured['requests']:continue
         if measured['root_evaluations']==0 and measured['candidate_rows']==0:continue
         depth=o['plan']['prefix_len'];shape=o['plan']['shape']
+        identity=(order,depth,tuple(o['plan']['carried_slots']))
+        if identity in seen:continue
+        seen.add(identity)
         if depth==0:
-            private=copy.deepcopy(o);private['plan']['carried_slots']=[];private['stored_slots']=[];private['shared']=None
+            private=dict(o,plan=dict(o['plan'],carried_slots=[],cache_ports=True),stored_slots=[],shared=None)
             private['indexes']=[]  # measured read/index work already includes these accesses
+            roots=measured['root_evaluations']
+            # PortPath has one owner-row handle and at most one saved read per
+            # step. These are storage/work estimates, not measured bytes/time.
+            path_fields=measured['live_prefixes'][0]*(1+len(measured['steps'])) if measured['steps'] else 0
+            path_writes=sum(min(roots,s.get('lookups',0)) for s in measured['steps'])
             private['costs']=dict(search=measured['root_evaluations']+sum(sum(s.get(k,0) for k in ('entries','rows','lookups')) for s in measured['steps'])+measured['bindings'],
-                storage=measured['live_prefixes'][0],update=0)
-            private['cost_evidence']=dict(kind='measured_private',cases=measured['cases'],requests=measured['requests'])
+                storage=path_fields,update=path_writes)
+            private['cost_evidence']=dict(kind='measured_private_with_path_estimate',cases=measured['cases'],requests=measured['requests'],
+                path_fields_bound=path_fields,path_writes_bound=path_writes)
             result.append(private)
+            # Without saved ports, each entered stage needs a lookup. Its
+            # terminal delta optimization may visit fewer old rows, so keeping
+            # observed visits is an estimate, not an exact no-cache measurement.
+            lost_reads=sum(max(0,s.get('entries',0)-s.get('lookups',0)) for s in measured['steps'])
+            result.append(dict(private,plan=dict(private['plan'],cache_ports=False),
+                costs=dict(storage=0,update=0,search=private['costs']['search']+lost_reads),
+                cost_evidence=dict(kind='measured_stages_no_path_estimate',cases=measured['cases'],requests=measured['requests'],
+                    additional_lookups=lost_reads,limits='terminal stale-row pruning may lower no-cache work')))
         requirements=[]
         for d in range(depth+1):
-            p=copy.deepcopy(o['plan']);p['prefix_len']=d
+            p=dict(o['plan'],prefix_len=d)
             if d<depth:p['carried_slots']=list(range(len(shape['slots'])))
-            desc=shared_prefix.describe(p);r=workload['prefixes'].get(desc['body_key'])
+            desc=describe(p);r=workload['prefixes'].get(desc['body_key'])
             if not r:break
             missing=len(desc['slots'])-len(desc['carried'])
             requirements.append(dict(definition=desc,costs=dict(storage=r['peak_bindings']*(len(desc['carried'])+(2 if missing else 0)),update=r['update_work']),
@@ -180,4 +212,4 @@ def options(q,workload):
             costs=dict(storage=0,update=0,search=frames*decode+residual+measured['bindings']),
             cost_evidence=dict(kind='measured_census_estimate',cases=measured['cases'],requests=measured['requests']))
         result.append(shared)
-    return list({canonical([o['plan'],bool(o.get('shared'))]):o for o in result}.values())
+    return list({(o['plan']['seed'],canonical(o['plan']['steps']),o['plan']['prefix_len'],tuple(o['plan']['carried_slots']),bool(o.get('shared')),o['plan'].get('cache_ports',True)):o for o in result}.values())

@@ -1237,7 +1237,7 @@ impl Runtime {
                 "identity_noop_seeds":k.identity_noops,"index_reads":k.index_reads,
                 "candidate_rows":k.rows_examined.get(),
                 "terminal_delta_rows_skipped":k.delta_rows_skipped.get(),
-                "payload_layout":k.payload_layout,"payload_resumes":k.payload_resumes.get(),
+                "payload_layout":k.payload_layout,"payload_resumes":k.payload_resumes.get(),"cache_ports":k.reuse_ports,
                 "reused_port_reads":k.reused_reads,"resumed_seed_evaluations":k.resumed_seeds,
                 "stored_port_paths":k.paths.len(),"shared_marker":k.shared.as_ref().map(|u|u.marker),"shared_prefix_uses":k.shared_prefix_uses})
         }).collect::<Vec<_>>();

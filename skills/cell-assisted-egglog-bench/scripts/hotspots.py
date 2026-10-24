@@ -95,7 +95,7 @@ def compare(before,after,profile_before=None,profile_after=None,shared=False,ext
         if wiring(da)!=wiring(db):raise ValueError('shared marker control changed query wiring or payload')
     if (da.get('joint') or {}).get('proofs_enabled')!=(db.get('joint') or {}).get('proofs_enabled'):
         raise ValueError('common saturation proofs differ')
-    if (da.get('port_reuse') or {}).get('enabled')!=(db.get('port_reuse') or {}).get('enabled'):
+    if not layouts and (da.get('port_reuse') or {}).get('enabled')!=(db.get('port_reuse') or {}).get('enabled'):
         raise ValueError('common port reuse differs')
     ja,jb=da.get('joint') or {},db.get('joint') or {}
     for field in ['contract','closed_cost_producer_universe']:
@@ -104,7 +104,7 @@ def compare(before,after,profile_before=None,profile_after=None,shared=False,ext
         if ja.get('stats',{}).get(field)!=jb.get('stats',{}).get(field):raise ValueError('joint proof consumption changed')
     for field in ['saturations','union_proposals']:
         if (ja.get('comparison_closure') or {}).get(field)!=(jb.get('comparison_closure') or {}).get(field):raise ValueError('comparison proof changed')
-    def common_programs(d):return sorted((p['ruleset'],p['rule'],p['kind'],p['seed'],json.dumps(p['accesses'],sort_keys=True))
+    def common_programs(d):return sorted((p['ruleset'],p['rule'],p['kind'],p['seed'],json.dumps(p['accesses'],sort_keys=True),p.get('cache_ports',True))
         for p in d['programs'] if p['kind']!='boundary_query')
     if common_programs(da)!=common_programs(db):raise ValueError('existing Cell execution programs differ')
     if a['schedule']!=b['schedule'] or a['assisted_rulesets']!=b['assisted_rulesets']:raise ValueError('schedule differs')

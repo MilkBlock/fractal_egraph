@@ -10,7 +10,6 @@ python "$SKILL/scripts/bench.py" planner-prices \
   --input out/planner-corpus/manifest.json --output out/planner-prices.json --jobs 8
 python "$SKILL/scripts/bench.py" spine-program \
   --runtime-workload out/planner-prices.json \
-  --query-selection experiments/pass3_parameterized_reuse/combined.json \
   --compile-only --output out/runtime-spines
 ```
 
@@ -55,6 +54,16 @@ hashes, pass/round counts and per-table stage work. It cannot be combined with
 old single-snapshot/static pricing options.
 `--jobs` parallelizes independent pass readers. It does not sample or omit any
 workload; serial and parallel aggregation use identical integer sums and maxima.
+
+Whole-program selection is the normal entry point. `--query-selection` is an
+explicit diagnostic subset only; the old eight-query file must not be presented
+as the optimization universe. `context-domain.json` lists all admitted typed
+prefixes, their consumers and exact slot maps. The solver chooses private saved
+paths, private reads without saved paths, or shared materialized prefixes.
+`cache_ports` is serialized and enforced by the runtime and portable library.
+Cached search work is measured; path-field/write costs and no-cache lookups are
+derived estimates. No-cache terminal delta pruning may make its real work lower.
+This does not optimize CPU/GPU placement or remove the fixed-order limitation.
 
 Use `boundary-credit --layouts` after the usual same-binary `run` pair, with
 separate diagnostics for depth distributions. Keep CPU provider maintenance,

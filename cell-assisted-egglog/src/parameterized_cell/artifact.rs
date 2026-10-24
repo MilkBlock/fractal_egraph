@@ -78,6 +78,8 @@ struct MarkerLayout {
     prefix_len: usize,
     carried_slots: Vec<usize>,
     shared_marker: bool,
+    #[serde(default="boundary::enabled")]
+    cache_ports: bool,
 }
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -142,7 +144,8 @@ impl Program {
                 root: self.root().ok_or("invalid marker root")?.into(),
                 plan: Some(boundary::Plan { shape: self.shape.clone(), seed: self.seed,
                     steps: self.steps.clone(), prefix_len: m.prefix_len,
-                    carried_slots: m.carried_slots.clone(), shared_marker: m.shared_marker }),
+                    carried_slots: m.carried_slots.clone(), shared_marker: m.shared_marker,
+                    cache_ports: m.cache_ports }),
             });
         }
         Ok(Kernel::from_wiring(sink, tables, self.seed, self.steps.clone()))
@@ -443,7 +446,7 @@ impl Bundle {
             if !program.shape.same_wiring(&Shape::of(&sink)) {return Err("selected layout changed exported query".into())}
             boundary::install(eg,sink,(0..p.shape.atoms.len()).collect(),spec)?;
             program.seed=p.seed; program.steps=p.steps.clone();
-            program.marker=Some(MarkerLayout{prefix_len:p.prefix_len,carried_slots:p.carried_slots.clone(),shared_marker:p.shared_marker});
+            program.marker=Some(MarkerLayout{prefix_len:p.prefix_len,carried_slots:p.carried_slots.clone(),shared_marker:p.shared_marker,cache_ports:p.cache_ports});
             q.root=spec.root.clone();
         }
         if !seen.is_empty() {next.header.version=4;}

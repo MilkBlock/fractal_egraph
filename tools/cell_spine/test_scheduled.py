@@ -9,6 +9,22 @@ from .compiler import ROOT
 
 
 class ScheduledSpines(unittest.TestCase):
+    def test_context_discovery_is_whole_set_and_preserves_aliases(self):
+        import copy
+        from .contexts import discover
+        a=self.fixture();b=copy.deepcopy(a);b['rule']='another'
+        b['shape']['atoms'][-1]['table']='D'
+        domain=discover([a,b])
+        self.assertTrue(any(n['consumer_count']==2 and len(n['body']['atoms'])==3 for n in domain['nodes']))
+        c=copy.deepcopy(b);c['shape']['atoms'][0]['columns'][1]={'Slot':0}
+        other=discover([a,c])
+        self.assertFalse(any(n['consumer_count']==2 for n in other['nodes']))
+        renamed=copy.deepcopy([a,b])
+        for q in renamed:
+            q['rule']='renamed-'+q['rule']
+            for atom in q['shape']['atoms']:atom['table']='renamed-'+atom['table']
+        self.assertEqual(domain['summary'],discover(renamed)['summary'])
+
     def fixture(self):
         columns=lambda *s:[{'Slot':i} for i in s]
         atoms=[dict(table='A',sorts=['E','E','E'],columns=columns(0,1,2)),
