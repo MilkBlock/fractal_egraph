@@ -1,0 +1,478 @@
+{
+  "schema": "whole-program-context-selection/v1",
+  "domain": {
+    "queries": 480,
+    "contexts": 4462,
+    "cross_consumer_contexts": 722,
+    "multi_atom_cross_consumer_contexts": 604,
+    "scope": "whole_scheduled_program",
+    "limits": "all native-admitted roots and fixed-order prefixes, typed aliases/literals/slot maps retained; not arbitrary join orders or semantic Cell equivalence"
+  },
+  "workload": {
+    "path": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/marker-workload-prices-contexts.json",
+    "sha256": "1ef5d1562210a553ab9eb169ff3044d0cb8b1ea7025951fad9eafd67337ad211",
+    "corpus_sha256": "a411a1a694796344be0b8a7ce7d05077680362bd97041e096f4018b4f1ca81a1",
+    "passes": 288,
+    "rounds": 411633,
+    "scope": "sum of measured work over every workload/pass/Run; peak runtime cardinalities; no initial-table or Cartesian fanout estimates",
+    "limits": "shared maintenance coalesces same-version census work by maximum; exact union of consumer dirty-root sets is not recorded, so this is an estimate rather than a proven bound; not measured wall time or a new closure proof"
+  },
+  "modes": {
+    "shared": 50,
+    "cached_private": 39,
+    "uncached_private": 243
+  },
+  "shared_definitions": 51,
+  "solver": {
+    "backend": "scip",
+    "python_package_version": "6.3.0",
+    "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+    "threads": 1,
+    "models": {
+      "scheduled_spine_layouts": {
+        "models": 1,
+        "solve_calls": 1,
+        "api_build_seconds": 0.5775375326047651,
+        "solve_seconds": 6.127324250002857,
+        "peak_variables": 36038,
+        "peak_constraints": 86232,
+        "engine_version": "10.0.2",
+        "nonoptimal_solves": 0
+      }
+    }
+  },
+  "lanes": {
+    "forced": {
+      "directory": "out/context-paths-forced",
+      "workflow": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/context-paths-forced",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+        "source_head": "9bdb59826cf90131c8261b065f5ebabf345aabaa",
+        "dirty_files": " M cell-assisted-egglog/src/parameterized_cell.rs\n M cell-assisted-egglog/src/parameterized_cell/artifact.rs\n M cell-assisted-egglog/src/parameterized_cell/boundary.rs\n M skills/cell-assisted-egglog-bench/references/planner-workload.md\n M skills/cell-assisted-egglog-bench/scripts/hotspots.py\n M tests/generic_transfer.rs\n M tools/cell_spine/scheduled.py\n M tools/cell_spine/test_scheduled.py\n M tools/cell_spine/test_workload.py\n M tools/cell_spine/workload.py\n?? tools/cell_spine/contexts.py\n",
+        "no_build": true,
+        "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "ea7542f75c3eb332609f115c8ea8c2729399170bf4e9d1912bde83c7ff98fed3"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "ea7542f75c3eb332609f115c8ea8c2729399170bf4e9d1912bde83c7ff98fed3",
+          "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "269be0f6302828d09dc43c5a626485338f0856d8f6cf3b8a52aeb2e737b8e182",
+          "boundary_programs": "0b0aff887762ba1cbf73f7724d36eb4795fb9d4c77f444103c8e80f8c2dba5fa",
+          "certificate_library": null,
+          "analysis": null
+        }
+      },
+      "seconds": 13.442816458,
+      "cell_query_seconds": 1.7739930999999909,
+      "graph_equal": true,
+      "rows": 699068,
+      "eclasses": 524631,
+      "final_private_path_states": 423004,
+      "uncached_queries": 0,
+      "no_cache_enforced": true,
+      "loop": [
+        {
+          "program_id": 122,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "seed": "DoWhile",
+          "accesses": [
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "HasArgType",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "Const",
+              "access": {
+                "Columns": 4
+              }
+            }
+          ],
+          "seed_evaluations": 1182,
+          "emitted_bindings": 123254,
+          "live_seed_instances": 84,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 1346,
+          "candidate_rows": 126320,
+          "terminal_delta_rows_skipped": 1048146,
+          "payload_layout": [
+            0,
+            []
+          ],
+          "payload_resumes": 0,
+          "cache_ports": true,
+          "reused_port_reads": 2814,
+          "resumed_seed_evaluations": 956,
+          "stored_port_paths": 84,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        }
+      ]
+    },
+    "selected": {
+      "directory": "out/context-paths-selected",
+      "workflow": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/context-paths-selected",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+        "source_head": "9bdb59826cf90131c8261b065f5ebabf345aabaa",
+        "dirty_files": " M cell-assisted-egglog/src/parameterized_cell.rs\n M cell-assisted-egglog/src/parameterized_cell/artifact.rs\n M cell-assisted-egglog/src/parameterized_cell/boundary.rs\n M skills/cell-assisted-egglog-bench/references/planner-workload.md\n M skills/cell-assisted-egglog-bench/scripts/hotspots.py\n M tests/generic_transfer.rs\n M tools/cell_spine/scheduled.py\n M tools/cell_spine/test_scheduled.py\n M tools/cell_spine/test_workload.py\n M tools/cell_spine/workload.py\n?? tools/cell_spine/contexts.py\n",
+        "no_build": true,
+        "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "ea7542f75c3eb332609f115c8ea8c2729399170bf4e9d1912bde83c7ff98fed3"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "ea7542f75c3eb332609f115c8ea8c2729399170bf4e9d1912bde83c7ff98fed3",
+          "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "1f2fa0817a8b419579b7bbab478fc3ff02962466f281076cc4cd277919af5b23",
+          "boundary_programs": "fd2590d119266bf58cf52239451749d1720de9931dd75c584b168c2a7ac6d541",
+          "certificate_library": null,
+          "analysis": null
+        }
+      },
+      "seconds": 13.3248335,
+      "cell_query_seconds": 1.698863329999995,
+      "graph_equal": true,
+      "rows": 699068,
+      "eclasses": 524631,
+      "final_private_path_states": 84,
+      "uncached_queries": 243,
+      "no_cache_enforced": true,
+      "loop": [
+        {
+          "program_id": 122,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "seed": "DoWhile",
+          "accesses": [
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "HasArgType",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "Const",
+              "access": {
+                "Columns": 4
+              }
+            }
+          ],
+          "seed_evaluations": 1182,
+          "emitted_bindings": 123254,
+          "live_seed_instances": 84,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 1346,
+          "candidate_rows": 126320,
+          "terminal_delta_rows_skipped": 1048146,
+          "payload_layout": [
+            0,
+            []
+          ],
+          "payload_resumes": 0,
+          "cache_ports": true,
+          "reused_port_reads": 2814,
+          "resumed_seed_evaluations": 956,
+          "stored_port_paths": 84,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        }
+      ]
+    },
+    "no-shared": {
+      "directory": "out/context-paths-no-shared",
+      "workflow": {
+        "mode": "run",
+        "policy": "stable",
+        "commands": [
+          [
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+            "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/commit-marker-worker/matrix",
+            "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/context-paths-no-shared",
+            "--joint-sat",
+            "--all-rules"
+          ]
+        ],
+        "returncode": 0,
+        "repo": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout",
+        "source_head": "9bdb59826cf90131c8261b065f5ebabf345aabaa",
+        "dirty_files": " M cell-assisted-egglog/src/parameterized_cell.rs\n M cell-assisted-egglog/src/parameterized_cell/artifact.rs\n M cell-assisted-egglog/src/parameterized_cell/boundary.rs\n M skills/cell-assisted-egglog-bench/references/planner-workload.md\n M skills/cell-assisted-egglog-bench/scripts/hotspots.py\n M tests/generic_transfer.rs\n M tools/cell_spine/compiler.py\n M tools/cell_spine/scheduled.py\n M tools/cell_spine/test_scheduled.py\n M tools/cell_spine/test_workload.py\n M tools/cell_spine/workload.py\n?? tools/cell_spine/contexts.py\n",
+        "no_build": true,
+        "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+        "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "binary_sha256": {
+          "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "ea7542f75c3eb332609f115c8ea8c2729399170bf4e9d1912bde83c7ff98fed3"
+        },
+        "inference_identity": {
+          "version": 1,
+          "snapshot": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "binary": "ea7542f75c3eb332609f115c8ea8c2729399170bf4e9d1912bde83c7ff98fed3",
+          "worker": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "policy": "stable",
+          "joint": true,
+          "all_rules": true,
+          "controls": {
+            "report.json": "7b64303a6d1f1a0d52d6105d3647356063d35ae397680949ada8abafa15753f0",
+            "workflow.json": "de98bec183478892516fb764dad945c5b8f8896cb994ec13b85d84d92434c237",
+            "graphs/native.control.json": "f38a26063fed161331591461cfe0b61b11d0e883daf151b8fca52515ec8502f7",
+            "graphs/cpu.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+            "graphs/gpu-off.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba"
+          },
+          "machine": [
+            "MineralSteinsdeMacBook-Pro.local",
+            "Darwin",
+            "27.0.0",
+            "arm64"
+          ],
+          "environment_sha256": "597229ae9294f0e3fe6f0ad7643ad9a51f01feee67181939a41d2653b58ab415",
+          "boundary_programs": "fd2590d119266bf58cf52239451749d1720de9931dd75c584b168c2a7ac6d541",
+          "certificate_library": null,
+          "analysis": null
+        }
+      },
+      "seconds": 13.283449625,
+      "cell_query_seconds": 1.7256048889999946,
+      "graph_equal": true,
+      "rows": 699068,
+      "eclasses": 524631,
+      "final_private_path_states": 5155,
+      "uncached_queries": 243,
+      "no_cache_enforced": true,
+      "loop": [
+        {
+          "program_id": 122,
+          "kind": "boundary_query",
+          "ruleset": "always-run",
+          "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+          "seed": "DoWhile",
+          "accesses": [
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "ContextOf",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "HasArgType",
+              "access": {
+                "Columns": 1
+              }
+            },
+            {
+              "table": "Const",
+              "access": {
+                "Columns": 4
+              }
+            }
+          ],
+          "seed_evaluations": 1182,
+          "emitted_bindings": 123254,
+          "live_seed_instances": 84,
+          "retired_guard_seeds": 0,
+          "identity_noop_seeds": 0,
+          "index_reads": 1346,
+          "candidate_rows": 126320,
+          "terminal_delta_rows_skipped": 1048146,
+          "payload_layout": [
+            0,
+            []
+          ],
+          "payload_resumes": 0,
+          "cache_ports": true,
+          "reused_port_reads": 2814,
+          "resumed_seed_evaluations": 956,
+          "stored_port_paths": 84,
+          "shared_marker": null,
+          "shared_prefix_uses": 0
+        }
+      ]
+    }
+  },
+  "path_comparison": {
+    "schema": "boundary-layout-comparison/v1",
+    "before": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/context-paths-forced",
+    "after": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/context-paths-selected",
+    "before_seconds": 13.442816458,
+    "after_seconds": 13.3248335,
+    "saved_seconds": 0.11798295799999892,
+    "saved_fraction": 0.008776654681600271,
+    "scope": "same parameterized query family with changed anchors/payloads; not new closure-proof credit",
+    "cpu_work": [
+      {
+        "index_reads": 1741943,
+        "row_visits": 1493572,
+        "root_checks": 1835230,
+        "additional_seed_reads": 2378,
+        "prefix_refreshes": 13577,
+        "prefix_cache_hits": 8019,
+        "shared_prefix_bindings": 14862,
+        "shared_payload_values": 69085,
+        "shared_dependency_edges": 17588
+      },
+      {
+        "index_reads": 1781650,
+        "row_visits": 1493571,
+        "root_checks": 1835230,
+        "additional_seed_reads": 2378,
+        "prefix_refreshes": 13577,
+        "prefix_cache_hits": 8019,
+        "shared_prefix_bindings": 14862,
+        "shared_payload_values": 69085,
+        "shared_dependency_edges": 17588
+      }
+    ],
+    "row_scope": "Non-seed row visits; root checks and additional shared seed reads reported separately.",
+    "storage_scope": "Shared payload scalar slots and dependency edges only; not RSS or total allocator bytes.",
+    "full_report": "out/context-paths-comparison.json",
+    "full_report_sha256": "2d4b5cd1800f72e359a2bf3c40610d636ea6d80d7a79d4488e3eb18b5127784d"
+  },
+  "shared_comparison": {
+    "schema": "shared-marker-comparison/v1",
+    "before": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/context-paths-no-shared",
+    "after": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/context-paths-selected",
+    "before_seconds": 13.283449625,
+    "after_seconds": 13.3248335,
+    "saved_seconds": -0.04138387500000107,
+    "saved_fraction": -0.0031154463763776175,
+    "scope": "same query plans and payloads, shared prefix DAG off/on; actual maintenance and remaining search included, not saturation proof credit",
+    "cpu_work": [
+      {
+        "index_reads": 1861270,
+        "row_visits": 1578035,
+        "root_checks": 1835230,
+        "additional_seed_reads": 0,
+        "prefix_refreshes": 0,
+        "prefix_cache_hits": 0,
+        "shared_prefix_bindings": 0,
+        "shared_payload_values": 0,
+        "shared_dependency_edges": 0
+      },
+      {
+        "index_reads": 1781650,
+        "row_visits": 1493571,
+        "root_checks": 1835230,
+        "additional_seed_reads": 2378,
+        "prefix_refreshes": 13577,
+        "prefix_cache_hits": 8019,
+        "shared_prefix_bindings": 14862,
+        "shared_payload_values": 69085,
+        "shared_dependency_edges": 17588
+      }
+    ],
+    "row_scope": "Non-seed row visits; root checks and additional shared seed reads reported separately.",
+    "storage_scope": "Shared payload scalar slots and dependency edges only; not RSS or total allocator bytes.",
+    "full_report": "out/context-shared-comparison.json",
+    "full_report_sha256": "14a8cd7e9f1fadb42828a01bef0db8efaf687af0e4ac3dbf85fd6701a1267d86"
+  },
+  "audit": {
+    "complete": true,
+    "error": null,
+    "scope": "Cell-supplied queries",
+    "queries": 264621
+  },
+  "tiger_same_submit_equal": true,
+  "functions": 29,
+  "retained_reasons": {
+    "ordinary executor already prunes an empty input at every observed frontier": 148
+  }
+}
