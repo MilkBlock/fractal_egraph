@@ -1,0 +1,380 @@
+{
+  "schema": "source-pipeline-three-stage-bench/v1",
+  "date": "2026-10-24",
+  "commit": "69ee968",
+  "scope": "actual saved Raytrace Pass 3, GPU query backend with native effects; original source policy",
+  "benchmark": {
+    "schema": "program-backend-matrix/v1",
+    "performance": {
+      "key_effect_gpu": {
+        "eligible": true,
+        "left": "original-gpu",
+        "right": "keys-gpu",
+        "delta_seconds": 0.5619797909999988,
+        "ratio": 1.0309166969225894,
+        "change_percent": 3.091669692258936,
+        "reason": null
+      },
+      "marker_after_keys_gpu": {
+        "eligible": false,
+        "left": "keys-gpu",
+        "right": "marked-gpu",
+        "delta_seconds": null,
+        "ratio": null,
+        "change_percent": null,
+        "reason": "requires equal complete graphs, non-audit execution, and valid timing"
+      },
+      "marker_effect_gpu": {
+        "eligible": false,
+        "left": "original-gpu",
+        "right": "marked-gpu",
+        "delta_seconds": null,
+        "ratio": null,
+        "change_percent": null,
+        "reason": "requires equal complete graphs, non-audit execution, and valid timing"
+      }
+    },
+    "diagnosis": [],
+    "lanes": {
+      "original-gpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/18b4d181d605276dacda99e7d36b8cab0edbd3053fd4e2f65883e55a72880e74",
+        "reused": true,
+        "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+        "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+        "complete": true,
+        "snapshot_complete": true,
+        "runtime_extension": null,
+        "run_seconds": 18.177226125,
+        "setup_seconds": 0.169183,
+        "gpu_setup_seconds": 2.837737875,
+        "table_rows": 699068,
+        "runtime": {
+          "setup_seconds": 2.832392125,
+          "run_seconds": 18.17721425,
+          "event_seconds": 0.847158083000004,
+          "native_rhs_seconds": 5.881896726999892,
+          "native_action_search_apply_seconds": 0.5733862239999993,
+          "native_insert_merge_seconds": 0.5283221249999993,
+          "native_rebuild_seconds": 4.2699191600000015,
+          "ruleset_runs": 10091,
+          "row_events": 2458173,
+          "union_events": 239476,
+          "bootstrap_events": 109,
+          "prepare_seconds": 0.07177630899999994,
+          "roundtrip_seconds": 11.073412536000037,
+          "decode_seconds": 0.18009500599999978,
+          "device_seconds": 6.460113999375608,
+          "gpu_maintenance_seconds": null,
+          "gpu_matching_seconds": null,
+          "native_query_seconds": 0.0,
+          "audit_seconds": 0.0,
+          "dispatches": 7260,
+          "gpu_empty_table_prunes": 10272,
+          "uploaded_bytes": 184473232,
+          "downloaded_bytes": 75558228,
+          "first_upload_bytes": 8756,
+          "unchanged_notifications": 0,
+          "workers": 1,
+          "shader_compiles": 1,
+          "reused_slots": 194410,
+          "peak_live_rows": 693079,
+          "output_high_water": 46177,
+          "saturation_boundaries": 4263,
+          "skipped_saturations": 0,
+          "partial_saturations": 0,
+          "saturation_hook_seconds": 0.0,
+          "cell_query_rules": 0,
+          "cell_query_bindings": 0,
+          "cell_query_seconds": 0.00019652500000000422,
+          "shared_query_requests": 0,
+          "shared_query_bindings": 0,
+          "native_only_runs": 0,
+          "native_only_seconds": 0.0
+        },
+        "native_only_rulesets": {},
+        "error": null
+      },
+      "keys-gpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/dee37b9f35aab3b1a85f904678da01d023e22b059fe12de3408247d92ab725f5",
+        "reused": true,
+        "source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg",
+        "source_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+        "complete": true,
+        "snapshot_complete": true,
+        "runtime_extension": {
+          "name": "cell-structural-key-runtime/v1",
+          "nodes": 0,
+          "bases": [],
+          "registration_skipped": true,
+          "source_controls_rules_and_schedule": true
+        },
+        "run_seconds": 18.739205916,
+        "setup_seconds": 0.174731458,
+        "gpu_setup_seconds": 2.8528725,
+        "table_rows": 699068,
+        "runtime": {
+          "setup_seconds": 2.847264708,
+          "run_seconds": 18.739193084,
+          "event_seconds": 0.8600527090000014,
+          "native_rhs_seconds": 5.996311768999952,
+          "native_action_search_apply_seconds": 0.5738599589999988,
+          "native_insert_merge_seconds": 0.5414760759999994,
+          "native_rebuild_seconds": 4.354922997000001,
+          "ruleset_runs": 10091,
+          "row_events": 2458173,
+          "union_events": 239476,
+          "bootstrap_events": 109,
+          "prepare_seconds": 0.07327529299999994,
+          "roundtrip_seconds": 11.499962554000007,
+          "decode_seconds": 0.19142571799999947,
+          "device_seconds": 6.780101666401606,
+          "gpu_maintenance_seconds": null,
+          "gpu_matching_seconds": null,
+          "native_query_seconds": 0.0,
+          "audit_seconds": 0.0,
+          "dispatches": 7260,
+          "gpu_empty_table_prunes": 10272,
+          "uploaded_bytes": 184473232,
+          "downloaded_bytes": 75558228,
+          "first_upload_bytes": 8756,
+          "unchanged_notifications": 0,
+          "workers": 1,
+          "shader_compiles": 1,
+          "reused_slots": 194410,
+          "peak_live_rows": 693079,
+          "output_high_water": 46177,
+          "saturation_boundaries": 4263,
+          "skipped_saturations": 0,
+          "partial_saturations": 0,
+          "saturation_hook_seconds": 0.0,
+          "cell_query_rules": 0,
+          "cell_query_bindings": 0,
+          "cell_query_seconds": 0.00020727100000000518,
+          "shared_query_requests": 0,
+          "shared_query_bindings": 0,
+          "native_only_runs": 0,
+          "native_only_seconds": 0.0
+        },
+        "native_only_rulesets": {},
+        "error": null
+      },
+      "marked-gpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/8e921f307fc079425d5925e2ab67898f8f1587b317f3766d1bbb5b50d3df4334",
+        "reused": false,
+        "source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/source-triple-pass3/mk/source_sk_mk.egg",
+        "source_sha256": "42178f0695a8c81f52794ed547660ca2928a150b5763cf78042df69c69ae440a",
+        "complete": true,
+        "snapshot_complete": true,
+        "runtime_extension": {
+          "name": "cell-structural-key-runtime/v1",
+          "nodes": 0,
+          "bases": [],
+          "registration_skipped": true,
+          "source_controls_rules_and_schedule": true
+        },
+        "run_seconds": 17.267876,
+        "setup_seconds": 0.296670542,
+        "gpu_setup_seconds": 30.61195525,
+        "table_rows": 699121,
+        "runtime": {
+          "setup_seconds": 30.602801209,
+          "run_seconds": 17.267851958999998,
+          "event_seconds": 2.728726230999988,
+          "native_rhs_seconds": 5.923728677999848,
+          "native_action_search_apply_seconds": 0.5394108010000016,
+          "native_insert_merge_seconds": 0.5190748369999985,
+          "native_rebuild_seconds": 4.373853889000001,
+          "ruleset_runs": 10728,
+          "row_events": 2457496,
+          "union_events": 239635,
+          "bootstrap_events": 109,
+          "prepare_seconds": 0.07828234299999999,
+          "roundtrip_seconds": 4.444649179000005,
+          "decode_seconds": 0.04599057199999993,
+          "device_seconds": 1.956008541805204,
+          "gpu_maintenance_seconds": null,
+          "gpu_matching_seconds": null,
+          "native_query_seconds": 0.0,
+          "audit_seconds": 0.0,
+          "dispatches": 3400,
+          "gpu_empty_table_prunes": 8576,
+          "uploaded_bytes": 237690328,
+          "downloaded_bytes": 18379284,
+          "first_upload_bytes": 12680,
+          "unchanged_notifications": 0,
+          "workers": 1,
+          "shader_compiles": 1,
+          "reused_slots": 194067,
+          "peak_live_rows": 693132,
+          "output_high_water": 3296,
+          "saturation_boundaries": 4896,
+          "skipped_saturations": 0,
+          "partial_saturations": 0,
+          "saturation_hook_seconds": 0.0,
+          "cell_query_rules": 262202,
+          "cell_query_bindings": 2435483,
+          "cell_query_seconds": 3.939900472000001,
+          "shared_query_requests": 0,
+          "shared_query_bindings": 0,
+          "native_only_runs": 0,
+          "native_only_seconds": 0.0
+        },
+        "native_only_rulesets": {},
+        "error": null
+      }
+    },
+    "comparisons": {
+      "key_effect_gpu": {
+        "status": "equal",
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "mapped_classes": 524631,
+        "projected_out_left": [],
+        "projected_out_right": [],
+        "left": "original-gpu",
+        "right": "keys-gpu"
+      },
+      "marker_after_keys_gpu": {
+        "status": "different",
+        "reason": "row counts differ",
+        "tables": {
+          "Smaller": [
+            73371,
+            73370
+          ]
+        },
+        "left": "keys-gpu",
+        "right": "marked-gpu"
+      },
+      "marker_effect_gpu": {
+        "status": "different",
+        "reason": "row counts differ",
+        "tables": {
+          "Smaller": [
+            73371,
+            73370
+          ]
+        },
+        "left": "original-gpu",
+        "right": "marked-gpu"
+      }
+    },
+    "pristine": null,
+    "scope": "supplied source policy, explicit source-declared runtime extensions only; pristine names the unchanged baseline kernel, not the absence of extensions; source and backend effects reported separately",
+    "passed": false
+  },
+  "generation": {
+    "schema": "self-contained-marker-stage/v1",
+    "input_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+    "output_sha256": "42178f0695a8c81f52794ed547660ca2928a150b5763cf78042df69c69ae440a",
+    "only_input": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg",
+    "pricing": "verified execution of preceding source_sk.egg; no external corpus or static prices",
+    "selected_queries": 350,
+    "lowered_queries": 29,
+    "retained_query_contexts": 321,
+    "marker_tables": 14,
+    "rhs_publications": 10,
+    "solver": {
+      "backend": "scip",
+      "python_package_version": "6.3.0",
+      "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+      "threads": 1,
+      "models": {
+        "scheduled_spine_layouts": {
+          "models": 1,
+          "solve_calls": 1,
+          "api_build_seconds": 0.4656695115263574,
+          "solve_seconds": 9.298483541002497,
+          "peak_variables": 36611,
+          "peak_constraints": 86293,
+          "engine_version": "10.0.2",
+          "nonoptimal_solves": 0
+        }
+      }
+    },
+    "guarantee": "complete typed query plans; original effects and Run boundaries; no inferred saturation certificate",
+    "limitations": [
+      "Unsupported queries retain original execution. Profiling is offline compilation cost.",
+      "Selection minimizes measured work estimates, not elapsed time; no speedup is implied."
+    ]
+  },
+  "generation_measurement": {
+    "wall_seconds": 1952.37,
+    "user_seconds": 1764.11,
+    "system_seconds": 158.32,
+    "maximum_resident_set_bytes": 23968088064
+  },
+  "identities": {
+    "original-gpu": {
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "runner_sha256": "c8b234c355ee31713c45cb21c9bfa612f2028dbd729a0ede29cf36f24115e2ce",
+      "backend": "gpu",
+      "pristine_sha256": null,
+      "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+      "query_audit": false,
+      "harness_sha256": "58a2b6b21b8fd63e3f51ffc392a284f5c60232b3c54b834cfcbbb29570546222",
+      "threads": 1,
+      "protocol": "program-run/v1",
+      "native_rulesets": ""
+    },
+    "keys-gpu": {
+      "source_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+      "runner_sha256": "c8b234c355ee31713c45cb21c9bfa612f2028dbd729a0ede29cf36f24115e2ce",
+      "backend": "gpu",
+      "pristine_sha256": null,
+      "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+      "query_audit": false,
+      "harness_sha256": "58a2b6b21b8fd63e3f51ffc392a284f5c60232b3c54b834cfcbbb29570546222",
+      "threads": 1,
+      "protocol": "program-run/v1",
+      "native_rulesets": ""
+    },
+    "marked-gpu": {
+      "source_sha256": "42178f0695a8c81f52794ed547660ca2928a150b5763cf78042df69c69ae440a",
+      "runner_sha256": "c8b234c355ee31713c45cb21c9bfa612f2028dbd729a0ede29cf36f24115e2ce",
+      "backend": "gpu",
+      "pristine_sha256": null,
+      "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+      "query_audit": false,
+      "harness_sha256": "58a2b6b21b8fd63e3f51ffc392a284f5c60232b3c54b834cfcbbb29570546222",
+      "threads": 1,
+      "protocol": "program-run/v1",
+      "native_rulesets": ""
+    }
+  },
+  "generation_tools": {
+    "scheduled_spine": "00bc74a33a0857c410974a52e1c132a54e3e0a45c805bb8e8e5be21890c92b6b",
+    "planner_profile": "79cf8876105631c1f94d7fe9bcc9a4dbd2ccb9d503b10a587712f3ee0ddcc62c",
+    "lhs_ast": "e0aa5bfd3ffa89f876b80ff78bb8a130a6465299a2e33077d2b4625b4b59c796"
+  },
+  "full_profile_manifest": {
+    "schema": "marker-workload-corpus/v1",
+    "complete": true,
+    "identity": {
+      "workloads": [
+        {
+          "source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg",
+          "sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg",
+        "source_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+        "status": "complete",
+        "passes": [
+          {
+            "name": "source_sk",
+            "status": "complete",
+            "profile": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/source-triple-pass3/mk/profile.jsonl.gz",
+            "profile_sha256": "97e0cbc9ff70ed4ce29bc440e7220a45eed753ef8b79d601737deb665b1612fd",
+            "input": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg",
+            "input_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4"
+          }
+        ]
+      }
+    ]
+  },
+  "extraction_quality": "not measured; full graph gate failed"
+}
