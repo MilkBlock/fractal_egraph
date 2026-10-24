@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 
 def run(a,repo):
@@ -39,12 +40,14 @@ def run(a,repo):
         log=output/(stage+'.log')
         record=dict(stage=stage,command=command,log=log.name);report['stages'].append(record);save()
         print('structural-pipeline: '+stage,flush=True)
+        started=time.perf_counter()
         try:
             with log.open('w') as f:
                 result=subprocess.run(command,cwd=repo,env=dict(os.environ,RAYON_NUM_THREADS='1'),stdout=f,stderr=subprocess.STDOUT)
             record['returncode']=result.returncode
         except OSError as error:
             record.update(returncode=1,error=str(error))
+        record['wall_seconds']=time.perf_counter()-started
         if record['returncode']:
             report['status']='failed';report['failed_stage']=stage;save()
             print(f'{stage} failed; artifacts retained in {output}; see {log}',file=sys.stderr)

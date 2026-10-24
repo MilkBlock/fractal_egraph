@@ -176,6 +176,19 @@ def lane(repo,binary,source,backend,worker,pristine,cache,audit=False,native_rul
     return dest,json.loads((dest/'report.json').read_text()),False
 
 
+def timing_comparisons(lanes,comparisons,audit=False):
+    result={}
+    for name,c in comparisons.items():
+        left,right=(lanes[c[k]] for k in ('left','right'))
+        a,b=left.get('run_seconds'),right.get('run_seconds')
+        valid=c.get('status')=='equal' and not audit and all(l.get('complete') for l in (left,right)) and isinstance(a,(int,float)) and a>0 and isinstance(b,(int,float)) and b>=0
+        result[name]=dict(eligible=valid,left=c['left'],right=c['right'],
+            delta_seconds=b-a if valid else None,ratio=b/a if valid else None,
+            change_percent=100*(b/a-1) if valid else None,
+            reason=None if valid else 'requires equal complete graphs, non-audit execution, and valid timing')
+    return result
+
+
 def run(a,repo):
     resolve=lambda p:p if p.is_absolute() else repo/p
     output=resolve(a.output)
@@ -203,6 +216,7 @@ def run(a,repo):
     if not binary.is_file():raise ValueError('missing current program runner')
     if 'gpu' in backends and not resolve(a.worker).is_file():raise ValueError('missing GPU worker')
     sources={'original':resolve(a.source)}
+    if getattr(a,'keys',None):sources['keys']=resolve(a.keys)
     if a.marked:sources['marked']=resolve(a.marked)
     output.mkdir(parents=True);lanes={}
     for label,source in sources.items():
@@ -212,7 +226,10 @@ def run(a,repo):
             (output/name).symlink_to(dest,target_is_directory=True)
             lanes[name]=dict(directory=str(dest),reused=reused,source=str(source),source_sha256=sha(source),
                 complete=report.get('complete',False),snapshot_complete=report.get('snapshot_complete',False),runtime_extension=report.get('setup',{}).get('runtime_extension'),
-                run_seconds=report.get('run_seconds'),error=report.get('error'))
+                run_seconds=report.get('run_seconds'),setup_seconds=report.get('setup',{}).get('setup_seconds'),
+                gpu_setup_seconds=report.get('gpu_setup_seconds'),table_rows=report.get('table_rows'),
+                runtime=report.get('runtime',{}).get('runtime',{}),
+                native_only_rulesets=report.get('runtime',{}).get('native_only_rulesets',{}),error=report.get('error'))
     comparisons={}
     def check(label,l,r,project=False):
         if l not in lanes or r not in lanes:return
@@ -221,6 +238,9 @@ def run(a,repo):
         left=json.loads((Path(lanes[l]['directory'])/'graph.json').read_text())
         right=json.loads((Path(lanes[r]['directory'])/'graph.json').read_text())
         comparisons[label]=dict(compare(left,right,set(left['tables']) if project else None),left=l,right=r)
+    for backend in backends:
+        check('key_effect_'+backend,'original-'+backend,'keys-'+backend,True)
+        check('marker_after_keys_'+backend,'keys-'+backend,'marked-'+backend,True)
     check('marker_effect_cpu','original-cpu','marked-cpu',True)
     check('marker_effect_native','original-native','marked-native',True)
     check('marker_effect_pristine','original-pristine','marked-pristine',True)
@@ -234,14 +254,17 @@ def run(a,repo):
         diagnosis.append('A backend difference exists before marker insertion; do not attribute all marked-program differences to markers.')
     if comparisons.get('marker_effect_pristine',{}).get('status')=='equal' and comparisons.get('backend_marked',{}).get('status')=='different':
         diagnosis.append('The marker rewrite preserves this pristine result, but the marked GPU result differs; inspect backend ordering and query audit.')
-    result=dict(schema='program-backend-matrix/v1',diagnosis=diagnosis,lanes=lanes,comparisons=comparisons,pristine=provenance,
+    performance=timing_comparisons(lanes,comparisons,a.query_audit)
+    result=dict(schema='program-backend-matrix/v1',performance=performance,diagnosis=diagnosis,lanes=lanes,comparisons=comparisons,pristine=provenance,
         scope='supplied source policy, explicit source-declared runtime extensions only; pristine names the unchanged baseline kernel, not the absence of extensions; source and backend effects reported separately',
         passed=all(v['complete'] for v in lanes.values()) and all(v['status']=='equal' for v in comparisons.values()))
     write(output/'report.json',result)
     lines=['# Source / backend comparison','',result['scope'],'','| Lane | Seconds | Reused | Complete |','|---|---:|---|---|']
     lines += [f'| {k} | {v["run_seconds"]} | {v["reused"]} | {v["complete"]} |' for k,v in lanes.items()]
     lines += ['','| Comparison | Status |','|---|---|']+[f'| {k} | {v["status"]} |' for k,v in comparisons.items()]
-    lines += ['']+diagnosis
+    lines += ['','| Checked timing comparison | Change | Delta seconds |','|---|---:|---:|']
+    lines += [f'| {k} | {v["change_percent"]:+.2f}% | {v["delta_seconds"]:+.6f} |' for k,v in performance.items() if v['eligible']]
+    lines += ['','Inference excludes source generation, setup, shader compilation and graph export. Positive change means slower. Audit/failed/unequal lanes receive no ratio.','']+diagnosis
     lines += ['','Marker comparisons include every original public table, value, equality and visibility flag; additional tables are listed in JSON. Same-source backend comparisons include marker tables too.','A disagreement is not automatically a GPU bug: original ordered merges or finite schedules may expose different execution orders. Failed checks are retained.']
     (output/'README.md').write_text('\n'.join(lines)+'\n')
     print(json.dumps({k:v['status'] for k,v in comparisons.items()},ensure_ascii=False));print(output/'README.md')

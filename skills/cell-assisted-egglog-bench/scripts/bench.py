@@ -799,6 +799,7 @@ def parser():
     q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--check',action='store_true');q.add_argument('--no-build',action='store_true')
     q=sub.add_parser('program-modes',help='same .egg on immutable pristine or GPU; optional original/marker 2x2 isolation')
     q.add_argument('--source',type=Path,required=True);q.add_argument('--marked',type=Path)
+    q.add_argument('--keys',type=Path,help='also measure source_sk.egg between original and marked, reusing verified lanes')
     q.add_argument('--backend',choices=['pristine','native','cpu','gpu','both'],default='both')
     q.add_argument('--pristine-checkout',type=Path,default=Path('/Users/mineralsteins/.codex/worktrees/native-baseline/egg_layout'))
     q.add_argument('--worker',type=Path,default=WORKER);q.add_argument('--output',type=Path,required=True)

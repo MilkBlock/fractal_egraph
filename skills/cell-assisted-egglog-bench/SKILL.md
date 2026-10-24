@@ -350,6 +350,14 @@ Cell observer；native/pristine 不装。运行区间从最后一个定义后的
 详见 `experiments/shared_loop_markers/README.md`。
 ## 自包含的源码流水线
 
+性能回归用 `program-modes --source RAW --keys SK --marked SK_MK --backend gpu`
+一次报告三段，已有相同 lane 按指纹复用。报告 `performance` 中的变化率仅在
+同图且非 audit 的完整执行上生成；正数表示变慢。生成、setup、shader 编译、
+导出与 extraction 不算 inference。`structural-pipeline` 的每阶段另记
+`wall_seconds`。不能把旧隐式选择策略的时间直接当作新原始语义的分母；先核对
+图和策略。已确认的 SK 维护回退见 `experiments/source_pipeline_performance`。
+
+
 `structural-pipeline --source FILE --output NEW [--solver scip|gurobi] [--check]`
 依次生成 `source_sk.egg`、`source_sk_mk.egg`。不再接受 `--analysis`、外部布局或
 应用专用 key policy。每阶段只读取上一阶段的 `.egg`。marker 阶段运行该 SK

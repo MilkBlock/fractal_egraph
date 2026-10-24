@@ -17,6 +17,17 @@ def graph(a=1,b=2):
 
 
 class ProgramModes(unittest.TestCase):
+    def test_timing_ratio_requires_same_graph_and_non_audit_execution(self):
+        lanes={'a':dict(complete=True,run_seconds=10),'b':dict(complete=True,run_seconds=12)}
+        checks={'stage':dict(left='a',right='b',status='equal')}
+        r=p.timing_comparisons(lanes,checks)['stage']
+        self.assertTrue(r['eligible']);self.assertAlmostEqual(r['change_percent'],20)
+        self.assertFalse(p.timing_comparisons(lanes,checks,True)['stage']['eligible'])
+        checks['stage']['status']='different'
+        self.assertIsNone(p.timing_comparisons(lanes,checks)['stage']['ratio'])
+        checks['stage']['status']='equal';lanes['b']['complete']=False
+        self.assertFalse(p.timing_comparisons(lanes,checks)['stage']['eligible'])
+
     def test_failure_after_report_is_not_a_successful_cached_lane(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);(root/'cell-assisted-egglog/src').mkdir(parents=True)
