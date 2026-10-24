@@ -1,0 +1,213 @@
+{
+  "provenance": {
+    "eggcc_revision": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+    "cargo_lock_sha256": "271911b11aa595cb22c9bb55915580a6afa7bec3dc8ccd0bf6e284381c916272",
+    "locked_engine": {
+      "bril-rs": {
+        "version": "0.1.0",
+        "source": "git+https://github.com/uwplse/bril?rev=06117c089c2d235ff8d040bb3d0cfd1e2a1c4880#06117c089c2d235ff8d040bb3d0cfd1e2a1c4880"
+      },
+      "egglog": {
+        "version": "2.0.0",
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex%2Fsplit-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-experimental": {
+        "version": "0.1.0",
+        "source": "git+https://github.com/egraphs-good/egglog-experimental?rev=08771f9#08771f9f69de51cc8cdc58e3760b7f00a03e40d8"
+      }
+    },
+    "git_dependencies": {
+      "bril-rs": {
+        "source": "git+https://github.com/uwplse/bril?rev=06117c089c2d235ff8d040bb3d0cfd1e2a1c4880#06117c089c2d235ff8d040bb3d0cfd1e2a1c4880",
+        "revision": "06117c089c2d235ff8d040bb3d0cfd1e2a1c4880"
+      },
+      "bril2json": {
+        "source": "git+https://github.com/uwplse/bril?rev=06117c089c2d235ff8d040bb3d0cfd1e2a1c4880#06117c089c2d235ff8d040bb3d0cfd1e2a1c4880",
+        "revision": "06117c089c2d235ff8d040bb3d0cfd1e2a1c4880"
+      },
+      "brilift": {
+        "source": "git+https://github.com/uwplse/bril?rev=06117c089c2d235ff8d040bb3d0cfd1e2a1c4880#06117c089c2d235ff8d040bb3d0cfd1e2a1c4880",
+        "revision": "06117c089c2d235ff8d040bb3d0cfd1e2a1c4880"
+      },
+      "brilirs": {
+        "source": "git+https://github.com/uwplse/bril?rev=06117c089c2d235ff8d040bb3d0cfd1e2a1c4880#06117c089c2d235ff8d040bb3d0cfd1e2a1c4880",
+        "revision": "06117c089c2d235ff8d040bb3d0cfd1e2a1c4880"
+      },
+      "brillvm": {
+        "source": "git+https://github.com/uwplse/bril?rev=06117c089c2d235ff8d040bb3d0cfd1e2a1c4880#06117c089c2d235ff8d040bb3d0cfd1e2a1c4880",
+        "revision": "06117c089c2d235ff8d040bb3d0cfd1e2a1c4880"
+      },
+      "egglog": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-add-primitive": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-ast": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-bridge": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-concurrency": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-core-relations": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-experimental": {
+        "source": "git+https://github.com/egraphs-good/egglog-experimental?rev=08771f9#08771f9f69de51cc8cdc58e3760b7f00a03e40d8",
+        "revision": "08771f9f69de51cc8cdc58e3760b7f00a03e40d8"
+      },
+      "egglog-numeric-id": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-reports": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "egglog-union-find": {
+        "source": "git+https://github.com/saulshanabrook/egg-smol.git?branch=codex/split-scheduler-can-stop-report#ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+        "revision": "ebba7bb902bdc1b0f377b6bb22c06ac305912674"
+      },
+      "inkwell": {
+        "source": "git+https://github.com/TheDan64/inkwell.git?rev=6c0fb56b3554e939f9ca61b465043d6a84fb7b95#6c0fb56b3554e939f9ca61b465043d6a84fb7b95",
+        "revision": "6c0fb56b3554e939f9ca61b465043d6a84fb7b95"
+      },
+      "inkwell_internals": {
+        "source": "git+https://github.com/TheDan64/inkwell.git?rev=6c0fb56b3554e939f9ca61b465043d6a84fb7b95#6c0fb56b3554e939f9ca61b465043d6a84fb7b95",
+        "revision": "6c0fb56b3554e939f9ca61b465043d6a84fb7b95"
+      },
+      "rs2bril": {
+        "source": "git+https://github.com/uwplse/bril?rev=06117c089c2d235ff8d040bb3d0cfd1e2a1c4880#06117c089c2d235ff8d040bb3d0cfd1e2a1c4880",
+        "revision": "06117c089c2d235ff8d040bb3d0cfd1e2a1c4880"
+      }
+    },
+    "rustc": "rustc 1.88.0 (6b00bc388 2025-06-23)\nbinary: rustc\ncommit-hash: 6b00bc3880198600130e1cf62b8f8a93494488cc\ncommit-date: 2025-06-23\nhost: x86_64-unknown-linux-gnu\nrelease: 1.88.0\nLLVM version: 20.1.5\n",
+    "tracked_sources_clean": true,
+    "definition": "Pristine upstream eggcc and its exact Cargo.lock engine stack; no local Cell/GPU/tracing engine patches."
+  },
+  "binary": "92386ace69445946b158117c7eeb3763e16f53037197d24254ca463a744e8355",
+  "native": "36a27dee2c0bd09afaebd93d3eac8672b92c630f63ce0d6083606f453a9a6d5f",
+  "candidate": "dccf2803c4b63db317c08893697c1bb78df5c3fcff6c7d83e3cb6c6c3771ee27",
+  "timing_protocol": "blocking-wait-with-separate-watchdog/v2",
+  "runner": "03bfcf3c10bc3aa83a10ae705488c5cb688f5fa3fb716b38cd40261b90f8eb88",
+  "inventory": {
+    "bril/core/ackermann.bril": "ab29afbf2c3c62c7961e94b25021d6a82123790e6db9c00b92ba975012c7f1ac",
+    "bril/core/armstrong.bril": "44b6be189e12c18e0f9a50a092144830cf8df64349f0b48d8e245d3ef212fa0b",
+    "bril/core/binary-fmt.bril": "f55a9b6a9ee727dd4ce5082d607ae89cd985ac1bb97301208d9386695213d443",
+    "bril/core/birthday.bril": "b8026093ca1c69f712184ae19d71cac7428137ed846b64007006e9a7b464f1c1",
+    "bril/core/bitshift.bril": "37d7f1ae4ae48946011b531bceb86e4c02624b2cefeb36c2c63bcb1cc963e18d",
+    "bril/core/bitwise-ops.bril": "4d4c7e6f73833b68bb17aebff214241a7ec3641a13ba1a768e1011c968bb856f",
+    "bril/core/catalan.bril": "9bf62799a1c451a3c9d04c46e031b12d2e471f6d47b6471e2c8b6bd141614291",
+    "bril/core/check-primes.bril": "e5d4a456bb0ad3b0c4a415674f9cfeed04e3f7c3550bf03e5895e236eb4a32f8",
+    "bril/core/collatz.bril": "00bf0f385e2bf40f0b826fb079ab290a64f17d657c99219bc099c28dc7fc4173",
+    "bril/core/digital-root.bril": "003ba9262f42422c620d3c69b47f1435e821a6c487225b2fbb86d680755f6ee6",
+    "bril/core/dot-product.bril": "fb43092b0b8b4be2280c5640c048ef6cceba3d0eab1d86019dfc2096b9209646",
+    "bril/core/euclid.bril": "0480a34274827dab3208dc5322fc52be709a355d567b81dc7945e3904c2b6160",
+    "bril/core/fact.bril": "27ae13958d4af1f3712ade10c9c0ed6e7f110a7e33888f8b845f00b07841c702",
+    "bril/core/factors.bril": "0521593dcc7d60fc3f9e3c851074b5d74822b16fcc38a3f2205f0846e54d2612",
+    "bril/core/fitsinside.bril": "ba6c8590bddaaa84e38e00527b8f9c8bf2feb0e8ca0db8eb412cec6dfb17f0c1",
+    "bril/core/fizz-buzz.bril": "d779cd2e50cad713b9664944909eee7fbaed6fd5c348f15106f3f896a44a4d68",
+    "bril/core/gcd.bril": "e495e15ccf100deadfd7bf8e2a485db0f89780421817e96bc422dd1a5dc97857",
+    "bril/core/hanoi.bril": "0e3493635a36193fd9cc2e202e72da61319a92b9ee591d86fa913c1afe4482d9",
+    "bril/core/is-decreasing.bril": "fbced05b131a39c3757c8d65f2e08f4137d93616530d7864a982460befbb88a4",
+    "bril/core/lcm.bril": "858791f50dd527ec92b0db40cce359ff38625a18270e59eee85534664287d657",
+    "bril/core/loopfact.bril": "8c0a58e3d60d8d750bdc963e8d07fbbc98f6b9182ba9fd128e5406cbc4b20655",
+    "bril/core/mod_inv.bril": "fa42f7eae4f45a2ff60ad097cf41a67bba321366537acba05ca88fbfa28edae3",
+    "bril/core/orders.bril": "985d48a7412e5275ed0ed3d5671b13fe9012bd8fbe8d2770eaacf3792dcfea6f",
+    "bril/core/palindrome.bril": "0b13c07fb6c368e7f04b305cc6d4f2bd574c635e7c3337883477ad4dab8b9c68",
+    "bril/core/pascals-row.bril": "6edc82d0dd6a55f2274948f3a5ee61da1350b186efb84b33a3cfa79d1ce3298f",
+    "bril/core/perfect.bril": "2e53f6d610add5d7e69448f9e8e6e8d410e98aa2e61d539790734b367a1b080f",
+    "bril/core/primes-between.bril": "aacd943d309029ce8c3381868365db1d57bdac3f3606d24e81e882423118c1e4",
+    "bril/core/pythagorean_triple.bril": "a439e9330eb37bd5f779e6d99e8744e6c47c8a3bd246a566a6e65e2d4499de43",
+    "bril/core/quadratic.bril": "db4d7ce9325e91149bc1e2b7ed86baf8edf4511232140eae077b919c4a9020ec",
+    "bril/core/recfact.bril": "539e81485bcc7756b462897a7223f6c309eb888179e74b3472fd0c4f3d47a54a",
+    "bril/core/relative-primes.bril": "2992be6004bf9f44fa32bab6f67c366b8b250980d6c550f1fd2fc67eca2a8276",
+    "bril/core/reverse.bril": "c5a5b2e8f6880ba2168e633ca8bc6dfeec219432c2e212b4b64eaae4dc4be201",
+    "bril/core/sum-bits.bril": "6faf80f228e5d80e1868a9e84a7b73d8779d820aff67d5de5e43616f6111983b",
+    "bril/core/sum-check.bril": "3092e6a49ac0ef35bd3074fdfdc7c4a60cfb597cc035dc209a424168d1d53bc0",
+    "bril/core/sum-divisors.bril": "31d42c1277f8990baa2561cddb34c41a94f1bb7bc3caf5e6db5086391b89f085",
+    "bril/core/sum-sq-diff.bril": "5d83dfb2b7afd01bd7ba260d41a413ed7d5e5cae26f815c30ef9242219a438f2",
+    "bril/core/totient.bril": "b00c53cf2e04d6c82cbfe4e7ea26d761e301967c9d9e835f4d1378cf6a783871",
+    "bril/core/up-arrow.bril": "feb725d8d5b72c64baef435c140a5ca708efda19ba66c53bf8e6c2d18dd6ca6c",
+    "bril/float/conjugate-gradient.bril": "af917c7a14d85890b18a0dd6f1cde4e6b6a7cd1f30a96804b61bc949a1b39775",
+    "bril/float/cordic.bril": "9614581c0d5e914ccd6927bccc242edfe2fcdb5b5fae0049c935095b795079bd",
+    "bril/float/euler.bril": "06d4be588cd488e95f8a6167f10447648bfabe2c647d419c74cef2666d8a9241",
+    "bril/float/leibniz.bril": "7374653204cc1316d9bbb97aebaa4c7da8ae22280a0973ad8d758e31f1206658",
+    "bril/float/mandelbrot.bril": "f5e9581a238762db16d3d05df17a0a7c16757cf47e2075bf091e4ec08c53f989",
+    "bril/float/n_root.bril": "3a39352256532c43fd19cc21f2fcd4fb73493966a822233ff74720a263a278c1",
+    "bril/float/newton.bril": "c9085e7e32a3a65ac940acda11a3cceea7d119e0f4ae96b609f4d3447b2da887",
+    "bril/float/norm.bril": "193ff0db0bd5f80346d796a79dceae7f4dad60a89ef14386690d060c6b03abf5",
+    "bril/float/ray-sphere-intersection.bril": "da10723cc2e481a29b43a183149b816cdfb296479658985c109b8750befcc837",
+    "bril/float/riemann.bril": "1b838468114059b1a6895d0c097a4cb602de268abacc83706556c53890b5913d",
+    "bril/float/sqrt.bril": "6f4397f36f5ffe982905974558196f6f623e2f97361f3963b06d0728f26acfa6",
+    "bril/long/dead-branch.bril": "0b1789240d45b1a3db397588e9079ed61628eebf0033c9ce39c72d60a67fee03",
+    "bril/mem/adj2csr.bril": "59013758da9908aed3c762ebe5fd20ae1ef501e038af6cd907143b252509ac32",
+    "bril/mem/adler32.bril": "e5e2225a71894310936568453a8247cb5ad4aed6c773270762b8b9ab7ef12043",
+    "bril/mem/binary-search.bril": "360857cde5c851270fdf2edfab37811196e9225b68512ed529e386816075042c",
+    "bril/mem/bubblesort.bril": "f95aea6374f2098ef056b058aa11f69bb435811918b43bf8750e7d30684876ec",
+    "bril/mem/csrmv.bril": "76cf4d2131c15eceab7e9ebd98240e781bb3b6fb3e5201090d6e617d3b8a32af",
+    "bril/mem/fib.bril": "431a1756c32fd2a7af2afd26197f8ddd910f349916fc609ed6cc02429c2fb187",
+    "bril/mem/major-elm.bril": "48d89418a6944470d62a19bcbcc4d8939a43355f707debaf485cb32f9d706713",
+    "bril/mem/mat-mul.bril": "c17a0761b639544ad5ae31dbd7cc404c3ac0e5f02ce898c99ea5051185de990d",
+    "bril/mem/max-subarray.bril": "a4ea6cfafeca1f418045e477f05e262ed1cfdf0e5845b59fb86091224529e3f7",
+    "bril/mem/quickselect.bril": "90c535d6bc246ae42965e57d1ed37fdf6fdcd7f812ca1d43839fc78a251689ee",
+    "bril/mem/quicksort.bril": "d26daf8217f8b98de1d2745a3bab9ae266d4f483f4d7e32dbc5a11c096c61228",
+    "bril/mem/vsmul.bril": "e8ab448a85e9a6f736e1c44cbdc12f96ffedf8b33e16e2bce5ffa974635d96f9",
+    "bril/mixed/cholesky_decomp.bril": "2652a89bdace6323005ed21d0bc90ac7083f50e4397de6881c66d50309078f0c",
+    "bril/mixed/mat-inv.bril": "a44bdc9bee53daa5a639156ede626ce61a06f01e2cee85d6be2611001faf7d6d",
+    "fenwick/fenwick_tree.rs": "eeccd2e4ca66f1b3ed2d7e4c73ad19cef55d22c5861b9b9c87a63a55e179309a",
+    "polybench/datamining/correlation.rs": "ec5de7f01318d9cc0a60586da1cb17415add6375839c86025a2a9a960e866c3c",
+    "polybench/datamining/covariance.rs": "5f18b91b817d03839db04439b781bac3ab63698103d27d0b9193540e2ca2ea53",
+    "polybench/linear-algebra/blas/gemm.bril": "b515be1f149beb59bc36a90ce3b1ee7306c1067531efe0d52e1d9d1bb581faf4",
+    "polybench/linear-algebra/blas/gemver.bril": "c87ce858ff941ce287f9ddff4cf6574e2f814ad4ab0d6a62b18e62d3824ee614",
+    "polybench/linear-algebra/blas/gesummv.bril": "013290bfe41358707e47032fd39adcd13c80a275f6f67bdad6d5e94df9ae371e",
+    "polybench/linear-algebra/blas/symm.bril": "7a0f461583fcc1b5e3f5cfd22a28d9ea6c227bffe464691dd7245da57a3b7bc8",
+    "polybench/linear-algebra/blas/syr2k.bril": "0902e856dc8ed8c455ddcdd0e6dafd4e89bb3640ba38249673bdf8af43586ae7",
+    "polybench/linear-algebra/blas/syrk.bril": "2d4f1f5f8f3e7edc0ff3024d88a75fe10499c8a23e7e8990ac518c1ab8e59c68",
+    "polybench/linear-algebra/blas/trmm.bril": "4a6c824a6017080143739725327cd95f550b9ca65388864b2b37905e8d7c3ef1",
+    "polybench/linear-algebra/kernels/2mm.bril": "16b45c7612d32bdac652cb41615c5305a10491e3788b5fa36e0f94e8f2d349df",
+    "polybench/linear-algebra/kernels/3mm.bril": "1cfd09d54aa051f8e58a5d65a4391fd25e8bb96f39998e4b5fe8453d90559967",
+    "polybench/linear-algebra/kernels/atax.bril": "25b10ce5cf9923fcc71fcc786c5291420fc8b691d7947fdfc25dad23b9215356",
+    "polybench/linear-algebra/kernels/bicg.bril": "4ded0c3edb336d95d706b2ecec7856f67f2edcf46a966076dcae9d09efe012f4",
+    "polybench/linear-algebra/kernels/doitgen.bril": "5372ba4854fbf4960802737dc98de7c22a3a706d438b82158a19bed60f2648d6",
+    "polybench/linear-algebra/kernels/mvt.bril": "d2130b3ff700ffa19b6aa9b8a45aef007fb5ab7b3c6eb36480524295c8cbcd6c",
+    "polybench/linear-algebra/solvers/cholesky.bril": "2c4add669376f98e3bf2655b82ba02b642575bdd48d2f0653a80809233f7f979",
+    "polybench/linear-algebra/solvers/durbin.bril": "fbdf902938b69ac97d1c79fb5bb18b082a68b102651f3c5bb3897ec3a7d73415",
+    "polybench/linear-algebra/solvers/gramschmidt.bril": "a7519cb73215ef0b3e7d8f320c3cebcbd486e6b447c9ccbde66f5f425ee13d42",
+    "polybench/linear-algebra/solvers/lu.bril": "a22cf2c7a412b9e5393f1e70886a5b4d83467fede0e5719fb9f3f0ca9aeda9ee",
+    "polybench/linear-algebra/solvers/ludcmp.bril": "acd0a1e58b8b409fbf173173fb645fc8a79f4e934b7f53057dae6ed90ee5c620",
+    "polybench/linear-algebra/solvers/trisolv.bril": "c8d9b6a2f7103d072c5e391c34838f11a19885f2111633c230cabc8049da0591",
+    "polybench/medley/deriche.rs": "3b171c9061179cfc1da3200f888b09c6fb6c8229b60cbb61b791a40141023790",
+    "polybench/medley/floyd-warshall.rs": "9ccbaa796ba45c31e037b41e21d53834f0f2bd46e0b47f2c623a4231f09bdc5e",
+    "polybench/medley/nussinov.rs": "4763e83130f6e38c288007dc33ec12809916e9580eb1a57dd2c52254026b3132",
+    "polybench/stencils/adi.rs": "a9a936a319813f1c56255dac1f26f34835494c59d698bce4b0a45a7fdb83d6a5",
+    "polybench/stencils/fdtd-2d.rs": "c2d864f1495da1d4b15c81bb33412eb9366dc2aa76823664dde3725a74844779",
+    "polybench/stencils/heat-3d.rs": "101d09383570c213bff217bd33b4ef6f6afb1a23b1d822181c8fa29c4d22b8fd",
+    "polybench/stencils/jacobi-1d.rs": "a17b36a69951b55cae822ad0fe2677ed731451cb8d283d49490f3582f457b83e",
+    "polybench/stencils/jacobi-2d.rs": "4542fb66a28b9551690727505e50fd49923ffea1242d7bf37f3b3fb44bd528ad",
+    "polybench/stencils/seidel-2d.rs": "8719af9852363c2095627c4da9a07bdd0bbde37a0558ccaa48976d6f54376baa",
+    "raytrace/raytrace.rs": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22"
+  },
+  "timeout": 600,
+  "machine": {
+    "system": "Linux",
+    "node": "zhiju-MS-7D88",
+    "release": "7.0.0-28-generic",
+    "version": "#28-Ubuntu SMP PREEMPT_DYNAMIC Sun Jun 21 01:01:36 UTC 2026",
+    "machine": "x86_64",
+    "processor": ""
+  },
+  "affinity": [
+    2
+  ],
+  "compiler": "c++ (Debian 12.2.0-14+deb12u1) 12.2.0"
+}

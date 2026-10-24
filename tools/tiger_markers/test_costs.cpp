@@ -71,5 +71,6 @@ int main(int argc, char **argv) {
         assert(rejected);
     }
     std::cout << "passed: " << p.owners.size() << " native costs, " << p.recipes.size()
-              << " shared recipes, " << dirty << " dirty updates; aliases, If, loop, overflow, deterministic GPU\n";
+              << " shared recipes, " << dirty << " dirty updates; aliases, If, loop, overflow"
+              << (argc > 1 ? ", deterministic GPU\n" : "; GPU not exercised\n");
 }

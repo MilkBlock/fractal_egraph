@@ -1,0 +1,6 @@
+{
+  "cpu": "13th Gen Intel(R) Core(TM) i7-13700KF",
+  "image": "sha256:6ae102bdbf528294bc79ad6e1fae682f6f7c2a6e6621506ba959f9685b308a55",
+  "container_limits": "2 25769803776 25769803776",
+  "kernel": "7.0.0-28-generic"
+}

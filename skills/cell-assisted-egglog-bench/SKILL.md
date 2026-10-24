@@ -320,6 +320,29 @@ check/extraction等命令按原AST原生执行；pristine使用同样的初始�
 证明的credit，也尚未在线维护完整extraction**。原有 fused-native 对照失败
 不得隐藏。实现、限制和结果见 `experiments/tiger_extraction_markers/README.md`。
 
+### 干净 eggcc 的全样例提取对照
+
+`extraction-suite --checkout CLEAN_EGGCC --build-dir NEW_BUILD --output NEW_RUN`
+枚举该 checkout 的 `benchmarks/passing` 全部 `.rs/.bril`，顺序运行真实三 pass。
+需要 Python 3.11+、已构建的 `target/release/eggcc` 和 C++ 编译器。Linux 不构建
+Metal worker。`--source benchmarks/passing/...` 只用于明确的局部检查；正式全套
+不传 source。`--report-only` 只重新汇总已有输出。
+
+- 拒绝修改过的 eggcc 或 Git 依赖；保留 Cargo.lock、引擎提交、源码和二进制指纹。
+- 两个 lane 的 eggcc 二进制完全相同，只在旁边安装原版或 shared-bag Tiger。
+  保留上游图快照开关、调度、8 GiB Tiger 地址空间限制及全部规则。
+- 每个原生 pass 快照还单独比较 pristine Tiger 与 bag；完整输出字节相等并通过
+  native cost/pick oracle 才报告提取加速比。阶段计时参考与 oracle 单独运行，不
+  算进两条主计时；不启动 ILP、Analyze、trace 或 GPU 推理。
+- 同样例只测一次配对，按固定样例序号交替执行顺序；构建不在计时内。已验证且
+  指纹相同的结果可续跑，保留测量时间；`--retry-failed` 会归档旧失败尝试。
+- 外部计时使用阻塞 wait 和独立超时看门狗。不能用 POSIX `wait(timeout=...)`
+  的轮询完成时刻计短任务耗时。旧轮询版本的外部时间无效，必须与 v2 区分。
+- 原生三 pass 未完成的样例保留在总分母。失败、超时、缺测不填成零，不删掉回退。
+- 全流水线时间包括上游图导出，不能冒称无导出 CLI 时间；只有中间图及最终输出
+  都逐字节一致时才汇总该项比值。最大 RSS 是进程测量，不能与成本集合的逻辑
+  entry 数混用。输出 `summary.json`、`workloads.csv`、每例/每 pass 的验证记录。
+
 ### 求解器生成的跨 consumer 前缀 marker
 
 `spine-program --marker-profile PILOT/report.json --table-profile PILOT/report.json`

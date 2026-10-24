@@ -1,0 +1,271 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=24mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,mathtools}
+\usepackage{graphicx,booktabs,longtable,array,xcolor,listings,tikz}
+\usepackage{placeins}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Shared Cost Bags for Effectful E-Graph Extraction},pdfsubject={A whole-suite study on pristine eggcc}}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.08}
+\usepackage{fancyhdr}
+\definecolor{inkblue}{HTML}{205D85}
+\definecolor{inkgreen}{HTML}{29744A}
+\definecolor{lightblue}{HTML}{EAF2F8}
+\definecolor{inkred}{HTML}{A33A3A}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small Shared Cost Bags in Tiger}\fancyhead[R]{\small Technical Report}
+\fancyfoot[C]{\thepage}\setlength{\headheight}{14pt}
+\setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
+\lstset{basicstyle=\small\ttfamily,keywordstyle=\color{inkblue},
+ commentstyle=\color{inkgreen},columns=fullflexible,keepspaces=true,
+ frame=single,rulecolor=\color{black!20},breaklines=true,showstringspaces=false}
+\newcommand{\tool}[1]{\texttt{#1}}
+\newcommand{\mm}{\operatorname{minmerge}}
+\title{\textbf{Shared Cost Bags for Effectful E-Graph Extraction}\\[4pt]
+\large A Whole-Suite Study on Pristine eggcc}
+\author{}\date{24 October 2026}
+\begin{document}
+\maketitle\vspace{-2em}
+\begin{abstract}
+Tiger's extractor accounts for DAG sharing by carrying a map of contributions
+already paid for. We evaluate a representation-only optimization: copies share
+an immutable sorted vector, while accumulation preserves the original per-key
+minimum and unsigned arithmetic. Copying a bag becomes constant-time, although
+individual merges need not become asymptotically cheaper. The evaluation covers
+all 96 passing programs in a pinned, unmodified eggcc checkout and its locked
+egglog dependencies. Each program follows the production three-pass pipeline;
+independent paired extractions use identical captured graphs and require complete
+output equality and a native cost/pick oracle.
+\IfFileExists{abstract-results.tex}{\input{abstract-results.tex}}{}
+The report separates cost-estimation gains, whole-extractor performance, and
+observed pipeline timing. It makes no GPU inference or global-optimality claim.
+\end{abstract}
+
+\section{Problem and scope}
+Effectful extraction must select compatible operations, preserve state ordering,
+and retain useful DAG sharing. Tiger combines global greedy cost estimation,
+Statewalk dynamic programming, and subsequent DAG extraction \cite{eggcc}.
+This change targets only the representation used by the \emph{global cost
+estimator}. The cost model, candidate traversal, queues, Statewalk implementation,
+final pure extraction, and tie rules remain unchanged.
+
+We evaluate eggcc revision \texttt{ae80f82a403c1209fb084b115ee89470c7e66d0e}.
+Pristine means its tracked source and exact locked dependencies are unchanged:
+\tool{egglog-experimental} revision \texttt{08771f9} selects egglog kernel
+\texttt{ebba7bb} \cite{experimental,engine}. This is a versioned engine stack,
+not a claim to use the newest egglog revision. Cell/GPU inference patches,
+Analyze, Bake, and history tracing do not generate the benchmark graphs.
+
+The optimization is extraction bookkeeping. It shares copies of a cost bag,
+rather than consuming learned RipSatCell certificates or skipping inference
+matches. Optional CPU/Metal cost-recipe modes in the prototype are disabled.
+
+\section{Preserving the cost information}
+If shared computation $t$ costs 3, $A$ adds 1, and $B$ adds 2, their separate
+totals are 4 and 5, but producing both can cost $3+1+2=6$. Both implementations
+already account for that sharing; this example does not describe a correctness
+bug in the baseline.
+
+A cost object is $(s,B)$, where $s$ is the estimate and
+$B:\mathcal C\rightharpoonup\mathbb U_{64}$ maps e-class identifiers to
+accounted contributions. Its own overhead need not be included in $B$.
+Accumulating child $c$ with cost $(s_c,B_c)$ into $(s_p,B_p)$ computes
+\begin{align}
+ h_c &= s_c-\sum_{x\in\operatorname{dom}(B_c)}B_c(x),\\
+ B'_p &= \mm(B_p,B_c,\{c\mapsto h_c\}),\\
+ s'_p &= s_p+\sum_x B'_p(x)-\sum_x B_p(x).
+ \label{eq:update}
+\end{align}
+Here $\mm$ retains the union of key domains and takes the smaller unsigned
+contribution at each repeated key. All additions and subtractions use the
+original modulo-$2^{64}$ arithmetic. Zero contributions, repeated operands,
+e-class identity, and the all-ones infinity sentinel are preserved.
+
+\subsection{From hash nodes to shared immutable vectors}
+The original \tool{SCost} contains an \tool{unordered\_map<EClassId,Cost>}.
+Ordinary C++ copies copy its entries, including when children enter pairs and
+candidate costs are assigned. The candidate uses a scalar and
+\tool{shared\_ptr<const CostBag>}. A bag contains sorted unique key/value entries
+and their cached modulo sum. Copies share the vector; every accumulation
+creates a new vector and leaves previously published bags unchanged.
+Independently computed equal vectors remain separate allocations.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[font=\small,>=Stealth,
+ record/.style={draw=inkblue,rounded corners,fill=lightblue,minimum width=25mm,minimum height=9mm},
+ bag/.style={draw=inkgreen,rounded corners,minimum width=62mm,minimum height=13mm}]
+\node[record] (a) {copy A};
+\node[record,right=12mm of a] (b) {copy B};
+\node[record,right=12mm of b] (c) {copy C};
+\node[bag,below=14mm of b] (s) {$[(c_1,v_1),\ldots,(c_k,v_k)]$};
+\draw[->,inkblue] (a)--(s);\draw[->,inkblue] (b)--(s);\draw[->,inkblue] (c)--(s);
+\node[below=2mm of s,text=inkgreen] {one immutable vector, with complete contributions};
+\end{tikzpicture}
+\caption{Cost-object copies share storage. Accumulation creates a new bag.
+These are bookkeeping objects, not e-graph partitions.}
+\end{figure}
+
+\begin{lstlisting}[caption={Representation-level accumulation (schematic).}]
+overhead = child.sum - child.bag.total
+next = merge_sorted_min(parent.bag.entries, child.bag.entries)
+insert_or_min(next, child_class, overhead)
+total = sum_mod_u64(next)
+parent.sum += total - parent.bag.total
+parent.bag = immutable(next, total)
+\end{lstlisting}
+
+\subsection{Preservation argument}
+Assume the vector and the original map contain the same key/value pairs, and the
+cached total equals their modulo sum. Copying preserves this invariant.
+Ordered merging and the child-key insertion compute the same domain and
+pointwise minima as hash-map updates. The cached child sum yields the same
+overhead; Equation~\ref{eq:update} changes the parent estimate by the same
+contribution difference. Thus accumulation preserves the map and estimate.
+
+Induction over the unchanged traversal gives identical estimates and comparisons
+for the same ordered input. The implementation instantiates the same greedy body
+with either representation. A separate oracle checks its cost and pick vectors,
+and complete output equality checks the downstream extractor on observed inputs.
+This preserves the baseline's heuristic decisions; it does not prove global
+optimality.
+
+\section{Complexity and the tradeoff}
+For a copied bag of size $k$, an accumulator of size $m$, and a child bag of
+size $n$, the relevant costs are:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Operation & Original hash bag & Shared sorted bag\\
+\midrule
+Copy a cost object & $\Theta(k)$ & $O(1)$ reference copy\\
+Accumulate one child & expected $O(n+1)$ & $O(m+n+1)$\\
+Read child contribution sum & $O(n)$ scan & $O(1)$ cached total\\
+Materialized storage & nodes and buckets & contiguous pairs\\
+\bottomrule
+\end{tabular}
+\end{center}
+The vector merge also visits the accumulator. Therefore it is incorrect to claim
+that every merge becomes asymptotically faster. Saved deep copies and allocations
+must outweigh this extra sequential work. Small operator arities can limit prefix
+merges, but that is a workload property. Regressions are retained in the study.
+Logical entry counts are work counters, not measurements of resident memory.
+
+Parsing, region construction, Statewalk search, final extraction, and output
+remain. If an accelerated phase occupies fraction $f$ and improves by factor $r$,
+the explanatory Amdahl expression is
+\[
+ S=\frac{1}{(1-f)+f/r}.
+\]
+A large phase gain can therefore coexist with a small whole-process gain.
+This equation is not substituted for measured pipeline performance.
+
+\section{Experimental design}
+\subsection{Inventory and clean builds}
+The inventory is every \tool{.bril} and \tool{.rs} file under
+\tool{benchmarks/passing}: 64 Bril, 30 PolyBench, one raytracer, and one
+Fenwick-tree program. No case is selected by expected speedup.
+A clean shallow checkout preserves the exact upstream commit. Remote Git
+fetches timed out, so verified Git objects from a clean local mirror were
+transferred; no existing eggcc binary was reused. Registry archives were checked
+against the lockfile before seeding an isolated build cache. All executables
+were rebuilt.
+
+The runner rejects dirty upstream tracked sources and dirty Git dependencies.
+It records revisions, lockfile/source/executable hashes, compiler, machine, and
+affinity. The fresh Debian 12 container uses Rust 1.88.0, LLVM 18.1.8, and the same
+C++ compiler/flags for both Tiger builds. Timed work is pinned to logical CPU 2,
+a performance-core hardware thread of an Intel Core i7-13700KF. The container has
+24 GiB memory and no swap allowance. These are CPU measurements.
+
+\subsection{Production and frozen-graph comparisons}
+\textbf{Production pipeline.}
+Both lanes run the exact same pristine eggcc binary; only its sibling
+\tool{tiger} executable changes. The original \tool{parallel} pass schedule and
+single-threaded egglog configuration are retained. Each pass's extracted program
+feeds the next pass. Both lanes use upstream \tool{--egraph-out-dir} and
+\tool{--run-data-out}. Consequently, pipeline wall time includes graph capture;
+it is not a CLI measurement without capture.
+
+\textbf{Frozen graphs.}
+Every native pass graph is replayed unchanged through original Tiger and shared
+bags. These are the primary extraction measurements. A separate
+timer-instrumented original-cost lane measures the targeted phase. A separate
+oracle recomputes native costs and picks. Neither extra lane contributes to
+the primary whole-extractor speedup. The candidate's existing lightweight timers
+and counters remain enabled and are charged to its measured time.
+
+\subsection{Gates, ordering, and failures}
+A frozen-graph ratio requires successful processes, byte-identical complete
+selected-program outputs, and a passing native cost/pick oracle. A program-level
+ratio requires all three native passes and all checks. Node counts or scalar
+cost alone are insufficient.
+
+A pipeline ratio additionally requires identical intermediate graph files and
+final outputs. Independent inference runs cannot silently supply different
+extraction inputs. No executable-cycle improvement is claimed: identical selected
+outputs are the quality criterion for this representation change.
+
+Each lane is measured once, with order alternating by a fixed inventory index.
+Process completion uses a blocking wait and an independent timeout watchdog;
+it does not use POSIX timeout polling, which can quantize short elapsed times.
+Preliminary polling-based external timings were invalidated and are excluded.
+Geometric means aggregate programs, not repeated trials. There is no fastest-run
+selection. Exact fingerprinted results may be resumed with their original
+timestamps. Small differences are not evidence of statistical significance.
+
+The timeout is 600 seconds per process, matching the upstream non-paper
+per-program setting. Standalone Tiger retains the production 8 GiB
+address-space limit. Failures, timeouts, missing values, and regressions remain
+visible and are never entered as zero times. GNU \tool{time} records per-run
+peak RSS for standalone extraction.
+
+\IfFileExists{results.tex}{\input{results.tex}}{}
+\FloatBarrier
+
+\section{Limitations and next steps}
+The evidence covers one revision, one CPU platform, one inventory, and one
+observation per lane. Bag shape, high arity, or a different mix of copies and
+updates can change the tradeoff. The implementation does not intern independently
+equal bags or share arbitrary overlapping fragments.
+
+Only global cost estimation changes. Applying this representation to other uses
+of \tool{SCost} requires a separate evaluation. Online extraction, matching-marker
+reuse, and GPU recipes are outside this study. Any weak end-to-end result must
+not be repaired by crediting fluctuations in unchanged inference stages to
+the cost-bag optimization. The next target should follow the measured profile:
+parsing, Statewalk, or final extraction.
+
+\section{Reproduction}
+The existing benchmark skill now exposes:
+\begin{lstlisting}
+python3 skills/cell-assisted-egglog-bench/scripts/bench.py \
+  --repo /path/to/egg_layout extraction-suite \
+  --checkout /path/to/clean/eggcc \
+  --build-dir /path/to/tiger-build \
+  --output /path/to/results
+\end{lstlisting}
+The clean checkout must contain its locked release build. The command enumerates
+the inventory, builds isolated C++ tools, runs arithmetic tests, and records
+per-program/per-pass measurements. Linux does not need Metal.
+\tool{--report-only} regenerates summaries without rerunning inference.
+Raw graphs and binaries stay outside Git; reproducible sources, compact
+results, CSV tables, and provenance are retained.
+
+\begin{thebibliography}{9}
+\bibitem{eggcc} egraphs-good.
+\emph{eggcc and the Efficient Extraction for Effectful E-Graphs artifact}.
+Revision \texttt{ae80f82a}; production driver and
+\tool{dag\_in\_context/src/tiger/}.
+\url{https://github.com/egraphs-good/eggcc}.
+\bibitem{experimental} egraphs-good.
+\emph{egglog-experimental}, revision \texttt{08771f9}.
+\url{https://github.com/egraphs-good/egglog-experimental}.
+\bibitem{engine} Saul Shanabrook and contributors.
+\emph{egg-smol / egglog}, kernel revision \texttt{ebba7bb} locked by this eggcc.
+\url{https://github.com/saulshanabrook/egg-smol}.
+\end{thebibliography}
+\IfFileExists{appendix.tex}{\clearpage\appendix\input{appendix.tex}}{}
+\end{document}

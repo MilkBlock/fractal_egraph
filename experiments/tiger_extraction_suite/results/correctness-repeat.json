@@ -1,0 +1,3756 @@
+{
+  "purpose": "Correctness-only receipts from the preliminary run. All external timing values excluded.",
+  "manifest": {
+    "binary": "92386ace69445946b158117c7eeb3763e16f53037197d24254ca463a744e8355",
+    "native": "36a27dee2c0bd09afaebd93d3eac8672b92c630f63ce0d6083606f453a9a6d5f",
+    "candidate": "dccf2803c4b63db317c08893697c1bb78df5c3fcff6c7d83e3cb6c6c3771ee27",
+    "inventory": {
+      "bril/core/ackermann.bril": "ab29afbf2c3c62c7961e94b25021d6a82123790e6db9c00b92ba975012c7f1ac",
+      "bril/core/armstrong.bril": "44b6be189e12c18e0f9a50a092144830cf8df64349f0b48d8e245d3ef212fa0b",
+      "bril/core/binary-fmt.bril": "f55a9b6a9ee727dd4ce5082d607ae89cd985ac1bb97301208d9386695213d443",
+      "bril/core/birthday.bril": "b8026093ca1c69f712184ae19d71cac7428137ed846b64007006e9a7b464f1c1",
+      "bril/core/bitshift.bril": "37d7f1ae4ae48946011b531bceb86e4c02624b2cefeb36c2c63bcb1cc963e18d",
+      "bril/core/bitwise-ops.bril": "4d4c7e6f73833b68bb17aebff214241a7ec3641a13ba1a768e1011c968bb856f",
+      "bril/core/catalan.bril": "9bf62799a1c451a3c9d04c46e031b12d2e471f6d47b6471e2c8b6bd141614291",
+      "bril/core/check-primes.bril": "e5d4a456bb0ad3b0c4a415674f9cfeed04e3f7c3550bf03e5895e236eb4a32f8",
+      "bril/core/collatz.bril": "00bf0f385e2bf40f0b826fb079ab290a64f17d657c99219bc099c28dc7fc4173",
+      "bril/core/digital-root.bril": "003ba9262f42422c620d3c69b47f1435e821a6c487225b2fbb86d680755f6ee6",
+      "bril/core/dot-product.bril": "fb43092b0b8b4be2280c5640c048ef6cceba3d0eab1d86019dfc2096b9209646",
+      "bril/core/euclid.bril": "0480a34274827dab3208dc5322fc52be709a355d567b81dc7945e3904c2b6160",
+      "bril/core/fact.bril": "27ae13958d4af1f3712ade10c9c0ed6e7f110a7e33888f8b845f00b07841c702",
+      "bril/core/factors.bril": "0521593dcc7d60fc3f9e3c851074b5d74822b16fcc38a3f2205f0846e54d2612",
+      "bril/core/fitsinside.bril": "ba6c8590bddaaa84e38e00527b8f9c8bf2feb0e8ca0db8eb412cec6dfb17f0c1",
+      "bril/core/fizz-buzz.bril": "d779cd2e50cad713b9664944909eee7fbaed6fd5c348f15106f3f896a44a4d68",
+      "bril/core/gcd.bril": "e495e15ccf100deadfd7bf8e2a485db0f89780421817e96bc422dd1a5dc97857",
+      "bril/core/hanoi.bril": "0e3493635a36193fd9cc2e202e72da61319a92b9ee591d86fa913c1afe4482d9",
+      "bril/core/is-decreasing.bril": "fbced05b131a39c3757c8d65f2e08f4137d93616530d7864a982460befbb88a4",
+      "bril/core/lcm.bril": "858791f50dd527ec92b0db40cce359ff38625a18270e59eee85534664287d657",
+      "bril/core/loopfact.bril": "8c0a58e3d60d8d750bdc963e8d07fbbc98f6b9182ba9fd128e5406cbc4b20655",
+      "bril/core/mod_inv.bril": "fa42f7eae4f45a2ff60ad097cf41a67bba321366537acba05ca88fbfa28edae3",
+      "bril/core/orders.bril": "985d48a7412e5275ed0ed3d5671b13fe9012bd8fbe8d2770eaacf3792dcfea6f",
+      "bril/core/palindrome.bril": "0b13c07fb6c368e7f04b305cc6d4f2bd574c635e7c3337883477ad4dab8b9c68",
+      "bril/core/pascals-row.bril": "6edc82d0dd6a55f2274948f3a5ee61da1350b186efb84b33a3cfa79d1ce3298f",
+      "bril/core/perfect.bril": "2e53f6d610add5d7e69448f9e8e6e8d410e98aa2e61d539790734b367a1b080f",
+      "bril/core/primes-between.bril": "aacd943d309029ce8c3381868365db1d57bdac3f3606d24e81e882423118c1e4",
+      "bril/core/pythagorean_triple.bril": "a439e9330eb37bd5f779e6d99e8744e6c47c8a3bd246a566a6e65e2d4499de43",
+      "bril/core/quadratic.bril": "db4d7ce9325e91149bc1e2b7ed86baf8edf4511232140eae077b919c4a9020ec",
+      "bril/core/recfact.bril": "539e81485bcc7756b462897a7223f6c309eb888179e74b3472fd0c4f3d47a54a",
+      "bril/core/relative-primes.bril": "2992be6004bf9f44fa32bab6f67c366b8b250980d6c550f1fd2fc67eca2a8276",
+      "bril/core/reverse.bril": "c5a5b2e8f6880ba2168e633ca8bc6dfeec219432c2e212b4b64eaae4dc4be201",
+      "bril/core/sum-bits.bril": "6faf80f228e5d80e1868a9e84a7b73d8779d820aff67d5de5e43616f6111983b",
+      "bril/core/sum-check.bril": "3092e6a49ac0ef35bd3074fdfdc7c4a60cfb597cc035dc209a424168d1d53bc0",
+      "bril/core/sum-divisors.bril": "31d42c1277f8990baa2561cddb34c41a94f1bb7bc3caf5e6db5086391b89f085",
+      "bril/core/sum-sq-diff.bril": "5d83dfb2b7afd01bd7ba260d41a413ed7d5e5cae26f815c30ef9242219a438f2",
+      "bril/core/totient.bril": "b00c53cf2e04d6c82cbfe4e7ea26d761e301967c9d9e835f4d1378cf6a783871",
+      "bril/core/up-arrow.bril": "feb725d8d5b72c64baef435c140a5ca708efda19ba66c53bf8e6c2d18dd6ca6c",
+      "bril/float/conjugate-gradient.bril": "af917c7a14d85890b18a0dd6f1cde4e6b6a7cd1f30a96804b61bc949a1b39775",
+      "bril/float/cordic.bril": "9614581c0d5e914ccd6927bccc242edfe2fcdb5b5fae0049c935095b795079bd",
+      "bril/float/euler.bril": "06d4be588cd488e95f8a6167f10447648bfabe2c647d419c74cef2666d8a9241",
+      "bril/float/leibniz.bril": "7374653204cc1316d9bbb97aebaa4c7da8ae22280a0973ad8d758e31f1206658",
+      "bril/float/mandelbrot.bril": "f5e9581a238762db16d3d05df17a0a7c16757cf47e2075bf091e4ec08c53f989",
+      "bril/float/n_root.bril": "3a39352256532c43fd19cc21f2fcd4fb73493966a822233ff74720a263a278c1",
+      "bril/float/newton.bril": "c9085e7e32a3a65ac940acda11a3cceea7d119e0f4ae96b609f4d3447b2da887",
+      "bril/float/norm.bril": "193ff0db0bd5f80346d796a79dceae7f4dad60a89ef14386690d060c6b03abf5",
+      "bril/float/ray-sphere-intersection.bril": "da10723cc2e481a29b43a183149b816cdfb296479658985c109b8750befcc837",
+      "bril/float/riemann.bril": "1b838468114059b1a6895d0c097a4cb602de268abacc83706556c53890b5913d",
+      "bril/float/sqrt.bril": "6f4397f36f5ffe982905974558196f6f623e2f97361f3963b06d0728f26acfa6",
+      "bril/long/dead-branch.bril": "0b1789240d45b1a3db397588e9079ed61628eebf0033c9ce39c72d60a67fee03",
+      "bril/mem/adj2csr.bril": "59013758da9908aed3c762ebe5fd20ae1ef501e038af6cd907143b252509ac32",
+      "bril/mem/adler32.bril": "e5e2225a71894310936568453a8247cb5ad4aed6c773270762b8b9ab7ef12043",
+      "bril/mem/binary-search.bril": "360857cde5c851270fdf2edfab37811196e9225b68512ed529e386816075042c",
+      "bril/mem/bubblesort.bril": "f95aea6374f2098ef056b058aa11f69bb435811918b43bf8750e7d30684876ec",
+      "bril/mem/csrmv.bril": "76cf4d2131c15eceab7e9ebd98240e781bb3b6fb3e5201090d6e617d3b8a32af",
+      "bril/mem/fib.bril": "431a1756c32fd2a7af2afd26197f8ddd910f349916fc609ed6cc02429c2fb187",
+      "bril/mem/major-elm.bril": "48d89418a6944470d62a19bcbcc4d8939a43355f707debaf485cb32f9d706713",
+      "bril/mem/mat-mul.bril": "c17a0761b639544ad5ae31dbd7cc404c3ac0e5f02ce898c99ea5051185de990d",
+      "bril/mem/max-subarray.bril": "a4ea6cfafeca1f418045e477f05e262ed1cfdf0e5845b59fb86091224529e3f7",
+      "bril/mem/quickselect.bril": "90c535d6bc246ae42965e57d1ed37fdf6fdcd7f812ca1d43839fc78a251689ee",
+      "bril/mem/quicksort.bril": "d26daf8217f8b98de1d2745a3bab9ae266d4f483f4d7e32dbc5a11c096c61228",
+      "bril/mem/vsmul.bril": "e8ab448a85e9a6f736e1c44cbdc12f96ffedf8b33e16e2bce5ffa974635d96f9",
+      "bril/mixed/cholesky_decomp.bril": "2652a89bdace6323005ed21d0bc90ac7083f50e4397de6881c66d50309078f0c",
+      "bril/mixed/mat-inv.bril": "a44bdc9bee53daa5a639156ede626ce61a06f01e2cee85d6be2611001faf7d6d",
+      "fenwick/fenwick_tree.rs": "eeccd2e4ca66f1b3ed2d7e4c73ad19cef55d22c5861b9b9c87a63a55e179309a",
+      "polybench/datamining/correlation.rs": "ec5de7f01318d9cc0a60586da1cb17415add6375839c86025a2a9a960e866c3c",
+      "polybench/datamining/covariance.rs": "5f18b91b817d03839db04439b781bac3ab63698103d27d0b9193540e2ca2ea53",
+      "polybench/linear-algebra/blas/gemm.bril": "b515be1f149beb59bc36a90ce3b1ee7306c1067531efe0d52e1d9d1bb581faf4",
+      "polybench/linear-algebra/blas/gemver.bril": "c87ce858ff941ce287f9ddff4cf6574e2f814ad4ab0d6a62b18e62d3824ee614",
+      "polybench/linear-algebra/blas/gesummv.bril": "013290bfe41358707e47032fd39adcd13c80a275f6f67bdad6d5e94df9ae371e",
+      "polybench/linear-algebra/blas/symm.bril": "7a0f461583fcc1b5e3f5cfd22a28d9ea6c227bffe464691dd7245da57a3b7bc8",
+      "polybench/linear-algebra/blas/syr2k.bril": "0902e856dc8ed8c455ddcdd0e6dafd4e89bb3640ba38249673bdf8af43586ae7",
+      "polybench/linear-algebra/blas/syrk.bril": "2d4f1f5f8f3e7edc0ff3024d88a75fe10499c8a23e7e8990ac518c1ab8e59c68",
+      "polybench/linear-algebra/blas/trmm.bril": "4a6c824a6017080143739725327cd95f550b9ca65388864b2b37905e8d7c3ef1",
+      "polybench/linear-algebra/kernels/2mm.bril": "16b45c7612d32bdac652cb41615c5305a10491e3788b5fa36e0f94e8f2d349df",
+      "polybench/linear-algebra/kernels/3mm.bril": "1cfd09d54aa051f8e58a5d65a4391fd25e8bb96f39998e4b5fe8453d90559967",
+      "polybench/linear-algebra/kernels/atax.bril": "25b10ce5cf9923fcc71fcc786c5291420fc8b691d7947fdfc25dad23b9215356",
+      "polybench/linear-algebra/kernels/bicg.bril": "4ded0c3edb336d95d706b2ecec7856f67f2edcf46a966076dcae9d09efe012f4",
+      "polybench/linear-algebra/kernels/doitgen.bril": "5372ba4854fbf4960802737dc98de7c22a3a706d438b82158a19bed60f2648d6",
+      "polybench/linear-algebra/kernels/mvt.bril": "d2130b3ff700ffa19b6aa9b8a45aef007fb5ab7b3c6eb36480524295c8cbcd6c",
+      "polybench/linear-algebra/solvers/cholesky.bril": "2c4add669376f98e3bf2655b82ba02b642575bdd48d2f0653a80809233f7f979",
+      "polybench/linear-algebra/solvers/durbin.bril": "fbdf902938b69ac97d1c79fb5bb18b082a68b102651f3c5bb3897ec3a7d73415",
+      "polybench/linear-algebra/solvers/gramschmidt.bril": "a7519cb73215ef0b3e7d8f320c3cebcbd486e6b447c9ccbde66f5f425ee13d42",
+      "polybench/linear-algebra/solvers/lu.bril": "a22cf2c7a412b9e5393f1e70886a5b4d83467fede0e5719fb9f3f0ca9aeda9ee",
+      "polybench/linear-algebra/solvers/ludcmp.bril": "acd0a1e58b8b409fbf173173fb645fc8a79f4e934b7f53057dae6ed90ee5c620",
+      "polybench/linear-algebra/solvers/trisolv.bril": "c8d9b6a2f7103d072c5e391c34838f11a19885f2111633c230cabc8049da0591",
+      "polybench/medley/deriche.rs": "3b171c9061179cfc1da3200f888b09c6fb6c8229b60cbb61b791a40141023790",
+      "polybench/medley/floyd-warshall.rs": "9ccbaa796ba45c31e037b41e21d53834f0f2bd46e0b47f2c623a4231f09bdc5e",
+      "polybench/medley/nussinov.rs": "4763e83130f6e38c288007dc33ec12809916e9580eb1a57dd2c52254026b3132",
+      "polybench/stencils/adi.rs": "a9a936a319813f1c56255dac1f26f34835494c59d698bce4b0a45a7fdb83d6a5",
+      "polybench/stencils/fdtd-2d.rs": "c2d864f1495da1d4b15c81bb33412eb9366dc2aa76823664dde3725a74844779",
+      "polybench/stencils/heat-3d.rs": "101d09383570c213bff217bd33b4ef6f6afb1a23b1d822181c8fa29c4d22b8fd",
+      "polybench/stencils/jacobi-1d.rs": "a17b36a69951b55cae822ad0fe2677ed731451cb8d283d49490f3582f457b83e",
+      "polybench/stencils/jacobi-2d.rs": "4542fb66a28b9551690727505e50fd49923ffea1242d7bf37f3b3fb44bd528ad",
+      "polybench/stencils/seidel-2d.rs": "8719af9852363c2095627c4da9a07bdd0bbde37a0558ccaa48976d6f54376baa",
+      "raytrace/raytrace.rs": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22"
+    }
+  },
+  "cases": {
+    "bril__core__ackermann": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "9ddca08667505b0b09a1aa6d80e04c05b0bdd447bd6276e5dbc3639de986aa9b",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "490b891bd0adf3a4061531cb791d743c5f12e4b1b5bc308c4a07f176eda8a7f3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "d02939a37bde0b967f70c479d9259da00f0c705e72179772f8c150e0f1fa78c8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "734fb55cd2a31ba5230c1038914f7e13039b6de4fcb0cb62490f88ae5d152c66"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "9ddca08667505b0b09a1aa6d80e04c05b0bdd447bd6276e5dbc3639de986aa9b",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "490b891bd0adf3a4061531cb791d743c5f12e4b1b5bc308c4a07f176eda8a7f3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "d02939a37bde0b967f70c479d9259da00f0c705e72179772f8c150e0f1fa78c8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "734fb55cd2a31ba5230c1038914f7e13039b6de4fcb0cb62490f88ae5d152c66"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__armstrong": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "1153cd6f08cafada4876b0dfef00e09b19e26f38929873d515fe560dc016c321",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "cc8d32dedcb3fdb8e9ccc033160233c7fc7e1e2d7e62485f5a0958cf56a44ea3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "6001eded1e9201cb396715b7fdc3200e051d57efb2ad0a71eaca7029b11c640d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "4c9b88d65f26e68852261244573b7526d747fcfe6b62d345b0cd226b360a7d9a"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "1153cd6f08cafada4876b0dfef00e09b19e26f38929873d515fe560dc016c321",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "cc8d32dedcb3fdb8e9ccc033160233c7fc7e1e2d7e62485f5a0958cf56a44ea3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "6001eded1e9201cb396715b7fdc3200e051d57efb2ad0a71eaca7029b11c640d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "4c9b88d65f26e68852261244573b7526d747fcfe6b62d345b0cd226b360a7d9a"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__binary-fmt": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "958797ef2e7653aabaab591e8ed93cef8be62007a0d8d31fcf078f70ab1f6acb",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "aa3153c4ed9adada4f341e97b5b880569525f15aa90e0acf84ea1f634256aa0f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "609bf12cd469bcc491e3702aac52a57c4c56bc5fc4941a54bbc3ae637357c9ca"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "ef0545cd4d23a8eab49f1c601e4431aeab0138ff9f8c8734e2924d1be0a9762a"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "958797ef2e7653aabaab591e8ed93cef8be62007a0d8d31fcf078f70ab1f6acb",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "aa3153c4ed9adada4f341e97b5b880569525f15aa90e0acf84ea1f634256aa0f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "609bf12cd469bcc491e3702aac52a57c4c56bc5fc4941a54bbc3ae637357c9ca"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "ef0545cd4d23a8eab49f1c601e4431aeab0138ff9f8c8734e2924d1be0a9762a"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__birthday": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "00e21575cb934907a6bb0e4e27419e513dfc52c26cd94edc72c8cfeb34818d40",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "ba7b5f8d8707ce48ccb3bd018bb8aca7fc14367c7442b8334a31d2a255a1b611"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "2ff9834a8827c23b79ef16032e26123490ded9fdf5977b0887d94ddc06a1e5ae"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "eae3f5c0c41d53ec2a0336c828a4fc4a33e3d88b9c84d690d58b3373430ad87a"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "00e21575cb934907a6bb0e4e27419e513dfc52c26cd94edc72c8cfeb34818d40",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "ba7b5f8d8707ce48ccb3bd018bb8aca7fc14367c7442b8334a31d2a255a1b611"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "2ff9834a8827c23b79ef16032e26123490ded9fdf5977b0887d94ddc06a1e5ae"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "eae3f5c0c41d53ec2a0336c828a4fc4a33e3d88b9c84d690d58b3373430ad87a"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__bitshift": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "c30ef9f60f3b88a60c0fd85371bf65f1e7b2f4b671ca8681718543ea9fffd2fe",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "5cb6321a91c05b9c8519a8a894aae4c9a67cb2444354dfeb2d764ec5dec85234"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "d1967c628092e965548722c9a9be1fdaa8ee35deb22e36a4e1a330fbb575e39a"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "f5200e3f5a7ca12879b4c632de9850a38196550fec2740f42911297524dd5010"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "c30ef9f60f3b88a60c0fd85371bf65f1e7b2f4b671ca8681718543ea9fffd2fe",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "5cb6321a91c05b9c8519a8a894aae4c9a67cb2444354dfeb2d764ec5dec85234"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "d1967c628092e965548722c9a9be1fdaa8ee35deb22e36a4e1a330fbb575e39a"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "f5200e3f5a7ca12879b4c632de9850a38196550fec2740f42911297524dd5010"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__bitwise-ops": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "2a8a5d30b3eb83cd58a6c3b09e9907451121f1369fdfb94bc92cc87771522cfd",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "294fd58b9b1783ac424d89939578d2e3d91174a1a00ba2865003f98c4a3b9fc3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "40b2c383728dc92eb140194e35dd353bb12133b16e87a93d0914530851f4f330"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "ba330e3531603778289c63a70abd8d29c58079c3767e570d5991f5684eab72a3"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "2a8a5d30b3eb83cd58a6c3b09e9907451121f1369fdfb94bc92cc87771522cfd",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "294fd58b9b1783ac424d89939578d2e3d91174a1a00ba2865003f98c4a3b9fc3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "40b2c383728dc92eb140194e35dd353bb12133b16e87a93d0914530851f4f330"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "ba330e3531603778289c63a70abd8d29c58079c3767e570d5991f5684eab72a3"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__catalan": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "33f8729d7ab420bb8da1d0921268a5d57bfcb7bbf00dedfb36225031c9a2920d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "919c50bf6a7b6280aaa865c1a6a457e63cb6b538d19e70edfd24b8a0153d8652"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "473d0de4dd387ea55495a411c6ccd596e912324fd79b76002ab07daadf1ffac5"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5beaa2ba7483f6fa077cd6d528e415dfa6a952031e7a7b8eaf08df012262a6de"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "33f8729d7ab420bb8da1d0921268a5d57bfcb7bbf00dedfb36225031c9a2920d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "919c50bf6a7b6280aaa865c1a6a457e63cb6b538d19e70edfd24b8a0153d8652"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "473d0de4dd387ea55495a411c6ccd596e912324fd79b76002ab07daadf1ffac5"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5beaa2ba7483f6fa077cd6d528e415dfa6a952031e7a7b8eaf08df012262a6de"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__check-primes": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "0e01eff257f203d8baf1ef30da1fe9e1223849327cf7c34fe978254cad5e8797",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "80a485367619dea02c0362da3d9e15bddcdaa978d76991c03d8d2b77755b5921"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "38d97d9d7d42833f9b5cd5b377219025905355ff084829c88c2818ea1d606096"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "7033359fd0cb451dade88e7911f0923498ca102f5b5d501f4523c165e80bc1a1"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "0e01eff257f203d8baf1ef30da1fe9e1223849327cf7c34fe978254cad5e8797",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "80a485367619dea02c0362da3d9e15bddcdaa978d76991c03d8d2b77755b5921"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "38d97d9d7d42833f9b5cd5b377219025905355ff084829c88c2818ea1d606096"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "7033359fd0cb451dade88e7911f0923498ca102f5b5d501f4523c165e80bc1a1"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__collatz": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "d6c8efec2c1805f80c03d15d2176c6b7ab72e21b331fe965cc72d3df481d875d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "13f6baf757ce22297426561fdd71654a15ccf322d95d6d8a71fd3d2f1e3e0921"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9c608726c38048b3e586abd0832ce7362e9362452ed5c5d739ba2cf70f6c8561"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "6b5ba39b4fab40f705ef4d75dd8781dced4cc4c1395dd14f584032515935a686"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "d6c8efec2c1805f80c03d15d2176c6b7ab72e21b331fe965cc72d3df481d875d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "13f6baf757ce22297426561fdd71654a15ccf322d95d6d8a71fd3d2f1e3e0921"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9c608726c38048b3e586abd0832ce7362e9362452ed5c5d739ba2cf70f6c8561"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "6b5ba39b4fab40f705ef4d75dd8781dced4cc4c1395dd14f584032515935a686"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__digital-root": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "1ee7dca66bd9fb321247b0b51436f58288715d7c09e523c5e568bc081b509f73",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "cc212152567e1fe8b06467587172eb6340c39cc010accd781421c70558d4f3cc"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9408521e8e8a878046ea3020caaf006ec03de83c89fc1be75f62e349ca53d61f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "1ecb7e8a1c5fea0d40617d07f40704e9e7277fd79aa308a44fa9178198bbe48f"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "1ee7dca66bd9fb321247b0b51436f58288715d7c09e523c5e568bc081b509f73",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "cc212152567e1fe8b06467587172eb6340c39cc010accd781421c70558d4f3cc"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9408521e8e8a878046ea3020caaf006ec03de83c89fc1be75f62e349ca53d61f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "1ecb7e8a1c5fea0d40617d07f40704e9e7277fd79aa308a44fa9178198bbe48f"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__dot-product": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "f6aed25dca76528b8180387172999905ac1a4b8314e4adc74a1aa31b504c1d22",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f945eafc8884e9c0231f705637c5cdf709991c57829a30b83d08215465a14bbc"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "af3072afd66bd3e96e8fcf96697139a5475e2defac61bdfcb847882c5c256b39"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2262a2e5e80fac59ec2cb42a7ec314dcf641a22de24f1180c7bd3ec470d10c60"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "f6aed25dca76528b8180387172999905ac1a4b8314e4adc74a1aa31b504c1d22",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f945eafc8884e9c0231f705637c5cdf709991c57829a30b83d08215465a14bbc"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "af3072afd66bd3e96e8fcf96697139a5475e2defac61bdfcb847882c5c256b39"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2262a2e5e80fac59ec2cb42a7ec314dcf641a22de24f1180c7bd3ec470d10c60"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__euclid": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "2fc95b21201600b27e051911bc700fdaef70f6dca26aa22c2aacdc384d2e4cbc",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "a5dc320e3e322b1c38bdf25629e7e147378811bd96b864a0f4890895226bc7f3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a59cc0787091b778666b5ab4cf6a70d8041a0bf5f228b0106fd485f459e70014"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "9fa3cb021c17cf540e9105c0e5a2e21eaaf7748942dfcff2ad162b6076af9078"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "2fc95b21201600b27e051911bc700fdaef70f6dca26aa22c2aacdc384d2e4cbc",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "a5dc320e3e322b1c38bdf25629e7e147378811bd96b864a0f4890895226bc7f3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a59cc0787091b778666b5ab4cf6a70d8041a0bf5f228b0106fd485f459e70014"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "9fa3cb021c17cf540e9105c0e5a2e21eaaf7748942dfcff2ad162b6076af9078"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__fact": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "814451bab94e91e720a994d5aef08fbe678a9a9b40a7ca10030018a6b48a460d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "e590bec23f3a37638c6c6756f354053cbacfea1da68e5e35fee900ee0f484dc2"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "fd65c98794f5cfa58653ab918aea7356b57bd852ffdf726fefdfcfebbce7934b"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "fd194d813b0b6470e0a5995ff3d1ada27348d7e01ae6f176e8ff9773475ce41d"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "814451bab94e91e720a994d5aef08fbe678a9a9b40a7ca10030018a6b48a460d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "e590bec23f3a37638c6c6756f354053cbacfea1da68e5e35fee900ee0f484dc2"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "fd65c98794f5cfa58653ab918aea7356b57bd852ffdf726fefdfcfebbce7934b"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "fd194d813b0b6470e0a5995ff3d1ada27348d7e01ae6f176e8ff9773475ce41d"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__factors": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "b73fce3d49e4ebd805d491ad3ad1b6e6aba50737e17396fe09bc155ea36f472d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "06d757939071ba50fdf581b1b9451f91f885cc69a03903b0b5693b04366ac0a5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "dc3702fc53f1dc6ba27914066f6069ed6860112ab4b57542b916374bb8543087"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "68f641fa01df47b3f60189178510f120b477bdfdbea0a99ad948051fb8d3d7f5"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "b73fce3d49e4ebd805d491ad3ad1b6e6aba50737e17396fe09bc155ea36f472d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "06d757939071ba50fdf581b1b9451f91f885cc69a03903b0b5693b04366ac0a5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "dc3702fc53f1dc6ba27914066f6069ed6860112ab4b57542b916374bb8543087"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "68f641fa01df47b3f60189178510f120b477bdfdbea0a99ad948051fb8d3d7f5"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__fitsinside": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "216ce848d1aeda496ae2d838f4195d50d6efe5953dd5835b0514a8fb1feb8321",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "d0b2332ce96d6f3816e2ba0cc1e4c6f65c1d2806a60597de2eca353c9ba01b70"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "39020591d26a9ac6ad6ffcc9c0594197bd067ff0b4b62a7b9de4bf6ccca77fb8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "05c81a24fbf2f6c5eb399686ed42be2f9a83c3c5f9f64a35d826a682c094cb36"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "216ce848d1aeda496ae2d838f4195d50d6efe5953dd5835b0514a8fb1feb8321",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "d0b2332ce96d6f3816e2ba0cc1e4c6f65c1d2806a60597de2eca353c9ba01b70"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "39020591d26a9ac6ad6ffcc9c0594197bd067ff0b4b62a7b9de4bf6ccca77fb8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "05c81a24fbf2f6c5eb399686ed42be2f9a83c3c5f9f64a35d826a682c094cb36"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__fizz-buzz": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "fd0afae70d3d733a5d0400e013b05c3c9c391e027765389600ec29ea3bbdb01f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "50d05861d778a8ba763a5d7c2effce9275e2afd6108a0d1d54e7944235442494"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "13b8ca953b68e9046db5cb2426cb6257fccf6f0f27100670c0a566e586b65707"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "a5440822718b5faa0ceaf03e33159c0cc033a63a8cea982af497e7965d40ec13"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "fd0afae70d3d733a5d0400e013b05c3c9c391e027765389600ec29ea3bbdb01f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "50d05861d778a8ba763a5d7c2effce9275e2afd6108a0d1d54e7944235442494"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "13b8ca953b68e9046db5cb2426cb6257fccf6f0f27100670c0a566e586b65707"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "a5440822718b5faa0ceaf03e33159c0cc033a63a8cea982af497e7965d40ec13"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__gcd": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "aee9b8d57a76f12cf3281c2eb29b540a819e332f756b3c6c3bf333945acb6278",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "3f3ef7e4272c34fdfa1e79e665206dcc5fdbf49f9c73de4cab6d5aac088a84de"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "eb2192309b18e8787e09fa1249e9774f9a42ddf7dc719aed8fc4d04b3ee4f87a"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "f2f9d0a3ad0d01a9baf2c77920d1e4fb1617fe40a224a39c121791d37fa8fa6f"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "aee9b8d57a76f12cf3281c2eb29b540a819e332f756b3c6c3bf333945acb6278",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "3f3ef7e4272c34fdfa1e79e665206dcc5fdbf49f9c73de4cab6d5aac088a84de"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "eb2192309b18e8787e09fa1249e9774f9a42ddf7dc719aed8fc4d04b3ee4f87a"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "f2f9d0a3ad0d01a9baf2c77920d1e4fb1617fe40a224a39c121791d37fa8fa6f"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__hanoi": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "e81f27772645f73b98ca4188793b14fb87c3b0bb3f9f6c2c33cbe5933f7a3681",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2d190c3c792c2ecf4fde72026a8852b434fef15c28f2704b436e42363ef63d74"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "6f4a9586d61eed6603ed9e56e8305de9cd5b0e0c74ac030398a06c97a85645e8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "d5acf537a2a6a85176e7a17f60b7eefb58bffeda7bc312515121eca77523e41d"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "e81f27772645f73b98ca4188793b14fb87c3b0bb3f9f6c2c33cbe5933f7a3681",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2d190c3c792c2ecf4fde72026a8852b434fef15c28f2704b436e42363ef63d74"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "6f4a9586d61eed6603ed9e56e8305de9cd5b0e0c74ac030398a06c97a85645e8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "d5acf537a2a6a85176e7a17f60b7eefb58bffeda7bc312515121eca77523e41d"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__is-decreasing": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "222c786c9ce0fc7531dbd09f5cd6b28c431b434ce226bd05f84526fdef0e773a",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f5024906b1dd7c5e9f8b3b386ba9e7bd5bafcf5f98394d6f318f7052a3973faf"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a723839ddb3e5217e4c81ca2c67be9e88ee19817d46571931284467783018283"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8ae7b9b4314dcd675742ff734170b39b8689daca7734634d6160ce6d5bf90e47"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "222c786c9ce0fc7531dbd09f5cd6b28c431b434ce226bd05f84526fdef0e773a",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f5024906b1dd7c5e9f8b3b386ba9e7bd5bafcf5f98394d6f318f7052a3973faf"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a723839ddb3e5217e4c81ca2c67be9e88ee19817d46571931284467783018283"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8ae7b9b4314dcd675742ff734170b39b8689daca7734634d6160ce6d5bf90e47"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__lcm": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "ccbbc303111e58f3a287c492ddd6554c4a2706a1c89831a80adae12418e1bfad",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0801467dc6df88ad41139e79e16c98668946339ade295b24c86d2e3196af429e"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "f5b4cfed4b3ba948fc612741a9f8606a237b62f53a2d192656f74b65d335949e"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "54117fc4e99ec5949b1e87412f4f15931661b0199e2d7adba6911a5c1fa546f8"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "ccbbc303111e58f3a287c492ddd6554c4a2706a1c89831a80adae12418e1bfad",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0801467dc6df88ad41139e79e16c98668946339ade295b24c86d2e3196af429e"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "f5b4cfed4b3ba948fc612741a9f8606a237b62f53a2d192656f74b65d335949e"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "54117fc4e99ec5949b1e87412f4f15931661b0199e2d7adba6911a5c1fa546f8"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__loopfact": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "97ac2d8d97c71ebadcd78d04c3e86738ecc99a722630c7baaee9bfdc4624c4cb",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "d6c6864e9260ab55033c950f4ef935815086b870e30a8a6dfbca59dfa93a89db"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "d719cb50b3ae99c29b95331af9f29eb60e528db7735d5bc3e5f2c7cbb3770606"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c188fce35b5b3c3ee20dbb694d0722f576abe66c4d5195cc4fa8598a6e8cb1f5"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "97ac2d8d97c71ebadcd78d04c3e86738ecc99a722630c7baaee9bfdc4624c4cb",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "d6c6864e9260ab55033c950f4ef935815086b870e30a8a6dfbca59dfa93a89db"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "d719cb50b3ae99c29b95331af9f29eb60e528db7735d5bc3e5f2c7cbb3770606"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c188fce35b5b3c3ee20dbb694d0722f576abe66c4d5195cc4fa8598a6e8cb1f5"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__mod_inv": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "3f25f6f20b4477cb3aa36d8ca8c3904b255bb66aa19a1b2f5d2f401865ade9d9",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "45ffbe70ca62055b0a479758a43738785e64059bf0b1ff8f4ff9b65e2d70ea50"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9ea30f56f0fc79f683978f14ced82eaaea4f8cc6f8c79a7a48c0f1c6fe0a7531"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "7e746c8558e2f5d535b7bb597d4c5506805d0a5a616bf5b1b75d5626320b2d30"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "3f25f6f20b4477cb3aa36d8ca8c3904b255bb66aa19a1b2f5d2f401865ade9d9",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "45ffbe70ca62055b0a479758a43738785e64059bf0b1ff8f4ff9b65e2d70ea50"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9ea30f56f0fc79f683978f14ced82eaaea4f8cc6f8c79a7a48c0f1c6fe0a7531"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "7e746c8558e2f5d535b7bb597d4c5506805d0a5a616bf5b1b75d5626320b2d30"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__orders": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "1b715ce225cee0746208892bb3f5a6f7ed1ec331922411a1b77e0527f724743f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "600b490de9151e53220d53b84fdd20074ee8a14f92de5be55d42e4b325055126"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "28744cc45c7b0051be51ea1afe9df8885b2371c2cb3f94cbbba6e691c258e4ba"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "abcc64479a161c9d0ab76307c4d47dccecb7ef54cfbf1f3bfd8c0357ffb9a411"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "1b715ce225cee0746208892bb3f5a6f7ed1ec331922411a1b77e0527f724743f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "600b490de9151e53220d53b84fdd20074ee8a14f92de5be55d42e4b325055126"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "28744cc45c7b0051be51ea1afe9df8885b2371c2cb3f94cbbba6e691c258e4ba"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "abcc64479a161c9d0ab76307c4d47dccecb7ef54cfbf1f3bfd8c0357ffb9a411"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__palindrome": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "714a7b86b545da4c5ae6176922cc01693cd047502a6b31cd09d5c3e632f01036",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "3dca94038ef6aa056761f2337ce7c6a10fb81fa1387d24d22ceec6d088255ad6"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "61718140033a08f046f946af9f59d1c3bb459a8b00777ec2ed11dfcd580a96c3"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "50465c2c24e61d6149b33a0e0d8fcef9bb6429a837d5d7ea6fc6c9bc09d94caa"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "714a7b86b545da4c5ae6176922cc01693cd047502a6b31cd09d5c3e632f01036",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "3dca94038ef6aa056761f2337ce7c6a10fb81fa1387d24d22ceec6d088255ad6"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "61718140033a08f046f946af9f59d1c3bb459a8b00777ec2ed11dfcd580a96c3"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "50465c2c24e61d6149b33a0e0d8fcef9bb6429a837d5d7ea6fc6c9bc09d94caa"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__pascals-row": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "1248cfc652b4c94c642c7a30e273ba5cb62b7fa8550fe7b3a2aa94588231e0fe",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0b09e83d5efc881ff4d3721f9ce6b9aa085261e942cd13f464d7f241ec5c30f9"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "5b689a0b4c6e1737c7a683d66a72ba7a4470fd08c482d9bcc053a9949a7b2633"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "e3fd70c5beecb6f23b35b32f48c4d9656f611877ac04578897c187fd25709eb5"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "1248cfc652b4c94c642c7a30e273ba5cb62b7fa8550fe7b3a2aa94588231e0fe",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0b09e83d5efc881ff4d3721f9ce6b9aa085261e942cd13f464d7f241ec5c30f9"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "5b689a0b4c6e1737c7a683d66a72ba7a4470fd08c482d9bcc053a9949a7b2633"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "e3fd70c5beecb6f23b35b32f48c4d9656f611877ac04578897c187fd25709eb5"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__perfect": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "e38fdbc6cd7f6a930077503ab3e7df13ebe947712ee481e5c08741d2dd0eb628",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "fb2270b785b1cc7aa092554c7d33ce260fbc771ca296f7e391219febbef00b33"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "94f16a2a2a3497ebe62d6e0b7e1678bd77de937a7a9860199cf089e033099541"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2db2e252bfc64e2af23e2aaadf9338f38b92245bfeb72be9e47f39a66418ed74"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "e38fdbc6cd7f6a930077503ab3e7df13ebe947712ee481e5c08741d2dd0eb628",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "fb2270b785b1cc7aa092554c7d33ce260fbc771ca296f7e391219febbef00b33"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "94f16a2a2a3497ebe62d6e0b7e1678bd77de937a7a9860199cf089e033099541"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2db2e252bfc64e2af23e2aaadf9338f38b92245bfeb72be9e47f39a66418ed74"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__primes-between": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "66eac33f9530738acee6ad6596484a39bf34a38155b2dafbee077afb3511726d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "c643639e413bfcd6fc63fbf85f40022a69b6a9a230a4895f5a823db64bf2f519"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "7ca51d764b07a2788dc2b2d1871fe538b49a2aee812b5f04000f8b792c3b1a33"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "daee9f167105edb36c5d8553f71e050135dfb9023a164997a2aedbc0656106d8"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "66eac33f9530738acee6ad6596484a39bf34a38155b2dafbee077afb3511726d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "c643639e413bfcd6fc63fbf85f40022a69b6a9a230a4895f5a823db64bf2f519"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "7ca51d764b07a2788dc2b2d1871fe538b49a2aee812b5f04000f8b792c3b1a33"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "daee9f167105edb36c5d8553f71e050135dfb9023a164997a2aedbc0656106d8"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__pythagorean_triple": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "615895f45bcf6f96de8b056aec04bb5aa847b97161cdc25c2e02cba3cbed99b5",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "76ac0c903561920a87b21a6283b29872846eac492d309149c6bcd36bd410aad7"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "26d0745149632626a3b5df447c3cb372fd4302e5e96abfa728180738a0ed7e88"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "cb264aa12e322cfe1f60dc13f944cb9da91ec8239d39032a86bb3b99cf9b166d"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "615895f45bcf6f96de8b056aec04bb5aa847b97161cdc25c2e02cba3cbed99b5",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "76ac0c903561920a87b21a6283b29872846eac492d309149c6bcd36bd410aad7"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "26d0745149632626a3b5df447c3cb372fd4302e5e96abfa728180738a0ed7e88"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "cb264aa12e322cfe1f60dc13f944cb9da91ec8239d39032a86bb3b99cf9b166d"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__quadratic": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "ccc89be45101f51595bc9f6389af562e6da0f3ee9b38e146fd05cfbdac731bed",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "7dffed5449f6770b9e77980bca26cd4f9d390857b08f9127f9fbcc446f30bb66"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9abda77cbf661cbbd6b00c9f65809516a21fc5de38c87d0cd39ce8a448ec54b4"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "9406ff218adb06f1114218ef40e43e4f43faf2083a9c153cc4900459d6f42138"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "ccc89be45101f51595bc9f6389af562e6da0f3ee9b38e146fd05cfbdac731bed",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "7dffed5449f6770b9e77980bca26cd4f9d390857b08f9127f9fbcc446f30bb66"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9abda77cbf661cbbd6b00c9f65809516a21fc5de38c87d0cd39ce8a448ec54b4"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "9406ff218adb06f1114218ef40e43e4f43faf2083a9c153cc4900459d6f42138"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__recfact": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "46b3aea3258da832d532fbf53f391a852e669d6f7ac7d008bb0b606deb2016cc",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "b84d6fadd0db72ac9fc261cdebe02c3d6bc85e38d2df165b4f19f713ae072ba5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "538e8c50aaf684697b5b07e34d77e4f21580487e7861931d8054bb8f15a0de30"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2f6a2d9afcb89edd56c1bb964e2d848bcb14b327ab84d468dc1fd11cc12d21ad"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "46b3aea3258da832d532fbf53f391a852e669d6f7ac7d008bb0b606deb2016cc",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "b84d6fadd0db72ac9fc261cdebe02c3d6bc85e38d2df165b4f19f713ae072ba5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "538e8c50aaf684697b5b07e34d77e4f21580487e7861931d8054bb8f15a0de30"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2f6a2d9afcb89edd56c1bb964e2d848bcb14b327ab84d468dc1fd11cc12d21ad"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__relative-primes": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "2c4a03822eff97cec070086927202fb0dbc0e20c0ee1e3e4b18acb3718bc5d61",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "16406f06096990273de412bd86c3dd3e63fb57d108c41d60b1b79272a81fb407"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c2eb3f3f501ce71c9e32822e977bed7ecdab3185cc92bfd43e4415fad715e740"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "77db6c39753056a00d1d104c2543133d3ab641349d3664eeffd58d4499b5fe55"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "2c4a03822eff97cec070086927202fb0dbc0e20c0ee1e3e4b18acb3718bc5d61",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "16406f06096990273de412bd86c3dd3e63fb57d108c41d60b1b79272a81fb407"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c2eb3f3f501ce71c9e32822e977bed7ecdab3185cc92bfd43e4415fad715e740"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "77db6c39753056a00d1d104c2543133d3ab641349d3664eeffd58d4499b5fe55"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__reverse": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "3aef7836062e9fced4041a3c45f4b3acfd2e75e13a055e32fa0110154a81aac6",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f6a8f64e61dc3a7182aac145cc7a04659ee8d2e0c0e6517759b70332712a8919"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "526af0484e6dd5a7557b3d6b7ab0b0aff0384d9eed84e0e46fcf15ac96a4b85c"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5758cb6aceafd1881ad12215db71f6ed59d291d8483f832ec24ed76cce35f89b"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "3aef7836062e9fced4041a3c45f4b3acfd2e75e13a055e32fa0110154a81aac6",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f6a8f64e61dc3a7182aac145cc7a04659ee8d2e0c0e6517759b70332712a8919"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "526af0484e6dd5a7557b3d6b7ab0b0aff0384d9eed84e0e46fcf15ac96a4b85c"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5758cb6aceafd1881ad12215db71f6ed59d291d8483f832ec24ed76cce35f89b"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__sum-bits": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "be7a13f9a7391e314d73c29ff545044f779783e5df37e582ce5bd0f9c249190a",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "cf9f53563f053d48582ecc407e11cab644252a05d2c611dab457b62ab4a1c680"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "35be604efb09450672f99b3aaa98b1c54ab14c16142afd56d175fb46d9a9d9f5"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c6c0120e96e423ae21bbdaef79c67461033ca4dc9139005801d7358a7b152d2d"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "be7a13f9a7391e314d73c29ff545044f779783e5df37e582ce5bd0f9c249190a",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "cf9f53563f053d48582ecc407e11cab644252a05d2c611dab457b62ab4a1c680"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "35be604efb09450672f99b3aaa98b1c54ab14c16142afd56d175fb46d9a9d9f5"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c6c0120e96e423ae21bbdaef79c67461033ca4dc9139005801d7358a7b152d2d"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__sum-check": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "188db69c6ba78b7679c3b626d5f6783234301596c59e8a72cd16e6d20ebf6eb2",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "46c6202cca75708e0df32c61d728fe6eea0834f784ab3fd94809be504a355648"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "3fd12e2f4fdfeaf630c4f73a6369039d53528312fd5ab98a7c67e31513e7dc5f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5e819a30fed3fa712fe3d8554982722751c4c963a91db83bbf8f989fbca55a67"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "188db69c6ba78b7679c3b626d5f6783234301596c59e8a72cd16e6d20ebf6eb2",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "46c6202cca75708e0df32c61d728fe6eea0834f784ab3fd94809be504a355648"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "3fd12e2f4fdfeaf630c4f73a6369039d53528312fd5ab98a7c67e31513e7dc5f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5e819a30fed3fa712fe3d8554982722751c4c963a91db83bbf8f989fbca55a67"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__sum-divisors": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "a4a615a6866195889382e68d508b60d85643da8ce835a32811094ba8123ce756",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "ae781f490bf73b5f328da48d94b933c0288d09a781ff67347464c52bfa67a21b"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "41ca1217592845fc42b976ba9ffe901b3b69691a185f0f3d200f4189b97c9c91"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "25febc8be642a09733f08a6fe3c1c8c453b72af83cc3ec294e22f38ef47fa3e0"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "a4a615a6866195889382e68d508b60d85643da8ce835a32811094ba8123ce756",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "ae781f490bf73b5f328da48d94b933c0288d09a781ff67347464c52bfa67a21b"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "41ca1217592845fc42b976ba9ffe901b3b69691a185f0f3d200f4189b97c9c91"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "25febc8be642a09733f08a6fe3c1c8c453b72af83cc3ec294e22f38ef47fa3e0"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__sum-sq-diff": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "edd0b7c62a2dce7b61818185e8a14a2d2b5be1ff8a8eca5bd2fe6bcf02bfcc4f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "b7886594ccffb3620527c5482b38c6c841b42ec94693e5cc5a92529af28a5006"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "eb9bb0b951b32e26ef078455136a3150a860d944d39af2691c07cc064a4e15ef"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "17d84335484862f4087a86c231ba284526c3690f17917b4d62332ea79f2dbe20"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "edd0b7c62a2dce7b61818185e8a14a2d2b5be1ff8a8eca5bd2fe6bcf02bfcc4f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "b7886594ccffb3620527c5482b38c6c841b42ec94693e5cc5a92529af28a5006"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "eb9bb0b951b32e26ef078455136a3150a860d944d39af2691c07cc064a4e15ef"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "17d84335484862f4087a86c231ba284526c3690f17917b4d62332ea79f2dbe20"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__totient": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "86c4a1fde4cf7f934a81589c8612b3ee7464090e25218bb8050f8a47d9502ec2",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "7229ead89193721e8227a70f008af0ca241fd32817d4477414458b06fe59b538"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "d3bcc3a7c3233cfe64c062289e66893e7ad1f3fda0dac34a642ba10562ebe732"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "d110912d7cccb45b0a3b4a8f85dd724db1b5613b71c61d8a4c1afdfc072e6fba"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "86c4a1fde4cf7f934a81589c8612b3ee7464090e25218bb8050f8a47d9502ec2",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "7229ead89193721e8227a70f008af0ca241fd32817d4477414458b06fe59b538"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "d3bcc3a7c3233cfe64c062289e66893e7ad1f3fda0dac34a642ba10562ebe732"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "d110912d7cccb45b0a3b4a8f85dd724db1b5613b71c61d8a4c1afdfc072e6fba"
+            }
+          ]
+        }
+      }
+    },
+    "bril__core__up-arrow": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "f2ff32684edf58da744b14cd8a26859f2297701244f7aa4d9a1afcbbe354e3bd",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "78fc3b1cc4063ec8460a9c05304fd431ab41434246997e86add57bd066ccfcde"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "3f4b4ff7ab935db8cc6461664d2ccc4294ac21be242dbb94954daa357aaa89e7"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "b9289af918b3a2e4a420faf4258ad927ccdd73c64ed1f103201a3033b0bd1bed"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "f2ff32684edf58da744b14cd8a26859f2297701244f7aa4d9a1afcbbe354e3bd",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "78fc3b1cc4063ec8460a9c05304fd431ab41434246997e86add57bd066ccfcde"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "3f4b4ff7ab935db8cc6461664d2ccc4294ac21be242dbb94954daa357aaa89e7"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "b9289af918b3a2e4a420faf4258ad927ccdd73c64ed1f103201a3033b0bd1bed"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__conjugate-gradient": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "fbb710e07b3bda5ebdb2077eba1e9603e4e3e79bed7912b7a904da07e6c6045f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "877a0140fd6ca22635dddb234846512b0f532417003907fb8341658051ed1e19"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9ac94907604ce8fd4dcdfe01e5d858678a0a37f091635195e3f1422b1fd06de8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "4850a87ff8b891acc1c6f2944f853b41fdfad6d6480fe8b390fa10fb4a5dcec7"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "fbb710e07b3bda5ebdb2077eba1e9603e4e3e79bed7912b7a904da07e6c6045f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "877a0140fd6ca22635dddb234846512b0f532417003907fb8341658051ed1e19"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9ac94907604ce8fd4dcdfe01e5d858678a0a37f091635195e3f1422b1fd06de8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "4850a87ff8b891acc1c6f2944f853b41fdfad6d6480fe8b390fa10fb4a5dcec7"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__cordic": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "b42bbd609d83ceb8c7f0da05abc188c45c43aec92c127cf430bafb591b07b593",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "133c1d9964cfef690d5267b610591d996c1fa6bcbea3639f3bdafc8220abf82f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "ce1f7bb9f780be809a8feefcdf8d8d5ad2f34b0c24f40d7160564b157a2e498d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "a50c27a18c87a0891f448f106ba600a3c25dbd1a300c06d49470d0871d6d14d9"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "b42bbd609d83ceb8c7f0da05abc188c45c43aec92c127cf430bafb591b07b593",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "133c1d9964cfef690d5267b610591d996c1fa6bcbea3639f3bdafc8220abf82f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "ce1f7bb9f780be809a8feefcdf8d8d5ad2f34b0c24f40d7160564b157a2e498d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "a50c27a18c87a0891f448f106ba600a3c25dbd1a300c06d49470d0871d6d14d9"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__euler": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "1eb7eef7e30f9a7df829015ebf08ddb0120f004f7cb573ea382030f39cf81e9d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0ebed19f1968efa295e5bcc4cc50c7a1fcdc4b9158c232c4ce7e1f9c60e2c8f1"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "5ad8ef4964f01e3c7ae3d8d81aa7c8b6fbc1a385c29f8aaef387915b318b1cfe"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "755a70f7d05973618e78a879d3c6bca198a8814a50a2392ba15cec95b2fecdf8"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "1eb7eef7e30f9a7df829015ebf08ddb0120f004f7cb573ea382030f39cf81e9d",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0ebed19f1968efa295e5bcc4cc50c7a1fcdc4b9158c232c4ce7e1f9c60e2c8f1"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "5ad8ef4964f01e3c7ae3d8d81aa7c8b6fbc1a385c29f8aaef387915b318b1cfe"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "755a70f7d05973618e78a879d3c6bca198a8814a50a2392ba15cec95b2fecdf8"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__leibniz": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "cd3f2fc4c08af0f49afc055ecade8601f78fad47825e9994b27241d53c87a9db",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "1030039437d0b0efe85e98468fbe126575ebe6b78dd4e995dab0ccf7d4ac2d44"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "67759f43c6713522e6357188208b2d71c31fcbf9c71634d7abf37417a188476d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "052af9c58ac30ba2cc5f5d5f521d2f39288154114089806fc482b5da4ff22abc"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "cd3f2fc4c08af0f49afc055ecade8601f78fad47825e9994b27241d53c87a9db",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "1030039437d0b0efe85e98468fbe126575ebe6b78dd4e995dab0ccf7d4ac2d44"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "67759f43c6713522e6357188208b2d71c31fcbf9c71634d7abf37417a188476d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "052af9c58ac30ba2cc5f5d5f521d2f39288154114089806fc482b5da4ff22abc"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__mandelbrot": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "165cd076d21c3fe00af2f6d5ead474939322e498de9931dedff565f9294acdc5",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "c30dd3aac6c21d7b35d2c22cf8630e7f9e0bcd840a642eaae4e970539c0a03da"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "830646dc6d2748ee7b358d23082ede026b4eec90fbb4651184a926b49745adb1"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "dedceb339e7aadd6627b2397e32c47298aa5560e47e55b2608ea9217f6f6a536"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "165cd076d21c3fe00af2f6d5ead474939322e498de9931dedff565f9294acdc5",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "c30dd3aac6c21d7b35d2c22cf8630e7f9e0bcd840a642eaae4e970539c0a03da"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "830646dc6d2748ee7b358d23082ede026b4eec90fbb4651184a926b49745adb1"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "dedceb339e7aadd6627b2397e32c47298aa5560e47e55b2608ea9217f6f6a536"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__n_root": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "f30f0b967ac9bccfbf73a9b8cd3473743034538f081330cce412acd017b348ea",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "dbd82c0749fc66d5582d9aa7a58af6cbcd57436afac0cf0fd448d3cf0cc2dc0a"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "34ca2dc153b665d1dc8001817a5e43a73d51ae7ed0764f0c277752c5095e5b4f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "3409b43b1c95d59575fcb756a4a8961bb7f9a1c9c0be42f29d648740404806bd"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "f30f0b967ac9bccfbf73a9b8cd3473743034538f081330cce412acd017b348ea",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "dbd82c0749fc66d5582d9aa7a58af6cbcd57436afac0cf0fd448d3cf0cc2dc0a"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "34ca2dc153b665d1dc8001817a5e43a73d51ae7ed0764f0c277752c5095e5b4f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "3409b43b1c95d59575fcb756a4a8961bb7f9a1c9c0be42f29d648740404806bd"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__newton": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "b338cb9c712b0502cdd6795771d210b0f62c68ebf0519f3bf4a155bac53a1742",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2f208eb04b9210b6ca82561f85fc9ca0da2fc1e453c57813d6093372d1fbc006"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "6ce671afe1c3aa336026f9c7a3552244133fb7f94989eee6d8d7b42cda4187b3"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "df20a0956119979fd47433407a92ee0b783f2765f0b0e247de8753117cbaff62"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "b338cb9c712b0502cdd6795771d210b0f62c68ebf0519f3bf4a155bac53a1742",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2f208eb04b9210b6ca82561f85fc9ca0da2fc1e453c57813d6093372d1fbc006"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "6ce671afe1c3aa336026f9c7a3552244133fb7f94989eee6d8d7b42cda4187b3"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "df20a0956119979fd47433407a92ee0b783f2765f0b0e247de8753117cbaff62"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__norm": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "8654f01def180f7e3ecc6da66bfe6d1ffe9dfc9929eba37c44e7027e3447419a",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "03c5227cdeab4156fbbbcf77a969d6ddba5ef982f228ff218f96c6ea69fca7a7"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "06ba90f008b8f84e5dece4ea8152655afbcc961687804b2dbbc1eeb189125873"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "6705cfb807a47c7dbecbe61cfe7acf0d05013765901a59d1d759effbd385750e"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "8654f01def180f7e3ecc6da66bfe6d1ffe9dfc9929eba37c44e7027e3447419a",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "03c5227cdeab4156fbbbcf77a969d6ddba5ef982f228ff218f96c6ea69fca7a7"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "06ba90f008b8f84e5dece4ea8152655afbcc961687804b2dbbc1eeb189125873"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "6705cfb807a47c7dbecbe61cfe7acf0d05013765901a59d1d759effbd385750e"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__ray-sphere-intersection": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "f37b9dfb874c294ca7783bff0d32138e3044d8bdab19fe58cd1270a61c3a0e99",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0c5feb67c71560a252f00a4a2043181dd927d5ea608a66ecc385156ded813845"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "0c5feb67c71560a252f00a4a2043181dd927d5ea608a66ecc385156ded813845"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c3e0d7c09e6c3a899c136dd6ea575266112934ab333468810b8a5a2d5d947373"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "f37b9dfb874c294ca7783bff0d32138e3044d8bdab19fe58cd1270a61c3a0e99",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0c5feb67c71560a252f00a4a2043181dd927d5ea608a66ecc385156ded813845"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "0c5feb67c71560a252f00a4a2043181dd927d5ea608a66ecc385156ded813845"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c3e0d7c09e6c3a899c136dd6ea575266112934ab333468810b8a5a2d5d947373"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__riemann": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "b22577b83f5273ea718f85a81f4dba2b740ccc5d97b5837f5063da4e009069c2",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "d6a5b018fc0b9400cf18404bf87be6b7f07191b33786bc8b01830effad1e987a"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9c638835690ca1b747426cc38865d24266d20109211915f8d0adeedd9a4bc5dd"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5f37450d300075aaa4e06fe889495b49d3868797569109e658092b0fab2e766f"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "b22577b83f5273ea718f85a81f4dba2b740ccc5d97b5837f5063da4e009069c2",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "d6a5b018fc0b9400cf18404bf87be6b7f07191b33786bc8b01830effad1e987a"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9c638835690ca1b747426cc38865d24266d20109211915f8d0adeedd9a4bc5dd"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5f37450d300075aaa4e06fe889495b49d3868797569109e658092b0fab2e766f"
+            }
+          ]
+        }
+      }
+    },
+    "bril__float__sqrt": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "0795c1ab5cdf24d90183e7f0dd94701a5448581f3565cf355583f0a4c5f814c5",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "5ef5186bfef02db8cda8625f7201a22c3ac42ff63a104bdcccb17410aee3a793"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c521f0b2eddd2bb2c38dd4728719d7ba51bc54ed7e00422bc1e1f10871171523"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "d496a271d434f37d9b8019bf34b8ff8dcd28a49e317ef71fdf6645fe0ccc8bb1"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "0795c1ab5cdf24d90183e7f0dd94701a5448581f3565cf355583f0a4c5f814c5",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "5ef5186bfef02db8cda8625f7201a22c3ac42ff63a104bdcccb17410aee3a793"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c521f0b2eddd2bb2c38dd4728719d7ba51bc54ed7e00422bc1e1f10871171523"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "d496a271d434f37d9b8019bf34b8ff8dcd28a49e317ef71fdf6645fe0ccc8bb1"
+            }
+          ]
+        }
+      }
+    },
+    "bril__long__dead-branch": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "9db34add7e6797ab420a5c820ce880a6dec172966d2fd0e3ca732b8f038f0587",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "3e6402cb8b4e460a347c62d974980a53f8a3edfa3481102ad59451113d262dde"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "2143a748d5b43bc9463deb2c3f8b28c651e2810f406e3240d4c1571d29e47246"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "81b0acd12557ddd393cd30ae4cd92aed18779b4983afd5dac71294305abd5443"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "9db34add7e6797ab420a5c820ce880a6dec172966d2fd0e3ca732b8f038f0587",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "3e6402cb8b4e460a347c62d974980a53f8a3edfa3481102ad59451113d262dde"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "2143a748d5b43bc9463deb2c3f8b28c651e2810f406e3240d4c1571d29e47246"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "81b0acd12557ddd393cd30ae4cd92aed18779b4983afd5dac71294305abd5443"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__adj2csr": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "17178ed473f97199e15811ac72adb94576f24ad064caf77f0fab49247ba269d4",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "1856e6d7d58fcea11d87a8549566face04b21971275c23cb7bbe302752b7d4b7"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "b4820165764b630928ac8eebf46c220666e8e59b83af6ea52d88c233c94938b5"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "dbe4102245473597015102e1e38c17be978cc91c7002a1f1e18f33fe2ed1a396"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "17178ed473f97199e15811ac72adb94576f24ad064caf77f0fab49247ba269d4",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "1856e6d7d58fcea11d87a8549566face04b21971275c23cb7bbe302752b7d4b7"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "b4820165764b630928ac8eebf46c220666e8e59b83af6ea52d88c233c94938b5"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "dbe4102245473597015102e1e38c17be978cc91c7002a1f1e18f33fe2ed1a396"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__adler32": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "a23f59e66d2af61aa85f3bef8f3e8d27d034a637825ba6dd61372d27d29e2cf3",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "6aca8d942f9934be3685149123dd32f5b82e98a23ec4f8bd2494560741847f26"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "89c53704d10334f5799a133e7809c604af6249e3e1994ad2e8403ecf4a35b91f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "35ab4acf1ebfa375934a09db130da3b2c792205696c99989c70e3a106f8dea64"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "a23f59e66d2af61aa85f3bef8f3e8d27d034a637825ba6dd61372d27d29e2cf3",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "6aca8d942f9934be3685149123dd32f5b82e98a23ec4f8bd2494560741847f26"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "89c53704d10334f5799a133e7809c604af6249e3e1994ad2e8403ecf4a35b91f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "35ab4acf1ebfa375934a09db130da3b2c792205696c99989c70e3a106f8dea64"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__binary-search": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "45da19d83a4988fbe16282eef71ffd1b6491777bb82d76f3fa119a7fa9ad1bba",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "de8f0c910474cac69daa2863f2f5a61fabb70fceec2fc3096024af00ccc3600e"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "33bc8f6444866185c5ceda8b16a6163e228693c49c3006c88d65ff2d08a53000"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "172e6816f412f559224a5099cafa58a1e630958d0b965c106c42e2f733d8763a"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "45da19d83a4988fbe16282eef71ffd1b6491777bb82d76f3fa119a7fa9ad1bba",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "de8f0c910474cac69daa2863f2f5a61fabb70fceec2fc3096024af00ccc3600e"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "33bc8f6444866185c5ceda8b16a6163e228693c49c3006c88d65ff2d08a53000"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "172e6816f412f559224a5099cafa58a1e630958d0b965c106c42e2f733d8763a"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__bubblesort": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "510eb6d9958b9330a2fd7aef9a5d09845ca94e8c10a8e4c5790dea25cbcc9703",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "8318427d2dc0cd3ef969561fba58315a3adcb78e785e12e9604be46855c5bf79"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "e679e07cf7bf82caf975e2a049e1c7581130d025b8fd9ae9880d0535075e8fc0"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "a17fc5d97192dbeb35afc621f05865cd5b368547c2bad10df0e72709bd88a135"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "510eb6d9958b9330a2fd7aef9a5d09845ca94e8c10a8e4c5790dea25cbcc9703",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "8318427d2dc0cd3ef969561fba58315a3adcb78e785e12e9604be46855c5bf79"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "e679e07cf7bf82caf975e2a049e1c7581130d025b8fd9ae9880d0535075e8fc0"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "a17fc5d97192dbeb35afc621f05865cd5b368547c2bad10df0e72709bd88a135"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__csrmv": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "c24df8a7b7829df93a7dff44b42ec0054cf99dab060162606a5890b069958e01",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "a4d1f5e09ccaa193a976e55df5feada2b359e2bb39c7a9357d30abb51dab36c4"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "fc5978089fb13d0ea281a0fb8ef78ddbbbe9b2630d72294504d7fd601fe1f8ac"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2ad32a53e4bcaaaac89e240c7bb26cb88614b61f39a02b3a14d7407e5c49d67d"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "c24df8a7b7829df93a7dff44b42ec0054cf99dab060162606a5890b069958e01",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "a4d1f5e09ccaa193a976e55df5feada2b359e2bb39c7a9357d30abb51dab36c4"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "fc5978089fb13d0ea281a0fb8ef78ddbbbe9b2630d72294504d7fd601fe1f8ac"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2ad32a53e4bcaaaac89e240c7bb26cb88614b61f39a02b3a14d7407e5c49d67d"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__fib": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "c94d5d98cbfe3c8a0223ac6318e2e171ff2cad8a6fe543b24e8178b068a154c2",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "718e84f0a4b94d37452c5d1491171e42b1baf295c47b311e686f491867a99c6c"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "8e13cd2949d9f19cb62b39f4aa4263b900a72e722de2c4cf01f902afaf2f9f35"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8c3998fc5ef83ebd799f2eb574723c08029cd04fd80e69eb3f845917f510ed1f"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "c94d5d98cbfe3c8a0223ac6318e2e171ff2cad8a6fe543b24e8178b068a154c2",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "718e84f0a4b94d37452c5d1491171e42b1baf295c47b311e686f491867a99c6c"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "8e13cd2949d9f19cb62b39f4aa4263b900a72e722de2c4cf01f902afaf2f9f35"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8c3998fc5ef83ebd799f2eb574723c08029cd04fd80e69eb3f845917f510ed1f"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__major-elm": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "2963a2234f449b7b863a51891c19e1a8f0cc72f60a721b16b34ef9f393c5f0f9",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0922469c4a8faa778dc181258149886bcd73c7639961c672f558faf7f7acc41f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "66d50b84caf5011967d5d4345e6e0aeeb96ed83883b1312adc98db31afc76500"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "772e5fb65a2665e9adc363c40010e8942ba9e0d85231c20df98214f7ff864919"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "2963a2234f449b7b863a51891c19e1a8f0cc72f60a721b16b34ef9f393c5f0f9",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "0922469c4a8faa778dc181258149886bcd73c7639961c672f558faf7f7acc41f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "66d50b84caf5011967d5d4345e6e0aeeb96ed83883b1312adc98db31afc76500"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "772e5fb65a2665e9adc363c40010e8942ba9e0d85231c20df98214f7ff864919"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__mat-mul": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "dafa3d97a65c9c990b26368f537b605049db91e919fc6b0b07e4f39aa2325dd3",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "18c0eda08415ca21cbb8200a1030f55bf815685613f3c5d5504d622030b2f4ee"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "01e476f66f3ecf08c0d18794ee2b7aa0ac94e73d9eab3aab5d9a7b17a97204d8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "579a863fdae8ab77a01d06763274fd29043633dfaa57f23594dd24c9944d05df"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "dafa3d97a65c9c990b26368f537b605049db91e919fc6b0b07e4f39aa2325dd3",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "18c0eda08415ca21cbb8200a1030f55bf815685613f3c5d5504d622030b2f4ee"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "01e476f66f3ecf08c0d18794ee2b7aa0ac94e73d9eab3aab5d9a7b17a97204d8"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "579a863fdae8ab77a01d06763274fd29043633dfaa57f23594dd24c9944d05df"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__max-subarray": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "a768dedbb71ad010dbc59aa3a98c29814bee433504bfd2da71a1e0482e60c1db",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "222b0ee0b0524289edfb64188abf7d78233213b67e421b2bff907bdd0c09a00c"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "ae8a9111904454e18ddbbf86606409f5c37e469c712035813c279278c0cced1d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "3bcc0aaf452167f6101403b0d2411c6c2c6a670a516edf6a495278ff0ed7b5c6"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "a768dedbb71ad010dbc59aa3a98c29814bee433504bfd2da71a1e0482e60c1db",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "222b0ee0b0524289edfb64188abf7d78233213b67e421b2bff907bdd0c09a00c"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "ae8a9111904454e18ddbbf86606409f5c37e469c712035813c279278c0cced1d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "3bcc0aaf452167f6101403b0d2411c6c2c6a670a516edf6a495278ff0ed7b5c6"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__quickselect": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "7a3fa167107c24413902f85be6ccd09c8ebd44baef6fe70e2955c8efb32ce543",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f60ad2cc3395b814e68d33f373d17ed3128c5458aec72c99b34963a5ca28d5e5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c0047739ee6fd4b1b170f37f3c03ef61a493cbd92673d80bfa4290ac3e6d1f8f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8970ae4de0f4eefd00cea9a90019c54262c3d190604accf6be5f9bad4a504141"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "7a3fa167107c24413902f85be6ccd09c8ebd44baef6fe70e2955c8efb32ce543",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f60ad2cc3395b814e68d33f373d17ed3128c5458aec72c99b34963a5ca28d5e5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c0047739ee6fd4b1b170f37f3c03ef61a493cbd92673d80bfa4290ac3e6d1f8f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8970ae4de0f4eefd00cea9a90019c54262c3d190604accf6be5f9bad4a504141"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__quicksort": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "a55d7d278eda4592b011bf068d90c66a5ff066e9d3d4e7f08ebb656297338b6b",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2b34095e8de65396e0ce87ec8de372168ddc4192f0f23ec424b5e4f2784a7789"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "54869c8647980d9299a244d493eb3119edd82ff23719d4a1ab988b56510b6fd4"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c83b983150b236659b196f874c18a180a358356f1350feb2e31ca2574a385f8e"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "a55d7d278eda4592b011bf068d90c66a5ff066e9d3d4e7f08ebb656297338b6b",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2b34095e8de65396e0ce87ec8de372168ddc4192f0f23ec424b5e4f2784a7789"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "54869c8647980d9299a244d493eb3119edd82ff23719d4a1ab988b56510b6fd4"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c83b983150b236659b196f874c18a180a358356f1350feb2e31ca2574a385f8e"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mem__vsmul": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "e5c58f6ac3592f115783e39b5eab9d32a252c94820e074cb089dfd2bb02c276b",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "63cba7eda32d2223b8276969ee17b32a6e370d8a922916970b2420a1f05f66b9"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a4c7cd50cbd0f3fe8de0312a9d0e5ae7992d781abfd6a48a703187a9826b3674"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "d334c192a58c7d74616cc33c7b4e989ea88c99f538b9b1bdc2a212bc430be75e"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "e5c58f6ac3592f115783e39b5eab9d32a252c94820e074cb089dfd2bb02c276b",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "63cba7eda32d2223b8276969ee17b32a6e370d8a922916970b2420a1f05f66b9"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a4c7cd50cbd0f3fe8de0312a9d0e5ae7992d781abfd6a48a703187a9826b3674"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "d334c192a58c7d74616cc33c7b4e989ea88c99f538b9b1bdc2a212bc430be75e"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mixed__cholesky_decomp": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "d4449096ca0a3040ff119966f7ab614d64de66e2a0e50119df013d6058d02d29",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "7296c55c828d64a8da8112801a0cdf41f888f40178a638b112b7aee96063bcc8"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a7087e9d048db009f389b223c6a8d3a0f7f29202cc8ca5f5ce4bfac5906a3792"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "6480a4dc4c577347be3872ecae1519527880567cff1f23cc59d7cf39d8fccfa9"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "d4449096ca0a3040ff119966f7ab614d64de66e2a0e50119df013d6058d02d29",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "7296c55c828d64a8da8112801a0cdf41f888f40178a638b112b7aee96063bcc8"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a7087e9d048db009f389b223c6a8d3a0f7f29202cc8ca5f5ce4bfac5906a3792"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "6480a4dc4c577347be3872ecae1519527880567cff1f23cc59d7cf39d8fccfa9"
+            }
+          ]
+        }
+      }
+    },
+    "bril__mixed__mat-inv": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "effab456a2a47fa36b9cec97722636c9d4dfbb5f1b42cb9ce050013cfb9acc9a",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2de6b3228b989035730a492ce8b6234858026afd233d220fc59746f6884949dc"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "f5bb1fb6f7bcba6ac7ca22d44bee11261185084b4dd07c266ba34eeecd47cd6e"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5048a51cbbd012858c0e204381a7a8b4c9c26a564703285258a4e9d0cd2ce5b1"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "effab456a2a47fa36b9cec97722636c9d4dfbb5f1b42cb9ce050013cfb9acc9a",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2de6b3228b989035730a492ce8b6234858026afd233d220fc59746f6884949dc"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "f5bb1fb6f7bcba6ac7ca22d44bee11261185084b4dd07c266ba34eeecd47cd6e"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5048a51cbbd012858c0e204381a7a8b4c9c26a564703285258a4e9d0cd2ce5b1"
+            }
+          ]
+        }
+      }
+    },
+    "fenwick__fenwick_tree": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "3ad8b6ca727059b1206886fd994d5ec433017b909edcab1551a553399c61493f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "750d246d5741c0e79280daf9107f5f819f13c4abbebd1d59eadc3cff1f0b8eab"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "2d1092729ba88cdbec68ea568a34cd5724bce3e41832e59cee936235a6a12c68"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8bf3b1532e0b63fd88c5b43bd9b58569c7a5416e3940aa74f4623d0640c28a6b"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "3ad8b6ca727059b1206886fd994d5ec433017b909edcab1551a553399c61493f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "750d246d5741c0e79280daf9107f5f819f13c4abbebd1d59eadc3cff1f0b8eab"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "2d1092729ba88cdbec68ea568a34cd5724bce3e41832e59cee936235a6a12c68"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8bf3b1532e0b63fd88c5b43bd9b58569c7a5416e3940aa74f4623d0640c28a6b"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__datamining__correlation": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "a9a78a89a33963159810cc1c31fe01419c8a820677491de218bcdff0508fce29",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "6c15b225f9a3a4293c621f1cea605797bd569bc923c4d9f24462ec938e3ea6d3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9ea24b89b52d0bab3298fd8ca225522ee79b4654fc98902ba5f9bcefa1c158fa"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "9dc88dbbe2769cd87481cc2ef2f7ecd1287df75256b78be705d04297ebfe74bc"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "a9a78a89a33963159810cc1c31fe01419c8a820677491de218bcdff0508fce29",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "6c15b225f9a3a4293c621f1cea605797bd569bc923c4d9f24462ec938e3ea6d3"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "9ea24b89b52d0bab3298fd8ca225522ee79b4654fc98902ba5f9bcefa1c158fa"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "9dc88dbbe2769cd87481cc2ef2f7ecd1287df75256b78be705d04297ebfe74bc"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__datamining__covariance": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "85c9b7350d9ad88ac8b0ab4a035757861da82e14522dc45956fccca8fab11596",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2c33fca9d4a984585e37274693698e82d0b12e450f1d1b1007f2761efe79ca83"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "762f8bc78a24e94ff597a9ae208e6570d6c680fb2574df3f5d4586785c166556"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "00a9941ca0ddaef4fdaa7cbe9d726fb5601c4adff6bc1df82e31a5ce2e61de63"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "85c9b7350d9ad88ac8b0ab4a035757861da82e14522dc45956fccca8fab11596",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2c33fca9d4a984585e37274693698e82d0b12e450f1d1b1007f2761efe79ca83"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "762f8bc78a24e94ff597a9ae208e6570d6c680fb2574df3f5d4586785c166556"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "00a9941ca0ddaef4fdaa7cbe9d726fb5601c4adff6bc1df82e31a5ce2e61de63"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__blas__gemm": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "cac0368d4504f0b64b10c99f16c8a88875a5bb8fd7b579e5b8889ae0024f0e48",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "17736610f2ddabf3c56c08d536f09694909bc7904a4b9e3cdb4df7933ec51433"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "55049aafa49a225617d77bfac24a4b842b45ffa79b42d529af652d4078c3f68e"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "e65bc16f5543eebfcb9f257b1bebc473e2f1bb80130531ed3608ed9c8d4008b6"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "cac0368d4504f0b64b10c99f16c8a88875a5bb8fd7b579e5b8889ae0024f0e48",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "17736610f2ddabf3c56c08d536f09694909bc7904a4b9e3cdb4df7933ec51433"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "55049aafa49a225617d77bfac24a4b842b45ffa79b42d529af652d4078c3f68e"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "e65bc16f5543eebfcb9f257b1bebc473e2f1bb80130531ed3608ed9c8d4008b6"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__blas__gemver": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "2859a72b2ed5494f90f0a72ebaef731e8265cb579ffb2d4a827648576a9bf2fa",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "9a4343399aa0e94d31a30218116e26684c8ef21cd12433a752cad921da1b4c11"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "6d84bfa46b72567d83c0e2287269abcb3afff5277cd80f38f66614d1266bea73"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "1fa59cf989ea99696d014d4b2b73d1b642d4bedd2166ab611a6f53fce0366744"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "2859a72b2ed5494f90f0a72ebaef731e8265cb579ffb2d4a827648576a9bf2fa",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "9a4343399aa0e94d31a30218116e26684c8ef21cd12433a752cad921da1b4c11"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "6d84bfa46b72567d83c0e2287269abcb3afff5277cd80f38f66614d1266bea73"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "1fa59cf989ea99696d014d4b2b73d1b642d4bedd2166ab611a6f53fce0366744"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__blas__gesummv": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "3f466e0dd7095839341afb6912a110e30cbd135a537935e63b3f9cde95fe931f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "e19fa55a908ee3903de3bf4a6f7f9576db6b987bd181e4537d43668a577bb437"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "8898d5a26e89c00806370a4f167b2711ada76fdb783c0c0f014a44a23de5db19"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2ef8baef324954a944633c6aecb64de51efd33e51205620715794592ec7b6681"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "3f466e0dd7095839341afb6912a110e30cbd135a537935e63b3f9cde95fe931f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "e19fa55a908ee3903de3bf4a6f7f9576db6b987bd181e4537d43668a577bb437"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "8898d5a26e89c00806370a4f167b2711ada76fdb783c0c0f014a44a23de5db19"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2ef8baef324954a944633c6aecb64de51efd33e51205620715794592ec7b6681"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__blas__symm": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "5cfcad549d462beca9ae7cbbf133bb5d8e57b90b0821e472885f98f44ac24571",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "43b9d4c2a4ed481c29e05d4be7843d2fb4e4e9919621d66e6ddfff16acaed61f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a8c92a8cf61904ac7efe19140d2cbf7403f8986bbaff976357d298717f10e739"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "07a9532701e5e8cd448ec2471fad8fcaca5788046d961c4365be4db739a25045"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "5cfcad549d462beca9ae7cbbf133bb5d8e57b90b0821e472885f98f44ac24571",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "43b9d4c2a4ed481c29e05d4be7843d2fb4e4e9919621d66e6ddfff16acaed61f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a8c92a8cf61904ac7efe19140d2cbf7403f8986bbaff976357d298717f10e739"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "07a9532701e5e8cd448ec2471fad8fcaca5788046d961c4365be4db739a25045"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__blas__syr2k": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "d7f5660c6c4fd4c6ccd5bcebb31c68e2c30261f12af4375f64d0eee71ff69c11",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "e617ddc7cd14851032185c5c0911066ec136d51f459ad0fa15865591fc49ffa5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "19b5137ef51f5567b10a8c3e92f124418e34a8d6edf0e64436c42156f95233ef"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5c6c2c3e6542a52b665b0cbb777eac52831c9def017b8625219df5d8b9ead423"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "d7f5660c6c4fd4c6ccd5bcebb31c68e2c30261f12af4375f64d0eee71ff69c11",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "e617ddc7cd14851032185c5c0911066ec136d51f459ad0fa15865591fc49ffa5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "19b5137ef51f5567b10a8c3e92f124418e34a8d6edf0e64436c42156f95233ef"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5c6c2c3e6542a52b665b0cbb777eac52831c9def017b8625219df5d8b9ead423"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__blas__syrk": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "78b17c3fc813b062318cebe7efa0d4faa05adb7ba885962bb81020f512124ac9",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "a691fabe24a4c29f7e7d31ad02fe16bed1abe08cb9962b169a27690bd39914af"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "e8d321706ed4cd60a59c714c671c428036a6871b84d612207d15ead00ecd2d03"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "4f7b5c600aba759abe5ea9e1fe0377d4a691a6420b4c71e0f115c9826a8b6ec4"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "78b17c3fc813b062318cebe7efa0d4faa05adb7ba885962bb81020f512124ac9",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "a691fabe24a4c29f7e7d31ad02fe16bed1abe08cb9962b169a27690bd39914af"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "e8d321706ed4cd60a59c714c671c428036a6871b84d612207d15ead00ecd2d03"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "4f7b5c600aba759abe5ea9e1fe0377d4a691a6420b4c71e0f115c9826a8b6ec4"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__blas__trmm": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "38769820463585ea7fc2a7875db0ca81b1ac2a042b583aafd8112208c78758af",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "7711098da84fb44f5e11f87c8be80e27988bf19b7be5244701dc7a94cc7e0812"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "82612f1039ab96066726272a4faa856867be5549368aafcb127bd1a00596eb2c"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "044588e5ae767eaabd859a915dfcca90eb9af0eabc37a4aadea265c6c13b4633"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "38769820463585ea7fc2a7875db0ca81b1ac2a042b583aafd8112208c78758af",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "7711098da84fb44f5e11f87c8be80e27988bf19b7be5244701dc7a94cc7e0812"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "82612f1039ab96066726272a4faa856867be5549368aafcb127bd1a00596eb2c"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "044588e5ae767eaabd859a915dfcca90eb9af0eabc37a4aadea265c6c13b4633"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__kernels__2mm": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "fbc355a82bc613f679822040124f5765849951625c731f292d142625f951a429",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "df9df8a86fb3828172fdf766a2f6643579864774bcf8f978dc60417657685bcf"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "152f486a5eacf446b3529b702a547a67a6fc7268ddb3388e34c32eee5689dd99"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "6164942b6de0d0d8b7af88935f12c2e36d615ebaebde03bfcddeb678f0533e96"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "fbc355a82bc613f679822040124f5765849951625c731f292d142625f951a429",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "df9df8a86fb3828172fdf766a2f6643579864774bcf8f978dc60417657685bcf"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "152f486a5eacf446b3529b702a547a67a6fc7268ddb3388e34c32eee5689dd99"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "6164942b6de0d0d8b7af88935f12c2e36d615ebaebde03bfcddeb678f0533e96"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__kernels__3mm": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "746690a59d7911c0b31fb3d36bb0e7eb31a445cc8ed70855e1839295b84ebaaa",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "535f047c127ca4a952e21eaa14b809c1320585ab7d4b720dc140705d7f0e6e40"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "bad7f69a46c6dfc77153e556db7eeccd2a075de3b5204d026c0217dffbe39b89"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "fccc54a633114e22b668a7636a085066c610da57d51bde8807dd3aab6f17cbe8"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "746690a59d7911c0b31fb3d36bb0e7eb31a445cc8ed70855e1839295b84ebaaa",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "535f047c127ca4a952e21eaa14b809c1320585ab7d4b720dc140705d7f0e6e40"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "bad7f69a46c6dfc77153e556db7eeccd2a075de3b5204d026c0217dffbe39b89"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "fccc54a633114e22b668a7636a085066c610da57d51bde8807dd3aab6f17cbe8"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__kernels__atax": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "6174874a4f5e781145da6609f3b792fcc40fdfa950fee37bde9da98924487ad9",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "a0bf0d16592054c022d4621f847d59fe6577ea31b1941228a36bb49c4fdbf544"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "b03470e1a367e593d955f2c2a8bc20fa13037493a78724d4bb2912dfd8959f7f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "7f57282fca19c1e69479a4c197c20ec3e2777b95c1b6165c9fcc0e560300590a"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "6174874a4f5e781145da6609f3b792fcc40fdfa950fee37bde9da98924487ad9",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "a0bf0d16592054c022d4621f847d59fe6577ea31b1941228a36bb49c4fdbf544"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "b03470e1a367e593d955f2c2a8bc20fa13037493a78724d4bb2912dfd8959f7f"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "7f57282fca19c1e69479a4c197c20ec3e2777b95c1b6165c9fcc0e560300590a"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__kernels__bicg": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "54703fd0011026cff594073136620e312b2e1f504d535ea7306bc976d7777ab4",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "4c12ae14bdf6b77b8865302b9cb4516bd2584ac6de1844b65dd0bbf1dfa180b5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a8b55c0f600152d980f51bde3df6793bb7662befa8d837e972b588458bb1bb9d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "aa0782ed7fff05e46d6714324ed1c71243560429819b6a9d363728f9606784c4"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "54703fd0011026cff594073136620e312b2e1f504d535ea7306bc976d7777ab4",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "4c12ae14bdf6b77b8865302b9cb4516bd2584ac6de1844b65dd0bbf1dfa180b5"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a8b55c0f600152d980f51bde3df6793bb7662befa8d837e972b588458bb1bb9d"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "aa0782ed7fff05e46d6714324ed1c71243560429819b6a9d363728f9606784c4"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__kernels__doitgen": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "d662a092b75793d07ec5b1776233338f6ab0379f7b02b92c283dbb0e26e8d629",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "986aa339674ae2da8c34e04ca208a0d75ff0a425e67c213fb0eb9383b911f97a"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a2efc2420e5abd767dbe98a41fcc6f884fc1fc3e0feb5d8dc88c964c42c4737e"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "e37955ba7bf598583eeecf3734f5db6f42a05ea9cedd34dfcf5fd3ec8771d288"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "d662a092b75793d07ec5b1776233338f6ab0379f7b02b92c283dbb0e26e8d629",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "986aa339674ae2da8c34e04ca208a0d75ff0a425e67c213fb0eb9383b911f97a"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "a2efc2420e5abd767dbe98a41fcc6f884fc1fc3e0feb5d8dc88c964c42c4737e"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "e37955ba7bf598583eeecf3734f5db6f42a05ea9cedd34dfcf5fd3ec8771d288"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__kernels__mvt": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "f617320ddc91e5575e6aa6b5fe289712db9d853383bac346d3a306c67e833553",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "647c7bcd4c0d34417cf0b9b7ace27d7b3c9d2892d88a949aeeba2f176a8013cf"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c29e0b7cd5b212351176babf5192871e106d79b582c2f57e421e07317af344d5"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "faa0e6f2e5c8da98059b57af90c4b180422b7cfefe0db4c4f1534c3d3d6d8cad"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "f617320ddc91e5575e6aa6b5fe289712db9d853383bac346d3a306c67e833553",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "647c7bcd4c0d34417cf0b9b7ace27d7b3c9d2892d88a949aeeba2f176a8013cf"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c29e0b7cd5b212351176babf5192871e106d79b582c2f57e421e07317af344d5"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "faa0e6f2e5c8da98059b57af90c4b180422b7cfefe0db4c4f1534c3d3d6d8cad"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__solvers__cholesky": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "5286a57b85504e3161b9d531184cdb7a9617b0b79edb8792fe2bae36efb76ee7",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "bab8eda58cddfc602cd8fc194f2fb7131dae099066c972fc336f16f7d8e1f7d0"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c0d7a5129cd859a61bedd99681136e7e68bb8f56ab23f78f05b44ad42ad036ae"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8e5a8ce519d227b38f7bdb816b3f502f8032b18e729432f4168fc132e7d7470f"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "5286a57b85504e3161b9d531184cdb7a9617b0b79edb8792fe2bae36efb76ee7",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "bab8eda58cddfc602cd8fc194f2fb7131dae099066c972fc336f16f7d8e1f7d0"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "c0d7a5129cd859a61bedd99681136e7e68bb8f56ab23f78f05b44ad42ad036ae"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8e5a8ce519d227b38f7bdb816b3f502f8032b18e729432f4168fc132e7d7470f"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__solvers__durbin": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "d9f3451e51bed9bc994efd1e204dc0520f36312d11cd10f2b7b2280c05dce302",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "4da5359df10e1e547825f04f16096df9f077015ed0ace1686e7806a3c72b1727"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "f73f634208535ca2d952dd5399f3977461a2887a342a156ba8afadc712adfefd"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "afc78ba744e12bcf2a0b9b14bc75744b6a9e4afb5dfae51321c19af17c72bd91"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "d9f3451e51bed9bc994efd1e204dc0520f36312d11cd10f2b7b2280c05dce302",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "4da5359df10e1e547825f04f16096df9f077015ed0ace1686e7806a3c72b1727"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "f73f634208535ca2d952dd5399f3977461a2887a342a156ba8afadc712adfefd"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "afc78ba744e12bcf2a0b9b14bc75744b6a9e4afb5dfae51321c19af17c72bd91"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__solvers__gramschmidt": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "753026b72c115bb83678ee0b2e6c81829505540a60a3004d39aab93dfaae8ba3",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f7b31d3d536188c10ab8bacfe9df80dc0421c867a80ce0b29e91262e8f266ece"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "ddec46f123fc7d0e344c0b11a28a219fa0e591a64c9b608edda1b05da8231929"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c2702abc3eb7a00930284b0bcfdb42d3a59432d5b11e56b8dae1ac19def8680c"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "753026b72c115bb83678ee0b2e6c81829505540a60a3004d39aab93dfaae8ba3",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "f7b31d3d536188c10ab8bacfe9df80dc0421c867a80ce0b29e91262e8f266ece"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "ddec46f123fc7d0e344c0b11a28a219fa0e591a64c9b608edda1b05da8231929"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c2702abc3eb7a00930284b0bcfdb42d3a59432d5b11e56b8dae1ac19def8680c"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__solvers__lu": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "aed25aa3e58fd9afb2968f2cf692f316a9e86f67656b2c0cf931e7e103652f67",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "61f41864a757a543d57ecc9e4bc8da4a92cbac74fa8541de3f57adf39c80427b"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "60808ed3fc1262754a7e6422142493c1b0152c1068eec396b08fb2b9f33394e4"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "dc2893e937db9ad2fdacfeed2ce3706040f9474abe4351e9545b5f907ce3d4be"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "aed25aa3e58fd9afb2968f2cf692f316a9e86f67656b2c0cf931e7e103652f67",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "61f41864a757a543d57ecc9e4bc8da4a92cbac74fa8541de3f57adf39c80427b"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "60808ed3fc1262754a7e6422142493c1b0152c1068eec396b08fb2b9f33394e4"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "dc2893e937db9ad2fdacfeed2ce3706040f9474abe4351e9545b5f907ce3d4be"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__solvers__ludcmp": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "80a8f1a6fc31eb17087ad40e71ac7aeb17ac9c9f6cb421eeb3c70babdb3b9a29",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "99c89d87b1aa30b34579f234ee2f56412a25d18b47c8828b65b773627756bd49"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "cd4bda856616ca29403b66287e6d6be1345eaa2a99a30808ca3f539626b2307b"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "b3e2df7c2d18911f3e26e05ee26e486009e0b725730c8f13928d81632538dca6"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "80a8f1a6fc31eb17087ad40e71ac7aeb17ac9c9f6cb421eeb3c70babdb3b9a29",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "99c89d87b1aa30b34579f234ee2f56412a25d18b47c8828b65b773627756bd49"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "cd4bda856616ca29403b66287e6d6be1345eaa2a99a30808ca3f539626b2307b"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "b3e2df7c2d18911f3e26e05ee26e486009e0b725730c8f13928d81632538dca6"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__linear-algebra__solvers__trisolv": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "56ea23e0725905e73930ee69fd8641c4a7fd3052e804a3b63f47e73690287aed",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "c013bdda731aef02ebbb56819c7178c761d8899311f4805342745b1b88c39051"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "1d611a3e788efb8f51a303e4e3e6ebd59203ece81ed4792e1698a1eaafc30483"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5aa3acabe4810b909b7c1ff66982e1e01ed1efd2912196a5da1f664768c3d2d2"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "56ea23e0725905e73930ee69fd8641c4a7fd3052e804a3b63f47e73690287aed",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "c013bdda731aef02ebbb56819c7178c761d8899311f4805342745b1b88c39051"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "1d611a3e788efb8f51a303e4e3e6ebd59203ece81ed4792e1698a1eaafc30483"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5aa3acabe4810b909b7c1ff66982e1e01ed1efd2912196a5da1f664768c3d2d2"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__medley__deriche": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "c788fb8710f3bb52141c05a1b62e8378a502f15c6a29736d891e2da9fecad1aa",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "6ded091d5406728ba871121cdc8179ce3752dae4125ecc33f44e8df17ee3bc43"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "698e915eea832d373262f56f04cf965236433ec7977ef4544c44526eb468195c"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c88655a10b4b27642da0d74efc742d58f01502fe2cd2ded79ceae4eddf2ca04d"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "c788fb8710f3bb52141c05a1b62e8378a502f15c6a29736d891e2da9fecad1aa",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "6ded091d5406728ba871121cdc8179ce3752dae4125ecc33f44e8df17ee3bc43"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "698e915eea832d373262f56f04cf965236433ec7977ef4544c44526eb468195c"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "c88655a10b4b27642da0d74efc742d58f01502fe2cd2ded79ceae4eddf2ca04d"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__medley__floyd-warshall": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "bcdf1c6aeba5dfd6397475f83e31b403fca0a46873ddfb6bfdf3d2d8fa4b13ef",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "16ae1b1532c9efd664e70ba4055fba21b8f1461db944b5d0c1b25ca085a7ba7f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "257b845e75cacc73a5c5a67ee3980ba5976b7df51411d4c267674502531f1c27"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "a72d7e259c9886c5f9492c3e49f34f3387d77d176db010bcbd5b54bcdb713de3"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "bcdf1c6aeba5dfd6397475f83e31b403fca0a46873ddfb6bfdf3d2d8fa4b13ef",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "16ae1b1532c9efd664e70ba4055fba21b8f1461db944b5d0c1b25ca085a7ba7f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "257b845e75cacc73a5c5a67ee3980ba5976b7df51411d4c267674502531f1c27"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "a72d7e259c9886c5f9492c3e49f34f3387d77d176db010bcbd5b54bcdb713de3"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__medley__nussinov": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "e863e07f59dcb6c3da012c8797c115da8a48bcbb703b5b1ac0b9d22e535bc42f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "848725951e721dc10a0cc938ce0d1b24040683dd2265570d9568255e8c518287"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "eac30c7e8f81382ca84b23044de6df163ba9d69affe8d01fa557ea3a6cdb97f1"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "9f84210a0b6981ea2b14ea040f9cb979cbc8fe90873c66cb92a1701fd39eada1"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "e863e07f59dcb6c3da012c8797c115da8a48bcbb703b5b1ac0b9d22e535bc42f",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "848725951e721dc10a0cc938ce0d1b24040683dd2265570d9568255e8c518287"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "eac30c7e8f81382ca84b23044de6df163ba9d69affe8d01fa557ea3a6cdb97f1"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "9f84210a0b6981ea2b14ea040f9cb979cbc8fe90873c66cb92a1701fd39eada1"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__stencils__adi": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "b051303c2ef3ef9b5d73b8d380c0cac63e0604e3a22b5c7a03f481f920001516",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2a5ead659fb1f5ff084945ab6438d007e4cc3b5e6604af246eaeb97eec4ba590"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "19a8e381096d21af9126a25468521fc92369efe531547037367656d21d22059a"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5d59da0eebffd35195a649efdeeaf7fa8de86065c0bb7f6cb8e7b9a0e64095cc"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "b051303c2ef3ef9b5d73b8d380c0cac63e0604e3a22b5c7a03f481f920001516",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "2a5ead659fb1f5ff084945ab6438d007e4cc3b5e6604af246eaeb97eec4ba590"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "19a8e381096d21af9126a25468521fc92369efe531547037367656d21d22059a"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "5d59da0eebffd35195a649efdeeaf7fa8de86065c0bb7f6cb8e7b9a0e64095cc"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__stencils__fdtd-2d": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "3b3a967b8a0cbc5811a92edd65a33656a27d23040fa119c5accc444889c24a22",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "01adcf0dfb1506f2a253adeeb425218496d33bb459e534c85e2ec736e8b3b746"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "b739e3d244f1bbc3830b6e987e7e83cdcc14f434ef927969744342362e82d237"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "533cd6fb3d28baa1fc7ce041cb559360441ee6b3af21b10dc9b0f28810784a88"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "3b3a967b8a0cbc5811a92edd65a33656a27d23040fa119c5accc444889c24a22",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "01adcf0dfb1506f2a253adeeb425218496d33bb459e534c85e2ec736e8b3b746"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "b739e3d244f1bbc3830b6e987e7e83cdcc14f434ef927969744342362e82d237"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "533cd6fb3d28baa1fc7ce041cb559360441ee6b3af21b10dc9b0f28810784a88"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__stencils__heat-3d": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "2188f69e1a58f7dfe71c44d32e584b78248bbf83a234fcec1ed0766a04239986",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "07e35c4c583d09539e6820aec939e2e7e668fb6d5faec9706eb990b17d5a7aab"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "1a07ba199cc89cc1b4f42dbe799d0e9856734eed91d44eaaf6e73afbdccdbf87"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8b03186953cbb5117f1428c6051a57527f278839e336018e416d5600f3da844b"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "2188f69e1a58f7dfe71c44d32e584b78248bbf83a234fcec1ed0766a04239986",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "07e35c4c583d09539e6820aec939e2e7e668fb6d5faec9706eb990b17d5a7aab"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "1a07ba199cc89cc1b4f42dbe799d0e9856734eed91d44eaaf6e73afbdccdbf87"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8b03186953cbb5117f1428c6051a57527f278839e336018e416d5600f3da844b"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__stencils__jacobi-1d": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "829cf8c95569c0d8a175b1519aa670a3397a0a63f53a95a5659bac67bb31213e",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "e137cff829937ad78c7a997d8919c99e1f8cf5f64bcfcddca271ca467f7bb90f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "ca068a3d86218f115f9265cb3dcfac5b41b002eacd75a17c282384816f064b29"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8e02fdf954c4921aae09bd68254b30473694cd4d6838f19d855975dd3301deda"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "829cf8c95569c0d8a175b1519aa670a3397a0a63f53a95a5659bac67bb31213e",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "e137cff829937ad78c7a997d8919c99e1f8cf5f64bcfcddca271ca467f7bb90f"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "ca068a3d86218f115f9265cb3dcfac5b41b002eacd75a17c282384816f064b29"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "8e02fdf954c4921aae09bd68254b30473694cd4d6838f19d855975dd3301deda"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__stencils__jacobi-2d": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "303ad0009547ea1d5bd95dcde44bb50f46102839c764d543942a263feab86615",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "d2a138c29aa6105ad1ed83b4a0bc505a6c0b000b95868ff6547fc172951e27d2"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "54cb5b8ef9518b790533a90bb1f6e5dcf1d882701807d42362ee0b31085930f2"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "df145e58c9d5ad83f9e3402e1001216e78d7941625d2fed022c6d3847fb9cdb6"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "303ad0009547ea1d5bd95dcde44bb50f46102839c764d543942a263feab86615",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "d2a138c29aa6105ad1ed83b4a0bc505a6c0b000b95868ff6547fc172951e27d2"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "54cb5b8ef9518b790533a90bb1f6e5dcf1d882701807d42362ee0b31085930f2"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "df145e58c9d5ad83f9e3402e1001216e78d7941625d2fed022c6d3847fb9cdb6"
+            }
+          ]
+        }
+      }
+    },
+    "polybench__stencils__seidel-2d": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "c3f433c7f4744df70aaaf6242e018d32dbef0b519a22171af12033db67dc933c",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "10b4939617428f4f9e67c04f79b4f8a81dec53509378c3e2363b690eb0ec8f6a"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "cff7fdc501679d90824841f14482e45da770b8aedab53997efe9253aa3882aea"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "3dced8148069720ddce9a90d6eb5bfd100e7ef7e70988a3fc9009b0920d0d033"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "c3f433c7f4744df70aaaf6242e018d32dbef0b519a22171af12033db67dc933c",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "10b4939617428f4f9e67c04f79b4f8a81dec53509378c3e2363b690eb0ec8f6a"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "cff7fdc501679d90824841f14482e45da770b8aedab53997efe9253aa3882aea"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "3dced8148069720ddce9a90d6eb5bfd100e7ef7e70988a3fc9009b0920d0d033"
+            }
+          ]
+        }
+      }
+    },
+    "raytrace__raytrace": {
+      "pipeline": {
+        "native": {
+          "stdout_sha256": "066191481588858cfd71568ab2ac989be39edab5ec17e860bff12e029b47916e",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "66e89a51400bd4ffbb41773afa0935b1bee714d3d5621d5a29779ff93400e2a6"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "f3d6a53a6278aebaffde461fc2b5c021f8a4ea71bf76b013b68e3c2baef8ea22"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2c7fd13423251b292ae77e188a8f6bd33ee05f31078f997b1bb9cf21105b5224"
+            }
+          ]
+        },
+        "bag": {
+          "stdout_sha256": "066191481588858cfd71568ab2ac989be39edab5ec17e860bff12e029b47916e",
+          "graphs": [
+            {
+              "file": "tiger_egraph_0001.json",
+              "sha256": "66e89a51400bd4ffbb41773afa0935b1bee714d3d5621d5a29779ff93400e2a6"
+            },
+            {
+              "file": "tiger_egraph_0002.json",
+              "sha256": "f3d6a53a6278aebaffde461fc2b5c021f8a4ea71bf76b013b68e3c2baef8ea22"
+            },
+            {
+              "file": "tiger_egraph_0003.json",
+              "sha256": "2c7fd13423251b292ae77e188a8f6bd33ee05f31078f997b1bb9cf21105b5224"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

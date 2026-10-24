@@ -1,0 +1,108 @@
+\section{Every workload}
+All times below sum the three independent, fixed-graph Tiger runs. Pipeline and RSS columns are ratios under the gates in Section 4. LA abbreviates linear-algebra; the CSV and JSON retain full paths, per-pass observations and hashes.
+\begingroup\small\setlength{\tabcolsep}{3pt}
+\begin{longtable}{p{52mm}rrrrrr}
+\toprule Program & \shortstack{Native\\ms} & \shortstack{Bag\\ms} & \shortstack{Tiger\\ratio} & \shortstack{Estimate\\ratio} & \shortstack{Pipeline\\ratio} & \shortstack{RSS\\ratio}\\\midrule\endfirsthead
+\toprule Program & Native ms & Bag ms & Tiger & Estimate & Pipeline & RSS\\\midrule\endhead
+\bottomrule\endfoot
+\multicolumn{7}{l}{\textbf{Bril}}\\*
+\nolinkurl{core/ackermann.bril} & 45.1 & 44.2 & 1.020 & 2.369 & 0.992 & 0.998 \\
+\nolinkurl{core/armstrong.bril} & 81.5 & 79.8 & 1.021 & 3.092 & 0.708 & 1.000 \\
+\nolinkurl{core/binary-fmt.bril} & 46.7 & 46.2 & 1.011 & 2.254 & 1.017 & 0.993 \\
+\nolinkurl{core/birthday.bril} & 50.8 & 49.8 & 1.021 & 2.301 & 1.019 & 0.995 \\
+\nolinkurl{core/bitshift.bril} & 48.8 & 47.4 & 1.031 & 2.523 & 0.977 & 1.002 \\
+\nolinkurl{core/bitwise-ops.bril} & 170.3 & 163.0 & 1.044 & 4.549 & 0.961 & 1.008 \\
+\nolinkurl{core/catalan.bril} & 61.5 & 59.1 & 1.041 & 2.834 & 0.964 & 0.998 \\
+\nolinkurl{core/check-primes.bril} & 70.2 & 69.3 & 1.012 & 2.408 & 1.005 & 0.998 \\
+\nolinkurl{core/collatz.bril} & 51.6 & 50.2 & 1.028 & 2.498 & 1.093 & 0.990 \\
+\nolinkurl{core/digital-root.bril} & 62.4 & 61.1 & 1.020 & 2.746 & 1.059 & 0.997 \\
+\nolinkurl{core/dot-product.bril} & 51.9 & 50.1 & 1.034 & 3.317 & 1.035 & 0.996 \\
+\nolinkurl{core/euclid.bril} & 50.0 & 50.5 & 0.991 & 2.522 & 1.041 & 0.989 \\
+\nolinkurl{core/fact.bril} & 41.1 & 39.8 & 1.033 & 2.643 & 0.977 & 0.992 \\
+\nolinkurl{core/factors.bril} & 61.9 & 61.4 & 1.008 & 3.073 & 0.934 & 0.995 \\
+\nolinkurl{core/fitsinside.bril} & 36.4 & 35.2 & 1.034 & 1.602 & 0.928 & 0.995 \\
+\nolinkurl{core/fizz-buzz.bril} & 66.3 & 65.4 & 1.013 & 2.529 & 0.967 & 0.994 \\
+\nolinkurl{core/gcd.bril} & 55.8 & 54.4 & 1.024 & 2.450 & 0.960 & 0.997 \\
+\nolinkurl{core/hanoi.bril} & 52.3 & 50.9 & 1.026 & 2.968 & 1.049 & 0.999 \\
+\nolinkurl{core/is-decreasing.bril} & 56.1 & 55.7 & 1.007 & 2.307 & 1.011 & 0.998 \\
+\nolinkurl{core/lcm.bril} & 50.8 & 50.7 & 1.003 & 2.286 & 0.970 & 0.991 \\
+\nolinkurl{core/loopfact.bril} & 46.8 & 45.7 & 1.024 & 2.089 & 0.998 & 0.996 \\
+\nolinkurl{core/mod_inv.bril} & 67.8 & 67.5 & 1.004 & 3.049 & 0.938 & 0.999 \\
+\nolinkurl{core/orders.bril} & 89.6 & 87.7 & 1.022 & 2.600 & 0.965 & 0.997 \\
+\nolinkurl{core/palindrome.bril} & 128.9 & 124.1 & 1.039 & 3.641 & 1.039 & 1.005 \\
+\nolinkurl{core/pascals-row.bril} & 54.6 & 53.5 & 1.020 & 2.502 & 0.968 & 1.001 \\
+\nolinkurl{core/perfect.bril} & 67.4 & 66.2 & 1.018 & 2.800 & 0.957 & 0.995 \\
+\nolinkurl{core/primes-between.bril} & 111.4 & 106.9 & 1.042 & 3.709 & 1.057 & 1.000 \\
+\nolinkurl{core/pythagorean_triple.bril} & 63.7 & 62.8 & 1.015 & 2.725 & 0.926 & 0.990 \\
+\nolinkurl{core/quadratic.bril} & 58.8 & 58.2 & 1.011 & 2.395 & 1.106 & 0.994 \\
+\nolinkurl{core/recfact.bril} & 41.7 & 42.0 & 0.992 & 1.196 & 0.926 & 0.989 \\
+\nolinkurl{core/relative-primes.bril} & 66.7 & 64.5 & 1.034 & 2.413 & 1.111 & 0.995 \\
+\nolinkurl{core/reverse.bril} & 66.6 & 65.9 & 1.011 & 3.065 & 0.952 & 0.999 \\
+\nolinkurl{core/sum-bits.bril} & 49.0 & 47.5 & 1.032 & 2.024 & 1.074 & 0.996 \\
+\nolinkurl{core/sum-check.bril} & 57.0 & 56.9 & 1.003 & 2.276 & 0.965 & 0.997 \\
+\nolinkurl{core/sum-divisors.bril} & 78.1 & 75.6 & 1.034 & 3.107 & 0.998 & 0.999 \\
+\nolinkurl{core/sum-sq-diff.bril} & 64.3 & 64.1 & 1.004 & 2.510 & 0.923 & 0.994 \\
+\nolinkurl{core/totient.bril} & 85.1 & 81.2 & 1.047 & 3.474 & 0.896 & 1.000 \\
+\nolinkurl{core/up-arrow.bril} & 77.4 & 75.8 & 1.022 & 3.044 & 1.000 & 0.998 \\
+\nolinkurl{float/conjugate-gradient.bril} & 380.9 & 340.8 & 1.118 & 5.669 & 1.027 & 1.016 \\
+\nolinkurl{float/cordic.bril} & 457.3 & 430.9 & 1.061 & 6.474 & 1.044 & 1.006 \\
+\nolinkurl{float/euler.bril} & 53.6 & 51.7 & 1.036 & 2.442 & 1.088 & 0.998 \\
+\nolinkurl{float/leibniz.bril} & 70.1 & 69.1 & 1.014 & 3.132 & 1.057 & 0.989 \\
+\nolinkurl{float/mandelbrot.bril} & 154.1 & 143.4 & 1.075 & 4.683 & 0.968 & 1.015 \\
+\nolinkurl{float/n_root.bril} & 83.0 & 82.0 & 1.012 & 3.402 & 0.987 & 1.005 \\
+\nolinkurl{float/newton.bril} & 61.9 & 59.5 & 1.041 & 2.766 & 0.986 & 0.995 \\
+\nolinkurl{float/norm.bril} & 136.1 & 131.1 & 1.039 & 3.798 & 1.040 & 1.005 \\
+\nolinkurl{float/ray-sphere-intersection.bril} & 54.0 & 51.2 & 1.053 & 3.036 & 1.028 & 0.994 \\
+\nolinkurl{float/riemann.bril} & 82.7 & 82.4 & 1.004 & 3.504 & 1.039 & 1.001 \\
+\nolinkurl{float/sqrt.bril} & 73.3 & 70.2 & 1.044 & 3.437 & 1.029 & 1.003 \\
+\nolinkurl{long/dead-branch.bril} & 55.4 & 55.3 & 1.003 & 2.194 & 0.983 & 1.000 \\
+\nolinkurl{mem/adj2csr.bril} & 192.2 & 176.2 & 1.091 & 4.317 & 1.015 & 1.006 \\
+\nolinkurl{mem/adler32.bril} & 88.1 & 88.7 & 0.994 & 3.575 & 0.973 & 1.004 \\
+\nolinkurl{mem/binary-search.bril} & 85.3 & 82.5 & 1.034 & 3.010 & 1.009 & 0.998 \\
+\nolinkurl{mem/bubblesort.bril} & 113.4 & 111.7 & 1.015 & 3.338 & 1.074 & 0.996 \\
+\nolinkurl{mem/csrmv.bril} & 367.9 & 335.5 & 1.097 & 5.626 & 1.045 & 1.022 \\
+\nolinkurl{mem/fib.bril} & 65.5 & 65.1 & 1.005 & 3.245 & 1.016 & 0.998 \\
+\nolinkurl{mem/major-elm.bril} & 76.7 & 74.5 & 1.030 & 3.140 & 0.985 & 0.998 \\
+\nolinkurl{mem/mat-mul.bril} & 166.6 & 159.4 & 1.045 & 4.372 & 1.001 & 1.002 \\
+\nolinkurl{mem/max-subarray.bril} & 89.5 & 82.6 & 1.083 & 4.343 & 0.992 & 1.004 \\
+\nolinkurl{mem/quickselect.bril} & 143.9 & 136.7 & 1.053 & 3.951 & 1.000 & 1.006 \\
+\nolinkurl{mem/quicksort.bril} & 179.4 & 162.1 & 1.107 & 4.372 & 1.005 & 1.008 \\
+\nolinkurl{mem/vsmul.bril} & 71.1 & 70.3 & 1.011 & 3.267 & 1.011 & 1.002 \\
+\nolinkurl{mixed/cholesky_decomp.bril} & 371.3 & 341.5 & 1.087 & 4.861 & 0.941 & 1.004 \\
+\nolinkurl{mixed/mat-inv.bril} & 126.9 & 121.3 & 1.046 & 4.247 & 0.986 & 1.008 \\
+\multicolumn{7}{l}{\textbf{PolyBench}}\\*
+\nolinkurl{datamining/correlation.rs} & 1158.9 & 1031.4 & 1.124 & 7.716 & 1.021 & 1.048 \\
+\nolinkurl{datamining/covariance.rs} & 840.6 & 757.3 & 1.110 & 6.949 & 1.024 & 1.036 \\
+\nolinkurl{LA/blas/gemm.bril} & 672.1 & 610.2 & 1.101 & 5.920 & 1.003 & 1.024 \\
+\nolinkurl{LA/blas/gemver.bril} & 892.9 & 769.4 & 1.160 & 8.583 & 1.006 & 1.051 \\
+\nolinkurl{LA/blas/gesummv.bril} & 327.2 & 302.0 & 1.084 & 5.578 & 1.017 & 1.029 \\
+\nolinkurl{LA/blas/symm.bril} & 557.7 & 503.8 & 1.107 & 5.842 & 1.032 & 1.029 \\
+\nolinkurl{LA/blas/syr2k.bril} & 529.7 & 486.8 & 1.088 & 5.739 & 0.994 & 1.024 \\
+\nolinkurl{LA/blas/syrk.bril} & 446.3 & 413.4 & 1.080 & 5.211 & 0.963 & 1.014 \\
+\nolinkurl{LA/blas/trmm.bril} & 359.2 & 339.3 & 1.058 & 5.394 & 0.973 & 1.021 \\
+\nolinkurl{LA/kernels/2mm.bril} & 1107.9 & 1003.1 & 1.104 & 7.051 & 1.014 & 1.037 \\
+\nolinkurl{LA/kernels/3mm.bril} & 1421.6 & 1267.9 & 1.121 & 7.668 & 1.056 & 1.044 \\
+\nolinkurl{LA/kernels/atax.bril} & 412.6 & 377.7 & 1.092 & 5.747 & 1.060 & 1.033 \\
+\nolinkurl{LA/kernels/bicg.bril} & 416.4 & 383.5 & 1.086 & 5.890 & 1.036 & 1.033 \\
+\nolinkurl{LA/kernels/doitgen.bril} & 581.9 & 546.4 & 1.065 & 5.303 & 0.979 & 1.016 \\
+\nolinkurl{LA/kernels/mvt.bril} & 414.9 & 356.1 & 1.165 & 6.624 & 0.997 & 1.029 \\
+\nolinkurl{LA/solvers/cholesky.bril} & 569.9 & 534.9 & 1.065 & 4.438 & 1.010 & 1.007 \\
+\nolinkurl{LA/solvers/durbin.bril} & 285.7 & 263.5 & 1.084 & 6.899 & 1.002 & 1.040 \\
+\nolinkurl{LA/solvers/gramschmidt.bril} & 628.0 & 575.5 & 1.091 & 5.823 & 1.042 & 1.032 \\
+\nolinkurl{LA/solvers/lu.bril} & 509.7 & 483.7 & 1.054 & 4.624 & 1.043 & 1.012 \\
+\nolinkurl{LA/solvers/ludcmp.bril} & 880.3 & 825.0 & 1.067 & 5.710 & 1.042 & 1.022 \\
+\nolinkurl{LA/solvers/trisolv.bril} & 241.7 & 229.5 & 1.053 & 4.925 & 0.948 & 1.011 \\
+\nolinkurl{medley/deriche.rs} & 2083.9 & 1771.9 & 1.176 & 9.059 & 1.003 & 1.063 \\
+\nolinkurl{medley/floyd-warshall.rs} & 373.3 & 350.3 & 1.065 & 4.756 & 0.876 & 1.022 \\
+\nolinkurl{medley/nussinov.rs} & 479.3 & 458.6 & 1.045 & 4.487 & 0.978 & 1.016 \\
+\nolinkurl{stencils/adi.rs} & 950.5 & 827.2 & 1.149 & 9.349 & 1.025 & 1.061 \\
+\nolinkurl{stencils/fdtd-2d.rs} & 1524.5 & 1348.6 & 1.130 & 8.531 & 1.034 & 1.053 \\
+\nolinkurl{stencils/heat-3d.rs} & 1262.6 & 1161.8 & 1.087 & 7.866 & 1.367 & 1.075 \\
+\nolinkurl{stencils/jacobi-1d.rs} & 253.0 & 255.3 & 0.991 & 4.748 & 0.648 & 1.016 \\
+\nolinkurl{stencils/jacobi-2d.rs} & 619.2 & 603.1 & 1.027 & 6.164 & 1.945 & 1.034 \\
+\nolinkurl{stencils/seidel-2d.rs} & 506.4 & 417.2 & 1.214 & 5.230 & 0.481 & 1.020 \\
+\multicolumn{7}{l}{\textbf{Raytrace}}\\*
+\nolinkurl{raytrace.rs} & 5686.8 & 4870.0 & 1.168 & 9.457 & 0.846 & 1.050 \\
+\multicolumn{7}{l}{\textbf{Fenwick}}\\*
+\nolinkurl{fenwick_tree.rs} & 130.4 & 122.8 & 1.062 & 3.481 & 0.998 & 1.001 \\
+\end{longtable}\endgroup

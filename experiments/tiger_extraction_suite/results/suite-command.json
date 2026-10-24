@@ -1,0 +1,20 @@
+[
+  "docker",
+  "exec",
+  "-w",
+  "/work/eggcc-clean",
+  "-e",
+  "PATH=/usr/local/cargo/bin:/usr/lib/llvm-18/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+  "eggcc-extraction-build-20261024",
+  "python3",
+  "/work/runner/skills/cell-assisted-egglog-bench/scripts/bench.py",
+  "--repo",
+  "/work/runner",
+  "extraction-suite",
+  "--checkout",
+  "/work/eggcc-clean",
+  "--build-dir",
+  "/work/tiger-build",
+  "--output",
+  "/work/results-v2"
+]

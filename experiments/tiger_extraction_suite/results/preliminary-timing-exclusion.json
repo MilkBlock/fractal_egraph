@@ -1,0 +1,9 @@
+{
+  "reason": "POSIX subprocess.wait(timeout=...) polls and can add up to 50 ms to short measurements. External wall_seconds are ineligible.",
+  "unaffected": [
+    "byte equality",
+    "native cost/pick oracle",
+    "native Rust/C++ internal counters"
+  ],
+  "replacement": "results-v2 blocking-wait-with-separate-watchdog/v2"
+}

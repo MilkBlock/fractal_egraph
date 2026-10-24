@@ -13,11 +13,13 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def identity(checkout):
+def identity(checkout, *, metal=True):
     checkout=Path(checkout)
     source = checkout / 'dag_in_context/src/tiger'
     inputs = {str(p.relative_to(checkout)): sha(p) for p in sorted(source.iterdir()) if p.suffix in ('.h', '.cpp')}
-    inputs.update({str(p.relative_to(HERE)): sha(p) for p in (HERE/'build.py', HERE/'extraction_markers.h', HERE/'cost_bag.h', HERE/'costs.swift')})
+    support=[HERE/'build.py',HERE/'extraction_markers.h',HERE/'cost_bag.h']
+    if metal:support.append(HERE/'costs.swift')
+    inputs.update({str(p.relative_to(HERE)): sha(p) for p in support})
     return inputs
 
 
@@ -26,16 +28,17 @@ def ensure(checkout, cache):
     return build(checkout,Path(cache)/key)
 
 
-def build(checkout, destination):
+def build(checkout, destination, *, metal=True):
     checkout, destination = Path(checkout), Path(destination)
     source = checkout / 'dag_in_context/src/tiger'
-    inputs=identity(checkout)
+    inputs=identity(checkout,metal=metal)
     stamp = destination/'build.json'
     binary, worker = destination/'tiger', destination/'costs'
     if stamp.exists():
         old = json.loads(stamp.read_text())
-        if old.get('inputs') == inputs and all(p.exists() and old.get(p.name) == sha(p) for p in (binary, worker)):
-            return binary, worker
+        outputs=(binary,worker) if metal else (binary,)
+        if old.get('inputs') == inputs and old.get('metal',True)==metal and all(p.exists() and old.get(p.name) == sha(p) for p in outputs):
+            return binary, worker if metal else None
         raise ValueError('build directory has different inputs; choose a fresh directory')
     destination.mkdir(parents=True, exist_ok=False)
     copy = destination/'source'; copy.mkdir()
@@ -78,7 +81,7 @@ def build(checkout, destination):
     shutil.copyfile(HERE/'extraction_markers.h', copy/'extraction_markers.h')
     shutil.copyfile(HERE/'cost_bag.h', copy/'cost_bag.h')
     subprocess.run(['c++', '-std=c++17', '-O3', '-Wno-unused-result', *SOURCES, '-o', str(binary.resolve())], cwd=copy, check=True)
-    subprocess.run(['swiftc', '-O', str(HERE/'costs.swift'), '-o', str(worker.resolve())], check=True)
-    stamp.write_text(json.dumps(dict(inputs=inputs, tiger=sha(binary), costs=sha(worker),
+    if metal:subprocess.run(['swiftc', '-O', str(HERE/'costs.swift'), '-o', str(worker.resolve())], check=True)
+    stamp.write_text(json.dumps(dict(inputs=inputs, tiger=sha(binary), costs=sha(worker) if metal else None,metal=metal,
         revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=checkout,text=True).strip()),indent=2)+'\n')
-    return binary, worker
+    return binary, worker if metal else None

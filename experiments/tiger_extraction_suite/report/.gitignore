@@ -1,0 +1,5 @@
+figures/
+*.aux
+*.log
+*.out
+main.pdf

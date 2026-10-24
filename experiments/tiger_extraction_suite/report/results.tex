@@ -1,0 +1,61 @@
+\section{Results}
+
+\subsection{Correctness and coverage}
+
+96/96 inventory programs completed both pipelines. 288/288 native pass graphs passed complete output equality across the pristine, bag, phase-reference, and oracle lanes. The oracle compared 439,249 class cost/pick entries, counting separate passes. 96 pipeline pairs also had byte-identical intermediate graphs and final outputs.
+
+The native arithmetic test exercised 4,000 randomized bag operations and 6,400 candidate-cost cases, including repeated keys and unsigned overflow. The benchmark integration tests passed. Failed or timed-out programs, if any, remain in the denominator.
+
+An additional correctness-only comparison against the preliminary run reproduced both pipeline outputs and their graph snapshots for 96 programs. Its invalidated external times are not included here.
+
+\subsection{Time and memory}
+
+\begin{table}[ht]\centering\small
+
+\begin{tabular}{lrrrrrr}
+
+\toprule
+
+Suite & $n$ & \shortstack{Estimate\\GM} & \shortstack{Tiger\\GM} & \shortstack{Tiger\\aggregate} & \shortstack{Pipeline\\GM} & \shortstack{RSS\\GM}\\
+
+\midrule
+
+Bril & 64 & 3.022 & 1.031 & 1.047 & 0.995 & 0.999 \\
+
+PolyBench & 30 & 6.118 & 1.094 & 1.107 & 0.999 & 1.032 \\
+
+Raytrace & 1 & 9.457 & 1.168 & 1.168 & 0.846 & 1.050 \\
+
+Fenwick & 1 & 3.481 & 1.062 & 1.062 & 0.998 & 1.001 \\
+
+\midrule
+
+All & 96 & 3.818 & 1.052 & 1.104 & 0.995 & 1.010 \\
+
+\bottomrule\end{tabular}
+
+\caption{Ratios are original/shared-bag; larger than one means less time or peak RSS for the candidate. GM is a geometric mean over programs. Aggregate Tiger ratio divides sums of three-pass extraction times. RSS uses each program\textquotesingle s maximum standalone peak over its three snapshots.}\end{table}
+
+Across all programs, frozen-graph extraction totals 33.412 s for the original and 30.254 s for shared bags: 3.159 s saved (9.45 percent). The separately timed target phase totals 3.228 s versus 0.459 s, an aggregate ratio of 7.03.
+
+The estimator is faster in 96/96 program totals. Whole Tiger has 92 faster observations and 4 slower observations. All appear in the appendix. A changed allocation pattern can affect later work, and one pair cannot distinguish small changes from timing variability.
+
+\begin{figure}[ht]\centering\includegraphics[width=\linewidth]{figures/speedup-distribution.pdf}\caption{The three timing levels must not be conflated. This is a distribution over workloads, not a confidence interval from repeated measurements.}\end{figure}
+
+\begin{figure}[ht]\centering\includegraphics[width=\linewidth]{figures/paired-extraction.pdf}\caption{Each point is one program\textquotesingle s three-pass extraction sum. Points below the diagonal favor shared bags. Both axes use the same scale.}\end{figure}
+
+\subsection{Why the pipeline result is smaller}
+
+The measured pipeline totals are 232.249 s and 237.477 s, an aggregate ratio of 0.978. Extraction intervals reported by the production driver sum to 37.955 s and 38.058 s. The remaining observed time is 194.295 s and 199.420 s; it includes inference, graph preparation/capture, reconstruction, and other unchanged work.
+
+The targeted cost-estimation phase is only part of extraction, and extraction is only part of compilation. The measured change in the remaining interval is not assigned to cost-bag sharing. The present single-pair experiment therefore supports a targeted cost-estimation improvement and modest extractor-level benefit, but not an end-to-end compiler speedup.
+
+The maximum arity in serialized inputs is 20. Transitive sharing can make bags much larger than this number, so it does not establish a general merge bound. Peak RSS includes unchanged parsing and graph storage, so its measured ratio is reported independently of bag-entry counts.
+
+The production extraction interval also has a different envelope from standalone replay: the upstream driver writes a temporary input file and captures output through reader threads. Standalone replay reads a prepared file and writes output directly. We measure both envelopes rather than subtract an assumed fixed overhead. Their difference is not assigned quantitatively to a particular cause.
+
+\subsection{Raytrace in context}
+
+On pristine-driven raytrace, the three captured passes together take 5.687 s versus 4.870 s, a ratio of 1.168. Its cost-estimation ratio is 9.46. This is a new CPU/pristine-input experiment; earlier timings on a saved GPU-produced Pass-3 graph are not pooled with it.
+
+Its measured full-pipeline times are 52.607 s versus 62.149 s (ratio 0.846). This observed regression remains in the totals despite the faster standalone extractor. We do not claim an integrated raytrace speedup from this run.

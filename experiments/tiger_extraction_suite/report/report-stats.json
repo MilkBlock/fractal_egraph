@@ -1,0 +1,69 @@
+{
+  "inventory": 96,
+  "validated_programs": 96,
+  "validated_graphs": 288,
+  "pipeline_validated": 96,
+  "cost_pick_entries": 439249,
+  "extraction_geomean": 1.0518036083299331,
+  "extraction_aggregate": 1.1044042482990104,
+  "native_extraction_seconds": 33.41218034690246,
+  "bag_extraction_seconds": 30.253578251227736,
+  "estimate_geomean": 3.8179143536253752,
+  "estimate_aggregate": 7.031647431188563,
+  "native_estimate_seconds": 3.227821254,
+  "bag_estimate_seconds": 0.459041965,
+  "pipeline_geomean": 0.9945345093539962,
+  "pipeline_aggregate": 0.97798508803559,
+  "native_pipeline_seconds": 232.24931378359906,
+  "bag_pipeline_seconds": 237.47735688905232,
+  "pipeline_extraction_seconds": {
+    "native": 37.954755007,
+    "bag": 38.057558952
+  },
+  "rss_geomean": 1.0098040168372135,
+  "extraction_wins": 92,
+  "extraction_slower": 4,
+  "phase_wins": 96,
+  "maximum_arity": 20,
+  "summary_sha256": "1cdbf98c46dbbbe9495fd23fcfedb4c8afd2761dc7a4a3b33dd8f6085c1b00d3",
+  "additional_repeat_equal_programs": 96,
+  "preliminary_external_timings_used": false,
+  "groups": [
+    {
+      "suite": "bril",
+      "n": 64,
+      "phase": 3.02212931192185,
+      "extractor": 1.0307902202848012,
+      "aggregate": 1.0467001319030396,
+      "pipeline": 0.9949108624662866,
+      "rss": 0.99927057190041
+    },
+    {
+      "suite": "polybench",
+      "n": 30,
+      "phase": 6.117798273508442,
+      "extractor": 1.0939110707661992,
+      "aggregate": 1.106661161494938,
+      "pipeline": 0.9989726967417583,
+      "rss": 1.0316263843554203
+    },
+    {
+      "suite": "raytrace",
+      "n": 1,
+      "phase": 9.456609555625377,
+      "extractor": 1.1677244262953617,
+      "aggregate": 1.1677244262953617,
+      "pipeline": 0.8464757370232836,
+      "rss": 1.0499066482669048
+    },
+    {
+      "suite": "fenwick",
+      "n": 1,
+      "phase": 3.4808767813546,
+      "extractor": 1.0617630139940692,
+      "aggregate": 1.0617630139940692,
+      "pipeline": 0.9979210622717226,
+      "rss": 1.0005040322580645
+    }
+  ]
+}

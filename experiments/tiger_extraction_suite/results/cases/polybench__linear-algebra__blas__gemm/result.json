@@ -1,0 +1,491 @@
+{
+  "name": "polybench__linear-algebra__blas__gemm",
+  "suite": "polybench",
+  "source": "polybench/linear-algebra/blas/gemm.bril",
+  "source_sha256": "b515be1f149beb59bc36a90ce3b1ee7306c1067531efe0d52e1d9d1bb581faf4",
+  "pipeline": {
+    "bag": {
+      "command": [
+        "/work/results-v2/bin/bag/eggcc",
+        "/work/eggcc-clean/benchmarks/passing/polybench/linear-algebra/blas/gemm.bril",
+        "--run-mode",
+        "optimized-pretty-print",
+        "--eggcc-schedule",
+        "parallel",
+        "--run-data-out",
+        "/work/results-v2/cases/polybench__linear-algebra__blas__gemm/bag/run-data.json",
+        "--egraph-out-dir",
+        "/work/results-v2/cases/polybench__linear-algebra__blas__gemm/bag/graphs"
+      ],
+      "returncode": 0,
+      "timeout": false,
+      "wall_seconds": 3.886802728055045,
+      "stdout_sha256": "cac0368d4504f0b64b10c99f16c8a88875a5bb8fd7b579e5b8889ae0024f0e48",
+      "max_rss_kib": 298852,
+      "measured_at": "2026-10-23T19:57:36.612642+00:00",
+      "user_seconds": 3.13,
+      "system_seconds": 0.68,
+      "stats": [
+        {
+          "estimate_seconds": 0.001833252
+        },
+        {
+          "native_candidate_seconds": 0.000141062
+        },
+        {
+          "merges": 7976,
+          "input_entries": 281720,
+          "output_entries": 268430,
+          "max_entries": 153
+        },
+        {
+          "estimate_seconds": 0.005704022
+        },
+        {
+          "native_candidate_seconds": 0.000388227
+        },
+        {
+          "merges": 24082,
+          "input_entries": 1205615,
+          "output_entries": 1043013,
+          "max_entries": 153
+        },
+        {
+          "estimate_seconds": 0.001957244
+        },
+        {
+          "native_candidate_seconds": 0.000160937
+        },
+        {
+          "merges": 8112,
+          "input_entries": 304570,
+          "output_entries": 287242,
+          "max_entries": 186
+        }
+      ],
+      "eggcc_compile_time_seconds": 3.834057296,
+      "eggcc_extraction_time_seconds": 0.657991845,
+      "eggcc_serialization_time_seconds": 0.308919181,
+      "graphs": [
+        {
+          "file": "tiger_egraph_0001.json",
+          "sha256": "17736610f2ddabf3c56c08d536f09694909bc7904a4b9e3cdb4df7933ec51433"
+        },
+        {
+          "file": "tiger_egraph_0002.json",
+          "sha256": "55049aafa49a225617d77bfac24a4b842b45ffa79b42d529af652d4078c3f68e"
+        },
+        {
+          "file": "tiger_egraph_0003.json",
+          "sha256": "e65bc16f5543eebfcb9f257b1bebc473e2f1bb80130531ed3608ed9c8d4008b6"
+        }
+      ]
+    },
+    "native": {
+      "command": [
+        "/work/results-v2/bin/native/eggcc",
+        "/work/eggcc-clean/benchmarks/passing/polybench/linear-algebra/blas/gemm.bril",
+        "--run-mode",
+        "optimized-pretty-print",
+        "--eggcc-schedule",
+        "parallel",
+        "--run-data-out",
+        "/work/results-v2/cases/polybench__linear-algebra__blas__gemm/native/run-data.json",
+        "--egraph-out-dir",
+        "/work/results-v2/cases/polybench__linear-algebra__blas__gemm/native/graphs"
+      ],
+      "returncode": 0,
+      "timeout": false,
+      "wall_seconds": 3.8993266159668565,
+      "stdout_sha256": "cac0368d4504f0b64b10c99f16c8a88875a5bb8fd7b579e5b8889ae0024f0e48",
+      "max_rss_kib": 290612,
+      "measured_at": "2026-10-23T19:57:40.568974+00:00",
+      "user_seconds": 3.19,
+      "system_seconds": 0.55,
+      "stats": [],
+      "eggcc_compile_time_seconds": 3.816991623,
+      "eggcc_extraction_time_seconds": 0.751956203,
+      "eggcc_serialization_time_seconds": 0.315698148,
+      "graphs": [
+        {
+          "file": "tiger_egraph_0001.json",
+          "sha256": "17736610f2ddabf3c56c08d536f09694909bc7904a4b9e3cdb4df7933ec51433"
+        },
+        {
+          "file": "tiger_egraph_0002.json",
+          "sha256": "55049aafa49a225617d77bfac24a4b842b45ffa79b42d529af652d4078c3f68e"
+        },
+        {
+          "file": "tiger_egraph_0003.json",
+          "sha256": "e65bc16f5543eebfcb9f257b1bebc473e2f1bb80130531ed3608ed9c8d4008b6"
+        }
+      ]
+    }
+  },
+  "graphs": [
+    {
+      "input_sha256": "17736610f2ddabf3c56c08d536f09694909bc7904a4b9e3cdb4df7933ec51433",
+      "graph": {
+        "serialized_nodes": 53178,
+        "serialized_eclasses": 38034,
+        "functions": 10,
+        "max_arity": 4
+      },
+      "runs": {
+        "bag": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.13674203888513148,
+          "stdout_sha256": "e825a9acd3a0509e06c3e11fe2ebc5b570f31df10fb336c60a6ec3d7a9390382",
+          "max_rss_kib": 66484,
+          "measured_at": "2026-10-23T19:57:40.753639+00:00",
+          "user_seconds": 0.11,
+          "system_seconds": 0.01,
+          "stats": [
+            {
+              "estimate_seconds": 0.00182461
+            },
+            {
+              "native_candidate_seconds": 0.000158923
+            },
+            {
+              "merges": 7976,
+              "input_entries": 281720,
+              "output_entries": 268430,
+              "max_entries": 153
+            }
+          ]
+        },
+        "native": {
+          "command": [
+            "/work/tiger-build/native-tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.14460543496534228,
+          "stdout_sha256": "e825a9acd3a0509e06c3e11fe2ebc5b570f31df10fb336c60a6ec3d7a9390382",
+          "max_rss_kib": 67888,
+          "measured_at": "2026-10-23T19:57:40.906503+00:00",
+          "user_seconds": 0.12,
+          "system_seconds": 0.01,
+          "stats": []
+        },
+        "phase-reference": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.14168428303673863,
+          "stdout_sha256": "e825a9acd3a0509e06c3e11fe2ebc5b570f31df10fb336c60a6ec3d7a9390382",
+          "max_rss_kib": 68408,
+          "measured_at": "2026-10-23T19:57:41.056428+00:00",
+          "user_seconds": 0.12,
+          "system_seconds": 0.01,
+          "stats": [
+            {
+              "estimate_seconds": 0.009924791
+            },
+            {
+              "native_candidate_seconds": 0.000163984
+            }
+          ]
+        },
+        "oracle": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.14392201812006533,
+          "stdout_sha256": "e825a9acd3a0509e06c3e11fe2ebc5b570f31df10fb336c60a6ec3d7a9390382",
+          "max_rss_kib": 68388,
+          "measured_at": "2026-10-23T19:57:41.208659+00:00",
+          "user_seconds": 0.12,
+          "system_seconds": 0.01,
+          "stats": [
+            {
+              "classes": 2384,
+              "root": -1,
+              "passed": true
+            },
+            {
+              "estimate_seconds": 0.012039151
+            },
+            {
+              "native_candidate_seconds": 0.000131938
+            },
+            {
+              "merges": 7976,
+              "input_entries": 281720,
+              "output_entries": 268430,
+              "max_entries": 153
+            }
+          ]
+        }
+      },
+      "quality_passed": true,
+      "native_estimate_seconds": 0.009924791,
+      "bag_estimate_seconds": 0.00182461,
+      "selected_output_bindings": 1417,
+      "speedup": 1.0575053300676345,
+      "pass": 1
+    },
+    {
+      "input_sha256": "55049aafa49a225617d77bfac24a4b842b45ffa79b42d529af652d4078c3f68e",
+      "graph": {
+        "serialized_nodes": 121959,
+        "serialized_eclasses": 78047,
+        "functions": 10,
+        "max_arity": 20
+      },
+      "runs": {
+        "native": {
+          "command": [
+            "/work/tiger-build/native-tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.3671643449924886,
+          "stdout_sha256": "5cb8607e8fedc0b5fef79bb08c1b00f70088ece09f8bf5f6d3aa2a233ea5f45c",
+          "max_rss_kib": 111188,
+          "measured_at": "2026-10-23T19:57:41.687810+00:00",
+          "user_seconds": 0.33,
+          "system_seconds": 0.02,
+          "stats": []
+        },
+        "bag": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.32645388995297253,
+          "stdout_sha256": "5cb8607e8fedc0b5fef79bb08c1b00f70088ece09f8bf5f6d3aa2a233ea5f45c",
+          "max_rss_kib": 108628,
+          "measured_at": "2026-10-23T19:57:42.031370+00:00",
+          "user_seconds": 0.28,
+          "system_seconds": 0.03,
+          "stats": [
+            {
+              "estimate_seconds": 0.005697598
+            },
+            {
+              "native_candidate_seconds": 0.000397687
+            },
+            {
+              "merges": 24082,
+              "input_entries": 1205615,
+              "output_entries": 1043013,
+              "max_entries": 153
+            }
+          ]
+        },
+        "phase-reference": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.3576010230462998,
+          "stdout_sha256": "5cb8607e8fedc0b5fef79bb08c1b00f70088ece09f8bf5f6d3aa2a233ea5f45c",
+          "max_rss_kib": 111448,
+          "measured_at": "2026-10-23T19:57:42.405968+00:00",
+          "user_seconds": 0.32,
+          "system_seconds": 0.03,
+          "stats": [
+            {
+              "estimate_seconds": 0.034728313
+            },
+            {
+              "native_candidate_seconds": 0.00039585
+            }
+          ]
+        },
+        "oracle": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.3635246769990772,
+          "stdout_sha256": "5cb8607e8fedc0b5fef79bb08c1b00f70088ece09f8bf5f6d3aa2a233ea5f45c",
+          "max_rss_kib": 111544,
+          "measured_at": "2026-10-23T19:57:42.786619+00:00",
+          "user_seconds": 0.32,
+          "system_seconds": 0.02,
+          "stats": [
+            {
+              "classes": 5047,
+              "root": -1,
+              "passed": true
+            },
+            {
+              "estimate_seconds": 0.040471599
+            },
+            {
+              "native_candidate_seconds": 0.000418852
+            },
+            {
+              "merges": 24082,
+              "input_entries": 1205615,
+              "output_entries": 1043013,
+              "max_entries": 153
+            }
+          ]
+        }
+      },
+      "quality_passed": true,
+      "native_estimate_seconds": 0.034728313,
+      "bag_estimate_seconds": 0.005697598,
+      "selected_output_bindings": 1418,
+      "speedup": 1.124705069513433,
+      "pass": 2
+    },
+    {
+      "input_sha256": "e65bc16f5543eebfcb9f257b1bebc473e2f1bb80130531ed3608ed9c8d4008b6",
+      "graph": {
+        "serialized_nodes": 54119,
+        "serialized_eclasses": 39333,
+        "functions": 10,
+        "max_arity": 4
+      },
+      "runs": {
+        "bag": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.14699357096105814,
+          "stdout_sha256": "01b29baaf795d77aae68435ae5a116ca005b7e4f210e3ac81ea7132e8b8dd5f5",
+          "max_rss_kib": 67240,
+          "measured_at": "2026-10-23T19:57:43.163046+00:00",
+          "user_seconds": 0.12,
+          "system_seconds": 0.02,
+          "stats": [
+            {
+              "estimate_seconds": 0.001954722
+            },
+            {
+              "native_candidate_seconds": 0.000139991
+            },
+            {
+              "merges": 8112,
+              "input_entries": 304570,
+              "output_entries": 287242,
+              "max_entries": 186
+            }
+          ]
+        },
+        "native": {
+          "command": [
+            "/work/tiger-build/native-tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.16033601388335228,
+          "stdout_sha256": "01b29baaf795d77aae68435ae5a116ca005b7e4f210e3ac81ea7132e8b8dd5f5",
+          "max_rss_kib": 69124,
+          "measured_at": "2026-10-23T19:57:43.331702+00:00",
+          "user_seconds": 0.13,
+          "system_seconds": 0.02,
+          "stats": []
+        },
+        "phase-reference": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.15303282509557903,
+          "stdout_sha256": "01b29baaf795d77aae68435ae5a116ca005b7e4f210e3ac81ea7132e8b8dd5f5",
+          "max_rss_kib": 69336,
+          "measured_at": "2026-10-23T19:57:43.493073+00:00",
+          "user_seconds": 0.12,
+          "system_seconds": 0.01,
+          "stats": [
+            {
+              "estimate_seconds": 0.011453215
+            },
+            {
+              "native_candidate_seconds": 0.000158986
+            }
+          ]
+        },
+        "oracle": {
+          "command": [
+            "/work/tiger-build/bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.15608241991139948,
+          "stdout_sha256": "01b29baaf795d77aae68435ae5a116ca005b7e4f210e3ac81ea7132e8b8dd5f5",
+          "max_rss_kib": 69368,
+          "measured_at": "2026-10-23T19:57:43.657545+00:00",
+          "user_seconds": 0.12,
+          "system_seconds": 0.02,
+          "stats": [
+            {
+              "classes": 2521,
+              "root": -1,
+              "passed": true
+            },
+            {
+              "estimate_seconds": 0.013482826
+            },
+            {
+              "native_candidate_seconds": 0.000129204
+            },
+            {
+              "merges": 8112,
+              "input_entries": 304570,
+              "output_entries": 287242,
+              "max_entries": 186
+            }
+          ]
+        }
+      },
+      "quality_passed": true,
+      "native_estimate_seconds": 0.011453215,
+      "bag_estimate_seconds": 0.001954722,
+      "selected_output_bindings": 2195,
+      "speedup": 1.0907688876122945,
+      "pass": 3
+    }
+  ],
+  "pipeline_output_equal": true,
+  "intermediate_graphs_byte_equal": true,
+  "pipeline_speedup_eligible": true,
+  "pipeline_speedup": 1.003222156818357,
+  "complete_native_pipeline": true,
+  "all_frozen_checks_passed": true,
+  "completed": true
+}

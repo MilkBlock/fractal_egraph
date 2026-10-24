@@ -1,0 +1,2 @@
+TIGER_COST_BAG {"merges":4000,"input_entries":181776,"output_entries":92380,"max_entries":24}
+passed: 6400 native costs, 80 shared recipes, 3 dirty updates; aliases, If, loop, overflow; GPU not exercised

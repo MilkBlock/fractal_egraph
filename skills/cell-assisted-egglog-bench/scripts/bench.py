@@ -745,6 +745,14 @@ def parser():
     q.add_argument('--build-dir', type=Path, required=True)
     q.add_argument('--tiger-checkout', type=Path, default=SHARED / 'check_statewalk')
     q.add_argument('--reference-output', type=Path)
+    q=sub.add_parser('extraction-suite',help='all upstream passing programs: pristine eggcc and shared-cost Tiger')
+    q.add_argument('--checkout',type=Path,required=True)
+    q.add_argument('--output',type=Path,required=True)
+    q.add_argument('--build-dir',type=Path,required=True)
+    q.add_argument('--source',type=Path,action='append')
+    q.add_argument('--timeout',type=int,default=600,help='upstream non-paper per-program timeout; failures stay in the report')
+    q.add_argument('--report-only',action='store_true')
+    q.add_argument('--retry-failed',action='store_true')
     q = sub.add_parser('report'); q.add_argument('input', type=Path, nargs='?', default=SAVED)
     for mode in ['interaction','depth']:
         q = sub.add_parser(mode, help='read saved factorial/depth counters; no runs')
@@ -1019,6 +1027,9 @@ def main(argv=None):
             print('Build isolated Tiger overlay; compare off/cpu/gpu and native cost oracle on', resolve(a.graph)); return 0
         import extraction_markers
         return extraction_markers.run(a,repo)
+    if a.mode=='extraction-suite':
+        import extraction_suite
+        return extraction_suite.run(a,repo)
     if a.mode=='spine-program':
         import scheduled_spines
         return scheduled_spines.run(a,repo)
