@@ -1,0 +1,571 @@
+{
+  "schema": "source-pipeline-recovery/v1",
+  "scope": "actual saved complete Raytrace Pass 3, GPU matching with native effects; not production Pass 1/2",
+  "base_commit": "f91f827",
+  "timing": {
+    "schema": "program-backend-matrix/v1",
+    "performance": {
+      "marker_effect_gpu": {
+        "eligible": true,
+        "left": "original-gpu",
+        "right": "marked-gpu",
+        "delta_seconds": -4.36913725,
+        "ratio": 0.7352366818205425,
+        "change_percent": -26.476331817945752,
+        "reason": null
+      }
+    },
+    "diagnosis": [],
+    "lanes": {
+      "original-gpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/45f3faaa4761fd0c7b673ac95b19a5c2f47c08ebf43e526bebe9cbbe13e40bf7",
+        "reused": false,
+        "source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg",
+        "source_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+        "complete": true,
+        "snapshot_complete": true,
+        "runtime_extension": {
+          "name": "cell-structural-key-runtime/v1",
+          "nodes": 0,
+          "bases": [],
+          "registration_skipped": true,
+          "source_controls_rules_and_schedule": true
+        },
+        "run_seconds": 16.502049,
+        "setup_seconds": 0.152619291,
+        "gpu_setup_seconds": 2.674926666,
+        "table_rows": 699068,
+        "runtime": {
+          "setup_seconds": 2.670294625,
+          "run_seconds": 16.502037458,
+          "event_seconds": 0.7285578089999988,
+          "native_rhs_seconds": 5.386582970999883,
+          "native_action_search_apply_seconds": 0.49417089400000036,
+          "native_insert_merge_seconds": 0.43032833900000017,
+          "native_rebuild_seconds": 4.023477275999998,
+          "ruleset_runs": 10091,
+          "row_events": 2458173,
+          "union_events": 239476,
+          "bootstrap_events": 109,
+          "prepare_seconds": 0.06430634599999994,
+          "roundtrip_seconds": 10.063362868000027,
+          "decode_seconds": 0.16364702199999967,
+          "device_seconds": 5.6973324147984385,
+          "gpu_maintenance_seconds": null,
+          "gpu_matching_seconds": null,
+          "native_query_seconds": 0.0,
+          "audit_seconds": 0.0,
+          "dispatches": 7260,
+          "gpu_empty_table_prunes": 10272,
+          "uploaded_bytes": 184473232,
+          "downloaded_bytes": 75558228,
+          "first_upload_bytes": 8756,
+          "unchanged_notifications": 0,
+          "workers": 1,
+          "shader_compiles": 1,
+          "reused_slots": 194410,
+          "peak_live_rows": 693079,
+          "output_high_water": 46177,
+          "saturation_boundaries": 4263,
+          "skipped_saturations": 0,
+          "partial_saturations": 0,
+          "saturation_hook_seconds": 0.0,
+          "cell_query_rules": 0,
+          "cell_query_bindings": 0,
+          "cell_query_seconds": 0.00019045600000000302,
+          "shared_query_requests": 0,
+          "shared_query_bindings": 0,
+          "native_only_runs": 0,
+          "native_only_seconds": 0.0
+        },
+        "native_only_rulesets": {},
+        "error": null
+      },
+      "marked-gpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/0110ae36505a4c25740762901cee2a38b97066ca8d7db7ae0f4a8677a15cb089",
+        "reused": false,
+        "source": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/source-triple-pass3/mk/build-4/source_sk_mk.egg",
+        "source_sha256": "62176a5e03fd69e1a56cea67b14c879f67edce738ae90060d63b857460955c6f",
+        "complete": true,
+        "snapshot_complete": true,
+        "runtime_extension": {
+          "name": "cell-structural-key-runtime/v1",
+          "nodes": 0,
+          "bases": [],
+          "registration_skipped": true,
+          "source_controls_rules_and_schedule": true
+        },
+        "run_seconds": 12.13291175,
+        "setup_seconds": 0.157870791,
+        "gpu_setup_seconds": 2.7432485829999997,
+        "table_rows": 699068,
+        "runtime": {
+          "setup_seconds": 2.736948625,
+          "run_seconds": 12.132901376,
+          "event_seconds": 2.206570538000003,
+          "native_rhs_seconds": 3.69761284200007,
+          "native_action_search_apply_seconds": 0.43820066000000063,
+          "native_insert_merge_seconds": 0.3997699829999997,
+          "native_rebuild_seconds": 2.4419182430000035,
+          "ruleset_runs": 6431,
+          "row_events": 2425040,
+          "union_events": 239476,
+          "bootstrap_events": 109,
+          "prepare_seconds": 0.03837017999999988,
+          "roundtrip_seconds": 2.916863938999997,
+          "decode_seconds": 0.035816766000000014,
+          "device_seconds": 1.101522872573696,
+          "gpu_maintenance_seconds": null,
+          "gpu_matching_seconds": null,
+          "native_query_seconds": 0.0,
+          "audit_seconds": 0.0,
+          "dispatches": 2703,
+          "gpu_empty_table_prunes": 6000,
+          "uploaded_bytes": 101986508,
+          "downloaded_bytes": 12375612,
+          "first_upload_bytes": 8756,
+          "unchanged_notifications": 0,
+          "workers": 1,
+          "shader_compiles": 1,
+          "reused_slots": 194408,
+          "peak_live_rows": 693079,
+          "output_high_water": 19733,
+          "saturation_boundaries": 2624,
+          "skipped_saturations": 12,
+          "partial_saturations": 0,
+          "saturation_hook_seconds": 1.9408302919999998,
+          "cell_query_rules": 162783,
+          "cell_query_bindings": 2244864,
+          "cell_query_seconds": 1.2073180019999978,
+          "shared_query_requests": 0,
+          "shared_query_bindings": 0,
+          "native_only_runs": 0,
+          "native_only_seconds": 0.0
+        },
+        "native_only_rulesets": {},
+        "error": null
+      }
+    },
+    "comparisons": {
+      "marker_effect_gpu": {
+        "status": "equal",
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "mapped_classes": 524631,
+        "projected_out_left": [],
+        "projected_out_right": [
+          "joint_comparison_gate",
+          "joint_gate_0",
+          "joint_gate_1",
+          "joint_gate_2",
+          "joint_gate_3",
+          "joint_gate_4",
+          "joint_gate_5",
+          "joint_gate_6",
+          "joint_gate_7",
+          "scalar_close_gate_0",
+          "scalar_close_gate_1"
+        ],
+        "left": "original-gpu",
+        "right": "marked-gpu"
+      }
+    },
+    "pristine": null,
+    "search_counters": false,
+    "scope": "supplied source policy, explicit source-declared runtime extensions only; pristine names the unchanged baseline kernel, not the absence of extensions; source and backend effects reported separately",
+    "passed": true
+  },
+  "verification": {
+    "schema": "source-program-verification/v1",
+    "graph": {
+      "status": "equal",
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 699068,
+      "mapped_classes": 524631,
+      "projected_out_left": [],
+      "projected_out_right": [
+        "joint_comparison_gate",
+        "joint_gate_0",
+        "joint_gate_1",
+        "joint_gate_2",
+        "joint_gate_3",
+        "joint_gate_4",
+        "joint_gate_5",
+        "joint_gate_6",
+        "joint_gate_7",
+        "scalar_close_gate_0",
+        "scalar_close_gate_1"
+      ]
+    },
+    "lanes": {
+      "cpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/aae4f5b70cc54efd213353bfbed7877a9628e374d712e22be6d17937a2a06cc5",
+        "identity": {
+          "source_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+          "runner_sha256": "72eb8f216568824a24cddee1a40f19c102d5a77d9099cce16bc7a6b5d4cec2b0",
+          "backend": "cpu",
+          "pristine_sha256": null,
+          "worker_sha256": null,
+          "query_audit": false,
+          "harness_sha256": "58a2b6b21b8fd63e3f51ffc392a284f5c60232b3c54b834cfcbbb29570546222",
+          "threads": 1,
+          "protocol": "program-run/v1",
+          "native_rulesets": "",
+          "assistance": {
+            "cell-assistance": "off"
+          },
+          "export_extraction": true
+        },
+        "graph_sha256": "d60c7cb7e4305d46ab0340d8d7fd8d689069cf35af701d37e6d74c90f2a57c2d",
+        "extraction_sha256": "69e24b26bf929802faa0680ac737ed54720f4b91b94ca53dadcc315e5d4847e4"
+      },
+      "gpu": {
+        "directory": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/program-modes/cache/93244dc2034aff4a0053b7ead526a102ae8b54229df220e35db3c8422d55e796",
+        "identity": {
+          "source_sha256": "62176a5e03fd69e1a56cea67b14c879f67edce738ae90060d63b857460955c6f",
+          "runner_sha256": "74bf9f4c07a286f7be7b8b9d803a75fbda186d4e624f44755e39a03274620e7b",
+          "backend": "gpu",
+          "pristine_sha256": null,
+          "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+          "query_audit": true,
+          "harness_sha256": "58a2b6b21b8fd63e3f51ffc392a284f5c60232b3c54b834cfcbbb29570546222",
+          "threads": 1,
+          "protocol": "program-run/v1",
+          "native_rulesets": "",
+          "export_extraction": true
+        },
+        "graph_sha256": "8e88a2d2de223e6e8e4f0af49897f19d8762fb129d3f34b224deb299f552d95b",
+        "extraction_sha256": "9628a21a848ef3e898c659c430e7706b8751398e3785b451735d009715462df1"
+      }
+    },
+    "extraction_lanes": [
+      "cpu",
+      "gpu"
+    ],
+    "extraction": {
+      "passed": true,
+      "outputs": [
+        {
+          "file": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/source-repair/final-build-verification/extraction/cpu.egg",
+          "reconstruction_seconds": 0.104719209,
+          "selected_rows": 8007,
+          "functions": [
+            "bbox_between",
+            "bbox_ray_intersect",
+            "bbox_size",
+            "bbox_triangle",
+            "bbox_union",
+            "build_bvh",
+            "build_cube",
+            "dot",
+            "fabs",
+            "fmax",
+            "fmin",
+            "intersect",
+            "main",
+            "make_leaf_node",
+            "partition",
+            "partition_cost",
+            "point_max",
+            "point_min",
+            "sample_ray",
+            "sqrt",
+            "trace",
+            "triangle_max",
+            "triangle_min",
+            "vec_add",
+            "vec_cross",
+            "vec_len",
+            "vec_normalize",
+            "vec_scale",
+            "vec_sub"
+          ],
+          "function_count": 29
+        },
+        {
+          "file": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/source-repair/final-build-verification/extraction/gpu.egg",
+          "reconstruction_seconds": 0.102483125,
+          "selected_rows": 8007,
+          "functions": [
+            "bbox_between",
+            "bbox_ray_intersect",
+            "bbox_size",
+            "bbox_triangle",
+            "bbox_union",
+            "build_bvh",
+            "build_cube",
+            "dot",
+            "fabs",
+            "fmax",
+            "fmin",
+            "intersect",
+            "main",
+            "make_leaf_node",
+            "partition",
+            "partition_cost",
+            "point_max",
+            "point_min",
+            "sample_ray",
+            "sqrt",
+            "trace",
+            "triangle_max",
+            "triangle_min",
+            "vec_add",
+            "vec_cross",
+            "vec_len",
+            "vec_normalize",
+            "vec_scale",
+            "vec_sub"
+          ],
+          "function_count": 29
+        }
+      ],
+      "checks": [
+        {
+          "candidate": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/source-repair/final-build-verification/extraction/gpu.egg",
+          "exact_selected_dag": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 8006,
+            "eclass_mapping": 8006,
+            "tables": {
+              "Add": 1,
+              "Alloc": 132,
+              "And": 1,
+              "Arg": 1,
+              "Bool": 2,
+              "BoolT": 1,
+              "Bop": 2240,
+              "Call": 85,
+              "Concat": 1500,
+              "Const": 27,
+              "Div": 1,
+              "DoWhile": 58,
+              "DumC": 1,
+              "Eq": 1,
+              "FAdd": 1,
+              "FDiv": 1,
+              "FGreaterEq": 1,
+              "FGreaterThan": 1,
+              "FLessThan": 1,
+              "FMul": 1,
+              "FSub": 1,
+              "Float": 16,
+              "FloatT": 1,
+              "Free": 1,
+              "Function": 29,
+              "Get": 2394,
+              "GreaterThan": 1,
+              "If": 111,
+              "Int": 9,
+              "IntT": 1,
+              "LessThan": 1,
+              "Load": 1,
+              "Neg": 1,
+              "Not": 1,
+              "Or": 1,
+              "PointerT": 5,
+              "Print": 1,
+              "PtrAdd": 1,
+              "Single": 873,
+              "StateT": 1,
+              "Sub": 1,
+              "TCons": 44,
+              "TNil": 1,
+              "Top": 431,
+              "TupleT": 19,
+              "Uop": 2,
+              "Write": 1
+            }
+          },
+          "error": null
+        }
+      ],
+      "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+    },
+    "passed": true
+  },
+  "audit": {
+    "directory": "out/source-repair/final-build-audit/original-gpu",
+    "identity": {
+      "source_sha256": "62176a5e03fd69e1a56cea67b14c879f67edce738ae90060d63b857460955c6f",
+      "runner_sha256": "74bf9f4c07a286f7be7b8b9d803a75fbda186d4e624f44755e39a03274620e7b",
+      "backend": "gpu",
+      "pristine_sha256": null,
+      "worker_sha256": "919e6c39ece826e87e9d52e76f9dd8e2209b830d6e3a38f3493e4c72b467a0d9",
+      "query_audit": true,
+      "harness_sha256": "58a2b6b21b8fd63e3f51ffc392a284f5c60232b3c54b834cfcbbb29570546222",
+      "threads": 1,
+      "protocol": "program-run/v1",
+      "native_rulesets": "",
+      "export_extraction": true
+    },
+    "scope": "all queries",
+    "audited_queries": 478137,
+    "cell_query_requests": 162783,
+    "all_checks_passed": true,
+    "timing_graph_sha256": "8e88a2d2de223e6e8e4f0af49897f19d8762fb129d3f34b224deb299f552d95b",
+    "audit_graph_sha256": "8e88a2d2de223e6e8e4f0af49897f19d8762fb129d3f34b224deb299f552d95b"
+  },
+  "source_contract": {
+    "raw_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "sk_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+    "marked_sha256": "62176a5e03fd69e1a56cea67b14c879f67edce738ae90060d63b857460955c6f",
+    "key_consumers": 0,
+    "source_body_preserved": true,
+    "physical_marker_tables": 0,
+    "runtime_query_plans": 224,
+    "runtime_shared_prefix_markers": 140,
+    "closure_programs": 31,
+    "only_runtime_program_input": "out/source-triple-pass3/mk/build-4/source_sk_mk.egg"
+  },
+  "generation": {
+    "schema": "self-contained-marker-stage/v1",
+    "input_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+    "output_sha256": "62176a5e03fd69e1a56cea67b14c879f67edce738ae90060d63b857460955c6f",
+    "only_input": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/key-demand-pass3/plain-exact/source_sk.egg",
+    "pricing": "verified execution of preceding source_sk.egg; no external corpus or static prices",
+    "output": "/Users/mineralsteins/.codex/worktrees/explicit-keys-cell-integration/egg_layout/out/source-triple-pass3/mk/build-4/source_sk_mk.egg",
+    "reused_profile": true,
+    "closure_owned_queries": 31,
+    "gpu_fallback_priced": true,
+    "selected_queries": 224,
+    "lowered_queries": 0,
+    "retained_query_contexts": 224,
+    "marker_tables": 0,
+    "rhs_publications": 0,
+    "solver": {
+      "backend": "scip",
+      "python_package_version": "6.3.0",
+      "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+      "threads": 1,
+      "models": {
+        "scheduled_spine_layouts": {
+          "models": 1,
+          "solve_calls": 1,
+          "api_build_seconds": 0.31716851162491366,
+          "solve_seconds": 7.564307791995816,
+          "peak_variables": 34848,
+          "peak_constraints": 81349,
+          "engine_version": "10.0.2",
+          "nonoptimal_solves": 0
+        }
+      }
+    },
+    "guarantee": "complete typed query plans and source-checked declared closure programs; original effects and Run boundaries",
+    "limitations": [
+      "Unsupported queries retain original execution. Profiling is offline compilation cost.",
+      "Selection minimizes measured work estimates, not elapsed time; no speedup is implied."
+    ]
+  },
+  "observed": {
+    "joint": {
+      "boundaries": 12,
+      "skipped_joint_saturations": 0,
+      "quiescent_skips": 0,
+      "macro_instances": 0,
+      "macro_waves": 0,
+      "fallback_boundaries": 12,
+      "dataflow_boundaries": 12,
+      "dataflow_ruleset_runs": 1639,
+      "port_reusing_boundaries": 11,
+      "uniform_cost_boundaries": 12,
+      "reasons": {
+        "changed existing state or external helper work": 11,
+        "multiple producers for one Expr": 1
+      }
+    },
+    "comparison": {
+      "saturations": 1185,
+      "seed_evaluations": 211572,
+      "union_proposals": 89226,
+      "native_batches": 601,
+      "propagated_costs": 89226,
+      "unchanged_saturations": 584,
+      "identity_noop_seeds": 73371,
+      "cost_lookups": 151307,
+      "planning_seconds": 0.2076116470000004,
+      "effect_seconds": 0.7840646270000007
+    },
+    "port_reuse": {
+      "enabled": false,
+      "index_reads": 3575443,
+      "reused_reads": 518052,
+      "resumed_seed_evaluations": 434582,
+      "stored_paths": 200513,
+      "shared_row_handles": 357757
+    },
+    "loop_example": [
+      {
+        "program_id": 84,
+        "kind": "boundary_query",
+        "ruleset": "always-run",
+        "rule": "(rule ((= loop (DoWhile inputs pred-and-body))\n       (ContextOf inputs loop-input-ctx)\n       (ContextOf pred-and-body loop-output-ctx)\n       (= constant (Const c out-type loop-output-ctx))\n       (HasArgType inputs in-type))\n      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))\n        :ruleset always-run )",
+        "seed": "DoWhile",
+        "accesses": [
+          {
+            "table": "ContextOf",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "ContextOf",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "HasArgType",
+            "access": {
+              "Columns": 1
+            }
+          },
+          {
+            "table": "Const",
+            "access": {
+              "Columns": 4
+            }
+          }
+        ],
+        "seed_evaluations": 1182,
+        "emitted_bindings": 123254,
+        "live_seed_instances": 84,
+        "retired_guard_seeds": 0,
+        "identity_noop_seeds": 0,
+        "index_reads": 1346,
+        "candidate_rows": 126320,
+        "terminal_delta_rows_skipped": 1048146,
+        "payload_layout": [
+          0,
+          []
+        ],
+        "payload_resumes": 0,
+        "cache_ports": true,
+        "reused_port_reads": 2814,
+        "resumed_seed_evaluations": 956,
+        "stored_port_paths": 84,
+        "shared_marker": null,
+        "shared_prefix_uses": 0
+      }
+    ]
+  },
+  "historical_gate": {
+    "seconds": 12.340255,
+    "source": "experiments/loop_marker_regression/README.md",
+    "kind": "absolute historical acceptance threshold, not same-policy causal speedup",
+    "passed": true
+  },
+  "tests": {
+    "source_pipeline": 29,
+    "bench_protocol": 69
+  },
+  "limits": [
+    "This source declares no structural choice consumer; key generation is legitimately empty.",
+    "Ordered old/new merges retain their source LHS and original watermarks; selected prefix markers execute from source comments, not new native tables.",
+    "Known generic closure schemes are structurally checked; no arbitrary new saturation theorem is inferred.",
+    "The objective uses measured work estimates, not a proven globally optimal time model.",
+    "Single executions only, not averages or a cross-workload performance guarantee.",
+    "Pristine/fused-native parity is not claimed; the oracle disables Cell and uses the same native sorted submission protocol."
+  ],
+  "implementation_commit": "a5107f0"
+}
