@@ -1,0 +1,277 @@
+{
+  "name": "bril__mem__csrmv",
+  "suite": "bril",
+  "source": "bril/mem/csrmv.bril",
+  "graphs": [
+    {
+      "pass_number": 1,
+      "input_sha256": "a4d1f5e09ccaa193a976e55df5feada2b359e2bb39c7a9357d30abb51dab36c4",
+      "reference_output_sha256": "befba5e04a1e93740ae480f29d87d063a3ddb097ecf89d0d757583db3e5c73b5",
+      "reused_oracle": [
+        {
+          "classes": 1406,
+          "root": -1,
+          "passed": true
+        },
+        {
+          "estimate_seconds": 0.005517839
+        },
+        {
+          "native_candidate_seconds": 0.000119292
+        },
+        {
+          "merges": 4674,
+          "input_entries": 117041,
+          "output_entries": 114447,
+          "max_entries": 109
+        }
+      ],
+      "passed": true,
+      "error": null,
+      "runs": {
+        "native": {
+          "command": [
+            "/work/tiger-build/core-native/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.07919998187571764,
+          "stdout_sha256": "befba5e04a1e93740ae480f29d87d063a3ddb097ecf89d0d757583db3e5c73b5",
+          "max_rss_kib": 52864,
+          "measured_at": "2026-10-24T03:08:23.744431+00:00",
+          "user_seconds": 0.06,
+          "system_seconds": 0.01,
+          "stats": [
+            {
+              "read_parse_seconds": 0.048519096,
+              "algorithm_seconds": 0.019876518,
+              "serialize_write_seconds": 0.000226766
+            }
+          ]
+        },
+        "bag": {
+          "command": [
+            "/work/tiger-build/core-bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.07535206596367061,
+          "stdout_sha256": "befba5e04a1e93740ae480f29d87d063a3ddb097ecf89d0d757583db3e5c73b5",
+          "max_rss_kib": 52384,
+          "measured_at": "2026-10-24T03:08:23.824780+00:00",
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "stats": [
+            {
+              "read_parse_seconds": 0.048439773,
+              "algorithm_seconds": 0.016589796,
+              "serialize_write_seconds": 0.000228575
+            },
+            {
+              "merges": 4674,
+              "input_entries": 117041,
+              "output_entries": 114447,
+              "max_entries": 109
+            }
+          ]
+        }
+      },
+      "timing": {
+        "native": {
+          "read_parse_seconds": 0.048519096,
+          "algorithm_seconds": 0.019876518,
+          "serialize_write_seconds": 0.000226766
+        },
+        "bag": {
+          "read_parse_seconds": 0.048439773,
+          "algorithm_seconds": 0.016589796,
+          "serialize_write_seconds": 0.000228575
+        }
+      }
+    },
+    {
+      "pass_number": 2,
+      "input_sha256": "fc5978089fb13d0ea281a0fb8ef78ddbbbe9b2630d72294504d7fd601fe1f8ac",
+      "reference_output_sha256": "2883ed4e3186da03654f546dd4e24b0e6315ce129083abef8f14ee1c6310fbdb",
+      "reused_oracle": [
+        {
+          "classes": 3062,
+          "root": -1,
+          "passed": true
+        },
+        {
+          "estimate_seconds": 0.018291805
+        },
+        {
+          "native_candidate_seconds": 0.000285961
+        },
+        {
+          "merges": 12545,
+          "input_entries": 464794,
+          "output_entries": 411578,
+          "max_entries": 110
+        }
+      ],
+      "passed": true,
+      "error": null,
+      "runs": {
+        "bag": {
+          "command": [
+            "/work/tiger-build/core-bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.15800971910357475,
+          "stdout_sha256": "2883ed4e3186da03654f546dd4e24b0e6315ce129083abef8f14ee1c6310fbdb",
+          "max_rss_kib": 72012,
+          "measured_at": "2026-10-24T03:08:23.992190+00:00",
+          "user_seconds": 0.14,
+          "system_seconds": 0.01,
+          "stats": [
+            {
+              "read_parse_seconds": 0.112604624,
+              "algorithm_seconds": 0.022083277,
+              "serialize_write_seconds": 0.000218272
+            },
+            {
+              "merges": 12545,
+              "input_entries": 464794,
+              "output_entries": 411578,
+              "max_entries": 110
+            }
+          ]
+        },
+        "native": {
+          "command": [
+            "/work/tiger-build/core-native/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.17235910100862384,
+          "stdout_sha256": "2883ed4e3186da03654f546dd4e24b0e6315ce129083abef8f14ee1c6310fbdb",
+          "max_rss_kib": 73812,
+          "measured_at": "2026-10-24T03:08:24.173891+00:00",
+          "user_seconds": 0.14,
+          "system_seconds": 0.01,
+          "stats": [
+            {
+              "read_parse_seconds": 0.108166911,
+              "algorithm_seconds": 0.034794224,
+              "serialize_write_seconds": 0.00022199
+            }
+          ]
+        }
+      },
+      "timing": {
+        "bag": {
+          "read_parse_seconds": 0.112604624,
+          "algorithm_seconds": 0.022083277,
+          "serialize_write_seconds": 0.000218272
+        },
+        "native": {
+          "read_parse_seconds": 0.108166911,
+          "algorithm_seconds": 0.034794224,
+          "serialize_write_seconds": 0.00022199
+        }
+      }
+    },
+    {
+      "pass_number": 3,
+      "input_sha256": "2ad32a53e4bcaaaac89e240c7bb26cb88614b61f39a02b3a14d7407e5c49d67d",
+      "reference_output_sha256": "023500dca71c0453fb894aa0e563b9c878f8032c8146cc3c51a1c753a4892052",
+      "reused_oracle": [
+        {
+          "classes": 1897,
+          "root": -1,
+          "passed": true
+        },
+        {
+          "estimate_seconds": 0.014120964
+        },
+        {
+          "native_candidate_seconds": 0.000148165
+        },
+        {
+          "merges": 6798,
+          "input_entries": 326265,
+          "output_entries": 306705,
+          "max_entries": 246
+        }
+      ],
+      "passed": true,
+      "error": null,
+      "runs": {
+        "native": {
+          "command": [
+            "/work/tiger-build/core-native/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.11435191589407623,
+          "stdout_sha256": "023500dca71c0453fb894aa0e563b9c878f8032c8146cc3c51a1c753a4892052",
+          "max_rss_kib": 60808,
+          "measured_at": "2026-10-24T03:08:24.295076+00:00",
+          "user_seconds": 0.09,
+          "system_seconds": 0.02,
+          "stats": [
+            {
+              "read_parse_seconds": 0.067004324,
+              "algorithm_seconds": 0.032145198,
+              "serialize_write_seconds": 0.000365741
+            }
+          ]
+        },
+        "bag": {
+          "command": [
+            "/work/tiger-build/core-bag/tiger",
+            "--ilp-solver",
+            "cbc"
+          ],
+          "returncode": 0,
+          "timeout": false,
+          "wall_seconds": 0.10434470186010003,
+          "stdout_sha256": "023500dca71c0453fb894aa0e563b9c878f8032c8146cc3c51a1c753a4892052",
+          "max_rss_kib": 59152,
+          "measured_at": "2026-10-24T03:08:24.405885+00:00",
+          "user_seconds": 0.09,
+          "system_seconds": 0.01,
+          "stats": [
+            {
+              "read_parse_seconds": 0.067360974,
+              "algorithm_seconds": 0.021885074,
+              "serialize_write_seconds": 0.000370189
+            },
+            {
+              "merges": 6798,
+              "input_entries": 326265,
+              "output_entries": 306705,
+              "max_entries": 246
+            }
+          ]
+        }
+      },
+      "timing": {
+        "native": {
+          "read_parse_seconds": 0.067004324,
+          "algorithm_seconds": 0.032145198,
+          "serialize_write_seconds": 0.000365741
+        },
+        "bag": {
+          "read_parse_seconds": 0.067360974,
+          "algorithm_seconds": 0.021885074,
+          "serialize_write_seconds": 0.000370189
+        }
+      }
+    }
+  ]
+}

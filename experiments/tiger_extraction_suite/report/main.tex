@@ -224,6 +224,7 @@ peak RSS for standalone extraction.
 
 \IfFileExists{results.tex}{\input{results.tex}}{}
 \FloatBarrier
+\IfFileExists{core-results.tex}{\input{core-results.tex}\FloatBarrier}{}
 
 \section{Limitations and next steps}
 The evidence covers one revision, one CPU platform, one inventory, and one
@@ -254,18 +255,23 @@ per-program/per-pass measurements. Linux does not need Metal.
 Raw graphs and binaries stay outside Git; reproducible sources, compact
 results, CSV tables, and provenance are retained.
 
+The separate \tool{extraction-core} command reuses those saved graphs and the
+unchanged candidate build. It accepts \tool{--suite /path/to/results},
+\tool{--checkout}, \tool{--build-dir}, and a fresh \tool{--output} directory.
+It adds internal whole-algorithm timers and never reruns eggcc inference.
+
 \begin{thebibliography}{9}
 \bibitem{eggcc} egraphs-good.
-\emph{eggcc and the Efficient Extraction for Effectful E-Graphs artifact}.
-Revision \texttt{ae80f82a}; production driver and
-\tool{dag\_in\_context/src/tiger/}.
-\url{https://github.com/egraphs-good/eggcc}.
+\href{https://github.com/egraphs-good/eggcc}{\emph{eggcc and the Efficient
+Extraction for Effectful E-Graphs artifact}}. Revision \texttt{ae80f82a};
+production driver and \tool{dag\_in\_context/src/tiger/}.
 \bibitem{experimental} egraphs-good.
-\emph{egglog-experimental}, revision \texttt{08771f9}.
-\url{https://github.com/egraphs-good/egglog-experimental}.
+\href{https://github.com/egraphs-good/egglog-experimental}{\emph{egglog-experimental}},
+revision \texttt{08771f9}.
 \bibitem{engine} Saul Shanabrook and contributors.
-\emph{egg-smol / egglog}, kernel revision \texttt{ebba7bb} locked by this eggcc.
-\url{https://github.com/saulshanabrook/egg-smol}.
+\href{https://github.com/saulshanabrook/egg-smol}{\emph{egg-smol / egglog}},
+kernel revision \texttt{ebba7bb} locked by this eggcc.
 \end{thebibliography}
 \IfFileExists{appendix.tex}{\clearpage\appendix\input{appendix.tex}}{}
+\IfFileExists{core-appendix.tex}{\clearpage\input{core-appendix.tex}}{}
 \end{document}

@@ -1,0 +1,108 @@
+\section{Every workload: in-memory extraction}
+Times in milliseconds, summed over the three pass snapshots in the follow-up. Algorithm includes the full Tiger call. Read/parse and serialize/write are measured separately. LA abbreviates linear-algebra. N is original, B is shared bag. All outputs match the pristine reference.
+\begingroup\small\setlength{\tabcolsep}{3pt}
+\begin{longtable}{p{48mm}rrrrrrr}
+\toprule Program & \shortstack{N\\algorithm} & \shortstack{B\\algorithm} & Ratio & \shortstack{N\\parse} & \shortstack{B\\parse} & \shortstack{N\\write} & \shortstack{B\\write}\\\midrule\endfirsthead
+\toprule Program & N algo & B algo & Ratio & N parse & B parse & N write & B write\\\midrule\endhead
+\bottomrule\endfoot
+\multicolumn{8}{l}{\textbf{Bril}}\\*
+\nolinkurl{core/ackermann.bril} & 26.25 & 25.56 & 1.027 & 10.29 & 10.41 & 0.18 & 0.18 \\
+\nolinkurl{core/armstrong.bril} & 31.89 & 30.09 & 1.060 & 35.37 & 35.72 & 0.27 & 0.24 \\
+\nolinkurl{core/binary-fmt.bril} & 25.24 & 24.64 & 1.024 & 9.65 & 9.64 & 0.16 & 0.17 \\
+\nolinkurl{core/birthday.bril} & 25.57 & 25.35 & 1.009 & 12.90 & 13.19 & 0.12 & 0.11 \\
+\nolinkurl{core/bitshift.bril} & 26.64 & 26.14 & 1.019 & 12.45 & 12.52 & 0.22 & 0.23 \\
+\nolinkurl{core/bitwise-ops.bril} & 49.33 & 41.21 & 1.197 & 95.03 & 95.30 & 0.42 & 0.41 \\
+\nolinkurl{core/catalan.bril} & 27.90 & 27.08 & 1.030 & 20.09 & 20.25 & 0.20 & 0.19 \\
+\nolinkurl{core/check-primes.bril} & 28.37 & 27.67 & 1.025 & 27.26 & 28.19 & 0.19 & 0.19 \\
+\nolinkurl{core/collatz.bril} & 26.09 & 25.46 & 1.025 & 15.51 & 15.58 & 0.14 & 0.13 \\
+\nolinkurl{core/digital-root.bril} & 28.10 & 27.14 & 1.035 & 21.58 & 21.68 & 0.18 & 0.18 \\
+\nolinkurl{core/dot-product.bril} & 26.68 & 25.62 & 1.041 & 13.62 & 13.68 & 0.19 & 0.17 \\
+\nolinkurl{core/euclid.bril} & 25.87 & 25.20 & 1.027 & 13.13 & 13.39 & 0.13 & 0.14 \\
+\nolinkurl{core/fact.bril} & 24.10 & 23.63 & 1.020 & 6.43 & 6.67 & 0.14 & 0.12 \\
+\nolinkurl{core/factors.bril} & 28.73 & 27.39 & 1.049 & 21.90 & 21.90 & 0.15 & 0.15 \\
+\nolinkurl{core/fitsinside.bril} & 23.77 & 23.53 & 1.010 & 4.77 & 4.20 & 0.09 & 0.09 \\
+\nolinkurl{core/fizz-buzz.bril} & 28.67 & 27.92 & 1.027 & 23.97 & 24.47 & 0.16 & 0.16 \\
+\nolinkurl{core/gcd.bril} & 25.85 & 25.13 & 1.029 & 17.22 & 17.31 & 0.13 & 0.13 \\
+\nolinkurl{core/hanoi.bril} & 26.02 & 25.06 & 1.038 & 14.11 & 14.41 & 0.18 & 0.19 \\
+\nolinkurl{core/is-decreasing.bril} & 26.41 & 26.00 & 1.016 & 17.22 & 16.92 & 0.18 & 0.19 \\
+\nolinkurl{core/lcm.bril} & 26.19 & 25.59 & 1.023 & 13.61 & 13.50 & 0.18 & 0.15 \\
+\nolinkurl{core/loopfact.bril} & 24.57 & 24.25 & 1.013 & 10.45 & 10.37 & 0.09 & 0.09 \\
+\nolinkurl{core/mod_inv.bril} & 28.18 & 26.60 & 1.060 & 25.93 & 26.02 & 0.17 & 0.17 \\
+\nolinkurl{core/orders.bril} & 35.62 & 34.31 & 1.038 & 37.62 & 37.82 & 0.34 & 0.33 \\
+\nolinkurl{core/palindrome.bril} & 42.21 & 38.24 & 1.104 & 67.25 & 68.88 & 0.37 & 0.37 \\
+\nolinkurl{core/pascals-row.bril} & 27.23 & 26.52 & 1.027 & 16.12 & 16.00 & 0.14 & 0.14 \\
+\nolinkurl{core/perfect.bril} & 29.02 & 28.02 & 1.036 & 24.57 & 24.75 & 0.13 & 0.13 \\
+\nolinkurl{core/primes-between.bril} & 36.36 & 32.83 & 1.108 & 54.95 & 54.88 & 0.26 & 0.26 \\
+\nolinkurl{core/pythagorean_triple.bril} & 27.12 & 26.02 & 1.042 & 22.41 & 22.46 & 0.14 & 0.15 \\
+\nolinkurl{core/quadratic.bril} & 27.31 & 26.85 & 1.017 & 19.11 & 19.07 & 0.20 & 0.19 \\
+\nolinkurl{core/recfact.bril} & 23.62 & 23.66 & 0.999 & 6.89 & 6.91 & 0.12 & 0.15 \\
+\nolinkurl{core/relative-primes.bril} & 29.39 & 28.02 & 1.049 & 22.69 & 22.44 & 0.22 & 0.22 \\
+\nolinkurl{core/reverse.bril} & 28.86 & 27.50 & 1.049 & 24.59 & 24.65 & 0.14 & 0.16 \\
+\nolinkurl{core/sum-bits.bril} & 25.26 & 24.78 & 1.019 & 11.36 & 11.36 & 0.13 & 0.13 \\
+\nolinkurl{core/sum-check.bril} & 27.66 & 26.45 & 1.046 & 17.29 & 17.16 & 0.17 & 0.16 \\
+\nolinkurl{core/sum-divisors.bril} & 31.60 & 30.03 & 1.052 & 30.89 & 31.04 & 0.23 & 0.22 \\
+\nolinkurl{core/sum-sq-diff.bril} & 29.27 & 28.29 & 1.035 & 21.36 & 21.49 & 0.15 & 0.15 \\
+\nolinkurl{core/totient.bril} & 32.13 & 29.97 & 1.072 & 36.33 & 35.84 & 0.24 & 0.23 \\
+\nolinkurl{core/up-arrow.bril} & 30.66 & 28.83 & 1.064 & 31.28 & 31.29 & 0.22 & 0.22 \\
+\nolinkurl{float/conjugate-gradient.bril} & 87.46 & 61.92 & 1.413 & 224.22 & 224.21 & 1.16 & 1.06 \\
+\nolinkurl{float/cordic.bril} & 180.96 & 156.38 & 1.157 & 218.44 & 214.69 & 0.92 & 0.98 \\
+\nolinkurl{float/euler.bril} & 25.91 & 25.21 & 1.028 & 14.02 & 13.98 & 0.16 & 0.16 \\
+\nolinkurl{float/leibniz.bril} & 29.23 & 28.21 & 1.036 & 24.93 & 24.97 & 0.16 & 0.17 \\
+\nolinkurl{float/mandelbrot.bril} & 44.76 & 36.99 & 1.210 & 79.75 & 79.38 & 0.39 & 0.39 \\
+\nolinkurl{float/n_root.bril} & 30.66 & 28.50 & 1.076 & 35.55 & 35.84 & 0.20 & 0.20 \\
+\nolinkurl{float/newton.bril} & 26.49 & 25.54 & 1.037 & 18.36 & 18.36 & 0.14 & 0.14 \\
+\nolinkurl{float/norm.bril} & 39.46 & 34.66 & 1.138 & 71.65 & 71.88 & 0.35 & 0.35 \\
+\nolinkurl{float/ray-sphere-intersection.bril} & 25.46 & 25.19 & 1.011 & 12.94 & 13.02 & 0.17 & 0.16 \\
+\nolinkurl{float/riemann.bril} & 33.64 & 31.34 & 1.074 & 32.10 & 32.20 & 0.29 & 0.29 \\
+\nolinkurl{float/sqrt.bril} & 29.66 & 27.89 & 1.064 & 26.26 & 26.03 & 0.15 & 0.16 \\
+\nolinkurl{long/dead-branch.bril} & 25.71 & 25.22 & 1.019 & 15.04 & 15.11 & 0.10 & 0.10 \\
+\nolinkurl{mem/adj2csr.bril} & 50.16 & 41.75 & 1.201 & 106.68 & 105.89 & 0.52 & 0.52 \\
+\nolinkurl{mem/adler32.bril} & 34.48 & 31.90 & 1.081 & 37.62 & 37.95 & 0.36 & 0.31 \\
+\nolinkurl{mem/binary-search.bril} & 32.77 & 31.19 & 1.051 & 33.82 & 33.83 & 0.35 & 0.34 \\
+\nolinkurl{mem/bubblesort.bril} & 35.74 & 32.67 & 1.094 & 56.05 & 56.51 & 0.30 & 0.30 \\
+\nolinkurl{mem/csrmv.bril} & 86.82 & 60.56 & 1.434 & 223.69 & 228.41 & 0.81 & 0.82 \\
+\nolinkurl{mem/fib.bril} & 27.72 & 26.32 & 1.053 & 20.97 & 20.97 & 0.13 & 0.14 \\
+\nolinkurl{mem/major-elm.bril} & 31.96 & 30.82 & 1.037 & 27.03 & 27.28 & 0.22 & 0.25 \\
+\nolinkurl{mem/mat-mul.bril} & 46.07 & 38.59 & 1.194 & 92.28 & 92.97 & 0.46 & 0.48 \\
+\nolinkurl{mem/max-subarray.bril} & 32.83 & 28.93 & 1.135 & 35.80 & 35.46 & 0.24 & 0.24 \\
+\nolinkurl{mem/quickselect.bril} & 44.40 & 38.65 & 1.149 & 75.43 & 75.52 & 0.51 & 0.53 \\
+\nolinkurl{mem/quicksort.bril} & 50.17 & 40.01 & 1.254 & 91.07 & 91.96 & 0.46 & 0.45 \\
+\nolinkurl{mem/vsmul.bril} & 30.12 & 28.36 & 1.062 & 26.76 & 26.68 & 0.24 & 0.22 \\
+\nolinkurl{mixed/cholesky_decomp.bril} & 75.76 & 57.19 & 1.325 & 233.57 & 233.96 & 0.79 & 0.78 \\
+\nolinkurl{mixed/mat-inv.bril} & 41.63 & 36.17 & 1.151 & 61.42 & 61.98 & 0.47 & 0.47 \\
+\multicolumn{8}{l}{\textbf{PolyBench}}\\*
+\nolinkurl{datamining/correlation.rs} & 222.41 & 112.43 & 1.978 & 711.20 & 741.84 & 1.42 & 1.43 \\
+\nolinkurl{datamining/covariance.rs} & 159.65 & 88.78 & 1.798 & 514.78 & 518.43 & 1.13 & 1.12 \\
+\nolinkurl{LA/blas/gemm.bril} & 137.13 & 90.65 & 1.513 & 408.67 & 399.83 & 0.98 & 0.99 \\
+\nolinkurl{LA/blas/gemver.bril} & 221.70 & 113.05 & 1.961 & 513.81 & 519.87 & 1.10 & 1.06 \\
+\nolinkurl{LA/blas/gesummv.bril} & 76.54 & 55.38 & 1.382 & 204.17 & 200.12 & 0.66 & 0.68 \\
+\nolinkurl{LA/blas/symm.bril} & 114.44 & 76.53 & 1.495 & 336.51 & 338.09 & 0.90 & 0.91 \\
+\nolinkurl{LA/blas/syr2k.bril} & 108.34 & 75.06 & 1.443 & 325.50 & 320.93 & 0.90 & 0.88 \\
+\nolinkurl{LA/blas/syrk.bril} & 91.75 & 67.16 & 1.366 & 272.06 & 274.21 & 0.85 & 0.84 \\
+\nolinkurl{LA/blas/trmm.bril} & 81.21 & 60.08 & 1.352 & 216.89 & 217.40 & 0.70 & 0.69 \\
+\nolinkurl{LA/kernels/2mm.bril} & 243.69 & 139.68 & 1.745 & 685.41 & 703.99 & 1.42 & 1.39 \\
+\nolinkurl{LA/kernels/3mm.bril} & 313.22 & 168.59 & 1.858 & 859.75 & 861.93 & 1.62 & 1.61 \\
+\nolinkurl{LA/kernels/atax.bril} & 91.73 & 62.72 & 1.462 & 254.58 & 252.77 & 0.73 & 0.74 \\
+\nolinkurl{LA/kernels/bicg.bril} & 91.87 & 61.06 & 1.504 & 252.11 & 252.21 & 0.73 & 0.73 \\
+\nolinkurl{LA/kernels/doitgen.bril} & 110.68 & 78.00 & 1.419 & 369.83 & 371.46 & 1.03 & 1.03 \\
+\nolinkurl{LA/kernels/mvt.bril} & 96.44 & 64.65 & 1.492 & 235.10 & 238.83 & 0.77 & 0.76 \\
+\nolinkurl{LA/solvers/cholesky.bril} & 100.78 & 75.62 & 1.333 & 362.41 & 362.69 & 1.10 & 1.09 \\
+\nolinkurl{LA/solvers/durbin.bril} & 74.72 & 49.43 & 1.511 & 160.23 & 160.75 & 0.49 & 0.49 \\
+\nolinkurl{LA/solvers/gramschmidt.bril} & 119.81 & 80.27 & 1.493 & 391.30 & 398.00 & 1.01 & 1.01 \\
+\nolinkurl{LA/solvers/lu.bril} & 95.84 & 73.21 & 1.309 & 330.80 & 329.92 & 1.02 & 0.99 \\
+\nolinkurl{LA/solvers/ludcmp.bril} & 157.10 & 102.45 & 1.533 & 557.61 & 562.03 & 1.29 & 1.30 \\
+\nolinkurl{LA/solvers/trisolv.bril} & 59.49 & 46.73 & 1.273 & 134.19 & 138.65 & 0.56 & 0.53 \\
+\nolinkurl{medley/deriche.rs} & 457.72 & 187.55 & 2.441 & 1256.83 & 1275.06 & 2.00 & 2.00 \\
+\nolinkurl{medley/floyd-warshall.rs} & 71.53 & 52.82 & 1.354 & 229.99 & 230.61 & 0.66 & 0.67 \\
+\nolinkurl{medley/nussinov.rs} & 88.17 & 66.60 & 1.324 & 310.63 & 312.33 & 0.88 & 0.89 \\
+\nolinkurl{stencils/adi.rs} & 235.21 & 97.96 & 2.401 & 561.15 & 563.78 & 1.08 & 1.06 \\
+\nolinkurl{stencils/fdtd-2d.rs} & 290.08 & 131.26 & 2.210 & 961.78 & 955.29 & 1.53 & 1.59 \\
+\nolinkurl{stencils/heat-3d.rs} & 239.84 & 112.83 & 2.126 & 810.47 & 791.01 & 1.45 & 1.42 \\
+\nolinkurl{stencils/jacobi-1d.rs} & 54.90 & 42.35 & 1.296 & 143.62 & 143.45 & 0.47 & 0.48 \\
+\nolinkurl{stencils/jacobi-2d.rs} & 106.75 & 67.44 & 1.583 & 373.87 & 373.13 & 0.86 & 0.90 \\
+\nolinkurl{stencils/seidel-2d.rs} & 76.06 & 53.93 & 1.410 & 263.91 & 263.84 & 0.67 & 0.67 \\
+\multicolumn{8}{l}{\textbf{Raytrace}}\\*
+\nolinkurl{raytrace.rs} & 1116.36 & 402.29 & 2.775 & 3513.56 & 3499.66 & 6.07 & 6.31 \\
+\multicolumn{8}{l}{\textbf{Fenwick}}\\*
+\nolinkurl{fenwick_tree.rs} & 37.67 & 34.01 & 1.107 & 69.47 & 69.31 & 0.28 & 0.29 \\
+\end{longtable}\endgroup

@@ -78,7 +78,7 @@ def run_process(command, folder, *, stdin=None, env=None, timeout=600, tiger_lim
             except ValueError:pass
     result['stats']=[]
     for line in (folder/'stderr').read_text(errors='replace').splitlines():
-        if line.startswith(('TIGER_COST_PHASE ','TIGER_COST_BAG ','TIGER_GREEDY_ORACLE ')):
+        if line.startswith(('TIGER_COST_PHASE ','TIGER_COST_BAG ','TIGER_GREEDY_ORACLE ','TIGER_EXTRACTION_TIMING ')):
             result['stats'].append(json.loads(line.split(' ',1)[1]))
     write(folder/'measurement.json',result)
     return result

@@ -65,5 +65,51 @@
       "pipeline": 0.9979210622717226,
       "rss": 1.0005040322580645
     }
-  ]
+  ],
+  "complete_algorithm": {
+    "geomean": 1.2259338549702923,
+    "aggregate": 1.5465007207136803,
+    "native_seconds": 7.836573588,
+    "bag_seconds": 5.067293848000001,
+    "saved_percent": 35.337889817567024,
+    "wins": 95,
+    "regressions": [
+      "bril__core__recfact"
+    ],
+    "groups": [
+      {
+        "suite": "Bril",
+        "n": 64,
+        "native": 2.293751405,
+        "bag": 2.076739547,
+        "gm": 1.0754406507970928,
+        "aggregate": 1.1044964248470588
+      },
+      {
+        "suite": "PolyBench",
+        "n": 30,
+        "native": 4.388793992,
+        "bag": 2.554255628,
+        "gm": 1.5829158263041034,
+        "aggregate": 1.7182281772777992
+      },
+      {
+        "suite": "Raytrace",
+        "n": 1,
+        "native": 1.116362321,
+        "bag": 0.402285219,
+        "gm": 2.77505179975305,
+        "aggregate": 2.77505179975305
+      },
+      {
+        "suite": "Fenwick",
+        "n": 1,
+        "native": 0.03766587,
+        "bag": 0.034013454,
+        "gm": 1.1073815085054284,
+        "aggregate": 1.1073815085054284
+      }
+    ],
+    "summary_sha256": "6dc5820236cd07eeb9d72444ef941179384b3c409e0ca8dc3e4e33428c0b035e"
+  }
 }

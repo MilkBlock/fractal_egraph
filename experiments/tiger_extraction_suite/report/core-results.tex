@@ -1,0 +1,39 @@
+\section{Complete extraction without communication or parsing}
+
+A follow-up adds identical internal clock boundaries to both extractors and reuses all 288 previously validated graph snapshots. It does not rerun inference. The source, machine, affinity, and input hashes are checked. Every newly selected output again equals the saved pristine output; the historical cost/pick oracle is reused only after verifying that the underlying candidate overlay binary is unchanged.
+
+\subsection{Exact boundary}
+
+The interval begins immediately before \tool{extract\_all\_fun\_roots\_tiger(g, roots)} and ends immediately after its return. It includes region discovery and construction, global and candidate cost calculations, Statewalk, final DAG extraction, allocation, merging and reference management. Input reading/JSON parsing precedes the interval. Result serialization, stdout flushing, process startup and teardown are excluded. Candidate diagnostic phase writes inside the interval are removed; the timing record is emitted after output.
+
+This is a direct measurement of the complete algorithm, not process wall time minus guessed communication overhead. Temporary internal graph construction is part of extraction and stays charged. The selected output remains live at the endpoint; its final destruction belongs to process teardown in both lanes.
+
+\subsection{Results on the same 96 programs}
+
+All 96 programs and 288 graph pairs pass the new output checks. Complete in-memory extraction totals 7.837 s versus 5.067 s, a 1.547x aggregate ratio and 35.34 percent less time. The geometric mean over programs is 1.226x. 95 observations are faster and 1 slower. These are single paired observations, with order alternating by program/pass index.
+
+\begin{table}[ht]\centering\small\begin{tabular}{lrrrrr}\toprule
+
+Suite & $n$ & Original (s) & Shared bag (s) & GM ratio & Aggregate\\\midrule
+
+Bril & 64 & 2.294 & 2.077 & 1.075 & 1.104 \\
+
+PolyBench & 30 & 4.389 & 2.554 & 1.583 & 1.718 \\
+
+Raytrace & 1 & 1.116 & 0.402 & 2.775 & 2.775 \\
+
+Fenwick & 1 & 0.038 & 0.034 & 1.107 & 1.107 \\
+
+\midrule
+
+All & 96 & 7.837 & 5.067 & 1.226 & 1.547 \\
+
+\bottomrule\end{tabular}\caption{Complete in-memory extraction, excluding read/parse and serialize/write. Ratios are original/shared-bag.}\end{table}
+
+For raytrace, the three-pass algorithm total falls from 1.116 s to 0.402 s (2.775x). Its read/parse totals are 3.514 s and 3.500 s. The previously reported integrated raytrace regression is retained; this new isolated timing does not overturn it.
+
+\begin{figure}[ht]\centering\includegraphics[width=\linewidth]{figures/core-components.pdf}\caption{Components from the same follow-up runs. Other process overhead includes startup, teardown, scheduling and wrapper overhead; it is not labeled entirely as communication.}\end{figure}
+
+Across the suite, read/parse alone totals 19.375 s and 19.432 s. Serialize/write totals 0.053 s and 0.054 s. Process elapsed totals in this follow-up are 32.220 s and 29.497 s (1.092x). Parsing therefore dilutes the observed process-level gain, while the large remaining parsing cost is unchanged by cost-bag sharing.
+
+The original process/pipeline table and this follow-up are separate measurement sessions. Their times are not spliced or subtracted to infer missing phases. Geometric and aggregate ratios answer different questions; no GPU transfer or online compiler speedup is claimed.

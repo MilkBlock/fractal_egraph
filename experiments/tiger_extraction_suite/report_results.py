@@ -28,9 +28,72 @@ def tex(s):
 def ratio(a,b):return a/b if b else None
 
 
+def core_report(path, out, original_root):
+    p=json.loads((path/'summary.json').read_text())
+    assert p['schema']=='tiger-extract-all-fun-roots/v1'
+    assert p['passed']==p['attempted']==p['inventory']==96 and p['passed_graphs']==288
+    assert p['manifest']['prior_manifest_sha256']==hashlib.sha256((original_root/'manifest.json').read_bytes()).hexdigest()
+    rows=p['rows'];t=p['totals'];groups=[]
+    labels={'bril':'Bril','polybench':'PolyBench','raytrace':'Raytrace','fenwick':'Fenwick'}
+    for key,label in labels.items():
+        rs=[r for r in rows if r['suite']==key]
+        a=sum(r['native_algorithm_seconds'] for r in rs);b=sum(r['bag_algorithm_seconds'] for r in rs)
+        groups.append(dict(suite=label,n=len(rs),native=a,bag=b,gm=gm(r['algorithm_speedup'] for r in rs),aggregate=a/b))
+    a=t['native_algorithm_seconds'];b=t['bag_algorithm_seconds']
+    result=dict(geomean=p['algorithm_geomean'],aggregate=p['algorithm_aggregate'],native_seconds=a,bag_seconds=b,
+                saved_percent=100*(1-b/a),wins=p['wins'],regressions=p['regressions'],groups=groups,
+                summary_sha256=hashlib.sha256((path/'summary.json').read_bytes()).hexdigest())
+    lines=[r'\section{Complete extraction without communication or parsing}',
+           'A follow-up adds identical internal clock boundaries to both extractors and reuses all 288 previously validated graph snapshots. It does not rerun inference. The source, machine, affinity, and input hashes are checked. Every newly selected output again equals the saved pristine output; the historical cost/pick oracle is reused only after verifying that the underlying candidate overlay binary is unchanged.',
+           r'\subsection{Exact boundary}',
+           r'The interval begins immediately before \tool{extract\_all\_fun\_roots\_tiger(g, roots)} and ends immediately after its return. It includes region discovery and construction, global and candidate cost calculations, Statewalk, final DAG extraction, allocation, merging and reference management. Input reading/JSON parsing precedes the interval. Result serialization, stdout flushing, process startup and teardown are excluded. Candidate diagnostic phase writes inside the interval are removed; the timing record is emitted after output.',
+           'This is a direct measurement of the complete algorithm, not process wall time minus guessed communication overhead. Temporary internal graph construction is part of extraction and stays charged. The selected output remains live at the endpoint; its final destruction belongs to process teardown in both lanes.',
+           r'\subsection{Results on the same 96 programs}',
+           f'All 96 programs and 288 graph pairs pass the new output checks. Complete in-memory extraction totals {a:.3f} s versus {b:.3f} s, a {p["algorithm_aggregate"]:.3f}x aggregate ratio and {100*(1-b/a):.2f} percent less time. The geometric mean over programs is {p["algorithm_geomean"]:.3f}x. {p["wins"]} observations are faster and {len(p["regressions"])} slower. These are single paired observations, with order alternating by program/pass index.',
+           r'\begin{table}[ht]\centering\small\begin{tabular}{lrrrrr}\toprule',
+           r'Suite & $n$ & Original (s) & Shared bag (s) & GM ratio & Aggregate\\\midrule']
+    for g in groups:lines.append(f'{g["suite"]} & {g["n"]} & {g["native"]:.3f} & {g["bag"]:.3f} & {g["gm"]:.3f} & {g["aggregate"]:.3f} \\\\')
+    lines += [r'\midrule',f'All & 96 & {a:.3f} & {b:.3f} & {p["algorithm_geomean"]:.3f} & {p["algorithm_aggregate"]:.3f} \\\\',
+              r'\bottomrule\end{tabular}\caption{Complete in-memory extraction, excluding read/parse and serialize/write. Ratios are original/shared-bag.}\end{table}']
+    ray=next(r for r in rows if r['suite']=='raytrace')
+    lines.append(f'For raytrace, the three-pass algorithm total falls from {ray["native_algorithm_seconds"]:.3f} s to {ray["bag_algorithm_seconds"]:.3f} s ({ray["algorithm_speedup"]:.3f}x). Its read/parse totals are {ray["native_read_parse_seconds"]:.3f} s and {ray["bag_read_parse_seconds"]:.3f} s. The previously reported integrated raytrace regression is retained; this new isolated timing does not overturn it.')
+    # A single new pair supplies all components in this plot; no cross-run subtraction.
+    components=[('read_parse_seconds','Read + parse','#9AA7B2'),('algorithm_seconds','Complete algorithm','#205D85'),
+                ('serialize_write_seconds','Serialize + write','#D3963C')]
+    fig,ax=plt.subplots(figsize=(6.5,2.6));left=[0.,0.]
+    for key,label,color in components:
+        values=[t[f'{m}_{key}'] for m in ['native','bag']]
+        ax.barh(['Original','Shared bag'],values,left=left,label=label,color=color)
+        left=[l+v for l,v in zip(left,values)]
+    residual=[t[f'{m}_wall_seconds']-left[i] for i,m in enumerate(['native','bag'])]
+    assert min(residual)>=0
+    ax.barh(['Original','Shared bag'],residual,left=left,label='Other process overhead',color='#DFE3E6')
+    ax.invert_yaxis();ax.set_xlabel('Sum over all 288 snapshots (seconds)');ax.legend(frameon=False,ncol=2,fontsize=8,loc='lower center',bbox_to_anchor=(.5,1.02));ax.grid(axis='x',alpha=.15)
+    fig.tight_layout();fig.savefig(out/'figures/core-components.pdf');fig.savefig(out/'figures/core-components.png',dpi=180);plt.close(fig)
+    lines += [r'\begin{figure}[ht]\centering\includegraphics[width=\linewidth]{figures/core-components.pdf}\caption{Components from the same follow-up runs. Other process overhead includes startup, teardown, scheduling and wrapper overhead; it is not labeled entirely as communication.}\end{figure}',
+              f'Across the suite, read/parse alone totals {t["native_read_parse_seconds"]:.3f} s and {t["bag_read_parse_seconds"]:.3f} s. Serialize/write totals {t["native_serialize_write_seconds"]:.3f} s and {t["bag_serialize_write_seconds"]:.3f} s. Process elapsed totals in this follow-up are {t["native_wall_seconds"]:.3f} s and {t["bag_wall_seconds"]:.3f} s ({t["native_wall_seconds"]/t["bag_wall_seconds"]:.3f}x). Parsing therefore dilutes the observed process-level gain, while the large remaining parsing cost is unchanged by cost-bag sharing.',
+              'The original process/pipeline table and this follow-up are separate measurement sessions. Their times are not spliced or subtracted to infer missing phases. Geometric and aggregate ratios answer different questions; no GPU transfer or online compiler speedup is claimed.']
+    (out/'core-results.tex').write_text('\n\n'.join(lines)+'\n')
+    app=[r'\section{Every workload: in-memory extraction}',
+         r'Times in milliseconds, summed over the three pass snapshots in the follow-up. Algorithm includes the full Tiger call. Read/parse and serialize/write are measured separately. LA abbreviates linear-algebra. N is original, B is shared bag. All outputs match the pristine reference.',
+         r'\begingroup\small\setlength{\tabcolsep}{3pt}',r'\begin{longtable}{p{48mm}rrrrrrr}',
+         r'\toprule Program & \shortstack{N\\algorithm} & \shortstack{B\\algorithm} & Ratio & \shortstack{N\\parse} & \shortstack{B\\parse} & \shortstack{N\\write} & \shortstack{B\\write}\\\midrule\endfirsthead',
+         r'\toprule Program & N algo & B algo & Ratio & N parse & B parse & N write & B write\\\midrule\endhead',r'\bottomrule\endfoot']
+    for key,label in labels.items():
+        app.append(r'\multicolumn{8}{l}{\textbf{'+label+r'}}\\*')
+        for r in rows:
+            if r['suite']!=key:continue
+            name=r['source'].split('/',1)[1].replace('linear-algebra/','LA/')
+            vals=[fmt(r[m+'_algorithm_seconds']*1000,2) for m in ['native','bag']]+[fmt(r['algorithm_speedup'])]
+            vals += [fmt(r[m+'_'+k]*1000,2) for k in ['read_parse_seconds','serialize_write_seconds'] for m in ['native','bag']]
+            app.append(r'\nolinkurl{'+name+'} & '+' & '.join(vals)+r' \\')
+    app.append(r'\end{longtable}\endgroup');(out/'core-appendix.tex').write_text('\n'.join(app)+'\n')
+    return result
+
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('--input',type=Path,required=True)
-    p.add_argument('--output',type=Path,required=True);p.add_argument('--preliminary',type=Path)
+    p.add_argument('--output',type=Path,required=True);p.add_argument('--preliminary',type=Path);p.add_argument('--core',type=Path)
     args=p.parse_args();root=args.input;out=args.output;out.mkdir(parents=True,exist_ok=True)
     packet=json.loads((root/'summary.json').read_text())
     assert packet['manifest'].get('timing_protocol')=='blocking-wait-with-separate-watchdog/v2'
@@ -160,6 +223,14 @@ def main():
             appendix.append(r'\nolinkurl{'+name+'} & '+ ' & '.join([fmt(v,1) for v in values]+[fmt(r[k]) for k in ['extraction_speedup','estimate_speedup','pipeline_speedup','rss_ratio']])+r' \\')
     appendix += [r'\end{longtable}\endgroup']
     (out/'appendix.tex').write_text('\n'.join(appendix)+'\n')
+    if args.core:
+        stats['complete_algorithm']=core_report(args.core,out,root)
+        core=stats['complete_algorithm']
+        addition=f'A separate complete in-memory extraction measurement excludes reading, parsing and output: {core["geomean"]:.3f}x geometrically and {core["aggregate"]:.3f}x in aggregate.\n'
+        with (out/'abstract-results.tex').open('a') as f:f.write(addition.replace('x ',r'$\times$ '))
+    else:
+        for name in ['core-results.tex','core-appendix.tex']:(out/name).unlink(missing_ok=True)
+    (out/'report-stats.json').write_text(json.dumps(stats,indent=2)+'\n')
     print(json.dumps(stats,indent=2))
 
 

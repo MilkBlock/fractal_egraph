@@ -343,6 +343,17 @@ Metal worker。`--source benchmarks/passing/...` 只用于明确的局部检查�
   都逐字节一致时才汇总该项比值。最大 RSS 是进程测量，不能与成本集合的逻辑
   entry 数混用。输出 `summary.json`、`workloads.csv`、每例/每 pass 的验证记录。
 
+`extraction-core --suite 已保存的全套目录 --checkout CLEAN_EGGCC --build-dir
+原构建目录 --output 新目录` 补测完整内存内 extraction，不重跑 eggcc 推理。
+从解析完成后的 `extract_all_fun_roots_tiger(g, roots)` 调用开始，到其返回结束；
+包含区域划分、全部成本计算、Statewalk、最终 DAG 提取及其内存维护。读取/解析
+和输出序列化/写出分开计时，启动/销毁不在算法区间，不能把残差全称为通信。
+两侧使用同样的时钟边界；移除候选侧区间内的阶段日志写出。每个新输出都必须与
+历史 pristine 输出一致；仅在 overlay 二进制及输入完全一致时复用历史 cost/pick
+oracle。原生算法只加计时，不改选择。要求相同机器、CPU affinity、源码依赖和
+图指纹。`--report-only` 复用已存计时；失败和回退保留，不拿子阶段加速比冒充完整
+算法加速比。报告区分原始整套测量与这次补测，不能拼接不同运行的时间来作减法。
+
 ### 求解器生成的跨 consumer 前缀 marker
 
 `spine-program --marker-profile PILOT/report.json --table-profile PILOT/report.json`

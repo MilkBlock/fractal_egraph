@@ -1,0 +1,38 @@
+{
+  "identity": {
+    "protocol": "tiger-extract-all-fun-roots/v1",
+    "compiler": "c++ (Debian 12.2.0-14+deb12u1) 12.2.0",
+    "flags": [
+      "-std=c++17",
+      "-O3",
+      "-Wno-unused-result"
+    ],
+    "instrumenter": "a8b5bace1acc3f479d7f5aeded9679751d2d3568e4f4f37dbcb25aa34f4ff9b8",
+    "source": {
+      "debug.cpp": "ba35544dbd151f0957797a3a7c9d629d7958a3d68b490e1b1b5205f2bdf980c1",
+      "debug.h": "38278c014917ccc9be1ffb948037f0a96d41cfa389e319a6418d8b6fbc30d44d",
+      "egraphin.cpp": "1af1b34930a581cb1b7a16017b922b580d51dee056a4743f5e7ff3ef0d726d29",
+      "egraphin.h": "dfa763ab09fc92d17c4f4cca66ce939bc7cc3274c5be19a589a5329228e5df93",
+      "greedy.cpp": "af1e8b0ad0504d60ed41e33a8f9e76af565ff27d0f255955e163e1e5bf2ea9f8",
+      "greedy.h": "b90db1676dae6c0408929f59fd68e993ae07f8a33af4042444ad0bf6254a7329",
+      "ilp.cpp": "d814f9220a9e2b2de4d8c0667d63e3ce87e2cf5964aa8359d446cbe0f52956c9",
+      "ilp.h": "449e18c4e88153cf8dc68e79edf4e27a252c18a9f502a9a59dadffb0a7b4643e",
+      "json2egraphin.cpp": "1b4bcb11ef01b515b22558c6c4dc27a4cb4b64811beb339e981f4d079dd4429a",
+      "json2egraphin.h": "cc2165e57f1bc4f9e62c201ddf0a91fd3f2eae2a08a5daa3d1577c9e2bc508b5",
+      "main.cpp": "e838dec672447fe5d375650b415406b102690e498e4faf651a8546bac3904005",
+      "main.h": "154f59521a9c74ad29062ec09094565dce60851b7897d62399fe9d2b1ae57dc9",
+      "persistent_btree.h": "5fff92ece78e23d1acb15297943649e8a28cfcc9aaced8d86341e4ee2c356d33",
+      "regionalize.cpp": "bab9d80ab922d72480976bbb076ec982783f79f9072c274f9400409a651f41b1",
+      "regionalize.h": "26ef0a492722f092c002692957bf3db34c7bcec4d19eece7cf524d6fb49419bd",
+      "statewalkdp.cpp": "7eefd661e4b0f1f8e68919506ffa975146253f7dc8ffae43b700289a3a46af31",
+      "statewalkdp.h": "72c9a1c4e989b0927753f0336ac76735e7c88932b0fd551c2e7baba25e7ba2ab",
+      "tiger.cpp": "297793d39dadc062a6f8db8363d6e9390c61d187c1e62b808a598ad8100ecc34",
+      "tiger.h": "77871454d5add9c1772ce113550b1ac7a17ed7f76e37b3c12ed72dec16a2f675",
+      "time_ilp.cpp": "9e9c1a7891b9592e928146fa2bbcaf9de184ce71e4764672409101255e86119f",
+      "time_ilp.h": "4afa065025f518b60a3331a919ff884193f2d96b14f3b1eb29e3162141b9ecb4",
+      "toegglog.cpp": "fb3aa71752a6c7ef50112ca90587da6771c21cfa28a921fb6e9a88def3047d6e",
+      "toegglog.h": "1d9be9300761ba19a52e6ca3722f6c14c982e8d78c68e6425620aabcaf287f6f"
+    }
+  },
+  "binary_sha256": "e7d2dcce9ed4d1bf86df8d1b0267b0e18b84d46a6bc6d08f2adbad0291cab1e2"
+}

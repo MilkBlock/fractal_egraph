@@ -36,6 +36,39 @@ the contribution of that envelope or claim end-to-end compiler acceleration.
 
 ## Method
 
+### Follow-up: complete algorithm without communication or parsing
+
+The follow-up reuses the exact same 288 graphs, machine, affinity and compiler.
+It clocks `extract_all_fun_roots_tiger(g, roots)` directly: region discovery,
+region construction, cost estimation, Statewalk, final DAG extraction, and memory
+maintenance are all included. Input reading/JSON parsing and output
+serialization/writing are measured separately. Process startup and teardown are
+excluded, and the selected output remains live at the end of the timed call.
+Both extractors receive identical timer boundaries. In-interval candidate phase
+log writes are removed; no communication time is estimated and subtracted.
+
+| Complete algorithm, same 96 programs | Original | Shared bag |
+| --- | ---: | ---: |
+| Total algorithm time | 7.837 s | 5.067 s |
+| Total read/parse time | 19.375 s | 19.432 s |
+| Total serialize/write time | 0.053 s | 0.054 s |
+| Total process elapsed time in this follow-up | 32.220 s | 29.497 s |
+
+The **complete algorithm** has a **1.226x geometric mean** and **1.547x aggregate
+ratio**, or **35.34% less aggregate algorithm time**. 95 observations improve;
+`recfact` is 0.9985x and remains included. Raytrace is **1.116 s -> 0.402 s
+(2.775x)** for the three-pass algorithm sum. All new outputs again equal the saved
+pristine and oracle outputs; the historical cost/pick oracle is reused only after
+the unchanged underlying overlay binary is verified. No inference is rerun.
+
+This is a separate paired session from the original table. Its component times
+are never spliced into the older process/pipeline measurements. The original
+integrated pipeline result is retained, and this follow-up does not claim an
+online compiler speedup. Other process overhead includes startup, teardown,
+scheduling and wrappers; it is not all labeled as communication.
+
+### Shared cost representation
+
 The original global cost estimator copies hash maps of e-class contributions.
 The candidate shares an immutable sorted vector and its cached sum. Repeated
 keys retain the unsigned minimum; e-class identity, zero entries, overflow,
@@ -89,6 +122,9 @@ The measured mode is `bag`; optional CPU-recipe/Metal modes are disabled.
 - `results/correctness-repeat.json`: preliminary output receipts, without times.
 - `report/main.tex`: English technical report, with correctness argument,
   complexity analysis, figures, limitations, and all 96 rows in its appendix.
+- `core-results/`: follow-up manifest, all per-pass output checks and complete
+  internal timers, `workloads.csv`, and build provenance. Its report appendix
+  lists algorithm, read/parse, and serialize/write times for every program.
 
 Raw graph snapshots, executables, and build trees are deliberately not in Git.
 The retained final measurements correspond to remote
@@ -114,6 +150,20 @@ an explicit pilot; omit it for the complete suite. `--report-only` regenerates
 summary/CSV from an existing run. `--retry-failed` archives failed attempts before
 retrying. The runner rejects incompatible cached fingerprints.
 
+Measure complete in-memory extraction using a saved suite with its original raw
+graphs still present (the compact Git receipts alone do not contain those graphs):
+
+```sh
+python3 skills/cell-assisted-egglog-bench/scripts/bench.py \
+  --repo "$PWD" extraction-core \
+  --suite /path/to/existing/results \
+  --checkout /path/to/clean/eggcc \
+  --build-dir /path/to/existing/tiger-build \
+  --output /path/to/new/core-results
+```
+
+The retained remote follow-up is `/opt/eggcc-extraction-suite/results-core-v1`.
+
 Generate the report from **committed data without running eggcc**:
 
 ```sh
@@ -123,6 +173,7 @@ out/extraction-report-venv/bin/pip install \
 out/extraction-report-venv/bin/python \
   experiments/tiger_extraction_suite/report_results.py \
   --input experiments/tiger_extraction_suite/results \
+  --core experiments/tiger_extraction_suite/core-results \
   --output experiments/tiger_extraction_suite/report
 cd experiments/tiger_extraction_suite/report
 pdflatex -interaction=nonstopmode -halt-on-error main.tex
