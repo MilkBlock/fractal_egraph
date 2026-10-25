@@ -36,8 +36,10 @@ fn main() -> cell_assisted_egglog::Result<()> {
         None
     } else {
         let gpu = if mode == "exact"
-            || std::env::var("STRUCTURAL_CONDITION_EXECUTION").as_deref() == Ok("groups")
-        {
+            || matches!(
+                std::env::var("STRUCTURAL_CONDITION_EXECUTION").as_deref(),
+                Ok("groups" | "ready")
+            ) {
             None
         } else {
             Some(hook::Device::new(

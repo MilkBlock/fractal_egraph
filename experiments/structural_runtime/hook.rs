@@ -8,7 +8,7 @@ use egglog::{
     cell_assist::{CellActionSink, CellOperand, CellQueryAtom},
     cell_events::{CellCommitBatch, CellCommitFeed},
 };
-use rustc_hash::FxHashMap as Map;
+use rustc_hash::{FxHashMap as Map, FxHashSet as Set};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as Json, json};
 use std::{
@@ -76,12 +76,26 @@ struct Row {
     values: Vec<Value>,
     stamp: u32,
 }
+#[cfg(feature = "shared-rows")]
+type StoredRow = Arc<Row>;
+#[cfg(not(feature = "shared-rows"))]
+type StoredRow = Row;
+fn store_row(row: Row) -> StoredRow {
+    #[cfg(feature = "shared-rows")]
+    {
+        Arc::new(row)
+    }
+    #[cfg(not(feature = "shared-rows"))]
+    {
+        row
+    }
+}
 type Key = Vec<Value>;
 type Node = (String, Value);
 type Ref = (usize, Key);
 #[derive(Default)]
 struct Table {
-    rows: Map<Key, Row>,
+    rows: Map<Key, StoredRow>,
     deltas: BTreeMap<u32, BTreeSet<Key>>,
 }
 #[derive(Default, Serialize)]
@@ -97,8 +111,9 @@ struct BlockStats {
 struct Bucket {
     key: Value,
     version: u64,
-    rows: BTreeMap<Key, Row>,
-    answer: Option<(u64, Arc<Vec<Row>>)>,
+    pending_live: Option<bool>,
+    rows: BTreeMap<Key, StoredRow>,
+    answer: Option<(u64, Arc<Vec<StoredRow>>)>,
 }
 struct Index {
     projection: conditions::Projection,
@@ -106,6 +121,7 @@ struct Index {
     table: usize,
     directory: Map<Value, usize>,
     buckets: Vec<Bucket>,
+    presence: Vec<u64>,
     deltas: BTreeMap<u32, BTreeSet<Value>>,
 }
 impl Index {
@@ -115,15 +131,30 @@ impl Index {
         }
         let h = self.buckets.len();
         self.directory.insert(key, h);
+        if h / 64 == self.presence.len() {
+            self.presence.push(0);
+        }
         self.buckets.push(Bucket {
             key,
             version: 0,
+            pending_live: None,
             rows: BTreeMap::new(),
             answer: None,
         });
         h
     }
-    fn cached(&self, h: usize) -> Option<Arc<Vec<Row>>> {
+    fn occupied(&self, h: usize) -> bool {
+        self.presence[h / 64] & (1u64 << (h % 64)) != 0
+    }
+    fn refresh_presence(&mut self, h: usize) {
+        let mask = 1u64 << (h % 64);
+        if self.buckets[h].rows.is_empty() {
+            self.presence[h / 64] &= !mask;
+        } else {
+            self.presence[h / 64] |= mask;
+        }
+    }
+    fn cached(&self, h: usize) -> Option<Arc<Vec<StoredRow>>> {
         let b = &self.buckets[h];
         b.answer.as_ref().map(|(version, rows)| {
             debug_assert_eq!(*version, b.version);
@@ -135,7 +166,7 @@ impl Index {
         b.version += 1;
         b.answer.take().is_some()
     }
-    fn answer(&mut self, h: usize, shared: bool, stats: &mut BlockStats) -> Arc<Vec<Row>> {
+    fn answer(&mut self, h: usize, shared: bool, stats: &mut BlockStats) -> Arc<Vec<StoredRow>> {
         let b = &mut self.buckets[h];
         stats.reads += 1;
         let answer = Arc::new(b.rows.values().cloned().collect::<Vec<_>>());
@@ -146,6 +177,11 @@ impl Index {
         answer
     }
 }
+struct Attachment {
+    handles: Vec<usize>,
+    ready: bool,
+    single: bool,
+}
 struct Query {
     plan: Plan,
     atoms: Vec<CellQueryAtom>,
@@ -154,7 +190,8 @@ struct Query {
     indices: Vec<usize>,
     slots: usize,
     ports: Vec<Map<Value, BTreeSet<Key>>>,
-    attachments: Map<Key, Vec<usize>>,
+    attachments: Map<Key, Attachment>,
+    dirty_roots: Set<Key>,
 }
 
 #[derive(Default, Serialize)]
@@ -185,6 +222,7 @@ struct Stats {
     prediction_audit: BTreeMap<String, Confusion>,
     matrix: MatrixStats,
     groups: GroupStats,
+    readiness: ReadyStats,
     index_dispatches: usize,
     anchor_dispatches: usize,
     unchanged_notifications: usize,
@@ -238,6 +276,19 @@ struct GroupStats {
     new_steps: usize,
     references: usize,
     no_payload_rejections: usize,
+}
+#[derive(Default, Serialize)]
+struct ReadyStats {
+    condition_updates: usize,
+    existence_flips: usize,
+    unchanged_existence: usize,
+    root_rechecks: usize,
+    root_truth_changes: usize,
+    filtered_candidates: usize,
+    accepted_candidates: usize,
+    oracle_checks: usize,
+    direct_condition_candidates: usize,
+    stored_conjunction_candidates: usize,
 }
 fn bump(v: &mut Vec<usize>, i: usize) {
     if v.len() <= i {
@@ -374,6 +425,9 @@ pub struct Hook {
     index_users: Vec<Vec<usize>>,
     anchor_users: Vec<Vec<String>>,
     group_conditions: bool,
+    ready_conditions: bool,
+    condition_users: Vec<Vec<(String, usize)>>,
+    pending_existence: Vec<(usize, usize)>,
     coordinates: Option<coordinates::Coordinates>,
     markers: Option<markers::Markers>,
     summaries: Option<summaries::Summaries>,
@@ -411,8 +465,14 @@ impl Hook {
             indices: vec![],
             index_users: vec![],
             anchor_users: vec![],
-            group_conditions: std::env::var("STRUCTURAL_CONDITION_EXECUTION").as_deref()
-                == Ok("groups"),
+            group_conditions: matches!(
+                std::env::var("STRUCTURAL_CONDITION_EXECUTION").as_deref(),
+                Ok("groups" | "ready")
+            ),
+            ready_conditions: std::env::var("STRUCTURAL_CONDITION_EXECUTION").as_deref()
+                == Ok("ready"),
+            condition_users: vec![],
+            pending_existence: vec![],
             coordinates: None,
             markers: None,
             summaries: None,
@@ -526,6 +586,7 @@ impl Hook {
                     slots: s.slot_count(),
                     ports: (0..p.steps.len()).map(|_| Map::default()).collect(),
                     attachments: Map::default(),
+                    dirty_roots: Set::default(),
                 },
             );
         }
@@ -618,6 +679,7 @@ impl Hook {
                     slot: step.slot,
                     directory: Map::default(),
                     buckets: vec![],
+                    presence: vec![],
                     deltas: BTreeMap::new(),
                 });
             }
@@ -627,8 +689,14 @@ impl Hook {
             self.index_users[idx.table].push(i);
         }
         self.anchor_users = vec![vec![]; self.names.len()];
+        self.condition_users = vec![vec![]; self.indices.len()];
         for (name, q) in &self.queries {
             self.anchor_users[q.anchor].push(name.clone());
+            if q.indices.len() > 1 {
+                for (port, &idx) in q.indices.iter().enumerate() {
+                    self.condition_users[idx].push((name.clone(), port));
+                }
+            }
         }
         self.full_rows = (0..self.names.len())
             .map(|t| {
@@ -728,13 +796,17 @@ impl Hook {
             self.stats.feature_invalidations += usize::from(self.tokens.remove(&n).is_some());
         }
     }
-    fn update_indices(&mut self, t: usize, k: &Key, r: &Row, add: bool, structure: bool) {
+    fn update_indices(&mut self, t: usize, k: &Key, r: &StoredRow, add: bool, structure: bool) {
         for &id in &self.index_users[t] {
             self.stats.index_dispatches += 1;
             let idx = &mut self.indices[id];
             if idx.projection.matches(&r.values) {
                 let v = r.values[idx.projection.column(idx.slot)];
                 let h = idx.intern(v);
+                if self.ready_conditions && idx.buckets[h].pending_live.is_none() {
+                    idx.buckets[h].pending_live = Some(!idx.buckets[h].rows.is_empty());
+                    self.pending_existence.push((id, h));
+                }
                 self.stats.blocks.invalidations += usize::from(idx.touch(h));
                 if add {
                     idx.buckets[h].rows.insert(k.clone(), r.clone());
@@ -742,6 +814,7 @@ impl Hook {
                 } else {
                     idx.buckets[h].rows.remove(k);
                 }
+                idx.refresh_presence(h);
             }
         }
         if !structure {
@@ -765,14 +838,67 @@ impl Hook {
                     }
                 }
                 if add {
-                    q.attachments.insert(k.clone(), attached);
+                    let single = !attached.is_empty()
+                        && q.indices
+                            .iter()
+                            .zip(&attached)
+                            .all(|(i, h)| *i == q.indices[0] && *h == attached[0]);
+                    q.attachments.insert(
+                        k.clone(),
+                        Attachment {
+                            handles: attached,
+                            ready: false,
+                            single,
+                        },
+                    );
+                    if self.ready_conditions && !single {
+                        q.dirty_roots.insert(k.clone());
+                    }
                 } else {
                     q.attachments.remove(k);
+                    q.dirty_roots.remove(k);
                 }
             }
         }
     }
-    fn topology(&mut self, t: usize, k: &Key, r: &Row, add: bool, bootstrap: bool) {
+    fn finish_readiness(&mut self) {
+        for (idx, h) in self.pending_existence.drain(..) {
+            let b = &mut self.indices[idx].buckets[h];
+            let old = b.pending_live.take().unwrap();
+            self.stats.readiness.condition_updates += 1;
+            if old == !b.rows.is_empty() {
+                self.stats.readiness.unchanged_existence += 1;
+                continue;
+            }
+            self.stats.readiness.existence_flips += 1;
+            for (name, port) in &self.condition_users[idx] {
+                let q = self.queries.get_mut(name).unwrap();
+                if let Some(keys) = q.ports[*port].get(&b.key) {
+                    q.dirty_roots
+                        .extend(keys.iter().filter(|k| !q.attachments[*k].single).cloned());
+                }
+            }
+        }
+        for q in self.queries.values_mut() {
+            for key in q.dirty_roots.drain() {
+                let Some(a) = q.attachments.get_mut(&key) else {
+                    continue;
+                };
+                if a.single {
+                    continue;
+                }
+                let ready = q
+                    .indices
+                    .iter()
+                    .zip(&a.handles)
+                    .all(|(&i, &h)| self.indices[i].occupied(h));
+                self.stats.readiness.root_rechecks += 1;
+                self.stats.readiness.root_truth_changes += usize::from(a.ready != ready);
+                a.ready = ready;
+            }
+        }
+    }
+    fn topology(&mut self, t: usize, k: &Key, r: &StoredRow, add: bool, bootstrap: bool) {
         if self.markers.is_some() {
             return;
         }
@@ -819,10 +945,10 @@ impl Hook {
             let new = if change.visible {
                 change.row.map(|mut values| {
                     values.truncate(self.feed.as_ref().unwrap().tables[t].keys + 1);
-                    Row {
+                    store_row(Row {
                         values,
                         stamp: change.timestamp.expect("native visible row version"),
-                    }
+                    })
                 })
             } else {
                 None
@@ -875,6 +1001,9 @@ impl Hook {
         }
         if let Some(m) = &mut self.markers {
             m.commit();
+        }
+        if self.ready_conditions {
+            self.finish_readiness();
         }
         let elapsed = started.elapsed().as_secs_f64();
         self.stats.maintenance_seconds += elapsed;
@@ -1053,7 +1182,7 @@ fn bind(atom: &CellQueryAtom, row: &[Value]) -> Option<BTreeMap<usize, Value>> {
 }
 fn product(
     q: &Query,
-    factors: &[Arc<Vec<Row>>],
+    factors: &[Arc<Vec<StoredRow>>],
     depth: usize,
     b: &mut Vec<Option<Value>>,
     stamp: u32,
@@ -1116,7 +1245,7 @@ impl SaturationHook for Hook {
                 s.audit();
             }
         }
-        json!({"condition_handles":{"total":self.indices.iter().map(|i|i.buckets.len()).sum::<usize>(),"nonempty":self.indices.iter().map(|i|i.buckets.iter().filter(|b|!b.rows.is_empty()).count()).sum::<usize>(),"anchor_connections":self.queries.values().map(|q|q.attachments.values().map(Vec::len).sum::<usize>()).sum::<usize>()},"condition_execution":if self.group_conditions {"groups"} else {"roots"},"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
+        json!({"row_storage":if cfg!(feature="shared-rows") {"shared"} else {"owned"},"condition_handles":{"presence_bytes":self.indices.iter().map(|i|i.presence.len()*8).sum::<usize>(),"presence_capacity_bytes":self.indices.iter().map(|i|i.presence.capacity()*8).sum::<usize>(),"total":self.indices.iter().map(|i|i.buckets.len()).sum::<usize>(),"nonempty":self.indices.iter().map(|i|i.buckets.iter().filter(|b|!b.rows.is_empty()).count()).sum::<usize>(),"anchor_connections":self.queries.values().map(|q|q.attachments.values().map(|a|a.handles.len()).sum::<usize>()).sum::<usize>()},"condition_execution":if self.ready_conditions {"ready"}else if self.group_conditions {"groups"} else {"roots"},"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
         "scope":if self.group_conditions {"Exact current projected-condition groups; payloads only for accepted candidates. Every original binding and timestamp frontier retained. No Cell proof or sat-skip credit."}else{"GPU scores only reorder exact CPU checks. Every eligible anchor retained; complete native bindings and timestamp frontier. No Cell proof or sat-skip credit."}})
     }
     fn take_commits(&mut self, eg: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)> {
@@ -1154,7 +1283,7 @@ impl SaturationHook for Hook {
             handle: usize,
             key: Value,
             model: usize,
-            answer: Option<Arc<Vec<Row>>>,
+            answer: Option<Arc<Vec<StoredRow>>>,
             score: f32,
         }
         let mut blocks = Vec::<Block>::new();
@@ -1178,6 +1307,38 @@ impl SaturationHook for Hook {
                 }
             }
             for key in changed {
+                let Some(attached) = q.attachments.get(&key) else {
+                    continue;
+                };
+                if self.ready_conditions {
+                    let ready = if attached.single {
+                        self.stats.readiness.direct_condition_candidates += 1;
+                        self.indices[q.indices[0]].occupied(attached.handles[0])
+                    } else {
+                        self.stats.readiness.stored_conjunction_candidates += 1;
+                        attached.ready
+                    };
+                    if self.coordinate_audit {
+                        let truth = q
+                            .indices
+                            .iter()
+                            .zip(&attached.handles)
+                            .all(|(&i, &h)| !self.indices[i].buckets[h].rows.is_empty());
+                        assert_eq!(ready, truth, "stale event-published readiness");
+                        self.stats.readiness.oracle_checks += 1;
+                    }
+                    if !ready {
+                        let w = self.stats.rules.entry(name.clone()).or_default();
+                        w.delta_anchors += 1;
+                        w.exact_group_rejected += 1;
+                        bump(&mut w.deepest, 0);
+                        bump(&mut w.rejected, 0);
+                        self.stats.groups.no_payload_rejections += 1;
+                        self.stats.readiness.filtered_candidates += 1;
+                        continue;
+                    }
+                    self.stats.readiness.accepted_candidates += 1;
+                }
                 let Some(row) = self.tables[q.anchor].rows.get(&key) else {
                     continue;
                 };
@@ -1185,11 +1346,9 @@ impl SaturationHook for Hook {
                     continue;
                 }
                 let mut links = vec![];
-                let attached = q
-                    .attachments
-                    .get(&key)
-                    .expect("native anchor must publish its condition slots");
-                for ((step, index), &handle) in q.plan.steps.iter().zip(&q.indices).zip(attached) {
+                for ((step, index), &handle) in
+                    q.plan.steps.iter().zip(&q.indices).zip(&attached.handles)
+                {
                     let value = self.indices[*index].buckets[handle].key;
                     debug_assert_eq!(
                         value,
@@ -1314,7 +1473,7 @@ impl SaturationHook for Hook {
                 .copied()
                 .unwrap_or(if self.mode == "reject-all" { -1.0 } else { 1.0 });
         }
-        let truth = if self.group_conditions {
+        let truth = if self.group_conditions && !self.ready_conditions {
             self.stats.groups.truth_checks += blocks.len();
             blocks
                 .iter()
@@ -1323,9 +1482,7 @@ impl SaturationHook for Hook {
                         !answer.is_empty()
                     } else {
                         self.stats.groups.truth_index_reads += 1;
-                        !self.indices[block.index].buckets[block.handle]
-                            .rows
-                            .is_empty()
+                        self.indices[block.index].occupied(block.handle)
                     }
                 })
                 .collect::<Vec<_>>()
@@ -1344,7 +1501,7 @@ impl SaturationHook for Hook {
             for (root, links) in &roots[&name] {
                 work.delta_anchors += 1;
                 if self.group_conditions {
-                    if !groups.accepts(links, &truth) {
+                    if !self.ready_conditions && !groups.accepts(links, &truth) {
                         work.exact_group_rejected += 1;
                         self.stats.groups.no_payload_rejections += 1;
                         // A group rejection does no per-candidate witness read.
@@ -1491,6 +1648,20 @@ mod tests {
     use super::*;
     use cell_assisted_egglog::table_live::Runtime;
     #[test]
+    fn row_storage_keeps_values_and_uses_selected_ownership() {
+        let a = store_row(Row {
+            values: vec![Value::new_const(9)],
+            stamp: 7,
+        });
+        let b = a.clone();
+        assert_eq!(a.values, b.values);
+        assert_eq!(a.stamp, b.stamp);
+        assert_eq!(
+            a.values.as_ptr() == b.values.as_ptr(),
+            cfg!(feature = "shared-rows")
+        );
+    }
+    #[test]
     fn constant_model_needs_neither_coordinates_nor_gpu() {
         let lib:Library=serde_json::from_value(json!({"plans":[],"models":[{"sort":"T","channel":"P","sort_hash":0,"weights":vec![0u16;256],"bias":0.625}],"vocabulary":[],"constructors":{}})).unwrap();
         let mut h = Hook::new(lib, None, "gpu");
@@ -1531,6 +1702,7 @@ mod tests {
             table: 0,
             directory: Map::default(),
             buckets: vec![],
+            presence: vec![],
             deltas: BTreeMap::new(),
         };
         let mut stats = BlockStats::default();
@@ -1542,16 +1714,23 @@ mod tests {
         for n in [2, 3] {
             i.buckets[h].rows.insert(
                 vec![v(1), v(n)],
-                Row {
+                store_row(Row {
                     values: vec![v(1), v(n)],
                     stamp: n + 2,
-                },
+                }),
             );
         }
+        i.refresh_presence(h);
+        assert!(i.occupied(h));
         let old = i.answer(h, true, &mut stats);
         assert_eq!(old.len(), 2);
+        i.buckets[h].rows.remove(&vec![v(1), v(2)]);
+        i.refresh_presence(h);
+        assert!(i.occupied(h));
         i.touch(h);
         i.buckets[h].rows.clear();
+        i.refresh_presence(h);
+        assert!(!i.occupied(h));
         assert!(i.answer(h, true, &mut stats).is_empty());
         assert_eq!(old.len(), 2);
         assert_eq!(i.intern(v(1)), h);
@@ -1571,6 +1750,14 @@ mod tests {
         function: bool,
         alias: bool,
         grouped: bool,
+    ) -> Result<(Runtime, Vec<egglog::ast::Command>)> {
+        fixture_ready(function, alias, grouped, false)
+    }
+    fn fixture_ready(
+        function: bool,
+        alias: bool,
+        grouped: bool,
+        ready: bool,
     ) -> Result<(Runtime, Vec<egglog::ast::Command>)> {
         let decl = if function {
             "(function P (Term) Term :merge new)"
@@ -1655,6 +1842,7 @@ mod tests {
         let selected = vec!["always-run".into()];
         let mut handler = Hook::new(lib, None, "reject-all");
         handler.group_conditions = grouped;
+        handler.ready_conditions = ready;
         let mut r = Runtime::new_full_assisted(
             eg,
             &cmds,
@@ -1665,6 +1853,56 @@ mod tests {
         )?;
         r.enable_cell_query_audit()?;
         Ok((r, cmds))
+    }
+    #[test]
+    fn readiness_tracks_false_true_union_subsume_and_all_witnesses() -> Result<()> {
+        EGraph::set_num_threads(1);
+        for alias in [false, true] {
+            let (mut r, c) = fixture_ready(false, alias, true, true)?;
+            r.input("(Root (N 1) (N 2)) (P (N 1) (N 3)) (P (N 1) (N 4))")?;
+            r.run(&c)?;
+            r.input("(Q (N 2) (N 5)) (Q (N 2) (N 6))")?;
+            r.run(&c)?;
+            r.input("(union (N 1) (N 2))")?;
+            r.run(&c)?;
+            r.input("(delete (P (N 1) (N 3))) (delete (P (N 1) (N 4)))")?;
+            r.run(&c)?;
+            r.input("(P (N 1) (N 7))")?;
+            r.run(&c)?;
+            r.input("(subsume (Root (N 1) (N 2))) (Q (N 2) (N 8))")?;
+            r.run(&c)?;
+            r.run(&c)?;
+            let stats = &r.report()["saturation_diagnostics"]["statistics"];
+            assert!(stats["readiness"]["existence_flips"].as_u64().unwrap() > 0);
+            assert_eq!(stats["groups"]["truth_checks"], 0);
+            assert_eq!(stats["gpu_rows"], 0);
+        }
+        Ok(())
+    }
+    #[test]
+    fn payload_changes_keep_readiness_but_preserve_new_native_matches() -> Result<()> {
+        EGraph::set_num_threads(1);
+        let (mut r, c) = fixture_ready(true, false, true, true)?;
+        r.input("(Root (N 1) (N 2)) (set (P (N 1)) (N 3)) (Q (N 2) (N 4))")?;
+        r.run(&c)?;
+        let old = r.report();
+        r.input("(set (P (N 1)) (N 5))")?;
+        r.run(&c)?;
+        let new = r.report();
+        assert_eq!(
+            old["saturation_diagnostics"]["statistics"]["readiness"]["root_rechecks"],
+            new["saturation_diagnostics"]["statistics"]["readiness"]["root_rechecks"]
+        );
+        assert_eq!(
+            new["saturation_diagnostics"]["statistics"]["rules"]["test"]["positive_bindings"],
+            2
+        );
+        r.run(&c)?;
+        assert_eq!(
+            r.report()["saturation_diagnostics"]["statistics"]["rules"]["test"]["positive_bindings"],
+            2
+        );
+        Ok(())
     }
     #[test]
     fn group_queries_keep_late_witnesses_union_subsume_and_function_updates() -> Result<()> {

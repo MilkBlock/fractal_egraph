@@ -23,6 +23,12 @@ It bypasses unnecessary score prediction for the admitted query class; other
 queries retain their existing matcher. See [GROUP_RESULTS.md](GROUP_RESULTS.md)
 for the same-binary Pass-3 comparison, honest work accounting and limitations.
 
+`--condition-execution ready` publishes multi-condition readiness at commit
+boundaries; single-condition cases alias exact presence bits. `build.py --shared-rows` independently shares immutable fact rows across indices and
+snapshots. Both remain optional: see [READY_RESULTS.md](READY_RESULTS.md) for
+separate controlled comparisons, correctness checks, and the lack of a new
+end-to-end speedup.
+
 This is an opt-in query provider in the **actual native execution loop**, using
 `cell-assisted-egglog::table_live::SaturationHook::query_cells`. It replaces the
 search of selected rules, not their RHS, merge, rebuild, Run boundaries, or

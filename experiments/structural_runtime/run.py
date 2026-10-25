@@ -84,11 +84,20 @@ def matrix_comparison(before,after,lib):
         r=json.loads(audit.read_text());result['audit']={'native_query_checks':r['runtime']['runtime']['cell_query_rules'],'scope':r['runtime']['audit_scope'],'exact_graph':r['exact_graph']['exact_rows_values_equivalence_visibility']}
     return result
 
-def execution_comparison(before,after):
+def execution_comparison(before,after,storage=False):
     dirs=(before,after);reports=[json.loads((d/'gpu/report.json').read_text()) for d in dirs]
     identities=[json.loads((d/'gpu/identity.json').read_text()) for d in dirs]
-    for i in identities:i['configuration'].pop('STRUCTURAL_CONDITION_EXECUTION',None)
-    if identities[0]!=identities[1]:raise ValueError('execution comparison changed inputs/tools beyond the mode')
+    if storage:
+        builds=[json.loads((d/'summary.json').read_text())['build'] for d in dirs]
+        if builds[0]['features']!=[] or builds[1]['features']!=['shared-rows']:raise ValueError('not an owned/shared build pair')
+        for key in ('sources','runtime_repo','runtime_commit','runtime_dirty'):
+            if builds[0][key]!=builds[1][key]:raise ValueError('row storage changed source/dependency: '+key)
+        if builds[0]['runtime_dirty']:raise ValueError('row storage comparison requires clean runtime dependency')
+        for ident,build in zip(identities,builds):
+            if ident.pop(str(Path(build['binary']).resolve()))!=build['binary_sha256']:raise ValueError('wrong row storage binary')
+    else:
+        for i in identities:i['configuration'].pop('STRUCTURAL_CONDITION_EXECUTION',None)
+    if identities[0]!=identities[1]:raise ValueError('execution comparison changed other inputs/tools')
     if not all(r['exact_graph']['exact_rows_values_equivalence_visibility'] for r in reports):raise ValueError('unverified execution graph')
     ds=[r['runtime']['saturation_diagnostics'] for r in reports];ss=[d['statistics'] for d in ds]
     if set(ss[0]['rules'])!=set(ss[1]['rules']):raise ValueError('consumer set changed')
@@ -104,12 +113,14 @@ def execution_comparison(before,after):
             before_consumer_reads=b['reads'],after_payload_references=a['reads'],
             before_reach=[sum(b['deepest'][d:])/n if n else None for d in range(1,5)],
             after_payload_reach=[sum(a['deepest'][d:])/n if n else None for d in range(1,5)]))
-    result={'scope':'Same 75-query workload and original full native schedule. Roots use speculative condition ordering; groups use exact shared existence followed by lazy payloads. Not Cell proof/sat-skip credit.',
+    result={'scope':'Same admitted-query workload and original full native schedule; only condition execution mode differs. Event-readiness, group work and candidate payload work are charged separately. Not Cell proof/sat-skip credit.',
         'before':str(before.resolve()),'after':str(after.resolve()),'rules':rules,'modes':{}}
-    for label,r,d,t in zip(('roots','groups'),reports,ds,ss):
+    for r,d,t in zip(reports,ds,ss):
+        label=d['row_storage'] if storage else d['condition_execution']
         result['modes'][label]={'inference_seconds':r['inference_seconds'],'provider_seconds':t['maintenance_seconds']+t['query_seconds'],
-            **{k:t[k] for k in ('maintenance_seconds','query_seconds','gpu_seconds','device_roundtrip_seconds','groups','blocks','index_dispatches','anchor_dispatches')},
+            **{k:t[k] for k in ('maintenance_seconds','query_seconds','gpu_seconds','device_roundtrip_seconds','groups','readiness','blocks','index_dispatches','anchor_dispatches')},
             'handles':d['condition_handles'],'new_gpu_predictions':t['gpu_rows']}
+    if storage:result['scope']='Same-source compile-time owned/shared row storage pair; same execution mode, query plans, original full schedule and exact results. Not a Cell proof or graph-compression claim.'
     result['speedup']=reports[0]['inference_seconds']/reports[1]['inference_seconds']
     result['group_work_note']='Truth checks/direct handle reads and conjunction work are charged globally. After-depth counts payload references only; depth-zero group rejection is not free work or a native Free Join depth.'
     active=[r for r in rules if r['candidates']]
@@ -128,15 +139,16 @@ def main():
     p.add_argument('--query-worker',type=Path,help='existing full GPU matcher for all unclaimed queries')
     p.add_argument('--reuse-native',type=Path,help='explicit unchanged native lane from an earlier run; never use after kernel/harness/schedule changes')
     p.add_argument('--reuse-baseline',type=Path,help='reuse unchanged full-GPU baseline; source and query worker must match')
-    p.add_argument('--compare-execution',type=Path,help='compare verified roots execution against current grouped execution without retiming')
+    p.add_argument('--compare-storage',type=Path,help='compare current shared-row build to a verified same-source owned-row run')
+    p.add_argument('--compare-execution',type=Path,help='compare verified condition execution modes without retiming')
     p.add_argument('--compare-layout',type=Path,help='read existing same-model single-layout lane and report exact paired matrix work')
-    p.add_argument('--condition-execution',choices=['roots','groups'],default='roots')
+    p.add_argument('--condition-execution',choices=['roots','groups','ready'],default='roots')
     p.add_argument('--matrix-layout',choices=['single','shared'],default='single')
     p.add_argument('--coordinates',choices=['events','legacy','markers'],default='events')
     p.add_argument('--no-shared-conditions',action='store_true')
     p.add_argument('--model',type=Path,help='explicit exported plan; default BUILD/model.json')
     a=p.parse_args();a.output=a.output.resolve();a.output.mkdir(parents=True,exist_ok=True)
-    repo=a.runtime_repo.resolve();build=a.build.resolve();binary=repo/'target/analyzer/release/structural-runtime'
+    repo=a.runtime_repo.resolve();build=a.build.resolve();binary=Path(json.loads((build/'build.json').read_text())['binary'])
     model=a.model.resolve() if a.model else build/'model.json';lib=json.loads(model.read_text())
     if lib['source_sha256']!=sha(a.source):raise ValueError('wrong source for exported plan')
     env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_','RAYON_'))}
@@ -166,7 +178,7 @@ def main():
         if mode=='native' and a.reuse_native:print(f'explicit historical native: {dest.resolve()}',flush=True);continue
         if mode=='baseline' and a.reuse_baseline:print(f'explicit historical GPU baseline: {dest.resolve()}',flush=True);continue
         env['STRUCTURAL_COORDINATE_AUDIT']='1' if mode=='audit' else '0'
-        files=[binary,a.source,model]+([build/'worker',build/'kernel.metal'] if mode in ('gpu','audit') else [])
+        files=[binary,a.source,model]+([build/'worker',build/'kernel.metal'] if mode in ('gpu','audit') and a.condition_execution=='roots' else [])
         if a.query_worker and mode!='native':files.append(a.query_worker)
         if mode!='native':files.append(control)
         identity={str(f.resolve()):sha(f) for f in files}
@@ -184,6 +196,7 @@ def main():
     result={'scope':'Complete real saved Pass 3 replay, selected always-run queries only; unclaimed queries use '+('the existing full GPU matcher' if a.query_worker else 'native CPU')+'. Not pristine.',
             'modes':{m:{'inference_seconds':r['inference_seconds'],'setup_seconds':r['setup_seconds'],'exact_graph':r['exact_graph']} for m,r in reports.items()},
             'model_provenance':lib['scope'],'source_sha256':sha(a.source)}
+    result['build']=json.loads((build/'build.json').read_text())
     result['historical_native']=str(a.reuse_native.resolve()) if a.reuse_native else None
     result['historical_baseline']=str(a.reuse_baseline.resolve()) if a.reuse_baseline else None
     result['configuration']={'condition_execution':a.condition_execution,'matrix_layout':a.matrix_layout,'coordinates':a.coordinates,'shared_conditions':not a.no_shared_conditions}
@@ -204,6 +217,11 @@ def main():
             subprocess.run([sys.executable,str(repo/'experiments/raytrace_pass3_gpu/extract.py'),str(ex)],check=True,env=env)
         result['extraction_cpu_control']='exact' if 'exact' in reports else 'native'
         result['extraction']=json.loads((ex/'extraction/quality.json').read_text())
+    (a.output/'summary.json').write_text(json.dumps(result,indent=2)+'\n')
+    if a.compare_storage:
+        paired=execution_comparison(a.compare_storage,a.output,storage=True);paired['extraction']=result.get('extraction')
+        (a.output/'storage-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
+        result['storage_comparison']=str(a.output/'storage-comparison.json')
     if a.compare_execution:
         paired=execution_comparison(a.compare_execution,a.output);paired['extraction']=result.get('extraction')
         (a.output/'execution-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
