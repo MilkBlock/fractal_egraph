@@ -22,6 +22,8 @@ use std::{
 
 #[path = "coordinates.rs"]
 mod coordinates;
+#[path = "markers.rs"]
+mod markers;
 
 #[derive(Clone, Deserialize)]
 pub struct Step {
@@ -166,6 +168,7 @@ struct Stats {
     gpu_seconds: f64,
     device_roundtrip_seconds: f64,
     maintenance_seconds: f64,
+    bootstrap_maintenance_seconds: f64,
     query_seconds: f64,
     rules: BTreeMap<String, Work>,
 }
@@ -248,6 +251,9 @@ pub struct Hook {
     queries: Map<String, Query>,
     indices: Vec<Index>,
     coordinates: Option<coordinates::Coordinates>,
+    markers: Option<markers::Markers>,
+    full_rows: Vec<bool>,
+    marker_coordinates: bool,
     event_coordinates: bool,
     shared_conditions: bool,
     coordinate_audit: bool,
@@ -270,6 +276,9 @@ impl Hook {
             queries: Map::default(),
             indices: vec![],
             coordinates: None,
+            markers: None,
+            full_rows: vec![],
+            marker_coordinates: std::env::var("STRUCTURAL_COORDINATES").as_deref() == Ok("markers"),
             event_coordinates: std::env::var("STRUCTURAL_COORDINATES").as_deref() != Ok("legacy"),
             shared_conditions: std::env::var("STRUCTURAL_SHARED_CONDITIONS").as_deref() != Ok("0"),
             coordinate_audit: std::env::var("STRUCTURAL_COORDINATE_AUDIT").as_deref() == Ok("1"),
@@ -448,7 +457,20 @@ impl Hook {
                 });
             }
         }
-        if self.event_coordinates && self.mode == "gpu" {
+        self.full_rows = (0..self.names.len())
+            .map(|t| {
+                !self.marker_coordinates
+                    || self.queries.values().any(|q| q.anchor == t)
+                    || self.indices.iter().any(|i| i.table == t)
+            })
+            .collect();
+        if self.marker_coordinates && self.mode == "gpu" {
+            self.markers = Some(markers::Markers::new(
+                &self.names,
+                &self.lib,
+                self.coordinate_audit,
+            ));
+        } else if self.event_coordinates && self.mode == "gpu" {
             self.coordinates = Some(coordinates::Coordinates::new(&self.names, &self.lib));
         }
         let (feed, b) = eg.subscribe_cell_commits(&self.names)?;
@@ -553,6 +575,9 @@ impl Hook {
         }
     }
     fn topology(&mut self, t: usize, k: &Key, r: &Row, add: bool, bootstrap: bool) {
+        if self.markers.is_some() {
+            return;
+        }
         if let Some(c) = &mut self.coordinates {
             if add {
                 c.insert(t, k, &r.values)
@@ -571,11 +596,14 @@ impl Hook {
         let started = Instant::now();
         self.stats.row_events += b.rows.len();
         self.stats.union_events += b.unions.len();
-        if self.coordinates.is_none() && !b.unions.is_empty() {
+        if self.coordinates.is_none() && self.markers.is_none() && !b.unions.is_empty() {
             self.stats.feature_invalidations += self.tokens.len();
             self.tokens.clear();
         }
         for t in b.clears {
+            if let Some(m) = &mut self.markers {
+                m.clear(t);
+            }
             let old = std::mem::take(&mut self.tables[t].rows);
             for (k, r) in old {
                 self.topology(t, &k, &r, false, bootstrap);
@@ -598,6 +626,12 @@ impl Hook {
             } else {
                 None
             };
+            if let Some(m) = &mut self.markers {
+                m.update(t, &k, new.as_ref().map(|r| r.values.as_slice()));
+            }
+            if !self.full_rows[t] {
+                continue;
+            }
             if let (Some(old), Some(new)) = (self.tables[t].rows.get(&k), new.as_ref()) {
                 if old.values == new.values {
                     if old.stamp == new.stamp {
@@ -635,7 +669,14 @@ impl Hook {
         if let Some(c) = &mut self.coordinates {
             c.commit();
         }
-        self.stats.maintenance_seconds += started.elapsed().as_secs_f64();
+        if let Some(m) = &mut self.markers {
+            m.commit();
+        }
+        let elapsed = started.elapsed().as_secs_f64();
+        self.stats.maintenance_seconds += elapsed;
+        if bootstrap {
+            self.stats.bootstrap_maintenance_seconds += elapsed;
+        }
     }
     fn head(&self, n: &Node, op: &str) -> bool {
         self.outputs
@@ -693,6 +734,9 @@ impl Hook {
     }
     fn signature(&mut self, n: Node) -> Vec<usize> {
         self.stats.feature_requests += 1;
+        if let Some(m) = &mut self.markers {
+            return m.signature(&n.0, n.1, self.coordinate_audit);
+        }
         if let Some(c) = &mut self.coordinates {
             let before = c.metrics.hits;
             let sig = c.signature(&n.0, n.1, self.coordinate_audit);
@@ -832,7 +876,7 @@ impl SaturationHook for Hook {
         Ok(None)
     }
     fn diagnostics(&self) -> Json {
-        json!({"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),
+        json!({"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
         "scope":"GPU scores only reorder exact CPU checks. Every eligible anchor retained; complete native bindings and timestamp frontier. No Cell proof or sat-skip credit."})
     }
     fn take_commits(&mut self, eg: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)> {
@@ -853,6 +897,7 @@ impl SaturationHook for Hook {
             return Ok(vec![]);
         }
         let started = Instant::now();
+        let maintenance_before = self.stats.maintenance_seconds;
         if self.feed.is_none() {
             self.initialize(eg, sinks)?;
         }
@@ -1065,7 +1110,8 @@ impl SaturationHook for Hook {
         for index in &mut self.indices {
             index.deltas = index.deltas.split_off(&oldest);
         }
-        self.stats.query_seconds += started.elapsed().as_secs_f64();
+        self.stats.query_seconds +=
+            started.elapsed().as_secs_f64() - (self.stats.maintenance_seconds - maintenance_before);
         Ok(supplied)
     }
 }

@@ -38,6 +38,7 @@ def comparison(reports):
             'component_costs':{mode:{k:stats(mode)[k] for k in ('maintenance_seconds','query_seconds','gpu_seconds','device_roundtrip_seconds','gpu_batches','gpu_rows','uploaded_bytes','downloaded_bytes')} for mode in ('exact','gpu')},
             'condition_blocks':{mode:stats(mode).get('blocks') for mode in ('exact','gpu')},
             'coordinate_publication':reports['gpu']['runtime']['saturation_diagnostics'].get('coordinate_publication'),
+            'marker_publication':reports['gpu']['runtime']['saturation_diagnostics'].get('marker_publication'),
             'routing_note':'Current-version exact condition blocks bypass prediction. Positive/negative counters describe this combined routing, not standalone GPU recall.',
             'rules':rules,'cell_proof_credit':0}
 def main():
@@ -48,7 +49,7 @@ def main():
     p.add_argument('--query-worker',type=Path,help='existing full GPU matcher for all unclaimed queries')
     p.add_argument('--reuse-native',type=Path,help='explicit unchanged native lane from an earlier run; never use after kernel/harness/schedule changes')
     p.add_argument('--reuse-baseline',type=Path,help='reuse unchanged full-GPU baseline; source and query worker must match')
-    p.add_argument('--coordinates',choices=['events','legacy'],default='events')
+    p.add_argument('--coordinates',choices=['events','legacy','markers'],default='events')
     p.add_argument('--no-shared-conditions',action='store_true')
     p.add_argument('--model',type=Path,help='explicit exported plan; default BUILD/model.json')
     a=p.parse_args();a.output=a.output.resolve();a.output.mkdir(parents=True,exist_ok=True)

@@ -2,6 +2,9 @@
 
 The current shared-condition/event-coordinate revision is described in
 [SHARED_RESULTS.md](SHARED_RESULTS.md). RESULTS.md retains the original measurements.
+The direct commit-to-bitmap backend (`--coordinates markers`) is described in
+[MARKER_RESULTS.md](MARKER_RESULTS.md). It compiles the same feature vocabulary
+into counted differential views; it does not enable the separate `.egg` marker pipeline.
 
 This is an opt-in query provider in the **actual native execution loop**, using
 `cell-assisted-egglog::table_live::SaturationHook::query_cells`. It replaces the
@@ -124,6 +127,9 @@ to **run.py**. The predictor worker and existing matcher are separate persistent
 services. The predictor does not replace the existing worker's generic matching.
 
 `--coordinates legacy` retains the original feature backend for ablation;
+`--coordinates markers` directly updates compact feature bitmaps from commits,
+without query-time graph traversal. `events` retains the adjacency-based
+publisher as a control. Marker audit uses that independent graph implementation.
 `--no-shared-conditions` disables condition sharing. Both enter the run identity.
 Audit additionally checks requested coordinates against the uncached definition.
 `--model FILE` loads a separate exported library. `export.py --residuals all`
