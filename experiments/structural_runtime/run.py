@@ -23,6 +23,7 @@ def comparison(reports):
         rules.append({'rule':name,'anchors':n,'cpu_fixed_reads':a['reads'],'gpu_ordered_reads':b['reads'],
             'fixed_depth_histogram':a['deepest'],'ordered_depth_histogram':b['deepest'],
             'complement_depth_histogram':b['complement_deepest'],
+            'exact_cached_rejections':b.get('exact_cached_rejections',0),
             'confirmed_positive_bindings':b['positive_bindings'],'recovered_bindings':b['recovered_bindings'],
             'fixed_reach_probability':[sum(a['deepest'][d:])/n if n else None for d in range(1,5)],
             'ordered_reach_probability':[sum(b['deepest'][d:])/n if n else None for d in range(1,5)]})
@@ -35,6 +36,9 @@ def comparison(reports):
             'fixed_weight_reach_before':[sum(r['fixed_reach_probability'][d] for r in rules if r['anchors'])/sum(bool(r['anchors']) for r in rules) for d in range(4)],
             'fixed_weight_reach_after':[sum(r['ordered_reach_probability'][d] for r in rules if r['anchors'])/sum(bool(r['anchors']) for r in rules) for d in range(4)],
             'component_costs':{mode:{k:stats(mode)[k] for k in ('maintenance_seconds','query_seconds','gpu_seconds','device_roundtrip_seconds','gpu_batches','gpu_rows','uploaded_bytes','downloaded_bytes')} for mode in ('exact','gpu')},
+            'condition_blocks':{mode:stats(mode).get('blocks') for mode in ('exact','gpu')},
+            'coordinate_publication':reports['gpu']['runtime']['saturation_diagnostics'].get('coordinate_publication'),
+            'routing_note':'Current-version exact condition blocks bypass prediction. Positive/negative counters describe this combined routing, not standalone GPU recall.',
             'rules':rules,'cell_proof_credit':0}
 def main():
     p=argparse.ArgumentParser()
@@ -43,12 +47,18 @@ def main():
     p.add_argument('--extract',action='store_true')
     p.add_argument('--query-worker',type=Path,help='existing full GPU matcher for all unclaimed queries')
     p.add_argument('--reuse-native',type=Path,help='explicit unchanged native lane from an earlier run; never use after kernel/harness/schedule changes')
+    p.add_argument('--reuse-baseline',type=Path,help='reuse unchanged full-GPU baseline; source and query worker must match')
+    p.add_argument('--coordinates',choices=['events','legacy'],default='events')
+    p.add_argument('--no-shared-conditions',action='store_true')
+    p.add_argument('--model',type=Path,help='explicit exported plan; default BUILD/model.json')
     a=p.parse_args();a.output=a.output.resolve();a.output.mkdir(parents=True,exist_ok=True)
     repo=a.runtime_repo.resolve();build=a.build.resolve();binary=repo/'target/analyzer/release/structural-runtime'
-    model=build/'model.json';lib=json.loads(model.read_text())
+    model=a.model.resolve() if a.model else build/'model.json';lib=json.loads(model.read_text())
     if lib['source_sha256']!=sha(a.source):raise ValueError('wrong source for exported plan')
     env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_','RAYON_'))}
     if a.query_worker:env['STRUCTURAL_QUERY_WORKER']=str(a.query_worker.resolve())
+    env['STRUCTURAL_COORDINATES']=a.coordinates
+    env['STRUCTURAL_SHARED_CONDITIONS']='0' if a.no_shared_conditions else '1'
     if a.reuse_native:
         old=a.reuse_native.resolve()/'native';identity=json.loads((old/'identity.json').read_text())
         if identity.get(str(a.source.resolve()))!=sha(a.source):raise ValueError('historical native input differs')
@@ -56,14 +66,25 @@ def main():
         if r['mode']!='native' or not (old/'graph.control.json').exists():raise ValueError('not a successful native control')
         target=a.output/'native'
         if not target.exists():target.symlink_to(old,target_is_directory=True)
+    if a.reuse_baseline:
+        old=a.reuse_baseline.resolve()/'baseline';identity=json.loads((old/'identity.json').read_text())
+        if identity.get(str(a.source.resolve()))!=sha(a.source):raise ValueError('historical GPU input differs')
+        if not a.query_worker or identity.get(str(a.query_worker.resolve()))!=sha(a.query_worker):raise ValueError('historical GPU worker differs')
+        r=json.loads((old/'report.json').read_text())
+        if not r['exact_graph']['exact_rows_values_equivalence_visibility']:raise ValueError('unverified baseline')
+        target=a.output/'baseline'
+        if not target.exists():target.symlink_to(old,target_is_directory=True)
     for mode in a.lanes.split(','):
         if mode not in ('native','baseline','exact','audit','gpu'):raise ValueError('unknown lane')
         dest=a.output/mode;dest.mkdir(exist_ok=True);control=a.output/'native/graph.control.json'
         if mode=='native' and a.reuse_native:print(f'explicit historical native: {dest.resolve()}',flush=True);continue
+        if mode=='baseline' and a.reuse_baseline:print(f'explicit historical GPU baseline: {dest.resolve()}',flush=True);continue
+        env['STRUCTURAL_COORDINATE_AUDIT']='1' if mode=='audit' else '0'
         files=[binary,a.source,model]+([build/'worker',build/'kernel.metal'] if mode in ('gpu','audit') else [])
         if a.query_worker and mode!='native':files.append(a.query_worker)
         if mode!='native':files.append(control)
         identity={str(f.resolve()):sha(f) for f in files}
+        identity['configuration']={k:v for k,v in env.items() if k.startswith('STRUCTURAL_')}
         prior=dest/'identity.json';report=dest/'report.json'
         if prior.exists() and report.exists() and json.loads(prior.read_text())==identity:
             print(f'reusing {mode}: {report}',flush=True);continue
@@ -78,6 +99,8 @@ def main():
             'modes':{m:{'inference_seconds':r['inference_seconds'],'setup_seconds':r['setup_seconds'],'exact_graph':r['exact_graph']} for m,r in reports.items()},
             'model_provenance':lib['scope'],'source_sha256':sha(a.source)}
     result['historical_native']=str(a.reuse_native.resolve()) if a.reuse_native else None
+    result['historical_baseline']=str(a.reuse_baseline.resolve()) if a.reuse_baseline else None
+    result['configuration']={'coordinates':a.coordinates,'shared_conditions':not a.no_shared_conditions}
     for m in ('baseline','exact','gpu'):
         if m in reports and 'native' in reports and reports[m]['exact_graph']['exact_rows_values_equivalence_visibility']:
             result[m+'_speedup_vs_native']=reports['native']['inference_seconds']/reports[m]['inference_seconds']
