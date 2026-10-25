@@ -3,6 +3,16 @@ from pathlib import Path
 import json
 HERE=Path(__file__).resolve().parent
 
+def boolean_expr(call, args):
+ op=call['primitive']
+ if any(t!='bool' for t in call['inputs']):return None
+ if op=='not' and len(args)==1:return f'(!({args[0]}))'
+ if op=='or':return '('+' || '.join(args or ['false'])+')'
+ if len(args)==2 and op in ('and','xor','=>'):
+  a,b=args
+  return {'and':f'({a} && {b})','xor':f'({a} != {b})','=>':f'(!({a}) || {b})'}[op]
+ return None
+
 def compile_program(p,capacity=4096,match_capacity=16384):
  if p['schema']!='egglog-device-core/v1':raise ValueError('program schema')
  strings=set()
@@ -75,6 +85,11 @@ def compile_program(p,capacity=4096,match_capacity=16384):
     for col,x in enumerate(a['args']):lines+=bind(x,f'old[{iv}*STRIDE+4+{col}]',known)
    else:
     op=c['primitive'];args=a['args']
+    be=boolean_expr(c,[operand(x) for x in args[:-1]])
+    if be is not None:
+     lines+=bind(args[-1],be,known);continue
+    if op=='guard' and c['inputs']==['bool']:
+     lines.append(f'if(!({operand(args[0])}))continue;');lines+=bind(args[-1],'0L',known);continue
     if len(args)!=3:raise ValueError('only binary primitives supported')
     av,bv=map(operand,args[:2]);numeric=c['inputs']==['i64','i64']
     if op in ('<','>','<=','>=','!=') and (numeric or op=='!='):
@@ -103,8 +118,11 @@ def compile_program(p,capacity=4096,match_capacity=16384):
    elif op in ('let','set','subsume'):
     c=a['call'];args_setup(a['args'])
     if 'primitive' in c:
-     if op!='let' or c['primitive']!='+' or c['inputs']!=['i64','i64']:raise ValueError('unsupported RHS primitive')
-     expr='add_checked(args[0],args[1],m)'
+     if op!='let':raise ValueError('unsupported RHS primitive action')
+     expr=boolean_expr(c,[f'args[{i}]' for i in range(len(a['args']))])
+     if expr is None:
+      if c['primitive']!='+' or c['inputs']!=['i64','i64']:raise ValueError('unsupported RHS primitive '+c['primitive'])
+      expr='add_checked(args[0],args[1],m)'
     else:
      t=ids[c['table']]
      if op=='subsume':

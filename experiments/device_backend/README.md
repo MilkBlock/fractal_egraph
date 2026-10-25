@@ -15,7 +15,7 @@ CPU optional check  ← explicit snapshot, compared with independent native run
 On macOS with Metal and Xcode installed, from the repository root:
 
 ```sh
-python3 experiments/device_backend/build.py --output out/device-backend-build
+python3 experiments/device_backend/build.py --output out/device-backend-build --target target/device-backend
 python3 experiments/device_backend/run.py \
   --source experiments/cell_spine/manual_marker/long-after.egg \
   --build out/device-backend-build --output out/device-spine-run \
@@ -60,7 +60,7 @@ A Run sends 8 command bytes and returns 36 status bytes. Initialization, shader/
 ## Supported semantics
 
 - Equality datatypes, constructors, native relations and opaque String identities.
-- i64 and Unit values; comparisons and checked i64 addition.
+- i64, Unit and bool values; comparisons, checked i64 addition, boolean not/and/or/xor/implication and LHS guard.
 - Constructor insertion, constructor core `Set`, union and congruence propagation.
 - Function `Set` with assert-equal and i64 min/max merge.
 - Restricted `merge old`: ambiguous concurrent first writes or conflicting rebuild collisions fail explicitly.
@@ -69,7 +69,7 @@ A Run sends 8 command bytes and returns 36 status bytes. Initialization, shader/
 
 Native relations have private equality return sorts; they are not treated as Unit functions. Duplicate subsumed/visible rows combine visibility using native OR semantics. Native core rules can express constructor unions through `Set`; that case is handled explicitly.
 
-Unsupported constructs are rejected rather than silently delegated: containers, f64/bool, arbitrary primitives/custom merges, `merge new`, external custom-function RHS reads, delete/panic, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Arithmetic overflow fails execution instead of claiming full native undefined-primitive semantics.
+Unsupported constructs are rejected rather than silently delegated: containers, f64, arbitrary primitives/custom merges, `merge new`, external custom-function RHS reads, delete/panic, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Arithmetic overflow fails execution instead of claiming full native undefined-primitive semantics.
 
 Storage and match queues have explicit capacities. Exceeding them returns an error and no success report. RHS errors can leave partial device state; rollback, resumption and dynamic capacity growth are not implemented.
 
@@ -88,3 +88,7 @@ The Cell source passed 12 Run boundaries, ending with 52 rows and 36 mapped equa
 Comparison checks typed facts, primitive values, visibility and equality partitions up to a bijection anchored in initial state. GPU snapshots are never imported into native egglog and repaired before comparison. An unresolvable unanchored cycle is reported as inconclusive/error, not equality.
 
 The oracle was the current modified local egglog working tree, **not pristine upstream**. The manifest records its dirty paths and source digest. The immutable `egglog-baseline` tag remains unchanged. These are differential correctness results, not performance measurements; wall times include diagnostics and must not be compared with Pass 3 inference benchmarks.
+
+### Pass 3 bring-up
+
+The real `raytrace-interactive-20261010/pass-3-flat.egg` was submitted to the native frontend. Boolean export was the first blocker and is now supported. The next rejection is `f64`; floating values have not been silently reduced to FP32. The boolean extension passes the 25-case regression suite with Metal validation enabled. This remains incomplete Pass 3 support.

@@ -9,7 +9,7 @@ pub struct DeviceAnchors(Vec<(ArcSort, Value)>);
 fn sort(s: &ArcSort) -> Result<Json> {
     if s.is_eq_sort() {
         Ok(json!({"name":s.name(),"kind":"eq"}))
-    } else if matches!(s.name(), "i64" | "Unit" | "String") {
+    } else if matches!(s.name(), "i64" | "Unit" | "String" | "bool") {
         Ok(json!({"name":s.name(),"kind":s.name()}))
     } else {
         Err(format!("device backend: unsupported sort {}", s.name()))
@@ -24,6 +24,7 @@ fn term(t: &ResolvedAtomTerm) -> Result<Json> {
         Term::Literal(_, Literal::String(s)) => {
             Ok(json!({"literal":s,"sort":{"name":"String","kind":"String"}}))
         }
+        Term::Literal(_, Literal::Bool(b)) => Ok(json!({"literal":i64::from(*b),"sort":{"name":"bool","kind":"bool"}})),
         Term::Literal(_, Literal::Unit) => {
             Ok(json!({"literal":0,"sort":{"name":"Unit","kind":"Unit"}}))
         }
@@ -153,6 +154,7 @@ impl EGraph {
                     sort(s)?;
                     if s.is_eq_sort(){Ok(json!({"eq":format!("{:?}",self.get_canonical_value(*v,s)),"sort":s.name()}))}
                     else if s.name()=="i64"{Ok(json!({"value":self.value_to_base::<i64>(*v),"sort":"i64"}))}
+                    else if s.name()=="bool"{Ok(json!({"value":i64::from(self.value_to_base::<bool>(*v)),"sort":"bool"}))}
                     else if s.name()=="String"{Ok(json!({"value":self.value_to_base::<crate::sort::S>(*v).to_string(),"sort":"String"}))}
                     else{Ok(json!({"value":0,"sort":"Unit"}))}
                 }).collect::<Result<Vec<_>>>();
