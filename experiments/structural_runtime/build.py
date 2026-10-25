@@ -17,7 +17,7 @@ def main():
         manifest+=f'{name}={{path={json.dumps(str(repo/rel))},default-features=false{feature}}}\n'
     manifest+='serde={version="1",features=["derive"]}\nserde_json="1"\nrustc-hash="2"\n[features]\nshared-rows=[]\n[profile.release]\nlto="thin"\ncodegen-units=1\n'
     (out/'Cargo.toml').write_text(manifest);(out/'src').mkdir(exist_ok=True)
-    for name,path in [('main.rs',HERE/'main.rs'),('hook.rs',HERE/'hook.rs'),('coordinates.rs',HERE/'coordinates.rs'),('markers.rs',HERE/'markers.rs'),('summaries.rs',HERE/'summaries.rs'),('conditions.rs',HERE/'conditions.rs'),('resident.rs',HERE/'resident.rs'),('combined.rs',HERE/'combined.rs'),('bench.rs',repo/'examples/support/live_table_bench.rs')]:
+    for name,path in [('main.rs',HERE/'main.rs'),('hook.rs',HERE/'hook.rs'),('coordinates.rs',HERE/'coordinates.rs'),('markers.rs',HERE/'markers.rs'),('summaries.rs',HERE/'summaries.rs'),('conditions.rs',HERE/'conditions.rs'),('exact_markers.rs',HERE/'exact_markers.rs'),('resident.rs',HERE/'resident.rs'),('combined.rs',HERE/'combined.rs'),('bench.rs',repo/'examples/support/live_table_bench.rs')]:
         dst=out/'src'/name
         if not dst.exists():dst.symlink_to(path)
         elif dst.resolve()!=path.resolve():raise ValueError(f'wrong existing build link {dst}')
@@ -38,7 +38,7 @@ def main():
         'binary':str(out/'runner'),'features':['shared-rows'] if a.shared_rows else [],
         'binary_sha256':sha(out/'runner'),
         'worker_sha256':sha(out/'worker'),'kernel_sha256':sha(out/'kernel.metal'),
-        'sources':{str(p):sha(p) for p in [HERE/'hook.rs',HERE/'coordinates.rs',HERE/'markers.rs',HERE/'summaries.rs',HERE/'conditions.rs',HERE/'main.rs',HERE/'runtime.swift',HERE/'shared_matrix.metal',HERE/'resident.rs',HERE/'combined.rs',HERE/'resident.swift',HERE/'resident_matrix.metal',HERE/'lower_ridge.py',repo/'examples/support/live_table_bench.rs']}}
+        'sources':{str(p):sha(p) for p in [HERE/'hook.rs',HERE/'coordinates.rs',HERE/'markers.rs',HERE/'summaries.rs',HERE/'conditions.rs',HERE/'exact_markers.rs',HERE/'main.rs',HERE/'runtime.swift',HERE/'shared_matrix.metal',HERE/'resident.rs',HERE/'combined.rs',HERE/'resident.swift',HERE/'resident_matrix.metal',HERE/'lower_ridge.py',repo/'examples/support/live_table_bench.rs']}}
     if a.query_worker:
         provenance['ordinary_query_worker_sha256']=sha(out/'query-worker')
         provenance['ordinary_query_worker_source_sha256']=sha(repo/'cell-assisted-egglog/matrix.swift')

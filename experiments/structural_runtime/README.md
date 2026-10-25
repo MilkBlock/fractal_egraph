@@ -1,5 +1,12 @@
 # Live Pass-3 spine proposals with exact CPU completion
 
+Shared exact condition markers with correlated binding payloads are available
+through `--exact-markers`. See [EXACT_MARKER_RESULTS.md](EXACT_MARKER_RESULTS.md).
+The predictor remains active for unshared queries; this is opt-in while net
+runtime benefit remains unconfirmed. `--compare-exact-markers CONTROL` reuses
+checked historical controls and reports access depth, new reads, proof publishing
+cost and full bindings separately.
+
 The resident response-matrix backend and combined joint/ridge runtime are
 described in [RESIDENT_RESULTS.md](RESIDENT_RESULTS.md). A GPU/audit run now
 requires actual ridge matrix work by default; exact/idle controls must be explicit.

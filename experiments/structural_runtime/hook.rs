@@ -29,6 +29,8 @@ mod resident;
 
 #[path = "conditions.rs"]
 mod conditions;
+#[path = "exact_markers.rs"]
+mod exact_markers;
 #[path = "coordinates.rs"]
 mod coordinates;
 #[path = "markers.rs"]
@@ -188,6 +190,7 @@ struct Attachment {
     handles: Vec<usize>,
     ready: bool,
     single: bool,
+    exact_marker: Option<exact_markers::Use>,
 }
 struct Query {
     plan: Plan,
@@ -222,6 +225,10 @@ struct Work {
     complement_deepest: Vec<usize>,
     query_seconds: f64,
     exact_group_rejected: usize,
+    marker_candidates: usize,
+    marker_rejections: usize,
+    marker_bindings: usize,
+    marker_payload_references: usize,
 }
 #[derive(Default, Serialize)]
 struct Stats {
@@ -452,6 +459,7 @@ pub struct Hook {
     lib: Library,
     device: Option<Device>,
     consumer_scopes: Option<resident::Scopes>,
+    exact_markers: Option<exact_markers::Markers>,
     feed: Option<CellCommitFeed>,
     names: Vec<String>,
     ids: Map<String, usize>,
@@ -483,6 +491,7 @@ pub struct Hook {
 impl Hook {
     pub fn new(lib: Library, device: Option<Device>, mode: &str) -> Self {
         Self {
+            exact_markers: (std::env::var("STRUCTURAL_EXACT_MARKERS").as_deref()==Ok("1")).then(exact_markers::Markers::default),
             consumer_scopes: device.as_ref().filter(|d|d.resident.is_some() && std::env::var("STRUCTURAL_RESIDENT_SCOPE").as_deref()==Ok("consumers")).map(|_|resident::Scopes::new(&lib)),
             fixed_scores: lib
                 .models
@@ -852,6 +861,7 @@ impl Hook {
                     idx.buckets[h].rows.remove(k);
                 }
                 idx.refresh_presence(h);
+                if let Some(markers)=&mut self.exact_markers{markers.changed((id,h));}
             }
         }
         if !structure {
@@ -887,6 +897,7 @@ impl Hook {
                     q.attachments.insert(
                         k.clone(),
                         Attachment {
+                            exact_marker: self.exact_markers.as_mut().map(|m|m.attach(q.indices.iter().copied().zip(attached.iter().copied()).collect())),
                             handles: attached,
                             ready: false,
                             single,
@@ -896,7 +907,9 @@ impl Hook {
                         q.dirty_roots.insert(k.clone());
                     }
                 } else {
-                    q.attachments.remove(k);
+                    if let Some(a)=q.attachments.remove(k){
+                        if let (Some(m),Some(u))=(&mut self.exact_markers,a.exact_marker){m.detach(u.id);}
+                    }
                     q.dirty_roots.remove(k);
                 }
             }
@@ -1045,6 +1058,9 @@ impl Hook {
         }
         if self.ready_conditions {
             self.finish_readiness();
+        }
+        if let Some(m)=&mut self.exact_markers {
+            m.publish(|(i,h)|self.indices[i].occupied(h));
         }
         let elapsed = started.elapsed().as_secs_f64();
         self.stats.maintenance_seconds += elapsed;
@@ -1290,6 +1306,7 @@ impl SaturationHook for Hook {
         }
         json!({"row_storage":if cfg!(feature="shared-rows") {"shared"} else {"owned"},"condition_handles":{"presence_bytes":self.indices.iter().map(|i|i.presence.len()*8).sum::<usize>(),"presence_capacity_bytes":self.indices.iter().map(|i|i.presence.capacity()*8).sum::<usize>(),"total":self.indices.iter().map(|i|i.buckets.len()).sum::<usize>(),"nonempty":self.indices.iter().map(|i|i.buckets.iter().filter(|b|!b.rows.is_empty()).count()).sum::<usize>(),"anchor_connections":self.queries.values().map(|q|q.attachments.values().map(|a|a.handles.len()).sum::<usize>()).sum::<usize>()},"condition_execution":if self.ready_conditions {"ready"}else if self.group_conditions {"groups"} else {"roots"},"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1",
         "predictor_loaded":self.device.is_some(),
+        "exact_markers":self.exact_markers.as_ref().map(|m|m.report()),
         "consumer_scopes":self.consumer_scopes.as_ref().map(|s|s.report()),
         "resident_scope":std::env::var("STRUCTURAL_RESIDENT_SCOPE").unwrap_or_else(|_|"sort".into()),
         "predictor_backend":self.device.as_ref().map(|d|if d.resident.is_some(){"resident-response"}else{"packet-coordinates"}),
@@ -1337,7 +1354,10 @@ impl SaturationHook for Hook {
         let mut blocks = Vec::<Block>::new();
         let mut intern = Map::default();
         let mut roots = Map::default();
-        for (_, name, wm) in &ids {
+        let mut marked = BTreeMap::<exact_markers::Id,Vec<(usize,StoredRow,exact_markers::Use)>>::new();
+        let mut marker_decisions = Map::default();
+        let mut marker_output = (0..ids.len()).map(|_|BTreeSet::new()).collect::<Vec<_>>();
+        for (owner,(_, name, wm)) in ids.iter().enumerate() {
             let q = &self.queries[name];
             let mut rows = vec![];
             let mut changed = self.tables[q.anchor]
@@ -1358,6 +1378,25 @@ impl SaturationHook for Hook {
                 let Some(attached) = q.attachments.get(&key) else {
                     continue;
                 };
+                if let (Some(markers),Some(u))=(&mut self.exact_markers,&attached.exact_marker) {
+                    let decision=marker_decisions.get(&u.id).copied().or_else(|| {
+                        let v=markers.shared_ready(u.id,|(i,h)|self.indices[i].occupied(h));
+                        if let Some(v)=v{marker_decisions.insert(u.id,v);}
+                        v
+                    });
+                    if let Some(ready)=decision {
+                        if self.coordinate_audit {
+                            assert_eq!(ready,q.indices.iter().zip(&attached.handles).all(|(&i,&h)|self.indices[i].occupied(h)),"stale exact marker");
+                        }
+                        let w=self.stats.rules.entry(name.clone()).or_default();
+                        w.delta_anchors+=1;w.marker_candidates+=1;bump(&mut w.deepest,0);
+                        if ready {
+                            let row=self.tables[q.anchor].rows.get(&key).expect("live marker anchor");
+                            marked.entry(u.id).or_default().push((owner,row.clone(),u.clone()));
+                        } else {w.marker_rejections+=1;bump(&mut w.rejected,0);}
+                        continue;
+                    }
+                }
                 if self.ready_conditions {
                     let ready = if attached.single {
                         self.stats.readiness.direct_condition_candidates += 1;
@@ -1430,6 +1469,47 @@ impl SaturationHook for Hook {
                 rows.push((row.clone(), links));
             }
             roots.insert(name.clone(), rows);
+        }
+        // A shared marker enumerates its factor tuple once for all consumers.
+        // Binding scatter and each original query watermark remain separate.
+        if let Some(markers)=&mut self.exact_markers {
+            let marker_started=Instant::now();
+            for (id,consumers) in marked {
+                let factors=markers.payload(id,|(i,h)| {
+                    if let Some(p)=self.indices[i].cached(h){p}
+                    else{self.indices[i].answer(h,true,&mut self.stats.blocks)}
+                });
+                for (owner,_,_) in &consumers {
+                    let w=self.stats.rules.entry(ids[*owner].1.clone()).or_default();
+                    w.marker_payload_references+=factors.len();
+                    w.witness_rows+=factors.iter().map(|f|f.len()).sum::<usize>();
+                }
+                let mut tuples=0;let mut visits=0;
+                exact_markers::visit(&factors,&mut vec![],0,&mut |rows,stamp| {
+                    tuples+=1;
+                    for (owner,root,u) in &consumers {
+                        visits+=1;
+                        let (_,name,wm)=&ids[*owner];
+                        if stamp.max(root.stamp)<*wm{continue;}
+                        let q=&self.queries[name];let mut slots=vec![None;q.slots];
+                        for &(s,c) in &q.projections[q.plan.anchor].bindings{slots[s]=Some(root.values[c]);}
+                        let mut ok=true;
+                        for (i,row) in rows.iter().enumerate() {
+                            let step=&q.plan.steps[u.order[i]];
+                            for &(s,c) in &q.projections[step.atom].bindings {
+                                if slots[s].is_some_and(|v|v!=row.values[c]){ok=false;break;}
+                                slots[s]=Some(row.values[c]);
+                            }
+                            if !ok{break;}
+                        }
+                        if ok && marker_output[*owner].insert(slots.into_iter().map(|v|v.expect("complete marker binding")).collect()) {
+                            let w=self.stats.rules.entry(name.clone()).or_default();w.marker_bindings+=1;w.positive_bindings+=1;
+                        }
+                    }
+                });
+                markers.stats.tuples+=tuples;markers.stats.consumer_tuple_visits+=visits;
+            }
+            markers.stats.query_seconds+=marker_started.elapsed().as_secs_f64();
         }
         let mut score_keys = BTreeSet::new();
         if self.mode == "gpu" && !self.group_conditions {
@@ -1539,13 +1619,12 @@ impl SaturationHook for Hook {
         };
         let mut groups = conditions::Groups::new();
         let mut supplied = vec![];
-        for (id, name, wm) in ids {
+        for ((id, name, wm),mut output) in ids.into_iter().zip(marker_output) {
             let start = Instant::now();
             let q = &self.queries[&name];
             let work = self.stats.rules.entry(name.clone()).or_default();
             work.calls += 1;
             work.anchors += self.tables[q.anchor].rows.len();
-            let mut output = BTreeSet::new();
             for (root, links) in &roots[&name] {
                 work.delta_anchors += 1;
                 if self.group_conditions {
@@ -1807,6 +1886,9 @@ mod tests {
         grouped: bool,
         ready: bool,
     ) -> Result<(Runtime, Vec<egglog::ast::Command>)> {
+        fixture_marked(function,alias,grouped,ready,false)
+    }
+    fn fixture_marked(function:bool,alias:bool,grouped:bool,ready:bool,exact:bool) -> Result<(Runtime,Vec<egglog::ast::Command>)> {
         let decl = if function {
             "(function P (Term) Term :merge new)"
         } else {
@@ -1815,9 +1897,10 @@ mod tests {
         let lhs = if function { "(= z (P x))" } else { "(P x z)" };
         let root = if alias { "(Root x x)" } else { "(Root x y)" };
         let y = if alias { "x" } else { "y" };
-        let src = format!(
+        let mut src = format!(
             "(datatype Term (N i64) (Root Term Term)) {decl} (relation Q (Term Term)) (relation F (Term Term Term)) (ruleset always-run) (rule ((= r {root}) {lhs} (Q {y} w)) ((F r z w)) :ruleset always-run :name \"test\")"
         );
+        if exact {src+=&format!(" (rule ((= r {root}) {lhs} (Q {y} w)) ((F r z w)) :ruleset always-run :name \"test-copy\")");}
         let mut eg = EGraph::default();
         eg.parse_and_run_program(None, &src)?;
         let s = eg.prepare_cell_action("always-run", "test")?;
@@ -1867,7 +1950,7 @@ mod tests {
             });
         }
         let atoms=s.atoms.iter().map(|a|json!({"table":a.function,"sorts":a.sorts,"columns":a.columns.iter().map(|c|match c{CellOperand::Slot(s)=>json!({"Slot":s}),CellOperand::Constant{text,..}=>json!({"Literal":text})}).collect::<Vec<_>>()})).collect::<Vec<_>>();
-        let lib = Library {
+        let mut lib = Library {
             summary_markers: vec![],
             plans: vec![Plan {
                 name: "test".into(),
@@ -1886,11 +1969,15 @@ mod tests {
                 ),
             ]),
         };
+        if exact {
+            let mut p=lib.plans[0].clone();p.name="test-copy".into();p.steps.reverse();lib.plans.push(p);
+        }
         let cmds = eg.parse_program(None, "(run always-run 1)")?;
         let selected = vec!["always-run".into()];
         let mut handler = Hook::new(lib, None, "reject-all");
         handler.group_conditions = grouped;
         handler.ready_conditions = ready;
+        handler.exact_markers=exact.then(exact_markers::Markers::default);
         let mut r = Runtime::new_full_assisted(
             eg,
             &cmds,
@@ -1901,6 +1988,33 @@ mod tests {
         )?;
         r.enable_cell_query_audit()?;
         Ok((r, cmds))
+    }
+    #[test]
+    fn shared_exact_marker_keeps_all_bindings_frontiers_and_late_effects() -> Result<()> {
+        EGraph::set_num_threads(1);
+        for (function,alias) in [(false,false),(false,true),(true,false)] {
+            let (mut r,c)=fixture_marked(function,alias,false,false,true)?;
+            r.input("(Root (N 1) (N 2))")?;
+            r.input(if function{"(set (P (N 1)) (N 3))"}else{"(P (N 1) (N 3)) (P (N 1) (N 4))"})?;
+            r.run(&c)?;
+            let before=r.report();
+            if !alias {
+                assert!(before["saturation_diagnostics"]["statistics"]["rules"]["test"]["marker_rejections"].as_u64().unwrap()>0);
+                assert_eq!(before["saturation_diagnostics"]["statistics"]["blocks"]["witness_rows_materialized"],0);
+            }
+            r.input("(Q (N 2) (N 5)) (Q (N 2) (N 6))")?;r.run(&c)?;
+            r.input("(union (N 1) (N 2))")?;r.run(&c)?;
+            r.input(if function{"(set (P (N 1)) (N 9))"}else{"(delete (P (N 1) (N 3))) (P (N 1) (N 9))"})?;r.run(&c)?;
+            let j=r.report();let d=&j["saturation_diagnostics"];
+            assert!(d["statistics"]["rules"]["test"]["marker_bindings"].as_u64().unwrap()>0);
+            assert_eq!(d["statistics"]["rules"]["test"]["reads"],0);
+            assert_eq!(d["statistics"]["rules"]["test-copy"]["reads"],0);
+            let emitted=j["runtime"]["cell_query_bindings"].clone();r.run(&c)?;
+            assert_eq!(r.report()["runtime"]["cell_query_bindings"],emitted,"old marker must not replay old Run matches");
+            r.input("(subsume (Root (N 1) (N 2))) (Q (N 2) (N 10))")?;r.run(&c)?;
+            assert_eq!(r.report()["saturation_diagnostics"]["exact_markers"]["live_anchor_uses"],0);
+        }
+        Ok(())
     }
     #[test]
     fn readiness_tracks_false_true_union_subsume_and_all_witnesses() -> Result<()> {

@@ -131,13 +131,28 @@ def execution_comparison(before,after,storage=False):
     result['audit']={'checks':audit['runtime']['runtime']['cell_query_rules'],'exact_graph':audit['exact_graph']['exact_rows_values_equivalence_visibility']}
     return result
 
-def resident_comparison(before,after,scoped=False):
+def resident_comparison(before,after,scoped=False,exact_markers=False):
     dirs=[before.resolve(),after.resolve()]
     reports=[json.loads((d/'gpu/report.json').read_text()) for d in dirs]
     identities=[json.loads((d/'gpu/identity.json').read_text()) for d in dirs]
     layouts=[i['configuration'].pop('STRUCTURAL_MATRIX_LAYOUT',None) for i in identities]
     scopes=[i['configuration'].pop('STRUCTURAL_RESIDENT_SCOPE','sort') for i in identities]
-    expected=['resident','resident'] if scoped else ['shared','resident']
+    historical=False
+    if exact_markers:
+        builds=[json.loads((d/'summary.json').read_text())['build'] for d in dirs]
+        for key in ('runtime_repo','runtime_commit','runtime_dirty','features','worker_sha256','kernel_sha256'):
+            if builds[0][key]!=builds[1][key]:raise ValueError('exact marker comparison changed kernel/worker: '+key)
+        if builds[0]['runtime_dirty']:raise ValueError('dirty runtime dependency')
+        sources=[{Path(k).name:v for k,v in b['sources'].items()} for b in builds]
+        for name in set(sources[0])|set(sources[1]):
+            if name not in ('hook.rs','exact_markers.rs') and sources[0].get(name)!=sources[1].get(name):raise ValueError('unexpected adapter change: '+name)
+        flags=[i['configuration'].pop('STRUCTURAL_EXACT_MARKERS','0') for i in identities]
+        if flags!=['0','1'] or scopes[0]!=scopes[1]:raise ValueError('not an exact marker off/on pair')
+        historical=builds[0]['binary_sha256']!=builds[1]['binary_sha256']
+        for ident,b in zip(identities,builds):
+            binary=Path(b['binary']);assert ident.pop(str(binary))==b['binary_sha256']
+            for name in ['worker','kernel.metal']:ident['shared-'+name]=ident.pop(str(binary.parent/name))
+    expected=['resident','resident'] if scoped or exact_markers else ['shared','resident']
     if layouts!=expected or identities[0]!=identities[1] or (scoped and scopes!=['sort','consumers']):raise ValueError('resident pair changed more than the requested backend/scope')
     for r in reports:
         d=r['runtime']['saturation_diagnostics']
@@ -155,6 +170,8 @@ def resident_comparison(before,after,scoped=False):
         for row in (left,right):
             if sum(row['deepest'])!=n:raise ValueError('invalid exact-check depth histogram')
         work.append({'rule':name,'anchors':n,'reads_before':left['reads'],'reads_after':right['reads'],
+            'marker_candidates':right.get('marker_candidates',0),'marker_rejections':right.get('marker_rejections',0),
+            'marker_bindings':right.get('marker_bindings',0),'marker_payload_references':right.get('marker_payload_references',0),
             'depth_before':left['deepest'],'depth_after':right['deepest'],
             'reach_before':[sum(left['deepest'][d:])/n if n else None for d in range(1,5)],
             'reach_after':[sum(right['deepest'][d:])/n if n else None for d in range(1,5)]})
@@ -162,14 +179,23 @@ def resident_comparison(before,after,scoped=False):
     for path,r in zip(dirs,reports):
         d=r['runtime']['saturation_diagnostics'];t=d['statistics']
         rows.append({'directory':str(path),'backend':d['predictor_backend'],'joint_services_enabled':r.get('joint_services_enabled',False),
+            'predictor_executed':d.get('predictor_executed'),
             'resident_scope':d.get('resident_scope'),'consumer_scopes':d.get('consumer_scopes'),
+            'exact_markers':d.get('exact_markers'),'condition_blocks':t['blocks'],
             'inference_seconds':r['inference_seconds'],'setup_seconds':r['setup_seconds'],
             'matrix':t['matrix'],'resident':t['resident'],
             **{k:t[k] for k in ('gpu_batches','gpu_rows','gpu_seconds','device_roundtrip_seconds','maintenance_seconds','query_seconds','uploaded_bytes','downloaded_bytes')},
             'ridge_bindings':sum(x['positive_bindings']+x['recovered_bindings'] for x in t['rules'].values()),
             'combined_services':d.get('combined_services'),
             'original_graph':r['exact_graph']})
-    return {'scope':'Same full Pass 3, model, native kernel, exact completion and joint-service configuration. Only '+('all same-sort heads versus event-published consumer heads' if scoped else 'packet coordinates versus resident factored ridge responses')+' changes. Not new Cell proof credit.',
+    return {'scope':'Same full Pass 3, model, native kernel, exact completion and joint-service configuration. Only '+('event-published shared exact condition markers' if exact_markers else ('all same-sort heads versus event-published consumer heads' if scoped else 'packet coordinates versus resident factored ridge responses'))+' changes. Not new Cell proof credit.',
+            'historical_control':historical,
+            'marker_totals':({'candidates':sum(w['marker_candidates'] for w in work),
+                'rejections':sum(w['marker_rejections'] for w in work),'bindings':sum(w['marker_bindings'] for w in work),
+                'payload_references':sum(w['marker_payload_references'] for w in work),
+                'residual_accesses_before':sum(w['reads_before'] for w in work),'residual_accesses_after':sum(w['reads_after'] for w in work),
+                'new_answer_reads_before':rows[0]['condition_blocks']['reads'],'new_answer_reads_after':rows[1]['condition_blocks']['reads']} if exact_markers else None),
+            'marker_depth_note':('Depth zero means marker routing without the old per-root residual loop, not zero work. Include leaf truth reads, conjunction publications, payload loads, tuple fanout and event maintenance from exact_markers; this is not native Free Join or ordinary GPU search.' if exact_markers else None),
             'variants':rows,'speedup':rows[0]['inference_seconds']/rows[1]['inference_seconds'],
             'same_complete_binding_counts':True,'complete_bindings':sum(bindings(reports[0]).values()),
             'exact_cpu_check_work':work,'depth_scope':'CPU factorized residual checks, not ordinary GPU/Free Join depth; equal original anchor population',
@@ -182,6 +208,7 @@ def main():
     for n in ('runtime-repo','build','source','output'):p.add_argument('--'+n,type=Path,required=True)
     p.add_argument('--lanes',default='native,exact,audit,gpu')
     p.add_argument('--extract',action='store_true')
+    p.add_argument('--exact-markers',action='store_true',help='share event-published exact residual conjunctions and whole witness payloads')
     p.add_argument('--joint-sat',action='store_true',help='keep the existing joint closure services active alongside ridge')
     p.add_argument('--boundary-programs',type=Path,help='existing loop/shared-spine provider; requires --joint-sat')
     p.add_argument('--query-worker',type=Path,help='existing full GPU matcher for all unclaimed queries')
@@ -189,6 +216,7 @@ def main():
     p.add_argument('--reuse-baseline',type=Path,help='reuse unchanged full-GPU baseline; source and query worker must match')
     p.add_argument('--compare-resident',type=Path,help='compare to same-binary/model/shared-predictor run; both must actually execute ridge')
     p.add_argument('--compare-consumer-scope',type=Path,help='compare to same-binary resident all-sort-heads control')
+    p.add_argument('--compare-exact-markers',type=Path,help='reuse a checked marker-off control with the same kernel, model, workers and all other adapter sources')
     p.add_argument('--compare-storage',type=Path,help='compare current shared-row build to a verified same-source owned-row run')
     p.add_argument('--compare-execution',type=Path,help='compare verified condition execution modes without retiming')
     p.add_argument('--compare-layout',type=Path,help='read existing same-model single-layout lane and report exact paired matrix work')
@@ -209,6 +237,7 @@ def main():
     if lib['source_sha256']!=sha(a.source):raise ValueError('wrong source for exported plan')
     env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_','RAYON_','STRUCTURAL_'))}
     if a.query_worker:env['STRUCTURAL_QUERY_WORKER']=str(a.query_worker.resolve())
+    env['STRUCTURAL_EXACT_MARKERS']='1' if a.exact_markers else '0'
     env['STRUCTURAL_JOINT_SAT']='1' if a.joint_sat else '0'
     if a.boundary_programs:env['CELL_BOUNDARY_PROGRAMS']=str(a.boundary_programs.resolve())
     env['STRUCTURAL_REQUIRE_PREDICTOR']='0' if a.allow_idle_predictor else '1'
@@ -266,7 +295,7 @@ def main():
     result['build']=json.loads((build/'build.json').read_text())
     result['historical_native']=str(a.reuse_native.resolve()) if a.reuse_native else None
     result['historical_baseline']=str(a.reuse_baseline.resolve()) if a.reuse_baseline else None
-    result['configuration']={'condition_execution':a.condition_execution,'matrix_layout':a.matrix_layout,'resident_scope':a.resident_scope,'coordinates':a.coordinates,'shared_conditions':not a.no_shared_conditions}
+    result['configuration']={'condition_execution':a.condition_execution,'matrix_layout':a.matrix_layout,'resident_scope':a.resident_scope,'coordinates':a.coordinates,'shared_conditions':not a.no_shared_conditions,'exact_markers':a.exact_markers}
     for m in ('baseline','exact','gpu'):
         if m in reports and 'native' in reports and reports[m]['exact_graph']['exact_rows_values_equivalence_visibility']:
             result[m+'_speedup_vs_native']=reports['native']['inference_seconds']/reports[m]['inference_seconds']
@@ -293,6 +322,10 @@ def main():
         paired=resident_comparison(a.compare_consumer_scope,a.output,scoped=True);paired['extraction']=result.get('extraction')
         (a.output/'consumer-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
         result['consumer_comparison']=str(a.output/'consumer-comparison.json')
+    if a.compare_exact_markers:
+        paired=resident_comparison(a.compare_exact_markers,a.output,exact_markers=True);paired['extraction']=result.get('extraction')
+        (a.output/'exact-marker-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
+        result['exact_marker_comparison']=str(a.output/'exact-marker-comparison.json')
     if a.compare_storage:
         paired=execution_comparison(a.compare_storage,a.output,storage=True);paired['extraction']=result.get('extraction')
         (a.output/'storage-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
