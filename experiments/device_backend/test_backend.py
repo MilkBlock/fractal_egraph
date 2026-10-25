@@ -6,7 +6,7 @@ HERE=Path(__file__).resolve().parent
 
 def tests(build,out):
  out.mkdir(parents=True,exist_ok=True);results={}
- for name,src in [('integer',HERE/'fixtures/integer.egg'),('float-identity',HERE/'fixtures/float-identity.egg'),('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
+ for name,src in [('merge-rebuild',HERE/'fixtures/merge-rebuild.egg'),('custom-merge',HERE/'fixtures/custom-merge.egg'),('merge-same',HERE/'fixtures/merge-same.egg'),('integer',HERE/'fixtures/integer.egg'),('float-identity',HERE/'fixtures/float-identity.egg'),('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
   r=run(src,build,out/name);assert r['checks'] and all(c['exact_rows_values_equivalence_visibility'] for c in r['checks']);results[name]=r
  unit=json.loads((out/'unit-function/program.json').read_text());assert next(t for t in unit['tables'] if t['name']=='F')['kind']=='function'
  assert len(results['repeat']['steps'])==2,'Repeat must stop at a native quiescent boundary'
@@ -25,7 +25,6 @@ def tests(build,out):
   'row-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'capacity':2},'error=1'),
   'source-check':('(datatype T (N i64)) (ruleset r) (N 1) (run r 1) (check (N 2))',{},'source check failed'),
   'unit-lookup':('(datatype T (N i64)) (function F (T) Unit :no-merge) (ruleset r) (rule ((= x (N 1))) ((F x)) :ruleset r :naive) (N 1) (run r 1)',{},'native compilation failed'),
-  'ordered-merge':('(datatype T (N i64)) (function F (T) i64 :merge new) (ruleset r) (N 0) (run r 1)',{},'unsupported custom merge'),
   'ambiguous-old':('(datatype T (N i64)) (function F (T) i64 :merge old) (ruleset r) (rule ((= x (N 0))) ((set (F x) 1)) :ruleset r) (rule ((= x (N 0))) ((set (F x) 2)) :ruleset r) (N 0) (run r 1)',{},'error=7'),
   'overflow':('(datatype T (N i64)) (function F (T) i64 :merge (max old new)) (ruleset r) (rule ((= n (F x))) ((set (F x) (+ n 1))) :ruleset r) (set (F (N 0)) 9223372036854775807) (run r 1)',{},'error=5'),
  }

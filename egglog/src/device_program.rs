@@ -48,6 +48,13 @@ fn call(c: &ResolvedCall) -> Result<Json> {
         }
     })
 }
+fn merge_expr(e: &ResolvedExpr) -> Result<Json> {
+    Ok(match e {
+        GenericExpr::Var(_,v)=>json!({"var":v.name}),
+        GenericExpr::Call(_,c,args)=>json!({"call":call(c)?,"args":args.iter().map(merge_expr).collect::<Result<Vec<_>>>()?}),
+        GenericExpr::Lit(span,l)=>term(&Term::Literal(span.clone(),l.clone()))?,
+    })
+}
 fn rule(r: &ResolvedCoreRule) -> Result<Json> {
     let body=r.body.atoms.iter().map(|a|Ok(json!({"call":call(&a.head)?,"args":a.args.iter().map(term).collect::<Result<Vec<_>>>()?}))).collect::<Result<Vec<_>>>()?;
     let head=r.head.0.iter().map(|a|Ok(match a {
@@ -131,7 +138,7 @@ impl EGraph {
             } else {
                 "function"
             };
-            tables.push(json!({"name":name,"schema":schema,"kind":kind,"merge":merge,"internal":f.is_let_binding(),"can_subsume":f.can_subsume}));
+            tables.push(json!({"name":name,"schema":schema,"kind":kind,"merge":merge,"merge_expr":f.decl.merge.as_ref().map(merge_expr).transpose()?,"internal":f.is_let_binding(),"can_subsume":f.can_subsume}));
         }
         tables.sort_by_key(|t| t["name"].as_str().unwrap().to_owned());
         fn collect(eg: &EGraph, set: &str, stack: &mut Vec<String>) -> Result<Vec<Json>> {

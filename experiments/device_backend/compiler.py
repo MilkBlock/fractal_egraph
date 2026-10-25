@@ -36,9 +36,10 @@ def compile_program(p,capacity=4096,match_capacity=16384):
   merge=t['merge'];pol=3 if k==0 else 0
   if merge is not None:
    if merge=='old':pol=4
-   elif t['schema'][-1]['kind']!='i64':raise ValueError('only i64 min/max or unambiguous old custom merge supported')
-   elif merge in ('(min old new)','(min new old)'):pol=1
-   elif merge in ('(max old new)','(max new old)'):pol=2
+   elif merge=='new':pol=5
+   elif merge in ('(min old new)','(min new old)') and t['schema'][-1]['kind']=='i64':pol=1
+   elif merge in ('(max old new)','(max new old)') and t['schema'][-1]['kind']=='i64':pol=2
+   elif t.get('merge_expr') is not None:pol=6
    else:raise ValueError('unsupported custom merge '+merge)
   policy.append(pol)
  anchors=sorted({(x['sort'],x['eq']) for row in p['initial'] for x in row['values'] if 'eq' in x});identity={k:i+1 for i,k in enumerate(anchors)}
@@ -149,8 +150,33 @@ def compile_program(p,capacity=4096,match_capacity=16384):
  if max(capacity*(cols+4),match_capacity*(nv+1),idcap)>=(1<<32):raise ValueError('device address space exhausted')
  prefix=f'#define COLS {cols}\n#define STRIDE {cols+4}\n#define VARS {nv}\n#define MSTRIDE {nv+1}\n#define CAPACITY {capacity}\n#define MATCHCAP {match_capacity}\n#define IDCAP {idcap}\n'
  for name,data in [('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
+ merge_cases=[]
+ for tid,t in enumerate(ts):
+  if policy[tid]!=6:continue
+  lines=[];counter=[0]
+  def lower(e):
+   if 'var' in e:
+    if e['var'] not in ('old','new'):raise ValueError('unknown merge variable')
+    return 'a' if e['var']=='old' else 'b'
+   if 'literal' in e:
+    v=string_ids[e['literal']] if e['sort']['kind']=='String' else e['literal']
+    return '(-9223372036854775807L-1L)' if v==-(1<<63) else str(v)+'L'
+   args=[lower(x) for x in e['args']];c=e['call'];n=counter[0];counter[0]+=1;name=f'mv{n}'
+   if 'table' in c:
+    target=ids[c['table']]
+    if kind[target]!=0:raise ValueError('merge function reads unsupported')
+    lines.append(f'long ma{n}[COLS]={{'+','.join(args or ['0'])+'};')
+    expr=f'ensure_constructor(r,p,fp,m,{target},ma{n})'
+   else:
+    code=integer_op(c);expr=boolean_expr(c,args)
+    if code is not None:
+     lines.append(f'if(!integer_valid({code},{args[0]},{args[1]})){{m.error=5;return a;}}')
+     expr=f'integer_eval({code},{args[0]},{args[1]})'
+    if expr is None:raise ValueError('unsupported merge primitive '+c['primitive'])
+   lines.append(f'long {name}={expr};if(m.error)return a;');return name
+  value=lower(t['merge_expr']);merge_cases.append(f'case {tid}:{{'+''.join(lines)+f'return {value};'+'}')
  # Metal scalar types are available after the include, before generated schema.
- source=(HERE/'kernel.metal').read_text().replace('// Generated schema/limits are inserted before this code.',prefix)
+ source=(HERE/'kernel.metal').read_text().replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
  query=[];wm=[]
  for si,use in enumerate(sets):
   query.append(f'if(set=={si}){{'+''.join('{long v[VARS]={0};do{'+queries[r]+'}while(false);}' for r in use)+'}')

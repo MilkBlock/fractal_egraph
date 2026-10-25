@@ -62,14 +62,14 @@ A Run sends 8 command bytes and returns 36 status bytes. Initialization, shader/
 - Equality datatypes, constructors, native relations and opaque String identities.
 - i64, Unit and bool values; comparisons, checked i64 arithmetic (+, -, *, /, %), min/max, boolean integer comparisons, boolean not/and/or/xor/implication and LHS guard.
 - Constructor insertion, constructor core `Set`, union and congruence propagation.
-- Function `Set` with assert-equal and i64 min/max merge.
+- Function `Set` with assert-equal, i64 min/max, new-value replacement and typed custom merge expressions.
 - Restricted `merge old`: ambiguous concurrent first writes or conflicting rebuild collisions fail explicitly.
 - Constructor subsume, including creation of an absent hidden row.
 - Run, Repeat, Sequence, Saturate and combined rulesets.
 
 Native relations have private equality return sorts; they are not treated as Unit functions. Duplicate subsumed/visible rows combine visibility using native OR semantics. Native core rules can express constructor unions through `Set`; that case is handled explicitly.
 
-Unsupported constructs are rejected rather than silently delegated: containers, floating arithmetic, arbitrary primitives/custom merges, `merge new`, external custom-function RHS reads, delete, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Failed checked arithmetic rejects a LHS match; in RHS it raises an execution error, matching the native distinction. Panic actions raise device error 8.
+Unsupported constructs are rejected rather than silently delegated: containers, floating arithmetic, unsupported primitives/merge function reads, external custom-function RHS reads, delete, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Failed checked arithmetic rejects a LHS match; in RHS it raises an execution error, matching the native distinction. Panic actions raise device error 8.
 
 Storage and match queues have explicit capacities. Exceeding them returns an error and no success report. RHS errors can leave partial device state; rollback, resumption and dynamic capacity growth are not implemented.
 
@@ -111,3 +111,11 @@ The saved `pass3-inventory.json` identifies 260 tables and 664 installed rules. 
 All integer primitive names observed in the typed Pass 3 inventory now have GPU lowering: checked +, -, *, /, %, min/max and bool-< (plus the other boolean integer comparisons). Query overflow/division failure filters the current candidate. RHS failure raises error 5; panic raises error 8. Native behavior was checked directly: RHS primitive failure is an error, not a silent action-lane skip.
 
 The expanded 28-check suite passes. This does not mean all Pass 3 rules execute: ExprSetPrim storage/rebuild, custom merge evaluation and efficient matching remain required. The reference scan/rebuild kernels must be replaced before a meaningful full-size timing run.
+
+### Typed merge execution
+
+Native resolved merge expressions are exported as typed trees, not reparsed from their printed strings. The GPU compiler lowers constructor applications, integer/boolean operations, and old/new parameters. Constructor creation inside merge uses an independent insertion helper, so Metal has no recursive device calls. Both ordinary Set collisions and key collisions during rebuild execute the generated merge. Equal values bypass merge, matching native behavior.
+
+`merge new` now selects the incoming value in device commit order. This does not promise the same winner as native for concurrent competing writes; extraction quality still requires verification on the full workload. Strict ambiguity checks for `merge old` remain unchanged.
+
+The 29-case suite passed after these changes, plus a separate native/GPU check for a union-induced key collision creating a Combine node. That latter case is now part of the permanent suite (`merge-rebuild.egg`). No full Pass 3 performance result is implied.

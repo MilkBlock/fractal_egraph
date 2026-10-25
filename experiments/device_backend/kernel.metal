@@ -10,9 +10,25 @@ bool keyeq(device long*r,uint row,uint t,thread long*args,device uint*p){
  for(uint c=0;c<WIDTH[t]-1;c++)if(canon(p,t,c,r[row*STRIDE+4+c])!=canon(p,t,c,args[c]))return false;
  return true;
 }
-long mergevalue(uint t,long a,long b,device uint*p,device Meta&m){
+bool integer_valid(uint op,long a,long b);
+long integer_eval(uint op,long a,long b);
+long ensure_constructor(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
+ if(m.error)return 0;
+ for(uint i=0;i<m.count;i++)if(keyeq(r,i,t,args,p))return canon(p,t,WIDTH[t]-1,r[i*STRIDE+4+WIDTH[t]-1]);
+ if(m.count>=CAPACITY||m.next_fact>=IDCAP||m.next_id>=IDCAP){m.error=1;return 0;}
+ uint value=m.next_id++,i=m.count++,fid=m.next_fact++;p[value]=value;fp[fid]=fid;
+ r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
+ for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(p,t,c,args[c]);
+ r[i*STRIDE+4+WIDTH[t]-1]=value;m.changed=1;return value;
+}
+long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,device Meta&m){
+ if(a==b)return a;
  if(POLICY[t]==3){unite(p,a,b,m);return root(p,uint(a));}
  if(POLICY[t]==4)return a;
+ if(POLICY[t]==5)return b;
+ if(POLICY[t]==6){switch(t){
+ // MERGE_BODY
+ }}
  if(POLICY[t]==1)return min(a,b);if(POLICY[t]==2)return max(a,b);
  if(a!=b)m.error=4;return a;
 }
@@ -23,7 +39,7 @@ long write_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,t
   if(create)return old;
   long incoming=canon(p,t,WIDTH[t]-1,value);
   if(POLICY[t]==4 && r[i*STRIDE+2]==m.epoch && incoming!=old){m.error=7;return old;}
-  long next=mergevalue(t,old,incoming,p,m);
+  long next=mergevalue(t,old,incoming,r,p,fp,m);
   if(next!=r[at]){r[at]=next;r[i*STRIDE+2]=m.epoch;m.changed=1;}return next;
  }
  if(m.count>=CAPACITY || m.next_fact>=IDCAP){m.error=1;return 0;}
@@ -71,7 +87,7 @@ void rebuild(device long*r,device uint*p,device uint*fp,device Meta&m){
     if(!same)continue;
     uint oi=i*STRIDE+4+WIDTH[t]-1,oj=j*STRIDE+4+WIDTH[t]-1,before=m.unions;
     if(POLICY[t]==4 && r[oi]!=r[oj]){m.error=7;return;}
-    r[oi]=mergevalue(t,r[oi],r[oj],p,m);again=again||(before!=m.unions);
+    r[oi]=mergevalue(t,r[oi],r[oj],r,p,fp,m);again=again||(before!=m.unions);
     // Native egglog combine_subsumed uses max, not logical AND.
     r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;
     fp[root(fp,uint(r[j*STRIDE+3]))]=root(fp,uint(r[i*STRIDE+3]));m.changed=1;
