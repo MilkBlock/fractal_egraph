@@ -84,8 +84,10 @@ def fit(g,c,held):
 
 
 def heldout_split(g,c,mode):
-    if mode=='new_binding':
-        salt=np.uint64(0x6a09e667f3bcc909)
+    salts={'new_binding':0x6a09e667f3bcc909,'new_binding_fresh':0x3c6ef372fe94f82b,
+           'new_binding_third':0xa54ff53a5f1d36f1}
+    if mode in salts:
+        salt=np.uint64(salts[mode])
         held=(mix(g['keys']^salt)&np.uint64(7))==0
     else:
         flags=(mix(c['signature_hash']^np.uint64(0xbb67ae8584caa73b))&np.uint64(7))==0
@@ -111,13 +113,18 @@ def condition_subset(groups,predictions,scope,allowed):
 
 def write_gpu(path,groups,coords,models):
     tables=[];references=[];sizes=[]
+    quadratic={bool(c.get('quadratic',False)) for c in coords.values()}
+    if len(quadratic)!=1:raise ValueError('mixed GPU coordinate programs')
+    blocks={bool(c.get('block_hashes')) for c in coords.values()}
+    if len(blocks)!=1:raise ValueError('mixed GPU block coordinate programs')
     with path.open('wb') as f:
-        f.write(b'SPINE001');f.write(struct.pack('<I',len(groups)))
+        f.write(b'SPINE003' if True in blocks else b'SPINE002' if True in quadratic else b'SPINE001');f.write(struct.pack('<I',len(groups)))
         for t,g in groups.items():
             c=coords[t];m=models[t];used=np.unique(c['query']);n=len(used);d,channels=m['w'].shape
             f.write(struct.pack('<3I',n,d,channels))
             for row in used:
-                hashes=c['hashes'][row];f.write(struct.pack('<I',len(hashes)));f.write(hashes.astype('<u8').tobytes())
+                bags=c['block_hashes'][row] if True in blocks else [c['hashes'][row]]
+                for hashes in bags:f.write(struct.pack('<I',len(hashes)));f.write(hashes.astype('<u8').tobytes())
             f.write(m['w'].astype('<f2').tobytes());f.write(m['bias'].astype('<f4').tobytes())
             references.append(m['scores'][used].ravel());tables.append(list(t))
             sizes.append({'schema':list(t),'unique_query_spines':n,'probe_keys':len(c['query']),

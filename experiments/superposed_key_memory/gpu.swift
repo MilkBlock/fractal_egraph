@@ -7,8 +7,10 @@ func require(_ value:Bool,_ s:String)throws{if !value{throw NSError(domain:s,cod
 try require(CommandLine.arguments.count==4,"worker input.bin reference.bin result.json")
 let data=try Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[1]))
 let magic=String(data:data.prefix(8),encoding:.utf8)
-try require(magic=="SKETCH01" || magic=="SPINE001","bad header")
-let structural=magic=="SPINE001"
+try require(magic=="SKETCH01" || magic=="SPINE001" || magic=="SPINE002" || magic=="SPINE003","bad header")
+let quadratic=magic=="SPINE002"
+let dual=magic=="SPINE003"
+let structural=magic=="SPINE001" || quadratic || dual
 var cursor=8
 func words(_ n:Int)->[UInt32]{let start=cursor;cursor+=4*n;return data.withUnsafeBytes{r in (0..<n).map{r.loadUnaligned(fromByteOffset:start+4*$0,as:UInt32.self)}}}
 func longs(_ n:Int)->[UInt64]{let start=cursor;cursor+=8*n;return data.withUnsafeBytes{r in (0..<n).map{r.loadUnaligned(fromByteOffset:start+8*$0,as:UInt64.self)}}}
@@ -17,28 +19,35 @@ let count=Int(words(1)[0])
 // Descriptor: rows, full cols, active cols, key start, W start, map start,
 // prior start, output start, tile end, output end, padded active cols, width.
 var desc:[UInt32]=[],keys:[UInt64]=[],bags:[UInt32]=[],weights:[UInt16]=[],channels:[UInt32]=[],priors:[Float]=[]
-var totalTiles=0,totalOutput=0,width=0,usefulFlops=0.0,matrixJobs=0,probeCount=0
+var totalTiles=0,totalOutput=0,width=0,usefulFlops=0.0,nonzeroFlops=0.0,matrixJobs=0,probeCount=0
 for _ in 0..<count{
     let d=words(3).map(Int.init),n=d[0],k=d[1],c=d[2];width=k
-    try require(k==256,"this packet layout expects width 256")
-    var rawBags:[[UInt64]]=[]
-    if structural{for _ in 0..<n{rawBags.append(longs(Int(words(1)[0])))}}
+    try require(k==((quadratic || dual) ? 512:256),"unexpected coordinate width")
+    var rawBags:[[UInt64]]=[],secondBags:[[UInt64]]=[]
+    if structural{for _ in 0..<n{
+        rawBags.append(longs(Int(words(1)[0])))
+        if dual{secondBags.append(longs(Int(words(1)[0])))}
+    }}
     else{rawBags=longs(n).map{[$0]}}
     let w=halves(k*c),prior=words(c).map{Float(bitPattern:$0)}
     let active=(0..<c).filter{j in (0..<k).contains{Float16(bitPattern:w[$0*c+j]) != 0}}
     let keyStart=probeCount,wStart=weights.count,mapStart=channels.count,priorStart=priors.count
     let stride=max(8,(active.count+7)/8*8)
     if !active.isEmpty{
-        for bag in rawBags{
-            var divisor=1;while divisor*divisor<bag.count{divisor*=2}
-            if structural{bags += [UInt32(keys.count),UInt32(bag.count),UInt32(divisor)]}
-            keys+=bag;probeCount+=1
+        for (i,first) in rawBags.enumerated(){
+            for bag in (dual ? [first,secondBags[i]]:[first]){
+                var divisor=1;while divisor*divisor<bag.count{divisor*=2}
+                if structural{bags += [UInt32(keys.count),UInt32(bag.count),UInt32(divisor)]}
+                keys+=bag
+            }
+            probeCount+=1
         }
         matrixJobs+=1
         for r in 0..<k{for col in 0..<stride{weights.append(col<active.count ? w[r*c+active[col]]:0)}}
         channels+=active.map(UInt32.init)
         totalTiles+=((n+7)/8)*((active.count+7)/8)
         usefulFlops+=Double(2*n*k*active.count)
+        nonzeroFlops+=Double(2*n*w.filter{Float16(bitPattern:$0) != 0}.count)
     }
     let outputStart=totalOutput;totalOutput+=n*c;priors+=prior
     desc+=[n,c,active.count,keyStart,wStart,mapStart,priorStart,outputStart,totalTiles,totalOutput,stride,k].map(UInt32.init)
@@ -77,6 +86,26 @@ kernel void encode_spine(device const ulong*keys[[buffer(0)]],device const uint*
         for(uint bit=0;bit<64;bit++)code[q*cfg.y+word*64+bit]=half(float(sums[bit])/float(divisor));
     }
 }
+kernel void encode_spine_extended(device const ulong*keys[[buffer(0)]],device const uint*bags[[buffer(1)]],device half*code[[buffer(2)]],constant uint4&cfg[[buffer(3)]],uint q[[thread_position_in_grid]]){
+    if(q>=cfg.x)return;
+    uint linearWidth=cfg.z?cfg.y/2:cfg.y;
+    uint planes=cfg.z==2?2:1;
+    for(uint plane=0;plane<planes;plane++){
+    uint b=(q*planes+plane)*3,start=bags[b],count=bags[b+1],divisor=bags[b+2];
+    for(uint word=0;word<linearWidth/64;word++){
+        int sums[64];for(uint bit=0;bit<64;bit++)sums[bit]=0;
+        for(uint i=0;i<count;i++){
+            ulong bits=mix64(keys[start+i]^(ulong(word+1)*0x9e3779b97f4a7c15ul));
+            for(uint bit=0;bit<64;bit++)sums[bit]+=((bits>>bit)&1ul)?1:-1;
+        }
+        for(uint bit=0;bit<64;bit++){
+            half value=half(float(sums[bit])/float(divisor));
+            code[q*cfg.y+plane*linearWidth+word*64+bit]=value;
+            if(cfg.z==1)code[q*cfg.y+linearWidth+word*64+bit]=half(float(value)*float(value));
+        }
+    }
+    }
+}
 kernel void fill_prior(device const Job*jobs[[buffer(0)]],device const float*prior[[buffer(1)]],device float*out[[buffer(2)]],constant uint2&cfg[[buffer(3)]],uint i[[thread_position_in_grid]]){
     if(i>=cfg.y)return;uint lo=0,hi=cfg.x;
     while(lo<hi){uint m=(lo+hi)/2;if(jobs[m].outEnd<=i)lo=m+1;else hi=m;}
@@ -107,7 +136,7 @@ kernel void grouped_mma(device const Job*jobs[[buffer(0)]],device const half*x[[
 let options=MTLCompileOptions();options.fastMathEnabled=false
 let library=try device.makeLibrary(source:source,options:options)
 var pipes:[String:MTLComputePipelineState]=[:]
-for name in ["encode","encode_spine","fill_prior","grouped_mma"]{pipes[name]=try device.makeComputePipelineState(function:library.makeFunction(name:name)!)}
+for name in ["encode","encode_spine","encode_spine_extended","fill_prior","grouped_mma"]{pipes[name]=try device.makeComputePipelineState(function:library.makeFunction(name:name)!)}
 func launch(_ cb:MTLCommandBuffer,_ name:String,_ bs:[MTLBuffer],_ config:[UInt32],_ count:Int,_ groups:Bool=false){
     if count==0{return};let e=cb.makeComputeCommandEncoder()!,p=pipes[name]!;e.setComputePipelineState(p)
     for (i,b) in bs.enumerated(){e.setBuffer(b,offset:0,index:i)}
@@ -118,7 +147,8 @@ func launch(_ cb:MTLCommandBuffer,_ name:String,_ bs:[MTLBuffer],_ config:[UInt3
 }
 func execute()throws->[String:Double]{
     let start=ProcessInfo.processInfo.systemUptime,cb=queue.makeCommandBuffer()!
-    if structural{launch(cb,"encode_spine",[keyBuffer,bagBuffer,codeBuffer],[UInt32(probeCount),UInt32(width)],probeCount)}
+    if quadratic || dual{launch(cb,"encode_spine_extended",[keyBuffer,bagBuffer,codeBuffer],[UInt32(probeCount),UInt32(width),quadratic ? 1:2,0],probeCount)}
+    else if structural{launch(cb,"encode_spine",[keyBuffer,bagBuffer,codeBuffer],[UInt32(probeCount),UInt32(width)],probeCount)}
     else{launch(cb,"encode",[keyBuffer,codeBuffer],[UInt32(probeCount),UInt32(width)],probeCount)}
     launch(cb,"fill_prior",[description,priorBuffer,output],[UInt32(count),UInt32(totalOutput)],totalOutput)
     launch(cb,"grouped_mma",[description,codeBuffer,weightBuffer,channelBuffer,priorBuffer,output],[UInt32(count)],totalTiles,true)
@@ -134,11 +164,14 @@ reference.withUnsafeBytes{ref in for i in 0..<totalOutput{let expected=ref.loadU
 try require(maxError<0.01,"GPU coefficient evaluation differs from CPU reference")
 let report:[String:Any]=["scope":"standalone speculative response evaluation; no exact GPU key index or native runtime speedup",
     "coordinate_input":structural ? "Analyze-derived constructor spine token bags; no opaque ID feature":"opaque key fingerprints",
+    "coordinate_nonlinearity":quadratic ? "append elementwise square":"none",
+    "coordinate_blocks":dual ? "separate local and recursive context":"single structural bag",
     "matrix_row_kind":structural ? "distinct structural signatures":"current probe keys",
     "device":device.name,"jobs":count,"matrix_jobs":matrixJobs,"matrix_tiles":totalTiles,"kernels":3,
     "timing":timing,"outputs":totalOutput,"matrix_probe_keys":probeCount,"coordinate_tokens":keys.count,
     "max_score_error":maxError,"threshold_disagreements":decisions,
     "useful_matrix_flops":usefulFlops,
+    "nonzero_coefficient_flops":nonzeroFlops,"scheduled_tile_flops":Double(totalTiles*2*8*8*width),
     "resident_weight_prior_and_routing_bytes":weightBuffer.length+priorBuffer.length+description.length+channelBuffer.length,
     "temporary_code_bytes":codeBuffer.length,"current_probe_bytes":keyBuffer.length+(structural ? bagBuffer.length:0),"output_bytes":output.length,
     "reference_limit":structural ? "FP16 arithmetic checked against CPU scores; predicate predictions remain speculative; Apple matrix operations are not NVIDIA Tensor Core evidence":"FP16 storage and known-key calibration checked in Python; Apple simdgroup matrix operations are not NVIDIA Tensor Core evidence",
