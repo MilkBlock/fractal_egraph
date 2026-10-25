@@ -26,7 +26,7 @@ def gpu_rows(program,state):
         return {'sort':s['name'],'value':x}
     rows=[]
     for row in state['rows']:
-        if len(row)!=program['stride'] or row[1] not in (0,1):raise ValueError('invalid row header')
+        if len(row)!=program['stride'] or not 0<=row[0]<len(program['tables']) or row[1] not in (0,1):raise ValueError('invalid row header')
         t=program['tables'][row[0]]
         rows.append({'table':t['name'],'subsumed':bool(row[1]),'values':[value(s,v) for s,v in zip(t['schema'],row[4:])]})
     return rows

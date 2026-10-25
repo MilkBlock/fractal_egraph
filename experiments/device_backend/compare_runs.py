@@ -1,0 +1,33 @@
+"""Audit a same-state device comparison; never label a resumed suffix as a full run."""
+import argparse,json
+from pathlib import Path
+
+def compare(before,after,device_states=False):
+    reports=[json.loads((p/'report.json').read_text()) for p in [before,after]]
+    programs=[json.loads((p/'program.json').read_text()) for p in [before,after]]
+    a,b=reports;pa,pb=programs
+    if a['source_sha256']!=b['source_sha256']:raise ValueError('different sources')
+    for key in ['tables','strings','anchors','initial_rows','initial_sets','initial_parents','initial_fact_parents','initial_watermarks','meta','capacity','match_capacity']:
+        if pa.get(key)!=pb.get(key):raise ValueError('different input/configuration: '+key)
+    if device_states:
+        snapshots=[json.loads((p/'gpu-state.json').read_text()) for p in [before,after]]
+        if snapshots[0]!=snapshots[1]:raise ValueError('device states differ')
+        final_check={'exact_device_state':True,'rows':len(snapshots[1]['rows']),'native_reference':False}
+    else:
+        for r in reports:
+            if not r['checked'] or not r['checks'] or not r['checks'][-1]['exact_rows_values_equivalence_visibility']:raise ValueError('missing exact final check')
+            if r['checks'][-1]['step']!=len(r['steps']):raise ValueError('check is not final')
+        final_check=b['checks'][-1]
+    order=lambda r:[(s['set'],s['updated']) for s in r['steps']]
+    if order(a)!=order(b):raise ValueError('different executed schedule')
+    if a['resumed_prefix_runs']!=b['resumed_prefix_runs']:raise ValueError('different resumed prefix')
+    phases={}
+    for key in ['device_control_wait','device_gpu','prepare','match','commit']:
+        x,y=[r['timings_seconds'][key] for r in reports];phases[key]={'before_seconds':x,'after_seconds':y,'ratio':x/y if y else None}
+    scope='full schedule' if a['complete_schedule'] and not a['resumed_prefix_runs'] else 'checked schedule suffix/prefix only, not full end-to-end acceleration'
+    return {'scope':scope,'before':str(before),'after':str(after),'source_sha256':a['source_sha256'],'resumed_prefix_runs':a['resumed_prefix_runs'],'measured_runs':len(a['device_command_times']),'final_check':final_check,'timings':phases,'builds':[r['build'] for r in reports]}
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser();p.add_argument('before',type=Path);p.add_argument('after',type=Path);p.add_argument('--output',type=Path);p.add_argument('--device-states',action='store_true');a=p.parse_args();r=compare(a.before,a.after,a.device_states)
+    if a.output:a.output.write_text(json.dumps(r,indent=2)+'\n')
+    print(json.dumps(r,indent=2))

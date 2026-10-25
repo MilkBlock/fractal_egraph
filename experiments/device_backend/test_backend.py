@@ -8,6 +8,21 @@ def tests(build,out):
  out.mkdir(parents=True,exist_ok=True);results={}
  for name,src in [('delta-join',HERE/'fixtures/delta-join.egg'),('deferred-union',HERE/'fixtures/deferred-union.egg'),('sets',HERE/'fixtures/sets.egg'),('merge-rebuild',HERE/'fixtures/merge-rebuild.egg'),('custom-merge',HERE/'fixtures/custom-merge.egg'),('merge-same',HERE/'fixtures/merge-same.egg'),('integer',HERE/'fixtures/integer.egg'),('float-identity',HERE/'fixtures/float-identity.egg'),('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
   r=run(src,build,out/name);assert r['checks'] and all(c['exact_rows_values_equivalence_visibility'] for c in r['checks']);results[name]=r
+ r=run(HERE/'fixtures/subsume-union.egg',build,out/'small-capacity-compaction',capacity=16,match_capacity=32);assert r['checks'];results['small-capacity-compaction']=r
+ count=512
+ source='(datatype T (N i64) (W T) (P T T)) (relation Link (T T)) (function Cost (T) i64 :merge (min old new)) (ruleset init) (ruleset fold)\n(rule () ('
+ for i in range(count):source+=f'(let n{i} (N {i})) (W (W n{i})) (P n{i} (W n{i})) (Link n{i} (N 0)) (set (Cost n{i}) {i}) '
+ source+=' ) :ruleset init) (rule ((Link x y)) ((union x y)) :ruleset fold) (run init 1) (run fold 1) (check (= (Cost (N 127)) 0)) (check (= (W (W (N 127))) (W (W (N 0)))))'
+ stress=out/'congruence-stress.egg';stress.write_text(source)
+ r=run(stress,build,out/'congruence-stress');assert r['steps'][1]['unions']>=4*(count-1);results['congruence-stress']=r
+ cart='(datatype T (N i64) (Pair T T)) (relation L (T)) (relation R (T)) (ruleset init) (ruleset product) (rule () ('
+ for i in range(32):cart+=f'(L (N {i})) (R (N {i})) '
+ cart+=') :ruleset init) (rule ((L x) (R y)) ((Pair x y)) :ruleset product) (run init 1) (run product 1)'
+ path=out/'match-order.egg';path.write_text(cart)
+ parallel=run(path,build,out/'match-order-parallel');serial=run(path,build,out/'match-order-serial',parallel_match=False)
+ assert parallel['steps']==serial['steps'] and parallel['steps'][1]['matched']==1024
+ assert json.loads((out/'match-order-parallel/gpu-state.json').read_text())==json.loads((out/'match-order-serial/gpu-state.json').read_text())
+ results['parallel-binding-order']=True
  assert {'pure','mixed'}<=set(results['deferred-union']['deferred_rulesets'])
  # Eager union is a diagnostic counterfactual, and is known to lose a merge
  # constructor in this case. Never silently bless it as native-equivalent.
@@ -32,6 +47,9 @@ def tests(build,out):
  preserved=json.loads((out/'prefix/verified-gpu-state.json').read_text());bad=json.loads((out/'prefix/gpu-state.json').read_text());bad['rows'][0][1]=1-bad['rows'][0][1];atomic_json(out/'prefix/gpu-state.json',bad)
  assert json.loads((out/'prefix/verified-gpu-state.json').read_text())==preserved
  r=run(HERE/'pipeline.egg',build,out/'resume-preserved',resume=out/'prefix');assert r['steps']==results['pipeline']['steps'];results['preserved-checkpoint']=True
+ r=run(HERE/'pipeline.egg',build,out/'gpu-prefix',check_every=0,max_runs=2,save_final_state=True,snapshot_every=1);assert r['native_oracle_runs']==0
+ r=run(HERE/'pipeline.egg',build,out/'gpu-resumed',check_every=0,resume=out/'gpu-prefix',require_native_resume=False,save_final_state=True);assert not r['checked'] and r['native_oracle_runs']==0
+ assert json.loads((out/'gpu-resumed/gpu-state.json').read_text())==json.loads((out/'pipeline/gpu-state.json').read_text());results['gpu-checkpoint-continuation']=True
  failures={
   'panic':('(datatype T (N i64)) (ruleset r) (N 0) (rule ((N 0)) ((panic "expected")) :ruleset r) (run r 1)',{},'error=8'),
   'match-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'match_capacity':1},'error=2'),

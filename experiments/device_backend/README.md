@@ -2,7 +2,7 @@
 
 The CPU keeps native parsing, typechecking and schedule control. Metal owns the evolving tables, matching, RHS actions, union-find and rebuild. Normal execution returns status/timing data, never bindings for CPU-side RHS execution.
 
-This remains an experimental, mostly serial device backend. It has **not completed the full raytrace Pass 3 schedule or extraction validation**, and has no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading, the ridge predictor and Tensor Core matching are not connected here.
+This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; RHS effects and merge callbacks are committed serially. It has **not completed the full raytrace Pass 3 schedule or extraction validation**, and has no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading, the ridge predictor and Tensor Core matching are not connected here.
 
 ## Run and verify
 
@@ -23,6 +23,8 @@ Builds use the local `egglog/` offline. Reuse an existing Cargo target with `--t
 - `--check-at-end`: run GPU first, then replay the native schedule and compare once.
 - `--check-every 0`: retire the CPU frontend before GPU Runs; no native inference or checkpoints.
 - `--max-runs N`: diagnostic prefix only. `complete_schedule: false` prevents presenting it as a full run.
+- `--resume-gpu DIR`: restore a canonical GPU checkpoint without claiming native equality. Use this for device-to-device ablations or unchecked execution.
+- `--snapshot-every N`: save bounded GPU checkpoints during diagnosis; this adds output overhead.
 - `--resume DIR`: restore the last complete native-verified checkpoint, then continue the original schedule. `--max-runs` is an absolute schedule count, including the restored prefix.
 - `--verify-against DIR`: reuse a saved, checked native endpoint for the identical core program and schedule. No native Runs are executed. This is useful for controlled ablations from the same checkpoint.
 
@@ -34,7 +36,7 @@ MTL_DEBUG_LAYER=1 python3 experiments/device_backend/test_backend.py \
 python3 experiments/device_backend/test_export.py --build out/device-build
 ```
 
-For phase logs set `EGG_DEVICE_PHASE_LOG=1`. Diagnostic ablations: `--eager-unions`, `--rebuild-query-index`, `--no-delta-queries`. Eager union is a legacy counterfactual with a known semantic mismatch, not a generally valid alternative executor.
+For phase logs set `EGG_DEVICE_PHASE_LOG=1`. Diagnostic ablations: `--serial-match`, `--serial-prepare`, `--serial-rebuild`, `--scan-subsume`, `--eager-unions`, `--rebuild-query-index`, `--no-delta-queries`. Eager union is a legacy counterfactual with a known semantic mismatch, not a generally valid alternative executor.
 
 ## Execution
 
@@ -48,15 +50,15 @@ GPU: prepare snapshot indexes
 CPU: schedule status; optional snapshot comparison
 ```
 
-Each ruleset has a match entry and shares prepare/commit kernels. These stages have separate Metal command timing. RHS is fixed-width bytecode in GPU-private storage, with one device register file for the current binding. The large initialization RHS is not unrolled into thousands of Metal statements.
+Each ruleset has a match entry and shares prepare/commit kernels. Read-only rulesets assign the first branching table atom to GPU lanes. Emitted bindings are sorted on-device by original rule/variant/seed/inner order before RHS execution. Rulesets with allocating set primitives on the LHS retain serial matching; set columns and set-length reads are read-only. These stages have separate Metal command timing. RHS is fixed-width bytecode in GPU-private storage, with one device register file for the current binding. The large initialization RHS is not unrolled into thousands of Metal statements.
 
-Matching finishes before any RHS write, so the logical snapshot aliases the row buffer safely; an entire copy is unnecessary. Query indexes persist across Runs. Append-only changes extend chains; existing value changes, visibility changes and union/rebuild invalidate them. Keys already fully bound use direct complete-key lookup.
+Matching finishes before any RHS write, so the logical snapshot aliases the row buffer safely; an entire copy is unnecessary. Stable radix partition builds query indexes in parallel while retaining physical-row traversal order. Complete-key indexes use atomic minimum representatives. Query indexes persist across Runs. Append-only changes extend chains; existing value changes, visibility changes and union/rebuild invalidate them. Keys already fully bound use direct complete-key lookup.
 
 Seminaive rules partition matches by the first table atom whose row timestamp exceeds the rule watermark. Earlier atoms must be old; the pivot is new; later atoms are unrestricted. These branches are disjoint, including when multiple atoms change together or a row participates in a self-join. Timestamp buckets locate pivot rows without scanning an entire table. Naive rules keep unrestricted matching. Per-rule watermarks remain shared across direct and combined rulesets.
 
 RHS union is queued until the action phase ends, matching native union-table insertion semantics. Immediate canonicalization can suppress a required merge constructor; `deferred-union.egg` retains that regression. This is not merely an ordering performance option.
 
-Complete-key writes use a GPU hash index. Rebuild canonicalizes rows, freezes duplicate-key groups, performs merges and repeats if unions/new rows require another round. It preserves subsumption and fact redirects. A no-union step needs no congruence rebuild.
+Complete-key writes use a GPU hash index. Rebuild canonicalizes rows and forms minimum-row duplicate groups in parallel. A stable parallel scan collects only duplicate rows; callbacks execute in their previous order. Parallel compaction reuses the dead match workspace. The CPU repeats rebuild rounds based on a small status block; no rows are transferred for this control decision. It preserves subsumption and fact redirects. A no-union step needs no congruence rebuild.
 
 Equality-element sets occupy a variable-sized device arena. Empty/insert/union/intersect/length are supported. Union canonicalizes/deduplicates members and invalidates affected row identities/timestamps even if a set's handle stays unchanged. Checkpoints transfer live arena contents only.
 
@@ -83,7 +85,7 @@ Snapshots compare every typed row, primitive value, visibility flag and equality
 
 Restoration verifies core IR, identities, saved GPU/native equality and boundary metadata. Parent forests, live sets, rows, counters and reconstructed rule watermarks are uploaded; indexes are rebuilt. A resumed segment is not an end-to-end workload timing.
 
-Normal Run traffic is 8 command bytes and 68 response bytes (status, three phase durations and index rebuild count). Initialization/program upload and diagnostic snapshots are additional. No intermediate binding list is downloaded. Reports distinguish:
+The Python/worker protocol uses 8 command bytes and 68 response bytes (status, three phase durations and index rebuild count). Initialization/program upload and diagnostic snapshots are additional. The worker additionally reads small control blocks for sort sizes, index validity and rebuild convergence. No intermediate binding list is downloaded. Reports distinguish:
 
 - `device_gpu`: sum of device command durations, split into prepare/match/commit. Commit includes the small status blit.
 - `device_control_wait`: host dispatch/wait, including GPU duration; do not add the two.
@@ -150,3 +152,28 @@ already far exceeded the complete release-native reference. Its partial timings
 are retained in `extraction-results.json`: prepare and commit/rebuild dominate,
 not matching. This establishes a backend implementation bottleneck, not a full
 GPU success. The next work is parallel index preparation and congruence rebuild.
+
+## Parallel backend evidence
+
+`parallel-results.json` is a same-snapshot, one-Run comparison at raytrace step
+1457. The final facts, values, equality partition and visibility agree. This is a
+heavy rebuild microbenchmark, not the full Pass 3 acceleration result.
+
+The regression suite includes large simultaneous congruence merges, capacities
+smaller than a threadgroup, and 1024 bindings whose serial/parallel device states
+must be byte-identical. `compare_runs.py` verifies identical inputs/configuration
+before reporting ratios; `--device-states` explicitly compares device states
+without claiming an independent native oracle.
+
+Subsumption now uses complete-key lookup during the deferred-union RHS phase,
+where keys remain canonical and unique. `--scan-subsume` retains the expensive
+scan for a direct diagnostic comparison; eager-union diagnostics also retain it.
+
+`subsume-results.json` records a same-device-state comparison at step 4209:
+scanning the table took 46.90 seconds; complete-key subsumption took 33 ms for
+the entire Run. The final device checkpoints are byte-identical. This isolates
+a backend lookup bug/optimization, not Cell credit or full-program acceleration.
+
+The current suite passes 42 checks, including canonical GPU-only restoration,
+512-way congruence and exact ordering of 1024 parallel bindings. Full GPU output
+and production extraction validation remain pending.

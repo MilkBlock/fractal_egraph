@@ -22,3 +22,15 @@ long row_lookup(device long*r,device uint*p,device Meta&m,uint t,thread long*arg
  while(index[slot]){uint i=uint(index[slot]-1);if(keyeq(r,i,t,args,p))return i;slot=(slot+1)&(HASH_CAP-1);}
  return -1;
 }
+// Match-phase keys come from canonical snapshot rows or pure primitives. This
+// lookup never compresses UF paths or mutates container/index state.
+long query_lookup(device long*r,uint t,thread long*args){
+ ulong hash=ulong(t)+0x9e3779b97f4a7c15UL;
+ for(uint c=0;c<WIDTH[t]-1;c++){ulong v=ulong(args[c]);v^=v>>30;v*=0xbf58476d1ce4e5b9UL;hash^=v+(hash<<6)+(hash>>2);}
+ uint h=uint(hash^(hash>>32))&(HASH_CAP-1);device long*index=r+INDEX_OFFSET+1;
+ while(index[h]){uint i=uint(index[h]-1);bool same=r[i*STRIDE]==t&&r[i*STRIDE+1]!=2;
+  for(uint c=0;c<WIDTH[t]-1;c++)same&=r[i*STRIDE+4+c]==args[c];
+  if(same)return i;h=(h+1)&(HASH_CAP-1);
+ }
+ return -1;
+}

@@ -1,0 +1,114 @@
+{
+  "scope": "checked schedule suffix/prefix only, not full end-to-end acceleration",
+  "before": "out/device-rebuild-serial-pair",
+  "after": "out/device-rebuild-all-parallel-pair",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "resumed_prefix_runs": 1456,
+  "measured_runs": 1,
+  "final_check": {
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 263823,
+    "eclasses": 203923,
+    "step": 1457
+  },
+  "timings": {
+    "device_control_wait": {
+      "before_seconds": 11.255557750002481,
+      "after_seconds": 0.054472916992381215,
+      "ratio": 206.62667562995983
+    },
+    "device_gpu": {
+      "before_seconds": 11.2391497916542,
+      "after_seconds": 0.0424549583112821,
+      "ratio": 264.7311465777008
+    },
+    "prepare": {
+      "before_seconds": 0.6369122500182129,
+      "after_seconds": 0.025690541660878807,
+      "ratio": 24.79170188101148
+    },
+    "match": {
+      "before_seconds": 0.48125841666478664,
+      "after_seconds": 0.0040194999892264605,
+      "ratio": 119.73091627185282
+    },
+    "commit": {
+      "before_seconds": 10.1209791249712,
+      "after_seconds": 0.01274491666117683,
+      "ratio": 794.1188941471396
+    }
+  },
+  "builds": [
+    {
+      "profile": "release",
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "c63b68277a0ce6ba647ccc34876c15e254b3c6725f4c30fae0f803739c02e651",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/device_import.rs": "2b9a41c8a9a5fb055a1b6c0f0284792b4d174dd656932ba056745509eba70b7c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "f26b70def995b3b63db7cdb83a6db123615856078ab468622544b6efe338bd90",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "8b809dab8f8cc4f17df73c5f24f21792b35c4ad7ad367eed43948249726d2ebf",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "bc396958461a45d7f384ae9f66e731710b558d80ab057566e88d32482b93dc5c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "685f12d58b9a84f411c660a68f690bc9cbfcb6266ee7dbb1de7d3ac7b9758137",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "e49a60d33412ab5fa4c89e0c7c16c4ff5b59d0be57f2d5cdfeb61c91175265cd",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "c6e1fb0337dbcd4bb03bee79c05c118529caeaf58c2bf5fb4f9441f8c26ca331",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/rebuild_parallel.metal": "058dd3f0308834e3ddbff6e415fca02250a5dc990b0029be261ba7a4e1ce12d7",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "2f7ee4b031f81743961b059e37975219e07e32ba9829d4ffdc6ba03525f6077d"
+      },
+      "native_kernel_source_sha256": "8957f4973d912250c95abe39eabe103adc4e45738979ae7f433ae359830ca3ae",
+      "git_head": "5dec079372637aea3a5bd33476e37f3d44e5cd10",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-parallel-rebuild-release/frontend",
+      "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+      "worker_sha256": "e4c36b2f4c2311e12b13824f526bbb6e553abafcab91e72838f1831efc5bd4ed"
+    },
+    {
+      "profile": "release",
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "c63b68277a0ce6ba647ccc34876c15e254b3c6725f4c30fae0f803739c02e651",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/device_import.rs": "2b9a41c8a9a5fb055a1b6c0f0284792b4d174dd656932ba056745509eba70b7c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "f26b70def995b3b63db7cdb83a6db123615856078ab468622544b6efe338bd90",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "0e2b583a613a28a4f3fcd9e106d75e5a7e12de4acff386b079e6c00b5aa94e95",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "f0209f3c2c1fa38860c2cc918405bf7c426d93a6e15d2864ad1f27ce137ea49c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "435277d32636388ad007f855e14a8545bcaaf718574301fb81c6af5f6fd5e452",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "e49a60d33412ab5fa4c89e0c7c16c4ff5b59d0be57f2d5cdfeb61c91175265cd",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "c6e1fb0337dbcd4bb03bee79c05c118529caeaf58c2bf5fb4f9441f8c26ca331",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/rebuild_parallel.metal": "f4b9bc386a1b540d12284c8ef82af8cb669526e72c1d2cbb0d9549c6a85d3224",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_parallel.metal": "97f8da959e2c5b6478ac86e13c8cfd17e928cca43a5e649621044f61c418f142",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "101197fb1110c18fcc3e897f54735539872c3e03a0c8ce360292aad336ca76d1"
+      },
+      "native_kernel_source_sha256": "8957f4973d912250c95abe39eabe103adc4e45738979ae7f433ae359830ca3ae",
+      "git_head": "5dec079372637aea3a5bd33476e37f3d44e5cd10",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-parallel-indexes/frontend",
+      "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+      "worker_sha256": "1e4900b5c4c4be0636147ae1c1b3e2fc9742b090297277551a7dd20052b4f011"
+    }
+  ]
+}
