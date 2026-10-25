@@ -1,0 +1,10 @@
+{
+  "scope": "Native typed export only; GPU execution still rejects set arena",
+  "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "tables": 260,
+  "scheduled_rulesets": 30,
+  "rule_memberships": 579,
+  "unique_rules": 548,
+  "initial_rows": 129
+}

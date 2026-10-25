@@ -13,6 +13,10 @@ pub struct DeviceAnchors(Vec<(ArcSort, Value)>);
 fn sort(s: &ArcSort) -> Result<Json> {
     if s.is_eq_sort() {
         Ok(json!({"name":s.name(),"kind":"eq"}))
+    } else if s.value_type() == Some(std::any::TypeId::of::<crate::sort::SetContainer>()) {
+        let inner=s.inner_sorts();
+        if inner.len()!=1 || !inner[0].is_eq_sort() {return Err("device Set currently requires equality-sort elements".into());}
+        Ok(json!({"name":s.name(),"kind":"set","element":sort(&inner[0])?}))
     } else if matches!(s.name(), "i64" | "Unit" | "String" | "bool" | "f64") {
         Ok(json!({"name":s.name(),"kind":s.name()}))
     } else {
@@ -104,10 +108,11 @@ impl EGraph {
                     .iter()
                     .zip(f.schema.input.iter().chain([&f.schema.output]))
                 {
-                    if s.is_eq_sort() {
-                        let v = self.get_canonical_value(*v, s);
-                        anchors.insert((s.name().to_string(), format!("{v:?}")), (s.clone(), v));
-                    }
+                    let values=if s.is_container_sort(){s.inner_values(self.backend.container_values(),*v)}else{vec![(s.clone(),*v)]};
+                    for (s,v) in values {if s.is_eq_sort(){
+                        let v=self.get_canonical_value(v,&s);
+                        anchors.insert((s.name().to_string(),format!("{v:?}")),(s,v));
+                    }}
                 }
             })
             .map_err(|e| e.to_string())?;
@@ -182,6 +187,23 @@ impl EGraph {
     }
     /// Original native tables, including visibility. Values retain explicit
     /// sorts so device IDs are never confused with numeric primitive values.
+    fn device_value(&self,v:Value,s:&ArcSort)->Result<Json>{
+        let desc=sort(s)?;
+        if s.is_eq_sort(){return Ok(json!({"eq":format!("{:?}",self.get_canonical_value(v,s)),"sort":s.name()}));}
+        if desc["kind"]=="set" {
+            let values=s.inner_values(self.backend.container_values(),v).into_iter().map(|(s,v)|self.device_value(v,&s)).collect::<Result<Vec<_>>>()?;
+            return Ok(json!({"sort":s.name(),"elements":values}));
+        }
+        let value=match s.name(){
+            "i64"=>json!(self.value_to_base::<i64>(v)),
+            "f64"=>json!(float_bits(**self.value_to_base::<crate::sort::F>(v))),
+            "bool"=>json!(i64::from(self.value_to_base::<bool>(v))),
+            "String"=>json!(self.value_to_base::<crate::sort::S>(v).to_string()),
+            "Unit"=>json!(0),
+            _=>return Err("unsupported value".into()),
+        };
+        Ok(json!({"value":value,"sort":s.name()}))
+    }
     pub fn device_snapshot(&self) -> Result<Json> {
         let mut rows = vec![];
         for name in self.get_function_names() {
@@ -189,13 +211,7 @@ impl EGraph {
             let mut error = None;
             self.function_for_each(&name,|r|{
                 let vals=r.vals.iter().zip(f.schema.input.iter().chain([&f.schema.output])).map(|(v,s)|{
-                    sort(s)?;
-                    if s.is_eq_sort(){Ok(json!({"eq":format!("{:?}",self.get_canonical_value(*v,s)),"sort":s.name()}))}
-                    else if s.name()=="i64"{Ok(json!({"value":self.value_to_base::<i64>(*v),"sort":"i64"}))}
-                    else if s.name()=="f64"{Ok(json!({"value":float_bits(**self.value_to_base::<crate::sort::F>(*v)),"sort":"f64"}))}
-                    else if s.name()=="bool"{Ok(json!({"value":i64::from(self.value_to_base::<bool>(*v)),"sort":"bool"}))}
-                    else if s.name()=="String"{Ok(json!({"value":self.value_to_base::<crate::sort::S>(*v).to_string(),"sort":"String"}))}
-                    else{Ok(json!({"value":0,"sort":"Unit"}))}
+                    self.device_value(*v,s)
                 }).collect::<Result<Vec<_>>>();
                 match vals{Ok(v)=>rows.push(json!({"table":name,"values":v,"subsumed":r.subsumed})),Err(e)=>error=Some(e)}
             }).map_err(|e|e.to_string())?;

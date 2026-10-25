@@ -30,6 +30,7 @@ def compile_program(p,capacity=4096,match_capacity=16384):
  collect(p);strings=sorted(strings);string_ids={s:i for i,s in enumerate(strings)}
  ts=p['tables'];ids={t['name']:i for i,t in enumerate(ts)};cols=max([len(t['schema']) for t in ts]+[1]);width=[];eq=[];kind=[];policy=[]
  for t in ts:
+  if any(s['kind']=='set' for s in t['schema']):raise ValueError('GPU set arena not implemented yet')
   width.append(len(t['schema']));eq.extend([int(s['kind']=='eq') for s in t['schema']]+[0]*(cols-len(t['schema'])))
   k={'constructor':0,'function':2}[t['kind']];kind.append(k)
   if k==0 and t['schema'][-1]['kind']!='eq':raise ValueError('device constructors require equality-sort output')

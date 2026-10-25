@@ -119,3 +119,9 @@ Native resolved merge expressions are exported as typed trees, not reparsed from
 `merge new` now selects the incoming value in device commit order. This does not promise the same winner as native for concurrent competing writes; extraction quality still requires verification on the full workload. Strict ambiguity checks for `merge old` remain unchanged.
 
 The 29-case suite passed after these changes, plus a separate native/GPU check for a union-induced key collision creating a Combine node. That latter case is now part of the permanent suite (`merge-rebuild.egg`). No full Pass 3 performance result is implied.
+
+### Set transport and full typed export
+
+The native exporter now recognizes Set by its container value type, exports its element sort and members, and includes equality identities inside sets in frozen anchors. Native checkpoints serialize canonical set members after rebuild. Other container kinds and nested/non-equality sets remain unsupported. Run `python3 experiments/device_backend/test_export.py --build BUILD` to test a two-element set collapsing after union.
+
+The real Pass 3 source now completes typed export (see `pass3-export.json`), including its scheduled rules and typed merges. **GPU set storage is not implemented yet**: the compiler rejects set tables explicitly. Export coverage is not execution coverage. The existing GPU regression suite passes 30 checks; the set transport test is separately native-only.
