@@ -6,8 +6,15 @@ HERE=Path(__file__).resolve().parent
 
 def tests(build,out):
  out.mkdir(parents=True,exist_ok=True);results={}
- for name,src in [('sets',HERE/'fixtures/sets.egg'),('merge-rebuild',HERE/'fixtures/merge-rebuild.egg'),('custom-merge',HERE/'fixtures/custom-merge.egg'),('merge-same',HERE/'fixtures/merge-same.egg'),('integer',HERE/'fixtures/integer.egg'),('float-identity',HERE/'fixtures/float-identity.egg'),('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
+ for name,src in [('delta-join',HERE/'fixtures/delta-join.egg'),('deferred-union',HERE/'fixtures/deferred-union.egg'),('sets',HERE/'fixtures/sets.egg'),('merge-rebuild',HERE/'fixtures/merge-rebuild.egg'),('custom-merge',HERE/'fixtures/custom-merge.egg'),('merge-same',HERE/'fixtures/merge-same.egg'),('integer',HERE/'fixtures/integer.egg'),('float-identity',HERE/'fixtures/float-identity.egg'),('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
   r=run(src,build,out/name);assert r['checks'] and all(c['exact_rows_values_equivalence_visibility'] for c in r['checks']);results[name]=r
+ assert {'pure','mixed'}<=set(results['deferred-union']['deferred_rulesets'])
+ # Eager union is a diagnostic counterfactual, and is known to lose a merge
+ # constructor in this case. Never silently bless it as native-equivalent.
+ try:run(HERE/'fixtures/deferred-union.egg',build,out/'eager-union',defer_unions=False)
+ except AssertionError as e:
+  assert 'row count differs' in str(e);results['reject-eager-union']={'expected_validation_failure':str(e)}
+ else:raise AssertionError('eager union lost its regression witness')
  unit=json.loads((out/'unit-function/program.json').read_text());assert next(t for t in unit['tables'] if t['name']=='F')['kind']=='function'
  assert len(results['repeat']['steps'])==2,'Repeat must stop at a native quiescent boundary'
  assert [s['matched'] for s in results['naive']['steps']]==[1,1],'naive rules must not inherit seminaive watermarks'
@@ -20,6 +27,8 @@ def tests(build,out):
  r=run(HERE/'pipeline.egg',build,out/'periodic',check_every=3);assert [c['step'] for c in r['checks']]==[3,6];results['periodic']=r
  r=run(HERE/'pipeline.egg',build,out/'final-check',check_at_end=True);assert r['oracle_starts_after_gpu'] and len(r['checks'])==1 and r['native_oracle_runs']==6;assert r['steps']==results['pipeline']['steps'];results['final-check']=r
  r=run(HERE/'pipeline.egg',build,out/'prefix',max_runs=2);assert not r['complete_schedule'] and len(r['steps'])==2 and r['checks'];results['prefix']=r
+ r=run(HERE/'pipeline.egg',build,out/'resumed',resume=out/'prefix');assert r['complete_schedule'] and r['resumed_prefix_runs']==2 and r['steps']==results['pipeline']['steps'] and len(r['device_command_times'])==len(r['steps'])-2;results['resumed']=r
+ r=run(HERE/'pipeline.egg',build,out/'stored-reference',verify_against=out/'pipeline');assert r['checked'] and r['native_oracle_runs']==0 and r['native_retired_before_gpu_runs'] and r['steps']==results['pipeline']['steps'];results['stored-reference']=r
  failures={
   'panic':('(datatype T (N i64)) (ruleset r) (N 0) (rule ((N 0)) ((panic "expected")) :ruleset r) (run r 1)',{},'error=8'),
   'match-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'match_capacity':1},'error=2'),

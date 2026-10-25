@@ -1,6 +1,6 @@
 """Lower native typed core rules once; no textual .egg parsing or CPU matching."""
 from pathlib import Path
-import json
+import json,re
 HERE=Path(__file__).resolve().parent
 
 def boolean_expr(call, args):
@@ -17,7 +17,7 @@ INTEGER_OPS={'+':0,'-':1,'*':2,'/':3,'%':4,'min':5,'max':6,'bool-=':7,'bool-<':8
 def integer_op(c):
  return INTEGER_OPS.get(c['primitive']) if c['inputs']==['i64','i64'] else None
 
-def compile_program(p,capacity=4096,match_capacity=16384):
+def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True):
  if p['schema']!='egglog-device-core/v1':raise ValueError('program schema')
  strings=set()
  def collect(x):
@@ -81,6 +81,10 @@ def compile_program(p,capacity=4096,match_capacity=16384):
   if name not in set_ids:raise ValueError('unknown set sort')
   values=(args+['0','0'])[:2]
   return f'set_apply(r,p,m,{ops[c["primitive"]]},{set_ids[name]},{values[0]},{values[1]})'
+ # Native RHS union inserts into the UF mutation table; it does not eagerly
+ # canonicalize subsequent RHS arguments. Flush after the action phase.
+ deferred=[int(defer_unions) for _ in sets]
+ union_cap=max(capacity,match_capacity*2)
  allvars=[];queries=[];action_code=[];action_starts=[];query_widths=[]
  for rid,r in enumerate(rules):
   slots={};types={}
@@ -98,51 +102,84 @@ def compile_program(p,capacity=4096,match_capacity=16384):
    name=x['var'];dst=operand(x)
    if name in known:return [f'if({dst}!={value})continue;']
    known.add(name);return [f'{dst}={value};']
-  pending=list(r['body']);known=set();lines=[];depth=0;stamps=[]
-  def ready(a):return 'table' in a['call'] or all('literal' in x or x['var'] in known for x in a['args'][:-1])
-  while pending:
-   candidates=[i for i,a in enumerate(pending) if ready(a)]
-   # Consume grounded filters first, then connected table atoms. This avoids
-   # enumerating unrelated type/shape tables before their binding is available.
-   def rank(i):
-    a=pending[i]
-    return (1 if 'primitive' in a['call'] else 0,sum('literal' in x or x.get('var') in known for x in a['args']),-i)
-   at=max(candidates,key=rank) if candidates else None
-   if at is None:raise ValueError('ungrounded primitive')
-   a=pending.pop(at);c=a['call']
-   if 'table' in c:
-    t=ids[c['table']]
-    if len(a['args'])!=width[t]:raise ValueError('arity')
-    bound=[i for i,x in enumerate(a['args']) if 'literal' in x or x['var'] in known]
-    column=bound[-1] if bound else cols
-    head=f'qheads[query_hash({t},{column},{operand(a["args"][column])})]' if bound else f'qheads[HASH_CAP+{t}]'
-    iv=f'i{depth}';entry=f'q{depth}';depth+=1
-    lines.append(f'for(uint {entry}={head};{entry}!=0xffffffff;{entry}=qlinks[{entry}]){{')
-    lines.append(f'if({entry}%QSTRIDE!={column})continue;uint {iv}={entry}/QSTRIDE;')
-    lines.append(f'if(old[{iv}*STRIDE]!={t} || old[{iv}*STRIDE+1]!=0)continue;');stamps.append(f'uint(old[{iv}*STRIDE+2])')
-    for col,x in enumerate(a['args']):lines+=bind(x,f'old[{iv}*STRIDE+4+{col}]',known)
-   else:
-    op=c['primitive'];args=a['args']
-    be=set_expr(c,[operand(x) for x in args[:-1]]) or boolean_expr(c,[operand(x) for x in args[:-1]])
-    if be is not None:
-     lines+=bind(args[-1],be,known);continue
-    if op=='guard' and c['inputs']==['bool']:
-     lines.append(f'if(!({operand(args[0])}))continue;');lines+=bind(args[-1],'0L',known);continue
-    if len(args)!=3:raise ValueError('only binary primitives supported')
-    av,bv=map(operand,args[:2]);numeric=c['inputs']==['i64','i64']
-    if op in ('<','>','<=','>=','!=') and (numeric or op=='!='):
-     lines.append(f'if(!({av}{op}{bv}))continue;');lines+=bind(args[-1],'0L',known)
-    elif integer_op(c) is not None:
-     code=integer_op(c)
-     lines.append(f'if(!integer_valid({code},{av},{bv}))continue;')
-     lines+=bind(args[-1],f'integer_eval({code},{av},{bv})',known)
-    else:raise ValueError('unsupported LHS primitive '+op)
-  stamp='0u'
-  for s in stamps:stamp=f'max({stamp},{s})'
-  condition=(f'{stamp}>watermarks[{rid}]' if stamps else f'watermarks[{rid}]==0') if r['seminaive'] else 'true'
-  lines.append(f'if({condition}){{ if(m.matched>=MATCHCAP){{m.error=2;return;}} uint q=m.matched++*MSTRIDE;matches[q]={rid};for(uint c=0;c<VARS;c++)matches[q+1+c]=v[c];}}')
-  lines+=['}']*depth
-  queries.append('\n'.join(lines));query_widths.append(len(slots))
+  atoms=[dict(a) for a in r['body']];table_atoms=[]
+  for a in atoms:
+   for x in a['args']:
+    if 'var' in x:var(x['var'],x['sort']['name'])
+   if 'table' in a['call']:a['_table_atom']=len(table_atoms);table_atoms.append(a)
+  query_widths.append(len(slots));variants=[]
+  pivots=range(len(table_atoms)) if delta_queries and r['seminaive'] and table_atoms else [None]
+  for pivot in pivots:
+   pending=list(atoms);known=set();lines=[];depth=0;stamps=[];pivot_pending=pivot is not None
+   def ready(a):return 'table' in a['call'] or all('literal' in x or x['var'] in known for x in a['args'][:-1])
+   while pending:
+    candidates=[i for i,a in enumerate(pending) if ready(a)]
+    # Consume grounded filters first, then connected table atoms. This avoids
+    # enumerating unrelated type/shape tables before their binding is available.
+    def rank(i):
+     a=pending[i]
+     return (3 if 'primitive' in a['call'] else (2 if pivot_pending and a.get('_table_atom')==pivot else 0),sum('literal' in x or x.get('var') in known for x in a['args']),-i)
+    at=max(candidates,key=rank) if candidates else None
+    if at is None:raise ValueError('ungrounded primitive')
+    a=pending.pop(at);c=a['call']
+    if 'table' in c:
+     atom_index=a['_table_atom'];pivot_pending=pivot_pending and atom_index!=pivot
+     t=ids[c['table']]
+     if len(a['args'])!=width[t]:raise ValueError('arity')
+     bound=[i for i,x in enumerate(a['args']) if 'literal' in x or x['var'] in known]
+     iv=f'i{depth}';entry=f'q{depth}';depth+=1
+     if all(c in bound for c in range(width[t]-1)):
+      # A complete function/constructor key identifies at most one visible row.
+      # Looking up one column here would unnecessarily scan its whole bucket.
+      values=','.join(operand(x) for x in a['args'][:-1]) or '0'
+      lines.append(f'long key{depth}[COLS]={{'+values+'};')
+      lines.append(f'long found{depth}=row_lookup(r,p,m,{t},key{depth});')
+      lines.append(f'for(long once{depth}=found{depth};once{depth}>=0;once{depth}=-1){{uint {iv}=uint(once{depth});')
+     else:
+      column=bound[-1] if bound else cols
+      head=f'qheads[query_hash({t},{column},{operand(a["args"][column])})]' if bound else f'qheads[HASH_CAP+{t}]'
+      if pivot is not None and atom_index==pivot:
+       timestamp_var=f'delta_ts{depth}';lines.append(f'uint {timestamp_var}=watermarks[{rid}]+1;')
+       begin=f'watermarks[{rid}]?delta_first({t},m.epoch,{timestamp_var},old,qheads,qlinks):{head}'
+       following=f'watermarks[{rid}]?delta_next({t},m.epoch,{entry},{timestamp_var},old,qheads,qlinks):qlinks[{entry}]'
+       selected=f'(watermarks[{rid}]?TIME_COLUMN:{column})'
+      else:begin=head;following=f'qlinks[{entry}]';selected=str(column)
+      lines.append(f'for(uint {entry}={begin};{entry}!=0xffffffff;{entry}={following}){{')
+      lines.append(f'if({entry}%QSTRIDE!={selected})continue;uint {iv}={entry}/QSTRIDE;')
+     lines.append(f'if(old[{iv}*STRIDE]!={t} || old[{iv}*STRIDE+1]!=0)continue;');stamps.append(f'uint(old[{iv}*STRIDE+2])')
+     if pivot is not None and atom_index<=pivot:
+      op='<=' if atom_index==pivot else '>'
+      lines.append(f'if(uint(old[{iv}*STRIDE+2]){op}watermarks[{rid}])continue;')
+     for col,x in enumerate(a['args']):lines+=bind(x,f'old[{iv}*STRIDE+4+{col}]',known)
+    else:
+     op=c['primitive'];args=a['args']
+     be=set_expr(c,[operand(x) for x in args[:-1]]) or boolean_expr(c,[operand(x) for x in args[:-1]])
+     if be is not None:
+      lines+=bind(args[-1],be,known);continue
+     if op=='guard' and c['inputs']==['bool']:
+      lines.append(f'if(!({operand(args[0])}))continue;');lines+=bind(args[-1],'0L',known);continue
+     if len(args)!=3:raise ValueError('only binary primitives supported')
+     av,bv=map(operand,args[:2]);numeric=c['inputs']==['i64','i64']
+     if op in ('<','>','<=','>=','!=') and (numeric or op=='!='):
+      lines.append(f'if(!({av}{op}{bv}))continue;');lines+=bind(args[-1],'0L',known)
+     elif integer_op(c) is not None:
+      code=integer_op(c)
+      lines.append(f'if(!integer_valid({code},{av},{bv}))continue;')
+      lines+=bind(args[-1],f'integer_eval({code},{av},{bv})',known)
+     else:raise ValueError('unsupported LHS primitive '+op)
+   stamp='0u'
+   for s in stamps:stamp=f'max({stamp},{s})'
+   condition=(f'{stamp}>watermarks[{rid}]' if stamps else f'watermarks[{rid}]==0') if r['seminaive'] else 'true'
+   lines.append(f'if({condition}){{ if(m.matched>=MATCHCAP){{m.error=2;return;}} uint q=m.matched++*MSTRIDE;matches[q]={rid};for(uint c=0;c<VARS;c++)matches[q+1+c]=v[c];}}')
+   lines+=['}']*depth
+   if pivot is not None:gate=f'qheads[2*QBUCKETS+1+{ids[table_atoms[pivot]["call"]["table"]]}]>watermarks[{rid}]'
+   elif table_atoms and r['seminaive']:
+    latest='0u'
+    for atom in table_atoms:latest=f'max({latest},qheads[2*QBUCKETS+1+{ids[atom["call"]["table"]]}])'
+    gate=f'{latest}>watermarks[{rid}]'
+   else:gate='true'
+   variants.append(f'if({gate})'+'{long v[VARS]={0};do{'+ '\n'.join(lines)+'}while(false);}')
+  queries.append("\n".join(variants))
   action_starts.append(len(action_code))
   def instruction(op,dst=0,sub=0,k=0,value=0):action_code.extend([op,dst,sub,k,value])
   def input_value(x):
@@ -193,10 +230,14 @@ def compile_program(p,capacity=4096,match_capacity=16384):
  prefix=f'#define COLS {cols}\n#define STRIDE {cols+4}\n#define VARS {nv}\n#define MSTRIDE {nv+1}\n#define CAPACITY {capacity}\n#define MATCHCAP {match_capacity}\n#define IDCAP {idcap}\n'
  hash_cap=1
  while hash_cap<capacity*4:hash_cap*=2
- prefix+=f'#define QSTRIDE {cols+1}\n#define TABLE_COUNT {len(ts)}\n'
+ prefix+=f'#define UNION_CAP {union_cap}\n'
+ prefix+=f'#define INCREMENTAL_QUERY {int(incremental_queries)}\n#define QUERY_DIRTY (INDEX_OFFSET+HASH_CAP+2)\n#define QBUCKETS (HASH_CAP+TABLE_COUNT)\n'
+ prefix+=f'#define QSTRIDE {cols+2}\n#define TIME_COLUMN {cols+1}\n#define TABLE_COUNT {len(ts)}\n'
  prefix+=f'#define HASH_CAP {hash_cap}\n#define INDEX_OFFSET {capacity*(cols+4)+arena_words}\n'
  prefix+=f'#define ROW_WORDS {capacity*(cols+4)}\n#define SET_WORDS {arena_words}\n'
- for name,data in [('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy),('ACTION_START',action_starts),('QUERY_WIDTH',query_widths)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
+ set_start=[0];set_rules=[]
+ for use in sets:set_rules.extend(use);set_start.append(len(set_rules))
+ for name,data in [('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy),('ACTION_START',action_starts),('QUERY_WIDTH',query_widths),('DEFER_UNIONS',deferred),('SET_START',set_start),('SET_RULES',set_rules)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
  merge_cases=[]
  for tid,t in enumerate(ts):
   if policy[tid]!=6:continue
@@ -226,11 +267,14 @@ def compile_program(p,capacity=4096,match_capacity=16384):
  source=(HERE/'kernel.metal').read_text().replace('// QUERY_INDEX',(HERE/'query_index.metal').read_text()).replace('// ROW_INDEX',(HERE/'row_index.metal').read_text()).replace('// DEVICE_ACTIONS',(HERE/'actions.metal').read_text()).replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
  kernel_start=source.index('// Correctness-first reference executor.')
  common,template=source[:kernel_start],source[kernel_start:]
+ signature=common.split('#define KERNEL_ARGS ',1)[1].splitlines()[0]
+ signature=re.sub(r'\[\[.*?\]\]','',signature)
+ call_args='r,old,p,fp,m,matches,watermarks,set,code,registers,qheads,qlinks,lane'
+ query_functions='\n'.join(f'__attribute__((noinline)) void query_{rid}({signature})'+'{'+q+'}' for rid,q in enumerate(queries))
  kernels=[];kernel_names=[]
  for si,use in enumerate(sets):
   name=f'step_{si}';kernel_names.append(name)
-  query=''.join('{long v[VARS]={0};do{'+queries[r]+'}while(false);}' for r in use)
-  wm=''.join(f'watermarks[{r}]=previous;' for r in use)
-  kernels.append(template.replace('kernel void step(',f'kernel void {name}(').replace('// MATCH_BODY',query).replace('// WATERMARK_BODY',wm))
- source=common+'\n'.join(kernels)
- return {'schema':'egglog-device-storage/v1','shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+1,'query_head_words':hash_cap+len(ts),'query_link_words':capacity*(cols+1),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'id_capacity':idcap,'stride':cols+4,'match_stride':nv+1,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}
+  calls=''.join(f'query_{r}({call_args});if(m.error)return;' for r in use)
+  kernels.append(template.replace('kernel void step(',f'kernel void {name}(').replace('// MATCH_BODY',calls))
+ source=common+query_functions+'\n'.join(kernels)
+ return {'schema':'egglog-device-storage/v1','shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+3,'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':2+union_cap*2,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':2*(hash_cap+len(ts))+1+len(ts),'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'id_capacity':idcap,'stride':cols+4,'match_stride':nv+1,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}

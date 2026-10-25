@@ -12,6 +12,7 @@ void row_index_insert(device long*r,device uint*p,uint i){
 }
 __attribute__((noinline)) void ensure_row_index(device long*r,device uint*p,device Meta&m){
  if(r[INDEX_OFFSET]==long(m.unions)+1)return;
+ r[INDEX_OFFSET+HASH_CAP+1]++;
  for(uint i=0;i<HASH_CAP;i++)r[INDEX_OFFSET+1+i]=0;
  for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2)row_index_insert(r,p,i);
  r[INDEX_OFFSET]=long(m.unions)+1;

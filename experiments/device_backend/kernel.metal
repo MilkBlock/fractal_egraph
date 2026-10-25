@@ -3,7 +3,13 @@ using namespace metal;
 // Generated schema/limits are inserted before this code.
 struct Meta {uint count,next_id,epoch,changed,error,matched,rounds,unions,next_fact;};
 uint root(device uint*p,uint x){while(p[x]!=x){p[x]=p[p[x]];x=p[x];}return x;}
-void unite(device uint*p,long a,long b,device Meta&m){uint x=root(p,uint(a)),y=root(p,uint(b));if(x!=y){p[max(x,y)]=min(x,y);m.changed=1;m.unions++;}}
+void unite_now(device uint*p,long a,long b,device Meta&m){uint x=root(p,uint(a)),y=root(p,uint(b));if(x!=y){p[max(x,y)]=min(x,y);m.changed=1;m.unions++;}}
+void unite(device uint*p,long a,long b,device Meta&m){
+ if(!p[IDCAP]){unite_now(p,a,b,m);return;}
+ uint x=root(p,uint(a)),y=root(p,uint(b));if(x==y)return;
+ uint n=p[IDCAP+1];if(n>=UNION_CAP){m.error=11;return;}
+ p[IDCAP+2+2*n]=x;p[IDCAP+3+2*n]=y;p[IDCAP+1]=n+1;
+}
 // SET_BODY
 long canon(device long*r,device uint*p,uint t,uint c,long x){return EQ[t*COLS+c]==2?set_canon(r,p,x):(EQ[t*COLS+c]==1?long(root(p,uint(x))):x);}
 bool keyeq(device long*r,uint row,uint t,thread long*args,device uint*p){
@@ -42,7 +48,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
   long incoming=canon(r,p,t,WIDTH[t]-1,value);
   if(POLICY[t]==4 && r[i*STRIDE+2]==m.epoch && incoming!=old){m.error=7;return old;}
   long next=mergevalue(t,old,incoming,r,p,fp,m);
-  if(next!=r[at]){r[at]=next;r[i*STRIDE+2]=m.epoch;m.changed=1;}return next;
+  if(next!=r[at]){r[QUERY_DIRTY]=1;r[at]=next;r[i*STRIDE+2]=m.epoch;m.changed=1;}return next;
  }
  if(m.count>=CAPACITY || m.next_fact>=IDCAP){m.error=1;return 0;}
  if(create){
@@ -57,7 +63,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
 void hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
  // Native subsume creates a hidden constructor row when the key is absent.
  write_row(r,p,fp,m,t,args,0,true);if(m.error)return;
- for(uint i=0;i<m.count;i++)if(keyeq(r,i,t,args,p)&&r[i*STRIDE+1]==0){r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
+ for(uint i=0;i<m.count;i++)if(keyeq(r,i,t,args,p)&&r[i*STRIDE+1]==0){r[QUERY_DIRTY]=1;r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
 }
 // Query arithmetic rejects a match; failed RHS arithmetic raises an error.
 bool integer_valid(uint op,long a,long b){
@@ -105,24 +111,33 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
   }
   again=before!=m.unions||count!=m.count;
  }
- uint n=0;for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){if(n!=i)for(uint c=0;c<STRIDE;c++)r[n*STRIDE+c]=r[i*STRIDE+c];n++;}m.count=n;r[INDEX_OFFSET]=0;
+ uint n=0;for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){if(n!=i)for(uint c=0;c<STRIDE;c++)r[n*STRIDE+c]=r[i*STRIDE+c];n++;}m.count=n;r[INDEX_OFFSET]=0;r[QUERY_DIRTY]=1;
 }
 // QUERY_INDEX
 // DEVICE_ACTIONS
 kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],uint i[[thread_position_in_grid]]){if(i<IDCAP){p[i]=i;fp[i]=i;}}
-// Correctness-first reference executor. A single lane commits deterministic
-// actions and rebuilds. It is not a throughput kernel or Tensor Core benchmark.
-kernel void step(device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],uint lane[[thread_position_in_grid]]){
- if(lane||m.error)return;m.changed=0;m.matched=0;uint previous=m.epoch,oldCount=m.count,startUnions=m.unions;
+#define KERNEL_ARGS device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],uint lane[[thread_position_in_grid]]
+kernel void prepare(KERNEL_ARGS){
+ if(lane||m.error)return;m.changed=0;m.matched=0;
  if(m.epoch==0xffffffff){m.error=6;return;}m.epoch++;m.rounds++;r[ROW_WORDS+1]=m.epoch;
- for(uint i=0;i<oldCount*STRIDE;i++)old[i]=r[i];
- build_query_index(old,oldCount,qheads,qlinks);
- // MATCH_BODY
- if(m.error)return;
+ bool reset=!INCREMENTAL_QUERY||m.rounds==1||r[QUERY_DIRTY]!=0;
+ uint start=reset?0:qheads[2*QBUCKETS];
+ // The read phase precedes every RHS write, so old safely aliases r.
+ build_query_index(old,start,m.count,reset,qheads,qlinks);r[QUERY_DIRTY]=0;
+}
+kernel void commit_effects(KERNEL_ARGS){
+ if(lane||m.error)return;uint startUnions=m.unions;
+ p[IDCAP]=DEFER_UNIONS[set];p[IDCAP+1]=0;
  for(uint mi=0;mi<m.matched;mi++){
   uint rule=uint(matches[mi*MSTRIDE]);execute_actions(rule,mi,code,registers,matches,r,p,fp,m);
   if(m.error)return;
  }
+ p[IDCAP]=0;for(uint i=0;i<p[IDCAP+1];i++)unite_now(p,p[IDCAP+2+2*i],p[IDCAP+3+2*i],m);
  if(m.unions!=startUnions)rebuild(r,p,fp,m,qheads,qlinks);
- // WATERMARK_BODY
+ for(uint i=SET_START[set];i<SET_START[set+1];i++)watermarks[SET_RULES[i]]=m.epoch-1;
+}
+// Correctness-first reference executor. Match against a read-only Run boundary.
+kernel void step(KERNEL_ARGS){
+ if(lane||m.error)return;uint oldCount=m.count;
+ // MATCH_BODY
 }
