@@ -15,7 +15,7 @@ def read(pipe,n):
   b+=c
  return b
 
-def compare(p,rows,parents,checkpoint):
+def compare(p,rows,parents,checkpoint,arena=None):
  def find(x):
   assert 0<=x<len(parents),'invalid device identity'
   seen=set()
@@ -29,9 +29,12 @@ def compare(p,rows,parents,checkpoint):
   forward[a]=b;inverse[b]=a
  anchors={(a['sort'],a['old']):a['now'] for a in checkpoint['anchors']}
  for i,key in enumerate(p['anchors']):pair((key[0],find(i+1)),(key[0],anchors[tuple(key)]))
+ def native_value(x):
+  if 'elements' in x:return (x['sort'],frozenset(native_value(e) for e in x['elements']))
+  return (x['sort'],x['eq'] if 'eq' in x else x['value'])
  native={}
  for r in checkpoint['rows']:
-  vals=tuple((x['sort'],x['eq'] if 'eq' in x else x['value']) for x in r['values'])
+  vals=tuple(native_value(x) for x in r['values'])
   k=(r['table'],vals[:-1]);assert k not in native,'duplicate native key'
   native[k]=(vals[-1],r['subsumed'])
  pending=[];keys=set()
@@ -41,7 +44,12 @@ def compare(p,rows,parents,checkpoint):
   for s,x in zip(t['schema'],r[4:]):
    if s['kind']=='eq':assert find(x)==x,'GPU left a noncanonical row'
    if s['kind']=='String':assert 0<=x<len(p['strings']),'invalid device string handle'
-   vals.append((s['name'],p['strings'][x] if s['kind']=='String' else x))
+   if s['kind']=='set':
+    assert arena is not None and 2<=x<arena[0],'invalid set handle'
+    es=arena[x+4:x+4+arena[x+1]]
+    assert list(es)==sorted(set(es)) and all(find(e)==e for e in es),'noncanonical set'
+    vals.append((s['name'],frozenset((s['element']['name'],e) for e in es)))
+   else:vals.append((s['name'],p['strings'][x] if s['kind']=='String' else x))
   key=(t['name'],tuple(vals[:-1]));assert key not in keys,'GPU left duplicate canonical keys';keys.add(key)
   pending.append((t,vals,bool(r[1])))
  assert len(native)==len(pending),f'row count differs {len(native)} vs {len(pending)}'
@@ -51,12 +59,18 @@ def compare(p,rows,parents,checkpoint):
   for t,vs,hidden in pending:
    mapped=[]
    for s,v in zip(t['schema'][:-1],vs[:-1]):
+    if s['kind']=='set':
+     if any(e not in forward for e in v[1]):break
+     mapped.append((v[0],frozenset(forward[e] for e in v[1])));continue
     if s['kind']=='eq' and v not in forward:break
     mapped.append(forward[v] if s['kind']=='eq' else v)
    else:
     key=(t['name'],tuple(mapped));assert key in native,f'missing native row {key}'
     value,vis=native[key];assert hidden==vis,f'visibility mismatch {key}'
     if t['schema'][-1]['kind']=='eq':pair(vs[-1],value)
+    elif t['schema'][-1]['kind']=='set':
+     if not all(e in forward for e in vs[-1][1]):rest.append((t,vs,hidden));continue
+     assert (vs[-1][0],frozenset(forward[e] for e in vs[-1][1]))==value,f'set value mismatch {key}'
     else:assert vs[-1]==value,f'value mismatch {key}'
     visited+=1;continue
    rest.append((t,vs,hidden))
@@ -78,7 +92,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
    (out/'program.json').write_text(json.dumps(p));(out/'kernel.metal').write_text(p['shader'])
    gpu=subprocess.Popen([str((build/'worker').resolve()),str((out/'program.json').resolve())],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=gl)
    assert read(gpu.stdout,4)==b'DVB1'
-   initial_bytes=len(p.pop('initial_rows'))*8
+   initial_bytes=(len(p.pop('initial_rows'))+len(p.pop('initial_sets')))*8
    if not check_every and not check_at_end:
     native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait(timeout=30)
    phase="run"
@@ -95,10 +109,11 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     command(2);meta=struct.unpack('<9I',read(gpu.stdout,36));n=meta[0]*p['stride']
     raw=struct.unpack('<'+'q'*n,read(gpu.stdout,n*8));rows=[raw[i:i+p['stride']] for i in range(0,n,p['stride'])]
     parents=struct.unpack('<'+'I'*meta[1],read(gpu.stdout,meta[1]*4));facts=struct.unpack('<'+'I'*meta[8],read(gpu.stdout,meta[8]*4))
-    snapshot_bytes+=36+n*8+len(parents)*4+len(facts)*4
-    (out/'gpu-state.json').write_text(json.dumps({'meta':meta,'rows':rows,'parents':parents,'fact_parents':facts}))
+    arena=struct.unpack('<'+'q'*p['set_words'],read(gpu.stdout,p['set_words']*8))
+    snapshot_bytes+=36+n*8+len(parents)*4+len(facts)*4+len(arena)*8
+    (out/'gpu-state.json').write_text(json.dumps({'meta':meta,'rows':rows,'parents':parents,'fact_parents':facts,'sets':arena}))
     reference=oracle({'op':'snapshot'});(out/'native-state.json').write_text(json.dumps(reference))
-    result=compare(p,rows,parents,reference);result['step']=len(steps);checks.append(result)
+    result=compare(p,rows,parents,reference,arena);result['step']=len(steps);checks.append(result)
    def advance(s):
     nonlocal down,oracle_runs
     if 'run' in s:

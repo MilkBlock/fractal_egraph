@@ -69,7 +69,7 @@ A Run sends 8 command bytes and returns 36 status bytes. Initialization, shader/
 
 Native relations have private equality return sorts; they are not treated as Unit functions. Duplicate subsumed/visible rows combine visibility using native OR semantics. Native core rules can express constructor unions through `Set`; that case is handled explicitly.
 
-Unsupported constructs are rejected rather than silently delegated: containers, floating arithmetic, unsupported primitives/merge function reads, external custom-function RHS reads, delete, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Failed checked arithmetic rejects a LHS match; in RHS it raises an execution error, matching the native distinction. Panic actions raise device error 8.
+Unsupported constructs are rejected rather than silently delegated: non-Set containers, floating arithmetic, unsupported primitives/merge function reads, external custom-function RHS reads, delete, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Failed checked arithmetic rejects a LHS match; in RHS it raises an execution error, matching the native distinction. Panic actions raise device error 8.
 
 Storage and match queues have explicit capacities. Exceeding them returns an error and no success report. RHS errors can leave partial device state; rollback, resumption and dynamic capacity growth are not implemented.
 
@@ -124,4 +124,18 @@ The 29-case suite passed after these changes, plus a separate native/GPU check f
 
 The native exporter now recognizes Set by its container value type, exports its element sort and members, and includes equality identities inside sets in frozen anchors. Native checkpoints serialize canonical set members after rebuild. Other container kinds and nested/non-equality sets remain unsupported. Run `python3 experiments/device_backend/test_export.py --build BUILD` to test a two-element set collapsing after union.
 
-The real Pass 3 source now completes typed export (see `pass3-export.json`), including its scheduled rules and typed merges. **GPU set storage is not implemented yet**: the compiler rejects set tables explicitly. Export coverage is not execution coverage. The existing GPU regression suite passes 30 checks; the set transport test is separately native-only.
+The real Pass 3 source now completes typed export (see `pass3-export.json`), including its scheduled rules and typed merges. GPU set storage is now implemented as described below. Export coverage is not execution coverage. The existing GPU regression suite passes 30 checks; the set transport test is separately native-only.
+
+### GPU set arena
+
+Equality-element sets live in a variable-length arena in GPU-private storage, separate from the row section of the same allocation. Records retain a sort tag, allocation length, canonical members and normalization epoch. Set-empty/insert/union/intersect/length execute on-device. Rebuild canonicalizes member IDs, sorts/deduplicates them, interns equal sets, repairs row handles, and timestamps rows even when a set changes contents without changing its handle. Normal Run still transfers no set contents.
+
+Diagnostic checkpoints download the arena and compare sets by typed members under the same equality bijection as constructor rows. Arena exhaustion returns error 9, never an incomplete set. The current allocation is `16 * row_capacity` words; no garbage collection or nested/base-value sets yet. This is a correctness representation, not the final indexed/parallel layout.
+
+The 31-case native/Metal suite passes, including a set shrinking after union, recomputing its length and then continuing saturation. All 548 distinct rules in the exported Pass 3 schedule now lower to generated Metal source. This is source-generation coverage; it is not yet a completed Pass 3 run or speedup.
+
+### Full-input layout diagnosis
+
+Full Pass 3 generated Metal has not yet completed a successful startup/run. A monolithic entry remained in Metal compilation for several minutes and was deliberately stopped. Rulesets now have separate entry kernels containing only their own queries/actions; native schedule order and shared rule watermarks are unchanged.
+
+The real initialization rule also exposed a buffer-layout bug: RHS temporaries were included in the global match width. At match capacity 65,536 this would reserve 13.30 GiB. The queue now stores only LHS slots (40 words including rule ID), requiring 20 MiB for that same capacity. RHS temporaries are scoped to each action case. These are computed allocation sizes, not measured RSS or speedups. The remaining huge initialization RHS should be lowered to a compact device action program rather than thousands of unrolled Metal statements.
