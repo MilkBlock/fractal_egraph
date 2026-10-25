@@ -24,16 +24,19 @@ fn main() -> cell_assisted_egglog::Result<()> {
         return Err("unsupported commands after main schedule".into());
     }
     let setup = Instant::now();
-    stable_choice::setup(&mut eg, &c[..last])?;
+    let mode = a[5].as_str();
+    if !["native", "baseline", "exact", "gpu", "audit"].contains(&mode) {return Err("bad mode".into());}
+    let joint_enabled=std::env::var("STRUCTURAL_JOINT_SAT").as_deref()==Ok("1") && mode!="native";
+    let mut joint:Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>=None;
+    if joint_enabled {
+        let r=cell_assisted_egglog::parameterized_cell::Runtime::new_joint_stable_commands(c[..last].to_vec())?;
+        let (engine,observer)=r.detach_joint()?;eg=engine;joint=Some(Box::new(observer));
+    }else{stable_choice::setup(&mut eg,&c[..last])?;}
     let commands = stable_choice::schedule(&mut eg, &c[last..])?;
     let base = eg.clone();
     let lib: hook::Library = serde_json::from_slice(&std::fs::read(&a[1])?)?;
-    let mode = a[5].as_str();
-    if !["native", "baseline", "exact", "gpu", "audit"].contains(&mode) {
-        return Err("bad mode".into());
-    }
     let hook = if mode == "native" || mode == "baseline" {
-        None
+        joint.take()
     } else {
         let gpu = if mode == "exact"
             || matches!(
@@ -48,12 +51,10 @@ fn main() -> cell_assisted_egglog::Result<()> {
                 Path::new(&a[1]),
             )?)
         };
-        Some(Box::new(hook::Hook::new(
-            lib,
-            gpu,
-            if mode == "exact" { "exact" } else { "gpu" },
-        ))
-            as Box<dyn cell_assisted_egglog::table_live::SaturationHook>)
+        let ridge=hook::Hook::new(lib,gpu,if mode=="exact"{"exact"}else{"gpu"});
+        Some(if let Some(joint)=joint {
+            Box::new(hook::combined::Combined::new(joint,ridge)) as Box<dyn cell_assisted_egglog::table_live::SaturationHook>
+        }else{Box::new(ridge) as Box<dyn cell_assisted_egglog::table_live::SaturationHook>})
     };
     // Match the existing full-query bench's common submission protocol. Mixing
     // sorted assisted RHS with fused native RHS leaves transient order-sensitive
@@ -107,6 +108,12 @@ fn main() -> cell_assisted_egglog::Result<()> {
         serde_json::to_vec_pretty(&report)?,
     )?;
     status?;
+    if matches!(mode,"gpu"|"audit") && std::env::var("STRUCTURAL_REQUIRE_PREDICTOR").as_deref()==Ok("1") {
+        let d=&report["saturation_diagnostics"];
+        if d["predictor_loaded"]!=true || d["predictor_executed"]!=true {
+            return Err("prediction was required but no ridge GEMM ran; runtime.json is retained; use an explicitly labelled exact/idle control".into());
+        }
+    }
     let final_eg = r.into_engine();
     let graph = out.join("graph.control.json");
     bench::save_control(&graph, &base, &final_eg)?;
@@ -126,8 +133,8 @@ fn main() -> cell_assisted_egglog::Result<()> {
     std::fs::write(
         out.join("report.json"),
         serde_json::to_vec_pretty(&json!({
-            "scope":"Full saved raytrace Pass 3 schedule; original RHS/merge/rebuild. CPU original search except exported anchor-complete queries. Not pristine upstream.",
-        "mode":mode,"ordinary_query_worker":worker,"setup_seconds":setup_seconds,"inference_seconds":seconds,"runtime":report,"exact_graph":check,"graph":graph
+            "scope":"Full saved raytrace Pass 3 schedule; optional joint/loop and ridge providers, explicit ordinary query backend, original native RHS/merge/rebuild. Not pristine upstream.",
+        "mode":mode,"joint_services_enabled":joint_enabled,"ordinary_query_worker":worker,"setup_seconds":setup_seconds,"inference_seconds":seconds,"runtime":report,"exact_graph":check,"graph":graph
         }))?,
     )?;
     eprintln!("[structural runtime] {mode}: {seconds:.6}s; graph comparison {check}");

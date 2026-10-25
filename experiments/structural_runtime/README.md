@@ -1,5 +1,9 @@
 # Live Pass-3 spine proposals with exact CPU completion
 
+The resident response-matrix backend and combined joint/ridge runtime are
+described in [RESIDENT_RESULTS.md](RESIDENT_RESULTS.md). A GPU/audit run now
+requires actual ridge matrix work by default; exact/idle controls must be explicit.
+
 The current shared-condition/event-coordinate revision is described in
 [SHARED_RESULTS.md](SHARED_RESULTS.md). RESULTS.md retains the original measurements.
 The direct commit-to-bitmap backend (`--coordinates markers`) is described in
@@ -131,8 +135,10 @@ unchanged results by identity. Its modes are:
 
 Without `--query-worker`, all other rules remain on CPU. With it, they use the
 existing full GPU matcher. The additional `baseline` lane runs that matcher
-without this provider. No joint sat-skip library is installed in this experiment.
-Times must not be compared directly with historical GPU/Cell configurations.
+without this provider. The historical runs below did not install joint sat-skip. New runs can keep it
+active using `--joint-sat --boundary-programs FILE`; the combined observer fans
+out shared journals and assigns each query one owner. Compare the same service
+configuration on both sides; do not mix historical GPU/Cell configurations.
 `--extract` reuses the bench skill's production Tiger and DAG quality checker.
 Its three legacy lane labels are mapped to native/exact/gpu here; `native` does
 not mean the pristine import. Full graph comparison includes facts, function
@@ -172,3 +178,18 @@ replacement. `check_gpu.py` tests three consecutive binary requests against the
 unchanged CPU FP16 model. See [RESULTS.md](RESULTS.md) for the measured result,
 including the regression against the ordinary GPU baseline. `run.py` also emits
 per-rule exact-check depth distributions and fixed-rule-weight reach curves.
+
+
+`--matrix-layout resident` requires a model lowered by `lower_ridge.py` and
+`--condition-execution roots`. `groups`/`ready` explicitly bypass the predictor,
+so they require `--allow-idle-predictor`; they cannot be used as resident-ridge
+results. `predictor_loaded`, `predictor_backend` and `predictor_executed` are
+written into every provider report. A required but unused predictor fails the
+run and retains `runtime.json` for diagnosis, without a success report.
+
+`--compare-resident SHARED_RUN` verifies the same binary, model, ordinary worker,
+source, joint services, complete original binding counts and exact final graph.
+It reports predictor traffic/work, unconsumed speculative heads, per-rule CPU
+check-depth distributions and net inference time. These counters do not claim
+new Cell proof credit. `--extract` still uses the existing benchmark skill's
+production Tiger path.

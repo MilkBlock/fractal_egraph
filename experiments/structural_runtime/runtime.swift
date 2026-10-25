@@ -8,7 +8,7 @@ try require(args.count==3,"runtime kernel.metal model.json")
 let lib=try JSONSerialization.jsonObject(with:Data(contentsOf:URL(fileURLWithPath:args[2]))) as! [String:Any]
 let models=lib["models"] as! [[String:Any]]
 let mode=ProcessInfo.processInfo.environment["STRUCTURAL_MATRIX_LAYOUT"] ?? "single"
-try require(["single","shared"].contains(mode),"matrix layout")
+try require(["single","shared","resident"].contains(mode),"matrix layout")
 guard let device=MTLCreateSystemDefaultDevice(),let queue=device.makeCommandQueue()else{fatalError("no Metal")}
 let options=MTLCompileOptions();options.fastMathEnabled=false
 let code=try device.makeLibrary(source:String(contentsOfFile:args[1],encoding:.utf8),options:options)
@@ -35,6 +35,7 @@ func launch(_ cb:MTLCommandBuffer,_ p:MTLComputePipelineState,_ bs:[MTLBuffer],_
 }
 struct Block {let rows:[Int];let columns:[Int];var tiles:Int{((rows.count+7)/8)*((columns.count+7)/8)};var cells:Int{rows.count*columns.count}}
 struct Pair:Hashable{let row:Int;let column:Int}
+if mode=="resident"{try residentLoop();exit(0)}
 try output.write(contentsOf:Data("RDY2".utf8))
 while true{
     let head=try read(4);let size=head.withUnsafeBytes{$0.loadUnaligned(as:UInt32.self)};if size==0{break}

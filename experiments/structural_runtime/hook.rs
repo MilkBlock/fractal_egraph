@@ -9,6 +9,7 @@ use egglog::{
     cell_events::{CellCommitBatch, CellCommitFeed},
 };
 use rustc_hash::{FxHashMap as Map, FxHashSet as Set};
+use egglog_numeric_id::NumericId;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as Json, json};
 use std::{
@@ -19,6 +20,12 @@ use std::{
     sync::Arc,
     time::Instant,
 };
+
+#[path = "combined.rs"]
+pub mod combined;
+
+#[path = "resident.rs"]
+mod resident;
 
 #[path = "conditions.rs"]
 mod conditions;
@@ -221,6 +228,7 @@ struct Stats {
     blocks: BlockStats,
     prediction_audit: BTreeMap<String, Confusion>,
     matrix: MatrixStats,
+    resident: ResidentStats,
     groups: GroupStats,
     readiness: ReadyStats,
     index_dispatches: usize,
@@ -324,6 +332,20 @@ impl MatrixStats {
         self.single_column_padded_cells += v[9];
     }
 }
+#[derive(Default, Serialize)]
+struct ResidentStats {
+    contexts:u64, patches:u64, feature_assignments:u64, cache_hits:u64,
+    prefetched_heads_used:u64, computed_heads:u64, unused_heads_current:u64,
+    unused_heads_discarded:u64, context_buffer_bytes:u64,
+}
+impl ResidentStats {
+    fn add(&mut self,v:&[u64;9]) {
+        self.contexts=v[0];self.patches+=v[1];self.feature_assignments+=v[2];
+        self.cache_hits+=v[3];self.prefetched_heads_used+=v[4];self.computed_heads+=v[5];
+        self.unused_heads_current=v[6];self.unused_heads_discarded+=v[7];
+        self.context_buffer_bytes=v[8];
+    }
+}
 fn packet(requests: &[(usize, Vec<u64>)]) -> Vec<u8> {
     let mut ids = Map::default();
     let mut rows = Vec::new();
@@ -353,6 +375,7 @@ fn packet(requests: &[(usize, Vec<u64>)]) -> Vec<u8> {
 }
 pub struct Device {
     child: Child,
+    resident: Option<resident::Client>,
 }
 impl Device {
     pub fn new(worker: &Path, kernel: &Path, lib: &Path) -> Result<Self> {
@@ -365,16 +388,23 @@ impl Device {
             .spawn()?;
         let mut ready = [0; 4];
         child.stdout.as_mut().unwrap().read_exact(&mut ready)?;
-        if &ready != b"RDY2" {
-            return Err("bad predictor handshake".into());
-        }
-        Ok(Self { child })
+        let resident=if &ready==b"RDC1" {
+            Some(resident::Client::new(&serde_json::from_slice::<Library>(&std::fs::read(lib)?)?))
+        } else if &ready==b"RDY2" {None} else {return Err("bad predictor handshake".into());};
+        Ok(Self { child, resident })
     }
     fn predict(
         &mut self,
         requests: &[(usize, Vec<u64>)],
-    ) -> Result<(Vec<f32>, f64, usize, usize, [u64; 10])> {
-        let b = packet(requests);
+    ) -> Result<(Vec<f32>, f64, usize, usize, [u64; 10], [u64;9])> {
+        if self.resident.is_some(){return Err("resident scores need typed context identities".into());}
+        self.exchange(packet(requests), requests.len())
+    }
+    fn predict_contexts(&mut self, requests:&[(usize,u32,Vec<usize>)]) -> Result<(Vec<f32>,f64,usize,usize,[u64;10],[u64;9])> {
+        let b=self.resident.as_mut().ok_or("no resident context store")?.packet(requests)?;
+        self.exchange(b,requests.len())
+    }
+    fn exchange(&mut self, b:Vec<u8>, requested:usize) -> Result<(Vec<f32>,f64,usize,usize,[u64;10],[u64;9])> {
         let input = self.child.stdin.as_mut().unwrap();
         input.write_all(&(b.len() as u32).to_le_bytes())?;
         input.write_all(&b)?;
@@ -383,7 +413,7 @@ impl Device {
         let mut head = [0; 12];
         out.read_exact(&mut head)?;
         let n = u32::from_le_bytes(head[..4].try_into()?) as usize;
-        if n != requests.len() {
+        if n != requested {
             return Err("GPU response arity changed".into());
         }
         let dt = f64::from_le_bytes(head[4..].try_into()?);
@@ -392,6 +422,11 @@ impl Device {
         let metrics = std::array::from_fn(|i| {
             u64::from_le_bytes(layout[8 * i..8 * i + 8].try_into().unwrap())
         });
+        let mut resident=[0u64;9];
+        if self.resident.is_some(){
+            let mut raw=[0u8;72];out.read_exact(&mut raw)?;
+            for i in 0..9{resident[i]=u64::from_le_bytes(raw[i*8..i*8+8].try_into()?);}
+        }
         let mut bytes = vec![0; 4 * n];
         out.read_exact(&mut bytes)?;
         let scores = bytes
@@ -401,7 +436,7 @@ impl Device {
         if scores.iter().any(|s| !s.is_finite()) {
             return Err("nonfinite GPU score".into());
         }
-        Ok((scores, dt, b.len() + 4, 92 + bytes.len(), metrics))
+        Ok((scores, dt, b.len() + 4, 92 + bytes.len() + if self.resident.is_some(){72}else{0}, metrics, resident))
     }
 }
 impl Drop for Device {
@@ -1098,7 +1133,7 @@ impl Hook {
     }
     fn scores_for(&mut self, keys: &[(usize, Value)]) -> Result<Map<(usize, Value), f32>> {
         let mut routing = vec![];
-        let mut pending: BTreeMap<(usize, Vec<usize>), usize> = BTreeMap::new();
+        let mut pending: BTreeMap<(usize, Vec<usize>), (usize,Value,Vec<usize>)> = BTreeMap::new();
         let mut coordinate_cache = Map::default();
         for &(m, v) in keys {
             // Exact simplification of this predictor, not a proof of native
@@ -1119,6 +1154,7 @@ impl Hook {
                 coordinate_cache.insert(node, sig.clone());
                 sig
             };
+            let raw_sig=sig.clone();
             sig.retain(|i| !self.lib.models[m].excluded_tokens.contains(i));
             let k = (m, sig);
             self.stats.score_requests += 1;
@@ -1126,13 +1162,13 @@ impl Hook {
                 self.stats.score_hits += 1;
             } else {
                 let next = pending.len();
-                pending.entry(k.clone()).or_insert(next);
+                pending.entry(k.clone()).or_insert((next,v,raw_sig));
             }
             routing.push(((m, v), k));
         }
         if !pending.is_empty() {
             let mut ordered = pending.into_iter().collect::<Vec<_>>();
-            ordered.sort_by_key(|(_, i)| *i);
+            ordered.sort_by_key(|(_, (i,_,_))| *i);
             let req = ordered
                 .iter()
                 .map(|((m, s), _)| {
@@ -1142,13 +1178,14 @@ impl Hook {
                 })
                 .collect::<Vec<_>>();
             let started = Instant::now();
-            let (answers, dt, up, down, layout) = self
-                .device
-                .as_mut()
-                .ok_or("missing GPU predictor")?
-                .predict(&req)?;
+            let device=self.device.as_mut().ok_or("missing GPU predictor")?;
+            let (answers, dt, up, down, layout, resident) = if device.resident.is_some() {
+                let contexts=ordered.iter().map(|((m,_),(_,v,raw))|(*m,v.rep(),raw.clone())).collect::<Vec<_>>();
+                device.predict_contexts(&contexts)?
+            }else{device.predict(&req)?};
             self.stats.device_roundtrip_seconds += started.elapsed().as_secs_f64();
             self.stats.matrix.add(&layout);
+            self.stats.resident.add(&resident);
             self.stats.gpu_batches += 1;
             self.stats.gpu_rows += req.len();
             self.stats.gpu_seconds += dt;
@@ -1245,7 +1282,10 @@ impl SaturationHook for Hook {
                 s.audit();
             }
         }
-        json!({"row_storage":if cfg!(feature="shared-rows") {"shared"} else {"owned"},"condition_handles":{"presence_bytes":self.indices.iter().map(|i|i.presence.len()*8).sum::<usize>(),"presence_capacity_bytes":self.indices.iter().map(|i|i.presence.capacity()*8).sum::<usize>(),"total":self.indices.iter().map(|i|i.buckets.len()).sum::<usize>(),"nonempty":self.indices.iter().map(|i|i.buckets.iter().filter(|b|!b.rows.is_empty()).count()).sum::<usize>(),"anchor_connections":self.queries.values().map(|q|q.attachments.values().map(|a|a.handles.len()).sum::<usize>()).sum::<usize>()},"condition_execution":if self.ready_conditions {"ready"}else if self.group_conditions {"groups"} else {"roots"},"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
+        json!({"row_storage":if cfg!(feature="shared-rows") {"shared"} else {"owned"},"condition_handles":{"presence_bytes":self.indices.iter().map(|i|i.presence.len()*8).sum::<usize>(),"presence_capacity_bytes":self.indices.iter().map(|i|i.presence.capacity()*8).sum::<usize>(),"total":self.indices.iter().map(|i|i.buckets.len()).sum::<usize>(),"nonempty":self.indices.iter().map(|i|i.buckets.iter().filter(|b|!b.rows.is_empty()).count()).sum::<usize>(),"anchor_connections":self.queries.values().map(|q|q.attachments.values().map(|a|a.handles.len()).sum::<usize>()).sum::<usize>()},"condition_execution":if self.ready_conditions {"ready"}else if self.group_conditions {"groups"} else {"roots"},"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1",
+        "predictor_loaded":self.device.is_some(),
+        "predictor_backend":self.device.as_ref().map(|d|if d.resident.is_some(){"resident-response"}else{"packet-coordinates"}),
+        "predictor_executed":self.stats.matrix.blocks>0,"mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
         "scope":if self.group_conditions {"Exact current projected-condition groups; payloads only for accepted candidates. Every original binding and timestamp frontier retained. No Cell proof or sat-skip credit."}else{"GPU scores only reorder exact CPU checks. Every eligible anchor retained; complete native bindings and timestamp frontier. No Cell proof or sat-skip credit."}})
     }
     fn take_commits(&mut self, eg: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)> {

@@ -131,28 +131,82 @@ def execution_comparison(before,after,storage=False):
     result['audit']={'checks':audit['runtime']['runtime']['cell_query_rules'],'exact_graph':audit['exact_graph']['exact_rows_values_equivalence_visibility']}
     return result
 
+def resident_comparison(before,after):
+    dirs=[before.resolve(),after.resolve()]
+    reports=[json.loads((d/'gpu/report.json').read_text()) for d in dirs]
+    identities=[json.loads((d/'gpu/identity.json').read_text()) for d in dirs]
+    layouts=[i['configuration'].pop('STRUCTURAL_MATRIX_LAYOUT',None) for i in identities]
+    if layouts!=['shared','resident'] or identities[0]!=identities[1]:raise ValueError('resident pair changed more than the predictor backend')
+    for r in reports:
+        d=r['runtime']['saturation_diagnostics']
+        if not r['exact_graph']['exact_rows_values_equivalence_visibility'] or d.get('predictor_loaded') is not True or d.get('predictor_executed') is not True:
+            raise ValueError('resident pair requires verified graphs and actual ridge GEMM on both sides')
+    def bindings(r):return {(q['ruleset'],q['rule']):q['stats']['emitted_bindings'] for q in r['runtime']['rules']}
+    if bindings(reports[0])!=bindings(reports[1]):raise ValueError('complete original binding counts differ')
+    work=[]
+    before_rules=reports[0]['runtime']['saturation_diagnostics']['statistics']['rules']
+    after_rules=reports[1]['runtime']['saturation_diagnostics']['statistics']['rules']
+    if set(before_rules)!=set(after_rules):raise ValueError('different ridge consumers')
+    for name,left in before_rules.items():
+        right=after_rules[name];n=left['delta_anchors']
+        if right['delta_anchors']!=n:raise ValueError('different ridge anchor populations')
+        for row in (left,right):
+            if sum(row['deepest'])!=n:raise ValueError('invalid exact-check depth histogram')
+        work.append({'rule':name,'anchors':n,'reads_before':left['reads'],'reads_after':right['reads'],
+            'depth_before':left['deepest'],'depth_after':right['deepest'],
+            'reach_before':[sum(left['deepest'][d:])/n if n else None for d in range(1,5)],
+            'reach_after':[sum(right['deepest'][d:])/n if n else None for d in range(1,5)]})
+    rows=[]
+    for path,r in zip(dirs,reports):
+        d=r['runtime']['saturation_diagnostics'];t=d['statistics']
+        rows.append({'directory':str(path),'backend':d['predictor_backend'],'joint_services_enabled':r.get('joint_services_enabled',False),
+            'inference_seconds':r['inference_seconds'],'setup_seconds':r['setup_seconds'],
+            'matrix':t['matrix'],'resident':t['resident'],
+            **{k:t[k] for k in ('gpu_batches','gpu_rows','gpu_seconds','device_roundtrip_seconds','maintenance_seconds','query_seconds','uploaded_bytes','downloaded_bytes')},
+            'ridge_bindings':sum(x['positive_bindings']+x['recovered_bindings'] for x in t['rules'].values()),
+            'combined_services':d.get('combined_services'),
+            'original_graph':r['exact_graph']})
+    return {'scope':'Same full Pass 3, model, native kernel, exact completion and joint-service configuration. Only packet coordinates versus resident factored ridge responses changes. Not new Cell proof credit.',
+            'variants':rows,'speedup':rows[0]['inference_seconds']/rows[1]['inference_seconds'],
+            'same_complete_binding_counts':True,'complete_bindings':sum(bindings(reports[0]).values()),
+            'exact_cpu_check_work':work,'depth_scope':'CPU factorized residual checks, not ordinary GPU/Free Join depth; equal original anchor population',
+            'fixed_rule_weight_reach':{k:[sum(w[k][d] for w in work if w['anchors'])/sum(bool(w['anchors']) for w in work) for d in range(4)] for k in ('reach_before','reach_after')},
+            'hardware_note':'Apple Metal simdgroup matrix arithmetic; no NVIDIA Tensor Core utilization measurement.',
+            'prefetch_note':'Computed but unrequested heads are speculative overhead until actually reused. Current/discarded unused heads are reported explicitly.'}
+
 def main():
     p=argparse.ArgumentParser()
     for n in ('runtime-repo','build','source','output'):p.add_argument('--'+n,type=Path,required=True)
     p.add_argument('--lanes',default='native,exact,audit,gpu')
     p.add_argument('--extract',action='store_true')
+    p.add_argument('--joint-sat',action='store_true',help='keep the existing joint closure services active alongside ridge')
+    p.add_argument('--boundary-programs',type=Path,help='existing loop/shared-spine provider; requires --joint-sat')
     p.add_argument('--query-worker',type=Path,help='existing full GPU matcher for all unclaimed queries')
     p.add_argument('--reuse-native',type=Path,help='explicit unchanged native lane from an earlier run; never use after kernel/harness/schedule changes')
     p.add_argument('--reuse-baseline',type=Path,help='reuse unchanged full-GPU baseline; source and query worker must match')
+    p.add_argument('--compare-resident',type=Path,help='compare to same-binary/model/shared-predictor run; both must actually execute ridge')
     p.add_argument('--compare-storage',type=Path,help='compare current shared-row build to a verified same-source owned-row run')
     p.add_argument('--compare-execution',type=Path,help='compare verified condition execution modes without retiming')
     p.add_argument('--compare-layout',type=Path,help='read existing same-model single-layout lane and report exact paired matrix work')
     p.add_argument('--condition-execution',choices=['roots','groups','ready'],default='roots')
-    p.add_argument('--matrix-layout',choices=['single','shared'],default='single')
+    p.add_argument('--matrix-layout',choices=['single','shared','resident'],default='shared')
     p.add_argument('--coordinates',choices=['events','legacy','markers'],default='events')
     p.add_argument('--no-shared-conditions',action='store_true')
     p.add_argument('--model',type=Path,help='explicit exported plan; default BUILD/model.json')
-    a=p.parse_args();a.output=a.output.resolve();a.output.mkdir(parents=True,exist_ok=True)
+    p.add_argument('--allow-idle-predictor',action='store_true',help='explicit exact/idle control; otherwise gpu/audit lanes must actually invoke ridge GEMM')
+    a=p.parse_args()
+    if a.matrix_layout=='resident' and a.condition_execution!='roots':p.error('resident ridge requires roots; groups/ready bypass the predictor')
+    if a.condition_execution!='roots' and not a.allow_idle_predictor:p.error('groups/ready are exact controls; pass --allow-idle-predictor explicitly')
+    if a.boundary_programs and not a.joint_sat:p.error('boundary programs require --joint-sat')
+    a.output=a.output.resolve();a.output.mkdir(parents=True,exist_ok=True)
     repo=a.runtime_repo.resolve();build=a.build.resolve();binary=Path(json.loads((build/'build.json').read_text())['binary'])
     model=a.model.resolve() if a.model else build/'model.json';lib=json.loads(model.read_text())
     if lib['source_sha256']!=sha(a.source):raise ValueError('wrong source for exported plan')
-    env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_','RAYON_'))}
+    env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_','RAYON_','STRUCTURAL_'))}
     if a.query_worker:env['STRUCTURAL_QUERY_WORKER']=str(a.query_worker.resolve())
+    env['STRUCTURAL_JOINT_SAT']='1' if a.joint_sat else '0'
+    if a.boundary_programs:env['CELL_BOUNDARY_PROGRAMS']=str(a.boundary_programs.resolve())
+    env['STRUCTURAL_REQUIRE_PREDICTOR']='0' if a.allow_idle_predictor else '1'
     env['STRUCTURAL_CONDITION_EXECUTION']=a.condition_execution
     env['STRUCTURAL_MATRIX_LAYOUT']=a.matrix_layout
     env['STRUCTURAL_COORDINATES']=a.coordinates
@@ -169,6 +223,8 @@ def main():
         if identity.get(str(a.source.resolve()))!=sha(a.source):raise ValueError('historical GPU input differs')
         if not a.query_worker or identity.get(str(a.query_worker.resolve()))!=sha(a.query_worker):raise ValueError('historical GPU worker differs')
         r=json.loads((old/'report.json').read_text())
+        if r.get('joint_services_enabled',False)!=a.joint_sat:raise ValueError('historical baseline uses different joint services')
+        if a.boundary_programs and identity.get(str(a.boundary_programs.resolve()))!=sha(a.boundary_programs):raise ValueError('historical boundary program differs')
         if not r['exact_graph']['exact_rows_values_equivalence_visibility']:raise ValueError('unverified baseline')
         target=a.output/'baseline'
         if not target.exists():target.symlink_to(old,target_is_directory=True)
@@ -181,8 +237,9 @@ def main():
         files=[binary,a.source,model]+([build/'worker',build/'kernel.metal'] if mode in ('gpu','audit') and a.condition_execution=='roots' else [])
         if a.query_worker and mode!='native':files.append(a.query_worker)
         if mode!='native':files.append(control)
+        if a.joint_sat and a.boundary_programs and mode!='native':files.append(a.boundary_programs.resolve())
         identity={str(f.resolve()):sha(f) for f in files}
-        identity['configuration']={k:v for k,v in env.items() if k.startswith('STRUCTURAL_')}
+        identity['configuration']={k:v for k,v in env.items() if k.startswith(('STRUCTURAL_','CELL_BOUNDARY_PROGRAMS'))}
         prior=dest/'identity.json';report=dest/'report.json'
         if prior.exists() and report.exists() and json.loads(prior.read_text())==identity:
             print(f'reusing {mode}: {report}',flush=True);continue
@@ -193,9 +250,13 @@ def main():
         (dest/'execution.json').write_text(json.dumps({'command':command,'returncode':r.returncode,'wall_seconds_including_setup_exports_check':time.perf_counter()-started},indent=2)+'\n')
         r.check_returncode();prior.write_text(json.dumps(identity,indent=2)+'\n')
     reports={m:json.loads((a.output/m/'report.json').read_text()) for m in ('native','baseline','exact','audit','gpu') if (a.output/m/'report.json').exists()}
-    result={'scope':'Complete real saved Pass 3 replay, selected always-run queries only; unclaimed queries use '+('the existing full GPU matcher' if a.query_worker else 'native CPU')+'. Not pristine.',
+    result={'scope':'Complete real saved Pass 3 replay, '+('joint/loop services and ' if a.joint_sat else '')+'selected always-run ridge queries; unclaimed queries use '+('the existing full GPU matcher' if a.query_worker else 'native CPU')+'. Not pristine.',
             'modes':{m:{'inference_seconds':r['inference_seconds'],'setup_seconds':r['setup_seconds'],'exact_graph':r['exact_graph']} for m,r in reports.items()},
             'model_provenance':lib['scope'],'source_sha256':sha(a.source)}
+    result['predictor']={m:{k:r['runtime'].get('saturation_diagnostics',{}).get(k) for k in ('predictor_loaded','predictor_backend','predictor_executed')} for m,r in reports.items() if m in ('gpu','audit','exact')}
+    result['predictor_required']=not a.allow_idle_predictor
+    result['joint_services_enabled']=a.joint_sat
+    result['boundary_programs']=str(a.boundary_programs.resolve()) if a.boundary_programs else None
     result['build']=json.loads((build/'build.json').read_text())
     result['historical_native']=str(a.reuse_native.resolve()) if a.reuse_native else None
     result['historical_baseline']=str(a.reuse_baseline.resolve()) if a.reuse_baseline else None
@@ -218,6 +279,10 @@ def main():
         result['extraction_cpu_control']='exact' if 'exact' in reports else 'native'
         result['extraction']=json.loads((ex/'extraction/quality.json').read_text())
     (a.output/'summary.json').write_text(json.dumps(result,indent=2)+'\n')
+    if a.compare_resident:
+        paired=resident_comparison(a.compare_resident,a.output);paired['extraction']=result.get('extraction')
+        (a.output/'resident-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
+        result['resident_comparison']=str(a.output/'resident-comparison.json')
     if a.compare_storage:
         paired=execution_comparison(a.compare_storage,a.output,storage=True);paired['extraction']=result.get('extraction')
         (a.output/'storage-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
