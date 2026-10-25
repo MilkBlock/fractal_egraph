@@ -34,28 +34,28 @@ kernel void resident_response_mma(device const SharedJob*jobs[[buffer(0)]],devic
   if(r<j.rows && c<j.cols)raw[rows[j.rowStart+r]*cfg.z+cols[j.colStart+c]]=answer[v];
  }
 }
-kernel void resident_normalize(device const uint*rows[[buffer(0)]],device uint*meta[[buffer(1)]],
+// Score validity is per head. Adding a new consumer need not refresh unrelated
+// heads; feature updates invalidate old versions without clearing the matrix.
+kernel void resident_normalize(device const uint2*pairs[[buffer(0)]],device const uint*meta[[buffer(1)]],
  device const uint*modelSort[[buffer(2)]],device const uint*constantModel[[buffer(3)]],
  device const float*raw[[buffer(4)]],device const float*bias[[buffer(5)]],device float*scores[[buffer(6)]],
- device atomic_uint*error[[buffer(7)]],constant uint2&cfg[[buffer(8)]],uint i[[thread_position_in_grid]]) {
- if(i>=cfg.x)return;uint row=rows[i],sort=meta[row*3+1];
- for(uint m=0;m<cfg.y;m++)if(modelSort[m]==sort){
-  float value=bias[m];
-  if(!constantModel[m]){
-   uint at=(row*cfg.y+m)*3;float count=raw[at+2];
-   if(count<1 || count!=floor(count)){atomic_fetch_or_explicit(error,2,memory_order_relaxed);continue;}
-   uint d=1;while(d*d<uint(count))d*=2;
-   value+=(raw[at]+raw[at+1])/float(d);
-  }
-  scores[row*cfg.y+m]=value;
+ device uint*scoreVersions[[buffer(7)]],device atomic_uint*error[[buffer(8)]],constant uint2&cfg[[buffer(9)]],uint i[[thread_position_in_grid]]) {
+ if(i>=cfg.x)return;uint row=pairs[i].x,m=pairs[i].y,slot=row*cfg.y+m;
+ if(modelSort[m]!=meta[row*3+1]){atomic_fetch_or_explicit(error,2,memory_order_relaxed);return;}
+ float value=bias[m];
+ if(!constantModel[m]){
+  uint at=slot*3;float count=raw[at+2];
+  if(count<1 || count!=floor(count)){atomic_fetch_or_explicit(error,2,memory_order_relaxed);return;}
+  uint d=1;while(d*d<uint(count))d*=2;
+  value+=(raw[at]+raw[at+1])/float(d);
  }
- meta[row*3+2]=meta[row*3];
+ scores[slot]=value;scoreVersions[slot]=meta[row*3];
 }
 kernel void resident_gather(device const uint*req[[buffer(0)]],device const uint*meta[[buffer(1)]],
- device const uint*modelSort[[buffer(2)]],device const float*scores[[buffer(3)]],device float*out[[buffer(4)]],
- device atomic_uint*error[[buffer(5)]],constant uint2&cfg[[buffer(6)]],uint i[[thread_position_in_grid]]) {
+ device const uint*modelSort[[buffer(2)]],device const float*scores[[buffer(3)]],device const uint*scoreVersions[[buffer(4)]],device float*out[[buffer(5)]],
+ device atomic_uint*error[[buffer(6)]],constant uint2&cfg[[buffer(7)]],uint i[[thread_position_in_grid]]) {
  if(i>=cfg.x)return;uint row=req[i*3],m=req[i*3+1],version=req[i*3+2];
- if(meta[row*3]!=version || meta[row*3+2]!=version || meta[row*3+1]!=modelSort[m]){
+ if(meta[row*3]!=version || scoreVersions[row*cfg.y+m]!=version || meta[row*3+1]!=modelSort[m]){
   atomic_fetch_or_explicit(error,4,memory_order_relaxed);return;
  }
  out[i]=scores[row*cfg.y+m];

@@ -4,6 +4,12 @@ The resident response-matrix backend and combined joint/ridge runtime are
 described in [RESIDENT_RESULTS.md](RESIDENT_RESULTS.md). A GPU/audit run now
 requires actual ridge matrix work by default; exact/idle controls must be explicit.
 
+Event-published consumer scopes and per-head resident versions are described in
+[CONSUMER_RESULTS.md](CONSUMER_RESULTS.md). `--resident-scope consumers` is an
+experimental layout option: it reduces matrix work but has not established a
+repeatable end-to-end benefit. The default remains `sort`, without the new CPU
+subscription ledger. Both paths keep the ridge predictor and exact completion.
+
 The current shared-condition/event-coordinate revision is described in
 [SHARED_RESULTS.md](SHARED_RESULTS.md). RESULTS.md retains the original measurements.
 The direct commit-to-bitmap backend (`--coordinates markers`) is described in
@@ -193,3 +199,9 @@ It reports predictor traffic/work, unconsumed speculative heads, per-rule CPU
 check-depth distributions and net inference time. These counters do not claim
 new Cell proof credit. `--extract` still uses the existing benchmark skill's
 production Tiger path.
+
+`--compare-consumer-scope SORT_RUN` compares the same executable, model, native
+rules, joint/loop services and worker with only `--resident-scope` changed. It
+reports unused predictions, packed matrix work, subscription counts, complete
+original bindings, residual-check depth and end-to-end time separately. The
+consumer scope is scheduling metadata, not a Cell proof or negative match test.

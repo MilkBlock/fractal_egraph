@@ -388,7 +388,7 @@ impl Device {
             .spawn()?;
         let mut ready = [0; 4];
         child.stdout.as_mut().unwrap().read_exact(&mut ready)?;
-        let resident=if &ready==b"RDC1" {
+        let resident=if &ready==b"RDC2" {
             Some(resident::Client::new(&serde_json::from_slice::<Library>(&std::fs::read(lib)?)?))
         } else if &ready==b"RDY2" {None} else {return Err("bad predictor handshake".into());};
         Ok(Self { child, resident })
@@ -400,7 +400,7 @@ impl Device {
         if self.resident.is_some(){return Err("resident scores need typed context identities".into());}
         self.exchange(packet(requests), requests.len())
     }
-    fn predict_contexts(&mut self, requests:&[(usize,u32,Vec<usize>)]) -> Result<(Vec<f32>,f64,usize,usize,[u64;10],[u64;9])> {
+    fn predict_contexts(&mut self, requests:&[(usize,u32,Vec<usize>,Vec<usize>)]) -> Result<(Vec<f32>,f64,usize,usize,[u64;10],[u64;9])> {
         let b=self.resident.as_mut().ok_or("no resident context store")?.packet(requests)?;
         self.exchange(b,requests.len())
     }
@@ -451,6 +451,7 @@ impl Drop for Device {
 pub struct Hook {
     lib: Library,
     device: Option<Device>,
+    consumer_scopes: Option<resident::Scopes>,
     feed: Option<CellCommitFeed>,
     names: Vec<String>,
     ids: Map<String, usize>,
@@ -482,6 +483,7 @@ pub struct Hook {
 impl Hook {
     pub fn new(lib: Library, device: Option<Device>, mode: &str) -> Self {
         Self {
+            consumer_scopes: device.as_ref().filter(|d|d.resident.is_some() && std::env::var("STRUCTURAL_RESIDENT_SCOPE").as_deref()==Ok("consumers")).map(|_|resident::Scopes::new(&lib)),
             fixed_scores: lib
                 .models
                 .iter()
@@ -864,9 +866,13 @@ impl Hook {
                     let v = r.values[q.projections[q.plan.anchor].column(s.slot)];
                     if add {
                         attached.push(self.indices[idx].intern(v));
-                        port.entry(v).or_default().insert(k.clone());
+                        if port.entry(v).or_default().insert(k.clone()) {
+                            if let Some(scopes)=&mut self.consumer_scopes{scopes.change(s.model,v.rep(),true);}
+                        }
                     } else if let Some(keys) = port.get_mut(&v) {
-                        keys.remove(k);
+                        if keys.remove(k) {
+                            if let Some(scopes)=&mut self.consumer_scopes{scopes.change(s.model,v.rep(),false);}
+                        }
                         if keys.is_empty() {
                             port.remove(&v);
                         }
@@ -1180,7 +1186,7 @@ impl Hook {
             let started = Instant::now();
             let device=self.device.as_mut().ok_or("missing GPU predictor")?;
             let (answers, dt, up, down, layout, resident) = if device.resident.is_some() {
-                let contexts=ordered.iter().map(|((m,_),(_,v,raw))|(*m,v.rep(),raw.clone())).collect::<Vec<_>>();
+                let contexts=ordered.iter().map(|((m,_),(_,v,raw))|(*m,v.rep(),raw.clone(),self.consumer_scopes.as_ref().map(|s|s.heads(*m,v.rep())).unwrap_or_default())).collect::<Vec<_>>();
                 device.predict_contexts(&contexts)?
             }else{device.predict(&req)?};
             self.stats.device_roundtrip_seconds += started.elapsed().as_secs_f64();
@@ -1284,6 +1290,8 @@ impl SaturationHook for Hook {
         }
         json!({"row_storage":if cfg!(feature="shared-rows") {"shared"} else {"owned"},"condition_handles":{"presence_bytes":self.indices.iter().map(|i|i.presence.len()*8).sum::<usize>(),"presence_capacity_bytes":self.indices.iter().map(|i|i.presence.capacity()*8).sum::<usize>(),"total":self.indices.iter().map(|i|i.buckets.len()).sum::<usize>(),"nonempty":self.indices.iter().map(|i|i.buckets.iter().filter(|b|!b.rows.is_empty()).count()).sum::<usize>(),"anchor_connections":self.queries.values().map(|q|q.attachments.values().map(|a|a.handles.len()).sum::<usize>()).sum::<usize>()},"condition_execution":if self.ready_conditions {"ready"}else if self.group_conditions {"groups"} else {"roots"},"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1",
         "predictor_loaded":self.device.is_some(),
+        "consumer_scopes":self.consumer_scopes.as_ref().map(|s|s.report()),
+        "resident_scope":std::env::var("STRUCTURAL_RESIDENT_SCOPE").unwrap_or_else(|_|"sort".into()),
         "predictor_backend":self.device.as_ref().map(|d|if d.resident.is_some(){"resident-response"}else{"packet-coordinates"}),
         "predictor_executed":self.stats.matrix.blocks>0,"mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
         "scope":if self.group_conditions {"Exact current projected-condition groups; payloads only for accepted candidates. Every original binding and timestamp frontier retained. No Cell proof or sat-skip credit."}else{"GPU scores only reorder exact CPU checks. Every eligible anchor retained; complete native bindings and timestamp frontier. No Cell proof or sat-skip credit."}})

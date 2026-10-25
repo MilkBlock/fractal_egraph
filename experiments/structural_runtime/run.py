@@ -131,12 +131,14 @@ def execution_comparison(before,after,storage=False):
     result['audit']={'checks':audit['runtime']['runtime']['cell_query_rules'],'exact_graph':audit['exact_graph']['exact_rows_values_equivalence_visibility']}
     return result
 
-def resident_comparison(before,after):
+def resident_comparison(before,after,scoped=False):
     dirs=[before.resolve(),after.resolve()]
     reports=[json.loads((d/'gpu/report.json').read_text()) for d in dirs]
     identities=[json.loads((d/'gpu/identity.json').read_text()) for d in dirs]
     layouts=[i['configuration'].pop('STRUCTURAL_MATRIX_LAYOUT',None) for i in identities]
-    if layouts!=['shared','resident'] or identities[0]!=identities[1]:raise ValueError('resident pair changed more than the predictor backend')
+    scopes=[i['configuration'].pop('STRUCTURAL_RESIDENT_SCOPE','sort') for i in identities]
+    expected=['resident','resident'] if scoped else ['shared','resident']
+    if layouts!=expected or identities[0]!=identities[1] or (scoped and scopes!=['sort','consumers']):raise ValueError('resident pair changed more than the requested backend/scope')
     for r in reports:
         d=r['runtime']['saturation_diagnostics']
         if not r['exact_graph']['exact_rows_values_equivalence_visibility'] or d.get('predictor_loaded') is not True or d.get('predictor_executed') is not True:
@@ -160,13 +162,14 @@ def resident_comparison(before,after):
     for path,r in zip(dirs,reports):
         d=r['runtime']['saturation_diagnostics'];t=d['statistics']
         rows.append({'directory':str(path),'backend':d['predictor_backend'],'joint_services_enabled':r.get('joint_services_enabled',False),
+            'resident_scope':d.get('resident_scope'),'consumer_scopes':d.get('consumer_scopes'),
             'inference_seconds':r['inference_seconds'],'setup_seconds':r['setup_seconds'],
             'matrix':t['matrix'],'resident':t['resident'],
             **{k:t[k] for k in ('gpu_batches','gpu_rows','gpu_seconds','device_roundtrip_seconds','maintenance_seconds','query_seconds','uploaded_bytes','downloaded_bytes')},
             'ridge_bindings':sum(x['positive_bindings']+x['recovered_bindings'] for x in t['rules'].values()),
             'combined_services':d.get('combined_services'),
             'original_graph':r['exact_graph']})
-    return {'scope':'Same full Pass 3, model, native kernel, exact completion and joint-service configuration. Only packet coordinates versus resident factored ridge responses changes. Not new Cell proof credit.',
+    return {'scope':'Same full Pass 3, model, native kernel, exact completion and joint-service configuration. Only '+('all same-sort heads versus event-published consumer heads' if scoped else 'packet coordinates versus resident factored ridge responses')+' changes. Not new Cell proof credit.',
             'variants':rows,'speedup':rows[0]['inference_seconds']/rows[1]['inference_seconds'],
             'same_complete_binding_counts':True,'complete_bindings':sum(bindings(reports[0]).values()),
             'exact_cpu_check_work':work,'depth_scope':'CPU factorized residual checks, not ordinary GPU/Free Join depth; equal original anchor population',
@@ -185,11 +188,13 @@ def main():
     p.add_argument('--reuse-native',type=Path,help='explicit unchanged native lane from an earlier run; never use after kernel/harness/schedule changes')
     p.add_argument('--reuse-baseline',type=Path,help='reuse unchanged full-GPU baseline; source and query worker must match')
     p.add_argument('--compare-resident',type=Path,help='compare to same-binary/model/shared-predictor run; both must actually execute ridge')
+    p.add_argument('--compare-consumer-scope',type=Path,help='compare to same-binary resident all-sort-heads control')
     p.add_argument('--compare-storage',type=Path,help='compare current shared-row build to a verified same-source owned-row run')
     p.add_argument('--compare-execution',type=Path,help='compare verified condition execution modes without retiming')
     p.add_argument('--compare-layout',type=Path,help='read existing same-model single-layout lane and report exact paired matrix work')
     p.add_argument('--condition-execution',choices=['roots','groups','ready'],default='roots')
     p.add_argument('--matrix-layout',choices=['single','shared','resident'],default='shared')
+    p.add_argument('--resident-scope',choices=['consumers','sort'],default='sort',help='consumer scoping is experimental; full-pass net benefit is not established')
     p.add_argument('--coordinates',choices=['events','legacy','markers'],default='events')
     p.add_argument('--no-shared-conditions',action='store_true')
     p.add_argument('--model',type=Path,help='explicit exported plan; default BUILD/model.json')
@@ -209,6 +214,7 @@ def main():
     env['STRUCTURAL_REQUIRE_PREDICTOR']='0' if a.allow_idle_predictor else '1'
     env['STRUCTURAL_CONDITION_EXECUTION']=a.condition_execution
     env['STRUCTURAL_MATRIX_LAYOUT']=a.matrix_layout
+    env['STRUCTURAL_RESIDENT_SCOPE']=a.resident_scope
     env['STRUCTURAL_COORDINATES']=a.coordinates
     env['STRUCTURAL_SHARED_CONDITIONS']='0' if a.no_shared_conditions else '1'
     if a.reuse_native:
@@ -260,7 +266,7 @@ def main():
     result['build']=json.loads((build/'build.json').read_text())
     result['historical_native']=str(a.reuse_native.resolve()) if a.reuse_native else None
     result['historical_baseline']=str(a.reuse_baseline.resolve()) if a.reuse_baseline else None
-    result['configuration']={'condition_execution':a.condition_execution,'matrix_layout':a.matrix_layout,'coordinates':a.coordinates,'shared_conditions':not a.no_shared_conditions}
+    result['configuration']={'condition_execution':a.condition_execution,'matrix_layout':a.matrix_layout,'resident_scope':a.resident_scope,'coordinates':a.coordinates,'shared_conditions':not a.no_shared_conditions}
     for m in ('baseline','exact','gpu'):
         if m in reports and 'native' in reports and reports[m]['exact_graph']['exact_rows_values_equivalence_visibility']:
             result[m+'_speedup_vs_native']=reports['native']['inference_seconds']/reports[m]['inference_seconds']
@@ -283,6 +289,10 @@ def main():
         paired=resident_comparison(a.compare_resident,a.output);paired['extraction']=result.get('extraction')
         (a.output/'resident-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
         result['resident_comparison']=str(a.output/'resident-comparison.json')
+    if a.compare_consumer_scope:
+        paired=resident_comparison(a.compare_consumer_scope,a.output,scoped=True);paired['extraction']=result.get('extraction')
+        (a.output/'consumer-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
+        result['consumer_comparison']=str(a.output/'consumer-comparison.json')
     if a.compare_storage:
         paired=execution_comparison(a.compare_storage,a.output,storage=True);paired['extraction']=result.get('extraction')
         (a.output/'storage-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
