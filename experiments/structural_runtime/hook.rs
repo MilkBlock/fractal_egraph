@@ -24,6 +24,8 @@ use std::{
 mod coordinates;
 #[path = "markers.rs"]
 mod markers;
+#[path = "summaries.rs"]
+mod summaries;
 
 #[derive(Clone, Deserialize)]
 pub struct Step {
@@ -44,6 +46,10 @@ pub struct Model {
     pub sort: String,
     pub channel: String,
     pub sort_hash: u64,
+    #[serde(default)]
+    pub excluded_tokens: Vec<usize>,
+    #[serde(default)]
+    pub reference_model: Option<usize>,
 }
 #[derive(Clone, Deserialize)]
 pub struct Token {
@@ -54,6 +60,8 @@ pub struct Token {
 pub struct Library {
     pub plans: Vec<Plan>,
     pub models: Vec<Model>,
+    #[serde(default)]
+    summary_markers: Vec<summaries::Definition>,
     vocabulary: Vec<Token>,
     constructors: BTreeMap<String, (Vec<String>, String)>,
 }
@@ -150,6 +158,7 @@ struct Work {
 #[derive(Default, Serialize)]
 struct Stats {
     blocks: BlockStats,
+    prediction_audit: BTreeMap<String, Confusion>,
     unchanged_notifications: usize,
     timestamp_only_changes: usize,
     bootstrap_rows: usize,
@@ -171,6 +180,23 @@ struct Stats {
     bootstrap_maintenance_seconds: f64,
     query_seconds: f64,
     rules: BTreeMap<String, Work>,
+}
+#[derive(Default, Serialize)]
+struct Confusion {
+    tp: usize,
+    fp: usize,
+    tn: usize,
+    fn_: usize,
+}
+impl Confusion {
+    fn record(&mut self, predicted: bool, truth: bool) {
+        match (predicted, truth) {
+            (true, true) => self.tp += 1,
+            (true, false) => self.fp += 1,
+            (false, true) => self.fn_ += 1,
+            (false, false) => self.tn += 1,
+        }
+    }
 }
 fn bump(v: &mut Vec<usize>, i: usize) {
     if v.len() <= i {
@@ -252,6 +278,7 @@ pub struct Hook {
     indices: Vec<Index>,
     coordinates: Option<coordinates::Coordinates>,
     markers: Option<markers::Markers>,
+    summaries: Option<summaries::Summaries>,
     full_rows: Vec<bool>,
     marker_coordinates: bool,
     event_coordinates: bool,
@@ -277,6 +304,7 @@ impl Hook {
             indices: vec![],
             coordinates: None,
             markers: None,
+            summaries: None,
             full_rows: vec![],
             marker_coordinates: std::env::var("STRUCTURAL_COORDINATES").as_deref() == Ok("markers"),
             event_coordinates: std::env::var("STRUCTURAL_COORDINATES").as_deref() != Ok("legacy"),
@@ -401,6 +429,9 @@ impl Hook {
         let mut mentioned = BTreeSet::new();
         if self.mode == "gpu" {
             for v in &self.lib.vocabulary {
+                if v.token[0] == "summary" {
+                    continue;
+                }
                 mentioned.insert(v.token[1].as_str().unwrap().to_string());
                 if v.token[0] == "path" || v.token[0] == "path2" {
                     mentioned.insert(v.token[3].as_str().unwrap().to_string());
@@ -412,6 +443,28 @@ impl Hook {
         }
         self.lib.constructors.retain(|k, _| mentioned.contains(k));
         names.extend(self.lib.constructors.keys().cloned());
+        if self.mode == "gpu" {
+            for d in &self.lib.summary_markers {
+                for a in &d.atoms {
+                    names.insert(a["table"].as_str().ok_or("summary table")?.into());
+                }
+            }
+            // Target relations must never enter their own predictive feature.
+            for m in &self.lib.models {
+                for d in &self.lib.summary_markers {
+                    if d.dependencies.contains(&m.channel) {
+                        for (i, t) in self.lib.vocabulary.iter().enumerate() {
+                            if t.token[0] == "summary"
+                                && t.token[1] == d.identity
+                                && !m.excluded_tokens.contains(&i)
+                            {
+                                return Err("target-dependent summary not masked".into());
+                            }
+                        }
+                    }
+                }
+            }
+        }
         self.names = names.into_iter().collect();
         self.ids = self
             .names
@@ -464,14 +517,30 @@ impl Hook {
                     || self.indices.iter().any(|i| i.table == t)
             })
             .collect();
+        let mut base_lib = self.lib.clone();
+        let first_summary = base_lib
+            .vocabulary
+            .iter()
+            .position(|t| t.token[0] == "summary")
+            .unwrap_or(base_lib.vocabulary.len());
+        if base_lib.vocabulary[first_summary..]
+            .iter()
+            .any(|t| t.token[0] != "summary")
+        {
+            return Err("summary features must follow base vocabulary".into());
+        }
+        base_lib.vocabulary.truncate(first_summary);
+        if self.mode == "gpu" && !self.lib.summary_markers.is_empty() {
+            self.summaries = Some(summaries::Summaries::new(&self.names, &self.lib, eg)?);
+        }
         if self.marker_coordinates && self.mode == "gpu" {
             self.markers = Some(markers::Markers::new(
                 &self.names,
-                &self.lib,
+                &base_lib,
                 self.coordinate_audit,
             ));
         } else if self.event_coordinates && self.mode == "gpu" {
-            self.coordinates = Some(coordinates::Coordinates::new(&self.names, &self.lib));
+            self.coordinates = Some(coordinates::Coordinates::new(&self.names, &base_lib));
         }
         let (feed, b) = eg.subscribe_cell_commits(&self.names)?;
         self.feed = Some(feed);
@@ -601,6 +670,9 @@ impl Hook {
             self.tokens.clear();
         }
         for t in b.clears {
+            if let Some(s) = &mut self.summaries {
+                s.clear(t);
+            }
             if let Some(m) = &mut self.markers {
                 m.clear(t);
             }
@@ -626,6 +698,9 @@ impl Hook {
             } else {
                 None
             };
+            if let Some(s) = &mut self.summaries {
+                s.update(t, &k, new.as_ref().map(|r| r.values.as_slice()));
+            }
             if let Some(m) = &mut self.markers {
                 m.update(t, &k, new.as_ref().map(|r| r.values.as_slice()));
             }
@@ -733,6 +808,13 @@ impl Hook {
             })
     }
     fn signature(&mut self, n: Node) -> Vec<usize> {
+        let mut result = self.base_signature(n.clone());
+        if let Some(s) = &mut self.summaries {
+            result.extend(s.signature(&n));
+        }
+        result
+    }
+    fn base_signature(&mut self, n: Node) -> Vec<usize> {
         self.stats.feature_requests += 1;
         if let Some(m) = &mut self.markers {
             return m.signature(&n.0, n.1, self.coordinate_audit);
@@ -748,7 +830,10 @@ impl Hook {
             return s.clone();
         }
         let s = (0..self.lib.vocabulary.len())
-            .filter(|i| self.has_token(&n, &self.lib.vocabulary[*i].token))
+            .filter(|i| {
+                self.lib.vocabulary[*i].token[0] != "summary"
+                    && self.has_token(&n, &self.lib.vocabulary[*i].token)
+            })
             .collect::<Vec<_>>();
         self.tokens.insert(n, s.clone());
         s
@@ -757,7 +842,8 @@ impl Hook {
         let mut routing = vec![];
         let mut pending: BTreeMap<(usize, Vec<usize>), usize> = BTreeMap::new();
         for &(m, v) in keys {
-            let sig = self.signature((self.lib.models[m].sort.clone(), v));
+            let mut sig = self.signature((self.lib.models[m].sort.clone(), v));
+            sig.retain(|i| !self.lib.models[m].excluded_tokens.contains(i));
             let k = (m, sig);
             self.stats.score_requests += 1;
             if self.scores.contains_key(&k) {
@@ -876,7 +962,12 @@ impl SaturationHook for Hook {
         Ok(None)
     }
     fn diagnostics(&self) -> Json {
-        json!({"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
+        if self.coordinate_audit {
+            if let Some(s) = &self.summaries {
+                s.audit();
+            }
+        }
+        json!({"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
         "scope":"GPU scores only reorder exact CPU checks. Every eligible anchor retained; complete native bindings and timestamp frontier. No Cell proof or sat-skip credit."})
     }
     fn take_commits(&mut self, eg: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)> {
@@ -993,11 +1084,61 @@ impl SaturationHook for Hook {
                 }
             }
         }
+        let primary_keys = score_keys.clone();
+        if self.coordinate_audit {
+            for &(m, v) in &primary_keys {
+                if let Some(r) = self.lib.models[m].reference_model {
+                    score_keys.insert((r, v));
+                }
+            }
+        }
         let scores = if self.mode == "gpu" {
             self.scores_for(&score_keys.into_iter().collect::<Vec<_>>())?
         } else {
             Map::default()
         };
+        if self.coordinate_audit && self.mode == "gpu" {
+            // Diagnostic only: compare both models on precisely the same
+            // unknown (model,key) requests at the same native pre-Run state.
+            for &(m, v) in &primary_keys {
+                let block = blocks.iter().find(|b| b.model == m && b.key == v).unwrap();
+                let truth = self.indices[block.index]
+                    .rows
+                    .get(&v)
+                    .is_some_and(|rs| !rs.is_empty());
+                let has = self.summaries.as_mut().is_some_and(|s| {
+                    s.signature(&(self.lib.models[m].sort.clone(), v))
+                        .iter()
+                        .any(|i| !self.lib.models[m].excluded_tokens.contains(i))
+                });
+                for (label, mid) in [
+                    ("candidate", Some(m)),
+                    ("reference", self.lib.models[m].reference_model),
+                ] {
+                    if let Some(mid) = mid {
+                        let pred = scores[&(mid, v)] >= 0.5;
+                        for key in [
+                            format!("{label}/all"),
+                            format!(
+                                "{label}/{}",
+                                if has {
+                                    "with-summary"
+                                } else {
+                                    "without-summary"
+                                }
+                            ),
+                            format!("{label}/channel/{}", self.lib.models[m].channel),
+                        ] {
+                            self.stats
+                                .prediction_audit
+                                .entry(key)
+                                .or_default()
+                                .record(pred, truth);
+                        }
+                    }
+                }
+            }
+        }
         for block in &mut blocks {
             block.score = scores
                 .get(&(block.model, block.key))
@@ -1221,10 +1362,13 @@ mod tests {
                 sort: "Term".into(),
                 channel: a.function.clone(),
                 sort_hash: 1,
+                excluded_tokens: vec![],
+                reference_model: None,
             });
         }
         let atoms=s.atoms.iter().map(|a|json!({"table":a.function,"sorts":a.sorts,"columns":a.columns.iter().map(|c|match c{CellOperand::Slot(s)=>json!({"Slot":s}),CellOperand::Constant{text,..}=>json!({"Literal":text})}).collect::<Vec<_>>()})).collect::<Vec<_>>();
         let lib = Library {
+            summary_markers: vec![],
             plans: vec![Plan {
                 name: "test".into(),
                 ruleset: "always-run".into(),

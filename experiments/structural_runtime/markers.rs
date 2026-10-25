@@ -436,11 +436,14 @@ mod tests {
     }
     fn fixture() -> Markers {
         let mut lib = Library {
+            summary_markers: vec![],
             plans: vec![],
             models: vec![Model {
                 sort: "T".into(),
                 channel: "".into(),
                 sort_hash: 0,
+                excluded_tokens: vec![],
+                reference_model: None,
             }],
             constructors: BTreeMap::from([
                 ("A".into(), (vec!["T".into(), "T".into()], "T".into())),

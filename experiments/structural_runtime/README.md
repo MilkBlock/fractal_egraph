@@ -6,6 +6,11 @@ The direct commit-to-bitmap backend (`--coordinates markers`) is described in
 [MARKER_RESULTS.md](MARKER_RESULTS.md). It compiles the same feature vocabulary
 into counted differential views; it does not enable the separate `.egg` marker pipeline.
 
+The solver's joint spine summaries can now be imported as **new** predictive
+features with `--summary-markers` at export time. This is separate from the
+same-vocabulary bitmap representation. See [SUMMARY_FEATURES.md](SUMMARY_FEATURES.md)
+for exact contracts, target masking, paired live accuracy and the measured limits.
+
 This is an opt-in query provider in the **actual native execution loop**, using
 `cell-assisted-egglog::table_live::SaturationHook::query_cells`. It replaces the
 search of selected rules, not their RHS, merge, rebuild, Run boundaries, or

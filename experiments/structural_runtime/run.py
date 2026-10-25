@@ -112,11 +112,12 @@ def main():
         # Existing production Tiger workflow; its 'native' label here is the
         # same-commit original-query lane, NOT a pristine/fused-native control.
         ex=a.output/'extraction-check';(ex/'graphs').mkdir(parents=True,exist_ok=True)
-        for dst,src in [('native','native'),('cpu','exact'),('gpu','gpu')]:
+        for dst,src in [('native','native'),('cpu','exact' if 'exact' in reports else 'native'),('gpu','gpu')]:
             target=ex/'graphs'/f'{dst}.json'
             if not target.exists():target.symlink_to(a.output/src/'graph.json')
         if not (ex/'extraction/quality.json').exists():
             subprocess.run([sys.executable,str(repo/'experiments/raytrace_pass3_gpu/extract.py'),str(ex)],check=True,env=env)
+        result['extraction_cpu_control']='exact' if 'exact' in reports else 'native'
         result['extraction']=json.loads((ex/'extraction/quality.json').read_text())
     (a.output/'summary.json').write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(result,indent=2))
