@@ -1,0 +1,7 @@
+(datatype Math (Num i64) (Add Math Math))
+(ruleset math)
+(rewrite (Add a b) (Add b a) :ruleset math)
+(rewrite (Add a (Num 0)) a :ruleset math)
+(Add (Num 1) (Num 0))
+(run-schedule (saturate math))
+(check (= (Add (Num 1) (Num 0)) (Num 1)))

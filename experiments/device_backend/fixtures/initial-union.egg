@@ -1,0 +1,8 @@
+(datatype T (N i64) (Wrap T))
+(relation Seen (T))
+(ruleset r)
+(rule ((= w (Wrap x))) ((Seen w)) :ruleset r)
+(Wrap (N 1))
+(Wrap (N 2))
+(union (N 1) (N 2))
+(run r 1)

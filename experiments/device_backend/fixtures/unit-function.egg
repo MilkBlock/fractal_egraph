@@ -1,0 +1,8 @@
+(datatype T (N i64))
+(function F (T) Unit :no-merge)
+(ruleset r)
+(rule ((= x (N 1))) ((set (F x) ())) :ruleset r)
+(rule ((F x)) ((N 2)) :ruleset r)
+(N 1)
+(run-schedule (saturate r))
+(check (N 2))

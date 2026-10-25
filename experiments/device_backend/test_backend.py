@@ -1,0 +1,51 @@
+"""Real Metal/native differential tests. Not timing or acceleration claims."""
+import argparse,json
+from pathlib import Path
+from run import run,compare
+HERE=Path(__file__).resolve().parent
+
+def tests(build,out):
+ out.mkdir(parents=True,exist_ok=True);results={}
+ for name,src in [('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
+  r=run(src,build,out/name);assert r['checks'] and all(c['exact_rows_values_equivalence_visibility'] for c in r['checks']);results[name]=r
+ unit=json.loads((out/'unit-function/program.json').read_text());assert next(t for t in unit['tables'] if t['name']=='F')['kind']=='function'
+ assert len(results['repeat']['steps'])==2,'Repeat must stop at a native quiescent boundary'
+ assert [s['matched'] for s in results['naive']['steps']]==[1,1],'naive rules must not inherit seminaive watermarks'
+ assert results['pipeline']['steps'][2]['unions']>=2,'explicit union must also cause congruence union'
+ assert results['pipeline']['steps'][-1]['matched']==0,'hidden witness must not match'
+ assert results['combined']['steps'][1]['matched']==0,'shared rule watermark must survive ruleset switch'
+ assert results['update']['steps'][-2]['updated'] is False
+ r=run(HERE.parent/'cell_spine/manual_marker/long-after.egg',build,out/'spine-unchecked',check_every=0)
+ assert r['native_oracle_runs']==0 and r['checkpoint_bytes']==0 and r['native_retired_before_gpu_runs'];assert r['steps']==results['spine']['steps'];results['spine-unchecked']=r
+ r=run(HERE/'pipeline.egg',build,out/'periodic',check_every=3);assert [c['step'] for c in r['checks']]==[3,6];results['periodic']=r
+ r=run(HERE/'pipeline.egg',build,out/'final-check',check_at_end=True);assert r['oracle_starts_after_gpu'] and len(r['checks'])==1 and r['native_oracle_runs']==6;assert r['steps']==results['pipeline']['steps'];results['final-check']=r
+ failures={
+  'match-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'match_capacity':1},'error=2'),
+  'row-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'capacity':2},'error=1'),
+  'source-check':('(datatype T (N i64)) (ruleset r) (N 1) (run r 1) (check (N 2))',{},'source check failed'),
+  'unit-lookup':('(datatype T (N i64)) (function F (T) Unit :no-merge) (ruleset r) (rule ((= x (N 1))) ((F x)) :ruleset r :naive) (N 1) (run r 1)',{},'native compilation failed'),
+  'ordered-merge':('(datatype T (N i64)) (function F (T) i64 :merge new) (ruleset r) (N 0) (run r 1)',{},'unsupported custom merge'),
+  'ambiguous-old':('(datatype T (N i64)) (function F (T) i64 :merge old) (ruleset r) (rule ((= x (N 0))) ((set (F x) 1)) :ruleset r) (rule ((= x (N 0))) ((set (F x) 2)) :ruleset r) (N 0) (run r 1)',{},'error=7'),
+  'overflow':('(datatype T (N i64)) (function F (T) i64 :merge (max old new)) (ruleset r) (rule ((= n (F x))) ((set (F x) (+ n 1))) :ruleset r) (set (F (N 0)) 9223372036854775807) (run r 1)',{},'error=5'),
+ }
+ for name,(source,options,error) in failures.items():
+  path=out/(name+'.egg');path.write_text(source)
+  try:run(path,build,out/name,**options)
+  except (ValueError,RuntimeError,AssertionError) as e:assert error in str(e),(name,str(e));results[name]={'expected_rejection':str(e)}
+  else:raise AssertionError(name+' accepted')
+  assert not (out/name/'report.json').exists();assert (out/name/'failure.json').exists()
+ # Deliberately corrupt successful snapshots: equal counts are not enough.
+ p=json.loads((out/'pipeline/program.json').read_text());g=json.loads((out/'pipeline/gpu-state.json').read_text());n=json.loads((out/'pipeline/native-state.json').read_text())
+ for corruption in ['visibility','value','equivalence']:
+  rows=[r[:] for r in g['rows']];parents=g['parents'][:]
+  if corruption=='visibility':rows[0][1]=1-rows[0][1]
+  if corruption=='value':
+   row=next(r for r in rows if p['tables'][r[0]]['name']=='Cost');row[4+len(p['tables'][row[0]]['schema'])-1]+=1 # corrupt primitive result, not its key
+  if corruption=='equivalence':
+   roots=[i for i,v in enumerate(parents) if i>0 and i==v];parents[roots[-1]]=roots[0]
+  try:compare(p,rows,parents,n)
+  except (AssertionError,KeyError):results['reject-corrupt-'+corruption]=True
+  else:raise AssertionError('accepted corrupt '+corruption)
+ (out/'results.json').write_text(json.dumps(results,indent=2)+'\n');return results
+if __name__=='__main__':
+ p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();r=tests(a.build,a.output);print('passed',len(r),'checks; results:',a.output/'results.json')

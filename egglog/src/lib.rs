@@ -15,6 +15,7 @@ pub mod ast;
 mod cli;
 mod command_macro;
 pub mod constraint;
+pub mod device_program;
 mod core;
 mod exec_state;
 pub mod extract;

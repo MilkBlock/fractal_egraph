@@ -1,0 +1,7 @@
+(datatype T (N i64))
+(function Score (T) i64 :merge (max old new))
+(ruleset tick)
+(rule ((= n (Score x)) (< n 3)) ((set (Score x) (+ n 1))) :ruleset tick)
+(set (Score (N 0)) 0)
+(run-schedule (saturate tick))
+(check (= (Score (N 0)) 3))

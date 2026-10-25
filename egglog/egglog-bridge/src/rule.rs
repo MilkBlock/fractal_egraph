@@ -127,6 +127,11 @@ pub struct RuleBuilder<'a> {
 }
 
 impl EGraph {
+    /// Read-only execution metadata for alternative device backends. Keep the
+    /// original per-rule opt-out instead of assuming every rule is seminaive.
+    pub fn device_rule_is_seminaive(&self, id: RuleId) -> bool {
+        self.rules[id].query.seminaive
+    }
     /// Add a rewrite rule for this [`EGraph`] using a [`RuleBuilder`].
     /// If you aren't sure, use `egraph.new_rule("", true)`.
     pub fn new_rule(&mut self, desc: &str, seminaive: bool) -> RuleBuilder<'_> {

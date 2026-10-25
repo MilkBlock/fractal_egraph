@@ -1,0 +1,26 @@
+"""Build the native frontend and the Metal execution transport, offline."""
+import argparse,hashlib,json,os,subprocess
+from pathlib import Path
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[1]
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--target',type=Path,required=True);a=p.parse_args();o=a.output.resolve();(o/'src').mkdir(parents=True,exist_ok=True)
+ (o/'Cargo.toml').write_text('[package]\nname="egglog-device-frontend"\nversion="0.1.0"\nedition="2024"\n[dependencies]\negglog={path='+json.dumps(str(ROOT/'egglog'))+',default-features=false}\nserde_json="1"\n[profile.dev]\ndebug=0\nincremental=false\n')
+ dest=o/'src/main.rs'
+ if not dest.exists():dest.symlink_to(HERE/'frontend.rs')
+ subprocess.run(['cargo','build','--offline','--manifest-path',str(o/'Cargo.toml')],env=dict(os.environ,CARGO_TARGET_DIR=str(a.target.resolve())),check=True)
+ import shutil
+ shutil.copy2(a.target/'debug/egglog-device-frontend',o/'frontend')
+ swift='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc';sdk='/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
+ if (HERE/'worker.swift').exists():subprocess.run([swift,'-O','-sdk',sdk,str(HERE/'worker.swift'),'-o',str(o/'worker')],check=True)
+ sha=lambda x:hashlib.sha256(x.read_bytes()).hexdigest()
+ sources=[ROOT/'egglog/src/device_program.rs',ROOT/'egglog/src/lib.rs',ROOT/'egglog/egglog-bridge/src/rule.rs',*[HERE/n for n in ['frontend.rs','compiler.py','worker.swift','kernel.metal','run.py']]]
+ tracked=subprocess.check_output(['git','ls-files','-z','egglog'],cwd=ROOT).decode().split('\0')
+ kernel=sorted(set([n for n in tracked if n.endswith(('.rs','.toml','.lock'))]+['egglog/src/device_program.rs']))
+ digest=hashlib.sha256()
+ for name in kernel:
+  f=ROOT/name
+  if f.is_file():digest.update(name.encode()+b'\0'+sha(f).encode())
+ provenance={'sources':{str(x):sha(x) for x in sources},'native_kernel_source_sha256':digest.hexdigest(),'git_head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'baseline_tag':subprocess.check_output(['git','rev-parse','egglog-baseline'],cwd=ROOT,text=True).strip(),'native_kernel_dirty':subprocess.check_output(['git','status','--short','--','egglog'],cwd=ROOT,text=True).splitlines(),'frontend':str(o/'frontend'),'frontend_sha256':sha(o/'frontend'),'worker_sha256':sha(o/'worker')}
+ (o/'build.json').write_text(json.dumps(provenance,indent=2))
+if __name__=='__main__':main()
