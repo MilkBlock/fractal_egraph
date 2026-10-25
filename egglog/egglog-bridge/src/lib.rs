@@ -33,6 +33,7 @@ use once_cell::sync::Lazy;
 use smallvec::SmallVec;
 use web_time::{Duration, Instant};
 
+mod device_import;
 pub mod macros;
 pub(crate) mod rule;
 #[cfg(test)]
