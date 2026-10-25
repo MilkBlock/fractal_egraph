@@ -101,13 +101,24 @@ def compile_program(p,capacity=4096,match_capacity=16384):
   pending=list(r['body']);known=set();lines=[];depth=0;stamps=[]
   def ready(a):return 'table' in a['call'] or all('literal' in x or x['var'] in known for x in a['args'][:-1])
   while pending:
-   at=next((i for i,a in enumerate(pending) if ready(a)),None)
+   candidates=[i for i,a in enumerate(pending) if ready(a)]
+   # Consume grounded filters first, then connected table atoms. This avoids
+   # enumerating unrelated type/shape tables before their binding is available.
+   def rank(i):
+    a=pending[i]
+    return (1 if 'primitive' in a['call'] else 0,sum('literal' in x or x.get('var') in known for x in a['args']),-i)
+   at=max(candidates,key=rank) if candidates else None
    if at is None:raise ValueError('ungrounded primitive')
    a=pending.pop(at);c=a['call']
    if 'table' in c:
     t=ids[c['table']]
     if len(a['args'])!=width[t]:raise ValueError('arity')
-    iv=f'i{depth}';depth+=1;lines.append(f'for(uint {iv}=0;{iv}<oldCount;{iv}++){{')
+    bound=[i for i,x in enumerate(a['args']) if 'literal' in x or x['var'] in known]
+    column=bound[-1] if bound else cols
+    head=f'qheads[query_hash({t},{column},{operand(a["args"][column])})]' if bound else f'qheads[HASH_CAP+{t}]'
+    iv=f'i{depth}';entry=f'q{depth}';depth+=1
+    lines.append(f'for(uint {entry}={head};{entry}!=0xffffffff;{entry}=qlinks[{entry}]){{')
+    lines.append(f'if({entry}%QSTRIDE!={column})continue;uint {iv}={entry}/QSTRIDE;')
     lines.append(f'if(old[{iv}*STRIDE]!={t} || old[{iv}*STRIDE+1]!=0)continue;');stamps.append(f'uint(old[{iv}*STRIDE+2])')
     for col,x in enumerate(a['args']):lines+=bind(x,f'old[{iv}*STRIDE+4+{col}]',known)
    else:
@@ -182,6 +193,7 @@ def compile_program(p,capacity=4096,match_capacity=16384):
  prefix=f'#define COLS {cols}\n#define STRIDE {cols+4}\n#define VARS {nv}\n#define MSTRIDE {nv+1}\n#define CAPACITY {capacity}\n#define MATCHCAP {match_capacity}\n#define IDCAP {idcap}\n'
  hash_cap=1
  while hash_cap<capacity*4:hash_cap*=2
+ prefix+=f'#define QSTRIDE {cols+1}\n#define TABLE_COUNT {len(ts)}\n'
  prefix+=f'#define HASH_CAP {hash_cap}\n#define INDEX_OFFSET {capacity*(cols+4)+arena_words}\n'
  prefix+=f'#define ROW_WORDS {capacity*(cols+4)}\n#define SET_WORDS {arena_words}\n'
  for name,data in [('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy),('ACTION_START',action_starts),('QUERY_WIDTH',query_widths)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
@@ -211,7 +223,7 @@ def compile_program(p,capacity=4096,match_capacity=16384):
    lines.append(f'long {name}={expr};if(m.error)return a;');return name
   value=lower(t['merge_expr']);merge_cases.append(f'case {tid}:{{'+''.join(lines)+f'return {value};'+'}')
  # Metal scalar types are available after the include, before generated schema.
- source=(HERE/'kernel.metal').read_text().replace('// ROW_INDEX',(HERE/'row_index.metal').read_text()).replace('// DEVICE_ACTIONS',(HERE/'actions.metal').read_text()).replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
+ source=(HERE/'kernel.metal').read_text().replace('// QUERY_INDEX',(HERE/'query_index.metal').read_text()).replace('// ROW_INDEX',(HERE/'row_index.metal').read_text()).replace('// DEVICE_ACTIONS',(HERE/'actions.metal').read_text()).replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
  kernel_start=source.index('// Correctness-first reference executor.')
  common,template=source[:kernel_start],source[kernel_start:]
  kernels=[];kernel_names=[]
@@ -221,4 +233,4 @@ def compile_program(p,capacity=4096,match_capacity=16384):
   wm=''.join(f'watermarks[{r}]=previous;' for r in use)
   kernels.append(template.replace('kernel void step(',f'kernel void {name}(').replace('// MATCH_BODY',query).replace('// WATERMARK_BODY',wm))
  source=common+'\n'.join(kernels)
- return {'schema':'egglog-device-storage/v1','shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+1,'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'id_capacity':idcap,'stride':cols+4,'match_stride':nv+1,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}
+ return {'schema':'egglog-device-storage/v1','shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+1,'query_head_words':hash_cap+len(ts),'query_link_words':capacity*(cols+1),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'id_capacity':idcap,'stride':cols+4,'match_stride':nv+1,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}

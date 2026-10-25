@@ -10,7 +10,7 @@ void row_index_insert(device long*r,device uint*p,uint i){
  while(index[slot]){if(keyeq(r,uint(index[slot]-1),t,args,p))return;slot=(slot+1)&(HASH_CAP-1);}
  index[slot]=long(i)+1;
 }
-void ensure_row_index(device long*r,device uint*p,device Meta&m){
+__attribute__((noinline)) void ensure_row_index(device long*r,device uint*p,device Meta&m){
  if(r[INDEX_OFFSET]==long(m.unions)+1)return;
  for(uint i=0;i<HASH_CAP;i++)r[INDEX_OFFSET+1+i]=0;
  for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2)row_index_insert(r,p,i);

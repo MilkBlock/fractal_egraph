@@ -1,6 +1,6 @@
 // Fixed-width instructions [opcode,destination,operation,operand-kind,value].
 // Only the currently executing binding uses this device register file.
-void execute_actions(uint rule,uint mi,device long*code,device long*v,device long*matches,
+__attribute__((noinline)) void execute_actions(uint rule,uint mi,device long*code,device long*v,device long*matches,
  device long*r,device uint*p,device uint*fp,device Meta&m){
  for(uint i=0;i<QUERY_WIDTH[rule];i++)v[i]=matches[mi*MSTRIDE+1+i];
  long args[COLS]={0};

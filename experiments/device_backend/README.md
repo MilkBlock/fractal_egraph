@@ -149,3 +149,15 @@ Writes use a GPU-resident open-addressed full-key index. Union invalidates this 
 `--max-runs N` is a diagnostic prefix mode. Reports explicitly carry `complete_schedule: false` when execution stops before the full schedule; it must never be reported as a complete Pass 3 result. The default remains the entire source schedule.
 
 `action-results.json` records the full 548-rule Metal compilation/startup (17.23 seconds on its first observed build), 31 regressions plus a separate prefix-control test, and three real Pass 3 Run boundaries. Initialization produced 13,457 rows / 13,456 mapped equality classes; the following two type-helpers Runs also passed complete snapshot comparison. The initialization boundary including native oracle and snapshot comparison went from 70.19 seconds with linear writes to 5.07 seconds with indexed writes. These are diagnostic prefix times, not full inference acceleration. CPU extraction and complete Pass 3 validation remain outstanding.
+
+### Snapshot query indexes and grouped rebuild
+
+GPU queries now use per-table chains for unbound atoms and hashed column chains when a value is already bound. A chain entry identifies both the row and column: hash collisions across tables/columns are filtered explicitly, with all original argument and primitive conditions still checked. Indexes are built on the frozen Run snapshot, not on partially committed RHS effects. Descending insertion preserves ascending physical-row traversal within a chain.
+
+The compiler evaluates grounded filters first and chooses connected table atoms before unbound ones. For example, it can read HasType for an already bound Expr before enumerating unrelated TupleT rows. This is a complete query-plan change, not Cell-based pruning or a learned approximation.
+
+Rebuild now groups canonical full keys with a hash index before running merge effects. Group discovery is frozen for a round; unions and newly created rows trigger another canonicalization round. This replaces pairwise whole-table comparison. Query scratch is reused for grouping after all matches have been collected.
+
+Public entry kernels are still serial. Shared index, action and rebuild helpers are explicitly not inlined to control full-program Metal compilation. Parallel query execution and the existing matrix/Cell matching paths remain to be integrated.
+
+`query-results.json` records 32 regressions and 256 real Run boundaries with eight complete native/GPU snapshot comparisons. The prefix ends with 44,035 rows, 37,323 mapped equality classes and 2,727 committed unions. It only reaches initialization/type-helpers/type-analysis, not the whole Pass 3 schedule. Its 123.11 seconds includes native reference execution and Python snapshot comparison, so it is not an inference-only benchmark or acceleration claim.

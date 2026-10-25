@@ -18,6 +18,7 @@ let setWords=program["set_words"] as! Int
 let rows=privateBuffer((capacity*stride+setWords+(program["index_words"] as! Int))*8),old=privateBuffer(capacity*stride*8),parent=privateBuffer(ids*4),factParent=privateBuffer(ids*4)
 let meta=privateBuffer(36),matches=privateBuffer(matchCapacity*matchStride*8),watermarks=privateBuffer(nrules*4)
 let instructions=privateBuffer(max(8,(program["action_code"] as! [NSNumber]).count*8)),registers=privateBuffer((program["register_count"] as! Int)*8)
+let queryHeads=privateBuffer((program["query_head_words"] as! Int)*4),queryLinks=privateBuffer((program["query_link_words"] as! Int)*4)
 let initialMeta=(program["meta"] as! [NSNumber]).map{$0.uint32Value}
 func initializeState() throws {
 let initial=(program["initial_rows"] as! [NSNumber]).map{$0.int64Value}
@@ -47,7 +48,7 @@ while true{
   try need(Int(arg)<(program["sets"] as! [String]).count,"ruleset")
   let cb=queue.makeCommandBuffer()!,e=cb.makeComputeCommandEncoder()!;e.setComputePipelineState(stepPipelines[Int(arg)])
   for (i,b) in [rows,old,parent,factParent,meta,matches,watermarks].enumerated(){e.setBuffer(b,offset:0,index:i)}
-  e.setBuffer(instructions,offset:0,index:8);e.setBuffer(registers,offset:0,index:9)
+  e.setBuffer(instructions,offset:0,index:8);e.setBuffer(registers,offset:0,index:9);e.setBuffer(queryHeads,offset:0,index:10);e.setBuffer(queryLinks,offset:0,index:11)
   var set=arg;withUnsafeBytes(of:&set){e.setBytes($0.baseAddress!,length:4,index:7)}
   e.dispatchThreads(MTLSize(width:1,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:1,height:1,depth:1));e.endEncoding()
   let status=device.makeBuffer(length:36,options:.storageModeShared)!,b=cb.makeBlitCommandEncoder()!;b.copy(from:meta,sourceOffset:0,to:status,destinationOffset:0,size:36);b.endEncoding()

@@ -14,7 +14,7 @@ bool keyeq(device long*r,uint row,uint t,thread long*args,device uint*p){
 // ROW_INDEX
 bool integer_valid(uint op,long a,long b);
 long integer_eval(uint op,long a,long b);
-long ensure_constructor(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
+__attribute__((noinline)) long ensure_constructor(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
  if(m.error)return 0;
  long found=row_lookup(r,p,m,t,args);if(found>=0)return canon(r,p,t,WIDTH[t]-1,r[found*STRIDE+4+WIDTH[t]-1]);
  if(m.count>=CAPACITY||m.next_fact>=IDCAP||m.next_id>=IDCAP){m.error=1;return 0;}
@@ -34,7 +34,7 @@ long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,
  if(POLICY[t]==1)return min(a,b);if(POLICY[t]==2)return max(a,b);
  if(a!=b)m.error=4;return a;
 }
-long write_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args,long value,bool create){
+__attribute__((noinline)) long write_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args,long value,bool create){
  if(m.error)return 0;
  long found=row_lookup(r,p,m,t,args);if(found>=0){uint i=uint(found);
   uint at=i*STRIDE+4+WIDTH[t]-1;long old=canon(r,p,t,WIDTH[t]-1,r[at]);
@@ -78,41 +78,51 @@ long integer_eval(uint op,long a,long b){
  case 7:return a==b;case 8:return a<b;case 9:return a>b;case 10:return a<=b;case 11:return a>=b;}
  return 0;
 }
-void rebuild(device long*r,device uint*p,device uint*fp,device Meta&m){
- bool again=true;while(again && !m.error){again=false;
+__attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*fp,device Meta&m,device uint*heads,device uint*groups){
+ bool again=true;while(again&&!m.error){again=false;
   for(long h=2;h<r[ROW_WORDS];h+=r[ROW_WORDS+h]+4)set_canon(r,p,h);
   for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){uint t=uint(r[i*STRIDE]);
-   for(uint c=0;c<WIDTH[t];c++){uint at=i*STRIDE+4+c;long x=canon(r,p,t,c,r[at]);if(x!=r[at]||(EQ[t*COLS+c]==2 && r[ROW_WORDS+x+3]==m.epoch)){r[at]=x;r[i*STRIDE+2]=m.epoch;m.changed=1;}}
+   for(uint c=0;c<WIDTH[t];c++){uint at=i*STRIDE+4+c;long x=canon(r,p,t,c,r[at]);
+    if(x!=r[at]||(EQ[t*COLS+c]==2&&r[ROW_WORDS+x+3]==m.epoch)){r[at]=x;r[i*STRIDE+2]=m.epoch;m.changed=1;}}
   }
-  for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){uint t=uint(r[i*STRIDE]);
-   for(uint j=i+1;j<m.count;j++)if(r[j*STRIDE+1]!=2&&r[j*STRIDE]==t){
-    bool same=true;for(uint c=0;c<WIDTH[t]-1;c++)same=same&&(r[i*STRIDE+4+c]==r[j*STRIDE+4+c]);
-    if(!same)continue;
-    uint oi=i*STRIDE+4+WIDTH[t]-1,oj=j*STRIDE+4+WIDTH[t]-1,before=m.unions;
-    if(POLICY[t]==4 && r[oi]!=r[oj]){m.error=7;return;}
-    r[oi]=mergevalue(t,r[oi],r[oj],r,p,fp,m);again=again||(before!=m.unions);
-    // Native egglog combine_subsumed uses max, not logical AND.
-    r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;
-    fp[root(fp,uint(r[j*STRIDE+3]))]=root(fp,uint(r[i*STRIDE+3]));m.changed=1;
-   }
+  for(uint h=0;h<HASH_CAP;h++)heads[h]=0;
+  uint count=m.count,before=m.unions;
+  // Freeze duplicate groups before merge effects can change any canonical key.
+  for(uint i=0;i<count;i++)if(r[i*STRIDE+1]!=2){uint t=uint(r[i*STRIDE]);long args[COLS]={0};
+   for(uint c=0;c<WIDTH[t]-1;c++)args[c]=r[i*STRIDE+4+c];uint h=row_hash(t,args,r,p);
+   while(heads[h]&&!keyeq(r,heads[h]-1,t,args,p))h=(h+1)&(HASH_CAP-1);
+   if(!heads[h])heads[h]=i+1;groups[i]=heads[h]-1;
   }
+  for(uint j=0;j<count&&!m.error;j++)if(r[j*STRIDE+1]!=2&&groups[j]!=j){
+   uint i=groups[j],t=uint(r[i*STRIDE]),oi=i*STRIDE+4+WIDTH[t]-1,oj=j*STRIDE+4+WIDTH[t]-1;
+   long a=canon(r,p,t,WIDTH[t]-1,r[oi]),b=canon(r,p,t,WIDTH[t]-1,r[oj]);
+   if(POLICY[t]==4&&a!=b){m.error=7;return;}
+   r[oi]=mergevalue(t,a,b,r,p,fp,m);
+   r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;
+   fp[root(fp,uint(r[j*STRIDE+3]))]=root(fp,uint(r[i*STRIDE+3]));m.changed=1;
+   // Writes performed by a later merge must not find a just-retired row.
+   r[INDEX_OFFSET]=0;
+  }
+  again=before!=m.unions||count!=m.count;
  }
  uint n=0;for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){if(n!=i)for(uint c=0;c<STRIDE;c++)r[n*STRIDE+c]=r[i*STRIDE+c];n++;}m.count=n;r[INDEX_OFFSET]=0;
 }
+// QUERY_INDEX
 // DEVICE_ACTIONS
 kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],uint i[[thread_position_in_grid]]){if(i<IDCAP){p[i]=i;fp[i]=i;}}
 // Correctness-first reference executor. A single lane commits deterministic
 // actions and rebuilds. It is not a throughput kernel or Tensor Core benchmark.
-kernel void step(device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],uint lane[[thread_position_in_grid]]){
+kernel void step(device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],uint lane[[thread_position_in_grid]]){
  if(lane||m.error)return;m.changed=0;m.matched=0;uint previous=m.epoch,oldCount=m.count,startUnions=m.unions;
  if(m.epoch==0xffffffff){m.error=6;return;}m.epoch++;m.rounds++;r[ROW_WORDS+1]=m.epoch;
  for(uint i=0;i<oldCount*STRIDE;i++)old[i]=r[i];
+ build_query_index(old,oldCount,qheads,qlinks);
  // MATCH_BODY
  if(m.error)return;
  for(uint mi=0;mi<m.matched;mi++){
   uint rule=uint(matches[mi*MSTRIDE]);execute_actions(rule,mi,code,registers,matches,r,p,fp,m);
   if(m.error)return;
  }
- if(m.unions!=startUnions)rebuild(r,p,fp,m);
+ if(m.unions!=startUnions)rebuild(r,p,fp,m,qheads,qlinks);
  // WATERMARK_BODY
 }
