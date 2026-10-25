@@ -23,6 +23,15 @@ def tests(build,out):
  assert parallel['steps']==serial['steps'] and parallel['steps'][1]['matched']==1024
  assert json.loads((out/'match-order-parallel/gpu-state.json').read_text())==json.loads((out/'match-order-serial/gpu-state.json').read_text())
  results['parallel-binding-order']=True
+ # Column pruning must not change the timestamp gates on unindexed seed
+ # tables. Compare the entire state, including watermarks and physical order.
+ all_columns=run(HERE/'fixtures/delta-join.egg',build,out/'all-index-columns',all_index_columns=True)
+ assert all_columns['steps']==results['delta-join']['steps']
+ assert json.loads((out/'all-index-columns/gpu-state.json').read_text())==json.loads((out/'delta-join/gpu-state.json').read_text())
+ limited=json.loads((out/'delta-join/program.json').read_text())['index_columns']
+ full=json.loads((out/'all-index-columns/program.json').read_text())['index_columns']
+ assert sum(map(len,limited.values()))<sum(map(len,full.values()))
+ results['used-index-columns']=True
  assert {'pure','mixed'}<=set(results['deferred-union']['deferred_rulesets'])
  # Eager union is a diagnostic counterfactual, and is known to lose a merge
  # constructor in this case. Never silently bless it as native-equivalent.

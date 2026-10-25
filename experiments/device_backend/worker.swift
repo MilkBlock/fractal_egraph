@@ -16,7 +16,7 @@ let commitPipeline=try device.makeComputePipelineState(function:lib.makeFunction
 let rebuildPipelines=try ["rebuild_start","rebuild_canonical","rebuild_insert","rebuild_assign","merge_scan","merge_offsets","merge_scatter","rebuild_merge","compact_scan","compact_offsets","compact_copy","compact_store"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 try need(rebuildPipelines[4].maxTotalThreadsPerThreadgroup>=256 && rebuildPipelines[8].maxTotalThreadsPerThreadgroup>=256,"rebuild scans require 256-thread groups")
 let rowIndexPipelines=try ["row_index_context","row_index_clear","row_index_parallel","row_index_ready"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
-let queryPipelines=try ["query_row_scan","query_row_offsets","query_pairs","query_radix_scan","query_radix_offsets","query_radix_scatter","query_link_sorted"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
+let queryPipelines=try ["query_row_scan","query_row_offsets","query_pairs","query_radix_scan","query_radix_offsets","query_radix_scatter","query_link_sorted","query_table_time"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 try need(queryPipelines[0].maxTotalThreadsPerThreadgroup>=256 && queryPipelines[3].maxTotalThreadsPerThreadgroup>=256,"index scans require 256-thread groups")
 let matchSortPipelines=try ["match_order_local","match_order_global","match_order_merge"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 try need(matchSortPipelines[0].maxTotalThreadsPerThreadgroup>=256 && matchSortPipelines[2].maxTotalThreadsPerThreadgroup>=256,"matching order requires 256-thread groups")
@@ -118,7 +118,7 @@ while true{
        encode(cb,queryPipelines[5],1,arg,indirect:true,radixBit:UInt32(bit))
       }
       encode(cb,prepareClearPipeline,1,arg,indirect:true,indirectOffset:32)
-      encode(cb,queryPipelines[6],1,arg,indirect:true)
+      encode(cb,queryPipelines[6],1,arg,indirect:true);encode(cb,queryPipelines[7],max(1,Int(hostMeta[0])),arg)
      }
     }else{encode(cb,prepareClearPipeline,1,arg,indirect:true)}
     encode(cb,prepareBuildPipeline,1,arg)

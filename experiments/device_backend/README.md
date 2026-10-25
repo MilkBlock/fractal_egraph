@@ -2,7 +2,7 @@
 
 The CPU keeps native parsing, typechecking and schedule control. Metal owns the evolving tables, matching, RHS actions, union-find and rebuild. Normal execution returns status/timing data, never bindings for CPU-side RHS execution.
 
-This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; RHS effects and merge callbacks are committed serially. It has **not completed the full raytrace Pass 3 schedule or extraction validation**, and has no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading, the ridge predictor and Tensor Core matching are not connected here.
+This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; RHS effects and merge callbacks are committed serially. It has completed all 10,097 raytrace Pass 3 Runs through saved device continuations. Strict final graph/selected-DAG equality has **not** passed; production Tiger emits 29 functions on both sides, and a separate production-interpreter check agrees on raytrace's official input. That finite-input result is not an equivalence proof. There is no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading, the ridge predictor and Tensor Core matching are not connected here.
 
 ## Run and verify
 
@@ -53,6 +53,8 @@ CPU: schedule status; optional snapshot comparison
 Each ruleset has a match entry and shares prepare/commit kernels. Read-only rulesets assign the first branching table atom to GPU lanes. Emitted bindings are sorted on-device by original rule/variant/seed/inner order before RHS execution. Rulesets with allocating set primitives on the LHS retain serial matching; set columns and set-length reads are read-only. These stages have separate Metal command timing. RHS is fixed-width bytecode in GPU-private storage, with one device register file for the current binding. The large initialization RHS is not unrolled into thousands of Metal statements.
 
 Matching finishes before any RHS write, so the logical snapshot aliases the row buffer safely; an entire copy is unnecessary. Stable radix partition builds query indexes in parallel while retaining physical-row traversal order. Complete-key indexes use atomic minimum representatives. Query indexes persist across Runs. Append-only changes extend chains; existing value changes, visibility changes and union/rebuild invalidate them. Keys already fully bound use direct complete-key lookup.
+
+Only column/table/timestamp chains actually traversed by the compiled queries are built. Parallel seed rows need no chain, but serial ruleset membership is included when computing this requirement. Per-table latest timestamps are maintained independently, including for tables with no indexed columns. `--all-index-columns` retains the former layout for differential testing.
 
 Seminaive rules partition matches by the first table atom whose row timestamp exceeds the rule watermark. Earlier atoms must be old; the pivot is new; later atoms are unrestricted. These branches are disjoint, including when multiple atoms change together or a row participates in a self-join. Timestamp buckets locate pivot rows without scanning an entire table. Naive rules keep unrestricted matching. Per-rule watermarks remain shared across direct and combined rulesets.
 

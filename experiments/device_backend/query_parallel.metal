@@ -2,7 +2,7 @@
 // compacted in physical-row/column order, so equal buckets retain that order.
 kernel void query_row_scan(KERNEL_ARGS,uint tid[[thread_index_in_threadgroup]],uint group[[threadgroup_position_in_grid]]){
  if(m.error||!control[0])return;threadgroup uint sums[256];
- uint n=(lane<m.count&&old[lane*STRIDE+1]==0)?WIDTH[uint(old[lane*STRIDE])]+2:0;
+ uint n=(lane<m.count&&old[lane*STRIDE+1]==0)?INDEX_COUNT[uint(old[lane*STRIDE])]:0;
  sums[tid]=n;threadgroup_barrier(mem_flags::mem_threadgroup);
  for(uint d=1;d<256;d*=2){uint v=tid>=d?sums[tid-d]:0;threadgroup_barrier(mem_flags::mem_threadgroup);sums[tid]+=v;threadgroup_barrier(mem_flags::mem_threadgroup);}
  if(lane<m.count)qlinks[lane]=sums[tid]-n;
@@ -16,9 +16,10 @@ kernel void query_row_offsets(KERNEL_ARGS){
 kernel void query_pairs(KERNEL_ARGS){
  if(m.error||!control[0]||lane>=m.count||old[lane*STRIDE+1]!=0)return;
  uint t=uint(old[lane*STRIDE]),base=qheads[lane/256]+qlinks[lane];device ulong*out=(device ulong*)matches;
- for(uint c=0;c<WIDTH[t];c++)out[base+c]=(ulong(query_hash(t,c,old[lane*STRIDE+4+c]))<<32)|ulong(lane*QSTRIDE+c);
- out[base+WIDTH[t]]=(ulong(HASH_CAP+t)<<32)|ulong(lane*QSTRIDE+COLS);
- out[base+WIDTH[t]+1]=(ulong(query_hash(t,TIME_COLUMN,old[lane*STRIDE+2]))<<32)|ulong(lane*QSTRIDE+TIME_COLUMN);
+ uint n=0;
+ for(uint c=0;c<WIDTH[t];c++)if(INDEX_COLUMN[t*QSTRIDE+c])out[base+n++]=(ulong(query_hash(t,c,old[lane*STRIDE+4+c]))<<32)|ulong(lane*QSTRIDE+c);
+ if(INDEX_COLUMN[t*QSTRIDE+COLS])out[base+n++]=(ulong(HASH_CAP+t)<<32)|ulong(lane*QSTRIDE+COLS);
+ if(INDEX_COLUMN[t*QSTRIDE+TIME_COLUMN])out[base+n]=(ulong(query_hash(t,TIME_COLUMN,old[lane*STRIDE+2]))<<32)|ulong(lane*QSTRIDE+TIME_COLUMN);
 }
 kernel void query_radix_scan(KERNEL_ARGS,constant uint&bit[[buffer(13)]],device ulong*alternate[[buffer(14)]],uint tid[[thread_index_in_threadgroup]],uint group[[threadgroup_position_in_grid]]){
  if(m.error||!control[0])return;threadgroup uint sums[256];
@@ -49,7 +50,7 @@ kernel void query_link_sorted(KERNEL_ARGS,device ulong*alternate[[buffer(14)]]){
  bool last=lane+1==control[7]||uint(keys[lane+1]>>32)!=h;
  if(last)qheads[QBUCKETS+h]=e;
  qlinks[e]=last?0xffffffff:uint(keys[lane+1]);
- if(e%QSTRIDE==TIME_COLUMN){uint row=e/QSTRIDE,t=uint(old[row*STRIDE]);atomic_fetch_max_explicit((device atomic_uint*)&qheads[2*QBUCKETS+1+t],uint(old[row*STRIDE+2]),memory_order_relaxed);}
+
 }
 
 long index_canon(device long*r,device uint*p,uint t,uint c,long x){return EQ[t*COLS+c]==1?long(rb_root(p,uint(x))):(EQ[t*COLS+c]==2?rb_set(r,x):x);}
@@ -76,3 +77,8 @@ kernel void row_index_parallel(KERNEL_ARGS){
  }
 }
 kernel void row_index_ready(KERNEL_ARGS){if(!lane&&!m.error){r[INDEX_OFFSET]=long(m.unions)+1;r[INDEX_OFFSET+HASH_CAP+1]++;}}
+
+kernel void query_table_time(KERNEL_ARGS){
+ if(m.error||!control[0]||lane>=m.count||old[lane*STRIDE+1]!=0)return;
+ uint t=uint(old[lane*STRIDE]);atomic_fetch_max_explicit((device atomic_uint*)&qheads[2*QBUCKETS+1+t],uint(old[lane*STRIDE+2]),memory_order_relaxed);
+}

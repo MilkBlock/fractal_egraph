@@ -15,9 +15,9 @@ __attribute__((noinline)) void build_query_index(device long*old,uint start,uint
  // Tail insertion preserves physical-row order across append-only updates.
  for(uint i=start;i<count;i++){if(old[i*STRIDE+1]!=0)continue;uint t=uint(old[i*STRIDE]);
   heads[2*QBUCKETS+1+t]=max(heads[2*QBUCKETS+1+t],uint(old[i*STRIDE+2]));
-  append_query_link(heads,links,HASH_CAP+t,i*QSTRIDE+COLS);
-  append_query_link(heads,links,query_hash(t,TIME_COLUMN,old[i*STRIDE+2]),i*QSTRIDE+TIME_COLUMN);
-  for(uint c=0;c<WIDTH[t];c++)append_query_link(heads,links,query_hash(t,c,old[i*STRIDE+4+c]),i*QSTRIDE+c);
+  if(INDEX_COLUMN[t*QSTRIDE+COLS])append_query_link(heads,links,HASH_CAP+t,i*QSTRIDE+COLS);
+  if(INDEX_COLUMN[t*QSTRIDE+TIME_COLUMN])append_query_link(heads,links,query_hash(t,TIME_COLUMN,old[i*STRIDE+2]),i*QSTRIDE+TIME_COLUMN);
+  for(uint c=0;c<WIDTH[t];c++)if(INDEX_COLUMN[t*QSTRIDE+c])append_query_link(heads,links,query_hash(t,c,old[i*STRIDE+4+c]),i*QSTRIDE+c);
  }
  heads[2*QBUCKETS]=count;
 }
