@@ -1,0 +1,2441 @@
+{
+  "scope": "Same 75-query workload and original full native schedule. Roots use speculative condition ordering; groups use exact shared existence followed by lazy payloads. Not Cell proof/sat-skip credit.",
+  "before": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/condition-handles-roots",
+  "after": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/condition-handles-groups",
+  "rules": [
+    {
+      "rule": "(rewrite (Concat (Concat a b) c) (Concat a (Concat b c)) :ruleset always-run)",
+      "candidates": 12139,
+      "bindings": 5995,
+      "before_depth": [
+        0,
+        12139
+      ],
+      "after_payload_depth": [
+        8036,
+        4103
+      ],
+      "group_rejected": 8036,
+      "before_consumer_reads": 12139,
+      "after_payload_references": 4103,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.33800148282395587,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rewrite (Concat (Empty ty ctx) x) x :ruleset always-run)",
+      "candidates": 20,
+      "bindings": 66,
+      "before_depth": [
+        0,
+        20
+      ],
+      "after_payload_depth": [
+        1,
+        19
+      ],
+      "group_rejected": 1,
+      "before_consumer_reads": 20,
+      "after_payload_references": 19,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.95,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rewrite (Concat x (Empty ty ctx)) x :ruleset always-run)",
+      "candidates": 17,
+      "bindings": 23,
+      "before_depth": [
+        0,
+        17
+      ],
+      "after_payload_depth": [
+        0,
+        17
+      ],
+      "group_rejected": 0,
+      "before_consumer_reads": 17,
+      "after_payload_references": 17,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rewrite (SubTuple expr x 0) (Empty ty ctx) :when ((HasArgType expr ty) (ContextOf expr ctx)) :ruleset always-run)",
+      "candidates": 16,
+      "bindings": 16,
+      "before_depth": [
+        0,
+        0,
+        16
+      ],
+      "after_payload_depth": [
+        0,
+        0,
+        16
+      ],
+      "group_rejected": 0,
+      "before_consumer_reads": 32,
+      "after_payload_references": 32,
+      "before_reach": [
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rewrite (TupleRemoveAt tuple idx) (Concat (SubTuple tuple 0 idx) (SubTuple tuple (+ idx 1) (- len (+ idx 1)))) :when ((= len (tuple-length tuple))) :ruleset always-run)",
+      "candidates": 20,
+      "bindings": 20,
+      "before_depth": [
+        0,
+        20
+      ],
+      "after_payload_depth": [
+        0,
+        20
+      ],
+      "group_rejected": 0,
+      "before_consumer_reads": 20,
+      "after_payload_references": 20,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Alloc id e state ty))\n       (= sum (Expr-size e)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "candidates": 366,
+      "bindings": 230,
+      "before_depth": [
+        0,
+        366
+      ],
+      "after_payload_depth": [
+        136,
+        230
+      ],
+      "group_rejected": 136,
+      "before_consumer_reads": 366,
+      "after_payload_references": 230,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6284153005464481,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Call func arg))\n       (= sum (Expr-size arg)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "candidates": 7030,
+      "bindings": 6909,
+      "before_depth": [
+        0,
+        7030
+      ],
+      "after_payload_depth": [
+        121,
+        6909
+      ],
+      "group_rejected": 121,
+      "before_consumer_reads": 7030,
+      "after_payload_references": 6909,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.9827880512091038,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Function name tyin tyout out))\n       (= sum (Expr-size out)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "candidates": 1487,
+      "bindings": 1458,
+      "before_depth": [
+        0,
+        1487
+      ],
+      "after_payload_depth": [
+        29,
+        1458
+      ],
+      "group_rejected": 29,
+      "before_consumer_reads": 1487,
+      "after_payload_references": 1458,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.980497646267653,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "candidates": 977455,
+      "bindings": 957751,
+      "before_depth": [
+        0,
+        977455
+      ],
+      "after_payload_depth": [
+        19704,
+        957751
+      ],
+      "group_rejected": 19704,
+      "before_consumer_reads": 977455,
+      "after_payload_references": 957751,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.9798415272314327,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Single x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "candidates": 311109,
+      "bindings": 302564,
+      "before_depth": [
+        0,
+        311109
+      ],
+      "after_payload_depth": [
+        8545,
+        302564
+      ],
+      "group_rejected": 8545,
+      "before_consumer_reads": 311109,
+      "after_payload_references": 302564,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.9725337421932506,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= expr (Uop op x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+      "candidates": 7,
+      "bindings": 4,
+      "before_depth": [
+        0,
+        7
+      ],
+      "after_payload_depth": [
+        3,
+        4
+      ],
+      "group_rejected": 3,
+      "before_consumer_reads": 7,
+      "after_payload_references": 4,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5714285714285714,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= f (Base (PointerT ty))))\n      ((PointerishType f))\n        :ruleset always-run )",
+      "candidates": 5,
+      "bindings": 5,
+      "before_depth": [
+        0,
+        5
+      ],
+      "after_payload_depth": [
+        0,
+        5
+      ],
+      "group_rejected": 0,
+      "before_consumer_reads": 5,
+      "after_payload_references": 5,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= f (TCons (PointerT ty) tl)))\n      ((PointerishTypeList f))\n        :ruleset always-run )",
+      "candidates": 902,
+      "bindings": 502,
+      "before_depth": [
+        0,
+        902
+      ],
+      "after_payload_depth": [
+        400,
+        502
+      ],
+      "group_rejected": 400,
+      "before_consumer_reads": 902,
+      "after_payload_references": 502,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5565410199556541,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= f (TCons hd tl))\n       (PointerishTypeList tl))\n      ((PointerishTypeList f))\n        :ruleset always-run )",
+      "candidates": 1742,
+      "bindings": 841,
+      "before_depth": [
+        0,
+        1742
+      ],
+      "after_payload_depth": [
+        901,
+        841
+      ],
+      "group_rejected": 901,
+      "before_consumer_reads": 1742,
+      "after_payload_references": 841,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.4827784156142365,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= f (TupleT l))\n       (PointerishTypeList l))\n      ((PointerishType f))\n        :ruleset always-run )",
+      "candidates": 1560,
+      "bindings": 873,
+      "before_depth": [
+        0,
+        1560
+      ],
+      "after_payload_depth": [
+        687,
+        873
+      ],
+      "group_rejected": 687,
+      "before_consumer_reads": 1560,
+      "after_payload_references": 873,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5596153846153846,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= lhs (Arg ty ctx))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+      "candidates": 154,
+      "bindings": 77,
+      "before_depth": [
+        0,
+        154
+      ],
+      "after_payload_depth": [
+        77,
+        77
+      ],
+      "group_rejected": 77,
+      "before_consumer_reads": 154,
+      "after_payload_references": 77,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= lhs (DoWhile inputs body))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+      "candidates": 142,
+      "bindings": 84,
+      "before_depth": [
+        0,
+        142
+      ],
+      "after_payload_depth": [
+        58,
+        84
+      ],
+      "group_rejected": 58,
+      "before_consumer_reads": 142,
+      "after_payload_references": 84,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5915492957746479,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= lhs (If pred inputs thn els))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+      "candidates": 359,
+      "bindings": 196,
+      "before_depth": [
+        0,
+        359
+      ],
+      "after_payload_depth": [
+        163,
+        196
+      ],
+      "group_rejected": 163,
+      "before_consumer_reads": 359,
+      "after_payload_references": 196,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5459610027855153,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= lhs (Switch pred inputs bodies))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+      "candidates": 0,
+      "bindings": 0,
+      "before_depth": [],
+      "after_payload_depth": [],
+      "group_rejected": 0,
+      "before_consumer_reads": 0,
+      "after_payload_references": 0,
+      "before_reach": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "after_payload_reach": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+      "candidates": 23082,
+      "bindings": 10654,
+      "before_depth": [
+        0,
+        13014,
+        10068
+      ],
+      "after_payload_depth": [
+        13308,
+        0,
+        9774
+      ],
+      "group_rejected": 13308,
+      "before_consumer_reads": 33150,
+      "after_payload_references": 19548,
+      "before_reach": [
+        1.0,
+        0.4361840395113075,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.42344684169482716,
+        0.42344684169482716,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+      "candidates": 22768,
+      "bindings": 14194,
+      "before_depth": [
+        0,
+        22768
+      ],
+      "after_payload_depth": [
+        8574,
+        14194
+      ],
+      "group_rejected": 8574,
+      "before_consumer_reads": 22768,
+      "after_payload_references": 14194,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6234188334504568,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+      "candidates": 22371,
+      "bindings": 1981,
+      "before_depth": [
+        0,
+        22371
+      ],
+      "after_payload_depth": [
+        20390,
+        1981
+      ],
+      "group_rejected": 20390,
+      "before_consumer_reads": 22371,
+      "after_payload_references": 1981,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.08855214339993742,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Alloc amt e state ty)\n       (ContextOf e ctx))\n      ((ContextOf (Alloc amt e state ty) ctx))\n        :ruleset always-run )",
+      "candidates": 366,
+      "bindings": 230,
+      "before_depth": [
+        0,
+        366
+      ],
+      "after_payload_depth": [
+        136,
+        230
+      ],
+      "group_rejected": 136,
+      "before_consumer_reads": 366,
+      "after_payload_references": 230,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6284153005464481,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Alloc amt e state ty)\n       (ContextOf state ctx))\n      ((ContextOf (Alloc amt e state ty) ctx))\n        :ruleset always-run )",
+      "candidates": 368,
+      "bindings": 212,
+      "before_depth": [
+        0,
+        368
+      ],
+      "after_payload_depth": [
+        156,
+        212
+      ],
+      "group_rejected": 156,
+      "before_consumer_reads": 368,
+      "after_payload_references": 212,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5760869565217391,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Alloc _id _e _state _ty)))\n      ((BodyContainsExpr body _e)\n       (BodyContainsExpr body _state))\n        :ruleset always-run )",
+      "candidates": 473,
+      "bindings": 576,
+      "before_depth": [
+        0,
+        473
+      ],
+      "after_payload_depth": [
+        162,
+        311
+      ],
+      "group_rejected": 162,
+      "before_consumer_reads": 473,
+      "after_payload_references": 311,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6575052854122622,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Bop _op _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+      "candidates": 12112,
+      "bindings": 13641,
+      "before_depth": [
+        0,
+        12112
+      ],
+      "after_payload_depth": [
+        4638,
+        7474
+      ],
+      "group_rejected": 4638,
+      "before_consumer_reads": 12112,
+      "after_payload_references": 7474,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6170739762219286,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Call _func _arg)))\n      ((BodyContainsExpr body _arg))\n        :ruleset always-run )",
+      "candidates": 347,
+      "bindings": 403,
+      "before_depth": [
+        0,
+        347
+      ],
+      "after_payload_depth": [
+        121,
+        226
+      ],
+      "group_rejected": 121,
+      "before_consumer_reads": 347,
+      "after_payload_references": 226,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6512968299711815,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Concat _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+      "candidates": 22759,
+      "bindings": 26933,
+      "before_depth": [
+        0,
+        22759
+      ],
+      "after_payload_depth": [
+        7956,
+        14803
+      ],
+      "group_rejected": 7956,
+      "before_consumer_reads": 22759,
+      "after_payload_references": 14803,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6504240080847138,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (DoWhile _in _pred-and-output)))\n      ((BodyContainsExpr body _in))\n        :ruleset always-run )",
+      "candidates": 175,
+      "bindings": 205,
+      "before_depth": [
+        0,
+        175
+      ],
+      "after_payload_depth": [
+        58,
+        117
+      ],
+      "group_rejected": 58,
+      "before_consumer_reads": 175,
+      "after_payload_references": 117,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6685714285714286,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Get _tup _i)))\n      ((BodyContainsExpr body _tup))\n        :ruleset always-run )",
+      "candidates": 46722,
+      "bindings": 50110,
+      "before_depth": [
+        0,
+        46722
+      ],
+      "after_payload_depth": [
+        18345,
+        28377
+      ],
+      "group_rejected": 18345,
+      "before_consumer_reads": 46722,
+      "after_payload_references": 28377,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6073584178759471,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (If _pred _input _then _else)))\n      ((BodyContainsExpr body _pred)\n       (BodyContainsExpr body _input))\n        :ruleset always-run )",
+      "candidates": 500,
+      "bindings": 543,
+      "before_depth": [
+        0,
+        500
+      ],
+      "after_payload_depth": [
+        176,
+        324
+      ],
+      "group_rejected": 176,
+      "before_consumer_reads": 500,
+      "after_payload_references": 324,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.648,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Single _x)))\n      ((BodyContainsExpr body _x))\n        :ruleset always-run )",
+      "candidates": 64564,
+      "bindings": 17463,
+      "before_depth": [
+        0,
+        64564
+      ],
+      "after_payload_depth": [
+        47101,
+        17463
+      ],
+      "group_rejected": 47101,
+      "before_consumer_reads": 64564,
+      "after_payload_references": 17463,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.2704758069512422,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Switch _pred _inputs _branches)))\n      ((BodyContainsExpr body _pred)\n       (BodyContainsExpr body _inputs))\n        :ruleset always-run )",
+      "candidates": 0,
+      "bindings": 0,
+      "before_depth": [],
+      "after_payload_depth": [],
+      "group_rejected": 0,
+      "before_consumer_reads": 0,
+      "after_payload_references": 0,
+      "before_reach": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "after_payload_reach": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Top _op _x _y _z)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y)\n       (BodyContainsExpr body _z))\n        :ruleset always-run )",
+      "candidates": 2609,
+      "bindings": 4813,
+      "before_depth": [
+        0,
+        2609
+      ],
+      "after_payload_depth": [
+        609,
+        2000
+      ],
+      "group_rejected": 609,
+      "before_consumer_reads": 2609,
+      "after_payload_references": 2000,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.7665772326561902,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Uop _op _x)))\n      ((BodyContainsExpr body _x))\n        :ruleset always-run )",
+      "candidates": 8,
+      "bindings": 8,
+      "before_depth": [
+        0,
+        8
+      ],
+      "after_payload_depth": [
+        3,
+        5
+      ],
+      "group_rejected": 3,
+      "before_consumer_reads": 8,
+      "after_payload_references": 5,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.625,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Const _n _ty _ctx)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+      "candidates": 74361,
+      "bindings": 236,
+      "before_depth": [
+        0,
+        74075,
+        286
+      ],
+      "after_payload_depth": [
+        74078,
+        0,
+        283
+      ],
+      "group_rejected": 74078,
+      "before_consumer_reads": 74647,
+      "after_payload_references": 566,
+      "before_reach": [
+        1.0,
+        0.0038461021234249136,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0038057583948575193,
+        0.0038057583948575193,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Empty _ty _ctx)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+      "candidates": 74341,
+      "bindings": 4,
+      "before_depth": [
+        0,
+        74290,
+        51
+      ],
+      "after_payload_depth": [
+        74337,
+        0,
+        4
+      ],
+      "group_rejected": 74337,
+      "before_consumer_reads": 74392,
+      "after_payload_references": 8,
+      "before_reach": [
+        1.0,
+        0.000686027898467871,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        5.380610968375459e-05,
+        5.380610968375459e-05,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Function _name _tyin _tyout _out)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+      "candidates": 74341,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        74341
+      ],
+      "after_payload_depth": [
+        74341
+      ],
+      "group_rejected": 74341,
+      "before_consumer_reads": 74341,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Bop _op _x _y)\n       (BinaryOpIsPure _op)\n       (ExprIsPure _x)\n       (ExprIsPure _y))\n      ((ExprIsPure (Bop _op _x _y)))\n        :ruleset always-run )",
+      "candidates": 7970,
+      "bindings": 727,
+      "before_depth": [
+        0,
+        7240,
+        3,
+        727
+      ],
+      "after_payload_depth": [
+        7243,
+        0,
+        0,
+        727
+      ],
+      "group_rejected": 7243,
+      "before_consumer_reads": 9427,
+      "after_payload_references": 2181,
+      "before_reach": [
+        1.0,
+        0.09159347553324969,
+        0.09121706398996236,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.09121706398996236,
+        0.09121706398996236,
+        0.09121706398996236,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Bop op x y)\n       (ContextOf x ctx))\n      ((ContextOf (Bop op x y) ctx))\n        :ruleset always-run )",
+      "candidates": 9339,
+      "bindings": 5537,
+      "before_depth": [
+        0,
+        9339
+      ],
+      "after_payload_depth": [
+        3802,
+        5537
+      ],
+      "group_rejected": 3802,
+      "before_consumer_reads": 9339,
+      "after_payload_references": 5537,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5928900310525752,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Bop op x y)\n       (ContextOf y ctx))\n      ((ContextOf (Bop op x y) ctx))\n        :ruleset always-run )",
+      "candidates": 9490,
+      "bindings": 5568,
+      "before_depth": [
+        0,
+        9490
+      ],
+      "after_payload_depth": [
+        3922,
+        5568
+      ],
+      "group_rejected": 3922,
+      "before_consumer_reads": 9490,
+      "after_payload_references": 5568,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.586722866174921,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Call func arg)\n       (ContextOf arg ctx))\n      ((ContextOf (Call func arg) ctx))\n        :ruleset always-run )",
+      "candidates": 242,
+      "bindings": 121,
+      "before_depth": [
+        0,
+        242
+      ],
+      "after_payload_depth": [
+        121,
+        121
+      ],
+      "group_rejected": 121,
+      "before_consumer_reads": 242,
+      "after_payload_references": 121,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Concat _x _y)\n       (ExprIsPure _x)\n       (ExprIsPure _y))\n      ((ExprIsPure (Concat _x _y)))\n        :ruleset always-run )",
+      "candidates": 15126,
+      "bindings": 3024,
+      "before_depth": [
+        0,
+        12100,
+        3026
+      ],
+      "after_payload_depth": [
+        12102,
+        0,
+        3024
+      ],
+      "group_rejected": 12102,
+      "before_consumer_reads": 18152,
+      "after_payload_references": 6048,
+      "before_reach": [
+        1.0,
+        0.20005288906518578,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.19992066640222134,
+        0.19992066640222134,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Concat x y)\n       (ContextOf x ctx))\n      ((ContextOf (Concat x y) ctx))\n        :ruleset always-run )",
+      "candidates": 15752,
+      "bindings": 9458,
+      "before_depth": [
+        0,
+        15752
+      ],
+      "after_payload_depth": [
+        6294,
+        9458
+      ],
+      "group_rejected": 6294,
+      "before_consumer_reads": 15752,
+      "after_payload_references": 9458,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6004316912138141,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Concat x y)\n       (ContextOf y ctx))\n      ((ContextOf (Concat x y) ctx))\n        :ruleset always-run )",
+      "candidates": 17706,
+      "bindings": 9197,
+      "before_depth": [
+        0,
+        17706
+      ],
+      "after_payload_depth": [
+        8509,
+        9197
+      ],
+      "group_rejected": 8509,
+      "before_consumer_reads": 17706,
+      "after_payload_references": 9197,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5194284423359313,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((DoWhile _in _pred-and-output)\n       (ExprIsPure _in)\n       (ExprIsPure _pred-and-output))\n      ((ExprIsPure (DoWhile _in _pred-and-output)))\n        :ruleset always-run )",
+      "candidates": 84,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        84
+      ],
+      "after_payload_depth": [
+        84
+      ],
+      "group_rejected": 84,
+      "before_consumer_reads": 84,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((DoWhile in pred-and-output)\n       (ContextOf in ctx))\n      ((ContextOf (DoWhile in pred-and-output) ctx))\n        :ruleset always-run )",
+      "candidates": 138,
+      "bindings": 84,
+      "before_depth": [
+        0,
+        138
+      ],
+      "after_payload_depth": [
+        54,
+        84
+      ],
+      "group_rejected": 54,
+      "before_consumer_reads": 138,
+      "after_payload_references": 84,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.6086956521739131,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Alloc _id _e _state _ty)))\n      ((ExprIsValid _e)\n       (ExprIsValid _state))\n        :ruleset always-run )",
+      "candidates": 234,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        234
+      ],
+      "after_payload_depth": [
+        234
+      ],
+      "group_rejected": 234,
+      "before_consumer_reads": 234,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Bop _op _x _y)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y))\n        :ruleset always-run )",
+      "candidates": 6186,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        6186
+      ],
+      "after_payload_depth": [
+        6186
+      ],
+      "group_rejected": 6186,
+      "before_consumer_reads": 6186,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Call _func _arg)))\n      ((ExprIsValid _arg))\n        :ruleset always-run )",
+      "candidates": 121,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        121
+      ],
+      "after_payload_depth": [
+        121
+      ],
+      "group_rejected": 121,
+      "before_consumer_reads": 121,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Concat _x _y)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y))\n        :ruleset always-run )",
+      "candidates": 10214,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        10214
+      ],
+      "after_payload_depth": [
+        10214
+      ],
+      "group_rejected": 10214,
+      "before_consumer_reads": 10214,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (DoWhile _in _pred-and-output)))\n      ((ExprIsValid _in)\n       (ExprIsValid _pred-and-output))\n        :ruleset always-run )",
+      "candidates": 84,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        84
+      ],
+      "after_payload_depth": [
+        84
+      ],
+      "group_rejected": 84,
+      "before_consumer_reads": 84,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Function _name _tyin _tyout _out)))\n      ((ExprIsValid _out))\n        :ruleset always-run )",
+      "candidates": 29,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        29
+      ],
+      "after_payload_depth": [
+        29
+      ],
+      "group_rejected": 29,
+      "before_consumer_reads": 29,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Get _tup _i)))\n      ((ExprIsValid _tup))\n        :ruleset always-run )",
+      "candidates": 22672,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        22672
+      ],
+      "after_payload_depth": [
+        22672
+      ],
+      "group_rejected": 22672,
+      "before_consumer_reads": 22672,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (If _pred _input _then _else)))\n      ((ExprIsValid _pred)\n       (ExprIsValid _input)\n       (ExprIsValid _then)\n       (ExprIsValid _else))\n        :ruleset always-run )",
+      "candidates": 200,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        200
+      ],
+      "after_payload_depth": [
+        200
+      ],
+      "group_rejected": 200,
+      "before_consumer_reads": 200,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Single _x)))\n      ((ExprIsValid _x))\n        :ruleset always-run )",
+      "candidates": 9094,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        9094
+      ],
+      "after_payload_depth": [
+        9094
+      ],
+      "group_rejected": 9094,
+      "before_consumer_reads": 9094,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Switch _pred _inputs _branches)))\n      ((ExprIsValid _pred)\n       (ExprIsValid _inputs)\n       (ListExprIsValid _branches))\n        :ruleset always-run )",
+      "candidates": 0,
+      "bindings": 0,
+      "before_depth": [],
+      "after_payload_depth": [],
+      "group_rejected": 0,
+      "before_consumer_reads": 0,
+      "after_payload_references": 0,
+      "before_reach": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "after_payload_reach": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Top _op _x _y _z)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y)\n       (ExprIsValid _z))\n        :ruleset always-run )",
+      "candidates": 1588,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        1588
+      ],
+      "after_payload_depth": [
+        1588
+      ],
+      "group_rejected": 1588,
+      "before_consumer_reads": 1588,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Uop _op _x)))\n      ((ExprIsValid _x))\n        :ruleset always-run )",
+      "candidates": 3,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        3
+      ],
+      "after_payload_depth": [
+        3
+      ],
+      "group_rejected": 3,
+      "before_consumer_reads": 3,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Function _name _tyin _tyout _out)\n       (ExprIsPure _out))\n      ((ExprIsPure (Function _name _tyin _tyout _out)))\n        :ruleset always-run )",
+      "candidates": 29,
+      "bindings": 0,
+      "before_depth": [
+        0,
+        29
+      ],
+      "after_payload_depth": [
+        29
+      ],
+      "group_rejected": 29,
+      "before_consumer_reads": 29,
+      "after_payload_references": 0,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Get _tup _i)\n       (ExprIsPure _tup))\n      ((ExprIsPure (Get _tup _i)))\n        :ruleset always-run )",
+      "candidates": 23605,
+      "bindings": 1111,
+      "before_depth": [
+        0,
+        23605
+      ],
+      "after_payload_depth": [
+        22494,
+        1111
+      ],
+      "group_rejected": 22494,
+      "before_consumer_reads": 23605,
+      "after_payload_references": 1111,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.04706629951281508,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Get tup i)\n       (ContextOf tup ctx))\n      ((ContextOf (Get tup i) ctx))\n        :ruleset always-run )",
+      "candidates": 34336,
+      "bindings": 20434,
+      "before_depth": [
+        0,
+        34336
+      ],
+      "after_payload_depth": [
+        13902,
+        20434
+      ],
+      "group_rejected": 13902,
+      "before_consumer_reads": 34336,
+      "after_payload_references": 20434,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.595118825722274,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((HasType expr (TupleT tl))\n       (= len (TypeList-length tl)))\n      ((set (tuple-length expr) len))\n        :ruleset always-run )",
+      "candidates": 2053,
+      "bindings": 14058,
+      "before_depth": [
+        0,
+        0,
+        2053
+      ],
+      "after_payload_depth": [
+        0,
+        0,
+        2053
+      ],
+      "group_rejected": 0,
+      "before_consumer_reads": 4106,
+      "after_payload_references": 4106,
+      "before_reach": [
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((If _pred _input _then _else)\n       (ExprIsPure _pred)\n       (ExprIsPure _input)\n       (ExprIsPure _then)\n       (ExprIsPure _else))\n      ((ExprIsPure (If _pred _input _then _else)))\n        :ruleset always-run )",
+      "candidates": 319,
+      "bindings": 8,
+      "before_depth": [
+        0,
+        311,
+        0,
+        0,
+        8
+      ],
+      "after_payload_depth": [
+        311,
+        0,
+        0,
+        0,
+        8
+      ],
+      "group_rejected": 311,
+      "before_consumer_reads": 343,
+      "after_payload_references": 32,
+      "before_reach": [
+        1.0,
+        0.025078369905956112,
+        0.025078369905956112,
+        0.025078369905956112
+      ],
+      "after_payload_reach": [
+        0.025078369905956112,
+        0.025078369905956112,
+        0.025078369905956112,
+        0.025078369905956112
+      ]
+    },
+    {
+      "rule": "(rule ((If pred inputs then else)\n       (ContextOf inputs ctx))\n      ((ContextOf (If pred inputs then else) ctx))\n        :ruleset always-run )",
+      "candidates": 371,
+      "bindings": 185,
+      "before_depth": [
+        0,
+        371
+      ],
+      "after_payload_depth": [
+        186,
+        185
+      ],
+      "group_rejected": 186,
+      "before_consumer_reads": 371,
+      "after_payload_references": 185,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.49865229110512127,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((If pred inputs then else)\n       (ContextOf pred ctx))\n      ((ContextOf (If pred inputs then else) ctx))\n        :ruleset always-run )",
+      "candidates": 356,
+      "bindings": 187,
+      "before_depth": [
+        0,
+        356
+      ],
+      "after_payload_depth": [
+        169,
+        187
+      ],
+      "group_rejected": 169,
+      "before_consumer_reads": 356,
+      "after_payload_references": 187,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5252808988764045,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Single _x)\n       (ExprIsPure _x))\n      ((ExprIsPure (Single _x)))\n        :ruleset always-run )",
+      "candidates": 9987,
+      "bindings": 1029,
+      "before_depth": [
+        0,
+        9987
+      ],
+      "after_payload_depth": [
+        8958,
+        1029
+      ],
+      "group_rejected": 8958,
+      "before_consumer_reads": 9987,
+      "after_payload_references": 1029,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.10303394412736558,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Single x)\n       (ContextOf x ctx))\n      ((ContextOf (Single x) ctx))\n        :ruleset always-run )",
+      "candidates": 26647,
+      "bindings": 7957,
+      "before_depth": [
+        0,
+        26647
+      ],
+      "after_payload_depth": [
+        18690,
+        7957
+      ],
+      "group_rejected": 18690,
+      "before_consumer_reads": 26647,
+      "after_payload_references": 7957,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.29860772319585693,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Switch pred inputs branches)\n       (ContextOf pred ctx))\n      ((ContextOf (Switch pred inputs branches) ctx))\n        :ruleset always-run )",
+      "candidates": 0,
+      "bindings": 0,
+      "before_depth": [],
+      "after_payload_depth": [],
+      "group_rejected": 0,
+      "before_consumer_reads": 0,
+      "after_payload_references": 0,
+      "before_reach": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "after_payload_reach": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "rule": "(rule ((Top _op _x _y _z)\n       (TernaryOpIsPure _op)\n       (ExprIsPure _x)\n       (ExprIsPure _y)\n       (ExprIsPure _z))\n      ((ExprIsPure (Top _op _x _y _z)))\n        :ruleset always-run )",
+      "candidates": 1727,
+      "bindings": 168,
+      "before_depth": [
+        0,
+        1559,
+        0,
+        0,
+        168
+      ],
+      "after_payload_depth": [
+        1559,
+        0,
+        0,
+        0,
+        168
+      ],
+      "group_rejected": 1559,
+      "before_consumer_reads": 2231,
+      "after_payload_references": 672,
+      "before_reach": [
+        1.0,
+        0.09727851766068327,
+        0.09727851766068327,
+        0.09727851766068327
+      ],
+      "after_payload_reach": [
+        0.09727851766068327,
+        0.09727851766068327,
+        0.09727851766068327,
+        0.09727851766068327
+      ]
+    },
+    {
+      "rule": "(rule ((Top op x y z)\n       (ContextOf x ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+      "candidates": 2133,
+      "bindings": 1578,
+      "before_depth": [
+        0,
+        2133
+      ],
+      "after_payload_depth": [
+        555,
+        1578
+      ],
+      "group_rejected": 555,
+      "before_consumer_reads": 2133,
+      "after_payload_references": 1578,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.739803094233474,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Top op x y z)\n       (ContextOf y ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+      "candidates": 2154,
+      "bindings": 1187,
+      "before_depth": [
+        0,
+        2154
+      ],
+      "after_payload_depth": [
+        967,
+        1187
+      ],
+      "group_rejected": 967,
+      "before_consumer_reads": 2154,
+      "after_payload_references": 1187,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5510677808727948,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Top op x y z)\n       (ContextOf z ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+      "candidates": 2120,
+      "bindings": 1145,
+      "before_depth": [
+        0,
+        2120
+      ],
+      "after_payload_depth": [
+        975,
+        1145
+      ],
+      "group_rejected": 975,
+      "before_consumer_reads": 2120,
+      "after_payload_references": 1145,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5400943396226415,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Uop _op _x)\n       (UnaryOpIsPure _op)\n       (ExprIsPure _x))\n      ((ExprIsPure (Uop _op _x)))\n        :ruleset always-run )",
+      "candidates": 5,
+      "bindings": 2,
+      "before_depth": [
+        0,
+        1,
+        4
+      ],
+      "after_payload_depth": [
+        3,
+        0,
+        2
+      ],
+      "group_rejected": 3,
+      "before_consumer_reads": 9,
+      "after_payload_references": 4,
+      "before_reach": [
+        1.0,
+        0.8,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.4,
+        0.4,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Uop op x)\n       (ContextOf x ctx))\n      ((ContextOf (Uop op x) ctx))\n        :ruleset always-run )",
+      "candidates": 6,
+      "bindings": 3,
+      "before_depth": [
+        0,
+        6
+      ],
+      "after_payload_depth": [
+        3,
+        3
+      ],
+      "group_rejected": 3,
+      "before_consumer_reads": 6,
+      "after_payload_references": 3,
+      "before_reach": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "after_payload_reach": [
+        0.5,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "modes": {
+    "roots": {
+      "inference_seconds": 21.840671167,
+      "provider_seconds": 2.989857522999915,
+      "maintenance_seconds": 1.5933195379999157,
+      "query_seconds": 1.3965379849999993,
+      "gpu_seconds": 0.005385166732594371,
+      "device_roundtrip_seconds": 0.075093375,
+      "groups": {
+        "truth_checks": 0,
+        "truth_index_reads": 0,
+        "rejected_candidates": 0,
+        "shared_steps": 0,
+        "new_steps": 0,
+        "references": 0,
+        "no_payload_rejections": 0
+      },
+      "blocks": {
+        "cache_probes": 1317438,
+        "reads": 1063742,
+        "hits": 942664,
+        "empty_hits": 336966,
+        "invalidations": 847504,
+        "witness_rows_materialized": 958749
+      },
+      "index_dispatches": 2601403,
+      "anchor_dispatches": 1290881,
+      "handles": {
+        "total": 503794,
+        "nonempty": 130342,
+        "anchor_connections": 604543
+      },
+      "new_gpu_predictions": 827
+    },
+    "groups": {
+      "inference_seconds": 20.208594208,
+      "provider_seconds": 2.328247042999949,
+      "maintenance_seconds": 1.2601471409999512,
+      "query_seconds": 1.068099901999998,
+      "gpu_seconds": 0.0,
+      "device_roundtrip_seconds": 0.0,
+      "groups": {
+        "truth_checks": 1317438,
+        "truth_index_reads": 1273905,
+        "rejected_candidates": 544707,
+        "shared_steps": 1936569,
+        "new_steps": 151631,
+        "references": 2274404,
+        "no_payload_rejections": 544707
+      },
+      "blocks": {
+        "cache_probes": 1317438,
+        "reads": 855978,
+        "hits": 0,
+        "empty_hits": 0,
+        "invalidations": 787777,
+        "witness_rows_materialized": 958726
+      },
+      "index_dispatches": 2601403,
+      "anchor_dispatches": 1290881,
+      "handles": {
+        "total": 503794,
+        "nonempty": 130342,
+        "anchor_connections": 604543
+      },
+      "new_gpu_predictions": 0
+    }
+  },
+  "speedup": 1.0807615285952898,
+  "group_work_note": "Truth checks/direct handle reads and conjunction work are charged globally. After-depth counts payload references only; depth-zero group rejection is not free work or a native Free Join depth.",
+  "fixed_rule_weight_reach": {
+    "before_reach": [
+      1.0,
+      0.05147492143237007,
+      0.0030080838247408697,
+      0.0017233364446005545
+    ],
+    "after_payload_reach": [
+      0.4474141206265835,
+      0.04564508484729848,
+      0.0030080838247408697,
+      0.0017233364446005545
+    ]
+  },
+  "ordinary_work_equal": {
+    "ruleset_runs": true,
+    "row_events": true,
+    "union_events": true,
+    "dispatches": true,
+    "uploaded_bytes": false,
+    "downloaded_bytes": true,
+    "cell_query_bindings": true
+  },
+  "ordinary_traffic": {
+    "uploaded_bytes": {
+      "before": 184175964,
+      "after": 184152524
+    },
+    "downloaded_bytes": {
+      "before": 45614132,
+      "after": 45614132
+    }
+  },
+  "audit": {
+    "checks": 134850,
+    "exact_graph": true
+  },
+  "extraction": {
+    "passed": true,
+    "outputs": [
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/condition-handles-groups/extraction-check/extraction/native.egg",
+        "reconstruction_seconds": 0.10934525,
+        "selected_rows": 8007,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/condition-handles-groups/extraction-check/extraction/cpu.egg",
+        "reconstruction_seconds": 0.109389042,
+        "selected_rows": 8007,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/condition-handles-groups/extraction-check/extraction/gpu.egg",
+        "reconstruction_seconds": 0.108431667,
+        "selected_rows": 8007,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      }
+    ],
+    "checks": [
+      {
+        "candidate": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/condition-handles-groups/extraction-check/extraction/cpu.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8006,
+          "eclass_mapping": 8006,
+          "tables": {
+            "Add": 1,
+            "Alloc": 132,
+            "And": 1,
+            "Arg": 1,
+            "Bool": 2,
+            "BoolT": 1,
+            "Bop": 2240,
+            "Call": 85,
+            "Concat": 1500,
+            "Const": 27,
+            "Div": 1,
+            "DoWhile": 58,
+            "DumC": 1,
+            "Eq": 1,
+            "FAdd": 1,
+            "FDiv": 1,
+            "FGreaterEq": 1,
+            "FGreaterThan": 1,
+            "FLessThan": 1,
+            "FMul": 1,
+            "FSub": 1,
+            "Float": 16,
+            "FloatT": 1,
+            "Free": 1,
+            "Function": 29,
+            "Get": 2394,
+            "GreaterThan": 1,
+            "If": 111,
+            "Int": 9,
+            "IntT": 1,
+            "LessThan": 1,
+            "Load": 1,
+            "Neg": 1,
+            "Not": 1,
+            "Or": 1,
+            "PointerT": 5,
+            "Print": 1,
+            "PtrAdd": 1,
+            "Single": 873,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 44,
+            "TNil": 1,
+            "Top": 431,
+            "TupleT": 19,
+            "Uop": 2,
+            "Write": 1
+          }
+        },
+        "error": null
+      },
+      {
+        "candidate": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/condition-handles-groups/extraction-check/extraction/gpu.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8006,
+          "eclass_mapping": 8006,
+          "tables": {
+            "Add": 1,
+            "Alloc": 132,
+            "And": 1,
+            "Arg": 1,
+            "Bool": 2,
+            "BoolT": 1,
+            "Bop": 2240,
+            "Call": 85,
+            "Concat": 1500,
+            "Const": 27,
+            "Div": 1,
+            "DoWhile": 58,
+            "DumC": 1,
+            "Eq": 1,
+            "FAdd": 1,
+            "FDiv": 1,
+            "FGreaterEq": 1,
+            "FGreaterThan": 1,
+            "FLessThan": 1,
+            "FMul": 1,
+            "FSub": 1,
+            "Float": 16,
+            "FloatT": 1,
+            "Free": 1,
+            "Function": 29,
+            "Get": 2394,
+            "GreaterThan": 1,
+            "If": 111,
+            "Int": 9,
+            "IntT": 1,
+            "LessThan": 1,
+            "Load": 1,
+            "Neg": 1,
+            "Not": 1,
+            "Or": 1,
+            "PointerT": 5,
+            "Print": 1,
+            "PtrAdd": 1,
+            "Single": 873,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 44,
+            "TNil": 1,
+            "Top": 431,
+            "TupleT": 19,
+            "Uop": 2,
+            "Write": 1
+          }
+        },
+        "error": null
+      }
+    ],
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  }
+}

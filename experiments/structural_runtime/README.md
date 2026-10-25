@@ -17,6 +17,12 @@ connects 75 always-run consumers. Constant predictions and order-insensitive
 single-unknown checks are bypassed. See [MATRIX_RESULTS.md](MATRIX_RESULTS.md)
 for the complete native validation and negative end-to-end performance result.
 
+`--condition-execution groups` uses event-bound condition handles and exact
+shared conjunctions, reading witness payloads only for accepted candidates.
+It bypasses unnecessary score prediction for the admitted query class; other
+queries retain their existing matcher. See [GROUP_RESULTS.md](GROUP_RESULTS.md)
+for the same-binary Pass-3 comparison, honest work accounting and limitations.
+
 This is an opt-in query provider in the **actual native execution loop**, using
 `cell-assisted-egglog::table_live::SaturationHook::query_cells`. It replaces the
 search of selected rules, not their RHS, merge, rebuild, Run boundaries, or

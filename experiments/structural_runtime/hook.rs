@@ -20,6 +20,8 @@ use std::{
     time::Instant,
 };
 
+#[path = "conditions.rs"]
+mod conditions;
 #[path = "coordinates.rs"]
 mod coordinates;
 #[path = "markers.rs"]
@@ -92,39 +94,54 @@ struct BlockStats {
     witness_rows_materialized: usize,
 }
 
+struct Bucket {
+    key: Value,
+    version: u64,
+    rows: BTreeMap<Key, Row>,
+    answer: Option<(u64, Arc<Vec<Row>>)>,
+}
 struct Index {
-    atom: CellQueryAtom,
+    projection: conditions::Projection,
     slot: usize,
     table: usize,
-    rows: Map<Value, BTreeMap<Key, Row>>,
+    directory: Map<Value, usize>,
+    buckets: Vec<Bucket>,
     deltas: BTreeMap<u32, BTreeSet<Value>>,
-    versions: Map<Value, u64>,
-    answers: Map<Value, (u64, Arc<Vec<Row>>)>,
 }
 impl Index {
-    fn cached(&self, v: Value) -> Option<Arc<Vec<Row>>> {
-        self.answers.get(&v).map(|(version, rows)| {
-            debug_assert_eq!(*version, self.versions.get(&v).copied().unwrap_or(0));
+    fn intern(&mut self, key: Value) -> usize {
+        if let Some(h) = self.directory.get(&key) {
+            return *h;
+        }
+        let h = self.buckets.len();
+        self.directory.insert(key, h);
+        self.buckets.push(Bucket {
+            key,
+            version: 0,
+            rows: BTreeMap::new(),
+            answer: None,
+        });
+        h
+    }
+    fn cached(&self, h: usize) -> Option<Arc<Vec<Row>>> {
+        let b = &self.buckets[h];
+        b.answer.as_ref().map(|(version, rows)| {
+            debug_assert_eq!(*version, b.version);
             rows.clone()
         })
     }
-    fn touch(&mut self, v: Value) -> bool {
-        *self.versions.entry(v).or_default() += 1;
-        self.answers.remove(&v).is_some()
+    fn touch(&mut self, h: usize) -> bool {
+        let b = &mut self.buckets[h];
+        b.version += 1;
+        b.answer.take().is_some()
     }
-    fn answer(&mut self, v: Value, shared: bool, stats: &mut BlockStats) -> Arc<Vec<Row>> {
-        let version = self.versions.get(&v).copied().unwrap_or(0);
+    fn answer(&mut self, h: usize, shared: bool, stats: &mut BlockStats) -> Arc<Vec<Row>> {
+        let b = &mut self.buckets[h];
         stats.reads += 1;
-        let answer = Arc::new(
-            self.rows
-                .get(&v)
-                .into_iter()
-                .flat_map(|rs| rs.values().cloned())
-                .collect::<Vec<_>>(),
-        );
+        let answer = Arc::new(b.rows.values().cloned().collect::<Vec<_>>());
         stats.witness_rows_materialized += answer.len();
         if shared {
-            self.answers.insert(v, (version, answer.clone()));
+            b.answer = Some((b.version, answer.clone()));
         }
         answer
     }
@@ -132,10 +149,12 @@ impl Index {
 struct Query {
     plan: Plan,
     atoms: Vec<CellQueryAtom>,
+    projections: Vec<conditions::Projection>,
     anchor: usize,
     indices: Vec<usize>,
     slots: usize,
     ports: Vec<Map<Value, BTreeSet<Key>>>,
+    attachments: Map<Key, Vec<usize>>,
 }
 
 #[derive(Default, Serialize)]
@@ -158,12 +177,16 @@ struct Work {
     rejected: Vec<usize>,
     complement_deepest: Vec<usize>,
     query_seconds: f64,
+    exact_group_rejected: usize,
 }
 #[derive(Default, Serialize)]
 struct Stats {
     blocks: BlockStats,
     prediction_audit: BTreeMap<String, Confusion>,
     matrix: MatrixStats,
+    groups: GroupStats,
+    index_dispatches: usize,
+    anchor_dispatches: usize,
     unchanged_notifications: usize,
     timestamp_only_changes: usize,
     bootstrap_rows: usize,
@@ -205,6 +228,16 @@ impl Confusion {
             (false, false) => self.tn += 1,
         }
     }
+}
+#[derive(Default, Serialize)]
+struct GroupStats {
+    truth_checks: usize,
+    truth_index_reads: usize,
+    rejected_candidates: usize,
+    shared_steps: usize,
+    new_steps: usize,
+    references: usize,
+    no_payload_rejections: usize,
 }
 fn bump(v: &mut Vec<usize>, i: usize) {
     if v.len() <= i {
@@ -338,6 +371,9 @@ pub struct Hook {
     tables: Vec<Table>,
     queries: Map<String, Query>,
     indices: Vec<Index>,
+    index_users: Vec<Vec<usize>>,
+    anchor_users: Vec<Vec<String>>,
+    group_conditions: bool,
     coordinates: Option<coordinates::Coordinates>,
     markers: Option<markers::Markers>,
     summaries: Option<summaries::Summaries>,
@@ -373,6 +409,10 @@ impl Hook {
             tables: vec![],
             queries: Map::default(),
             indices: vec![],
+            index_users: vec![],
+            anchor_users: vec![],
+            group_conditions: std::env::var("STRUCTURAL_CONDITION_EXECUTION").as_deref()
+                == Ok("groups"),
             coordinates: None,
             markers: None,
             summaries: None,
@@ -480,10 +520,12 @@ impl Hook {
                 Query {
                     plan: p.clone(),
                     atoms: s.atoms.clone(),
+                    projections: s.atoms.iter().map(conditions::Projection::new).collect(),
                     anchor: 0,
                     indices: vec![],
                     slots: s.slot_count(),
                     ports: (0..p.steps.len()).map(|_| Map::default()).collect(),
+                    attachments: Map::default(),
                 },
             );
         }
@@ -498,7 +540,7 @@ impl Hook {
         // Only constructors named in the actual feature program can affect it.
         // Keep ALL their rows/alternatives, not all unrelated IR constructors.
         let mut mentioned = BTreeSet::new();
-        if self.mode == "gpu" {
+        if self.mode == "gpu" && !self.group_conditions {
             for v in &self.lib.vocabulary {
                 if v.token[0] == "summary" {
                     continue;
@@ -514,7 +556,7 @@ impl Hook {
         }
         self.lib.constructors.retain(|k, _| mentioned.contains(k));
         names.extend(self.lib.constructors.keys().cloned());
-        if self.mode == "gpu" {
+        if self.mode == "gpu" && !self.group_conditions {
             for d in &self.lib.summary_markers {
                 for a in &d.atoms {
                     names.insert(a["table"].as_str().ok_or("summary table")?.into());
@@ -571,15 +613,22 @@ impl Hook {
                 shared.insert(key, id);
                 q.indices.push(id);
                 self.indices.push(Index {
+                    projection: conditions::Projection::new(&a),
                     table: self.ids[&a.function],
-                    atom: a,
                     slot: step.slot,
-                    rows: Map::default(),
+                    directory: Map::default(),
+                    buckets: vec![],
                     deltas: BTreeMap::new(),
-                    versions: Map::default(),
-                    answers: Map::default(),
                 });
             }
+        }
+        self.index_users = vec![vec![]; self.names.len()];
+        for (i, idx) in self.indices.iter().enumerate() {
+            self.index_users[idx.table].push(i);
+        }
+        self.anchor_users = vec![vec![]; self.names.len()];
+        for (name, q) in &self.queries {
+            self.anchor_users[q.anchor].push(name.clone());
         }
         self.full_rows = (0..self.names.len())
             .map(|t| {
@@ -601,16 +650,16 @@ impl Hook {
             return Err("summary features must follow base vocabulary".into());
         }
         base_lib.vocabulary.truncate(first_summary);
-        if self.mode == "gpu" && !self.lib.summary_markers.is_empty() {
+        if self.mode == "gpu" && !self.group_conditions && !self.lib.summary_markers.is_empty() {
             self.summaries = Some(summaries::Summaries::new(&self.names, &self.lib, eg)?);
         }
-        if self.marker_coordinates && self.mode == "gpu" {
+        if self.marker_coordinates && self.mode == "gpu" && !self.group_conditions {
             self.markers = Some(markers::Markers::new(
                 &self.names,
                 &base_lib,
                 self.coordinate_audit,
             ));
-        } else if self.event_coordinates && self.mode == "gpu" {
+        } else if self.event_coordinates && self.mode == "gpu" && !self.group_conditions {
             self.coordinates = Some(coordinates::Coordinates::new(&self.names, &base_lib));
         }
         let (feed, b) = eg.subscribe_cell_commits(&self.names)?;
@@ -680,29 +729,33 @@ impl Hook {
         }
     }
     fn update_indices(&mut self, t: usize, k: &Key, r: &Row, add: bool, structure: bool) {
-        for idx in self.indices.iter_mut().filter(|i| i.table == t) {
-            if let Some(b) = bind(&idx.atom, &r.values) {
-                let v = b[&idx.slot];
-                self.stats.blocks.invalidations += usize::from(idx.touch(v));
+        for &id in &self.index_users[t] {
+            self.stats.index_dispatches += 1;
+            let idx = &mut self.indices[id];
+            if idx.projection.matches(&r.values) {
+                let v = r.values[idx.projection.column(idx.slot)];
+                let h = idx.intern(v);
+                self.stats.blocks.invalidations += usize::from(idx.touch(h));
                 if add {
-                    idx.rows.entry(v).or_default().insert(k.clone(), r.clone());
+                    idx.buckets[h].rows.insert(k.clone(), r.clone());
                     idx.deltas.entry(r.stamp).or_default().insert(v);
-                } else if let Some(rows) = idx.rows.get_mut(&v) {
-                    rows.remove(k);
-                    if rows.is_empty() {
-                        idx.rows.remove(&v);
-                    }
+                } else {
+                    idx.buckets[h].rows.remove(k);
                 }
             }
         }
         if !structure {
             return;
         }
-        for q in self.queries.values_mut().filter(|q| q.anchor == t) {
-            if let Some(b) = bind(&q.atoms[q.plan.anchor], &r.values) {
-                for (s, port) in q.plan.steps.iter().zip(&mut q.ports) {
-                    let v = b[&s.slot];
+        for name in &self.anchor_users[t] {
+            self.stats.anchor_dispatches += 1;
+            let q = self.queries.get_mut(name).unwrap();
+            if q.projections[q.plan.anchor].matches(&r.values) {
+                let mut attached = Vec::with_capacity(q.plan.steps.len());
+                for ((s, port), &idx) in q.plan.steps.iter().zip(&mut q.ports).zip(&q.indices) {
+                    let v = r.values[q.projections[q.plan.anchor].column(s.slot)];
                     if add {
+                        attached.push(self.indices[idx].intern(v));
                         port.entry(v).or_default().insert(k.clone());
                     } else if let Some(keys) = port.get_mut(&v) {
                         keys.remove(k);
@@ -710,6 +763,11 @@ impl Hook {
                             port.remove(&v);
                         }
                     }
+                }
+                if add {
+                    q.attachments.insert(k.clone(), attached);
+                } else {
+                    q.attachments.remove(k);
                 }
             }
         }
@@ -977,6 +1035,7 @@ impl Hook {
             .collect())
     }
 }
+#[cfg(test)]
 fn bind(atom: &CellQueryAtom, row: &[Value]) -> Option<BTreeMap<usize, Value>> {
     let mut b = BTreeMap::new();
     for (c, v) in atom.columns.iter().zip(row) {
@@ -994,7 +1053,6 @@ fn bind(atom: &CellQueryAtom, row: &[Value]) -> Option<BTreeMap<usize, Value>> {
 }
 fn product(
     q: &Query,
-    base: &BTreeMap<usize, Value>,
     factors: &[Arc<Vec<Row>>],
     depth: usize,
     b: &mut Vec<Option<Value>>,
@@ -1014,10 +1072,12 @@ fn product(
     }
     let step = &q.plan.steps[depth];
     for row in factors[depth].iter() {
-        let local = bind(&q.atoms[step.atom], &row.values).unwrap();
         let mut added = vec![];
         let mut ok = true;
-        for (s, v) in local {
+        // Index insertion already checked constants and repeated slots.
+        // Cross-atom bindings are still checked here on the full witness row.
+        for &(s, col) in &q.projections[step.atom].bindings {
+            let v = row.values[col];
             if b[s].is_some_and(|old| old != v) {
                 ok = false;
                 break;
@@ -1030,7 +1090,6 @@ fn product(
         if ok {
             product(
                 q,
-                base,
                 factors,
                 depth + 1,
                 b,
@@ -1057,8 +1116,8 @@ impl SaturationHook for Hook {
                 s.audit();
             }
         }
-        json!({"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
-        "scope":"GPU scores only reorder exact CPU checks. Every eligible anchor retained; complete native bindings and timestamp frontier. No Cell proof or sat-skip credit."})
+        json!({"condition_handles":{"total":self.indices.iter().map(|i|i.buckets.len()).sum::<usize>(),"nonempty":self.indices.iter().map(|i|i.buckets.iter().filter(|b|!b.rows.is_empty()).count()).sum::<usize>(),"anchor_connections":self.queries.values().map(|q|q.attachments.values().map(Vec::len).sum::<usize>()).sum::<usize>()},"condition_execution":if self.group_conditions {"groups"} else {"roots"},"summary_publication":self.summaries.as_ref().map(|s|s.report()),"schema":"live-spine-complement/v1","mode":self.mode,"statistics":self.stats,"shared_conditions":self.shared_conditions,"coordinate_backend":if self.markers.is_some(){"differential-markers"}else if self.coordinates.is_some(){"commit-published"}else{"legacy-or-disabled"},"condition_indices":self.indices.len(),"coordinate_publication":self.coordinates.as_ref().map(|c|&c.metrics),"marker_publication":self.markers.as_ref().map(|m|&m.metrics),"feature_only_full_rows":self.tables.iter().enumerate().filter(|(i,_)|!self.full_rows[*i]).map(|(_,t)|t.rows.len()).sum::<usize>(),"phase_accounting":"query excludes bootstrap ingest; maintenance includes it",
+        "scope":if self.group_conditions {"Exact current projected-condition groups; payloads only for accepted candidates. Every original binding and timestamp frontier retained. No Cell proof or sat-skip credit."}else{"GPU scores only reorder exact CPU checks. Every eligible anchor retained; complete native bindings and timestamp frontier. No Cell proof or sat-skip credit."}})
     }
     fn take_commits(&mut self, eg: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)> {
         let Some(feed) = self.feed.as_mut() else {
@@ -1092,6 +1151,7 @@ impl SaturationHook for Hook {
         // not a row x plan reservation. Consumers retain their own binding maps.
         struct Block {
             index: usize,
+            handle: usize,
             key: Value,
             model: usize,
             answer: Option<Arc<Vec<Row>>>,
@@ -1121,13 +1181,21 @@ impl SaturationHook for Hook {
                 let Some(row) = self.tables[q.anchor].rows.get(&key) else {
                     continue;
                 };
-                let Some(binding) = bind(&q.atoms[q.plan.anchor], &row.values) else {
+                if !q.projections[q.plan.anchor].matches(&row.values) {
                     continue;
-                };
+                }
                 let mut links = vec![];
-                for (step, index) in q.plan.steps.iter().zip(&q.indices) {
-                    let value = binding[&step.slot];
-                    let k = (*index, value);
+                let attached = q
+                    .attachments
+                    .get(&key)
+                    .expect("native anchor must publish its condition slots");
+                for ((step, index), &handle) in q.plan.steps.iter().zip(&q.indices).zip(attached) {
+                    let value = self.indices[*index].buckets[handle].key;
+                    debug_assert_eq!(
+                        value,
+                        row.values[q.projections[q.plan.anchor].column(step.slot)]
+                    );
+                    let k = (*index, handle);
                     if self.shared_conditions {
                         if let Some(id) = intern.get(&k) {
                             links.push(*id);
@@ -1139,26 +1207,27 @@ impl SaturationHook for Hook {
                     links.push(id);
                     let answer = if self.shared_conditions {
                         self.stats.blocks.cache_probes += 1;
-                        self.indices[*index].cached(value)
+                        self.indices[*index].cached(handle)
                     } else {
                         None
                     };
                     blocks.push(Block {
                         index: *index,
+                        handle,
                         key: value,
                         model: step.model,
                         answer,
                         score: 1.0,
                     });
                 }
-                rows.push((row.clone(), binding, links));
+                rows.push((row.clone(), links));
             }
             roots.insert(name.clone(), rows);
         }
         let mut score_keys = BTreeSet::new();
-        if self.mode == "gpu" {
+        if self.mode == "gpu" && !self.group_conditions {
             for rows in roots.values() {
-                for (_, _, links) in rows {
+                for (_, links) in rows {
                     if links
                         .iter()
                         .any(|i| blocks[*i].answer.as_ref().is_some_and(|a| a.is_empty()))
@@ -1193,7 +1262,7 @@ impl SaturationHook for Hook {
                 }
             }
         }
-        let scores = if self.mode == "gpu" {
+        let scores = if self.mode == "gpu" && !self.group_conditions {
             self.scores_for(&score_keys.into_iter().collect::<Vec<_>>())?
         } else {
             Map::default()
@@ -1203,10 +1272,9 @@ impl SaturationHook for Hook {
             // unknown (model,key) requests at the same native pre-Run state.
             for &(m, v) in &primary_keys {
                 let block = blocks.iter().find(|b| b.model == m && b.key == v).unwrap();
-                let truth = self.indices[block.index]
+                let truth = !self.indices[block.index].buckets[block.handle]
                     .rows
-                    .get(&v)
-                    .is_some_and(|rs| !rs.is_empty());
+                    .is_empty();
                 let has = self.summaries.as_mut().is_some_and(|s| {
                     s.signature(&(self.lib.models[m].sort.clone(), v))
                         .iter()
@@ -1246,6 +1314,25 @@ impl SaturationHook for Hook {
                 .copied()
                 .unwrap_or(if self.mode == "reject-all" { -1.0 } else { 1.0 });
         }
+        let truth = if self.group_conditions {
+            self.stats.groups.truth_checks += blocks.len();
+            blocks
+                .iter()
+                .map(|block| {
+                    if let Some(answer) = &block.answer {
+                        !answer.is_empty()
+                    } else {
+                        self.stats.groups.truth_index_reads += 1;
+                        !self.indices[block.index].buckets[block.handle]
+                            .rows
+                            .is_empty()
+                    }
+                })
+                .collect::<Vec<_>>()
+        } else {
+            vec![]
+        };
+        let mut groups = conditions::Groups::new();
         let mut supplied = vec![];
         for (id, name, wm) in ids {
             let start = Instant::now();
@@ -1254,8 +1341,45 @@ impl SaturationHook for Hook {
             work.calls += 1;
             work.anchors += self.tables[q.anchor].rows.len();
             let mut output = BTreeSet::new();
-            for (root, b, links) in &roots[&name] {
+            for (root, links) in &roots[&name] {
                 work.delta_anchors += 1;
+                if self.group_conditions {
+                    if !groups.accepts(links, &truth) {
+                        work.exact_group_rejected += 1;
+                        self.stats.groups.no_payload_rejections += 1;
+                        // A group rejection does no per-candidate witness read.
+                        bump(&mut work.deepest, 0);
+                        bump(&mut work.rejected, 0);
+                        continue;
+                    }
+                    let mut factors = Vec::with_capacity(links.len());
+                    for &bid in links {
+                        let block = &mut blocks[bid];
+                        if block.answer.is_none() {
+                            block.answer = Some(self.indices[block.index].answer(
+                                block.handle,
+                                self.shared_conditions,
+                                &mut self.stats.blocks,
+                            ));
+                        }
+                        factors.push(block.answer.as_ref().unwrap().clone());
+                    }
+                    let n = factors.len();
+                    work.reads += n;
+                    bump(&mut work.deepest, n);
+                    for depth in 0..n {
+                        bump(&mut work.entered, depth);
+                    }
+                    work.witness_rows += factors.iter().map(|f| f.len()).sum::<usize>();
+                    let mut slots = vec![None; q.slots];
+                    for &(s, col) in &q.projections[q.plan.anchor].bindings {
+                        slots[s] = Some(root.values[col]);
+                    }
+                    let before = output.len();
+                    product(q, &factors, 0, &mut slots, root.stamp, wm, &mut output);
+                    work.positive_bindings += output.len() - before;
+                    continue;
+                }
                 let mut order = (0..q.plan.steps.len()).collect::<Vec<_>>();
                 let value = |i: usize| {
                     let block = &blocks[links[i]];
@@ -1299,7 +1423,7 @@ impl SaturationHook for Hook {
                         answer.clone()
                     } else {
                         let answer = self.indices[block.index].answer(
-                            block.key,
+                            block.handle,
                             self.shared_conditions,
                             &mut self.stats.blocks,
                         );
@@ -1324,10 +1448,10 @@ impl SaturationHook for Hook {
                 work.witness_rows += factors.iter().map(|f| f.len()).sum::<usize>();
                 let before = output.len();
                 let mut slots = vec![None; q.slots];
-                for (s, v) in b {
-                    slots[*s] = Some(*v)
+                for &(s, col) in &q.projections[q.plan.anchor].bindings {
+                    slots[s] = Some(root.values[col]);
                 }
-                product(q, b, &factors, 0, &mut slots, root.stamp, wm, &mut output);
+                product(q, &factors, 0, &mut slots, root.stamp, wm, &mut output);
                 if positive {
                     work.positive_bindings += output.len() - before
                 } else {
@@ -1338,6 +1462,10 @@ impl SaturationHook for Hook {
             work.query_seconds += start.elapsed().as_secs_f64();
             supplied.push((id, output.into_iter().collect()));
         }
+        self.stats.groups.rejected_candidates += groups.stats.rejected_candidates;
+        self.stats.groups.references += groups.stats.references;
+        self.stats.groups.new_steps += groups.stats.new_steps;
+        self.stats.groups.shared_steps += groups.stats.reused_steps;
         // Every exported query belongs to this same Run; retain only deltas
         // that some original query watermark can still need.
         let oldest = sinks
@@ -1392,51 +1520,58 @@ mod tests {
     #[test]
     fn condition_blocks_version_negative_and_complete_payloads() {
         let v = Value::new_const;
+        let test_atom = CellQueryAtom {
+            function: "P".into(),
+            columns: vec![CellOperand::Slot(0), CellOperand::Slot(1)],
+            sorts: vec!["T".into(), "T".into()],
+        };
         let mut i = Index {
-            atom: CellQueryAtom {
-                function: "P".into(),
-                columns: vec![CellOperand::Slot(0), CellOperand::Slot(1)],
-                sorts: vec!["T".into(), "T".into()],
-            },
+            projection: conditions::Projection::new(&test_atom),
             slot: 0,
             table: 0,
-            rows: Map::default(),
+            directory: Map::default(),
+            buckets: vec![],
             deltas: BTreeMap::new(),
-            versions: Map::default(),
-            answers: Map::default(),
         };
         let mut stats = BlockStats::default();
-        assert!(i.answer(v(1), true, &mut stats).is_empty());
-        assert!(i.cached(v(1)).unwrap().is_empty());
-        assert!(i.touch(v(1)));
-        assert!(i.cached(v(1)).is_none());
-        i.rows.insert(
-            v(1),
-            BTreeMap::from([
-                (
-                    vec![v(1), v(2)],
-                    Row {
-                        values: vec![v(1), v(2)],
-                        stamp: 4,
-                    },
-                ),
-                (
-                    vec![v(1), v(3)],
-                    Row {
-                        values: vec![v(1), v(3)],
-                        stamp: 5,
-                    },
-                ),
-            ]),
+        let h = i.intern(v(1));
+        assert!(i.answer(h, true, &mut stats).is_empty());
+        assert!(i.cached(h).unwrap().is_empty());
+        assert!(i.touch(h));
+        assert!(i.cached(h).is_none());
+        for n in [2, 3] {
+            i.buckets[h].rows.insert(
+                vec![v(1), v(n)],
+                Row {
+                    values: vec![v(1), v(n)],
+                    stamp: n + 2,
+                },
+            );
+        }
+        let old = i.answer(h, true, &mut stats);
+        assert_eq!(old.len(), 2);
+        i.touch(h);
+        i.buckets[h].rows.clear();
+        assert!(i.answer(h, true, &mut stats).is_empty());
+        assert_eq!(old.len(), 2);
+        assert_eq!(i.intern(v(1)), h);
+        let other = i.intern(v(99));
+        i.answer(other, true, &mut stats);
+        i.touch(h);
+        assert!(
+            i.cached(other).is_some(),
+            "unrelated condition cache must survive"
         );
-        let old = i.answer(v(1), true, &mut stats);
-        assert_eq!(old.len(), 2);
-        i.touch(v(1));
-        i.rows.remove(&v(1));
-        assert!(i.answer(v(1), true, &mut stats).is_empty());
-        assert_eq!(old.len(), 2);
     }
+
     fn fixture(function: bool, alias: bool) -> Result<(Runtime, Vec<egglog::ast::Command>)> {
+        fixture_mode(function, alias, false)
+    }
+    fn fixture_mode(
+        function: bool,
+        alias: bool,
+        grouped: bool,
+    ) -> Result<(Runtime, Vec<egglog::ast::Command>)> {
         let decl = if function {
             "(function P (Term) Term :merge new)"
         } else {
@@ -1518,16 +1653,64 @@ mod tests {
         };
         let cmds = eg.parse_program(None, "(run always-run 1)")?;
         let selected = vec!["always-run".into()];
+        let mut handler = Hook::new(lib, None, "reject-all");
+        handler.group_conditions = grouped;
         let mut r = Runtime::new_full_assisted(
             eg,
             &cmds,
             None,
             false,
             Some(&selected),
-            Some(Box::new(Hook::new(lib, None, "reject-all"))),
+            Some(Box::new(handler)),
         )?;
         r.enable_cell_query_audit()?;
         Ok((r, cmds))
+    }
+    #[test]
+    fn group_queries_keep_late_witnesses_union_subsume_and_function_updates() -> Result<()> {
+        EGraph::set_num_threads(1);
+        for (function, alias) in [(false, false), (false, true), (true, false)] {
+            let (mut r, c) = fixture_mode(function, alias, true)?;
+            r.input("(Root (N 1) (N 2))")?;
+            r.run(&c)?;
+            let p = if function {
+                "(set (P (N 1)) (N 3))"
+            } else {
+                "(P (N 1) (N 3)) (P (N 1) (N 4))"
+            };
+            r.input(p)?;
+            r.run(&c)?;
+            assert_eq!(
+                r.report()["saturation_diagnostics"]["statistics"]["blocks"]["witness_rows_materialized"],
+                0
+            );
+            r.input("(Q (N 2) (N 5)) (Q (N 2) (N 6))")?;
+            r.run(&c)?;
+            r.input("(union (N 1) (N 2))")?;
+            r.run(&c)?;
+            if function {
+                r.input("(set (P (N 1)) (N 7))")?;
+                r.run(&c)?;
+            }
+            r.input("(subsume (Root (N 1) (N 2))) (Q (N 2) (N 8))")?;
+            r.run(&c)?;
+            r.run(&c)?;
+            let j = r.report();
+            assert!(
+                j["saturation_diagnostics"]["statistics"]["groups"]["truth_checks"]
+                    .as_u64()
+                    .unwrap()
+                    > 0
+            );
+            assert_eq!(j["saturation_diagnostics"]["statistics"]["gpu_rows"], 0);
+            assert!(
+                j["saturation_diagnostics"]["statistics"]["rules"]["test"]["positive_bindings"]
+                    .as_u64()
+                    .unwrap()
+                    > 0
+            );
+        }
+        Ok(())
     }
     #[test]
     fn complement_all_negative_preserves_products_and_late_facts() -> Result<()> {

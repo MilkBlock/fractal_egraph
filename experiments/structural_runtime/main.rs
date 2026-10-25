@@ -35,7 +35,9 @@ fn main() -> cell_assisted_egglog::Result<()> {
     let hook = if mode == "native" || mode == "baseline" {
         None
     } else {
-        let gpu = if mode == "exact" {
+        let gpu = if mode == "exact"
+            || std::env::var("STRUCTURAL_CONDITION_EXECUTION").as_deref() == Ok("groups")
+        {
             None
         } else {
             Some(hook::Device::new(

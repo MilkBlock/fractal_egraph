@@ -84,6 +84,42 @@ def matrix_comparison(before,after,lib):
         r=json.loads(audit.read_text());result['audit']={'native_query_checks':r['runtime']['runtime']['cell_query_rules'],'scope':r['runtime']['audit_scope'],'exact_graph':r['exact_graph']['exact_rows_values_equivalence_visibility']}
     return result
 
+def execution_comparison(before,after):
+    dirs=(before,after);reports=[json.loads((d/'gpu/report.json').read_text()) for d in dirs]
+    identities=[json.loads((d/'gpu/identity.json').read_text()) for d in dirs]
+    for i in identities:i['configuration'].pop('STRUCTURAL_CONDITION_EXECUTION',None)
+    if identities[0]!=identities[1]:raise ValueError('execution comparison changed inputs/tools beyond the mode')
+    if not all(r['exact_graph']['exact_rows_values_equivalence_visibility'] for r in reports):raise ValueError('unverified execution graph')
+    ds=[r['runtime']['saturation_diagnostics'] for r in reports];ss=[d['statistics'] for d in ds]
+    if set(ss[0]['rules'])!=set(ss[1]['rules']):raise ValueError('consumer set changed')
+    rules=[]
+    for name,b in ss[0]['rules'].items():
+        a=ss[1]['rules'][name];n=b['delta_anchors']
+        if n!=a['delta_anchors'] or b['positive_bindings']+b['recovered_bindings']!=a['positive_bindings']+a['recovered_bindings']:
+            raise ValueError('candidate/binding population changed: '+name)
+        for x in (a,b):
+            if sum(x['deepest'])!=n:raise ValueError('incorrect candidate histogram')
+        rules.append(dict(rule=name,candidates=n,bindings=a['positive_bindings']+a['recovered_bindings'],
+            before_depth=b['deepest'],after_payload_depth=a['deepest'],group_rejected=a['exact_group_rejected'],
+            before_consumer_reads=b['reads'],after_payload_references=a['reads'],
+            before_reach=[sum(b['deepest'][d:])/n if n else None for d in range(1,5)],
+            after_payload_reach=[sum(a['deepest'][d:])/n if n else None for d in range(1,5)]))
+    result={'scope':'Same 75-query workload and original full native schedule. Roots use speculative condition ordering; groups use exact shared existence followed by lazy payloads. Not Cell proof/sat-skip credit.',
+        'before':str(before.resolve()),'after':str(after.resolve()),'rules':rules,'modes':{}}
+    for label,r,d,t in zip(('roots','groups'),reports,ds,ss):
+        result['modes'][label]={'inference_seconds':r['inference_seconds'],'provider_seconds':t['maintenance_seconds']+t['query_seconds'],
+            **{k:t[k] for k in ('maintenance_seconds','query_seconds','gpu_seconds','device_roundtrip_seconds','groups','blocks','index_dispatches','anchor_dispatches')},
+            'handles':d['condition_handles'],'new_gpu_predictions':t['gpu_rows']}
+    result['speedup']=reports[0]['inference_seconds']/reports[1]['inference_seconds']
+    result['group_work_note']='Truth checks/direct handle reads and conjunction work are charged globally. After-depth counts payload references only; depth-zero group rejection is not free work or a native Free Join depth.'
+    active=[r for r in rules if r['candidates']]
+    result['fixed_rule_weight_reach']={key:[sum(r[key][d] for r in active)/len(active) for d in range(4)] for key in ('before_reach','after_payload_reach')}
+    result['ordinary_work_equal']={k:reports[0]['runtime']['runtime'][k]==reports[1]['runtime']['runtime'][k] for k in ('ruleset_runs','row_events','union_events','dispatches','uploaded_bytes','downloaded_bytes','cell_query_bindings')}
+    result['ordinary_traffic']={k:{'before':reports[0]['runtime']['runtime'][k],'after':reports[1]['runtime']['runtime'][k]} for k in ('uploaded_bytes','downloaded_bytes')}
+    audit=json.loads((after/'audit/report.json').read_text())
+    result['audit']={'checks':audit['runtime']['runtime']['cell_query_rules'],'exact_graph':audit['exact_graph']['exact_rows_values_equivalence_visibility']}
+    return result
+
 def main():
     p=argparse.ArgumentParser()
     for n in ('runtime-repo','build','source','output'):p.add_argument('--'+n,type=Path,required=True)
@@ -92,7 +128,9 @@ def main():
     p.add_argument('--query-worker',type=Path,help='existing full GPU matcher for all unclaimed queries')
     p.add_argument('--reuse-native',type=Path,help='explicit unchanged native lane from an earlier run; never use after kernel/harness/schedule changes')
     p.add_argument('--reuse-baseline',type=Path,help='reuse unchanged full-GPU baseline; source and query worker must match')
+    p.add_argument('--compare-execution',type=Path,help='compare verified roots execution against current grouped execution without retiming')
     p.add_argument('--compare-layout',type=Path,help='read existing same-model single-layout lane and report exact paired matrix work')
+    p.add_argument('--condition-execution',choices=['roots','groups'],default='roots')
     p.add_argument('--matrix-layout',choices=['single','shared'],default='single')
     p.add_argument('--coordinates',choices=['events','legacy','markers'],default='events')
     p.add_argument('--no-shared-conditions',action='store_true')
@@ -103,6 +141,7 @@ def main():
     if lib['source_sha256']!=sha(a.source):raise ValueError('wrong source for exported plan')
     env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_','RAYON_'))}
     if a.query_worker:env['STRUCTURAL_QUERY_WORKER']=str(a.query_worker.resolve())
+    env['STRUCTURAL_CONDITION_EXECUTION']=a.condition_execution
     env['STRUCTURAL_MATRIX_LAYOUT']=a.matrix_layout
     env['STRUCTURAL_COORDINATES']=a.coordinates
     env['STRUCTURAL_SHARED_CONDITIONS']='0' if a.no_shared_conditions else '1'
@@ -147,7 +186,7 @@ def main():
             'model_provenance':lib['scope'],'source_sha256':sha(a.source)}
     result['historical_native']=str(a.reuse_native.resolve()) if a.reuse_native else None
     result['historical_baseline']=str(a.reuse_baseline.resolve()) if a.reuse_baseline else None
-    result['configuration']={'matrix_layout':a.matrix_layout,'coordinates':a.coordinates,'shared_conditions':not a.no_shared_conditions}
+    result['configuration']={'condition_execution':a.condition_execution,'matrix_layout':a.matrix_layout,'coordinates':a.coordinates,'shared_conditions':not a.no_shared_conditions}
     for m in ('baseline','exact','gpu'):
         if m in reports and 'native' in reports and reports[m]['exact_graph']['exact_rows_values_equivalence_visibility']:
             result[m+'_speedup_vs_native']=reports['native']['inference_seconds']/reports[m]['inference_seconds']
@@ -165,6 +204,10 @@ def main():
             subprocess.run([sys.executable,str(repo/'experiments/raytrace_pass3_gpu/extract.py'),str(ex)],check=True,env=env)
         result['extraction_cpu_control']='exact' if 'exact' in reports else 'native'
         result['extraction']=json.loads((ex/'extraction/quality.json').read_text())
+    if a.compare_execution:
+        paired=execution_comparison(a.compare_execution,a.output);paired['extraction']=result.get('extraction')
+        (a.output/'execution-comparison.json').write_text(json.dumps(paired,indent=2)+'\n')
+        result['execution_comparison']=str(a.output/'execution-comparison.json')
     if a.compare_layout:
         paired=matrix_comparison(a.compare_layout,a.output,lib)
         paired['extraction']=result.get('extraction')
