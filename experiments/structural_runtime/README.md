@@ -11,6 +11,12 @@ features with `--summary-markers` at export time. This is separate from the
 same-vocabulary bitmap representation. See [SUMMARY_FEATURES.md](SUMMARY_FEATURES.md)
 for exact contracts, target masking, paired live accuracy and the measured limits.
 
+Shared condition columns and shared coordinate packets are available via
+`--matrix-layout shared`. The broader export `--residuals all --min-atoms 2`
+connects 75 always-run consumers. Constant predictions and order-insensitive
+single-unknown checks are bypassed. See [MATRIX_RESULTS.md](MATRIX_RESULTS.md)
+for the complete native validation and negative end-to-end performance result.
+
 This is an opt-in query provider in the **actual native execution loop**, using
 `cell-assisted-egglog::table_live::SaturationHook::query_cells`. It replaces the
 search of selected rules, not their RHS, merge, rebuild, Run boundaries, or

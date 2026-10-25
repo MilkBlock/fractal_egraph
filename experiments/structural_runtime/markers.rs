@@ -444,6 +444,8 @@ mod tests {
                 sort_hash: 0,
                 excluded_tokens: vec![],
                 reference_model: None,
+                weights: vec![],
+                bias: 0.0,
             }],
             constructors: BTreeMap::from([
                 ("A".into(), (vec!["T".into(), "T".into()], "T".into())),

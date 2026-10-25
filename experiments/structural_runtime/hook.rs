@@ -50,6 +50,10 @@ pub struct Model {
     pub excluded_tokens: Vec<usize>,
     #[serde(default)]
     pub reference_model: Option<usize>,
+    #[serde(default)]
+    pub weights: Vec<u16>,
+    #[serde(default)]
+    pub bias: f32,
 }
 #[derive(Clone, Deserialize)]
 pub struct Token {
@@ -159,6 +163,7 @@ struct Work {
 struct Stats {
     blocks: BlockStats,
     prediction_audit: BTreeMap<String, Confusion>,
+    matrix: MatrixStats,
     unchanged_notifications: usize,
     timestamp_only_changes: usize,
     bootstrap_rows: usize,
@@ -170,6 +175,9 @@ struct Stats {
     feature_invalidations: usize,
     score_requests: usize,
     score_hits: usize,
+    constant_score_requests: usize,
+    ordering_roots: usize,
+    single_condition_roots: usize,
     gpu_batches: usize,
     gpu_rows: usize,
     uploaded_bytes: usize,
@@ -205,6 +213,60 @@ fn bump(v: &mut Vec<usize>, i: usize) {
     v[i] += 1;
 }
 
+#[derive(Default, Serialize)]
+struct MatrixStats {
+    requests: u64,
+    coordinate_rows: u64,
+    requested_cells: u64,
+    computed_cells: u64,
+    padded_cells: u64,
+    blocks: u64,
+    multi_column_cells: u64,
+    max_columns: u64,
+    max_rows: u64,
+    single_column_padded_cells: u64,
+}
+impl MatrixStats {
+    fn add(&mut self, v: &[u64; 10]) {
+        self.requests += v[0];
+        self.coordinate_rows += v[1];
+        self.requested_cells += v[2];
+        self.computed_cells += v[3];
+        self.padded_cells += v[4];
+        self.blocks += v[5];
+        self.multi_column_cells += v[6];
+        self.max_columns = self.max_columns.max(v[7]);
+        self.max_rows = self.max_rows.max(v[8]);
+        self.single_column_padded_cells += v[9];
+    }
+}
+fn packet(requests: &[(usize, Vec<u64>)]) -> Vec<u8> {
+    let mut ids = Map::default();
+    let mut rows = Vec::new();
+    let mut route = Vec::new();
+    for (model, ts) in requests {
+        let id = *ids.entry(ts).or_insert_with(|| {
+            let n = rows.len();
+            rows.push(ts);
+            n
+        });
+        route.push((id, *model));
+    }
+    let mut b = Vec::new();
+    b.extend((requests.len() as u32).to_le_bytes());
+    b.extend((rows.len() as u32).to_le_bytes());
+    for ts in rows {
+        b.extend((ts.len() as u32).to_le_bytes());
+        for t in ts {
+            b.extend(t.to_le_bytes());
+        }
+    }
+    for (row, model) in route {
+        b.extend((row as u32).to_le_bytes());
+        b.extend((model as u32).to_le_bytes());
+    }
+    b
+}
 pub struct Device {
     child: Child,
 }
@@ -219,21 +281,16 @@ impl Device {
             .spawn()?;
         let mut ready = [0; 4];
         child.stdout.as_mut().unwrap().read_exact(&mut ready)?;
-        if &ready != b"RDY1" {
+        if &ready != b"RDY2" {
             return Err("bad predictor handshake".into());
         }
         Ok(Self { child })
     }
-    fn predict(&mut self, requests: &[(usize, Vec<u64>)]) -> Result<(Vec<f32>, f64, usize, usize)> {
-        let mut b = vec![];
-        b.extend((requests.len() as u32).to_le_bytes());
-        for (m, ts) in requests {
-            b.extend((*m as u32).to_le_bytes());
-            b.extend((ts.len() as u32).to_le_bytes());
-            for t in ts {
-                b.extend(t.to_le_bytes())
-            }
-        }
+    fn predict(
+        &mut self,
+        requests: &[(usize, Vec<u64>)],
+    ) -> Result<(Vec<f32>, f64, usize, usize, [u64; 10])> {
+        let b = packet(requests);
         let input = self.child.stdin.as_mut().unwrap();
         input.write_all(&(b.len() as u32).to_le_bytes())?;
         input.write_all(&b)?;
@@ -246,6 +303,11 @@ impl Device {
             return Err("GPU response arity changed".into());
         }
         let dt = f64::from_le_bytes(head[4..].try_into()?);
+        let mut layout = [0u8; 80];
+        out.read_exact(&mut layout)?;
+        let metrics = std::array::from_fn(|i| {
+            u64::from_le_bytes(layout[8 * i..8 * i + 8].try_into().unwrap())
+        });
         let mut bytes = vec![0; 4 * n];
         out.read_exact(&mut bytes)?;
         let scores = bytes
@@ -255,7 +317,7 @@ impl Device {
         if scores.iter().any(|s| !s.is_finite()) {
             return Err("nonfinite GPU score".into());
         }
-        Ok((scores, dt, b.len() + 4, 12 + bytes.len()))
+        Ok((scores, dt, b.len() + 4, 92 + bytes.len(), metrics))
     }
 }
 impl Drop for Device {
@@ -284,6 +346,7 @@ pub struct Hook {
     event_coordinates: bool,
     shared_conditions: bool,
     coordinate_audit: bool,
+    fixed_scores: Vec<Option<f32>>,
     outputs: Map<Node, BTreeSet<Ref>>,
     inputs: Map<Node, BTreeSet<(usize, Key, usize)>>,
     tokens: Map<Node, Vec<usize>>,
@@ -294,6 +357,14 @@ pub struct Hook {
 impl Hook {
     pub fn new(lib: Library, device: Option<Device>, mode: &str) -> Self {
         Self {
+            fixed_scores: lib
+                .models
+                .iter()
+                .map(|m| {
+                    (m.weights.len() == 256 && m.weights.iter().all(|w| w & 0x7fff == 0))
+                        .then_some(m.bias)
+                })
+                .collect(),
             lib,
             device,
             feed: None,
@@ -841,8 +912,26 @@ impl Hook {
     fn scores_for(&mut self, keys: &[(usize, Value)]) -> Result<Map<(usize, Value), f32>> {
         let mut routing = vec![];
         let mut pending: BTreeMap<(usize, Vec<usize>), usize> = BTreeMap::new();
+        let mut coordinate_cache = Map::default();
         for &(m, v) in keys {
-            let mut sig = self.signature((self.lib.models[m].sort.clone(), v));
+            // Exact simplification of this predictor, not a proof of native
+            // predicate truth. CPU verification/completion remains unchanged.
+            if let Some(score) = self.fixed_scores[m] {
+                self.stats.score_requests += 1;
+                self.stats.constant_score_requests += 1;
+                let k = (m, vec![]);
+                self.scores.insert(k.clone(), score);
+                routing.push(((m, v), k));
+                continue;
+            }
+            let node = (self.lib.models[m].sort.clone(), v);
+            let mut sig = if let Some(sig) = coordinate_cache.get(&node) {
+                Vec::clone(sig)
+            } else {
+                let sig = self.signature(node.clone());
+                coordinate_cache.insert(node, sig.clone());
+                sig
+            };
             sig.retain(|i| !self.lib.models[m].excluded_tokens.contains(i));
             let k = (m, sig);
             self.stats.score_requests += 1;
@@ -866,12 +955,13 @@ impl Hook {
                 })
                 .collect::<Vec<_>>();
             let started = Instant::now();
-            let (answers, dt, up, down) = self
+            let (answers, dt, up, down, layout) = self
                 .device
                 .as_mut()
                 .ok_or("missing GPU predictor")?
                 .predict(&req)?;
             self.stats.device_roundtrip_seconds += started.elapsed().as_secs_f64();
+            self.stats.matrix.add(&layout);
             self.stats.gpu_batches += 1;
             self.stats.gpu_rows += req.len();
             self.stats.gpu_seconds += dt;
@@ -1075,6 +1165,17 @@ impl SaturationHook for Hook {
                     {
                         continue;
                     }
+                    // With at most one unknown check, a score cannot alter
+                    // exact probe order. Do not inflate matrix demand with it.
+                    let first = links.iter().find(|i| blocks[**i].answer.is_none());
+                    let multiple = links
+                        .iter()
+                        .any(|i| blocks[*i].answer.is_none() && Some(i) != first);
+                    if !multiple {
+                        self.stats.single_condition_roots += 1;
+                        continue;
+                    }
+                    self.stats.ordering_roots += 1;
                     for i in links {
                         let block = &blocks[*i];
                         if block.answer.is_none() {
@@ -1262,6 +1363,33 @@ mod tests {
     use super::*;
     use cell_assisted_egglog::table_live::Runtime;
     #[test]
+    fn constant_model_needs_neither_coordinates_nor_gpu() {
+        let lib:Library=serde_json::from_value(json!({"plans":[],"models":[{"sort":"T","channel":"P","sort_hash":0,"weights":vec![0u16;256],"bias":0.625}],"vocabulary":[],"constructors":{}})).unwrap();
+        let mut h = Hook::new(lib, None, "gpu");
+        let scores = h
+            .scores_for(&[(0, Value::new_const(1)), (0, Value::new_const(2))])
+            .unwrap();
+        assert_eq!(scores.len(), 2);
+        assert!(scores.values().all(|x| *x == 0.625));
+        assert_eq!(h.stats.feature_requests, 0);
+        assert_eq!(h.stats.constant_score_requests, 2);
+        assert_eq!(h.stats.gpu_rows, 0);
+    }
+    #[test]
+    fn packet_shares_coordinates_without_merging_request_identity() {
+        let b = packet(&[
+            (2, vec![5, 7]),
+            (3, vec![5, 7]),
+            (2, vec![5, 7]),
+            (2, vec![7, 5]),
+        ]);
+        let word = |i| u32::from_le_bytes(b[i..i + 4].try_into().unwrap());
+        assert_eq!((word(0), word(4)), (4, 2));
+        assert_eq!((word(8), word(28)), (2, 2));
+        let route = (48..b.len()).step_by(4).map(word).collect::<Vec<_>>();
+        assert_eq!(route, vec![0, 2, 0, 3, 0, 2, 1, 2]);
+    }
+    #[test]
     fn condition_blocks_version_negative_and_complete_payloads() {
         let v = Value::new_const;
         let mut i = Index {
@@ -1364,6 +1492,8 @@ mod tests {
                 sort_hash: 1,
                 excluded_tokens: vec![],
                 reference_model: None,
+                weights: vec![],
+                bias: 0.0,
             });
         }
         let atoms=s.atoms.iter().map(|a|json!({"table":a.function,"sorts":a.sorts,"columns":a.columns.iter().map(|c|match c{CellOperand::Slot(s)=>json!({"Slot":s}),CellOperand::Constant{text,..}=>json!({"Literal":text})}).collect::<Vec<_>>()})).collect::<Vec<_>>();

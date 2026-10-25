@@ -21,7 +21,7 @@ def main():
         if not dst.exists():dst.symlink_to(path)
         elif dst.resolve()!=path.resolve():raise ValueError(f'wrong existing build link {dst}')
     source=(HERE.parent/'superposed_key_memory/gpu.swift').read_text().split('let source="""\n',1)[1].split('\n"""',1)[0]
-    (out/'kernel.metal').write_text(source+'\n')
+    (out/'kernel.metal').write_text(source+'\n'+(HERE/'shared_matrix.metal').read_text())
     swift='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc'
     sdk='/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
     subprocess.run([swift,'-O','-sdk',sdk,str(HERE/'runtime.swift'),'-o',str(out/'worker')],check=True)
@@ -34,7 +34,7 @@ def main():
         'binary':str(repo/'target/analyzer/release/structural-runtime'),
         'binary_sha256':sha(repo/'target/analyzer/release/structural-runtime'),
         'worker_sha256':sha(out/'worker'),'kernel_sha256':sha(out/'kernel.metal'),
-        'sources':{str(p):sha(p) for p in [HERE/'hook.rs',HERE/'coordinates.rs',HERE/'markers.rs',HERE/'summaries.rs',HERE/'main.rs',HERE/'runtime.swift',repo/'examples/support/live_table_bench.rs']}}
+        'sources':{str(p):sha(p) for p in [HERE/'hook.rs',HERE/'coordinates.rs',HERE/'markers.rs',HERE/'summaries.rs',HERE/'main.rs',HERE/'runtime.swift',HERE/'shared_matrix.metal',repo/'examples/support/live_table_bench.rs']}}
     if a.query_worker:
         provenance['ordinary_query_worker_sha256']=sha(out/'query-worker')
         provenance['ordinary_query_worker_source_sha256']=sha(repo/'cell-assisted-egglog/matrix.swift')

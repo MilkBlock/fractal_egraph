@@ -17,8 +17,8 @@ def main():
             b+=x
         return b
     try:
-        assert read(4)==b'RDY1'
-        worst=0;count=0
+        assert read(4)==b'RDY2'
+        worst=0;count=0;layouts=[]
         for size in (1,17,93):
             requests=[];expected=[]
             for m,item in enumerate(model['models']):
@@ -28,17 +28,26 @@ def main():
                     d=1
                     while d*d<len(ts):d*=2
                     phi=(codes(np.array(ts,dtype=np.uint64),256).sum(0)/d).astype(np.float16).astype(np.float32)
-                    requests.append(struct.pack('<II',m,len(ts))+np.array(ts,dtype='<u8').tobytes())
+                    requests.append((m,ts))
                     expected.append(float(phi@w/256+item['bias']))
-            payload=struct.pack('<I',len(requests))+b''.join(requests)
+            ids={};rows=[];route=[]
+            for m,ts in requests:
+                key=tuple(ts)
+                if key not in ids:ids[key]=len(rows);rows.append(ts)
+                route.append((ids[key],m))
+            payload=struct.pack('<II',len(requests),len(rows))+b''.join(struct.pack('<I',len(ts))+np.array(ts,dtype='<u8').tobytes() for ts in rows)+b''.join(struct.pack('<II',r,m) for r,m in route)
             proc.stdin.write(struct.pack('<I',len(payload))+payload);proc.stdin.flush()
             n,seconds=struct.unpack('<Id',read(12));assert n==len(expected)
+            metrics=struct.unpack('<10Q',read(80))
+            layouts.append(list(metrics))
+            assert metrics[0]==len(requests) and metrics[1]==len(rows)
+            assert metrics[2]<=metrics[3]<=metrics[4] and metrics[4]<=metrics[9]
             scores=np.frombuffer(read(4*n),dtype='<f4');err=np.max(np.abs(scores-expected));worst=max(worst,float(err))
             assert err<2e-5,(size,err)
             assert np.array_equal(scores>=.5,np.array(expected)>=.5)
             count+=n
         proc.stdin.write(struct.pack('<I',0));proc.stdin.flush();assert proc.wait()==0
-        print(json.dumps({'evaluated_scores':count,'max_abs_error':worst,'threshold_disagreements':0,'requests':3}))
+        print(json.dumps({'evaluated_scores':count,'max_abs_error':worst,'threshold_disagreements':0,'requests':3,'layouts':layouts}))
     finally:
         if proc.poll() is None:proc.kill();proc.wait()
 if __name__=='__main__':main()

@@ -20,6 +20,7 @@ def main():
     for n in ('snapshot','profile','source','analyze-queue','output'):
         p.add_argument('--'+n, type=Path, required=True)
     p.add_argument('--residuals',choices=['relations','all'],default='relations',help='all also admits constructor/function residuals under the same checked anchor contract')
+    p.add_argument('--min-atoms',type=int,default=3,choices=[2,3],help='2 includes short consumers of shared condition columns')
     p.add_argument('--summary-markers',type=Path,help='existing solver-generated shared-markers.egg')
     p.add_argument('--base-model',type=Path,help='unchanged model for paired live audit')
     a=p.parse_args()
@@ -37,7 +38,7 @@ def main():
     plans=[]; channels={}
     for q in header['queries']:
         shape=q['shape']; ai=choose_anchor(shape)
-        if q['ruleset']!='always-run' or ai is None or len(shape['atoms'])<3: continue
+        if q['ruleset']!='always-run' or ai is None or len(shape['atoms'])<a.min_atoms: continue
         anchor=shape['atoms'][ai]
         if a.residuals=='relations' and anchor['table'] not in allowed: continue
         eq_sorts={out for _,out in allowed.values()}
@@ -103,7 +104,7 @@ def main():
             'vocabulary':[{'token':t,'hash':fingerprint((0,*t))} for t in vocabulary],
             'summary_markers':definitions,'summary_evidence':summary_evidence,
             'summary_source_sha256':hashlib.sha256(a.summary_markers.read_bytes()).hexdigest() if a.summary_markers else None,
-            'constructors':allowed,'selection':a.residuals,'source_sha256':hashlib.sha256(a.source.read_bytes()).hexdigest(),
+            'constructors':allowed,'selection':a.residuals,'min_atoms':a.min_atoms,'source_sha256':hashlib.sha256(a.source.read_bytes()).hexdigest(),
             'training_snapshot_sha256':hashlib.sha256(a.snapshot.read_bytes()).hexdigest(),
             'analyze_queue_sha256':evidence['queue_sha256'],
             'scope':'Speculative fixed model, not closure proof. Same-program final-snapshot training; current Run answers are never input features.'}
