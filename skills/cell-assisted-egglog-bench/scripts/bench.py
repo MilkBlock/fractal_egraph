@@ -752,6 +752,15 @@ def parser():
     p.add_argument('--repo', type=Path, default=REPO)
     p.add_argument('--dry-run', action='store_true')
     sub = p.add_subparsers(dest='mode', required=True)
+    q = sub.add_parser('native-suite', help='real all-pass native source/Cell suite with original-table counts')
+    q.add_argument('--fork', type=Path, required=True)
+    q.add_argument('--checkout', type=Path, required=True)
+    q.add_argument('--python', type=Path, required=True)
+    q.add_argument('--output', type=Path, required=True)
+    q.add_argument('--source', action='append', help='optional relative path for a smoke test; omit for all 96 cases')
+    q.add_argument('--timeout', type=int, default=600)
+    q.add_argument('--prepare-timeout', type=int, default=1800)
+    q.add_argument('--report-only', action='store_true')
     q = sub.add_parser('native-port', help='diagnose native source-policy and Cell regressions; no GPU or graph export')
     q.add_argument('--fork', type=Path, required=True)
     q.add_argument('--runner', type=Path, required=True)
@@ -1049,6 +1058,9 @@ def main(argv=None):
     a = parser().parse_args(argv); repo = a.repo.resolve()
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
+    if a.mode=='native-suite':
+        import native_suite
+        return native_suite.run(a, resolve)
     if a.mode=='native-port':
         import native_port
         return native_port.run(a, resolve)

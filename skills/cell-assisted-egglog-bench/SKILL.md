@@ -41,6 +41,24 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 ## 常用入口
 
+`native-suite --fork NATIVE_FORK --checkout EGGCC_CHECKOUT --python COMPILER_PYTHON
+--output DIR` 对带生产 pass 观测接口的隔离 eggcc 运行 `benchmarks/passing` 全部
+`.rs/.bril`，保持实际 pass→Tiger→下一 pass 的输入链。先采集原程序并按每个实际输入
+编译，再单次计时 before/after（交替顺序）；不启动 GPU，不用 Pass-3 回放代替整程序。
+要求预先构建该 checkout 的 `target/release/eggcc` 与原版 Tiger。`--source` 仅用于
+烟测，正式全套省略。成功或失败的历史 lane 均保留；输入/二进制/工具改变则换目录。
+`--report-only` 只重算表格。
+
+原程序声明的 constructor 行、可见行、按 sort 区分的 canonical 输出 e-class、Expr
+节点/类和新增辅助表分别计数；计数在推理计时之外，无整图导出。报告每 pass 数量和
+差值，不以总 tuple 或 marker 行冒充原始 enode。运行时间包含初始化与 Cell 接入，
+解析、序列化、extraction 分列。额外的准备运行和 profile/求解时间不算 warm 加速。
+同分赢家可不同的实验必须单列 final-IR 相同与不同组；类型检查不冒充语义证明。
+编译不支持时显式回退整个原生 pass，并列出回退数量；不能把回退称为 Cell 覆盖。
+失败/超时仍留在全套分母。默认执行上限 600 秒/样例、含编译准备上限 1800 秒/样例，
+这是实验保护而非推理算法预算，超时不记成零秒。仅清理可重建的 AST/inventory 中间件，
+保留输入、最终 `.egg`、选中计划和完整压缩 profile 缓存。
+
 原生移植版本的跨策略回退定位使用 `native-port --fork FORK --runner RUNNER
 --before-sk FILE --before-mk FILE --after-sk FILE --after-mk FILE --output DIR`。
 它冻结已构建的 `cell-extension` run example，同二进制、单线程、默认关闭 probe
