@@ -1,0 +1,99 @@
+"""Live Pass-3 adapter using the bench skill's graph and Tiger checkers.
+
+Unchanged lane results are reused only under the complete input/tool identity.
+This deliberately runs one sample per changed lane, never chooses a best time.
+"""
+import argparse,hashlib,json,os,subprocess,sys,time
+from pathlib import Path
+HERE=Path(__file__).resolve().parent
+def sha(p):
+    h=hashlib.sha256()
+    with p.open('rb') as f:
+        for b in iter(lambda:f.read(1024*1024),b''):h.update(b)
+    return h.hexdigest()
+def comparison(reports):
+    def stats(mode):return reports[mode]['runtime']['saturation_diagnostics']['statistics']
+    left,right=stats('exact'),stats('gpu');rules=[]
+    for name,b in right['rules'].items():
+        a=left['rules'][name]
+        if a['delta_anchors']!=b['delta_anchors']:raise ValueError('different anchor population')
+        for w in (a,b):
+            if sum(w['deepest'])!=w['delta_anchors']:raise ValueError('invalid per-anchor depth histogram')
+        n=a['delta_anchors']
+        rules.append({'rule':name,'anchors':n,'cpu_fixed_reads':a['reads'],'gpu_ordered_reads':b['reads'],
+            'fixed_depth_histogram':a['deepest'],'ordered_depth_histogram':b['deepest'],
+            'complement_depth_histogram':b['complement_deepest'],
+            'confirmed_positive_bindings':b['positive_bindings'],'recovered_bindings':b['recovered_bindings'],
+            'fixed_reach_probability':[sum(a['deepest'][d:])/n if n else None for d in range(1,5)],
+            'ordered_reach_probability':[sum(b['deepest'][d:])/n if n else None for d in range(1,5)]})
+    def total(k):return sum(r[k] for r in rules)
+    return {'scope':'Exact CPU residual-probe depth, not native Free Join or the ordinary GPU Join; fixed/ordered use identical per-rule anchor populations.',
+            'anchors':total('anchors'),'fixed_reads':total('cpu_fixed_reads'),'ordered_reads':total('gpu_ordered_reads'),
+            'read_reduction':1-total('gpu_ordered_reads')/total('cpu_fixed_reads'),
+            'confirmed_positive_bindings':total('confirmed_positive_bindings'),'recovered_bindings':total('recovered_bindings'),
+            'fixed_rule_weights':'equal weight per rule with at least one anchor',
+            'fixed_weight_reach_before':[sum(r['fixed_reach_probability'][d] for r in rules if r['anchors'])/sum(bool(r['anchors']) for r in rules) for d in range(4)],
+            'fixed_weight_reach_after':[sum(r['ordered_reach_probability'][d] for r in rules if r['anchors'])/sum(bool(r['anchors']) for r in rules) for d in range(4)],
+            'component_costs':{mode:{k:stats(mode)[k] for k in ('maintenance_seconds','query_seconds','gpu_seconds','device_roundtrip_seconds','gpu_batches','gpu_rows','uploaded_bytes','downloaded_bytes')} for mode in ('exact','gpu')},
+            'rules':rules,'cell_proof_credit':0}
+def main():
+    p=argparse.ArgumentParser()
+    for n in ('runtime-repo','build','source','output'):p.add_argument('--'+n,type=Path,required=True)
+    p.add_argument('--lanes',default='native,exact,audit,gpu')
+    p.add_argument('--extract',action='store_true')
+    p.add_argument('--query-worker',type=Path,help='existing full GPU matcher for all unclaimed queries')
+    p.add_argument('--reuse-native',type=Path,help='explicit unchanged native lane from an earlier run; never use after kernel/harness/schedule changes')
+    a=p.parse_args();a.output=a.output.resolve();a.output.mkdir(parents=True,exist_ok=True)
+    repo=a.runtime_repo.resolve();build=a.build.resolve();binary=repo/'target/analyzer/release/structural-runtime'
+    model=build/'model.json';lib=json.loads(model.read_text())
+    if lib['source_sha256']!=sha(a.source):raise ValueError('wrong source for exported plan')
+    env={k:v for k,v in os.environ.items() if not k.startswith(('CELL_','EGGLOG_','RAYON_'))}
+    if a.query_worker:env['STRUCTURAL_QUERY_WORKER']=str(a.query_worker.resolve())
+    if a.reuse_native:
+        old=a.reuse_native.resolve()/'native';identity=json.loads((old/'identity.json').read_text())
+        if identity.get(str(a.source.resolve()))!=sha(a.source):raise ValueError('historical native input differs')
+        r=json.loads((old/'report.json').read_text())
+        if r['mode']!='native' or not (old/'graph.control.json').exists():raise ValueError('not a successful native control')
+        target=a.output/'native'
+        if not target.exists():target.symlink_to(old,target_is_directory=True)
+    for mode in a.lanes.split(','):
+        if mode not in ('native','baseline','exact','audit','gpu'):raise ValueError('unknown lane')
+        dest=a.output/mode;dest.mkdir(exist_ok=True);control=a.output/'native/graph.control.json'
+        if mode=='native' and a.reuse_native:print(f'explicit historical native: {dest.resolve()}',flush=True);continue
+        files=[binary,a.source,model]+([build/'worker',build/'kernel.metal'] if mode in ('gpu','audit') else [])
+        if a.query_worker and mode!='native':files.append(a.query_worker)
+        if mode!='native':files.append(control)
+        identity={str(f.resolve()):sha(f) for f in files}
+        prior=dest/'identity.json';report=dest/'report.json'
+        if prior.exists() and report.exists() and json.loads(prior.read_text())==identity:
+            print(f'reusing {mode}: {report}',flush=True);continue
+        if report.exists():raise ValueError(f'{dest} belongs to another binary/input; use a new output')
+        command=[str(binary),str(a.source.resolve()),str(model),str(build/'worker'),str(build/'kernel.metal'),str(dest),mode,str(control) if mode!='native' else '-']
+        with (dest/'stderr.log').open('w') as log:
+            print('running',mode,flush=True);started=time.perf_counter();r=subprocess.run(command,env=env,stdout=log,stderr=log)
+        (dest/'execution.json').write_text(json.dumps({'command':command,'returncode':r.returncode,'wall_seconds_including_setup_exports_check':time.perf_counter()-started},indent=2)+'\n')
+        r.check_returncode();prior.write_text(json.dumps(identity,indent=2)+'\n')
+    reports={m:json.loads((a.output/m/'report.json').read_text()) for m in ('native','baseline','exact','audit','gpu') if (a.output/m/'report.json').exists()}
+    result={'scope':'Complete real saved Pass 3 replay, selected always-run queries only; unclaimed queries use '+('the existing full GPU matcher' if a.query_worker else 'native CPU')+'. Not pristine.',
+            'modes':{m:{'inference_seconds':r['inference_seconds'],'setup_seconds':r['setup_seconds'],'exact_graph':r['exact_graph']} for m,r in reports.items()},
+            'model_provenance':lib['scope'],'source_sha256':sha(a.source)}
+    result['historical_native']=str(a.reuse_native.resolve()) if a.reuse_native else None
+    for m in ('baseline','exact','gpu'):
+        if m in reports and 'native' in reports and reports[m]['exact_graph']['exact_rows_values_equivalence_visibility']:
+            result[m+'_speedup_vs_native']=reports['native']['inference_seconds']/reports[m]['inference_seconds']
+    if 'baseline' in reports and 'gpu' in reports:
+        result['predictor_speedup_vs_gpu_baseline']=reports['baseline']['inference_seconds']/reports['gpu']['inference_seconds']
+    if 'exact' in reports and 'gpu' in reports:result['completion']=comparison(reports)
+    if a.extract:
+        # Existing production Tiger workflow; its 'native' label here is the
+        # same-commit original-query lane, NOT a pristine/fused-native control.
+        ex=a.output/'extraction-check';(ex/'graphs').mkdir(parents=True,exist_ok=True)
+        for dst,src in [('native','native'),('cpu','exact'),('gpu','gpu')]:
+            target=ex/'graphs'/f'{dst}.json'
+            if not target.exists():target.symlink_to(a.output/src/'graph.json')
+        if not (ex/'extraction/quality.json').exists():
+            subprocess.run([sys.executable,str(repo/'experiments/raytrace_pass3_gpu/extract.py'),str(ex)],check=True,env=env)
+        result['extraction']=json.loads((ex/'extraction/quality.json').read_text())
+    (a.output/'summary.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(result,indent=2))
+if __name__=='__main__':main()
