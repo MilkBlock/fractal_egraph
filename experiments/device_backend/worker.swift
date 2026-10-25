@@ -112,9 +112,9 @@ while true{
       encode(cb,queryPipelines[0],1,arg,indirect:true,indirectOffset:32)
       encode(cb,queryPipelines[1],1,arg)
       encode(cb,queryPipelines[2],1,arg,indirect:true,indirectOffset:32)
-      for bit in 0..<(program["query_radix_bits"] as! Int){
+      for bit in 0..<(program["query_radix_passes"] as! Int){
        encode(cb,queryPipelines[3],1,arg,indirect:true,radixBit:UInt32(bit))
-       encode(cb,queryPipelines[4],1,arg,radixBit:UInt32(bit))
+       encode(cb,queryPipelines[4],16,arg,radixBit:UInt32(bit))
        encode(cb,queryPipelines[5],1,arg,indirect:true,radixBit:UInt32(bit))
       }
       encode(cb,prepareClearPipeline,1,arg,indirect:true,indirectOffset:32)

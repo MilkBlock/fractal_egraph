@@ -1,4 +1,4 @@
-// Stable binary radix partition of (bucket, entry) pairs. Input entries are
+// Stable radix partition of (bucket, entry) pairs. Input entries are
 // compacted in physical-row/column order, so equal buckets retain that order.
 kernel void query_row_scan(KERNEL_ARGS,uint tid[[thread_index_in_threadgroup]],uint group[[threadgroup_position_in_grid]]){
  if(m.error||!control[0])return;threadgroup uint sums[256];
@@ -21,6 +21,41 @@ kernel void query_pairs(KERNEL_ARGS){
  if(INDEX_COLUMN[t*QSTRIDE+COLS])out[base+n++]=(ulong(HASH_CAP+t)<<32)|ulong(lane*QSTRIDE+COLS);
  if(INDEX_COLUMN[t*QSTRIDE+TIME_COLUMN])out[base+n]=(ulong(query_hash(t,TIME_COLUMN,old[lane*STRIDE+2]))<<32)|ulong(lane*QSTRIDE+TIME_COLUMN);
 }
+#if QUERY_RADIX_DIGIT_BITS == 4
+kernel void query_radix_scan(KERNEL_ARGS,constant uint&bit[[buffer(13)]],device ulong*alternate[[buffer(14)]],uint tid[[thread_index_in_threadgroup]],uint group[[threadgroup_position_in_grid]],uint sid[[simdgroup_index_in_threadgroup]],uint slane[[thread_index_in_simdgroup]],uint swidth[[threads_per_simdgroup]]){
+ if(m.error||!control[0])return;
+ threadgroup uint totals[16*256];
+ device ulong*input=(bit&1)?alternate:(device ulong*)matches;
+ bool live=lane<control[7];uint digit=live?uint((input[lane]>>(32+4*bit))&15):0;
+ uint groups=256/swidth,local=0;
+ // SIMD prefix sums keep original row order within every digit. The first
+ // pass must be stable: later bits alone cannot repair scrambled ties.
+ for(uint d=0;d<16;d++){
+  uint present=uint(live&&digit==d);
+  uint prefix=simd_prefix_exclusive_sum(present),total=simd_sum(present);
+  if(digit==d)local=prefix;
+  if(slane==0)totals[d*256+sid]=total;
+ }
+ threadgroup_barrier(mem_flags::mem_threadgroup);
+ if(live){for(uint s=0;s<sid;s++)local+=totals[digit*256+s];qlinks[lane]=local;}
+ if(tid<16){uint total=0;for(uint s=0;s<groups;s++)total+=totals[tid*256+s];qheads[group*16+tid]=total;}
+}
+kernel void query_radix_offsets(KERNEL_ARGS,constant uint&bit[[buffer(13)]]){
+ if(m.error||!control[0]||lane>=16)return;
+ uint groups=(control[7]+255)/256,n=0;
+ for(uint g=0;g<groups;g++){uint at=g*16+lane,v=qheads[at];qheads[at]=n;n+=v;}
+ qheads[groups*16+lane]=n;
+ if(lane==0&&bit+1==QUERY_RADIX_PASSES){control[8]=(2*QBUCKETS+255)/256;control[9]=1;control[10]=1;}
+}
+kernel void query_radix_scatter(KERNEL_ARGS,constant uint&bit[[buffer(13)]],device ulong*alternate[[buffer(14)]]){
+ if(m.error||!control[0]||lane>=control[7])return;
+ device ulong*input=(bit&1)?alternate:(device ulong*)matches;device ulong*output=(bit&1)?(device ulong*)matches:alternate;
+ ulong key=input[lane];uint digit=uint((key>>(32+4*bit))&15),groups=(control[7]+255)/256;
+ uint target=qheads[(lane/256)*16+digit]+qlinks[lane];
+ for(uint d=0;d<digit;d++)target+=qheads[groups*16+d];
+ output[target]=key;
+}
+#else
 kernel void query_radix_scan(KERNEL_ARGS,constant uint&bit[[buffer(13)]],device ulong*alternate[[buffer(14)]],uint tid[[thread_index_in_threadgroup]],uint group[[threadgroup_position_in_grid]]){
  if(m.error||!control[0])return;threadgroup uint sums[256];
  device ulong*input=(bit&1)?alternate:(device ulong*)matches;
@@ -42,9 +77,10 @@ kernel void query_radix_scatter(KERNEL_ARGS,constant uint&bit[[buffer(13)]],devi
  ulong key=input[lane];uint before=qheads[lane/256]+qlinks[lane];
  uint target=((key>>(32+bit))&1)?control[2]+lane-before:before;output[target]=key;
 }
+#endif
 kernel void query_link_sorted(KERNEL_ARGS,device ulong*alternate[[buffer(14)]]){
  if(m.error||!control[0]||lane>=control[7])return;
- device ulong*keys=(QUERY_RADIX_BITS&1)?alternate:(device ulong*)matches;
+ device ulong*keys=(QUERY_RADIX_PASSES&1)?alternate:(device ulong*)matches;
  ulong key=keys[lane];uint h=uint(key>>32),e=uint(key);
  if(lane==0||uint(keys[lane-1]>>32)!=h)qheads[h]=e;
  bool last=lane+1==control[7]||uint(keys[lane+1]>>32)!=h;

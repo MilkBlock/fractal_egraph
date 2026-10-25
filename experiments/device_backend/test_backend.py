@@ -15,6 +15,10 @@ def tests(build,out):
  source+=' ) :ruleset init) (rule ((Link x y)) ((union x y)) :ruleset fold) (run init 1) (run fold 1) (check (= (Cost (N 127)) 0)) (check (= (W (W (N 127))) (W (W (N 0)))))'
  stress=out/'congruence-stress.egg';stress.write_text(source)
  r=run(stress,build,out/'congruence-stress');assert r['steps'][1]['unions']>=4*(count-1);results['congruence-stress']=r
+ binary=run(stress,build,out/'binary-radix',radix_digit_bits=1)
+ assert binary['steps']==r['steps']
+ assert json.loads((out/'binary-radix/gpu-state.json').read_text())==json.loads((out/'congruence-stress/gpu-state.json').read_text())
+ results['stable-digit-radix']=True
  cart='(datatype T (N i64) (Pair T T)) (relation L (T)) (relation R (T)) (ruleset init) (ruleset product) (rule () ('
  for i in range(32):cart+=f'(L (N {i})) (R (N {i})) '
  cart+=') :ruleset init) (rule ((L x) (R y)) ((Pair x y)) :ruleset product) (run init 1) (run product 1)'
@@ -32,6 +36,10 @@ def tests(build,out):
  full=json.loads((out/'all-index-columns/program.json').read_text())['index_columns']
  assert sum(map(len,limited.values()))<sum(map(len,full.values()))
  results['used-index-columns']=True
+ flat=run(HERE/'fixtures/delta-join.egg',build,out/'flat-dispatch',seed_dispatch=False)
+ assert flat['steps']==results['delta-join']['steps']
+ assert json.loads((out/'flat-dispatch/gpu-state.json').read_text())==json.loads((out/'delta-join/gpu-state.json').read_text())
+ results['typed-seed-dispatch']=True
  assert {'pure','mixed'}<=set(results['deferred-union']['deferred_rulesets'])
  # Eager union is a diagnostic counterfactual, and is known to lose a merge
  # constructor in this case. Never silently bless it as native-equivalent.
