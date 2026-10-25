@@ -409,5 +409,31 @@
     "line": 42
   },
   "full_gpu_verified": false,
-  "code_generation_verified": false
+  "code_generation_verified": false,
+  "serial_full_attempt": {
+    "stopped_intentionally": true,
+    "reason": "serial prepare/rebuild costs already far exceed the full release native reference",
+    "complete_schedule": false,
+    "last_step": {
+      "set": "terms-helpers",
+      "rows": 327648,
+      "matched": 4,
+      "updated": true,
+      "epoch": 3180,
+      "unions": 42824
+    },
+    "logical_steps": 3179,
+    "resumed_prefix_runs": 1024,
+    "timings_seconds": {
+      "device_control_wait": 850.2688393358258,
+      "device_gpu": 848.546580747643,
+      "prepare": 338.5609358334914,
+      "match": 18.82598049909575,
+      "commit": 491.1596644150559,
+      "native_oracle": 0.0,
+      "checkpoint_excluding_oracle": 0.0,
+      "comparison": 0.0
+    },
+    "native_inference_during_gpu_run": false
+  }
 }

@@ -144,3 +144,9 @@ produced 697,922 rows. This is not the historical 12.34-second assisted baseline
 See `extraction-results.json` for provenance, partial extraction evidence and
 current limitations. Full GPU completion, final quality and the speed objective
 remain unverified.
+
+The unchecked serial full attempt was deliberately stopped after its device time
+already far exceeded the complete release-native reference. Its partial timings
+are retained in `extraction-results.json`: prepare and commit/rebuild dominate,
+not matching. This establishes a backend implementation bottleneck, not a full
+GPU success. The next work is parallel index preparation and congruence rebuild.
