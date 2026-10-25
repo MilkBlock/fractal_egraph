@@ -11,8 +11,17 @@ def compare(before,after,device_states=False):
         if pa.get(key)!=pb.get(key):raise ValueError('different input/configuration: '+key)
     if device_states:
         snapshots=[json.loads((p/'gpu-state.json').read_text()) for p in [before,after]]
-        if snapshots[0]!=snapshots[1]:raise ValueError('device states differ')
-        final_check={'exact_device_state':True,'rows':len(snapshots[1]['rows']),'native_reference':False}
+        def roots(forest):
+            result=[]
+            for i,parent in enumerate(forest):
+                if parent<0 or parent>i:raise ValueError('invalid minimum-root forest')
+                result.append(i if parent==i else result[parent])
+            return result
+        for key in snapshots[0].keys()|snapshots[1].keys():
+            if key in ['parents','fact_parents']:
+                if roots(snapshots[0][key])!=roots(snapshots[1][key]):raise ValueError('device equivalence differs: '+key)
+            elif snapshots[0].get(key)!=snapshots[1].get(key):raise ValueError('device state differs: '+key)
+        final_check={'exact_device_state':snapshots[0]==snapshots[1],'exact_rows_values_equivalence_visibility':True,'rows':len(snapshots[1]['rows']),'native_reference':False}
     else:
         for r in reports:
             if not r['checked'] or not r['checks'] or not r['checks'][-1]['exact_rows_values_equivalence_visibility']:raise ValueError('missing exact final check')

@@ -18,7 +18,7 @@ bool rb_equal(device long*r,uint a,uint b){
  return true;
 }
 kernel void rebuild_start(KERNEL_ARGS){
- if(lane||m.error)return;control[1]=m.count;control[2]=m.unions;
+ if(lane||m.error)return;control[1]=m.count;control[2]=m.unions;control[4]=0;
  for(long h=2;h<r[ROW_WORDS];h+=r[ROW_WORDS+h]+4)set_canon(r,p,h);
 }
 kernel void rebuild_canonical(KERNEL_ARGS){
@@ -70,13 +70,17 @@ kernel void merge_scatter(KERNEL_ARGS){
 }
 kernel void rebuild_merge(KERNEL_ARGS){
  if(lane)return;if(m.error){control[0]=0;return;}
- for(uint n=0;n<control[7]&&!m.error;n++){uint j=qlinks[2*CAPACITY+n];
+ for(uint n=control[4];n<control[7]&&!m.error;n++){uint j=qlinks[2*CAPACITY+n];
   uint i=qlinks[j],t=uint(r[i*STRIDE]),oi=i*STRIDE+4+WIDTH[t]-1,oj=j*STRIDE+4+WIDTH[t]-1;
   long a=canon(r,p,t,WIDTH[t]-1,r[oi]),b=canon(r,p,t,WIDTH[t]-1,r[oj]);
+  if(PARALLEL_MERGE_INDEX&&a!=b&&MERGE_INDEX[t]&&r[INDEX_OFFSET]!=long(m.unions)+1){control[4]=n;control[0]=2;return;}
   if(POLICY[t]==4&&a!=b){m.error=7;break;}
   r[oi]=mergevalue(t,a,b,r,p,fp,m);
   r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;
-  fp[root(fp,uint(r[j*STRIDE+3]))]=root(fp,uint(r[i*STRIDE+3]));m.changed=1;r[INDEX_OFFSET]=0;
+  fp[root(fp,uint(r[j*STRIDE+3]))]=root(fp,uint(r[i*STRIDE+3]));m.changed=1;
+  // Group representatives and the index both choose the earliest live row.
+  // Retiring j cannot retire that representative. New unions still invalidate
+  // the index through its union-count version; compaction invalidates it later.
  }
  control[0]=!m.error&&(control[2]!=m.unions||control[1]!=m.count);
  control[3]=m.error;

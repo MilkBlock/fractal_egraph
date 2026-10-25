@@ -15,7 +15,7 @@ let prepareBuildPipeline=try device.makeComputePipelineState(function:lib.makeFu
 let commitPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"commit_effects")!)
 let rebuildPipelines=try ["rebuild_start","rebuild_canonical","rebuild_insert","rebuild_assign","merge_scan","merge_offsets","merge_scatter","rebuild_merge","compact_scan","compact_offsets","compact_copy","compact_store"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 try need(rebuildPipelines[4].maxTotalThreadsPerThreadgroup>=256 && rebuildPipelines[8].maxTotalThreadsPerThreadgroup>=256,"rebuild scans require 256-thread groups")
-let rowIndexPipelines=try ["row_index_clear","row_index_parallel","row_index_ready"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
+let rowIndexPipelines=try ["row_index_context","row_index_clear","row_index_parallel","row_index_ready"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 let queryPipelines=try ["query_row_scan","query_row_offsets","query_pairs","query_radix_scan","query_radix_offsets","query_radix_scatter","query_link_sorted"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 try need(queryPipelines[0].maxTotalThreadsPerThreadgroup>=256 && queryPipelines[3].maxTotalThreadsPerThreadgroup>=256,"index scans require 256-thread groups")
 let matchSortPipelines=try ["match_order_local","match_order_global","match_order_merge"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
@@ -72,6 +72,7 @@ func encode(_ cb:MTLCommandBuffer,_ pipeline:MTLComputePipelineState,_ threads:I
 func copyStatus(_ cb:MTLCommandBuffer,_ status:MTLBuffer,_ flags:MTLBuffer){
  let b=cb.makeBlitCommandEncoder()!;b.copy(from:meta,sourceOffset:0,to:status,destinationOffset:0,size:36);b.copy(from:rows,sourceOffset:(program["index_counter_offset"] as! Int)*8,to:status,destinationOffset:36,size:8);b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:16);b.copy(from:rows,sourceOffset:(program["query_dirty_offset"] as! Int)*8,to:status,destinationOffset:44,size:8);b.copy(from:rows,sourceOffset:((program["index_counter_offset"] as! Int)-(program["hash_capacity"] as! Int)-1)*8,to:status,destinationOffset:52,size:8);b.endEncoding()
 }
+try FileHandle.standardError.write(contentsOf:Data("device allocated_bytes=\(device.currentAllocatedSize)\n".utf8))
 let input=FileHandle.standardInput,output=FileHandle.standardOutput
 func read(_ n:Int)throws->Data{var d=Data();while d.count<n{guard let p=try input.read(upToCount:n-d.count),!p.isEmpty else{throw NSError(domain:"truncated command",code:1)};d+=p};return d}
 func send(_ x:[UInt32])throws{try x.withUnsafeBytes{try output.write(contentsOf:Data($0))}}
@@ -106,7 +107,7 @@ while true{
    let cb=queue.makeCommandBuffer()!;encode(cb,pipeline,stage==1 && parallelMatch ? max(1,Int(hostMeta[0])):1,arg)
    if stage==0{
     if program["parallel_prepare"] as! Bool {
-     if needsRowIndex{encode(cb,rowIndexPipelines[0],program["hash_capacity"] as! Int,arg);encode(cb,rowIndexPipelines[1],max(1,Int(hostMeta[0])),arg);encode(cb,rowIndexPipelines[2],1,arg)}
+     if needsRowIndex{encode(cb,rowIndexPipelines[0],1,arg);encode(cb,rowIndexPipelines[1],program["hash_capacity"] as! Int,arg);encode(cb,rowIndexPipelines[2],max(1,Int(hostMeta[0])),arg);encode(cb,rowIndexPipelines[3],1,arg)}
      if needsIndexReset || !(program["incremental_queries"] as! Bool){
       encode(cb,queryPipelines[0],1,arg,indirect:true,indirectOffset:32)
       encode(cb,queryPipelines[1],1,arg)
@@ -140,8 +141,12 @@ while true{
   let needed=controlWords[0] != 0
   while controlWords[0] != 0 && controlWords[3] == 0 {
    let cb=queue.makeCommandBuffer()!
-   let widths=[1,program["hash_capacity"] as! Int,capacity,capacity,((capacity+255)/256)*256,1,capacity,1]
-   for i in 0..<8{encode(cb,rebuildPipelines[i],widths[i],arg)}
+   if controlWords[0]==2 {
+    encode(cb,rowIndexPipelines[0],1,arg);encode(cb,rowIndexPipelines[1],program["hash_capacity"] as! Int,arg);encode(cb,rowIndexPipelines[2],capacity,arg);encode(cb,rowIndexPipelines[3],1,arg);encode(cb,rebuildPipelines[7],1,arg)
+   }else{
+    let widths=[1,program["hash_capacity"] as! Int,capacity,capacity,((capacity+255)/256)*256,1,capacity,1]
+    for i in 0..<8{encode(cb,rebuildPipelines[i],widths[i],arg)}
+   }
    let b=cb.makeBlitCommandEncoder()!;b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:16);b.endEncoding();cb.commit();cb.waitUntilCompleted()
    try need(cb.status == .completed,"parallel rebuild failed: \(String(describing:cb.error))")
    rebuildSeconds+=cb.gpuEndTime-cb.gpuStartTime

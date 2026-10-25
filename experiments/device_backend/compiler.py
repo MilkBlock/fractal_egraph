@@ -17,7 +17,7 @@ INTEGER_OPS={'+':0,'-':1,'*':2,'/':3,'%':4,'min':5,'max':6,'bool-=':7,'bool-<':8
 def integer_op(c):
  return INTEGER_OPS.get(c['primitive']) if c['inputs']==['i64','i64'] else None
 
-def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True):
+def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True):
  if p['schema']!='egglog-device-core/v1':raise ValueError('program schema')
  strings=set()
  def collect(x):
@@ -243,6 +243,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  hash_cap=1
  while hash_cap<capacity*4:hash_cap*=2
  radix_bits=(hash_cap+len(ts)-1).bit_length()
+ prefix+=f'#define PARALLEL_MERGE_INDEX {int(parallel_merge_index)}\n'
  prefix+=f'#define INDEXED_SUBSUME {int(indexed_subsume)}\n'
  prefix+=f'#define PARALLEL_PREPARE {int(parallel_prepare)}\n#define QUERY_RADIX_BITS {radix_bits}\n'
  prefix+=f'#define PARALLEL_REBUILD {int(parallel_rebuild)}\n'
@@ -253,7 +254,10 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  prefix+=f'#define ROW_WORDS {capacity*(cols+4)}\n#define SET_WORDS {arena_words}\n'
  set_start=[0];set_rules=[]
  for use in sets:set_rules.extend(use);set_start.append(len(set_rules))
- for name,data in [('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy),('ACTION_START',action_starts),('QUERY_WIDTH',query_widths),('DEFER_UNIONS',deferred),('QUERY_PARALLEL',parallel_sets),('SET_START',set_start),('SET_RULES',set_rules)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
+ def merge_has_table(e):
+  return isinstance(e,dict) and ('table' in e.get('call',{}) or any(merge_has_table(x) for x in e.get('args',[])))
+ merge_reads=[int(merge_has_table(t.get('merge_expr'))) for t in ts]
+ for name,data in [('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy),('MERGE_INDEX',merge_reads),('ACTION_START',action_starts),('QUERY_WIDTH',query_widths),('DEFER_UNIONS',deferred),('QUERY_PARALLEL',parallel_sets),('SET_START',set_start),('SET_RULES',set_rules)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
  merge_cases=[]
  for tid,t in enumerate(ts):
   if policy[tid]!=6:continue
@@ -293,4 +297,4 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
   calls=''.join(f'query_{r}({call_args},{rank});if(atomic_load_explicit((device atomic_uint*)&m.error,memory_order_relaxed))return;' for rank,r in enumerate(use))
   kernels.append(template.replace('kernel void step(',f'kernel void {name}(').replace('// MATCH_BODY',calls))
  source=common+query_functions+'\n'.join(kernels)
- return {'schema':'egglog-device-storage/v1','parallel_rebuild':parallel_rebuild,'parallel_match_sets':parallel_sets,'indexed_subsume':indexed_subsume,'match_order_capacity':max(256,1<<(match_capacity-1).bit_length()),'parallel_prepare':parallel_prepare,'query_radix_bits':radix_bits,'query_sort_words':capacity*(cols+2),'hash_capacity':hash_cap,'shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+3,'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':2+union_cap*2,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':2*(hash_cap+len(ts))+1+len(ts),'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'workspace_words':max(match_capacity*(nv+6),capacity*(cols+4)),'id_capacity':idcap,'stride':cols+4,'match_stride':nv+6,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}
+ return {'schema':'egglog-device-storage/v1','parallel_rebuild':parallel_rebuild,'parallel_match_sets':parallel_sets,'indexed_subsume':indexed_subsume,'parallel_merge_index':parallel_merge_index,'match_order_capacity':max(256,1<<(match_capacity-1).bit_length()),'parallel_prepare':parallel_prepare,'query_radix_bits':radix_bits,'query_sort_words':capacity*(cols+2),'hash_capacity':hash_cap,'shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+3,'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':2+union_cap*2,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':2*(hash_cap+len(ts))+1+len(ts),'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'workspace_words':max(match_capacity*(nv+6),capacity*(cols+4)),'id_capacity':idcap,'stride':cols+4,'match_stride':nv+6,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}

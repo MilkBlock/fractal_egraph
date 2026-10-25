@@ -52,14 +52,26 @@ kernel void query_link_sorted(KERNEL_ARGS,device ulong*alternate[[buffer(14)]]){
  if(e%QSTRIDE==TIME_COLUMN){uint row=e/QSTRIDE,t=uint(old[row*STRIDE]);atomic_fetch_max_explicit((device atomic_uint*)&qheads[2*QBUCKETS+1+t],uint(old[row*STRIDE+2]),memory_order_relaxed);}
 }
 
+long index_canon(device long*r,device uint*p,uint t,uint c,long x){return EQ[t*COLS+c]==1?long(rb_root(p,uint(x))):(EQ[t*COLS+c]==2?rb_set(r,x):x);}
+uint index_current_hash(device long*r,device uint*p,uint i){
+ uint t=uint(r[i*STRIDE]);ulong h=ulong(t)+0x9e3779b97f4a7c15UL;
+ for(uint c=0;c<WIDTH[t]-1;c++){ulong v=ulong(index_canon(r,p,t,c,r[i*STRIDE+4+c]));v^=v>>30;v*=0xbf58476d1ce4e5b9UL;h^=v+(h<<6)+(h>>2);}
+ return uint(h^(h>>32))&(HASH_CAP-1);
+}
+bool index_current_equal(device long*r,device uint*p,uint i,uint j){
+ uint t=uint(r[i*STRIDE]);if(r[j*STRIDE]!=t)return false;
+ for(uint c=0;c<WIDTH[t]-1;c++)if(index_canon(r,p,t,c,r[i*STRIDE+4+c])!=index_canon(r,p,t,c,r[j*STRIDE+4+c]))return false;
+ return true;
+}
+kernel void row_index_context(KERNEL_ARGS){if(lane||m.error)return;for(long h=2;h<r[ROW_WORDS];h+=r[ROW_WORDS+h]+4)set_canon(r,p,h);}
 kernel void row_index_clear(KERNEL_ARGS){if(!m.error&&lane<HASH_CAP)r[INDEX_OFFSET+1+lane]=0;}
 kernel void row_index_parallel(KERNEL_ARGS){
  if(m.error||lane>=m.count||r[lane*STRIDE+1]==2)return;
- device atomic_uint*index=(device atomic_uint*)(r+INDEX_OFFSET+1);uint h=rb_hash(r,lane);
+ device atomic_uint*index=(device atomic_uint*)(r+INDEX_OFFSET+1);uint h=index_current_hash(r,p,lane);
  while(true){
   uint old=atomic_load_explicit(index+2*h,memory_order_relaxed);
   if(!old){uint expected=0;if(atomic_compare_exchange_weak_explicit(index+2*h,&expected,lane+1,memory_order_relaxed,memory_order_relaxed))return;}
-  else if(rb_equal(r,lane,old-1)){atomic_fetch_min_explicit(index+2*h,lane+1,memory_order_relaxed);return;}
+  else if(index_current_equal(r,p,lane,old-1)){atomic_fetch_min_explicit(index+2*h,lane+1,memory_order_relaxed);return;}
   else h=(h+1)&(HASH_CAP-1);
  }
 }

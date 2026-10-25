@@ -177,3 +177,25 @@ a backend lookup bug/optimization, not Cell credit or full-program acceleration.
 The current suite passes 42 checks, including canonical GPU-only restoration,
 512-way congruence and exact ordering of 1024 parallel bindings. Full GPU output
 and production extraction validation remain pending.
+
+## Resumable merge-index refresh
+
+Duplicate-group representatives are the earliest live rows, just like the complete
+key index. Retiring the other rows does not itself invalidate that index. A changed
+union-count still invalidates it, and compaction invalidates physical locations.
+
+When a custom merge needs a constructor lookup after unions have changed, the
+merge cursor is saved on GPU. The worker runs parallel index refresh kernels and
+continues from that cursor. Refresh hashes canonical keys without modifying rows;
+merge callback order is unchanged. `--serial-merge-index` retains the former path.
+
+The same-state step-6232 comparison is in `merge-index-results.json`: 7.25 seconds
+became 0.14 seconds. All rows, values, visibility, sets and equivalence classes
+agree; parent-pointer path compression differs. This is an isolated Run result,
+not full-workload acceleration. The suite now has 43 checks, including a lookup
+whose key becomes canonical during rebuild.
+
+Reports separate startup, schedule execution, state-export I/O and validation.
+`inference_seconds` is provided only without periodic checks, intermediate snapshots,
+phase logs or Metal validation. The start allocation metric is Metal resource
+allocation, not process RSS. A resumed suffix is never a full-run timing.

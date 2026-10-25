@@ -3,7 +3,7 @@
 The exact row/anchor comparison follows the existing live_table_bench.rs
 comparison contract; GPU state is never reimported and repaired by native rebuild.
 """
-import argparse,json,struct,subprocess,time,hashlib,os
+import argparse,json,struct,subprocess,time,hashlib,os,re
 from pathlib import Path
 from compiler import compile_program
 
@@ -120,14 +120,15 @@ def load_resume(folder,original,p,require_native=True):
  p.update(initial_rows=[v for row in state['rows'] for v in row],initial_sets=state['sets'],meta=state['meta'],initial_parents=state['parents'],initial_fact_parents=state['fact_parents'],initial_watermarks=wm)
  return steps
 
-def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_at_end=False,max_runs=None,defer_unions=True,incremental_queries=True,resume=None,delta_queries=True,verify_against=None,save_final_state=False,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,require_native_resume=True,snapshot_every=0,indexed_subsume=True):
+def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_at_end=False,max_runs=None,defer_unions=True,incremental_queries=True,resume=None,delta_queries=True,verify_against=None,save_final_state=False,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,require_native_resume=True,snapshot_every=0,indexed_subsume=True,parallel_merge_index=True):
+ setup_started=time.perf_counter()
  if any(d is not None and d.resolve()==out.resolve() for d in [resume,verify_against]):raise ValueError('output must differ from resume/reference directory')
  out.mkdir(parents=True,exist_ok=True)
  if verify_against is not None:check_every=0;check_at_end=False
  if (out/'report.json').exists():raise ValueError('output already contains a successful run; use a new directory')
  with (out/'native.log').open('w') as nl,(out/'gpu.log').open('w') as gl:
   native=subprocess.Popen([str((build/'frontend').resolve()),str(source.resolve())],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=nl,text=True)
-  gpu=None;steps=[];phase="compile";timings={"device_control_wait":0.0,"device_gpu":0.0,"prepare":0.0,"match":0.0,"commit":0.0,"native_oracle":0.0,"checkpoint_excluding_oracle":0.0,"comparison":0.0};device_times=[]
+  gpu=None;steps=[];phase="compile";timings={"device_control_wait":0.0,"device_gpu":0.0,"prepare":0.0,"match":0.0,"commit":0.0,"native_oracle":0.0,"checkpoint_excluding_oracle":0.0,"comparison":0.0,"state_export_io":0.0};device_times=[]
   try:
    line=native.stdout.readline()
    if not line:raise RuntimeError('native compilation failed; see native.log')
@@ -137,7 +138,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     if json.loads((verify_against/'core.json').read_text())!=original:raise ValueError('stored reference core differs')
     control=json.loads((verify_against/'report.json').read_text())
     if not control['checks'] or control['checks'][-1]['step']!=len(control['steps']):raise ValueError('stored reference lacks a final native checkpoint')
-   p=compile_program(original,capacity,match_capacity,defer_unions,incremental_queries,delta_queries,parallel_rebuild,parallel_prepare,parallel_match,indexed_subsume)
+   p=compile_program(original,capacity,match_capacity,defer_unions,incremental_queries,delta_queries,parallel_rebuild,parallel_prepare,parallel_match,indexed_subsume,parallel_merge_index)
    prefix=load_resume(resume,original,p,require_native_resume) if resume else []
    if max_runs is not None and max_runs<=len(prefix):raise ValueError('max-runs must exceed resumed prefix')
    del original
@@ -148,6 +149,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
    initial_bytes+=sum(len(p.pop(k,[]))*4 for k in ['initial_parents','initial_fact_parents','initial_watermarks'])
    if not check_every and not check_at_end:
     native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait(timeout=30)
+   setup_seconds=time.perf_counter()-setup_started
    phase="run"
    steps=[];checks=[];up=0;down=0;snapshot_bytes=0;oracle_runs=0
    def oracle(q):
@@ -160,6 +162,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     gpu.stdin.write(struct.pack('<II',op,arg));gpu.stdin.flush();up+=8
    def read_gpu_state():
     nonlocal snapshot_bytes
+    read_started=time.perf_counter()
     command(2);meta=struct.unpack('<9I',read(gpu.stdout,36));n=meta[0]*p['stride']
     raw=struct.unpack('<'+'q'*n,read(gpu.stdout,n*8));rows=[raw[i:i+p['stride']] for i in range(0,n,p['stride'])]
     parents=struct.unpack('<'+'I'*meta[1],read(gpu.stdout,meta[1]*4));facts=struct.unpack('<'+'I'*meta[8],read(gpu.stdout,meta[8]*4))
@@ -168,6 +171,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     snapshot_bytes+=40+n*8+len(parents)*4+len(facts)*4+len(arena)*8
     atomic_json(out/'gpu-state.json',{'meta':meta,'rows':rows,'parents':parents,'fact_parents':facts,'sets':arena})
     atomic_json(out/'checkpoint-meta.json',{'steps':steps,'native_verified':False})
+    timings["state_export_io"]+=time.perf_counter()-read_started
     return meta,rows,parents,arena
    def checkpoint(certify=True):
     t=time.perf_counter();oracle_before=timings["native_oracle"]
@@ -228,6 +232,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
    try:
     for s in p['schedule']:advance(s)
    except PrefixComplete:complete=False
+   schedule_seconds=time.perf_counter()-started
    if check_at_end:
     phase='post-run-oracle'
     for step in steps:
@@ -244,7 +249,9 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
    command(0);gpu.wait(timeout=30)
    if native.poll() is None:
     native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait(timeout=30)
-   result={'indexed_subsume':indexed_subsume,'resume_validation':'native' if require_native_resume else 'GPU canonical state only','snapshot_every':snapshot_every,'parallel_match':parallel_match,'parallel_prepare':parallel_prepare,'parallel_rebuild':parallel_rebuild,'state_export_requested':save_final_state,'phase_logging':os.environ.get('EGG_DEVICE_PHASE_LOG')=='1','verify_against':str(verify_against.resolve()) if verify_against else None,'resume_directory':str(resume.resolve()) if resume else None,'resumed_prefix_runs':len(prefix),'incremental_queries':incremental_queries,'delta_queries':delta_queries,'deferred_rulesets':p['deferred_rulesets'],'timings_seconds':timings,'device_command_times':device_times,'complete_schedule':complete,'requested_max_runs':max_runs,'scope':'native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark','steps':steps,'checks':checks,'checked':bool(check_every or check_at_end or verify_against),'check_mode':'stored' if verify_against else 'final' if check_at_end else ('periodic' if check_every else 'off'),'native_oracle_runs':oracle_runs,'run_control_upload_bytes':8*len(device_times),'run_status_download_bytes':down,'checkpoint_bytes':snapshot_bytes,'intermediate_binding_download_bytes':0,'cpu_rhs_calls':0,'cpu_rebuild_calls_outside_oracle':0,'wall_seconds_including_debug_checks':elapsed,'initial_row_upload_bytes':initial_bytes,'native_retired_before_gpu_runs':not bool(check_every or check_at_end),'oracle_starts_after_gpu':check_at_end,'control_upload_bytes':up,'assertion_tables':p.get('assertion_tables',[]),'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'build':json.loads((build/'build.json').read_text()),'program_sha256':hashlib.sha256((out/'program.json').read_bytes()).hexdigest()}
+   clean_timing=(not check_every or check_at_end) and not snapshot_every and os.environ.get('EGG_DEVICE_PHASE_LOG')!='1' and os.environ.get('MTL_DEBUG_LAYER')!='1'
+   allocated=re.search(r'device allocated_bytes=(\d+)',(out/'gpu.log').read_text())
+   result={'parallel_merge_index':parallel_merge_index,'setup_seconds':setup_seconds,'schedule_seconds':schedule_seconds,'inference_seconds':schedule_seconds if clean_timing else None,'clean_timing':clean_timing,'gpu_allocated_bytes_at_start':int(allocated.group(1)) if allocated else None,'indexed_subsume':indexed_subsume,'resume_validation':'native' if require_native_resume else 'GPU canonical state only','snapshot_every':snapshot_every,'parallel_match':parallel_match,'parallel_prepare':parallel_prepare,'parallel_rebuild':parallel_rebuild,'state_export_requested':save_final_state,'phase_logging':os.environ.get('EGG_DEVICE_PHASE_LOG')=='1','verify_against':str(verify_against.resolve()) if verify_against else None,'resume_directory':str(resume.resolve()) if resume else None,'resumed_prefix_runs':len(prefix),'incremental_queries':incremental_queries,'delta_queries':delta_queries,'deferred_rulesets':p['deferred_rulesets'],'timings_seconds':timings,'device_command_times':device_times,'complete_schedule':complete,'requested_max_runs':max_runs,'scope':'native-compiled .egg, experimental GPU-owned execution backend; consult clean_timing, completeness and validation scope before using timings','steps':steps,'checks':checks,'checked':bool(check_every or check_at_end or verify_against),'check_mode':'stored' if verify_against else 'final' if check_at_end else ('periodic' if check_every else 'off'),'native_oracle_runs':oracle_runs,'run_control_upload_bytes':8*len(device_times),'run_status_download_bytes':down,'checkpoint_bytes':snapshot_bytes,'intermediate_binding_download_bytes':0,'cpu_rhs_calls':0,'cpu_rebuild_calls_outside_oracle':0,'wall_seconds_including_debug_checks':elapsed,'initial_row_upload_bytes':initial_bytes,'native_retired_before_gpu_runs':not bool(check_every or check_at_end),'oracle_starts_after_gpu':check_at_end,'control_upload_bytes':up,'assertion_tables':p.get('assertion_tables',[]),'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'build':json.loads((build/'build.json').read_text()),'program_sha256':hashlib.sha256((out/'program.json').read_bytes()).hexdigest()}
    (out/'report.json').write_text(json.dumps(result,indent=2)+'\n');return result
   except Exception as e:
    (out/'failure.json').write_text(json.dumps({'phase':phase,'error':str(e),'completed_steps':steps,'timings_seconds':timings,'device_command_times':device_times},indent=2));raise
@@ -256,10 +263,10 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
      if proc.stdout:proc.stdout.close()
 
 def main():
- a=argparse.ArgumentParser();a.add_argument('--source',type=Path,required=True);a.add_argument('--build',type=Path,required=True);a.add_argument('--output',type=Path,required=True);a.add_argument('--check-every',type=int,default=1,help='0 disables CPU execution; positive N verifies every N Run boundaries');a.add_argument('--check-at-end',action='store_true',help='replay native only after all GPU Run commands finish');a.add_argument('--capacity',type=int,default=4096);a.add_argument('--match-capacity',type=int,default=16384);a.add_argument('--scan-subsume',action='store_true',help='diagnostic full-table subsumption');a.add_argument('--resume-gpu',type=Path,help='restore canonical GPU state without claiming native equality');a.add_argument('--snapshot-every',type=int,default=0,help='diagnostic GPU-only checkpoints');a.add_argument('--serial-match',action='store_true',help='diagnostic serial matcher');a.add_argument('--serial-prepare',action='store_true',help='diagnostic ordered-chain preparation');a.add_argument('--serial-rebuild',action='store_true',help='diagnostic serial rebuild reference');a.add_argument('--save-state',action='store_true',help='export final GPU state without requiring native execution');a.add_argument('--verify-against',type=Path,help='reuse an exact native final checkpoint; no native Run replay');a.add_argument('--no-delta-queries',action='store_true',help='diagnostic: filter changed bindings only after joining');a.add_argument('--resume',type=Path,help='resume from a native-verified checkpoint; not an end-to-end timing run');a.add_argument('--rebuild-query-index',action='store_true',help='diagnostic: rebuild snapshot indexes on every Run');a.add_argument('--eager-unions',action='store_true',help='diagnostic legacy mode; may differ semantically from native');a.add_argument('--max-runs',type=int,help='diagnostic prefix only, reported as incomplete');x=a.parse_args()
+ a=argparse.ArgumentParser();a.add_argument('--source',type=Path,required=True);a.add_argument('--build',type=Path,required=True);a.add_argument('--output',type=Path,required=True);a.add_argument('--check-every',type=int,default=1,help='0 disables CPU execution; positive N verifies every N Run boundaries');a.add_argument('--check-at-end',action='store_true',help='replay native only after all GPU Run commands finish');a.add_argument('--capacity',type=int,default=4096);a.add_argument('--match-capacity',type=int,default=16384);a.add_argument('--serial-merge-index',action='store_true',help='diagnostic index rebuild inside merge callbacks');a.add_argument('--scan-subsume',action='store_true',help='diagnostic full-table subsumption');a.add_argument('--resume-gpu',type=Path,help='restore canonical GPU state without claiming native equality');a.add_argument('--snapshot-every',type=int,default=0,help='diagnostic GPU-only checkpoints');a.add_argument('--serial-match',action='store_true',help='diagnostic serial matcher');a.add_argument('--serial-prepare',action='store_true',help='diagnostic ordered-chain preparation');a.add_argument('--serial-rebuild',action='store_true',help='diagnostic serial rebuild reference');a.add_argument('--save-state',action='store_true',help='export final GPU state without requiring native execution');a.add_argument('--verify-against',type=Path,help='reuse an exact native final checkpoint; no native Run replay');a.add_argument('--no-delta-queries',action='store_true',help='diagnostic: filter changed bindings only after joining');a.add_argument('--resume',type=Path,help='resume from a native-verified checkpoint; not an end-to-end timing run');a.add_argument('--rebuild-query-index',action='store_true',help='diagnostic: rebuild snapshot indexes on every Run');a.add_argument('--eager-unions',action='store_true',help='diagnostic legacy mode; may differ semantically from native');a.add_argument('--max-runs',type=int,help='diagnostic prefix only, reported as incomplete');x=a.parse_args()
  if x.resume and x.resume_gpu:a.error('choose one resume mode')
  if x.snapshot_every<0:a.error('snapshot interval must be nonnegative')
  if x.check_every<0:a.error('negative checkpoint interval')
  if x.max_runs is not None and x.max_runs<1:a.error('max-runs must be positive')
- print(json.dumps(run(x.source,x.build,x.output,x.check_every,x.capacity,x.match_capacity,x.check_at_end,x.max_runs,not x.eager_unions,not x.rebuild_query_index,x.resume or x.resume_gpu,not x.no_delta_queries,x.verify_against,x.save_state,not x.serial_rebuild,not x.serial_prepare,not x.serial_match,x.resume_gpu is None,x.snapshot_every,not x.scan_subsume),indent=2))
+ print(json.dumps(run(x.source,x.build,x.output,x.check_every,x.capacity,x.match_capacity,x.check_at_end,x.max_runs,not x.eager_unions,not x.rebuild_query_index,x.resume or x.resume_gpu,not x.no_delta_queries,x.verify_against,x.save_state,not x.serial_rebuild,not x.serial_prepare,not x.serial_match,x.resume_gpu is None,x.snapshot_every,not x.scan_subsume,not x.serial_merge_index),indent=2))
 if __name__=='__main__':main()
