@@ -1,7 +1,7 @@
 """Real Metal/native differential tests. Not timing or acceleration claims."""
 import argparse,json
 from pathlib import Path
-from run import run,compare
+from run import run,compare,atomic_json
 HERE=Path(__file__).resolve().parent
 
 def tests(build,out):
@@ -29,6 +29,9 @@ def tests(build,out):
  r=run(HERE/'pipeline.egg',build,out/'prefix',max_runs=2);assert not r['complete_schedule'] and len(r['steps'])==2 and r['checks'];results['prefix']=r
  r=run(HERE/'pipeline.egg',build,out/'resumed',resume=out/'prefix');assert r['complete_schedule'] and r['resumed_prefix_runs']==2 and r['steps']==results['pipeline']['steps'] and len(r['device_command_times'])==len(r['steps'])-2;results['resumed']=r
  r=run(HERE/'pipeline.egg',build,out/'stored-reference',verify_against=out/'pipeline');assert r['checked'] and r['native_oracle_runs']==0 and r['native_retired_before_gpu_runs'] and r['steps']==results['pipeline']['steps'];results['stored-reference']=r
+ preserved=json.loads((out/'prefix/verified-gpu-state.json').read_text());bad=json.loads((out/'prefix/gpu-state.json').read_text());bad['rows'][0][1]=1-bad['rows'][0][1];atomic_json(out/'prefix/gpu-state.json',bad)
+ assert json.loads((out/'prefix/verified-gpu-state.json').read_text())==preserved
+ r=run(HERE/'pipeline.egg',build,out/'resume-preserved',resume=out/'prefix');assert r['steps']==results['pipeline']['steps'];results['preserved-checkpoint']=True
  failures={
   'panic':('(datatype T (N i64)) (ruleset r) (N 0) (rule ((N 0)) ((panic "expected")) :ruleset r) (run r 1)',{},'error=8'),
   'match-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'match_capacity':1},'error=2'),

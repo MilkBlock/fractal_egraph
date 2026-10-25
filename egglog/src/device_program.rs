@@ -1,4 +1,4 @@
-//! Read-only execution-boundary export. Parsing, desugaring, type checking and
+//! Execution-boundary export and terminal snapshot loading for extraction. Parsing, desugaring, type checking and
 //! rule installation stay in egglog. Device execution never calls this per match.
 use crate::core::{GenericAtomTerm as Term, GenericCoreAction as Action, ResolvedCoreRule};
 use crate::*;
@@ -187,6 +187,47 @@ impl EGraph {
     }
     /// Original native tables, including visibility. Values retain explicit
     /// sorts so device IDs are never confused with numeric primitive values.
+    /// Load an already-canonical typed snapshot for CPU extraction only. The
+    /// returned map makes the imported identity correspondence inspectable.
+    pub fn import_device_rows_for_extraction(&mut self, rows:&Json)->Result<Json>{
+        use std::collections::{BTreeMap,BTreeSet};
+        fn decode(eg:&mut EGraph,s:&ArcSort,x:&Json,ids:&mut BTreeMap<(String,String),Value>)->Result<Value>{
+            if x["sort"].as_str()!=Some(s.name()){return Err("snapshot value sort mismatch".into());}
+            if s.is_eq_sort(){
+                let key=(s.name().to_owned(),x["eq"].as_str().ok_or("missing equality identity")?.to_owned());
+                return Ok(*ids.entry(key).or_insert_with(||eg.backend.fresh_id()));
+            }
+            let desc=sort(s)?;
+            if desc["kind"]=="set"{
+                let inner=s.inner_sorts();let es=x["elements"].as_array().ok_or("missing set elements")?;
+                let mut data=BTreeSet::new();
+                for e in es{if !data.insert(decode(eg,&inner[0],e,ids)?){return Err("duplicate set element".into());}}
+                return Ok(eg.container_to_value(crate::sort::SetContainer{do_rebuild:true,data}));
+            }
+            Ok(match s.name(){
+                "i64"=>eg.base_to_value(x["value"].as_i64().ok_or("invalid i64")?),
+                "f64"=>eg.base_to_value(crate::sort::F::from(crate::sort::OrderedFloat(f64::from_bits(x["value"].as_i64().ok_or("invalid f64 bits")? as u64)))),
+                "String"=>eg.base_to_value(crate::sort::S::new(x["value"].as_str().ok_or("invalid string")?.to_owned())),
+                "bool"=>eg.base_to_value(match x["value"].as_i64(){Some(0)=>false,Some(1)=>true,_=>return Err("invalid bool".into())}),
+                "Unit"=>{if x["value"]!=0{return Err("invalid Unit".into());}eg.base_to_value(())},
+                _=>return Err("unsupported snapshot value".into()),
+            })
+        }
+        let mut ids=BTreeMap::new();let mut decoded=Vec::new();
+        for row in rows.as_array().ok_or("snapshot rows must be an array")?{
+            let name=row["table"].as_str().ok_or("missing table")?;
+            let f=self.get_function(name).ok_or_else(||format!("unknown snapshot table {name}"))?;
+            let function=f.backend_id;let schema=f.schema.input.iter().chain([&f.schema.output]).cloned().collect::<Vec<_>>();
+            let vs=row["values"].as_array().ok_or("missing values")?;
+            if vs.len()!=schema.len(){return Err("snapshot row arity mismatch".into());}
+            let values=vs.iter().zip(schema).map(|(v,s)|decode(self,&s,v,&mut ids)).collect::<Result<Vec<_>>>()?;
+            decoded.push((function,values,row["subsumed"].as_bool().ok_or("missing visibility")?));
+        }
+        self.backend.replace_snapshot_for_extraction(decoded).map_err(|e|e.to_string())?;
+        let identities=ids.into_iter().map(|((sort,old),v)|json!({"sort":sort,"old":old,"now":format!("{v:?}")})).collect::<Vec<_>>();
+        Ok(json!({"identities":identities,"rows":self.device_snapshot()?,"rules_executed":0,"rebuilds_executed":0}))
+    }
+
     fn device_value(&self,v:Value,s:&ArcSort)->Result<Json>{
         let desc=sort(s)?;
         if s.is_eq_sort(){return Ok(json!({"eq":format!("{:?}",self.get_canonical_value(v,s)),"sort":s.name()}));}

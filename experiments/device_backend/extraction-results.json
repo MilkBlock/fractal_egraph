@@ -1,0 +1,413 @@
+{
+  "scope": "Extraction plumbing and a Run-2304 prefix diagnosis, not full GPU validation or acceleration",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "gpu_regressions": 38,
+  "snapshot_extraction_checks": {
+    "math": {
+      "exact_import": true,
+      "rows": 5,
+      "classes": 3,
+      "rules_executed": 0,
+      "rebuilds_executed": 0,
+      "lane": "gpu",
+      "extracted": [
+        {
+          "value": "Value(3)",
+          "term": "(Num 1)",
+          "cost": 2
+        }
+      ],
+      "graph": "out/device-snapshot-export-tests/math/native/graph.json",
+      "scope": "CPU extraction input only; import fidelity is not CPU/GPU inference equality"
+    },
+    "sets": {
+      "exact_import": true,
+      "rows": 14,
+      "classes": 6,
+      "rules_executed": 0,
+      "rebuilds_executed": 0,
+      "lane": "gpu",
+      "extracted": [],
+      "graph": "out/device-snapshot-export-tests/sets/native/graph.json",
+      "scope": "CPU extraction input only; import fidelity is not CPU/GPU inference equality"
+    },
+    "pipeline": {
+      "exact_import": true,
+      "rows": 7,
+      "classes": 5,
+      "rules_executed": 0,
+      "rebuilds_executed": 0,
+      "lane": "gpu",
+      "extracted": [],
+      "graph": "out/device-snapshot-export-tests/pipeline/native/graph.json",
+      "scope": "CPU extraction input only; import fidelity is not CPU/GPU inference equality"
+    },
+    "custom-merge": {
+      "exact_import": true,
+      "rows": 11,
+      "classes": 6,
+      "rules_executed": 0,
+      "rebuilds_executed": 0,
+      "lane": "gpu",
+      "extracted": [],
+      "graph": "out/device-snapshot-export-tests/custom-merge/native/graph.json",
+      "scope": "CPU extraction input only; import fidelity is not CPU/GPU inference equality"
+    },
+    "float-identity": {
+      "exact_import": true,
+      "rows": 15,
+      "classes": 12,
+      "rules_executed": 0,
+      "rebuilds_executed": 0,
+      "lane": "gpu",
+      "extracted": [],
+      "graph": "out/device-snapshot-export-tests/float-identity/native/graph.json",
+      "scope": "CPU extraction input only; import fidelity is not CPU/GPU inference equality"
+    },
+    "reject-duplicate-without-repair": true,
+    "concat-association": {
+      "exact_roots": {
+        "equal": false,
+        "different_functions": [
+          "f"
+        ],
+        "function_count": [
+          1,
+          1
+        ],
+        "reachable_classes": [
+          6,
+          6
+        ]
+      },
+      "concat_associative_roots": {
+        "equal": true,
+        "different_functions": [],
+        "function_count": [
+          1,
+          1
+        ],
+        "reachable_classes": [
+          6,
+          6
+        ]
+      },
+      "scope": "Function-root DAG comparison. The only added equation is Concat(Concat(a,b),c)=Concat(a,Concat(b,c)); no empirical semantic or cost claim."
+    },
+    "reject-reordered-elements": true
+  },
+  "prefix_gpu_import": {
+    "exact_import": true,
+    "rows": 321510,
+    "classes": 246508,
+    "rules_executed": 0,
+    "rebuilds_executed": 0,
+    "lane": "gpu",
+    "extracted": [],
+    "graph": "out/device-terms-export/gpu/native/graph.json",
+    "scope": "CPU extraction input only; import fidelity is not CPU/GPU inference equality"
+  },
+  "prefix_native_import": {
+    "exact_import": true,
+    "rows": 321440,
+    "classes": 246458,
+    "rules_executed": 0,
+    "rebuilds_executed": 0,
+    "lane": "native",
+    "extracted": [],
+    "graph": "out/device-terms-export/native/native/graph.json",
+    "scope": "CPU extraction input only; import fidelity is not CPU/GPU inference equality"
+  },
+  "strict_tiger_quality": {
+    "passed": false,
+    "outputs": [
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-terms-tiger/extraction/native.egg",
+        "reconstruction_seconds": 0.1121175,
+        "selected_rows": 8661,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-terms-tiger/extraction/cpu.egg",
+        "reconstruction_seconds": 0.105945583,
+        "selected_rows": 8661,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-terms-tiger/extraction/gpu.egg",
+        "reconstruction_seconds": 0.110946334,
+        "selected_rows": 8664,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      }
+    ],
+    "checks": [
+      {
+        "candidate": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-terms-tiger/extraction/cpu.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8660,
+          "eclass_mapping": 8660,
+          "tables": {
+            "Add": 1,
+            "Alloc": 133,
+            "And": 1,
+            "Arg": 1,
+            "Bool": 2,
+            "BoolT": 1,
+            "Bop": 2453,
+            "Call": 85,
+            "Concat": 1501,
+            "Const": 27,
+            "Div": 1,
+            "DoWhile": 49,
+            "DumC": 1,
+            "Eq": 1,
+            "FAdd": 1,
+            "FDiv": 1,
+            "FGreaterEq": 1,
+            "FGreaterThan": 1,
+            "FLessThan": 1,
+            "FMul": 1,
+            "FSub": 1,
+            "Float": 16,
+            "FloatT": 1,
+            "Free": 1,
+            "Function": 29,
+            "Get": 2795,
+            "GreaterThan": 1,
+            "If": 136,
+            "Int": 9,
+            "IntT": 1,
+            "LessThan": 1,
+            "Load": 1,
+            "Neg": 1,
+            "Not": 1,
+            "Or": 1,
+            "PointerT": 5,
+            "Print": 1,
+            "PtrAdd": 1,
+            "Single": 895,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 44,
+            "TNil": 1,
+            "Top": 431,
+            "TupleT": 19,
+            "Uop": 2,
+            "Write": 1
+          }
+        },
+        "error": null
+      },
+      {
+        "candidate": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-terms-tiger/extraction/gpu.egg",
+        "exact_selected_dag": null,
+        "error": "different final table counts: [(\"Concat\", Some(1501), Some(1504))]"
+      }
+    ],
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  },
+  "root_quality": {
+    "exact_roots": {
+      "equal": false,
+      "different_functions": [
+        "build_bvh",
+        "main"
+      ],
+      "function_count": [
+        29,
+        29
+      ],
+      "reachable_classes": [
+        8660,
+        8663
+      ]
+    },
+    "concat_associative_roots": {
+      "equal": true,
+      "different_functions": [],
+      "function_count": [
+        29,
+        29
+      ],
+      "reachable_classes": [
+        8660,
+        8663
+      ]
+    },
+    "scope": "Function-root DAG comparison. The only added equation is Concat(Concat(a,b),c)=Concat(a,Concat(b,c)); no empirical semantic or cost claim."
+  },
+  "tiger_timing": {
+    "tiger": "/Users/mineralsteins/Repos/egg_related/check_statewalk/target/release/tiger",
+    "tiger_sha256": "3217499b37a7f94db54723aaba54a60a185ab96cb6a34352adc537d0e8f99c83",
+    "marker_mode": "off",
+    "marker_worker_sha256": null,
+    "marker_verification": false,
+    "runs": [
+      {
+        "lane": "native",
+        "seconds": 1.1241115410230123,
+        "returncode": 0,
+        "input_sha256": "de8939e7fcaa8473919673d2e44a011166a73aaf9ffafc49bfa93ed42d6d57ff",
+        "output_sha256": "96a4e3f2ada5e0ad0760c2c1cb9d3e8bd48f42a3c5dc5fd4b5957105398a4d69"
+      },
+      {
+        "lane": "cpu",
+        "seconds": 1.0844857500051148,
+        "returncode": 0,
+        "input_sha256": "de8939e7fcaa8473919673d2e44a011166a73aaf9ffafc49bfa93ed42d6d57ff",
+        "output_sha256": "96a4e3f2ada5e0ad0760c2c1cb9d3e8bd48f42a3c5dc5fd4b5957105398a4d69"
+      },
+      {
+        "lane": "gpu",
+        "seconds": 1.0971778749953955,
+        "returncode": 0,
+        "input_sha256": "30513761c9c8a513fbb0941d27ab5a5c68a729d2df5c8bc3aacf15317aa03ea7",
+        "output_sha256": "1b5e443409490255e687f04eac1b227c7c3c631286d2ccd37c88a1aff966ae76"
+      }
+    ]
+  },
+  "native_full": {
+    "complete_schedule": true,
+    "native_run_seconds": 23.110457,
+    "scope": "Original remaining source commands after declaration/fact bootstrap; no GPU or checkpoint replay"
+  },
+  "native_full_rows": 697922,
+  "native_build": {
+    "profile": "release",
+    "sources": {
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "c63b68277a0ce6ba647ccc34876c15e254b3c6725f4c30fae0f803739c02e651",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/device_import.rs": "2b9a41c8a9a5fb055a1b6c0f0284792b4d174dd656932ba056745509eba70b7c",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "f26b70def995b3b63db7cdb83a6db123615856078ab468622544b6efe338bd90",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "9895b6cbab18fb2c05f9311c37ab664c83037aa5826095ffac70f5418b90c0b1",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "5872c0dbe6075c286d2ce71697f8c279dc00e7063ae60f43197ff85332f7df3f",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "2f3cc95f985092d52d2c57d6dbd9b0ab9f811125360bb808229fd762b07ba505",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "e49a60d33412ab5fa4c89e0c7c16c4ff5b59d0be57f2d5cdfeb61c91175265cd",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "c6e1fb0337dbcd4bb03bee79c05c118529caeaf58c2bf5fb4f9441f8c26ca331",
+      "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "8c11f833c4fef1eaef20060ddc0ebde49ff209e69a9dbf4497f5df426bda60f1"
+    },
+    "native_kernel_source_sha256": "c8e734f6277c573e0ac4aed7a551b49e5bf4f7d14443d6f26f242f7c27bff600",
+    "git_head": "dc793ab8cdd18fe3c3aa2e9ea4f5ccb1c79c10ae",
+    "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+    "native_kernel_dirty": [
+      " M egglog/Cargo.lock",
+      " M egglog/core-relations/src/action/mod.rs",
+      " M egglog/core-relations/src/table/mod.rs",
+      " M egglog/core-relations/src/table/rebuild.rs",
+      " M egglog/core-relations/src/table/tests.rs",
+      " M egglog/core-relations/src/table_spec.rs",
+      " M egglog/egglog-bridge/src/lib.rs",
+      " M egglog/src/device_program.rs",
+      " M egglog/src/virtual_facts.rs",
+      "?? egglog/egglog-bridge/src/device_import.rs"
+    ],
+    "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-release/frontend",
+    "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+    "worker_sha256": "d2a3d8229f7b3ea48c37db2b3ba797c9b97584144e2f5a72cc4a84a31373ed65"
+  },
+  "concat_lemma": {
+    "repo": "/Users/mineralsteins/Repos/egg_related/check_statewalk",
+    "head": "ae80f82a",
+    "file": "dag_in_context/src/utility/canonicalize.egg",
+    "line": 42
+  },
+  "full_gpu_verified": false,
+  "code_generation_verified": false
+}

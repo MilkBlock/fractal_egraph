@@ -105,3 +105,42 @@ Rows, bindings, identities, union queue and set arena have explicit capacities. 
 Historical JSON files record incremental correctness bring-up, not a pristine or full Pass 3 benchmark. The original 13.30 GiB match-buffer plan was corrected to store only LHS slots (20 MiB at 65,536 bindings); that is calculated allocation, not RSS compression.
 
 Real raytrace prefixes have advanced through initialization, type helpers/analysis and `always-run`, with native full-graph checks. The latest comparison and its exact scope are recorded in `execution-results.json`. CPU extraction and code-generation integration, full-schedule completion, parallel matching and end-to-end acceleration remain outstanding.
+
+## CPU extraction handoff and merge-order investigation
+
+`export_snapshot.py` converts a saved GPU state into typed rows, loads those rows
+into the original native table schemas, and exports the production serialized
+e-graph format. Loading uses fresh identities and unique canonical keys, preserves
+visibility, and executes no rules or rebuild. A typed round-trip check confirms
+that loading did not repair or alter the GPU graph. The bridge entry is terminal:
+its native rule watermarks are not suitable for resuming inference.
+
+```sh
+python3 experiments/device_backend/export_snapshot.py \
+  --source SOURCE.egg --build BUILD --run RUN --output NEW_EXPORT
+```
+
+`--save-state` exports the final GPU graph even with `--check-every 0`, so CPU
+extraction does not require a shadow native inference run. Debug checkpoints now
+retain `verified-*` files atomically; a later failed comparison cannot overwrite
+the last checked state. Resume prefers those verified files.
+
+At Run 2304, exact graph comparison found 70 extra GPU rows (25 TermConcat,
+25 TCPair, 20 Smaller). That failure remains recorded. Production Tiger extracted
+all 29 functions from both faithfully loaded states; its strict selected-DAG
+check failed on three additional Concat nodes. `selected_dag.py` then compared
+all function roots under only Concat associativity: all 29 agreed. Exact roots
+differed for main and build_bvh. This is a narrow proof of the prefix's selected
+IR modulo an existing eggcc equation, not a general equivalence test or a claim
+about the final workload. The source equation is
+`check_statewalk/dag_in_context/src/utility/canonicalize.egg:42`; the inspected
+checkout was `ae80f82a`. Its Tiger cost model assigns Concat zero cost.
+
+The native frontend also supports `--native-full --export-to NEW_DIR` to execute
+the remaining original source schedule and save an independent full reference.
+`build.py --release` builds an optimized native frontend. The current local
+release reference completed the full raytrace schedule in 23.11 seconds and
+produced 697,922 rows. This is not the historical 12.34-second assisted baseline.
+See `extraction-results.json` for provenance, partial extraction evidence and
+current limitations. Full GPU completion, final quality and the speed objective
+remain unverified.

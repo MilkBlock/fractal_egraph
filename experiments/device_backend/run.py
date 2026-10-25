@@ -15,6 +15,14 @@ def read(pipe,n):
   b+=c
  return b
 
+def atomic_json(path,value):
+ temporary=path.with_name(path.name+'.pending')
+ temporary.write_text(json.dumps(value));temporary.replace(path)
+
+def preserve_verified(source,target):
+ temporary=target.with_name(target.name+'.pending')
+ temporary.unlink(missing_ok=True);os.link(source,temporary);temporary.replace(target)
+
 def compare(p,rows,parents,checkpoint,arena=None):
  def find(x):
   assert 0<=x<len(parents),'invalid device identity'
@@ -81,11 +89,12 @@ def compare(p,rows,parents,checkpoint,arena=None):
 def load_resume(folder,original,p):
  """Only restore a complete, native-verified Run boundary of the same core IR."""
  if json.loads((folder/'core.json').read_text())!=original:raise ValueError('resume core program differs')
- state=json.loads((folder/'gpu-state.json').read_text());native=json.loads((folder/'native-state.json').read_text())
+ certified=(folder/'verified-checkpoint.json').exists()
+ state=json.loads((folder/('verified-gpu-state.json' if certified else 'gpu-state.json')).read_text());native=json.loads((folder/('verified-native-state.json' if certified else 'native-state.json')).read_text())
  old=json.loads((folder/'program.json').read_text())
  if p['tables']!=old['tables'] or p['strings']!=old['strings'] or [list(a) for a in p['anchors']]!=old['anchors']:raise ValueError('resume identities differ')
  compare(p,state['rows'],state['parents'],native,state['sets'])
- saved=json.loads((folder/('report.json' if (folder/'report.json').exists() else 'failure.json')).read_text())
+ saved=json.loads((folder/('verified-checkpoint.json' if certified else 'report.json' if (folder/'report.json').exists() else 'failure.json')).read_text())
  steps=saved.get('steps',saved.get('completed_steps'));n=state['meta'][6]
  if not steps or n<1 or n>len(steps) or state['meta'][4]:raise ValueError('resume is not a completed boundary')
  steps=steps[:n];last=steps[-1]
@@ -97,7 +106,8 @@ def load_resume(folder,original,p):
  p.update(initial_rows=[v for row in state['rows'] for v in row],initial_sets=state['sets'],meta=state['meta'],initial_parents=state['parents'],initial_fact_parents=state['fact_parents'],initial_watermarks=wm)
  return steps
 
-def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_at_end=False,max_runs=None,defer_unions=True,incremental_queries=True,resume=None,delta_queries=True,verify_against=None):
+def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_at_end=False,max_runs=None,defer_unions=True,incremental_queries=True,resume=None,delta_queries=True,verify_against=None,save_final_state=False):
+ if any(d is not None and d.resolve()==out.resolve() for d in [resume,verify_against]):raise ValueError('output must differ from resume/reference directory')
  out.mkdir(parents=True,exist_ok=True)
  if verify_against is not None:check_every=0;check_at_end=False
  if (out/'report.json').exists():raise ValueError('output already contains a successful run; use a new directory')
@@ -134,18 +144,24 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
    def command(op,arg=0):
     nonlocal up
     gpu.stdin.write(struct.pack('<II',op,arg));gpu.stdin.flush();up+=8
-   def checkpoint():
+   def read_gpu_state():
     nonlocal snapshot_bytes
-    t=time.perf_counter();oracle_before=timings["native_oracle"]
     command(2);meta=struct.unpack('<9I',read(gpu.stdout,36));n=meta[0]*p['stride']
     raw=struct.unpack('<'+'q'*n,read(gpu.stdout,n*8));rows=[raw[i:i+p['stride']] for i in range(0,n,p['stride'])]
     parents=struct.unpack('<'+'I'*meta[1],read(gpu.stdout,meta[1]*4));facts=struct.unpack('<'+'I'*meta[8],read(gpu.stdout,meta[8]*4))
     live_sets=struct.unpack('<I',read(gpu.stdout,4))[0];assert 2<=live_sets<=p['set_words']
     arena=struct.unpack('<'+'q'*live_sets,read(gpu.stdout,live_sets*8))
     snapshot_bytes+=40+n*8+len(parents)*4+len(facts)*4+len(arena)*8
-    (out/'gpu-state.json').write_text(json.dumps({'meta':meta,'rows':rows,'parents':parents,'fact_parents':facts,'sets':arena}))
-    reference=json.loads((verify_against/'native-state.json').read_text()) if verify_against else oracle({'op':'snapshot'});(out/'native-state.json').write_text(json.dumps(reference))
+    atomic_json(out/'gpu-state.json',{'meta':meta,'rows':rows,'parents':parents,'fact_parents':facts,'sets':arena})
+    return meta,rows,parents,arena
+   def checkpoint(certify=True):
+    t=time.perf_counter();oracle_before=timings["native_oracle"]
+    meta,rows,parents,arena=read_gpu_state()
+    reference=json.loads((verify_against/'native-state.json').read_text()) if verify_against else oracle({'op':'snapshot'});atomic_json(out/'native-state.json',reference)
     ct=time.perf_counter();result=compare(p,rows,parents,reference,arena);timings['comparison']+=time.perf_counter()-ct;result['step']=len(steps);checks.append(result)
+    if certify:
+     preserve_verified(out/'gpu-state.json',out/'verified-gpu-state.json');preserve_verified(out/'native-state.json',out/'verified-native-state.json')
+     atomic_json(out/'verified-checkpoint.json',{'steps':steps,'check':result})
     timings['checkpoint_excluding_oracle']+=time.perf_counter()-t-(timings['native_oracle']-oracle_before)
    class PrefixComplete(Exception):pass
    def advance(s):
@@ -171,7 +187,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
      if check_every and not check_at_end:
       ref=oracle({'op':'run','set':s['run']});oracle_runs+=1
       if bool(m[3])!=ref['updated']:
-       checkpoint();raise AssertionError('CPU/GPU progress mismatch')
+       checkpoint(certify=False);raise AssertionError('CPU/GPU progress mismatch')
       if len(steps)%check_every==0:checkpoint()
      return bool(m[3])
     if 'sequence' in s:
@@ -205,11 +221,12 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     key=lambda ss:[(s['set'],s['updated']) for s in ss]
     if key(steps)!=key(control['steps']):raise AssertionError('stored reference schedule differs')
     checkpoint()
+   if save_final_state and (not checks or checks[-1]['step']!=len(steps)):read_gpu_state()
    elapsed=time.perf_counter()-started
    command(0);gpu.wait(timeout=30)
    if native.poll() is None:
     native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait(timeout=30)
-   result={'phase_logging':os.environ.get('EGG_DEVICE_PHASE_LOG')=='1','verify_against':str(verify_against.resolve()) if verify_against else None,'resume_directory':str(resume.resolve()) if resume else None,'resumed_prefix_runs':len(prefix),'incremental_queries':incremental_queries,'delta_queries':delta_queries,'deferred_rulesets':p['deferred_rulesets'],'timings_seconds':timings,'device_command_times':device_times,'complete_schedule':complete,'requested_max_runs':max_runs,'scope':'native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark','steps':steps,'checks':checks,'checked':bool(check_every or check_at_end or verify_against),'check_mode':'stored' if verify_against else 'final' if check_at_end else ('periodic' if check_every else 'off'),'native_oracle_runs':oracle_runs,'run_control_upload_bytes':8*len(device_times),'run_status_download_bytes':down,'checkpoint_bytes':snapshot_bytes,'intermediate_binding_download_bytes':0,'cpu_rhs_calls':0,'cpu_rebuild_calls_outside_oracle':0,'wall_seconds_including_debug_checks':elapsed,'initial_row_upload_bytes':initial_bytes,'native_retired_before_gpu_runs':not bool(check_every or check_at_end),'oracle_starts_after_gpu':check_at_end,'control_upload_bytes':up,'assertion_tables':p.get('assertion_tables',[]),'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'build':json.loads((build/'build.json').read_text()),'program_sha256':hashlib.sha256((out/'program.json').read_bytes()).hexdigest()}
+   result={'state_export_requested':save_final_state,'phase_logging':os.environ.get('EGG_DEVICE_PHASE_LOG')=='1','verify_against':str(verify_against.resolve()) if verify_against else None,'resume_directory':str(resume.resolve()) if resume else None,'resumed_prefix_runs':len(prefix),'incremental_queries':incremental_queries,'delta_queries':delta_queries,'deferred_rulesets':p['deferred_rulesets'],'timings_seconds':timings,'device_command_times':device_times,'complete_schedule':complete,'requested_max_runs':max_runs,'scope':'native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark','steps':steps,'checks':checks,'checked':bool(check_every or check_at_end or verify_against),'check_mode':'stored' if verify_against else 'final' if check_at_end else ('periodic' if check_every else 'off'),'native_oracle_runs':oracle_runs,'run_control_upload_bytes':8*len(device_times),'run_status_download_bytes':down,'checkpoint_bytes':snapshot_bytes,'intermediate_binding_download_bytes':0,'cpu_rhs_calls':0,'cpu_rebuild_calls_outside_oracle':0,'wall_seconds_including_debug_checks':elapsed,'initial_row_upload_bytes':initial_bytes,'native_retired_before_gpu_runs':not bool(check_every or check_at_end),'oracle_starts_after_gpu':check_at_end,'control_upload_bytes':up,'assertion_tables':p.get('assertion_tables',[]),'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'build':json.loads((build/'build.json').read_text()),'program_sha256':hashlib.sha256((out/'program.json').read_bytes()).hexdigest()}
    (out/'report.json').write_text(json.dumps(result,indent=2)+'\n');return result
   except Exception as e:
    (out/'failure.json').write_text(json.dumps({'phase':phase,'error':str(e),'completed_steps':steps,'timings_seconds':timings,'device_command_times':device_times},indent=2));raise
@@ -221,8 +238,8 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
      if proc.stdout:proc.stdout.close()
 
 def main():
- a=argparse.ArgumentParser();a.add_argument('--source',type=Path,required=True);a.add_argument('--build',type=Path,required=True);a.add_argument('--output',type=Path,required=True);a.add_argument('--check-every',type=int,default=1,help='0 disables CPU execution; positive N verifies every N Run boundaries');a.add_argument('--check-at-end',action='store_true',help='replay native only after all GPU Run commands finish');a.add_argument('--capacity',type=int,default=4096);a.add_argument('--match-capacity',type=int,default=16384);a.add_argument('--verify-against',type=Path,help='reuse an exact native final checkpoint; no native Run replay');a.add_argument('--no-delta-queries',action='store_true',help='diagnostic: filter changed bindings only after joining');a.add_argument('--resume',type=Path,help='resume from a native-verified checkpoint; not an end-to-end timing run');a.add_argument('--rebuild-query-index',action='store_true',help='diagnostic: rebuild snapshot indexes on every Run');a.add_argument('--eager-unions',action='store_true',help='diagnostic legacy mode; may differ semantically from native');a.add_argument('--max-runs',type=int,help='diagnostic prefix only, reported as incomplete');x=a.parse_args()
+ a=argparse.ArgumentParser();a.add_argument('--source',type=Path,required=True);a.add_argument('--build',type=Path,required=True);a.add_argument('--output',type=Path,required=True);a.add_argument('--check-every',type=int,default=1,help='0 disables CPU execution; positive N verifies every N Run boundaries');a.add_argument('--check-at-end',action='store_true',help='replay native only after all GPU Run commands finish');a.add_argument('--capacity',type=int,default=4096);a.add_argument('--match-capacity',type=int,default=16384);a.add_argument('--save-state',action='store_true',help='export final GPU state without requiring native execution');a.add_argument('--verify-against',type=Path,help='reuse an exact native final checkpoint; no native Run replay');a.add_argument('--no-delta-queries',action='store_true',help='diagnostic: filter changed bindings only after joining');a.add_argument('--resume',type=Path,help='resume from a native-verified checkpoint; not an end-to-end timing run');a.add_argument('--rebuild-query-index',action='store_true',help='diagnostic: rebuild snapshot indexes on every Run');a.add_argument('--eager-unions',action='store_true',help='diagnostic legacy mode; may differ semantically from native');a.add_argument('--max-runs',type=int,help='diagnostic prefix only, reported as incomplete');x=a.parse_args()
  if x.check_every<0:a.error('negative checkpoint interval')
  if x.max_runs is not None and x.max_runs<1:a.error('max-runs must be positive')
- print(json.dumps(run(x.source,x.build,x.output,x.check_every,x.capacity,x.match_capacity,x.check_at_end,x.max_runs,not x.eager_unions,not x.rebuild_query_index,x.resume,not x.no_delta_queries,x.verify_against),indent=2))
+ print(json.dumps(run(x.source,x.build,x.output,x.check_every,x.capacity,x.match_capacity,x.check_at_end,x.max_runs,not x.eager_unions,not x.rebuild_query_index,x.resume,not x.no_delta_queries,x.verify_against,x.save_state),indent=2))
 if __name__=='__main__':main()

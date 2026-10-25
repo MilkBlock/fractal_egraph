@@ -31,6 +31,11 @@ fn main() -> Result<()> {
     let path = std::env::args().nth(1).ok_or("SOURCE.egg")?;
     let mut eg = EGraph::default();
     let cmds = eg.parse_program(Some(path.clone()), &std::fs::read_to_string(path)?)?;
+    if std::env::args().any(|a|a=="--selected-dag") {
+        eg.run_program(cmds)?;
+        println!("{}",eg.export_device_program(&[]).map_err(io::Error::other)?);
+        return Ok(());
+    }
     let at = cmds
         .iter()
         .position(|c| matches!(c, Command::RunSchedule(_)))
@@ -60,6 +65,18 @@ fn main() -> Result<()> {
         }
     }
     eg.run_program(cmds[..at].to_vec())?;
+    if std::env::args().any(|a|a=="--native-full") {
+        let args=std::env::args().collect::<Vec<_>>();
+        let target=args.windows(2).find(|a|a[0]=="--export-to").ok_or("--export-to required")?;
+        let out=std::path::Path::new(&target[1]);std::fs::create_dir(out)?;
+        let anchors=eg.capture_device_anchors().map_err(io::Error::other)?;
+        let start=std::time::Instant::now();eg.run_program(cmds[at..].to_vec())?;let seconds=start.elapsed().as_secs_f64();
+        serde_json::to_writer(std::io::BufWriter::new(std::fs::File::create(out.join("native-state.json"))?),&eg.device_checkpoint(&anchors).map_err(io::Error::other)?)?;
+        let graph=eg.serialize(egglog::SerializeConfig::default());if !graph.is_complete(){return Err("incomplete native graph".into());}
+        serde_json::to_writer_pretty(std::io::BufWriter::new(std::fs::File::create(out.join("graph.json"))?),&graph.egraph)?;
+        let report=json!({"complete_schedule":true,"native_run_seconds":seconds,"scope":"Original remaining source commands after declaration/fact bootstrap; no GPU or checkpoint replay"});
+        std::fs::write(out.join("report.json"),serde_json::to_vec_pretty(&report)?)?;println!("{report}");return Ok(());
+    }
     if std::env::args().any(|a|a=="--inventory") {
         println!("{}",eg.device_inventory());
         return Ok(());
@@ -83,6 +100,32 @@ fn main() -> Result<()> {
             }
             _ => return Err("only schedules and checks may follow initialization".into()),
         }
+    }
+    let args=std::env::args().collect::<Vec<_>>();
+    let option=|name:&str|args.windows(2).find(|w|w[0]==name).map(|w|w[1].as_str());
+    if let Some(input)=option("--load-rows") {
+        let out=std::path::Path::new(option("--export-to").ok_or("--export-to required")?);
+        std::fs::create_dir(out)?;
+        let rows:Value=serde_json::from_slice(&std::fs::read(input)?)?;
+        let imported=eg.import_device_rows_for_extraction(&rows).map_err(io::Error::other)?;
+        serde_json::to_writer(std::io::BufWriter::new(std::fs::File::create(out.join("import.json"))?),&imported)?;
+        let graph=eg.serialize(egglog::SerializeConfig::default());
+        if !graph.is_complete(){return Err("incomplete serialized graph".into());}
+        serde_json::to_writer_pretty(std::io::BufWriter::new(std::fs::File::create(out.join("graph.json"))?),&graph.egraph)?;
+        let mut extracted=Vec::new();
+        if let Some(table)=option("--extract-table") {
+            let sort=eg.get_function(table).ok_or("unknown extraction table")?.schema().output.clone();
+            let mut roots=BTreeSet::new();
+            eg.function_for_each(table,|r|{if !r.subsumed{roots.insert(*r.vals.last().unwrap());}})?;
+            let extractor=egglog::extract::Extractor::compute_costs_from_rootsorts(Some(vec![sort]),&eg,egglog::extract::TreeAdditiveCostModel::default());
+            for root in roots {
+                let mut dag=egglog::TermDag::default();
+                if let Some((cost,term))=extractor.extract_best(&eg,&mut dag,root){extracted.push(json!({"value":format!("{root:?}"),"term":dag.to_string(term),"cost":cost}));}
+                else{return Err("unextractable requested root".into());}
+            }
+        }
+        println!("{}",json!({"rows":imported["rows"].as_array().unwrap().len(),"classes":imported["identities"].as_array().unwrap().len(),"rules_executed":0,"rebuilds_executed":0,"extracted":extracted}));
+        return Ok(());
     }
     let mut p = eg
         .export_device_program(&sets.into_iter().collect::<Vec<_>>())
