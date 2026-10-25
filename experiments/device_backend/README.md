@@ -60,7 +60,7 @@ A Run sends 8 command bytes and returns 36 status bytes. Initialization, shader/
 ## Supported semantics
 
 - Equality datatypes, constructors, native relations and opaque String identities.
-- i64, Unit and bool values; comparisons, checked i64 addition, boolean not/and/or/xor/implication and LHS guard.
+- i64, Unit and bool values; comparisons, checked i64 arithmetic (+, -, *, /, %), min/max, boolean integer comparisons, boolean not/and/or/xor/implication and LHS guard.
 - Constructor insertion, constructor core `Set`, union and congruence propagation.
 - Function `Set` with assert-equal and i64 min/max merge.
 - Restricted `merge old`: ambiguous concurrent first writes or conflicting rebuild collisions fail explicitly.
@@ -69,7 +69,7 @@ A Run sends 8 command bytes and returns 36 status bytes. Initialization, shader/
 
 Native relations have private equality return sorts; they are not treated as Unit functions. Duplicate subsumed/visible rows combine visibility using native OR semantics. Native core rules can express constructor unions through `Set`; that case is handled explicitly.
 
-Unsupported constructs are rejected rather than silently delegated: containers, floating arithmetic, arbitrary primitives/custom merges, `merge new`, external custom-function RHS reads, delete/panic, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Arithmetic overflow fails execution instead of claiming full native undefined-primitive semantics.
+Unsupported constructs are rejected rather than silently delegated: containers, floating arithmetic, arbitrary primitives/custom merges, `merge new`, external custom-function RHS reads, delete, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Failed checked arithmetic rejects a LHS match; in RHS it raises an execution error, matching the native distinction. Panic actions raise device error 8.
 
 Storage and match queues have explicit capacities. Exceeding them returns an error and no success report. RHS errors can leave partial device state; rollback, resumption and dynamic capacity growth are not implemented.
 
@@ -104,4 +104,10 @@ python3 experiments/device_backend/inventory.py --source PATH/pass-3-flat.egg \
   --build out/device-backend-build --output out/pass3-inventory.json
 ```
 
-The saved `pass3-inventory.json` identifies 260 tables and 664 installed rules. No floating arithmetic primitive occurs in this input. The remaining export failures are 49 panic-bearing rules and 4 rules using ExprSetPrim; further GPU compiler limitations include integer operators and custom merge expressions. Export success is not execution coverage. These counts include installed rules, not just a selected schedule's executed rules.
+The saved `pass3-inventory.json` identifies 260 tables and 664 installed rules. No floating arithmetic primitive occurs in this input. The remaining export failures are 4 rules using ExprSetPrim (panic actions are now exported); further GPU compiler limitations include custom merge expressions. Export success is not execution coverage. These counts include installed rules, not just a selected schedule's executed rules.
+
+### Integer and panic follow-up
+
+All integer primitive names observed in the typed Pass 3 inventory now have GPU lowering: checked +, -, *, /, %, min/max and bool-< (plus the other boolean integer comparisons). Query overflow/division failure filters the current candidate. RHS failure raises error 5; panic raises error 8. Native behavior was checked directly: RHS primitive failure is an error, not a silent action-lane skip.
+
+The expanded 28-check suite passes. This does not mean all Pass 3 rules execute: ExprSetPrim storage/rebuild, custom merge evaluation and efficient matching remain required. The reference scan/rebuild kernels must be replaced before a meaningful full-size timing run.

@@ -41,9 +41,24 @@ void hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,th
  write_row(r,p,fp,m,t,args,0,true);if(m.error)return;
  for(uint i=0;i<m.count;i++)if(keyeq(r,i,t,args,p)&&r[i*STRIDE+1]==0){r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
 }
-long add_checked(long a,long b,device Meta&m){
+// Query arithmetic rejects a match; failed RHS arithmetic raises an error.
+bool integer_valid(uint op,long a,long b){
  const long hi=0x7fffffffffffffffL,lo=-hi-1;
- if((b>0&&a>hi-b)||(b<0&&a<lo-b)){m.error=5;return 0;}return a+b;
+ if(op==0)return !((b>0&&a>hi-b)||(b<0&&a<lo-b));
+ if(op==1)return !((b<0&&a>hi+b)||(b>0&&a<lo+b));
+ if(op==2){
+  if(!a||!b)return true;
+  if(a>0)return b>0?a<=hi/b:b>=lo/a;
+  return b>0?a>=lo/b:a>=hi/b;
+ }
+ if(op==3||op==4)return b!=0 && !(a==lo&&b==-1);
+ return true;
+}
+long integer_eval(uint op,long a,long b){
+ switch(op){case 0:return a+b;case 1:return a-b;case 2:return a*b;
+ case 3:return a/b;case 4:return a%b;case 5:return min(a,b);case 6:return max(a,b);
+ case 7:return a==b;case 8:return a<b;case 9:return a>b;case 10:return a<=b;case 11:return a>=b;}
+ return 0;
 }
 void rebuild(device long*r,device uint*p,device uint*fp,device Meta&m){
  bool again=true;while(again && !m.error){again=false;

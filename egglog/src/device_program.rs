@@ -56,7 +56,7 @@ fn rule(r: &ResolvedCoreRule) -> Result<Json> {
         Action::Set(_,c,args,v)=>json!({"op":"set","call":call(c)?,"args":args.iter().map(term).collect::<Result<Vec<_>>>()?,"value":term(v)?}),
         Action::Union(_,a,b)=>json!({"op":"union","args":[term(a)?,term(b)?]}),
         Action::Change(_,ch,c,args)=>json!({"op":match ch {Change::Subsume=>"subsume",Change::Delete=>"delete"},"call":call(c)?,"args":args.iter().map(term).collect::<Result<Vec<_>>>()?}),
-        Action::Panic(..)=>return Err("device backend: panic action unsupported".into()),
+        Action::Panic(..)=>json!({"op":"panic"}),
     })).collect::<Result<Vec<_>>>()?;
     Ok(json!({"body":body,"head":head}))
 }

@@ -6,7 +6,7 @@ HERE=Path(__file__).resolve().parent
 
 def tests(build,out):
  out.mkdir(parents=True,exist_ok=True);results={}
- for name,src in [('float-identity',HERE/'fixtures/float-identity.egg'),('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
+ for name,src in [('integer',HERE/'fixtures/integer.egg'),('float-identity',HERE/'fixtures/float-identity.egg'),('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
   r=run(src,build,out/name);assert r['checks'] and all(c['exact_rows_values_equivalence_visibility'] for c in r['checks']);results[name]=r
  unit=json.loads((out/'unit-function/program.json').read_text());assert next(t for t in unit['tables'] if t['name']=='F')['kind']=='function'
  assert len(results['repeat']['steps'])==2,'Repeat must stop at a native quiescent boundary'
@@ -20,6 +20,7 @@ def tests(build,out):
  r=run(HERE/'pipeline.egg',build,out/'periodic',check_every=3);assert [c['step'] for c in r['checks']]==[3,6];results['periodic']=r
  r=run(HERE/'pipeline.egg',build,out/'final-check',check_at_end=True);assert r['oracle_starts_after_gpu'] and len(r['checks'])==1 and r['native_oracle_runs']==6;assert r['steps']==results['pipeline']['steps'];results['final-check']=r
  failures={
+  'panic':('(datatype T (N i64)) (ruleset r) (N 0) (rule ((N 0)) ((panic "expected")) :ruleset r) (run r 1)',{},'error=8'),
   'match-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'match_capacity':1},'error=2'),
   'row-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'capacity':2},'error=1'),
   'source-check':('(datatype T (N i64)) (ruleset r) (N 1) (run r 1) (check (N 2))',{},'source check failed'),

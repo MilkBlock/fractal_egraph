@@ -13,6 +13,10 @@ def boolean_expr(call, args):
   return {'and':f'({a} && {b})','xor':f'({a} != {b})','=>':f'(!({a}) || {b})'}[op]
  return None
 
+INTEGER_OPS={'+':0,'-':1,'*':2,'/':3,'%':4,'min':5,'max':6,'bool-=':7,'bool-<':8,'bool->':9,'bool-<=':10,'bool->=':11}
+def integer_op(c):
+ return INTEGER_OPS.get(c['primitive']) if c['inputs']==['i64','i64'] else None
+
 def compile_program(p,capacity=4096,match_capacity=16384):
  if p['schema']!='egglog-device-core/v1':raise ValueError('program schema')
  strings=set()
@@ -94,8 +98,10 @@ def compile_program(p,capacity=4096,match_capacity=16384):
     av,bv=map(operand,args[:2]);numeric=c['inputs']==['i64','i64']
     if op in ('<','>','<=','>=','!=') and (numeric or op=='!='):
      lines.append(f'if(!({av}{op}{bv}))continue;');lines+=bind(args[-1],'0L',known)
-    elif op=='+' and numeric:
-     lines+=bind(args[-1],f'add_checked({av},{bv},m)',known)
+    elif integer_op(c) is not None:
+     code=integer_op(c)
+     lines.append(f'if(!integer_valid({code},{av},{bv}))continue;')
+     lines+=bind(args[-1],f'integer_eval({code},{av},{bv})',known)
     else:raise ValueError('unsupported LHS primitive '+op)
   stamp='0u'
   for s in stamps:stamp=f'max({stamp},{s})'
@@ -111,6 +117,7 @@ def compile_program(p,capacity=4096,match_capacity=16384):
   for a in r['head']:
    op=a['op']
    if op=='copy':out.append(f'v[{var(a["dst"],a["sort"]["name"])}]={operand(a["arg"])};');known.add(a['dst'])
+   elif op=='panic':out.append('m.error=8;break;')
    elif op=='union':
     x,y=a['args'];
     if x['sort']['kind']!='eq' or x['sort']!=y['sort']:raise ValueError('union requires one equality sort')
@@ -121,8 +128,10 @@ def compile_program(p,capacity=4096,match_capacity=16384):
      if op!='let':raise ValueError('unsupported RHS primitive action')
      expr=boolean_expr(c,[f'args[{i}]' for i in range(len(a['args']))])
      if expr is None:
-      if c['primitive']!='+' or c['inputs']!=['i64','i64']:raise ValueError('unsupported RHS primitive '+c['primitive'])
-      expr='add_checked(args[0],args[1],m)'
+      code=integer_op(c)
+      if code is None:raise ValueError('unsupported RHS primitive '+c['primitive'])
+      out.append(f'if(!integer_valid({code},args[0],args[1])){{m.error=5;break;}}')
+      expr=f'integer_eval({code},args[0],args[1])'
     else:
      t=ids[c['table']]
      if op=='subsume':
