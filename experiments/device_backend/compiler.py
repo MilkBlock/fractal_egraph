@@ -81,7 +81,7 @@ def compile_program(p,capacity=4096,match_capacity=16384):
   if name not in set_ids:raise ValueError('unknown set sort')
   values=(args+['0','0'])[:2]
   return f'set_apply(r,p,m,{ops[c["primitive"]]},{set_ids[name]},{values[0]},{values[1]})'
- allvars=[];queries=[];actions=[];query_widths=[]
+ allvars=[];queries=[];action_code=[];action_starts=[];query_widths=[]
  for rid,r in enumerate(rules):
   slots={};types={}
   def var(name,sort):
@@ -132,48 +132,59 @@ def compile_program(p,capacity=4096,match_capacity=16384):
   lines.append(f'if({condition}){{ if(m.matched>=MATCHCAP){{m.error=2;return;}} uint q=m.matched++*MSTRIDE;matches[q]={rid};for(uint c=0;c<VARS;c++)matches[q+1+c]=v[c];}}')
   lines+=['}']*depth
   queries.append('\n'.join(lines));query_widths.append(len(slots))
-  out=[]
-  def args_setup(xs):
-   for i,x in enumerate(xs):
-    if 'var' in x and x['var'] not in known:raise ValueError('ungrounded RHS variable')
-    out.append(f'args[{i}]={operand(x)};')
+  action_starts.append(len(action_code))
+  def instruction(op,dst=0,sub=0,k=0,value=0):action_code.extend([op,dst,sub,k,value])
+  def input_value(x):
+   if 'var' in x:
+    if x['var'] not in known:raise ValueError('ungrounded RHS variable')
+    return 1,var(x['var'],x['sort']['name'])
+   return 0,(string_ids[x['literal']] if x['sort']['kind']=='String' else x['literal'])
+  def load(i,x):
+   k,value=input_value(x);instruction(0,i,0,k,value)
   for a in r['head']:
    op=a['op']
-   if op=='copy':out.append(f'v[{var(a["dst"],a["sort"]["name"])}]={operand(a["arg"])};');known.add(a['dst'])
-   elif op=='panic':out.append('m.error=8;break;')
+   if op=='copy':
+    k,value=input_value(a['arg']);instruction(1,var(a['dst'],a['sort']['name']),0,k,value);known.add(a['dst'])
+   elif op=='panic':instruction(9)
    elif op=='union':
-    x,y=a['args'];
+    x,y=a['args']
     if x['sort']['kind']!='eq' or x['sort']!=y['sort']:raise ValueError('union requires one equality sort')
-    out.append(f'unite(p,{operand(x)},{operand(y)},m);')
+    load(0,x);load(1,y);instruction(2)
    elif op in ('let','set','subsume'):
-    c=a['call'];args_setup(a['args'])
+    c=a['call']
+    if len(a['args'])>cols:raise ValueError('action argument capacity exceeded')
+    for i,x in enumerate(a['args']):load(i,x)
     if 'primitive' in c:
      if op!='let':raise ValueError('unsupported RHS primitive action')
-     expr=set_expr(c,[f'args[{i}]' for i in range(len(a['args']))]) or boolean_expr(c,[f'args[{i}]' for i in range(len(a['args']))])
-     if expr is None:
-      code=integer_op(c)
-      if code is None:raise ValueError('unsupported RHS primitive '+c['primitive'])
-      out.append(f'if(!integer_valid({code},args[0],args[1])){{m.error=5;break;}}')
-      expr=f'integer_eval({code},args[0],args[1])'
+     dst=var(a['dst'],a['sort']['name']);code=integer_op(c)
+     if code is not None:instruction(6,dst,code)
+     elif boolean_expr(c,['x']*len(a['args'])) is not None:
+      instruction(7,dst,{'not':0,'and':1,'xor':2,'=>':3,'or':4}[c['primitive']],0,len(a['args']))
+     elif set_expr(c,['x']*len(a['args'])) is not None:
+      name=c['output'] if c['output'] in set_ids else c['inputs'][0]
+      instruction(8,dst,{'set-empty':0,'set-insert':1,'set-union':2,'set-intersect':3,'set-length':4}[c['primitive']],0,set_ids[name])
+     else:raise ValueError('unsupported RHS primitive '+c['primitive'])
+     known.add(a['dst'])
     else:
      t=ids[c['table']]
      if op=='subsume':
       if not ts[t]['can_subsume'] or kind[t]!=0:raise ValueError('unsupported custom-view subsume')
-      out.append(f'hide_row(r,p,fp,m,{t},args);');continue
-     if op=='set':
-      # Native core folds union(constructor(...), existing) into Set.
-      out.append(f'write_row(r,p,fp,m,{t},args,{operand(a["value"])},false);');continue
-     if kind[t]==2 and not ts[t]['internal']:raise ValueError('RHS custom function read not yet supported')
-     expr=f'write_row(r,p,fp,m,{t},args,0,true)'
-    out.append(f'v[{var(a["dst"],a["sort"]["name"])}]={expr};');known.add(a['dst'])
+      instruction(5,0,t)
+     elif op=='set':load(width[t]-1,a['value']);instruction(4,0,t)
+     else:
+      if kind[t]==2 and not ts[t]['internal']:raise ValueError('RHS custom function read not yet supported')
+      instruction(3,var(a['dst'],a['sort']['name']),t);known.add(a['dst'])
    else:raise ValueError('unsupported action '+op)
-  setup=f'long v[{max(1,len(slots))}]={{0}};'+''.join(f'v[{i}]=matches[mi*MSTRIDE+1+{i}];' for i in range(query_widths[-1]))
-  actions.append(f'case {rid}:{{'+setup+'\n'.join(out)+'break;}');allvars.append(slots)
+  allvars.append(slots)
+ action_starts.append(len(action_code))
  nv=max(query_widths+[1])
  if max(capacity*(cols+4),match_capacity*(nv+1),idcap)>=(1<<32):raise ValueError('device address space exhausted')
  prefix=f'#define COLS {cols}\n#define STRIDE {cols+4}\n#define VARS {nv}\n#define MSTRIDE {nv+1}\n#define CAPACITY {capacity}\n#define MATCHCAP {match_capacity}\n#define IDCAP {idcap}\n'
+ hash_cap=1
+ while hash_cap<capacity*4:hash_cap*=2
+ prefix+=f'#define HASH_CAP {hash_cap}\n#define INDEX_OFFSET {capacity*(cols+4)+arena_words}\n'
  prefix+=f'#define ROW_WORDS {capacity*(cols+4)}\n#define SET_WORDS {arena_words}\n'
- for name,data in [('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
+ for name,data in [('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy),('ACTION_START',action_starts),('QUERY_WIDTH',query_widths)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
  merge_cases=[]
  for tid,t in enumerate(ts):
   if policy[tid]!=6:continue
@@ -200,7 +211,7 @@ def compile_program(p,capacity=4096,match_capacity=16384):
    lines.append(f'long {name}={expr};if(m.error)return a;');return name
   value=lower(t['merge_expr']);merge_cases.append(f'case {tid}:{{'+''.join(lines)+f'return {value};'+'}')
  # Metal scalar types are available after the include, before generated schema.
- source=(HERE/'kernel.metal').read_text().replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
+ source=(HERE/'kernel.metal').read_text().replace('// ROW_INDEX',(HERE/'row_index.metal').read_text()).replace('// DEVICE_ACTIONS',(HERE/'actions.metal').read_text()).replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
  kernel_start=source.index('// Correctness-first reference executor.')
  common,template=source[:kernel_start],source[kernel_start:]
  kernels=[];kernel_names=[]
@@ -208,6 +219,6 @@ def compile_program(p,capacity=4096,match_capacity=16384):
   name=f'step_{si}';kernel_names.append(name)
   query=''.join('{long v[VARS]={0};do{'+queries[r]+'}while(false);}' for r in use)
   wm=''.join(f'watermarks[{r}]=previous;' for r in use)
-  kernels.append(template.replace('kernel void step(',f'kernel void {name}(').replace('// MATCH_BODY',query).replace('// ACTION_BODY','\n'.join(actions[r] for r in use)).replace('// WATERMARK_BODY',wm))
+  kernels.append(template.replace('kernel void step(',f'kernel void {name}(').replace('// MATCH_BODY',query).replace('// WATERMARK_BODY',wm))
  source=common+'\n'.join(kernels)
- return {'schema':'egglog-device-storage/v1','shader':source,'kernel_names':kernel_names,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'id_capacity':idcap,'stride':cols+4,'match_stride':nv+1,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}
+ return {'schema':'egglog-device-storage/v1','shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+1,'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'id_capacity':idcap,'stride':cols+4,'match_stride':nv+1,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}

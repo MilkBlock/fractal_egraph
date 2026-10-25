@@ -139,3 +139,13 @@ The 31-case native/Metal suite passes, including a set shrinking after union, re
 Full Pass 3 generated Metal has not yet completed a successful startup/run. A monolithic entry remained in Metal compilation for several minutes and was deliberately stopped. Rulesets now have separate entry kernels containing only their own queries/actions; native schedule order and shared rule watermarks are unchanged.
 
 The real initialization rule also exposed a buffer-layout bug: RHS temporaries were included in the global match width. At match capacity 65,536 this would reserve 13.30 GiB. The queue now stores only LHS slots (40 words including rule ID), requiring 20 MiB for that same capacity. RHS temporaries are scoped to each action case. These are computed allocation sizes, not measured RSS or speedups. The remaining huge initialization RHS should be lowered to a compact device action program rather than thousands of unrolled Metal statements.
+
+### Device action programs and complete-key writes
+
+RHS operations are now fixed-width device instructions. The CPU uploads them once; a GPU interpreter executes slot loads, constructors, Set, union, subsume, primitives and panic. One device register file holds RHS temporaries for the active binding. No RHS values are sent back to CPU. This prevents the initialization rule's 27,238 temporary registers from becoming a massive unrolled Metal function or a per-match allocation.
+
+Writes use a GPU-resident open-addressed full-key index. Union invalidates this index; the next lookup canonicalizes keys and reconstructs it. No-union steps skip congruence rebuild because all writes already use canonical keys. Union-containing steps still use the reference rebuild implementation and remain an optimization target.
+
+`--max-runs N` is a diagnostic prefix mode. Reports explicitly carry `complete_schedule: false` when execution stops before the full schedule; it must never be reported as a complete Pass 3 result. The default remains the entire source schedule.
+
+`action-results.json` records the full 548-rule Metal compilation/startup (17.23 seconds on its first observed build), 31 regressions plus a separate prefix-control test, and three real Pass 3 Run boundaries. Initialization produced 13,457 rows / 13,456 mapped equality classes; the following two type-helpers Runs also passed complete snapshot comparison. The initialization boundary including native oracle and snapshot comparison went from 70.19 seconds with linear writes to 5.07 seconds with indexed writes. These are diagnostic prefix times, not full inference acceleration. CPU extraction and complete Pass 3 validation remain outstanding.

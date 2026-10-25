@@ -19,6 +19,7 @@ def tests(build,out):
  assert r['native_oracle_runs']==0 and r['checkpoint_bytes']==0 and r['native_retired_before_gpu_runs'];assert r['steps']==results['spine']['steps'];results['spine-unchecked']=r
  r=run(HERE/'pipeline.egg',build,out/'periodic',check_every=3);assert [c['step'] for c in r['checks']]==[3,6];results['periodic']=r
  r=run(HERE/'pipeline.egg',build,out/'final-check',check_at_end=True);assert r['oracle_starts_after_gpu'] and len(r['checks'])==1 and r['native_oracle_runs']==6;assert r['steps']==results['pipeline']['steps'];results['final-check']=r
+ r=run(HERE/'pipeline.egg',build,out/'prefix',max_runs=2);assert not r['complete_schedule'] and len(r['steps'])==2 and r['checks'];results['prefix']=r
  failures={
   'panic':('(datatype T (N i64)) (ruleset r) (N 0) (rule ((N 0)) ((panic "expected")) :ruleset r) (run r 1)',{},'error=8'),
   'match-capacity':('(datatype T (N i64) (W T)) (ruleset r) (rewrite (N n) (W (N n)) :ruleset r) (N 1) (N 2) (run r 1)',{'match_capacity':1},'error=2'),

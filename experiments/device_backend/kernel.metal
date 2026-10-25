@@ -11,16 +11,17 @@ bool keyeq(device long*r,uint row,uint t,thread long*args,device uint*p){
  for(uint c=0;c<WIDTH[t]-1;c++)if(canon(r,p,t,c,r[row*STRIDE+4+c])!=canon(r,p,t,c,args[c]))return false;
  return true;
 }
+// ROW_INDEX
 bool integer_valid(uint op,long a,long b);
 long integer_eval(uint op,long a,long b);
 long ensure_constructor(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
  if(m.error)return 0;
- for(uint i=0;i<m.count;i++)if(keyeq(r,i,t,args,p))return canon(r,p,t,WIDTH[t]-1,r[i*STRIDE+4+WIDTH[t]-1]);
+ long found=row_lookup(r,p,m,t,args);if(found>=0)return canon(r,p,t,WIDTH[t]-1,r[found*STRIDE+4+WIDTH[t]-1]);
  if(m.count>=CAPACITY||m.next_fact>=IDCAP||m.next_id>=IDCAP){m.error=1;return 0;}
  uint value=m.next_id++,i=m.count++,fid=m.next_fact++;p[value]=value;fp[fid]=fid;
  r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
- r[i*STRIDE+4+WIDTH[t]-1]=value;m.changed=1;return value;
+ r[i*STRIDE+4+WIDTH[t]-1]=value;row_index_insert(r,p,i);m.changed=1;return value;
 }
 long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,device Meta&m){
  if(a==b)return a;
@@ -35,7 +36,7 @@ long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,
 }
 long write_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args,long value,bool create){
  if(m.error)return 0;
- for(uint i=0;i<m.count;i++)if(keyeq(r,i,t,args,p)){
+ long found=row_lookup(r,p,m,t,args);if(found>=0){uint i=uint(found);
   uint at=i*STRIDE+4+WIDTH[t]-1;long old=canon(r,p,t,WIDTH[t]-1,r[at]);
   if(create)return old;
   long incoming=canon(r,p,t,WIDTH[t]-1,value);
@@ -51,7 +52,7 @@ long write_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,t
  }
  uint i=m.count++,fid=m.next_fact++;fp[fid]=fid;r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
- r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
+ r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);row_index_insert(r,p,i);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
 }
 void hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
  // Native subsume creates a hidden constructor row when the key is absent.
@@ -96,24 +97,22 @@ void rebuild(device long*r,device uint*p,device uint*fp,device Meta&m){
    }
   }
  }
- uint n=0;for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){if(n!=i)for(uint c=0;c<STRIDE;c++)r[n*STRIDE+c]=r[i*STRIDE+c];n++;}m.count=n;
+ uint n=0;for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){if(n!=i)for(uint c=0;c<STRIDE;c++)r[n*STRIDE+c]=r[i*STRIDE+c];n++;}m.count=n;r[INDEX_OFFSET]=0;
 }
+// DEVICE_ACTIONS
 kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],uint i[[thread_position_in_grid]]){if(i<IDCAP){p[i]=i;fp[i]=i;}}
 // Correctness-first reference executor. A single lane commits deterministic
 // actions and rebuilds. It is not a throughput kernel or Tensor Core benchmark.
-kernel void step(device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],uint lane[[thread_position_in_grid]]){
- if(lane||m.error)return;m.changed=0;m.matched=0;uint previous=m.epoch,oldCount=m.count;
+kernel void step(device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],uint lane[[thread_position_in_grid]]){
+ if(lane||m.error)return;m.changed=0;m.matched=0;uint previous=m.epoch,oldCount=m.count,startUnions=m.unions;
  if(m.epoch==0xffffffff){m.error=6;return;}m.epoch++;m.rounds++;r[ROW_WORDS+1]=m.epoch;
  for(uint i=0;i<oldCount*STRIDE;i++)old[i]=r[i];
  // MATCH_BODY
  if(m.error)return;
  for(uint mi=0;mi<m.matched;mi++){
-  uint rule=uint(matches[mi*MSTRIDE]);long args[COLS]={0};
-  switch(rule){
-  // ACTION_BODY
-  }
+  uint rule=uint(matches[mi*MSTRIDE]);execute_actions(rule,mi,code,registers,matches,r,p,fp,m);
   if(m.error)return;
  }
- rebuild(r,p,fp,m);
+ if(m.unions!=startUnions)rebuild(r,p,fp,m);
  // WATERMARK_BODY
 }

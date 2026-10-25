@@ -78,7 +78,7 @@ def compare(p,rows,parents,checkpoint,arena=None):
   pending=rest
  return {'exact_rows_values_equivalence_visibility':True,'rows':visited,'eclasses':len(forward)}
 
-def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_at_end=False):
+def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_at_end=False,max_runs=None):
  out.mkdir(parents=True,exist_ok=True)
  if (out/'report.json').exists():raise ValueError('output already contains a successful run; use a new directory')
  with (out/'native.log').open('w') as nl,(out/'gpu.log').open('w') as gl:
@@ -92,7 +92,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
    (out/'program.json').write_text(json.dumps(p));(out/'kernel.metal').write_text(p['shader'])
    gpu=subprocess.Popen([str((build/'worker').resolve()),str((out/'program.json').resolve())],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=gl)
    assert read(gpu.stdout,4)==b'DVB1'
-   initial_bytes=(len(p.pop('initial_rows'))+len(p.pop('initial_sets')))*8
+   initial_bytes=(len(p.pop('initial_rows'))+len(p.pop('initial_sets'))+len(p.pop('action_code')))*8
    if not check_every and not check_at_end:
     native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait(timeout=30)
    phase="run"
@@ -114,9 +114,11 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     (out/'gpu-state.json').write_text(json.dumps({'meta':meta,'rows':rows,'parents':parents,'fact_parents':facts,'sets':arena}))
     reference=oracle({'op':'snapshot'});(out/'native-state.json').write_text(json.dumps(reference))
     result=compare(p,rows,parents,reference,arena);result['step']=len(steps);checks.append(result)
+   class PrefixComplete(Exception):pass
    def advance(s):
     nonlocal down,oracle_runs
     if 'run' in s:
+     if max_runs is not None and len(steps)>=max_runs:raise PrefixComplete()
      setid=p['sets'].index(s['run']);command(1,setid);m=struct.unpack('<9I',read(gpu.stdout,36));down+=36
      if s.get('assert') and not m[5] and not m[4]:raise AssertionError('GPU source check failed')
      if m[4]:raise RuntimeError(f'GPU incomplete, error={m[4]} (1 storage capacity, 2 match capacity, 3 missing lookup, 4 conflicting function, 5 overflow, 6 epoch exhaustion, 7 ambiguous ordered merge)')
@@ -143,7 +145,10 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
      return any_change
     raise ValueError('schedule')
    started=time.perf_counter()
-   for s in p['schedule']:advance(s)
+   complete=True
+   try:
+    for s in p['schedule']:advance(s)
+   except PrefixComplete:complete=False
    if check_at_end:
     phase='post-run-oracle'
     for step in steps:
@@ -155,7 +160,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
    command(0);gpu.wait(timeout=30)
    if native.poll() is None:
     native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait(timeout=30)
-   result={'scope':'native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark','steps':steps,'checks':checks,'checked':bool(check_every or check_at_end),'check_mode':'final' if check_at_end else ('periodic' if check_every else 'off'),'native_oracle_runs':oracle_runs,'run_control_upload_bytes':8*len(steps),'run_status_download_bytes':down,'checkpoint_bytes':snapshot_bytes,'intermediate_binding_download_bytes':0,'cpu_rhs_calls':0,'cpu_rebuild_calls_outside_oracle':0,'wall_seconds_including_debug_checks':elapsed,'initial_row_upload_bytes':initial_bytes,'native_retired_before_gpu_runs':not bool(check_every or check_at_end),'oracle_starts_after_gpu':check_at_end,'control_upload_bytes':up,'assertion_tables':p.get('assertion_tables',[]),'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'build':json.loads((build/'build.json').read_text()),'program_sha256':hashlib.sha256((out/'program.json').read_bytes()).hexdigest()}
+   result={'complete_schedule':complete,'requested_max_runs':max_runs,'scope':'native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark','steps':steps,'checks':checks,'checked':bool(check_every or check_at_end),'check_mode':'final' if check_at_end else ('periodic' if check_every else 'off'),'native_oracle_runs':oracle_runs,'run_control_upload_bytes':8*len(steps),'run_status_download_bytes':down,'checkpoint_bytes':snapshot_bytes,'intermediate_binding_download_bytes':0,'cpu_rhs_calls':0,'cpu_rebuild_calls_outside_oracle':0,'wall_seconds_including_debug_checks':elapsed,'initial_row_upload_bytes':initial_bytes,'native_retired_before_gpu_runs':not bool(check_every or check_at_end),'oracle_starts_after_gpu':check_at_end,'control_upload_bytes':up,'assertion_tables':p.get('assertion_tables',[]),'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'build':json.loads((build/'build.json').read_text()),'program_sha256':hashlib.sha256((out/'program.json').read_bytes()).hexdigest()}
    (out/'report.json').write_text(json.dumps(result,indent=2)+'\n');return result
   except Exception as e:
    (out/'failure.json').write_text(json.dumps({'phase':phase,'error':str(e),'completed_steps':steps},indent=2));raise
@@ -167,7 +172,8 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
      if proc.stdout:proc.stdout.close()
 
 def main():
- a=argparse.ArgumentParser();a.add_argument('--source',type=Path,required=True);a.add_argument('--build',type=Path,required=True);a.add_argument('--output',type=Path,required=True);a.add_argument('--check-every',type=int,default=1,help='0 disables CPU execution; positive N verifies every N Run boundaries');a.add_argument('--check-at-end',action='store_true',help='replay native only after all GPU Run commands finish');a.add_argument('--capacity',type=int,default=4096);a.add_argument('--match-capacity',type=int,default=16384);x=a.parse_args()
+ a=argparse.ArgumentParser();a.add_argument('--source',type=Path,required=True);a.add_argument('--build',type=Path,required=True);a.add_argument('--output',type=Path,required=True);a.add_argument('--check-every',type=int,default=1,help='0 disables CPU execution; positive N verifies every N Run boundaries');a.add_argument('--check-at-end',action='store_true',help='replay native only after all GPU Run commands finish');a.add_argument('--capacity',type=int,default=4096);a.add_argument('--match-capacity',type=int,default=16384);a.add_argument('--max-runs',type=int,help='diagnostic prefix only, reported as incomplete');x=a.parse_args()
  if x.check_every<0:a.error('negative checkpoint interval')
- print(json.dumps(run(x.source,x.build,x.output,x.check_every,x.capacity,x.match_capacity,x.check_at_end),indent=2))
+ if x.max_runs is not None and x.max_runs<1:a.error('max-runs must be positive')
+ print(json.dumps(run(x.source,x.build,x.output,x.check_every,x.capacity,x.match_capacity,x.check_at_end,x.max_runs),indent=2))
 if __name__=='__main__':main()
