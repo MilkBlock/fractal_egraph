@@ -353,11 +353,7 @@ impl IndexBase for ColumnIndex {
             });
         }
 
-        radix_sort_pairs_by_value(&mut pairs);
-        if cols.len() > 1 {
-            // Remove duplicates (same value in multiple columns of the same row).
-            pairs.dedup();
-        }
+        sort_column_pairs(&mut pairs, cols.len() > 1);
 
         let mut i = 0;
         while i < pairs.len() {
@@ -422,6 +418,17 @@ fn run_in_thread_pool_and_block<'a>(pool: &rayon::ThreadPool, f: impl FnMut() + 
         inner.notify();
     });
     n.wait()
+}
+
+// Concatenating multiple column scans destroys within-value RowId order.
+// Radix stability alone only suffices for one ascending column scan.
+fn sort_column_pairs(pairs: &mut Vec<(Value, RowId)>, multiple_columns: bool) {
+    if multiple_columns {
+        pairs.sort_unstable();
+        pairs.dedup();
+    } else {
+        radix_sort_pairs_by_value(pairs);
+    }
 }
 
 /// Adaptive LSB radix sort for (Value, RowId) pairs, sorting by the Value field.
@@ -1020,5 +1027,20 @@ impl FreeList {
         let size_class = size.next_power_of_two();
         let idx = size_class.trailing_zeros() as usize;
         &mut self.data[idx]
+    }
+}
+
+#[cfg(test)]
+mod column_pair_sort_tests {
+    use super::*;
+
+    #[test]
+    fn multiple_column_scans_sort_and_deduplicate_row_ids() {
+        let mut pairs: Vec<_> = (0..80).map(|i| (Value::new(i+100), RowId::new(i))).collect();
+        let value = Value::new(7);
+        pairs.extend([(value, RowId::new(7147)), (value, RowId::new(185)), (value, RowId::new(7147))]);
+        sort_column_pairs(&mut pairs, true);
+        assert!(pairs.windows(2).all(|w| w[0] < w[1]));
+        assert_eq!(pairs.iter().filter(|(v,_)| *v == value).map(|(_,r)|r.rep()).collect::<Vec<_>>(), vec![185,7147]);
     }
 }
