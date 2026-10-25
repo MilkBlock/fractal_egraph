@@ -1,0 +1,2068 @@
+{
+  "scope": "Analyze-derived constructor spine coordinates, not live Cell identification or a closure certificate",
+  "snapshot_sha256": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+  "profile_sha256": "3c0339a2762dbdf55a15493e499c689e3299d3dad70f869df51fc061231d5a65",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "root_projection_sha256": "6074fe5081c6f87ef8c071551c994b7b0df64e0615b5150ad0b36bf1f3ec922e",
+  "analyze": {
+    "queue": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/queue.json",
+    "queue_sha256": "36ca50dd1ef65d69708e42f386be17e3cc8fb1ef30f1825d221f1c10a4fa44e0",
+    "completed_observations": 121,
+    "distinct_tokens": 94,
+    "tokens_observed_in_multiple_cells": 80,
+    "sources": [
+      {
+        "cell": 1,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000001/trigger-state.json",
+        "sha256": "558a10246e7aec3603585b7034669c8073bd5c0164cf6c1cf925ae46380599bc",
+        "tokens": 1
+      },
+      {
+        "cell": 18,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000018/trigger-state.json",
+        "sha256": "eb98017c514793e19e0254871284b114041908a06348cf6dff2b89fcddb6ce2f",
+        "tokens": 2
+      },
+      {
+        "cell": 19,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000019/trigger-state.json",
+        "sha256": "eb98017c514793e19e0254871284b114041908a06348cf6dff2b89fcddb6ce2f",
+        "tokens": 2
+      },
+      {
+        "cell": 718,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000718/trigger-state.json",
+        "sha256": "f8d69bac8dd14b0740967d541f85408e7ad12a58372bc6443cab48a58883c83f",
+        "tokens": 3
+      },
+      {
+        "cell": 720,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000720/trigger-state.json",
+        "sha256": "024f2acd9582079af56450cefa03222fdbfa3666d6ab58934794b3c3841ceed2",
+        "tokens": 6
+      },
+      {
+        "cell": 751,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000751/trigger-state.json",
+        "sha256": "c4a0c1d5e24e126dd419f7b6c9c7ea235958c97965ae0a7803da051255703e7f",
+        "tokens": 3
+      },
+      {
+        "cell": 763,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000763/trigger-state.json",
+        "sha256": "ae7171960873b8fda0cac58aaa44c8362f465ec055c113dbbccacb936499619b",
+        "tokens": 3
+      },
+      {
+        "cell": 768,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000768/trigger-state.json",
+        "sha256": "59c6e9c8743cfb71ce6c4062eac33197f23d64f17a928774cfecfe0ce4949254",
+        "tokens": 6
+      },
+      {
+        "cell": 775,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000775/trigger-state.json",
+        "sha256": "2c6748ee6964457c325f49e635e324d5f57dd5346848abb191df2dd992855407",
+        "tokens": 3
+      },
+      {
+        "cell": 789,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-000789/trigger-state.json",
+        "sha256": "c937292ebcd43c6a120c2323af9cc1ee68eb88544c7fb92f151e44789a01d281",
+        "tokens": 3
+      },
+      {
+        "cell": 1094,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001094/trigger-state.json",
+        "sha256": "8d00909138aceeb7d5cec09c5bfc539bdd63c206e5c9ab19d2ed8637f61b9c85",
+        "tokens": 3
+      },
+      {
+        "cell": 1179,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001179/trigger-state.json",
+        "sha256": "d935f5c840daa697ae850661a990e059dbe3b4f741f66e9acd906c9463f9eca9",
+        "tokens": 15
+      },
+      {
+        "cell": 1186,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001186/trigger-state.json",
+        "sha256": "4c70804607a40179f42d7e7c155667de476798aa142c655159a5c6f3b9aa271a",
+        "tokens": 17
+      },
+      {
+        "cell": 1188,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001188/trigger-state.json",
+        "sha256": "4cbb15c84ee40fb802e53859129f36eff2b7b0a44644964dd5d0f5e8cd276b6e",
+        "tokens": 17
+      },
+      {
+        "cell": 1189,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001189/trigger-state.json",
+        "sha256": "4b00a76324db012a9074a58bb6f82302e1eee52f662fb97cc40a0dc6226eef0d",
+        "tokens": 17
+      },
+      {
+        "cell": 1199,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001199/trigger-state.json",
+        "sha256": "a48f54175349762abedd5b402489c33302cf892d53c44729864a1752b0f5e41b",
+        "tokens": 17
+      },
+      {
+        "cell": 1201,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001201/trigger-state.json",
+        "sha256": "8544eaa3deecc7886abe0697c7b3e047b5252985a0da06a05028f9bd2bd6456f",
+        "tokens": 13
+      },
+      {
+        "cell": 1202,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001202/trigger-state.json",
+        "sha256": "704f7bd985e4bd161ff0b91695b0f7909b9f78b14076d7c0d47148e743ce8009",
+        "tokens": 13
+      },
+      {
+        "cell": 1207,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001207/trigger-state.json",
+        "sha256": "b7a7f74682ffd0249c0729c206e12fcb7d71199a98f20e00a179045a13e88b28",
+        "tokens": 14
+      },
+      {
+        "cell": 1208,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001208/trigger-state.json",
+        "sha256": "8155199e7ff3af22aceefd3ac17328bfd5cba6afc3866c59f607759bc3ffdf1a",
+        "tokens": 14
+      },
+      {
+        "cell": 1223,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001223/trigger-state.json",
+        "sha256": "e2c39efa754584a67788c8328e66d86b6bd973d0328d26d2991a719578b18db7",
+        "tokens": 4
+      },
+      {
+        "cell": 1238,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001238/trigger-state.json",
+        "sha256": "9dc90313a42c76afd39d761fd371ea2c0c314808f836ffa5b517d49b00adc89a",
+        "tokens": 4
+      },
+      {
+        "cell": 1245,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001245/trigger-state.json",
+        "sha256": "4646353a5d8652d341f43e36016a7a886241e71ab91a68f4942881bcac847def",
+        "tokens": 7
+      },
+      {
+        "cell": 1291,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001291/trigger-state.json",
+        "sha256": "d935f5c840daa697ae850661a990e059dbe3b4f741f66e9acd906c9463f9eca9",
+        "tokens": 15
+      },
+      {
+        "cell": 1294,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001294/trigger-state.json",
+        "sha256": "4c70804607a40179f42d7e7c155667de476798aa142c655159a5c6f3b9aa271a",
+        "tokens": 17
+      },
+      {
+        "cell": 1295,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001295/trigger-state.json",
+        "sha256": "4cbb15c84ee40fb802e53859129f36eff2b7b0a44644964dd5d0f5e8cd276b6e",
+        "tokens": 17
+      },
+      {
+        "cell": 1296,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001296/trigger-state.json",
+        "sha256": "4b00a76324db012a9074a58bb6f82302e1eee52f662fb97cc40a0dc6226eef0d",
+        "tokens": 17
+      },
+      {
+        "cell": 1303,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001303/trigger-state.json",
+        "sha256": "a48f54175349762abedd5b402489c33302cf892d53c44729864a1752b0f5e41b",
+        "tokens": 17
+      },
+      {
+        "cell": 1304,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001304/trigger-state.json",
+        "sha256": "8544eaa3deecc7886abe0697c7b3e047b5252985a0da06a05028f9bd2bd6456f",
+        "tokens": 13
+      },
+      {
+        "cell": 1305,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001305/trigger-state.json",
+        "sha256": "704f7bd985e4bd161ff0b91695b0f7909b9f78b14076d7c0d47148e743ce8009",
+        "tokens": 13
+      },
+      {
+        "cell": 1307,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001307/trigger-state.json",
+        "sha256": "81f803c2e172701e4debffb28f0811a9a9181fadd9b29900b6bf2dac876d0190",
+        "tokens": 9
+      },
+      {
+        "cell": 1308,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001308/trigger-state.json",
+        "sha256": "a1b0e502f35120ded495b29095e4475b5e298101a08c9bf0efdc128d5e54102b",
+        "tokens": 4
+      },
+      {
+        "cell": 1339,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001339/trigger-state.json",
+        "sha256": "9dc90313a42c76afd39d761fd371ea2c0c314808f836ffa5b517d49b00adc89a",
+        "tokens": 4
+      },
+      {
+        "cell": 1424,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001424/trigger-state.json",
+        "sha256": "d935f5c840daa697ae850661a990e059dbe3b4f741f66e9acd906c9463f9eca9",
+        "tokens": 15
+      },
+      {
+        "cell": 1427,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001427/trigger-state.json",
+        "sha256": "4c70804607a40179f42d7e7c155667de476798aa142c655159a5c6f3b9aa271a",
+        "tokens": 17
+      },
+      {
+        "cell": 1428,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001428/trigger-state.json",
+        "sha256": "4cbb15c84ee40fb802e53859129f36eff2b7b0a44644964dd5d0f5e8cd276b6e",
+        "tokens": 17
+      },
+      {
+        "cell": 1429,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001429/trigger-state.json",
+        "sha256": "4b00a76324db012a9074a58bb6f82302e1eee52f662fb97cc40a0dc6226eef0d",
+        "tokens": 17
+      },
+      {
+        "cell": 1436,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001436/trigger-state.json",
+        "sha256": "a48f54175349762abedd5b402489c33302cf892d53c44729864a1752b0f5e41b",
+        "tokens": 17
+      },
+      {
+        "cell": 1437,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001437/trigger-state.json",
+        "sha256": "8544eaa3deecc7886abe0697c7b3e047b5252985a0da06a05028f9bd2bd6456f",
+        "tokens": 13
+      },
+      {
+        "cell": 1438,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001438/trigger-state.json",
+        "sha256": "704f7bd985e4bd161ff0b91695b0f7909b9f78b14076d7c0d47148e743ce8009",
+        "tokens": 13
+      },
+      {
+        "cell": 1443,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001443/trigger-state.json",
+        "sha256": "b7a7f74682ffd0249c0729c206e12fcb7d71199a98f20e00a179045a13e88b28",
+        "tokens": 14
+      },
+      {
+        "cell": 1444,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001444/trigger-state.json",
+        "sha256": "8155199e7ff3af22aceefd3ac17328bfd5cba6afc3866c59f607759bc3ffdf1a",
+        "tokens": 14
+      },
+      {
+        "cell": 1466,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001466/trigger-state.json",
+        "sha256": "9dc90313a42c76afd39d761fd371ea2c0c314808f836ffa5b517d49b00adc89a",
+        "tokens": 4
+      },
+      {
+        "cell": 1479,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001479/trigger-state.json",
+        "sha256": "227e66771b86dcfdb15c57136735a900df0abb42a22b1f21c04f72d5356bbbbb",
+        "tokens": 10
+      },
+      {
+        "cell": 1480,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001480/trigger-state.json",
+        "sha256": "227e66771b86dcfdb15c57136735a900df0abb42a22b1f21c04f72d5356bbbbb",
+        "tokens": 10
+      },
+      {
+        "cell": 1481,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001481/trigger-state.json",
+        "sha256": "227e66771b86dcfdb15c57136735a900df0abb42a22b1f21c04f72d5356bbbbb",
+        "tokens": 10
+      },
+      {
+        "cell": 1483,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001483/trigger-state.json",
+        "sha256": "ae089bde1c4877b7bd4f33033df415f7f3581d6cf34dabb065e6c4191b0770a1",
+        "tokens": 8
+      },
+      {
+        "cell": 1706,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001706/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1707,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001707/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1708,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001708/trigger-state.json",
+        "sha256": "71614ab3835964881395cfca0a0bcf38c0184f0ab2a849030194a8936b142673",
+        "tokens": 3
+      },
+      {
+        "cell": 1709,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001709/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1710,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001710/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1711,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001711/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1712,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001712/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1713,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001713/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1714,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001714/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1715,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001715/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1716,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001716/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1717,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001717/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1718,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001718/trigger-state.json",
+        "sha256": "ac2556b2a60f05499a729c5e94f400886bda9a532e57f08f34d796a1862fe545",
+        "tokens": 3
+      },
+      {
+        "cell": 1719,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001719/trigger-state.json",
+        "sha256": "71614ab3835964881395cfca0a0bcf38c0184f0ab2a849030194a8936b142673",
+        "tokens": 3
+      },
+      {
+        "cell": 1720,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001720/trigger-state.json",
+        "sha256": "84d85cd93abf0a303638fb0eb76c3403becdfcb8fe074306160cd26994182c75",
+        "tokens": 4
+      },
+      {
+        "cell": 1721,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001721/trigger-state.json",
+        "sha256": "84d85cd93abf0a303638fb0eb76c3403becdfcb8fe074306160cd26994182c75",
+        "tokens": 4
+      },
+      {
+        "cell": 1722,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001722/trigger-state.json",
+        "sha256": "460e8340f8a71e7ea02dc7150ca4a6e33db09bf45c5442d013197e7a39745aa3",
+        "tokens": 3
+      },
+      {
+        "cell": 1729,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001729/trigger-state.json",
+        "sha256": "9a0285e1cb441c1762e3d159d9c29d2309f6dab751f267c6c8ff3c172cba84a6",
+        "tokens": 4
+      },
+      {
+        "cell": 1730,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001730/trigger-state.json",
+        "sha256": "9a0285e1cb441c1762e3d159d9c29d2309f6dab751f267c6c8ff3c172cba84a6",
+        "tokens": 4
+      },
+      {
+        "cell": 1731,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001731/trigger-state.json",
+        "sha256": "9a0285e1cb441c1762e3d159d9c29d2309f6dab751f267c6c8ff3c172cba84a6",
+        "tokens": 4
+      },
+      {
+        "cell": 1732,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001732/trigger-state.json",
+        "sha256": "0fa9a173f5aa89f02dbb156847d1e5196278deac225fde886b9a302a06f1cf78",
+        "tokens": 4
+      },
+      {
+        "cell": 1733,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001733/trigger-state.json",
+        "sha256": "0fa9a173f5aa89f02dbb156847d1e5196278deac225fde886b9a302a06f1cf78",
+        "tokens": 4
+      },
+      {
+        "cell": 1734,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001734/trigger-state.json",
+        "sha256": "0fa9a173f5aa89f02dbb156847d1e5196278deac225fde886b9a302a06f1cf78",
+        "tokens": 4
+      },
+      {
+        "cell": 1740,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001740/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1741,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001741/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1742,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001742/trigger-state.json",
+        "sha256": "47eb00be6b0aea9620ceecb90473207c85cf4fbc967177e0fe8daf3c81306a2a",
+        "tokens": 11
+      },
+      {
+        "cell": 1743,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001743/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1744,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001744/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1745,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001745/trigger-state.json",
+        "sha256": "47eb00be6b0aea9620ceecb90473207c85cf4fbc967177e0fe8daf3c81306a2a",
+        "tokens": 11
+      },
+      {
+        "cell": 1746,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001746/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1747,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001747/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1748,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001748/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1749,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001749/trigger-state.json",
+        "sha256": "47eb00be6b0aea9620ceecb90473207c85cf4fbc967177e0fe8daf3c81306a2a",
+        "tokens": 11
+      },
+      {
+        "cell": 1750,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001750/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1751,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001751/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1752,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001752/trigger-state.json",
+        "sha256": "47eb00be6b0aea9620ceecb90473207c85cf4fbc967177e0fe8daf3c81306a2a",
+        "tokens": 11
+      },
+      {
+        "cell": 1753,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001753/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1754,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001754/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1755,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001755/trigger-state.json",
+        "sha256": "47eb00be6b0aea9620ceecb90473207c85cf4fbc967177e0fe8daf3c81306a2a",
+        "tokens": 11
+      },
+      {
+        "cell": 1756,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001756/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1757,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001757/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1758,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001758/trigger-state.json",
+        "sha256": "47eb00be6b0aea9620ceecb90473207c85cf4fbc967177e0fe8daf3c81306a2a",
+        "tokens": 11
+      },
+      {
+        "cell": 1759,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001759/trigger-state.json",
+        "sha256": "47eb00be6b0aea9620ceecb90473207c85cf4fbc967177e0fe8daf3c81306a2a",
+        "tokens": 11
+      },
+      {
+        "cell": 1760,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001760/trigger-state.json",
+        "sha256": "62bc77c19cef3f646eeab1c9b8e7b10f61f4a126a1ffd35e1e11046c657addb1",
+        "tokens": 10
+      },
+      {
+        "cell": 1761,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001761/trigger-state.json",
+        "sha256": "4220e370b9f3a3fc097d3e2ff664c438ab4e76021dd0de24f122f248e44e66c2",
+        "tokens": 21
+      },
+      {
+        "cell": 1762,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001762/trigger-state.json",
+        "sha256": "a213b795af09d429938c4c5259065cd4d0ba77d9dcaea9c836827d535e8ce1a6",
+        "tokens": 4
+      },
+      {
+        "cell": 1763,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001763/trigger-state.json",
+        "sha256": "a213b795af09d429938c4c5259065cd4d0ba77d9dcaea9c836827d535e8ce1a6",
+        "tokens": 4
+      },
+      {
+        "cell": 1764,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001764/trigger-state.json",
+        "sha256": "a213b795af09d429938c4c5259065cd4d0ba77d9dcaea9c836827d535e8ce1a6",
+        "tokens": 4
+      },
+      {
+        "cell": 1793,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001793/trigger-state.json",
+        "sha256": "bde063ed8b59474da848b754b1a69a1615b5e0b9121767d7db66d04a420315ed",
+        "tokens": 9
+      },
+      {
+        "cell": 1799,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001799/trigger-state.json",
+        "sha256": "e2e488605638d71a978e2c793d0a01c6e645a9b923543616282b80f870f32b62",
+        "tokens": 7
+      },
+      {
+        "cell": 1803,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001803/trigger-state.json",
+        "sha256": "4220e370b9f3a3fc097d3e2ff664c438ab4e76021dd0de24f122f248e44e66c2",
+        "tokens": 21
+      },
+      {
+        "cell": 1804,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001804/trigger-state.json",
+        "sha256": "4220e370b9f3a3fc097d3e2ff664c438ab4e76021dd0de24f122f248e44e66c2",
+        "tokens": 21
+      },
+      {
+        "cell": 1805,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001805/trigger-state.json",
+        "sha256": "4220e370b9f3a3fc097d3e2ff664c438ab4e76021dd0de24f122f248e44e66c2",
+        "tokens": 21
+      },
+      {
+        "cell": 1806,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001806/trigger-state.json",
+        "sha256": "4220e370b9f3a3fc097d3e2ff664c438ab4e76021dd0de24f122f248e44e66c2",
+        "tokens": 21
+      },
+      {
+        "cell": 1807,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001807/trigger-state.json",
+        "sha256": "4220e370b9f3a3fc097d3e2ff664c438ab4e76021dd0de24f122f248e44e66c2",
+        "tokens": 21
+      },
+      {
+        "cell": 1808,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001808/trigger-state.json",
+        "sha256": "4220e370b9f3a3fc097d3e2ff664c438ab4e76021dd0de24f122f248e44e66c2",
+        "tokens": 21
+      },
+      {
+        "cell": 1815,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001815/trigger-state.json",
+        "sha256": "788df694ed391f07306e5b4f3165b7b7b482cfc99cab3f8132afff81c0a39250",
+        "tokens": 7
+      },
+      {
+        "cell": 1832,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001832/trigger-state.json",
+        "sha256": "1bf58dc4b8a801e41acf80d8a0988cbe26aef1ce21d4763c15c3c6895aeb36c1",
+        "tokens": 14
+      },
+      {
+        "cell": 1838,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001838/trigger-state.json",
+        "sha256": "ab13e06c607c871ec0340966231b4a4138fa3586db6aca528d13f62a9d6d4433",
+        "tokens": 12
+      },
+      {
+        "cell": 1860,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001860/trigger-state.json",
+        "sha256": "543cb0a422003799e0da7d64b8f7911cc227e2cc886102c869e579ed77470b3c",
+        "tokens": 4
+      },
+      {
+        "cell": 1865,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001865/trigger-state.json",
+        "sha256": "3dc241947c6c1315a9364f925b0bd791c9d3a9eee8e8f6c2d7d1846fa5fbd286",
+        "tokens": 9
+      },
+      {
+        "cell": 1878,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001878/trigger-state.json",
+        "sha256": "69fe93fda6478ed34b610aef4e8a2d3a3460d45b5e72fedd66474d73030b8eba",
+        "tokens": 9
+      },
+      {
+        "cell": 1893,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001893/trigger-state.json",
+        "sha256": "3b44cb9d44a7c3b62c0c188c03d76d3fb98b1ffd62e41f7010f1ddc1e0f96b5c",
+        "tokens": 11
+      },
+      {
+        "cell": 1895,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001895/trigger-state.json",
+        "sha256": "fb456bad8866d3be8d63af803f42c14b8a83e797987ce38b45deb219eb487bef",
+        "tokens": 13
+      },
+      {
+        "cell": 1901,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001901/trigger-state.json",
+        "sha256": "9855a17e24e975ecc4971f79c4d1e79a25142b905c9f949d8d623d69ea1d2a9d",
+        "tokens": 10
+      },
+      {
+        "cell": 1904,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001904/trigger-state.json",
+        "sha256": "205f284d41979877655852c5c8ec142d68c2cdbe92ab716b637bf10d20f8599d",
+        "tokens": 9
+      },
+      {
+        "cell": 1908,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001908/trigger-state.json",
+        "sha256": "50dd1867affd16ea89870363f6f6d004a926ac92b9670ca8caf880cb5e4d949e",
+        "tokens": 2
+      },
+      {
+        "cell": 1916,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001916/trigger-state.json",
+        "sha256": "e1138878d87058e7b75c419896584cde39e351c618f25c941348801d87282da1",
+        "tokens": 17
+      },
+      {
+        "cell": 1921,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001921/trigger-state.json",
+        "sha256": "9ecc8ef3e78d253ede1017e9a57efc2815f7f748e368c63455a5258f4e03477f",
+        "tokens": 10
+      },
+      {
+        "cell": 1922,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001922/trigger-state.json",
+        "sha256": "fa034f46a5d3c238525f2f133c8328674e2f60bdfb79124d42a5e64f065af94e",
+        "tokens": 10
+      },
+      {
+        "cell": 1923,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001923/trigger-state.json",
+        "sha256": "c706fcaf143e59bd2b84caa1a93498266e1f7d5451ca75951ae8257133a0f8dc",
+        "tokens": 3
+      },
+      {
+        "cell": 1925,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001925/trigger-state.json",
+        "sha256": "b7381ea781e4adc3e9809a0152c951bb5d69c509d30b8535d5e52dfbf071401b",
+        "tokens": 3
+      },
+      {
+        "cell": 1962,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001962/trigger-state.json",
+        "sha256": "81dfc3998462b41239b12e5f64cb36e93e6ee3fe5f13f10504502b080eadb992",
+        "tokens": 3
+      },
+      {
+        "cell": 1980,
+        "file": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run/saturated-rule-composition/cells/CSUnit-001980/trigger-state.json",
+        "sha256": "d2d02cc4a5a1ea0219c3c41d12ae18e7b39c0ad4b33d127c71d0b4d7c6d8c463",
+        "tokens": 3
+      }
+    ],
+    "scope": "constructor shape vocabulary from completed Analyze observations; NOT saturation certificates or runtime Cell membership"
+  },
+  "constructor_rows_scanned": 280104,
+  "constructor_types": 166,
+  "setup_seconds": 6.88633025001036,
+  "experiments": [
+    {
+      "depth": 0,
+      "split": "new_binding",
+      "held_out_keys": 23227,
+      "feature_extraction_seconds": 0.5115654579713009,
+      "fit_and_prediction_seconds": 0.08756637503392994,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 538003,
+          "false_positive": 7352,
+          "missed_true": 18794,
+          "true_negative": 739990,
+          "precision": 0.9865188730276608,
+          "recall": 0.9662462261829715,
+          "proposed": 545355,
+          "cpu_complement_space": 758784,
+          "cpu_candidate_validations": 545355,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 422963,
+          "false_positive": 36428,
+          "missed_true": 39292,
+          "true_negative": 711913,
+          "proposed": 459391,
+          "cpu_complement_space": 751205
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 36744,
+          "false_positive": 1522,
+          "missed_true": 3367,
+          "true_negative": 143237,
+          "precision": 0.9602257879057127,
+          "recall": 0.9160579392186682,
+          "proposed": 38266,
+          "cpu_complement_space": 146604,
+          "cpu_candidate_validations": 38266,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 422963,
+          "false_positive": 36428,
+          "missed_true": 39292,
+          "true_negative": 711913,
+          "proposed": 459391,
+          "cpu_complement_space": 751205
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 27473,
+          "false_positive": 2674,
+          "missed_true": 12638,
+          "true_negative": 142085,
+          "precision": 0.9113012903439811,
+          "recall": 0.684924334970457,
+          "proposed": 30147,
+          "cpu_complement_space": 154723,
+          "cpu_candidate_validations": 30147,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 334681,
+          "false_positive": 53424,
+          "missed_true": 127574,
+          "true_negative": 694917,
+          "proposed": 388105,
+          "cpu_complement_space": 822491
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 19077,
+          "false_positive": 228,
+          "missed_true": 1378,
+          "true_negative": 15008,
+          "precision": 0.9881895881895882,
+          "recall": 0.932632608164263,
+          "proposed": 19305,
+          "cpu_complement_space": 16386
+        },
+        "prior": {
+          "true_positive": 15729,
+          "false_positive": 234,
+          "missed_true": 4726,
+          "true_negative": 15002,
+          "precision": 0.9853411012967487,
+          "recall": 0.7689562454167685,
+          "proposed": 15963,
+          "cpu_complement_space": 19728
+        }
+      },
+      "structural_profiles": 319,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 36
+    },
+    {
+      "depth": 0,
+      "split": "new_structure",
+      "held_out_keys": 11929,
+      "feature_extraction_seconds": 0.5115654579713009,
+      "fit_and_prediction_seconds": 0.08227408298989758,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 537460,
+          "false_positive": 5083,
+          "missed_true": 19337,
+          "true_negative": 742259,
+          "precision": 0.9906311573460537,
+          "recall": 0.9652710054113078,
+          "proposed": 542543,
+          "cpu_complement_space": 761596,
+          "cpu_candidate_validations": 542543,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 422420,
+          "false_positive": 36035,
+          "missed_true": 39835,
+          "true_negative": 712306,
+          "proposed": 458455,
+          "cpu_complement_space": 752141
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 52186,
+          "false_positive": 138,
+          "missed_true": 2039,
+          "true_negative": 104594,
+          "precision": 0.9973625869581836,
+          "recall": 0.962397418165053,
+          "proposed": 52324,
+          "cpu_complement_space": 106633,
+          "cpu_candidate_validations": 52324,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 422420,
+          "false_positive": 36035,
+          "missed_true": 39835,
+          "true_negative": 712306,
+          "proposed": 458455,
+          "cpu_complement_space": 752141
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 33368,
+          "false_positive": 60,
+          "missed_true": 20857,
+          "true_negative": 104672,
+          "precision": 0.9982050975230345,
+          "recall": 0.615361917934532,
+          "proposed": 33428,
+          "cpu_complement_space": 125529,
+          "cpu_candidate_validations": 33428,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 332038,
+          "false_positive": 43715,
+          "missed_true": 130217,
+          "true_negative": 704626,
+          "proposed": 375753,
+          "cpu_complement_space": 834843
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 17224,
+          "false_positive": 0,
+          "missed_true": 931,
+          "true_negative": 20970,
+          "precision": 1.0,
+          "recall": 0.9487193610575599,
+          "proposed": 17224,
+          "cpu_complement_space": 21901
+        },
+        "prior": {
+          "true_positive": 16954,
+          "false_positive": 5542,
+          "missed_true": 1201,
+          "true_negative": 15428,
+          "precision": 0.753645092460882,
+          "recall": 0.933847424951804,
+          "proposed": 22496,
+          "cpu_complement_space": 16629
+        }
+      },
+      "structural_profiles": 319,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 36
+    },
+    {
+      "depth": 1,
+      "split": "new_binding",
+      "held_out_keys": 23227,
+      "feature_extraction_seconds": 1.4658884580130689,
+      "fit_and_prediction_seconds": 0.08507933298824355,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 545713,
+          "false_positive": 7292,
+          "missed_true": 11084,
+          "true_negative": 740050,
+          "precision": 0.9868138624424734,
+          "recall": 0.9800932835485824,
+          "proposed": 553005,
+          "cpu_complement_space": 751134,
+          "cpu_candidate_validations": 553005,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 432911,
+          "false_positive": 34894,
+          "missed_true": 29344,
+          "true_negative": 713447,
+          "proposed": 467805,
+          "cpu_complement_space": 742791
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 38224,
+          "false_positive": 1524,
+          "missed_true": 1887,
+          "true_negative": 143235,
+          "precision": 0.96165844822381,
+          "recall": 0.9529555483533195,
+          "proposed": 39748,
+          "cpu_complement_space": 145122,
+          "cpu_candidate_validations": 39748,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 432911,
+          "false_positive": 34894,
+          "missed_true": 29344,
+          "true_negative": 713447,
+          "proposed": 467805,
+          "cpu_complement_space": 742791
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 27473,
+          "false_positive": 2674,
+          "missed_true": 12638,
+          "true_negative": 142085,
+          "precision": 0.9113012903439811,
+          "recall": 0.684924334970457,
+          "proposed": 30147,
+          "cpu_complement_space": 154723,
+          "cpu_candidate_validations": 30147,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 334681,
+          "false_positive": 53424,
+          "missed_true": 127574,
+          "true_negative": 694917,
+          "proposed": 388105,
+          "cpu_complement_space": 822491
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 19820,
+          "false_positive": 285,
+          "missed_true": 635,
+          "true_negative": 14951,
+          "precision": 0.9858244217856255,
+          "recall": 0.9689562454167685,
+          "proposed": 20105,
+          "cpu_complement_space": 15586
+        },
+        "prior": {
+          "true_positive": 15729,
+          "false_positive": 234,
+          "missed_true": 4726,
+          "true_negative": 15002,
+          "precision": 0.9853411012967487,
+          "recall": 0.7689562454167685,
+          "proposed": 15963,
+          "cpu_complement_space": 19728
+        }
+      },
+      "structural_profiles": 1558,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 130
+    },
+    {
+      "depth": 1,
+      "split": "new_structure",
+      "held_out_keys": 5331,
+      "feature_extraction_seconds": 1.4658884580130689,
+      "fit_and_prediction_seconds": 0.08403929101768881,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 544639,
+          "false_positive": 4777,
+          "missed_true": 12158,
+          "true_negative": 742565,
+          "precision": 0.9913053132780989,
+          "recall": 0.9781643938455128,
+          "proposed": 549416,
+          "cpu_complement_space": 754723,
+          "cpu_candidate_validations": 549416,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 432653,
+          "false_positive": 35053,
+          "missed_true": 29602,
+          "true_negative": 713288,
+          "proposed": 467706,
+          "cpu_complement_space": 742890
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 33438,
+          "false_positive": 86,
+          "missed_true": 2456,
+          "true_negative": 73290,
+          "precision": 0.9974346736666269,
+          "recall": 0.9315763080180531,
+          "proposed": 33524,
+          "cpu_complement_space": 75746,
+          "cpu_candidate_validations": 33524,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 432653,
+          "false_positive": 35053,
+          "missed_true": 29602,
+          "true_negative": 713288,
+          "proposed": 467706,
+          "cpu_complement_space": 742890
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 19805,
+          "false_positive": 55,
+          "missed_true": 16089,
+          "true_negative": 73321,
+          "precision": 0.9972306143001007,
+          "recall": 0.5517635259374826,
+          "proposed": 19860,
+          "cpu_complement_space": 89410,
+          "cpu_candidate_validations": 19860,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 315056,
+          "false_positive": 43160,
+          "missed_true": 147199,
+          "true_negative": 705181,
+          "proposed": 358216,
+          "cpu_complement_space": 852380
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 15122,
+          "false_positive": 42,
+          "missed_true": 254,
+          "true_negative": 14127,
+          "precision": 0.9972302822474282,
+          "recall": 0.983480749219563,
+          "proposed": 15164,
+          "cpu_complement_space": 14381
+        },
+        "prior": {
+          "true_positive": 12722,
+          "false_positive": 28,
+          "missed_true": 2654,
+          "true_negative": 14141,
+          "precision": 0.9978039215686274,
+          "recall": 0.8273933402705516,
+          "proposed": 12750,
+          "cpu_complement_space": 16795
+        }
+      },
+      "structural_profiles": 1558,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 130
+    },
+    {
+      "depth": 2,
+      "split": "new_binding",
+      "held_out_keys": 23227,
+      "feature_extraction_seconds": 2.5587115840171464,
+      "fit_and_prediction_seconds": 0.08488604199374095,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 545677,
+          "false_positive": 7318,
+          "missed_true": 11120,
+          "true_negative": 740024,
+          "precision": 0.9867666072930135,
+          "recall": 0.9800286280278091,
+          "proposed": 552995,
+          "cpu_complement_space": 751144,
+          "cpu_candidate_validations": 552995,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 432798,
+          "false_positive": 34939,
+          "missed_true": 29457,
+          "true_negative": 713402,
+          "proposed": 467737,
+          "cpu_complement_space": 742859
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 38228,
+          "false_positive": 1531,
+          "missed_true": 1883,
+          "true_negative": 143228,
+          "precision": 0.9614929952966624,
+          "recall": 0.953055271621251,
+          "proposed": 39759,
+          "cpu_complement_space": 145111,
+          "cpu_candidate_validations": 39759,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 432798,
+          "false_positive": 34939,
+          "missed_true": 29457,
+          "true_negative": 713402,
+          "proposed": 467737,
+          "cpu_complement_space": 742859
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 27473,
+          "false_positive": 2674,
+          "missed_true": 12638,
+          "true_negative": 142085,
+          "precision": 0.9113012903439811,
+          "recall": 0.684924334970457,
+          "proposed": 30147,
+          "cpu_complement_space": 154723,
+          "cpu_candidate_validations": 30147,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 334681,
+          "false_positive": 53424,
+          "missed_true": 127574,
+          "true_negative": 694917,
+          "proposed": 388105,
+          "cpu_complement_space": 822491
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 19814,
+          "false_positive": 278,
+          "missed_true": 641,
+          "true_negative": 14958,
+          "precision": 0.9861636472227753,
+          "recall": 0.9686629186018089,
+          "proposed": 20092,
+          "cpu_complement_space": 15599
+        },
+        "prior": {
+          "true_positive": 15729,
+          "false_positive": 234,
+          "missed_true": 4726,
+          "true_negative": 15002,
+          "precision": 0.9853411012967487,
+          "recall": 0.7689562454167685,
+          "proposed": 15963,
+          "cpu_complement_space": 19728
+        }
+      },
+      "structural_profiles": 1703,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 138
+    },
+    {
+      "depth": 2,
+      "split": "new_structure",
+      "held_out_keys": 4667,
+      "feature_extraction_seconds": 2.5587115840171464,
+      "fit_and_prediction_seconds": 0.08022116700885817,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 544537,
+          "false_positive": 4658,
+          "missed_true": 12260,
+          "true_negative": 742684,
+          "precision": 0.9915184952521418,
+          "recall": 0.9779812032033218,
+          "proposed": 549195,
+          "cpu_complement_space": 754944,
+          "cpu_candidate_validations": 549195,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 432477,
+          "false_positive": 34906,
+          "missed_true": 29778,
+          "true_negative": 713435,
+          "proposed": 467383,
+          "cpu_complement_space": 743213
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 12375,
+          "false_positive": 48,
+          "missed_true": 2280,
+          "true_negative": 38744,
+          "precision": 0.9961361989857522,
+          "recall": 0.8444216990788127,
+          "proposed": 12423,
+          "cpu_complement_space": 41024,
+          "cpu_candidate_validations": 12423,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 432477,
+          "false_positive": 34906,
+          "missed_true": 29778,
+          "true_negative": 713435,
+          "proposed": 467383,
+          "cpu_complement_space": 743213
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 8242,
+          "false_positive": 3,
+          "missed_true": 6413,
+          "true_negative": 38789,
+          "precision": 0.9996361431170406,
+          "recall": 0.5624019106107131,
+          "proposed": 8245,
+          "cpu_complement_space": 45202,
+          "cpu_candidate_validations": 8245,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 315056,
+          "false_positive": 43160,
+          "missed_true": 147199,
+          "true_negative": 705181,
+          "proposed": 358216,
+          "cpu_complement_space": 852380
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 7399,
+          "false_positive": 27,
+          "missed_true": 200,
+          "true_negative": 5401,
+          "precision": 0.9963641260436304,
+          "recall": 0.9736807474667719,
+          "proposed": 7426,
+          "cpu_complement_space": 5601
+        },
+        "prior": {
+          "true_positive": 5838,
+          "false_positive": 2,
+          "missed_true": 1761,
+          "true_negative": 5426,
+          "precision": 0.9996575342465753,
+          "recall": 0.768258981444927,
+          "proposed": 5840,
+          "cpu_complement_space": 7187
+        }
+      },
+      "structural_profiles": 1703,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 138
+    }
+  ],
+  "gpu_jobs": [
+    {
+      "schema": [
+        "Type"
+      ],
+      "unique_query_spines": 8,
+      "probe_keys": 912,
+      "weight_bytes": 2580,
+      "shape": [
+        8,
+        256,
+        5
+      ]
+    },
+    {
+      "schema": [
+        "TypeList"
+      ],
+      "unique_query_spines": 2,
+      "probe_keys": 903,
+      "weight_bytes": 4128,
+      "shape": [
+        2,
+        256,
+        8
+      ]
+    },
+    {
+      "schema": [
+        "Expr"
+      ],
+      "unique_query_spines": 316,
+      "probe_keys": 19189,
+      "weight_bytes": 22188,
+      "shape": [
+        316,
+        256,
+        43
+      ]
+    },
+    {
+      "schema": [
+        "TernaryOp"
+      ],
+      "unique_query_spines": 1,
+      "probe_keys": 2,
+      "weight_bytes": 1548,
+      "shape": [
+        1,
+        256,
+        3
+      ]
+    },
+    {
+      "schema": [
+        "BinaryOp"
+      ],
+      "unique_query_spines": 1,
+      "probe_keys": 19,
+      "weight_bytes": 8772,
+      "shape": [
+        1,
+        256,
+        17
+      ]
+    },
+    {
+      "schema": [
+        "UnaryOp"
+      ],
+      "unique_query_spines": 2,
+      "probe_keys": 2,
+      "weight_bytes": 2064,
+      "shape": [
+        2,
+        256,
+        4
+      ]
+    },
+    {
+      "schema": [
+        "Expr",
+        "i64"
+      ],
+      "unique_query_spines": 176,
+      "probe_keys": 11947,
+      "weight_bytes": 516,
+      "shape": [
+        176,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "BaseType"
+      ],
+      "unique_query_spines": 2,
+      "probe_keys": 9,
+      "weight_bytes": 3612,
+      "shape": [
+        2,
+        256,
+        7
+      ]
+    },
+    {
+      "schema": [
+        "TermAndCost"
+      ],
+      "unique_query_spines": 3,
+      "probe_keys": 2971,
+      "weight_bytes": 516,
+      "shape": [
+        3,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "Assumption",
+        "Expr"
+      ],
+      "unique_query_spines": 161,
+      "probe_keys": 12044,
+      "weight_bytes": 516,
+      "shape": [
+        161,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "Bound"
+      ],
+      "unique_query_spines": 1,
+      "probe_keys": 20,
+      "weight_bytes": 2580,
+      "shape": [
+        1,
+        256,
+        5
+      ]
+    },
+    {
+      "schema": [
+        "Constant"
+      ],
+      "unique_query_spines": 1,
+      "probe_keys": 36,
+      "weight_bytes": 2580,
+      "shape": [
+        1,
+        256,
+        5
+      ]
+    },
+    {
+      "schema": [
+        "Expr",
+        "Bound"
+      ],
+      "unique_query_spines": 21,
+      "probe_keys": 878,
+      "weight_bytes": 516,
+      "shape": [
+        21,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "BinaryOp",
+        "Expr",
+        "Expr"
+      ],
+      "unique_query_spines": 234,
+      "probe_keys": 3482,
+      "weight_bytes": 516,
+      "shape": [
+        234,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "TernaryOp",
+        "Expr",
+        "Expr",
+        "Expr"
+      ],
+      "unique_query_spines": 156,
+      "probe_keys": 938,
+      "weight_bytes": 516,
+      "shape": [
+        156,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "TernaryOp",
+        "Expr",
+        "Expr"
+      ],
+      "unique_query_spines": 66,
+      "probe_keys": 938,
+      "weight_bytes": 516,
+      "shape": [
+        66,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "BinaryOp",
+        "Expr"
+      ],
+      "unique_query_spines": 106,
+      "probe_keys": 3169,
+      "weight_bytes": 516,
+      "shape": [
+        106,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "Expr",
+        "Expr",
+        "Expr",
+        "Expr"
+      ],
+      "unique_query_spines": 2,
+      "probe_keys": 4,
+      "weight_bytes": 516,
+      "shape": [
+        2,
+        256,
+        1
+      ]
+    },
+    {
+      "schema": [
+        "Term"
+      ],
+      "unique_query_spines": 3,
+      "probe_keys": 17543,
+      "weight_bytes": 4644,
+      "shape": [
+        3,
+        256,
+        9
+      ]
+    },
+    {
+      "schema": [
+        "String"
+      ],
+      "unique_query_spines": 1,
+      "probe_keys": 29,
+      "weight_bytes": 516,
+      "shape": [
+        1,
+        256,
+        1
+      ]
+    }
+  ],
+  "limits": [
+    "Current constructor topology is visible for held-out keys; target analysis labels are withheld. This is not unseen-program evaluation.",
+    "Features use observed shared-spine shapes from Analyze, not asserted equivalence to a whole RipSatCell.",
+    "Constructor-target channels can be directly exposed by constructor features; the non-constructor subset is reported separately.",
+    "CPU extraction scans the graph here; online marker publishing and incremental union invalidation are not implemented.",
+    "All predictors are speculative; CPU positive verification alone cannot recover false negatives."
+  ],
+  "matched_random_control": [
+    {
+      "depth": -1,
+      "parameters": false,
+      "random_control": true,
+      "split": "new_binding",
+      "held_out_keys": 23227,
+      "feature_extraction_seconds": 0.9558717079926282,
+      "fit_and_prediction_seconds": 0.23393374995794147,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 480739,
+          "false_positive": 12540,
+          "missed_true": 76058,
+          "true_negative": 734802,
+          "precision": 0.9745782812566519,
+          "recall": 0.8634008444729407,
+          "proposed": 493279,
+          "cpu_complement_space": 810860,
+          "cpu_candidate_validations": 493279,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 338529,
+          "false_positive": 43862,
+          "missed_true": 123726,
+          "true_negative": 704479,
+          "proposed": 382391,
+          "cpu_complement_space": 828205
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 26710,
+          "false_positive": 2240,
+          "missed_true": 13401,
+          "true_negative": 142519,
+          "precision": 0.9226252158894646,
+          "recall": 0.6659021216125253,
+          "proposed": 28950,
+          "cpu_complement_space": 155920,
+          "cpu_candidate_validations": 28950,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 338529,
+          "false_positive": 43862,
+          "missed_true": 123726,
+          "true_negative": 704479,
+          "proposed": 382391,
+          "cpu_complement_space": 828205
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 27473,
+          "false_positive": 2674,
+          "missed_true": 12638,
+          "true_negative": 142085,
+          "precision": 0.9113012903439811,
+          "recall": 0.684924334970457,
+          "proposed": 30147,
+          "cpu_complement_space": 154723,
+          "cpu_candidate_validations": 30147,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 334681,
+          "false_positive": 53424,
+          "missed_true": 127574,
+          "true_negative": 694917,
+          "proposed": 388105,
+          "cpu_complement_space": 822491
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 16829,
+          "false_positive": 979,
+          "missed_true": 3626,
+          "true_negative": 14257,
+          "precision": 0.9450247079964061,
+          "recall": 0.8227328281593742,
+          "proposed": 17808,
+          "cpu_complement_space": 17883
+        },
+        "prior": {
+          "true_positive": 15729,
+          "false_positive": 234,
+          "missed_true": 4726,
+          "true_negative": 15002,
+          "precision": 0.9853411012967487,
+          "recall": 0.7689562454167685,
+          "proposed": 15963,
+          "cpu_complement_space": 19728
+        }
+      },
+      "structural_profiles": 198705,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 0
+    }
+  ],
+  "parameter_specialization": [
+    {
+      "depth": 2,
+      "parameters": true,
+      "split": "new_binding",
+      "held_out_keys": 23227,
+      "feature_extraction_seconds": 3.618970125040505,
+      "fit_and_prediction_seconds": 0.08883720799349248,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 549785,
+          "false_positive": 9582,
+          "missed_true": 7012,
+          "true_negative": 737760,
+          "precision": 0.982869922608949,
+          "recall": 0.9874065413427155,
+          "proposed": 559367,
+          "cpu_complement_space": 744772,
+          "cpu_candidate_validations": 559367,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 437471,
+          "false_positive": 29802,
+          "missed_true": 24784,
+          "true_negative": 718539,
+          "proposed": 467273,
+          "cpu_complement_space": 743323
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 38233,
+          "false_positive": 1593,
+          "missed_true": 1878,
+          "true_negative": 143166,
+          "precision": 0.9600010043690052,
+          "recall": 0.9531799257061654,
+          "proposed": 39826,
+          "cpu_complement_space": 145044,
+          "cpu_candidate_validations": 39826,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 437471,
+          "false_positive": 29802,
+          "missed_true": 24784,
+          "true_negative": 718539,
+          "proposed": 467273,
+          "cpu_complement_space": 743323
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 27473,
+          "false_positive": 2674,
+          "missed_true": 12638,
+          "true_negative": 142085,
+          "precision": 0.9113012903439811,
+          "recall": 0.684924334970457,
+          "proposed": 30147,
+          "cpu_complement_space": 154723,
+          "cpu_candidate_validations": 30147,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 334681,
+          "false_positive": 53424,
+          "missed_true": 127574,
+          "true_negative": 694917,
+          "proposed": 388105,
+          "cpu_complement_space": 822491
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 19983,
+          "false_positive": 412,
+          "missed_true": 472,
+          "true_negative": 14824,
+          "precision": 0.9797989703358666,
+          "recall": 0.9769249572231729,
+          "proposed": 20395,
+          "cpu_complement_space": 15296
+        },
+        "prior": {
+          "true_positive": 15729,
+          "false_positive": 234,
+          "missed_true": 4726,
+          "true_negative": 15002,
+          "precision": 0.9853411012967487,
+          "recall": 0.7689562454167685,
+          "proposed": 15963,
+          "cpu_complement_space": 19728
+        }
+      },
+      "structural_profiles": 4351,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 320
+    },
+    {
+      "depth": 2,
+      "parameters": true,
+      "split": "new_structure",
+      "held_out_keys": 18423,
+      "feature_extraction_seconds": 3.618970125040505,
+      "fit_and_prediction_seconds": 0.08273345895577222,
+      "all_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 549803,
+          "false_positive": 8219,
+          "missed_true": 6994,
+          "true_negative": 739123,
+          "precision": 0.985271190024766,
+          "recall": 0.9874388691031022,
+          "proposed": 558022,
+          "cpu_complement_space": 746117,
+          "cpu_candidate_validations": 558022,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 438429,
+          "false_positive": 30073,
+          "missed_true": 23826,
+          "true_negative": 718268,
+          "proposed": 468502,
+          "cpu_complement_space": 742094
+        }
+      },
+      "held_out_dependent_pairs": {
+        "rule_root_candidates": {
+          "true_positive": 59474,
+          "false_positive": 106,
+          "missed_true": 1690,
+          "true_negative": 153153,
+          "precision": 0.9982208794897617,
+          "recall": 0.9723693676018573,
+          "proposed": 59580,
+          "cpu_complement_space": 154843,
+          "cpu_candidate_validations": 59580,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 438429,
+          "false_positive": 30073,
+          "missed_true": 23826,
+          "true_negative": 718268,
+          "proposed": 468502,
+          "cpu_complement_space": 742094
+        }
+      },
+      "prior_held_out": {
+        "rule_root_candidates": {
+          "true_positive": 37515,
+          "false_positive": 138,
+          "missed_true": 23649,
+          "true_negative": 153121,
+          "precision": 0.9963349533901681,
+          "recall": 0.6133509907788895,
+          "proposed": 37653,
+          "cpu_complement_space": 176770,
+          "cpu_candidate_validations": 37653,
+          "warning": "missed_true is measured with the oracle; runtime cannot know these entries without its complement/fallback process"
+        },
+        "key_condition_occurrences": {
+          "true_positive": 316391,
+          "false_positive": 44638,
+          "missed_true": 145864,
+          "true_negative": 703703,
+          "proposed": 361029,
+          "cpu_complement_space": 849567
+        }
+      },
+      "non_constructor_channels": {
+        "scope": "held-out unique key/channel pairs, excluding all constructor-target channels",
+        "structural": {
+          "true_positive": 30038,
+          "false_positive": 285,
+          "missed_true": 489,
+          "true_negative": 24156,
+          "precision": 0.990601193813277,
+          "recall": 0.9839813935204901,
+          "proposed": 30323,
+          "cpu_complement_space": 24645
+        },
+        "prior": {
+          "true_positive": 23758,
+          "false_positive": 118,
+          "missed_true": 6769,
+          "true_negative": 24323,
+          "precision": 0.9950577986262356,
+          "recall": 0.7782618665443706,
+          "proposed": 23876,
+          "cpu_complement_space": 31092
+        }
+      },
+      "structural_profiles": 4351,
+      "model_bytes": 59856,
+      "inconsistent_label_profiles": 320
+    }
+  ],
+  "gpu": {
+    "coordinate_input": "Analyze-derived constructor spine token bags; no opaque ID feature",
+    "coordinate_tokens": 4506,
+    "current_probe_bytes": 40032,
+    "device": "Apple M3 Max",
+    "jobs": 20,
+    "kernels": 3,
+    "matrix_jobs": 6,
+    "matrix_probe_keys": 332,
+    "matrix_tiles": 206,
+    "max_score_error": 0,
+    "output_bytes": 58596,
+    "outputs": 14649,
+    "reference_limit": "FP16 storage and known-key calibration checked in Python; Apple simdgroup matrix operations are not NVIDIA Tensor Core evidence",
+    "resident_weight_prior_and_routing_bytes": 46772,
+    "retained_runs": 1,
+    "scope": "standalone speculative response evaluation; no exact GPU key index or native runtime speedup",
+    "temporary_code_bytes": 169984,
+    "threshold_disagreements": 0,
+    "timing": {
+      "gpu_seconds": 0.000167916645295918,
+      "host_submit_wait_seconds": 0.0004793750122189522
+    },
+    "useful_matrix_flops": 6188544,
+    "warmups": 1
+  },
+  "legacy_compatibility": {
+    "before": {
+      "current_probe_bytes": 309312,
+      "device": "Apple M3 Max",
+      "jobs": 1373,
+      "kernels": 3,
+      "matrix_jobs": 663,
+      "matrix_probe_keys": 38664,
+      "matrix_tiles": 12505,
+      "max_score_error": 1.1920928955078125e-07,
+      "output_bytes": 4127512,
+      "outputs": 1031878,
+      "reference_limit": "FP16 storage and known-key calibration checked in Python; Apple simdgroup matrix operations are not NVIDIA Tensor Core evidence",
+      "resident_weight_prior_and_routing_bytes": 4428056,
+      "retained_runs": 1,
+      "scope": "standalone speculative lookup-memory evaluation; GPU receives probe fingerprints and dense weights, no exact key index; no native runtime speedup",
+      "temporary_code_bytes": 19795968,
+      "threshold_disagreements": 0,
+      "timing": {
+        "gpu_seconds": 0.0011531250202096999,
+        "host_submit_wait_seconds": 0.0016950833378359675
+      },
+      "useful_matrix_flops": 314341376,
+      "warmups": 1
+    },
+    "after": {
+      "coordinate_input": "opaque key fingerprints",
+      "coordinate_tokens": 38664,
+      "current_probe_bytes": 309312,
+      "device": "Apple M3 Max",
+      "jobs": 1373,
+      "kernels": 3,
+      "matrix_jobs": 663,
+      "matrix_probe_keys": 38664,
+      "matrix_tiles": 12505,
+      "max_score_error": 1.1920928955078125e-07,
+      "output_bytes": 4127512,
+      "outputs": 1031878,
+      "reference_limit": "FP16 storage and known-key calibration checked in Python; Apple simdgroup matrix operations are not NVIDIA Tensor Core evidence",
+      "resident_weight_prior_and_routing_bytes": 4428056,
+      "retained_runs": 1,
+      "scope": "standalone speculative response evaluation; no exact GPU key index or native runtime speedup",
+      "temporary_code_bytes": 19795968,
+      "threshold_disagreements": 0,
+      "timing": {
+        "gpu_seconds": 0.0011480000102892518,
+        "host_submit_wait_seconds": 0.0016805833438411355
+      },
+      "useful_matrix_flops": 314341376,
+      "warmups": 1
+    }
+  },
+  "discarded_attempt": {
+    "path": "out/structural-key-memory-v1",
+    "reason": "Native relation desugaring admitted target analysis labels through constructor ports; its quality figures are invalid."
+  },
+  "development_timings": {
+    "structural_before_preserving_fast_scalar_encoder": {
+      "coordinate_input": "Analyze-derived constructor spine token bags; no opaque ID feature",
+      "coordinate_tokens": 4506,
+      "current_probe_bytes": 40032,
+      "device": "Apple M3 Max",
+      "jobs": 20,
+      "kernels": 3,
+      "matrix_jobs": 6,
+      "matrix_probe_keys": 332,
+      "matrix_tiles": 206,
+      "max_score_error": 0,
+      "output_bytes": 58596,
+      "outputs": 14649,
+      "reference_limit": "FP16 storage and known-key calibration checked in Python; Apple simdgroup matrix operations are not NVIDIA Tensor Core evidence",
+      "resident_weight_prior_and_routing_bytes": 46772,
+      "retained_runs": 1,
+      "scope": "standalone speculative response evaluation; no exact GPU key index or native runtime speedup",
+      "temporary_code_bytes": 169984,
+      "threshold_disagreements": 0,
+      "timing": {
+        "gpu_seconds": 0.0003797499812208116,
+        "host_submit_wait_seconds": 0.0009021249716170132
+      },
+      "useful_matrix_flops": 6188544,
+      "warmups": 1
+    },
+    "opaque_with_slow_shared_encoder": {
+      "coordinate_input": "opaque key fingerprints",
+      "coordinate_tokens": 38664,
+      "current_probe_bytes": 773280,
+      "device": "Apple M3 Max",
+      "jobs": 1373,
+      "kernels": 3,
+      "matrix_jobs": 663,
+      "matrix_probe_keys": 38664,
+      "matrix_tiles": 12505,
+      "max_score_error": 1.1920928955078125e-07,
+      "output_bytes": 4127512,
+      "outputs": 1031878,
+      "reference_limit": "FP16 storage and known-key calibration checked in Python; Apple simdgroup matrix operations are not NVIDIA Tensor Core evidence",
+      "resident_weight_prior_and_routing_bytes": 4428056,
+      "retained_runs": 1,
+      "scope": "standalone speculative response evaluation; no exact GPU key index or native runtime speedup",
+      "temporary_code_bytes": 19795968,
+      "threshold_disagreements": 0,
+      "timing": {
+        "gpu_seconds": 0.0021502083400264382,
+        "host_submit_wait_seconds": 0.002712666697334498
+      },
+      "useful_matrix_flops": 314341376,
+      "warmups": 1
+    }
+  },
+  "gpu_worker_sha256": "868d248a38054c04ae8bfefc47b14d5cab5d72d98df4af766d3e93514dc44d1e",
+  "input_packet_sha256": "eefddbb57bbd5ee2e2faa29fa6c160337ccf75d3a22a1df1bc2aa72a391961b0"
+}

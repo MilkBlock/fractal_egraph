@@ -59,6 +59,7 @@ def prepare(bank):
         fingerprints=np.array([fingerprint(k) for k in domain],dtype=np.uint64)
         probes=np.array([fingerprint(k) for k in queries],dtype=np.uint64)
         out[types]={'keys':fingerprints,'payload':payload,'probes':probes,
+            'domain_values':domain,'query_values':queries,
             'query_ids':{key:i for i,key in enumerate(queries)},'indices':g['indices'],
             'keys_outside_domain':sum(key not in positions for key in queries)}
     for key,(types,c,queries) in list(routes.items()):
