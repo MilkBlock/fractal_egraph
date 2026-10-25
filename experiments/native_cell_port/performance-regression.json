@@ -1,0 +1,719 @@
+{
+  "schema": "native-port-performance-diagnosis/v1",
+  "date": "2026-10-25",
+  "scope": "Actual native runtime, saved complete raytrace Pass-3 program, one run per configuration; not the three-pass CLI. No GPU, no extraction/graph output, probe atomics disabled, one thread. Different source policies are diagnostic contrasts, not correctness-certified speedup.",
+  "lanes": [
+    {
+      "lane": "before-sk",
+      "execution_seconds": 23.237113459,
+      "parse_and_execute_seconds": 23.503718875,
+      "tuples_including_auxiliary": 697922,
+      "runtime": {},
+      "source_sha256": "f14406a47ebec3a882d72bf6233ea29a6e717aa4d0b4542680c726b8517c93e4",
+      "binary_sha256": "669fc41bb6c34de16fa144aa52594b4011bb5dae1d628cae13f1260eb41443bb",
+      "measured_at": "2026-10-25T09:48:21+0800"
+    },
+    {
+      "lane": "before-mk",
+      "execution_seconds": 10.516607125,
+      "parse_and_execute_seconds": 10.758752667,
+      "tuples_including_auxiliary": 699071,
+      "runtime": {
+        "runs": 6431,
+        "cell_runs": 6399,
+        "complete_cell_bindings": 2744639,
+        "audit_queries": 0,
+        "skipped_saturations": 12,
+        "cell_query_seconds": 1.7076716639999985,
+        "native_batch_seconds": 4.646286549000127
+      },
+      "source_sha256": "6dbb0f51c153ba75c18bd08d0a12f4f016fa7d07c969e0415d79db8c96ca72c5",
+      "binary_sha256": "669fc41bb6c34de16fa144aa52594b4011bb5dae1d628cae13f1260eb41443bb",
+      "measured_at": "2026-10-25T09:48:32+0800"
+    },
+    {
+      "lane": "before-query-only",
+      "execution_seconds": 20.352297333,
+      "parse_and_execute_seconds": 20.614839,
+      "tuples_including_auxiliary": 697938,
+      "runtime": {
+        "runs": 10122,
+        "cell_runs": 6399,
+        "complete_cell_bindings": 2744732,
+        "audit_queries": 0,
+        "skipped_saturations": 0,
+        "cell_query_seconds": 1.8623401159999708,
+        "native_batch_seconds": 15.977326616000168
+      },
+      "source_sha256": "6dbb0f51c153ba75c18bd08d0a12f4f016fa7d07c969e0415d79db8c96ca72c5",
+      "binary_sha256": "669fc41bb6c34de16fa144aa52594b4011bb5dae1d628cae13f1260eb41443bb",
+      "measured_at": "2026-10-25T09:48:52+0800"
+    },
+    {
+      "lane": "after-sk",
+      "execution_seconds": 54.542767958,
+      "parse_and_execute_seconds": 54.764921375,
+      "tuples_including_auxiliary": 890267,
+      "runtime": {},
+      "source_sha256": "8039ca53cf0d18c26a0693c67bcdd0086f907a1e49a9c1a183104fb142a1475d",
+      "binary_sha256": "669fc41bb6c34de16fa144aa52594b4011bb5dae1d628cae13f1260eb41443bb",
+      "measured_at": "2026-10-25T09:49:47+0800"
+    },
+    {
+      "lane": "after-mk",
+      "execution_seconds": 53.287560083,
+      "parse_and_execute_seconds": 53.562970083,
+      "tuples_including_auxiliary": 890691,
+      "runtime": {
+        "runs": 28188,
+        "cell_runs": 11124,
+        "complete_cell_bindings": 2967639,
+        "audit_queries": 0,
+        "skipped_saturations": 0,
+        "cell_query_seconds": 6.273003247000006,
+        "native_batch_seconds": 42.499300424000225
+      },
+      "source_sha256": "8aaa4e20ff9a84e2ac6b49f41c49619eec6513af09e1f095ce826c779878ba92",
+      "binary_sha256": "669fc41bb6c34de16fa144aa52594b4011bb5dae1d628cae13f1260eb41443bb",
+      "measured_at": "2026-10-25T09:50:41+0800"
+    }
+  ],
+  "keys_current": {
+    "cell-key-initial": {
+      "search_and_apply": 0.000135541,
+      "merge": 3.8292e-05,
+      "rebuild": 0.0,
+      "logical_matches": 42
+    },
+    "cell-key-freeze": {
+      "search_and_apply": 2.3791e-05,
+      "merge": 1.8709e-05,
+      "rebuild": 0.0,
+      "logical_matches": 42
+    },
+    "cell-stable-keys": {
+      "search_and_apply": 20.225581425,
+      "merge": 5.344341056,
+      "rebuild": 0.018222168,
+      "logical_matches": 6692529
+    },
+    "cell-key-request-0": {
+      "search_and_apply": 0.016659499,
+      "merge": 7.4128e-05,
+      "rebuild": 0.0,
+      "logical_matches": 570
+    },
+    "cell-key-request-1": {
+      "search_and_apply": 1.823633632,
+      "merge": 0.010420911,
+      "rebuild": 0.020307747,
+      "logical_matches": 54433
+    },
+    "cell-key-request-2": {
+      "search_and_apply": 1.639173681,
+      "merge": 0.005657718,
+      "rebuild": 0.0,
+      "logical_matches": 4180
+    },
+    "cell-key-ready-check": {
+      "search_and_apply": 0.0,
+      "merge": 0.0,
+      "rebuild": 0.0,
+      "logical_matches": 0
+    }
+  },
+  "anchor_placement_diagnostic": {
+    "lane": {
+      "lane": "after-sk",
+      "execution_seconds": 41.82406,
+      "parse_and_execute_seconds": 42.081162875,
+      "tuples_including_auxiliary": 980526,
+      "runtime": {},
+      "source_sha256": "9ed8d941fd146f2a5888ba25c021b4ef19e50ddbcbe85aa3af6ae1607a996923",
+      "binary_sha256": "669fc41bb6c34de16fa144aa52594b4011bb5dae1d628cae13f1260eb41443bb",
+      "measured_at": "2026-10-25T09:52:23+0800"
+    },
+    "keys": {
+      "cell-key-initial": {
+        "search_and_apply": 0.002329541,
+        "merge": 0.000292417,
+        "rebuild": 0.0,
+        "logical_matches": 13341
+      },
+      "cell-key-freeze": {
+        "search_and_apply": 0.002422333,
+        "merge": 0.001058292,
+        "rebuild": 0.0,
+        "logical_matches": 13341
+      },
+      "cell-stable-keys": {
+        "search_and_apply": 6.680322257,
+        "merge": 0.393881745,
+        "rebuild": 0.003476292,
+        "logical_matches": 944267
+      },
+      "cell-key-request-0": {
+        "search_and_apply": 0.015957291,
+        "merge": 7.3374e-05,
+        "rebuild": 0.0,
+        "logical_matches": 570
+      },
+      "cell-key-request-1": {
+        "search_and_apply": 2.48571967,
+        "merge": 0.025618058,
+        "rebuild": 0.018388834,
+        "logical_matches": 235566
+      },
+      "cell-key-request-2": {
+        "search_and_apply": 2.283418117,
+        "merge": 0.009109373,
+        "rebuild": 0.0,
+        "logical_matches": 20350
+      },
+      "cell-key-ready-check": {
+        "search_and_apply": 0.0,
+        "merge": 0.0,
+        "rebuild": 0.0,
+        "logical_matches": 0
+      }
+    },
+    "change": "Swap initial key preparation/freeze with existing leading initialization schedule. Input construction remains unchanged. The induced structural order changes; no new final-extraction certification.",
+    "old_frozen_expr_matches": 0,
+    "files": "out/native-port-anchor-placement"
+  },
+  "accounting": {
+    "native_sk_increase_seconds": 31.305654499,
+    "new_key_helpers_seconds": 29.104288298000004,
+    "old_closure_off_minus_on_seconds": 9.835690207999999,
+    "note": "Helper durations locate work; removing them is not a semantics-preserving ablation. Do not add these differences as independent speedup credits."
+  },
+  "hot_key_rules": [
+    {
+      "rule": "(rule ((CellKeyNeed-Expr __sk_out)\n       (= __sk_out (SubTuple __sk_x0 __sk_x1 __sk_x2))\n       (= __sk_k0 (CellStructuralKey-Expr __sk_x0)))\n      ((set (CellStructuralKey-Expr __sk_out) (cell-key-node-SubTuple __sk_k0 (cell-key-base-i64 __sk_x1) (cell-key-base-i64 __sk_x2))))\n        :ruleset cell-stable-keys )",
+      "search_and_apply_seconds": 3.401842532,
+      "logical_matches": 2187579
+    },
+    {
+      "rule": "(rule ((CellKeyNeed-Expr __sk_out)\n       (= __sk_out (Concat __sk_x0 __sk_x1))\n       (= __sk_k0 (CellStructuralKey-Expr __sk_x0))\n       (= __sk_k1 (CellStructuralKey-Expr __sk_x1)))\n      ((set (CellStructuralKey-Expr __sk_out) (cell-key-node-Concat __sk_k0 __sk_k1)))\n        :ruleset cell-stable-keys )",
+      "search_and_apply_seconds": 2.303417301,
+      "logical_matches": 734644
+    },
+    {
+      "rule": "(rule ((CellKeyNeed-Expr __sk_out)\n       (= __sk_out (Get __sk_x0 __sk_x1))\n       (= __sk_k0 (CellStructuralKey-Expr __sk_x0)))\n      ((set (CellStructuralKey-Expr __sk_out) (cell-key-node-Get __sk_k0 (cell-key-base-i64 __sk_x1))))\n        :ruleset cell-stable-keys )",
+      "search_and_apply_seconds": 2.203108329,
+      "logical_matches": 1294651
+    },
+    {
+      "rule": "(rule ((CellKeyNeed-Expr __sk_out)\n       (= __sk_out (AddContext __sk_x0 __sk_x1))\n       (= __sk_k0 (CellStructuralKey-Assumption __sk_x0))\n       (= __sk_k1 (CellStructuralKey-Expr __sk_x1)))\n      ((set (CellStructuralKey-Expr __sk_out) (cell-key-node-AddContext __sk_k0 __sk_k1)))\n        :ruleset cell-stable-keys )",
+      "search_and_apply_seconds": 2.037895528,
+      "logical_matches": 1372765
+    },
+    {
+      "rule": "(rule ((CellKeyNeed-Expr __sk_out)\n       (= __sk_out (Bop __sk_x0 __sk_x1 __sk_x2))\n       (= __sk_k0 (CellStructuralKey-BinaryOp __sk_x0))\n       (= __sk_k1 (CellStructuralKey-Expr __sk_x1))\n       (= __sk_k2 (CellStructuralKey-Expr __sk_x2)))\n      ((set (CellStructuralKey-Expr __sk_out) (cell-key-node-Bop __sk_k0 __sk_k1 __sk_k2)))\n        :ruleset cell-stable-keys )",
+      "search_and_apply_seconds": 1.428211154,
+      "logical_matches": 267766
+    },
+    {
+      "rule": "(rule ((CellKeyNeed-Expr __sk_out)\n       (= __sk_out (If __sk_x0 __sk_x1 __sk_x2 __sk_x3))\n       (= __sk_k0 (CellStructuralKey-Expr __sk_x0))\n       (= __sk_k1 (CellStructuralKey-Expr __sk_x1))\n       (= __sk_k2 (CellStructuralKey-Expr __sk_x2))\n       (= __sk_k3 (CellStructuralKey-Expr __sk_x3)))\n      ((set (CellStructuralKey-Expr __sk_out) (cell-key-node-If __sk_k0 __sk_k1 __sk_k2 __sk_k3)))\n        :ruleset cell-stable-keys )",
+      "search_and_apply_seconds": 1.302464533,
+      "logical_matches": 24828
+    }
+  ],
+  "native_ruleset_totals": {
+    "before-sk": [
+      {
+        "ruleset": "always-run",
+        "search_and_apply": 5.544557287,
+        "merge": 0.205537355,
+        "rebuild": 0.19908799900000002,
+        "total": 5.949182640999999
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "search_and_apply": 4.164838432,
+        "merge": 0.018733008000000002,
+        "rebuild": 1.565691246,
+        "total": 5.749262686
+      },
+      {
+        "ruleset": "terms",
+        "search_and_apply": 2.846387526,
+        "merge": 0.013394249,
+        "rebuild": 0.018370252,
+        "total": 2.878152027
+      },
+      {
+        "ruleset": "terms-helpers",
+        "search_and_apply": 2.259851516,
+        "merge": 0.032784454000000005,
+        "rebuild": 0.0009278750000000001,
+        "total": 2.293563845
+      },
+      {
+        "ruleset": "type-analysis",
+        "search_and_apply": 1.950490591,
+        "merge": 0.0035960870000000004,
+        "rebuild": 0.009437124,
+        "total": 1.963523802
+      },
+      {
+        "ruleset": "context",
+        "search_and_apply": 0.34199846300000003,
+        "merge": 0.007270503,
+        "rebuild": 1.58430628,
+        "total": 1.9335752460000002
+      },
+      {
+        "ruleset": "is-resolved",
+        "search_and_apply": 0.46503943500000006,
+        "merge": 0.002359431,
+        "rebuild": 0.0043410820000000004,
+        "total": 0.4717399480000001
+      },
+      {
+        "ruleset": "subst",
+        "search_and_apply": 0.294936825,
+        "merge": 0.003045551,
+        "rebuild": 0.006856541000000001,
+        "total": 0.304838917
+      },
+      {
+        "ruleset": "loop-iters-analysis",
+        "search_and_apply": 0.170894334,
+        "merge": 6.3873e-05,
+        "rebuild": 0.0,
+        "total": 0.170958207
+      },
+      {
+        "ruleset": "error-checking",
+        "search_and_apply": 0.167548667,
+        "merge": 0.000108417,
+        "rebuild": 0.0,
+        "total": 0.167657084
+      },
+      {
+        "ruleset": "type-helpers",
+        "search_and_apply": 0.017195533000000002,
+        "merge": 0.0017813420000000002,
+        "rebuild": 0.13332217200000002,
+        "total": 0.15229904700000002
+      },
+      {
+        "ruleset": "interval-analysis",
+        "search_and_apply": 0.10576229000000001,
+        "merge": 0.000310249,
+        "rebuild": 0.017935041000000002,
+        "total": 0.12400758
+      },
+      {
+        "ruleset": "mem-simple",
+        "search_and_apply": 0.061139832000000005,
+        "merge": 0.000231749,
+        "rebuild": 0.012731541,
+        "total": 0.07410312200000001
+      },
+      {
+        "ruleset": "passthrough",
+        "search_and_apply": 0.049260917,
+        "merge": 6.0291e-05,
+        "rebuild": 0.019373541,
+        "total": 0.068694749
+      },
+      {
+        "ruleset": "all-optimizations",
+        "search_and_apply": 0.06493441600000001,
+        "merge": 0.000104542,
+        "rebuild": 0.0035739170000000002,
+        "total": 0.068612875
+      },
+      {
+        "ruleset": "cheap-optimizations",
+        "search_and_apply": 0.047093041,
+        "merge": 0.000100623,
+        "rebuild": 0.003003167,
+        "total": 0.050196831000000004
+      },
+      {
+        "ruleset": "drop",
+        "search_and_apply": 0.038826666,
+        "merge": 0.00012825,
+        "rebuild": 0.0,
+        "total": 0.038954916000000006
+      },
+      {
+        "ruleset": "state-edge-passthrough",
+        "search_and_apply": 0.033209456000000005,
+        "merge": 2.6167000000000002e-05,
+        "rebuild": 0.001855667,
+        "total": 0.035091290000000004
+      },
+      {
+        "ruleset": "apply-subst-unions",
+        "search_and_apply": 0.0007215850000000001,
+        "merge": 0.000262457,
+        "rebuild": 0.026601167000000002,
+        "total": 0.027585209000000003
+      },
+      {
+        "ruleset": "non-weakly-linear",
+        "search_and_apply": 0.005881208000000001,
+        "merge": 0.00015991600000000002,
+        "rebuild": 0.019539666,
+        "total": 0.025580790000000003
+      },
+      {
+        "ruleset": "cicm-index",
+        "search_and_apply": 0.023437543,
+        "merge": 0.00033291900000000004,
+        "rebuild": 0.0,
+        "total": 0.023770462000000003
+      },
+      {
+        "ruleset": "boundary-analysis-prep",
+        "search_and_apply": 0.016861667,
+        "merge": 7.3749e-05,
+        "rebuild": 0.0,
+        "total": 0.016935416000000002
+      },
+      {
+        "ruleset": "boundary-analysis",
+        "search_and_apply": 0.016263332000000002,
+        "merge": 6.8544e-05,
+        "rebuild": 0.0,
+        "total": 0.016331876000000002
+      },
+      {
+        "ruleset": "term-subst",
+        "search_and_apply": 0.008385376,
+        "merge": 0.00020549900000000002,
+        "rebuild": 0.007422083,
+        "total": 0.016012958
+      },
+      {
+        "ruleset": "initialization",
+        "search_and_apply": 0.0041630420000000005,
+        "merge": 0.00042520800000000005,
+        "rebuild": 0.0,
+        "total": 0.00458825
+      },
+      {
+        "ruleset": "canon",
+        "search_and_apply": 0.0015909180000000002,
+        "merge": 7.329500000000001e-05,
+        "rebuild": 0.0,
+        "total": 0.001664213
+      },
+      {
+        "ruleset": "apply-drop-unions",
+        "search_and_apply": 7.75e-06,
+        "merge": 1.2541e-05,
+        "rebuild": 0.0013247500000000002,
+        "total": 0.0013450410000000002
+      },
+      {
+        "ruleset": "cleanup-drop",
+        "search_and_apply": 0.0008468760000000001,
+        "merge": 1.2668000000000001e-05,
+        "rebuild": 0.0,
+        "total": 0.0008595440000000001
+      },
+      {
+        "ruleset": "subsume-after-helpers",
+        "search_and_apply": 1.1125000000000001e-05,
+        "merge": 5.125e-06,
+        "rebuild": 0.0,
+        "total": 1.6250000000000002e-05
+      },
+      {
+        "ruleset": "add-to-debug-expr",
+        "search_and_apply": 0.0,
+        "merge": 0.0,
+        "rebuild": 0.0,
+        "total": 0.0
+      }
+    ],
+    "after-sk": [
+      {
+        "ruleset": "cell-stable-keys",
+        "search_and_apply": 20.225581425,
+        "merge": 5.344341056,
+        "rebuild": 0.018222168,
+        "total": 25.588144649000004
+      },
+      {
+        "ruleset": "always-run",
+        "search_and_apply": 5.520672256,
+        "merge": 0.195373071,
+        "rebuild": 0.21335304100000002,
+        "total": 5.929398368
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "search_and_apply": 3.677484936,
+        "merge": 0.021786771,
+        "rebuild": 1.8903543580000002,
+        "total": 5.589626065
+      },
+      {
+        "ruleset": "terms-helpers",
+        "search_and_apply": 3.268437548,
+        "merge": 0.036176279000000006,
+        "rebuild": 0.001060042,
+        "total": 3.3056738690000005
+      },
+      {
+        "ruleset": "terms",
+        "search_and_apply": 2.88312691,
+        "merge": 0.014121463,
+        "rebuild": 0.02163846,
+        "total": 2.918886833
+      },
+      {
+        "ruleset": "context",
+        "search_and_apply": 0.354238836,
+        "merge": 0.008810039,
+        "rebuild": 1.7343393370000002,
+        "total": 2.0973882120000003
+      },
+      {
+        "ruleset": "type-analysis",
+        "search_and_apply": 2.015580381,
+        "merge": 0.004332366000000001,
+        "rebuild": 0.010048291,
+        "total": 2.0299610379999997
+      },
+      {
+        "ruleset": "cell-key-request-1",
+        "search_and_apply": 1.823633632,
+        "merge": 0.010420911000000001,
+        "rebuild": 0.020307747,
+        "total": 1.8543622899999999
+      },
+      {
+        "ruleset": "cell-key-request-2",
+        "search_and_apply": 1.639173681,
+        "merge": 0.005657718,
+        "rebuild": 0.0,
+        "total": 1.6448313989999999
+      },
+      {
+        "ruleset": "is-resolved",
+        "search_and_apply": 0.46770876600000005,
+        "merge": 0.002703701,
+        "rebuild": 0.005247792,
+        "total": 0.47566025900000003
+      },
+      {
+        "ruleset": "subst",
+        "search_and_apply": 0.285182994,
+        "merge": 0.003004168,
+        "rebuild": 0.0063594590000000005,
+        "total": 0.294546621
+      },
+      {
+        "ruleset": "error-checking",
+        "search_and_apply": 0.171779289,
+        "merge": 0.000136878,
+        "rebuild": 0.0,
+        "total": 0.171916167
+      },
+      {
+        "ruleset": "loop-iters-analysis",
+        "search_and_apply": 0.17131912500000002,
+        "merge": 6.904e-05,
+        "rebuild": 0.0,
+        "total": 0.171388165
+      },
+      {
+        "ruleset": "type-helpers",
+        "search_and_apply": 0.018039287,
+        "merge": 0.002003066,
+        "rebuild": 0.139133542,
+        "total": 0.159175895
+      },
+      {
+        "ruleset": "interval-analysis",
+        "search_and_apply": 0.10696245900000001,
+        "merge": 0.000270875,
+        "rebuild": 0.018030335,
+        "total": 0.12526366900000002
+      },
+      {
+        "ruleset": "mem-simple",
+        "search_and_apply": 0.063063084,
+        "merge": 0.000236168,
+        "rebuild": 0.013806415,
+        "total": 0.077105667
+      },
+      {
+        "ruleset": "passthrough",
+        "search_and_apply": 0.049093541000000004,
+        "merge": 0.000372542,
+        "rebuild": 0.021007541,
+        "total": 0.07047362400000001
+      },
+      {
+        "ruleset": "all-optimizations",
+        "search_and_apply": 0.063807,
+        "merge": 0.000163833,
+        "rebuild": 0.004038376000000001,
+        "total": 0.068009209
+      },
+      {
+        "ruleset": "cheap-optimizations",
+        "search_and_apply": 0.047534458,
+        "merge": 0.000103083,
+        "rebuild": 0.0038727920000000003,
+        "total": 0.051510333
+      },
+      {
+        "ruleset": "drop",
+        "search_and_apply": 0.038155666000000005,
+        "merge": 0.000102792,
+        "rebuild": 0.0,
+        "total": 0.038258458
+      },
+      {
+        "ruleset": "state-edge-passthrough",
+        "search_and_apply": 0.034006999,
+        "merge": 4.1917000000000005e-05,
+        "rebuild": 0.0019807920000000003,
+        "total": 0.03602970800000001
+      },
+      {
+        "ruleset": "apply-subst-unions",
+        "search_and_apply": 0.0007731670000000001,
+        "merge": 0.00021408400000000002,
+        "rebuild": 0.028472292000000003,
+        "total": 0.029459543000000005
+      },
+      {
+        "ruleset": "non-weakly-linear",
+        "search_and_apply": 0.005604250000000001,
+        "merge": 0.00016358300000000002,
+        "rebuild": 0.021533958000000002,
+        "total": 0.027301791000000002
+      },
+      {
+        "ruleset": "cicm-index",
+        "search_and_apply": 0.024340288,
+        "merge": 0.000359501,
+        "rebuild": 0.0,
+        "total": 0.024699789000000003
+      },
+      {
+        "ruleset": "boundary-analysis-prep",
+        "search_and_apply": 0.016897915,
+        "merge": 8.525e-05,
+        "rebuild": 0.0,
+        "total": 0.016983164999999998
+      },
+      {
+        "ruleset": "cell-key-request-0",
+        "search_and_apply": 0.016659499,
+        "merge": 7.4128e-05,
+        "rebuild": 0.0,
+        "total": 0.016733627
+      },
+      {
+        "ruleset": "term-subst",
+        "search_and_apply": 0.0067424600000000005,
+        "merge": 0.00020587600000000002,
+        "rebuild": 0.007862501000000001,
+        "total": 0.014810837
+      },
+      {
+        "ruleset": "boundary-analysis",
+        "search_and_apply": 0.014058543000000001,
+        "merge": 0.00039970800000000003,
+        "rebuild": 0.0,
+        "total": 0.014458251000000002
+      },
+      {
+        "ruleset": "initialization",
+        "search_and_apply": 0.0037851250000000003,
+        "merge": 0.000450459,
+        "rebuild": 0.0,
+        "total": 0.004235584000000001
+      },
+      {
+        "ruleset": "canon",
+        "search_and_apply": 0.0015835430000000002,
+        "merge": 7.858500000000001e-05,
+        "rebuild": 0.0,
+        "total": 0.0016621280000000001
+      },
+      {
+        "ruleset": "apply-drop-unions",
+        "search_and_apply": 7.5840000000000006e-06,
+        "merge": 9.167e-06,
+        "rebuild": 0.0012265000000000002,
+        "total": 0.0012432510000000001
+      },
+      {
+        "ruleset": "cleanup-drop",
+        "search_and_apply": 0.0009317080000000001,
+        "merge": 1.5957e-05,
+        "rebuild": 0.0,
+        "total": 0.0009476650000000001
+      },
+      {
+        "ruleset": "cell-key-initial",
+        "search_and_apply": 0.000135541,
+        "merge": 3.8292000000000005e-05,
+        "rebuild": 0.0,
+        "total": 0.00017383300000000003
+      },
+      {
+        "ruleset": "cell-key-freeze",
+        "search_and_apply": 2.3791000000000003e-05,
+        "merge": 1.8709e-05,
+        "rebuild": 0.0,
+        "total": 4.25e-05
+      },
+      {
+        "ruleset": "subsume-after-helpers",
+        "search_and_apply": 1.2125e-05,
+        "merge": 8.124e-06,
+        "rebuild": 0.0,
+        "total": 2.0249000000000002e-05
+      },
+      {
+        "ruleset": "cell-key-ready-check",
+        "search_and_apply": 0.0,
+        "merge": 0.0,
+        "rebuild": 0.0,
+        "total": 0.0
+      },
+      {
+        "ruleset": "add-to-debug-expr",
+        "search_and_apply": 0.0,
+        "merge": 0.0,
+        "rebuild": 0.0,
+        "total": 0.0
+      }
+    ]
+  },
+  "provenance": {
+    "kernel_head": "75a4295",
+    "runner_build": "offline release cell-native-extension example run; timing/report additions only",
+    "unrelated_dirty_source": "cell-extension/src/extraction.rs was preserved, not used by this benchmark and not included in this task commit",
+    "binary_sha256": "669fc41bb6c34de16fa144aa52594b4011bb5dae1d628cae13f1260eb41443bb",
+    "environment": {
+      "RUST_LOG": "warn",
+      "RAYON_NUM_THREADS": "1",
+      "CELL_NATIVE_MODE": "record",
+      "CELL_NATIVE_PROBE_COUNTS": "off"
+    },
+    "machine": "Apple M3 Max, 48 GiB; single-thread engine",
+    "result_directory": "/Users/mineralsteins/.codex/worktrees/native-cell-techreport/egg_layout/out/native-port-regression",
+    "anchor_directory": "/Users/mineralsteins/.codex/worktrees/native-cell-techreport/egg_layout/out/native-port-anchor-placement/bench",
+    "full_report_sha256": "408c0f06babde3cd7a34052664a29ccfb8a2395a7db5fa71d902b3215aab714c"
+  },
+  "acceptance": {
+    "new_extraction_check": false,
+    "old_mk_known_final_output_mismatch": true,
+    "current_sk_mk_prior_final_output_check": true,
+    "anchor_policy_check_pending": true
+  }
+}

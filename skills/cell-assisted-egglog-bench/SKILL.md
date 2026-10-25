@@ -41,6 +41,17 @@ description: 运行和解读 cell-assisted-egglog 的 CPU/GPU、稳定选择、�
 
 ## 常用入口
 
+原生移植版本的跨策略回退定位使用 `native-port --fork FORK --runner RUNNER
+--before-sk FILE --before-mk FILE --after-sk FILE --after-mk FILE --output DIR`。
+它冻结已构建的 `cell-extension` run example，同二进制、单线程、默认关闭 probe
+计数，逐个执行旧 SK、旧 MK、旧 MK 关闭闭包跳过、新 SK、新 MK。只执行保存的完整
+Pass-3 程序，不做完整三 pass、图导出、Tiger 或新 profile/solver。`--lanes` 可补齐
+指定部分，完整且输入/二进制/配置一致的 lane 自动复用，失败记录不覆盖。
+原生 RunReport 的 search+apply 含 RHS；混合 Cell 批次不在该分 ruleset 表内，
+必须同时读扩展的 native_batch_seconds 和 cell_query_seconds。原/新策略不同，
+这些是性能原因诊断，不能据此宣称最终输出一致或发布正确性认证加速比。
+已有目录用 `report DIR`，不要重复完整 profile。
+
 | 需求 | `bench.py` 子命令 |
 |---|---|
 | 通用 GPU 空表短路对照（不使用 Cell） | `empty-tables --before 关闭目录 --after 开启目录 [--timing-before DIR --timing-after DIR] [--output NEW.json]` |

@@ -4,6 +4,9 @@
 subsequent stable-selection/export repair passes the final-result gate; see
 [the repair results](STABLE_RESULTS.md). An optimized solver-selected native
 speedup is still unverified. The original-policy failure below remains as history.
+The new [performance regression diagnosis](PERFORMANCE_REGRESSION.md) isolates
+generated key-maintenance cost, a misplaced input-freeze boundary, and loss of
+the old closure shortcut with same-binary native measurements.
 
 ## What was copied
 

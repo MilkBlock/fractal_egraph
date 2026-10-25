@@ -155,6 +155,14 @@ def report(path, fresh=False):
         choices = ['report.json', 'stable-time.json', 'results.json', 'summary.json', 'time.json', 'check.json', 'audit.json', 'diff.json', 'cpu-pair.json']
         path = next((path / n for n in choices if (path / n).is_file()), path / 'report.json')
     r = load(path)
+    if r.get('schema')=='native-port-regression/v1':
+        print(r['scope'])
+        print('| Lane | Execution s | Parse + execution s | Runs | Sat skips |\n|---|---:|---:|---:|---:|')
+        for lane in r['lanes']:
+            s=lane['runtime']
+            print(f"| {lane['lane']} | {lane['execution_seconds']:.6f} | {lane['parse_and_execute_seconds']:.6f} | {s.get('runs','native')} | {s.get('skipped_saturations','native')} |")
+        print('Performance diagnosis only; changed source policies are not an equivalence-certified speedup.')
+        return
     if r.get('schema')=='explicit-key-cell-bench/v1':
         print("历史显式键对照；其隐式服务执行入口已移除，不重新认证。")
         for name,lane in r['lanes'].items():print(name,lane['run_seconds'],'s; reused:',lane['reused'])
@@ -744,6 +752,17 @@ def parser():
     p.add_argument('--repo', type=Path, default=REPO)
     p.add_argument('--dry-run', action='store_true')
     sub = p.add_subparsers(dest='mode', required=True)
+    q = sub.add_parser('native-port', help='diagnose native source-policy and Cell regressions; no GPU or graph export')
+    q.add_argument('--fork', type=Path, required=True)
+    q.add_argument('--runner', type=Path, required=True)
+    q.add_argument('--before-sk', type=Path, required=True)
+    q.add_argument('--before-mk', type=Path, required=True)
+    q.add_argument('--after-sk', type=Path, required=True)
+    q.add_argument('--after-mk', type=Path, required=True)
+    q.add_argument('--output', type=Path, required=True)
+    q.add_argument('--lanes', nargs='+', choices=['before-sk','before-mk','before-query-only','after-sk','after-mk'],
+                   default=['before-sk','before-mk','before-query-only','after-sk','after-mk'])
+    q.add_argument('--probe-counts', choices=['on','off'], default='off')
     q = sub.add_parser('extraction-markers', help='production Tiger cost-marker CPU/GPU ablation on a saved graph')
     q.add_argument('--graph', type=Path, required=True)
     q.add_argument('--output', type=Path, required=True)
@@ -1030,6 +1049,9 @@ def main(argv=None):
     a = parser().parse_args(argv); repo = a.repo.resolve()
     resolve = lambda p: p if p.is_absolute() else repo / p
     print('执行 checkout：', repo)
+    if a.mode=='native-port':
+        import native_port
+        return native_port.run(a, resolve)
     if a.mode=='hotspots':
         import hotspots
         return hotspots.run(a,resolve)
