@@ -5,11 +5,15 @@ use crate::*;
 use serde_json::{Value as Json, json};
 
 type Result<T> = std::result::Result<T, String>;
+// Match OrderedFloat identity: signed zeros and all NaNs compare equal.
+fn float_bits(v: f64) -> i64 {
+    (if v == 0.0 { 0.0f64.to_bits() } else if v.is_nan() { f64::NAN.to_bits() } else { v.to_bits() }) as i64
+}
 pub struct DeviceAnchors(Vec<(ArcSort, Value)>);
 fn sort(s: &ArcSort) -> Result<Json> {
     if s.is_eq_sort() {
         Ok(json!({"name":s.name(),"kind":"eq"}))
-    } else if matches!(s.name(), "i64" | "Unit" | "String" | "bool") {
+    } else if matches!(s.name(), "i64" | "Unit" | "String" | "bool" | "f64") {
         Ok(json!({"name":s.name(),"kind":s.name()}))
     } else {
         Err(format!("device backend: unsupported sort {}", s.name()))
@@ -24,6 +28,7 @@ fn term(t: &ResolvedAtomTerm) -> Result<Json> {
         Term::Literal(_, Literal::String(s)) => {
             Ok(json!({"literal":s,"sort":{"name":"String","kind":"String"}}))
         }
+        Term::Literal(_, Literal::Float(f)) => Ok(json!({"literal":float_bits(f.0),"sort":{"name":"f64","kind":"f64"}})),
         Term::Literal(_, Literal::Bool(b)) => Ok(json!({"literal":i64::from(*b),"sort":{"name":"bool","kind":"bool"}})),
         Term::Literal(_, Literal::Unit) => {
             Ok(json!({"literal":0,"sort":{"name":"Unit","kind":"Unit"}}))
@@ -56,6 +61,32 @@ fn rule(r: &ResolvedCoreRule) -> Result<Json> {
     Ok(json!({"body":body,"head":head}))
 }
 impl EGraph {
+    /// Inspect every installed rule without failing at the first unsupported sort.
+    pub fn device_inventory(&self) -> Json {
+        let mut tables = Vec::new();
+        for name in self.get_function_names() {
+            let f = self.get_function(&name).unwrap();
+            tables.push(json!({"name":name,"schema":f.schema.input.iter().chain([&f.schema.output]).map(|s|s.name()).collect::<Vec<_>>(),"merge":f.decl.merge.as_ref().map(|m|m.to_string())}));
+        }
+        tables.sort_by_key(|t|t["name"].as_str().unwrap().to_owned());
+        let mut rules = Vec::new();
+        for (set, rs) in &self.rulesets {
+            if let Ruleset::Rules(rs) = rs {
+                for (name, (r, _)) in rs {
+                    let mut primitives = Vec::new();
+                    for c in r.body.atoms.iter().map(|a|&a.head).chain(r.head.0.iter().filter_map(|a|if let Action::Let(_,_,c,_) = a {Some(c)} else {None})) {
+                        if let ResolvedCall::Primitive(p) = c {
+                            primitives.push(json!({"name":p.name(),"inputs":p.input().iter().map(|s|s.name()).collect::<Vec<_>>(),"output":p.output().name()}));
+                        }
+                    }
+                    rules.push(json!({"ruleset":set,"name":name,"primitives":primitives,"export_error":rule(r).err()}));
+                }
+            }
+        }
+        rules.sort_by_key(|r|(r["ruleset"].as_str().unwrap().to_owned(),r["name"].as_str().unwrap().to_owned()));
+        json!({"tables":tables,"rules":rules})
+    }
+
     pub fn capture_device_anchors(&self) -> Result<DeviceAnchors> {
         let mut anchors = std::collections::BTreeMap::new();
         for name in self.get_function_names() {
@@ -154,6 +185,7 @@ impl EGraph {
                     sort(s)?;
                     if s.is_eq_sort(){Ok(json!({"eq":format!("{:?}",self.get_canonical_value(*v,s)),"sort":s.name()}))}
                     else if s.name()=="i64"{Ok(json!({"value":self.value_to_base::<i64>(*v),"sort":"i64"}))}
+                    else if s.name()=="f64"{Ok(json!({"value":float_bits(**self.value_to_base::<crate::sort::F>(*v)),"sort":"f64"}))}
                     else if s.name()=="bool"{Ok(json!({"value":i64::from(self.value_to_base::<bool>(*v)),"sort":"bool"}))}
                     else if s.name()=="String"{Ok(json!({"value":self.value_to_base::<crate::sort::S>(*v).to_string(),"sort":"String"}))}
                     else{Ok(json!({"value":0,"sort":"Unit"}))}

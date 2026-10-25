@@ -69,7 +69,7 @@ A Run sends 8 command bytes and returns 36 status bytes. Initialization, shader/
 
 Native relations have private equality return sorts; they are not treated as Unit functions. Duplicate subsumed/visible rows combine visibility using native OR semantics. Native core rules can express constructor unions through `Set`; that case is handled explicitly.
 
-Unsupported constructs are rejected rather than silently delegated: containers, f64, arbitrary primitives/custom merges, `merge new`, external custom-function RHS reads, delete/panic, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Arithmetic overflow fails execution instead of claiming full native undefined-primitive semantics.
+Unsupported constructs are rejected rather than silently delegated: containers, floating arithmetic, arbitrary primitives/custom merges, `merge new`, external custom-function RHS reads, delete/panic, custom-view subsume, until conditions, and runtime schema/fact changes after the first Run. Bootstrap commands are restricted; includes must first be flattened. Arithmetic overflow fails execution instead of claiming full native undefined-primitive semantics.
 
 Storage and match queues have explicit capacities. Exceeding them returns an error and no success report. RHS errors can leave partial device state; rollback, resumption and dynamic capacity growth are not implemented.
 
@@ -92,3 +92,16 @@ The oracle was the current modified local egglog working tree, **not pristine up
 ### Pass 3 bring-up
 
 The real `raytrace-interactive-20261010/pass-3-flat.egg` was submitted to the native frontend. Boolean export was the first blocker and is now supported. The next rejection is `f64`; floating values have not been silently reduced to FP32. The boolean extension passes the 25-case regression suite with Metal validation enabled. This remains incomplete Pass 3 support.
+
+### Typed Pass 3 inventory and floating payloads
+
+`f64` payloads now retain their 64-bit representation on-device. The export normalizes signed zero and NaN to match native OrderedFloat identity; no conversion to FP32 occurs. This supports storage, binding, equality and copying, not floating arithmetic. The fixture includes 1e16, signed zero and NaN. The expanded 26-check suite passes.
+
+Inventory all installed native typed rules without executing them:
+
+```sh
+python3 experiments/device_backend/inventory.py --source PATH/pass-3-flat.egg \
+  --build out/device-backend-build --output out/pass3-inventory.json
+```
+
+The saved `pass3-inventory.json` identifies 260 tables and 664 installed rules. No floating arithmetic primitive occurs in this input. The remaining export failures are 49 panic-bearing rules and 4 rules using ExprSetPrim; further GPU compiler limitations include integer operators and custom merge expressions. Export success is not execution coverage. These counts include installed rules, not just a selected schedule's executed rules.

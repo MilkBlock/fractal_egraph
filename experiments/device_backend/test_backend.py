@@ -6,7 +6,7 @@ HERE=Path(__file__).resolve().parent
 
 def tests(build,out):
  out.mkdir(parents=True,exist_ok=True);results={}
- for name,src in [('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
+ for name,src in [('float-identity',HERE/'fixtures/float-identity.egg'),('boolean',HERE/'fixtures/boolean.egg'),('pipeline',HERE/'pipeline.egg'),('subsume-absent',HERE/'fixtures/subsume-absent.egg'),('unit-function',HERE/'fixtures/unit-function.egg'),('initial-union',HERE/'fixtures/initial-union.egg'),('naive',HERE/'fixtures/naive.egg'),('repeat',HERE/'fixtures/repeat.egg'),('math',HERE/'fixtures/math.egg'),('combined',HERE/'fixtures/combined.egg'),('update',HERE/'fixtures/update.egg'),('subsume-union',HERE/'fixtures/subsume-union.egg'),('spine',HERE.parent/'cell_spine/manual_marker/long-after.egg')]:
   r=run(src,build,out/name);assert r['checks'] and all(c['exact_rows_values_equivalence_visibility'] for c in r['checks']);results[name]=r
  unit=json.loads((out/'unit-function/program.json').read_text());assert next(t for t in unit['tables'] if t['name']=='F')['kind']=='function'
  assert len(results['repeat']['steps'])==2,'Repeat must stop at a native quiescent boundary'

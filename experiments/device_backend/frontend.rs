@@ -60,6 +60,10 @@ fn main() -> Result<()> {
         }
     }
     eg.run_program(cmds[..at].to_vec())?;
+    if std::env::args().any(|a|a=="--inventory") {
+        println!("{}",eg.device_inventory());
+        return Ok(());
+    }
     let mut sets = BTreeSet::new();
     let mut schedules = vec![];
     let mut assertions = vec![];
