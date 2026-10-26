@@ -1,8 +1,9 @@
 """CPU import/extraction and narrow selected-DAG equivalence regressions."""
-import argparse,json,subprocess
+import argparse,json,shutil,subprocess
 from pathlib import Path
 from export_snapshot import export,gpu_rows
 from selected_dag import compare_programs
+from compare_runs import compare as compare_devices
 HERE=Path(__file__).resolve().parent
 
 def main():
@@ -25,5 +26,21 @@ def main():
     wrong=selected('wrong','(Concat (N 1) (Concat (N 3) (N 2)))')
     eq=compare_programs(left,right);assert not eq['exact_roots']['equal'] and eq['concat_associative_roots']['equal'];results['concat-association']=eq
     assert not compare_programs(left,wrong)['concat_associative_roots']['equal'];results['reject-reordered-elements']=True
+    original=a.runs/'math';changed=a.output/'device-padding';changed.mkdir()
+    for name in ['report.json','program.json','core.json','gpu-state.json']:
+        shutil.copyfile(original/name,changed/name)
+    p=json.loads((changed/'program.json').read_text());s=json.loads((changed/'gpu-state.json').read_text())
+    row=next(row for row in s['rows'] if 4+len(p['tables'][row[0]]['schema'])<len(row))
+    row[-1]=123456
+    (changed/'gpu-state.json').write_text(json.dumps(s))
+    check=compare_devices(original,changed,True)['final_check']
+    assert not check['exact_device_state'] and check['exact_rows_values_equivalence_visibility']
+    results['ignore-only-unused-device-padding']=True
+    row[1]=1-row[1]
+    (changed/'gpu-state.json').write_text(json.dumps(s))
+    try:compare_devices(original,changed,True)
+    except ValueError as error:assert 'declared row fields' in str(error)
+    else:raise AssertionError('ignored a visibility difference with the padding')
+    results['reject-declared-device-field-change']=True
     (a.output/'results.json').write_text(json.dumps(results,indent=2)+'\n');print('passed',len(results),'snapshot/extraction checks')
 if __name__=='__main__':main()
