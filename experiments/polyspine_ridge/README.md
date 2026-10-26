@@ -10,6 +10,11 @@ Measured outcome and limitations: [RESULTS.md](RESULTS.md). The initial encoding
 only slightly improves total purity classification and worsens newly enabled
 purity recall. It is not ready to authorize skipping matches.
 
+Follow-up: [residual context](RESIDUAL.md) restores already-committed entry
+facts, separates sparse nonlinear propagation from ridge credit, and tests
+explicit numeric state columns. See [RESIDUAL_RESULTS.md](RESIDUAL_RESULTS.md)
+for the measured gain and the remaining structural/union cases.
+
 ## Native observations and causal boundary
 
 `study.py collect` uses the existing native parser/typechecker/oracle and the
