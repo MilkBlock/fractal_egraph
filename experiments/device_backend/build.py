@@ -4,15 +4,17 @@ from pathlib import Path
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[1]
 def main():
- p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--target',type=Path,required=True);p.add_argument('--release',action='store_true');a=p.parse_args();o=a.output.resolve();(o/'src').mkdir(parents=True,exist_ok=True)
+ p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--target',type=Path,required=True);p.add_argument('--release',action='store_true');p.add_argument('--frontend-only',action='store_true');a=p.parse_args();o=a.output.resolve();(o/'src').mkdir(parents=True,exist_ok=True)
  (o/'Cargo.toml').write_text('[package]\nname="egglog-device-frontend"\nversion="0.1.0"\nedition="2024"\n[dependencies]\negglog={path='+json.dumps(str(ROOT/'egglog'))+',default-features=false,features=["serde"]}\nserde_json="1"\n[profile.dev]\ndebug=0\nincremental=false\n')
  dest=o/'src/main.rs'
  if not dest.exists():dest.symlink_to(HERE/'frontend.rs')
+ helper=o/'src/compact_observer.rs'
+ if not helper.exists():helper.symlink_to(HERE/'compact_observer.rs')
  subprocess.run(['cargo','build','--offline','--manifest-path',str(o/'Cargo.toml')]+(['--release'] if a.release else []),env=dict(os.environ,CARGO_TARGET_DIR=str(a.target.resolve())),check=True)
  import shutil
  shutil.copy2(a.target/('release' if a.release else 'debug')/'egglog-device-frontend',o/'frontend')
  swift='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc';sdk='/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
- if (HERE/'worker.swift').exists():subprocess.run([swift,'-O','-sdk',sdk,str(HERE/'worker.swift'),'-o',str(o/'worker')],check=True)
+ if not a.frontend_only and (HERE/'worker.swift').exists():subprocess.run([swift,'-O','-sdk',sdk,str(HERE/'worker.swift'),'-o',str(o/'worker')],check=True)
  sha=lambda x:hashlib.sha256(x.read_bytes()).hexdigest()
  sources=[ROOT/'egglog/src/device_program.rs',ROOT/'egglog/egglog-bridge/src/device_import.rs',ROOT/'egglog/src/lib.rs',ROOT/'egglog/egglog-bridge/src/rule.rs',*[HERE/n for n in ['frontend.rs','compiler.py','query_contexts.py','context_ridge.py','contexts.metal','worker.swift','kernel.metal','sets.metal','actions.metal','row_index.metal','query_index.metal','rebuild_parallel.metal','query_parallel.metal','match_sort.metal','run.py']]]
  tracked=subprocess.check_output(['git','ls-files','-z','egglog'],cwd=ROOT).decode().split('\0')
@@ -21,6 +23,7 @@ def main():
  for name in kernel:
   f=ROOT/name
   if f.is_file():digest.update(name.encode()+b'\0'+sha(f).encode())
- provenance={'profile':'release' if a.release else 'debug','sources':{str(x):sha(x) for x in sources},'native_kernel_source_sha256':digest.hexdigest(),'git_head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'baseline_tag':subprocess.check_output(['git','rev-parse','egglog-baseline'],cwd=ROOT,text=True).strip(),'native_kernel_dirty':subprocess.check_output(['git','status','--short','--','egglog'],cwd=ROOT,text=True).splitlines(),'frontend':str(o/'frontend'),'frontend_sha256':sha(o/'frontend'),'worker_sha256':sha(o/'worker')}
+ sources.append(HERE/'compact_observer.rs')
+ provenance={'profile':'release' if a.release else 'debug','sources':{str(x):sha(x) for x in sources},'native_kernel_source_sha256':digest.hexdigest(),'git_head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'baseline_tag':subprocess.check_output(['git','rev-parse','egglog-baseline'],cwd=ROOT,text=True).strip(),'native_kernel_dirty':subprocess.check_output(['git','status','--short','--','egglog'],cwd=ROOT,text=True).splitlines(),'frontend':str(o/'frontend'),'frontend_sha256':sha(o/'frontend'),'worker_sha256':sha(o/'worker') if not a.frontend_only else None}
  (o/'build.json').write_text(json.dumps(provenance,indent=2))
 if __name__=='__main__':main()

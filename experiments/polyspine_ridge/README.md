@@ -15,6 +15,11 @@ facts, separates sparse nonlinear propagation from ridge credit, and tests
 explicit numeric state columns. See [RESIDUAL_RESULTS.md](RESIDUAL_RESULTS.md)
 for the measured gain and the remaining structural/union cases.
 
+Scaled evaluation: [all real Pass-3 local stage updates](SCALE.md) and
+[results](SCALE_RESULTS.md). This observes all 182 selected saturations, includes
+type/extraction payload updates, and separates chronological from union-lineage
+holdout. The original 47-positive result is not a generalization guarantee.
+
 ## Native observations and causal boundary
 
 `study.py collect` uses the existing native parser/typechecker/oracle and the

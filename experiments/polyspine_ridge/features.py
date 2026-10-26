@@ -16,6 +16,8 @@ STAGES = {
 
 
 def identity(value):
+    if 'elements' in value:
+        return (value['sort'],'container',tuple(sorted(map(identity,value['elements']),key=repr)))
     return (value['sort'], 'eq', value['eq']) if 'eq' in value else (
         value['sort'], 'literal', json.dumps(value['value'], sort_keys=True))
 
@@ -28,7 +30,7 @@ def footprint(node):
     return footprint(node.get('body', node.get('saturate')))
 
 
-def stage_spans(schedule, trace):
+def stage_spans(schedule, trace, first_per_cycle=True):
     """Reconstruct exact Saturate boundaries from a verified native Run trace."""
     at = 0
     spans = []
@@ -80,7 +82,8 @@ def stage_spans(schedule, trace):
     chosen = {}
     for span in sorted(spans, key=lambda s: (s['start'], -s['end'])):
         span = dict(span, cycle=cycles[span['start']])
-        chosen.setdefault((span['cycle'], span['stage']), span)
+        key=(span['cycle'],span['stage']) if first_per_cycle else (span['start'],span['end'],span['stage'])
+        chosen.setdefault(key, span)
     return sorted(chosen.values(), key=lambda s: s['start']), len(spans)
 
 
@@ -103,13 +106,14 @@ class View:
                     if name:
                         self.readers[rs['name']].add(name)
 
-    def extract(self, snapshot, stage, previous_stage):
+    def extract(self, snapshot, stage, previous_stage, prestate=False):
         members, target = STAGES[stage]
         # Current-stage generated analysis is erased even if left over from an
         # earlier visit. Ordinary IR remains visible, as in the old predictor.
         masked = {name for name, writers in self.writers.items()
                   if writers & members and name not in self.ordinary} | {target}
-        allowed_interfaces = set().union(*(self.readers[s] for s in members)) - masked - self.ordinary
+        allowed_interfaces = set().union(*(self.readers[s] for s in members)) - self.ordinary
+        if not prestate:allowed_interfaces-=masked
         heads = defaultdict(set)
         structural = []
         all_rows = [r for r in snapshot['rows'] if not r['subsumed']]
@@ -147,6 +151,9 @@ class View:
                         detail.append(('number', j, (n > 0) - (n < 0), abs(n).bit_length()))
                     else:
                         detail.append(('arg-type', j, other[0]))
+                if prestate and self.tables[name]['kind']=='function':
+                    returned=vals[-1]
+                    detail.append(('value-heads',returned[0],tuple(sorted(heads[returned]))))
                 interfaces[v].add(('interface', name, i, tuple(sorted(self.writers[name])), tuple(detail)))
         for op, args, root in structural:
             if root[0] == 'Expr':
@@ -192,7 +199,7 @@ class View:
             result.append((key, tuple(sorted(base[key], key=repr)), tuple(sorted(stage_tokens, key=repr)),
                            tuple(sorted(local, key=repr)), tuple(sorted(poly, key=repr)), key in before))
         stats = {'rows': len(result), 'structural_rows': len(structural),
-                 'masked_tables': sorted(masked), 'interface_tables': sorted(allowed_interfaces),
+                 'masked_tables': [] if prestate else sorted(masked), 'interface_tables': sorted(allowed_interfaces),
                  'roots_with_interfaces': sum(bool(interfaces[k]) for k in keys),
                  'roots_with_seams': sum(bool(seams[k]) for k in keys),
                  'roots_with_multiple_sources': sum(len(seam_sources[k]) > 1 for k in keys),

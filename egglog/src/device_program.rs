@@ -124,6 +124,29 @@ impl EGraph {
             json!({"rows":self.device_snapshot()?,"anchors":anchors.0.iter().map(|(s,v)|json!({"sort":s.name(),"old":format!("{v:?}"),"now":format!("{:?}",self.get_canonical_value(*v,s))})).collect::<Vec<_>>()}),
         )
     }
+    /// Narrow observation with union lineage for all values seen by this
+    /// observer. Mutates observer metadata only, never the egraph.
+    pub fn device_checkpoint_tables(&self, names:&[String], anchors:&mut DeviceAnchors)->Result<Json>{
+        let mut current=std::collections::BTreeMap::new();
+        let mut aliases=vec![];
+        for (s,v) in &anchors.0 {
+            let now=self.get_canonical_value(*v,s);
+            if *v!=now {aliases.push(json!({"sort":s.name(),"old":format!("{v:?}"),"now":format!("{now:?}")}));}
+            current.insert((s.name().to_owned(),format!("{now:?}")),(s.clone(),now));
+        }
+        for name in names {
+            let f=self.get_function(name).ok_or_else(||format!("unknown snapshot table {name}"))?;
+            self.function_for_each(name,|row|{
+                for (v,s) in row.vals.iter().zip(f.schema.input.iter().chain([&f.schema.output])) {
+                    let values=if s.is_container_sort(){s.inner_values(self.backend.container_values(),*v)}else{vec![(s.clone(),*v)]};
+                    for (s,v) in values {if s.is_eq_sort(){let now=self.get_canonical_value(v,&s);
+                        current.insert((s.name().to_owned(),format!("{now:?}")),(s,now));}}
+                }
+            }).map_err(|e|e.to_string())?;
+        }
+        anchors.0=current.into_values().collect();
+        Ok(json!({"rows":self.device_snapshot_tables(names)?,"anchors":aliases}))
+    }
     /// Export typed core rules plus one initialized state. Unsupported sorts are
     /// rejected before the GPU takes ownership; this is not a fallback protocol.
     pub fn export_device_program(&self, sets: &[String]) -> Result<Json> {
@@ -246,11 +269,16 @@ impl EGraph {
         Ok(json!({"value":value,"sort":s.name()}))
     }
     pub fn device_snapshot(&self) -> Result<Json> {
+        self.device_snapshot_tables(&self.get_function_names())
+    }
+    /// Read-only diagnostic view of explicitly selected tables. Unlike exporting
+    /// the whole graph then filtering, unrelated function tables are not scanned.
+    pub fn device_snapshot_tables(&self, names: &[String]) -> Result<Json> {
         let mut rows = vec![];
-        for name in self.get_function_names() {
-            let f = self.get_function(&name).unwrap();
+        for name in names {
+            let f = self.get_function(name).ok_or_else(||format!("unknown snapshot table {name}"))?;
             let mut error = None;
-            self.function_for_each(&name,|r|{
+            self.function_for_each(name,|r|{
                 let vals=r.vals.iter().zip(f.schema.input.iter().chain([&f.schema.output])).map(|(v,s)|{
                     self.device_value(*v,s)
                 }).collect::<Result<Vec<_>>>();

@@ -5,6 +5,7 @@ use egglog::{
     ast::{Command, Schedule},
 };
 use serde_json::{Value, json};
+mod compact_observer;
 use std::{
     collections::BTreeSet,
     io::{self, BufRead, Write},
@@ -135,11 +136,18 @@ fn main() -> Result<()> {
     p["assertion_tables"] = json!(assertions);
     println!("{}", p);
     io::stdout().flush()?;
+    let mut observer:Option<compact_observer::Observer>=None;
     // This native engine is only advanced when the verifier explicitly requests
     // it. Check-off GPU execution leaves it frozen at initialization.
     for line in io::stdin().lock().lines() {
         let q: Value = serde_json::from_str(&line?)?;
         match q["op"].as_str() {
+            Some("observe_tables") => {
+                let names=q["tables"].as_array().ok_or("table names")?.iter().map(|v|v.as_str().map(str::to_owned).ok_or("table name")).collect::<std::result::Result<Vec<_>,_>>()?;
+                observer=Some(compact_observer::Observer::new(&eg,names).map_err(io::Error::other)?);
+                println!("{}",observer.as_mut().unwrap().snapshot(&eg).map_err(io::Error::other)?);
+            }
+            Some("observe_delta") => println!("{}",observer.as_mut().ok_or("observer not configured")?.snapshot(&eg).map_err(io::Error::other)?),
             Some("track_anchors") => {
                 anchors = eg.capture_device_anchors().map_err(io::Error::other)?;
                 println!("{}", json!({"tracked":true}));
