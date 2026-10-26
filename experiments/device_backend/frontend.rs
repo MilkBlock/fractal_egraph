@@ -141,8 +141,50 @@ fn main() -> Result<()> {
         let q: Value = serde_json::from_str(&line?)?;
         match q["op"].as_str() {
             Some("run") => {
+                let started = q["timed"].as_bool().unwrap_or(false).then(std::time::Instant::now);
                 let r = eg.step_rules(q["set"].as_str().ok_or("set")?)?;
-                println!("{}", json!({"updated":r.updated,"can_stop":r.can_stop}));
+                println!("{}", json!({"updated":r.updated,"can_stop":r.can_stop,
+                    "step_seconds":started.map(|t| t.elapsed().as_secs_f64()),
+                    "logical_matches":r.num_matches_per_rule.values().sum::<usize>()}));
+            }
+            Some("unary_predicates") => {
+                let mut result = serde_json::Map::new();
+                for name in q["tables"].as_array().ok_or("predicate names")? {
+                    let name = name.as_str().ok_or("predicate name")?;
+                    let f = eg.get_function(name).ok_or("unknown predicate")?;
+                    if f.schema().input.len() != 1 || !f.schema().input[0].is_eq_sort() {
+                        return Err("predicate view requires one equality key".into());
+                    }
+                    let sort = f.schema().input[0].clone();
+                    let mut keys = Vec::new();
+                    eg.function_for_each(name, |row| {
+                        if !row.subsumed {
+                            keys.push(format!("{:?}", eg.get_canonical_value(row.vals[0], &sort)));
+                        }
+                    })?;
+                    keys.sort(); result.insert(name.to_owned(), json!(keys));
+                }
+                println!("{}", Value::Object(result));
+            }
+            Some("time_closure") => {
+                // An explicit diagnostic control: time the unchanged native
+                // closure with no intervening per-Run exports. Keep the oracle
+                // frozen so later visibility checks use the same starting state.
+                let started = std::time::Instant::now();
+                let mut control = eg.clone();
+                let clone_seconds = started.elapsed().as_secs_f64();
+                let started = std::time::Instant::now();
+                let mut runs = 0usize;
+                let mut matches = 0usize;
+                loop {
+                    let report = control.step_rules(q["set"].as_str().ok_or("set")?)?;
+                    runs += 1;
+                    matches += report.num_matches_per_rule.values().sum::<usize>();
+                    if !report.updated { break; }
+                }
+                println!("{}", json!({"seconds":started.elapsed().as_secs_f64(),
+                    "clone_seconds":clone_seconds,"runs":runs,"logical_matches":matches,
+                    "scope":"native closure only, no intervening query/snapshot export"}));
             }
             Some("snapshot") => println!(
                 "{}",
