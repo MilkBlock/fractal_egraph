@@ -130,7 +130,7 @@ fn main() -> Result<()> {
     let mut p = eg
         .export_device_program(&sets.into_iter().collect::<Vec<_>>())
         .map_err(|e| io::Error::other(e))?;
-    let anchors = eg.capture_device_anchors().map_err(io::Error::other)?;
+    let mut anchors = eg.capture_device_anchors().map_err(io::Error::other)?;
     p["schedule"] = json!(schedules);
     p["assertion_tables"] = json!(assertions);
     println!("{}", p);
@@ -140,6 +140,21 @@ fn main() -> Result<()> {
     for line in io::stdin().lock().lines() {
         let q: Value = serde_json::from_str(&line?)?;
         match q["op"].as_str() {
+            Some("track_anchors") => {
+                anchors = eg.capture_device_anchors().map_err(io::Error::other)?;
+                println!("{}", json!({"tracked":true}));
+            }
+            Some("current_program") => {
+                println!("{}", eg.export_device_program(&[]).map_err(io::Error::other)?);
+            }
+            Some("edit_actions") => {
+                let edits = eg.parse_program(None, q["source"].as_str().ok_or("action source")?)?;
+                if edits.iter().any(|c| !matches!(c, Command::Action(..))) {
+                    return Err("external edit accepts actions only, never rule execution".into());
+                }
+                eg.run_program(edits)?;
+                println!("{}", json!({"applied":true,"rules_executed":0}));
+            }
             Some("run") => {
                 let started = q["timed"].as_bool().unwrap_or(false).then(std::time::Instant::now);
                 let r = eg.step_rules(q["set"].as_str().ok_or("set")?)?;

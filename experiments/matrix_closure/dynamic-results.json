@@ -1,0 +1,145 @@
+{
+  "schema": "matrix-dynamic-results/v1",
+  "date": "2026-10-26",
+  "scope": "Standalone resident closure executor, not the production full GPU backend. Correctness evidence only.",
+  "metal_validation": true,
+  "provenance": {
+    "git_base": "f43382924e3def34e7c8fb019a4d2293bc7566e9",
+    "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+    "native_kernel_source_sha256": "8957f4973d912250c95abe39eabe103adc4e45738979ae7f433ae359830ca3ae",
+    "native_kernel_dirty": [
+      " M egglog/Cargo.lock",
+      " M egglog/core-relations/src/action/mod.rs",
+      " M egglog/core-relations/src/table/mod.rs",
+      " M egglog/core-relations/src/table/rebuild.rs",
+      " M egglog/core-relations/src/table/tests.rs",
+      " M egglog/core-relations/src/table_spec.rs",
+      " M egglog/egglog-bridge/src/lib.rs",
+      " M egglog/src/virtual_facts.rs"
+    ],
+    "frontend_sha256": "84165108956b04da7f445dae86e46462dfb5c8c2cdffd5e6dc372fa5dd2441db",
+    "worker_sha256": "8f1d0466108cfd9ed204a733dd513898357d284e7952f5c1a71f8446c8921a95",
+    "reports": {
+      "out/matrix-dynamic-raytrace/report.json": "56c17e572764c672764a211ce44a5bd82af0aa6fb957ae49b4a55d0824e0aa96",
+      "out/matrix-dynamic-fixture-v3/report.json": "6b0e7f11b5e4dfee7ced7cfc184c1b6e946c3f78cab9172d07e391ea84b5ea4a",
+      "out/matrix-dynamic-direct/report.json": "3fec9bb713ce23c91702dedd26092d2d2aaf77f19467efd63ea59450a8b352b1",
+      "out/matrix-dynamic-fixture-final/report.json": "4559eda1f422dfff4cacaf42d77422390c3ae428d94f97f30d61e0d2a01ef432",
+      "out/matrix-dynamic-direct-final/report.json": "b97e71355f4e4a01aa947ba3bc6ff159dffb2281d6e9096270113b6be0f452f5"
+    },
+    "full_run_sources": {
+      "experiments/matrix_closure/build.py": "4ab29376838bc40571f27bd235c11a23a50cac36d1c92f1be6538eccb7c1bf81",
+      "experiments/matrix_closure/compare_worker.py": "f112395cae06d5cd93a45289b878cc2b5a0d4efb233ebe7bd110659171cb29d7",
+      "experiments/matrix_closure/compiler.py": "7d677151adbb4da7c1eb83675b32286d913eea556406bef63ec8e5e0b27351f9",
+      "experiments/matrix_closure/dynamic.metal": "8f5e065adb978ae3ddd47bd21b0b66ea6ace68cdbe103acaf315b34fcff2e418",
+      "experiments/matrix_closure/dynamic.py": "a2e1c96c82d9eea781507ec1ec846c7fb8fd599f0c3bf1104ea72e5328c2b68c",
+      "experiments/matrix_closure/dynamic_client.py": "0954303c0821a7da108ee37f68e4245c0eb186ed45e6dbed0db733c158fd8cdf",
+      "experiments/matrix_closure/dynamic_events.py": "3597ea0a65074c64368bf0c625b42f11784e8ebeeb74e0bd25157ce69b823ee1",
+      "experiments/matrix_closure/dynamic_fixture.egg": "12bb92e1957d45cea3f007ca865a25b1f54871aa39ed36e14a1bc5f77d63a74b",
+      "experiments/matrix_closure/dynamic_worker.swift": "2569ca57c9c8d00e98191e4b4539cc1a43cd2ff17b261e8cd196d5219eca21ea",
+      "experiments/matrix_closure/fixture.egg": "b8a2734e6b236ffe055a732ed18ec25b71c89675f27e717e104521a5fef95013",
+      "experiments/matrix_closure/kernel.metal": "12df3d4e8f7a111d67d712ab38d7a0c34dae681c5ed7d22b3e39d371bd74a84c",
+      "experiments/matrix_closure/replay_dynamic.py": "2b5fea33211fed6c3172027ab12b5502b0ddefe4ddcb5638a367dc6ae1d849bf",
+      "experiments/matrix_closure/run.py": "a124014cee7933098d94d6e48e8000f2601d4cd561d57ce11d41aaa866dc512f",
+      "experiments/matrix_closure/test_compiler.py": "8ce4fd0e057c8bda5cd9e4e8e53f5f64615e872480e87702432947322c11320d",
+      "experiments/matrix_closure/test_dynamic.py": "b3e4a0ce3d94f1e66dd9c41a8c5bb8cdea508a166f6cb4373b99b3c8349300bc",
+      "experiments/matrix_closure/verify_dynamic.py": "b37477ff6b77d4e09bfe61d59e0d944a8f22f226d7bd0cf7e5a374d408018205",
+      "experiments/matrix_closure/verify_dynamic_raytrace.py": "5b5491a4045e3de3ac62e342bded521d3bd0ff4d636bc856850d00a26c23ce49",
+      "experiments/matrix_closure/worker.swift": "8bf6c4f04675e12e05a607951f02bbafc23901985d78e6c3970b1ef1fb446740"
+    },
+    "sources": {
+      "experiments/matrix_closure/build.py": "4ab29376838bc40571f27bd235c11a23a50cac36d1c92f1be6538eccb7c1bf81",
+      "experiments/matrix_closure/compare_worker.py": "f112395cae06d5cd93a45289b878cc2b5a0d4efb233ebe7bd110659171cb29d7",
+      "experiments/matrix_closure/compiler.py": "7d677151adbb4da7c1eb83675b32286d913eea556406bef63ec8e5e0b27351f9",
+      "experiments/matrix_closure/dynamic.metal": "8f5e065adb978ae3ddd47bd21b0b66ea6ace68cdbe103acaf315b34fcff2e418",
+      "experiments/matrix_closure/dynamic.py": "a2e1c96c82d9eea781507ec1ec846c7fb8fd599f0c3bf1104ea72e5328c2b68c",
+      "experiments/matrix_closure/dynamic_client.py": "6642254579eeb9a5c4a920be710dbd1e12702dd135e218f11dc2c58682820726",
+      "experiments/matrix_closure/dynamic_events.py": "3597ea0a65074c64368bf0c625b42f11784e8ebeeb74e0bd25157ce69b823ee1",
+      "experiments/matrix_closure/dynamic_fixture.egg": "12bb92e1957d45cea3f007ca865a25b1f54871aa39ed36e14a1bc5f77d63a74b",
+      "experiments/matrix_closure/dynamic_worker.swift": "2569ca57c9c8d00e98191e4b4539cc1a43cd2ff17b261e8cd196d5219eca21ea",
+      "experiments/matrix_closure/fixture.egg": "b8a2734e6b236ffe055a732ed18ec25b71c89675f27e717e104521a5fef95013",
+      "experiments/matrix_closure/kernel.metal": "12df3d4e8f7a111d67d712ab38d7a0c34dae681c5ed7d22b3e39d371bd74a84c",
+      "experiments/matrix_closure/replay_dynamic.py": "7c478fb20db65e139de1875d75653adb46f337a0e766bddb6bf0722a51142465",
+      "experiments/matrix_closure/run.py": "a124014cee7933098d94d6e48e8000f2601d4cd561d57ce11d41aaa866dc512f",
+      "experiments/matrix_closure/test_compiler.py": "8ce4fd0e057c8bda5cd9e4e8e53f5f64615e872480e87702432947322c11320d",
+      "experiments/matrix_closure/test_dynamic.py": "b3e4a0ce3d94f1e66dd9c41a8c5bb8cdea508a166f6cb4373b99b3c8349300bc",
+      "experiments/matrix_closure/verify_dynamic.py": "f41d4de3f766e90a63d5f90a750ef4199ea5bca2df583d45894c47e198d4e8db",
+      "experiments/matrix_closure/verify_dynamic_raytrace.py": "5b5491a4045e3de3ac62e342bded521d3bd0ff4d636bc856850d00a26c23ce49",
+      "experiments/matrix_closure/worker.swift": "8bf6c4f04675e12e05a607951f02bbafc23901985d78e6c3970b1ef1fb446740"
+    },
+    "changes_after_full_run": [
+      "Command recording is now opt-in to avoid retaining old delta packets; the native fixture enables it explicitly. Replayed 43 verified commands with default recording disabled. GPU kernels and wiring compiler unchanged."
+    ],
+    "build_entry_worker_sha256": "e881789af937b6cdadadc51e11d233edefef8c427636c2fe4c97b421f4de986f"
+  },
+  "unit_tests": {
+    "static": 7,
+    "dynamic": 7,
+    "all_passed": true
+  },
+  "fixture": {
+    "checked_boundaries": 21,
+    "full_graph_check": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 33,
+      "eclasses": 20
+    },
+    "cleared_live_contexts": 0,
+    "cleared_context_reserved_bytes": 0,
+    "predicate_truth_used_as_feedback": false
+  },
+  "direct_control": {
+    "mode": "direct",
+    "commands": 43,
+    "exact_state_transcript": true,
+    "native_reference": "out/matrix-dynamic-fixture-final",
+    "command_history_retained": 0,
+    "scope": "correctness replay, not a timing comparison"
+  },
+  "raytrace": {
+    "scope": "complete original native raytrace schedule; GPU replaces only selected closure computation; diagnostic external-event adapter",
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "ruleset": "is-resolved",
+    "native_runs": 10121,
+    "checked_closure_runs": 782,
+    "full_graph_check": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 697922,
+      "eclasses": 524657
+    },
+    "post_bootstrap_predicate_seeds": 0,
+    "event_snapshot_rows_scanned": 11751307,
+    "diagnostic_event_adapter_seconds": 85.81646875210572,
+    "incremental_wiring_compiler_seconds": 0.6400579589535482,
+    "final": {
+      "context_capacity": 52480,
+      "context_reserved_bytes": 1782272,
+      "device_allocated_bytes": 2883584,
+      "epoch": 16,
+      "fact_capacity": 32768,
+      "fact_count": 23728,
+      "live_contexts": 32180,
+      "mode": "matrix",
+      "ok": true
+    },
+    "upload_bytes": 1001472,
+    "download_bytes_including_audit": 250068632,
+    "limits": [
+      "External phases execute in native egglog.",
+      "Snapshot differences supply events for validation; the production journal is not connected.",
+      "Matrix truth is resident, but changed-row binding compilation remains CPU control work.",
+      "This is not a full GPU end-to-end benchmark."
+    ],
+    "external_boundaries": 21,
+    "no_op_updates": 5,
+    "initial_fact_coordinates": 18674,
+    "initial_live_contexts": 28115,
+    "peak_live_contexts": 34019,
+    "totals": {
+      "anchors_regrounded": 57584,
+      "contexts_added": 41455,
+      "contexts_retired": 9275,
+      "fact_merges": 4539
+    },
+    "all_selected_boundaries_exact": true
+  }
+}

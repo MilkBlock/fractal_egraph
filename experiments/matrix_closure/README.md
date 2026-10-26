@@ -5,6 +5,12 @@ for this rule family. GEMM is not the fastest implementation of that context.**
 This is a standalone executor for an admitted rule class, not a replacement for
 the entire GPU-owned backend or the full Raytrace Pass-3 schedule.
 
+The initial frozen-context experiment is documented below. The new
+[resident dynamic executor](DYNAMIC.md) supports structural growth, function-row
+replacement, external aliases and subsumption at Run boundaries, with immediate
+context reclamation. Its correctness checks cover the full native Raytrace
+schedule; it is still a standalone executor, not a production journal hookup.
+
 ## Actual workload and source
 
 The source is the saved real Raytrace `pass-3-flat.egg`, SHA-256
@@ -20,7 +26,7 @@ Grounding reads 28,160 immutable constructor anchors, retaining aliases and all
 alternatives in an eclass. It does not search the changing predicate tables or
 run the expected closure to construct inputs.
 
-The current admissible class has one immutable structural anchor per rule,
+The original frozen-context admissible class has one immutable structural anchor per rule,
 unary existence premises with anchor-bound keys, and unary existence outputs.
 Predicate result identities cannot escape into effects. Structural growth,
 union, function updates, primitive guards, multiple structural anchors and

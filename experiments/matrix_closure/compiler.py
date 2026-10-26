@@ -40,6 +40,71 @@ def separator(k, regularization=1.0):
             'margin':margin,'truth_assignments':1<<k,'regularization':regularization,
             'positive_score_rescaling':scale}
 
+class Templates:
+    """Validate once, then bind only changed structural rows; never read truth."""
+    def __init__(self,core,ruleset):
+        self.selected=next(s for s in core['rulesets'] if s['name']==ruleset)['rules']
+        self.tables={t['name']:t for t in core['tables']}
+        self.outputs=set();self.by_table=defaultdict(list);self.max_arity=0
+        for r in self.selected:
+            for a in r['head']:
+                if a['op']=='copy':continue
+                if a['op']!='let' or 'table' not in a.get('call',{}):raise ValueError('closure output must be a unary constructor fact')
+                self.outputs.add(a['call']['table'])
+        for name in self.outputs:
+            t=self.tables[name]
+            if t['kind']!='constructor' or len(t['schema'])!=2 or any(s['kind']!='eq' for s in t['schema']):raise ValueError('requires unary equality-typed existence predicates')
+        for rid,r in enumerate(self.selected):
+            if any('table' not in a['call'] for a in r['body']):raise ValueError('primitive conditions require an additional exact operator')
+            anchors=[a for a in r['body'] if a['call']['table'] not in self.outputs]
+            if len(anchors)!=1:raise ValueError('requires one immutable structural anchor')
+            anchor=anchors[0];reads=[a for a in r['body'] if a is not anchor]
+            if any(s['kind']=='set' for s in self.tables[anchor['call']['table']]['schema']):
+                raise ValueError('dynamic container anchors require container-aware notifications')
+            bound={x['var'] for x in anchor['args'] if 'var' in x};private=set()
+            for a in reads:
+                if len(a['args'])!=2:raise ValueError('unary predicate arity')
+                key,result=a['args']
+                if key.get('var') not in bound:raise ValueError('existence key is not grounded by the structural anchor')
+                if 'var' not in result or result['var'] in bound or result['var'] in private:raise ValueError('predicate result has an observable constraint')
+                private.add(result['var'])
+            available=bound.copy()
+            for a in r['head']:
+                if a['op']=='copy':
+                    if a['arg'].get('var') not in available:raise ValueError('effect depends on predicate identity')
+                    available.add(a['dst'])
+                elif len(a['args'])!=1 or a['args'][0].get('var') not in available:raise ValueError('output is not grounded by the anchor')
+            self.by_table[anchor['call']['table']].append((rid,anchor,reads,r['head']))
+            self.max_arity=max(self.max_arity,len(reads))
+        self.digest=hashlib.sha256(json.dumps(self.selected,sort_keys=True).encode()).hexdigest()
+        self.alias_sorts={s['name'] for table in self.by_table for s in self.tables[table]['schema'] if s['kind']=='eq'}
+        self.alias_sorts.update(self.tables[p]['schema'][0]['name'] for p in self.outputs)
+
+    def validate_row(self,row):
+        if row['table'] not in self.tables:raise ValueError('unknown row table')
+        if type(row.get('subsumed')) is not bool:raise ValueError('row visibility')
+        schema=self.tables[row['table']]['schema']
+        if len(schema)!=len(row['values']):raise ValueError('row arity')
+        for s,v in zip(schema,row['values']):
+            if s['name']!=v['sort'] or (s['kind']=='eq' and not isinstance(v.get('eq'),str)):raise ValueError('typed row mismatch')
+            if s['kind']!='eq' and 'value' not in v:raise ValueError('primitive row payload')
+
+    def ground(self,row,coordinate):
+        if row['subsumed']:return set()
+        result=set()
+        for rid,anchor,reads,head in self.by_table.get(row['table'],[]):
+            binding={};ok=True
+            for term,value in zip(anchor['args'],row['values']):
+                if 'literal' in term:ok &= 'value' in value and term['literal']==value['value']
+                elif term['var'] in binding:ok &= identity(binding[term['var']])==identity(value)
+                else:binding[term['var']]=value
+            if not ok:continue
+            deps=tuple(sorted({coordinate(a['call']['table'],binding[a['args'][0]['var']]) for a in reads}))
+            for a in head:
+                if a['op']=='copy':binding[a['dst']]=binding[a['arg']['var']]
+                else:result.add((deps,coordinate(a['call']['table'],binding[a['args'][0]['var']])))
+        return result
+
 def compile_context(core,ruleset):
     selected=next(s for s in core['rulesets'] if s['name']==ruleset)['rules']
     tables={t['name']:t for t in core['tables']}

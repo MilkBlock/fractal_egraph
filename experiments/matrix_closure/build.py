@@ -1,4 +1,4 @@
-"""Build the matrix worker and existing native oracle offline."""
+"""Build static/resident matrix workers and the native oracle offline."""
 import argparse
 import hashlib
 import json
@@ -13,9 +13,15 @@ if __name__=='__main__':
     a.output.mkdir(parents=True,exist_ok=True)
     subprocess.run([sys.executable,str(HERE.parent/'device_backend/build.py'),'--release',
                     '--output',str(a.output/'oracle'),'--target',str(a.target)],check=True)
-    subprocess.run(['xcrun','swiftc','-O',str(HERE/'worker.swift'),'-o',str(a.output/'worker')],check=True)
+    for source, binary in [('worker.swift','worker'),('dynamic_worker.swift','dynamic-worker')]:
+        subprocess.run(['xcrun','swiftc','-O',str(HERE/source),'-o',str(a.output/binary)],check=True)
     sha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()
     data={'scope':'standalone matrix closure with real native typed rules',
-          'sources':{str(f):sha(f) for f in [HERE/'compiler.py',HERE/'kernel.metal',HERE/'worker.swift',HERE/'run.py']},
-          'worker_sha256':sha(a.output/'worker'),'oracle':json.loads((a.output/'oracle/build.json').read_text())}
+          'sources':{str(HERE/name):sha(HERE/name) for name in [
+              'build.py','compiler.py','kernel.metal','worker.swift','run.py',
+              'dynamic.py','dynamic_client.py','dynamic_events.py','dynamic.metal','dynamic_worker.swift',
+              'dynamic_fixture.egg','verify_dynamic.py','verify_dynamic_raytrace.py','replay_dynamic.py']},
+          'worker_sha256':sha(a.output/'worker'),
+          'dynamic_worker_sha256':sha(a.output/'dynamic-worker'),
+          'oracle':json.loads((a.output/'oracle/build.json').read_text())}
     (a.output/'build.json').write_text(json.dumps(data,indent=2)+'\n')
