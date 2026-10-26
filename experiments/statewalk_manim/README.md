@@ -287,3 +287,16 @@ out/manim-ce-venv/bin/python experiments/statewalk_manim/append.py \
 
 Successive additions retain their provenance in `appendices`. As before, the
 complete prior movie's decoded frames and its subtitle cues are preserved.
+
+## Build cleanup (2026-10-26)
+
+The only retained distributed movie is
+`/Users/mineralsteins/Repos/egg_related/egg_layout/out/statewalk-mambo-known-20261024/`.
+It includes the final MP4, chapter player, captions, generated Python, evidence,
+and delivery checksums. Earlier distributed versions, intermediate renders,
+speech caches, and the dedicated `out/manim-ce-venv` were deleted. The small
+`out/statewalk-film-v2-trace-checked/{trace.jsonl,summary.json}` input pair remains
+for `prepare.py`; its executable and other intermediates were removed. All
+versioned sources and validation reports remain. Recreate the environment and
+render earlier parts from source before rebuilding an appended edition. The
+remote Mambo service and voice weights were not removed.

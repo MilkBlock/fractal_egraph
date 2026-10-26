@@ -127,10 +127,14 @@ The measured mode is `bag`; optional CPU-recipe/Metal modes are disabled.
   lists algorithm, read/parse, and serialize/write times for every program.
 
 Raw graph snapshots, executables, and build trees are deliberately not in Git.
-The retained final measurements correspond to remote
-`/opt/eggcc-extraction-suite/results-v2`; the compact JSON records stand alone for
-report generation. Existing fingerprint-identical runs can be resumed without
-repeating the suite.
+After the 2026-10-26 cleanup, the final raw inputs and run receipts are in
+`/opt/eggcc-extraction-suite/final-results-20261026.tar.gz`, under `results-v2/`
+and `results-core-v1/`. The expanded runs, obsolete preliminary run, build tools,
+dedicated container, and seed-download archives were removed. Pristine source
+and the compact committed JSON records remain; report generation needs no
+rebuild. Unpack the archive before replaying saved graphs and rebuild tools
+separately. Archive verification and removed paths are recorded remotely in
+`/opt/eggcc-extraction-suite/cleanup-20261026.json`.
 
 ## Reproduce
 
@@ -162,7 +166,7 @@ python3 skills/cell-assisted-egglog-bench/scripts/bench.py \
   --output /path/to/new/core-results
 ```
 
-The retained remote follow-up is `/opt/eggcc-extraction-suite/results-core-v1`.
+The retained remote follow-up is `results-core-v1/` inside the final archive above.
 
 Generate the report from **committed data without running eggcc**:
 
