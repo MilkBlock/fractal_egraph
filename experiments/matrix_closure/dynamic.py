@@ -17,8 +17,10 @@ class DynamicContext:
         self.owner_clauses={};self.supports={};self.banks=defaultdict(list);self.locations={}
 
     def library(self):
-        return {'schema':'matrix-dynamic/v1','rule_sha256':self.templates.digest,
+        data={'schema':'matrix-dynamic/v1','rule_sha256':self.templates.digest,
                 'predicates':self.outputs,'separators':[separator(k) for k in range(self.templates.max_arity+1)]}
+        if self.templates.period>1:data.update(schema='matrix-scheduled/v1',period=self.templates.period,schedule=self.templates.schedule)
+        return data
 
     def root(self,key):
         trail=[]
@@ -119,7 +121,8 @@ class DynamicContext:
                 bank[slot]=last;self.locations[last]=(k,slot);changes[k][slot]=last
             changes[k].pop(len(bank),None)
         for key in added:
-            k=len(key[0]);slot=len(self.banks[k]);self.banks[k].append(key)
+            k=len(key[0])*self.templates.period+(key[2] if len(key)==3 else 0)
+            slot=len(self.banks[k]);self.banks[k].append(key)
             self.locations[key]=(k,slot);changes[k][slot]=key
         seed_rows=[]
         for predicate,value,hidden in seeds:seed_rows.append((self.coordinate(predicate,value),1,int(hidden)))
@@ -132,7 +135,7 @@ class DynamicContext:
             before=old_counts.get(k,0);after=len(self.banks[k]);updates=changes.get(k,{})
             if before==after and not updates:continue
             banks.append(k);words += [k,before,after,len(updates)]
-            for slot,(deps,target) in sorted(updates.items()):words += [slot,epoch,target,*deps]
+            for slot,key in sorted(updates.items()):words += [slot,epoch,key[1],*key[0]]
         words[7]=len(banks)
         if any(not 0<=v<=0xffffffff for v in words):raise ValueError('device coordinate range')
         if old_epoch and len(self.coordinates)==old_facts and not merges and not seed_rows and not banks:

@@ -43,7 +43,12 @@ def separator(k, regularization=1.0):
 class Templates:
     """Validate once, then bind only changed structural rows; never read truth."""
     def __init__(self,core,ruleset):
-        self.selected=next(s for s in core['rulesets'] if s['name']==ruleset)['rules']
+        self.schedule=[ruleset] if isinstance(ruleset,str) else list(ruleset)
+        if not self.schedule:raise ValueError('nonempty ruleset schedule required')
+        self.selected=[];self.rule_phases=[];self.period=len(self.schedule)
+        for phase,name in enumerate(self.schedule):
+            rules=next(s for s in core['rulesets'] if s['name']==name)['rules']
+            self.selected.extend(rules);self.rule_phases.extend([phase]*len(rules))
         self.tables={t['name']:t for t in core['tables']}
         self.outputs=set();self.by_table=defaultdict(list);self.max_arity=0
         for r in self.selected:
@@ -76,7 +81,8 @@ class Templates:
                 elif len(a['args'])!=1 or a['args'][0].get('var') not in available:raise ValueError('output is not grounded by the anchor')
             self.by_table[anchor['call']['table']].append((rid,anchor,reads,r['head']))
             self.max_arity=max(self.max_arity,len(reads))
-        self.digest=hashlib.sha256(json.dumps(self.selected,sort_keys=True).encode()).hexdigest()
+        description=self.selected if self.period==1 else {'schedule':self.schedule,'rules':self.selected}
+        self.digest=hashlib.sha256(json.dumps(description,sort_keys=True).encode()).hexdigest()
         self.alias_sorts={s['name'] for table in self.by_table for s in self.tables[table]['schema'] if s['kind']=='eq'}
         self.alias_sorts.update(self.tables[p]['schema'][0]['name'] for p in self.outputs)
 
@@ -102,7 +108,9 @@ class Templates:
             deps=tuple(sorted({coordinate(a['call']['table'],binding[a['args'][0]['var']]) for a in reads}))
             for a in head:
                 if a['op']=='copy':binding[a['dst']]=binding[a['arg']['var']]
-                else:result.add((deps,coordinate(a['call']['table'],binding[a['args'][0]['var']])))
+                else:
+                    key=(deps,coordinate(a['call']['table'],binding[a['args'][0]['var']]))
+                    result.add(key if self.period==1 else (*key,self.rule_phases[rid]))
         return result
 
 def compile_context(core,ruleset):

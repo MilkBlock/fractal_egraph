@@ -112,6 +112,8 @@ measure this dynamic validation path.
 
 A subsequent [dynamic performance comparison](PERFORMANCE.md) measures the same
 real updates without per-Run verification traffic, including CPU wiring costs.
+The [local logical-time executor](LOCAL.md) adds private forecasts, relative
+computation blocks and ordered multiple-ruleset execution for this rule class.
 
 ## Build and reproduce
 

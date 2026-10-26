@@ -42,12 +42,12 @@ def bank_sizes(words,banks):
         else:banks.pop(k,None)
     assert at==len(words)
 
-def load(path):
+def load(path,validate_runtime=True):
     w=json.loads((path/'workload.json').read_text())
     if w['schema']!='matrix-dynamic-workload/v1':raise ValueError('workload schema')
     if not w['full_graph_check']['exact_rows_values_equivalence_visibility']:raise ValueError('unverified workload')
     for name,sha in w['sources'].items():
-        if digest(HERE/name)!=sha:raise ValueError('changed verified runtime source: '+name)
+        if validate_runtime and digest(HERE/name)!=sha:raise ValueError('changed verified runtime source: '+name)
     if digest(Path(w['source']))!=w['source_sha256']:raise ValueError('changed native input')
     if digest(path/'final-state.bin')!=w['final_state_sha256']:raise ValueError('damaged reference state')
     for op in w['operations']:
@@ -117,7 +117,9 @@ def gpu_lane(w,worker,path,mode,coalesce):
                         'worker_control_seconds':info['control_seconds'],'runs':len(item),'batches':info['batches'],
                         'first_native_run':item[0]['native_run'],'last_native_run':item[-1]['native_run'],
                         'new_facts':info['new_facts'],'contexts':sum(banks.values()),
-                        'layout_record_visits':len(item)*sum(banks.values()),
+                        'submitted_buffers':info.get('submitted_buffers',1+info['batches']),
+                        'forecast_passes':info.get('forecast_passes',0),'forecast_reused':info.get('forecast_reused',False),
+                        'layout_record_visits':len(item)*sum(banks.values()) if mode!='local' else 0,
                         'layout_padded_flops':len(item)*sum(1024*(k+1)*((n+63)//64) for k,n in banks.items())}
             records.append(record)
         up,down=gpu.up,gpu.down
@@ -132,19 +134,29 @@ def gpu_lane(w,worker,path,mode,coalesce):
             report[phase]={'calls':len(rs),'wall_seconds':sum(r['wall_seconds'] for r in rs),
                            'gpu_seconds':sum(r['gpu_seconds'] for r in rs)}
         report['replay_seconds']=report['patch']['wall_seconds']+report['run']['wall_seconds']
-        report['layout_record_visits']=sum(r.get('layout_record_visits',0) for r in records)
+        report['layout_record_visits']=sum(r.get('layout_record_visits',0) for r in records) if mode!='local' else None
+        report['forecast_passes']=sum(r.get('forecast_passes',0) for r in records)
+        report['forecast_reuse_calls']=sum(r.get('forecast_reused',False) for r in records)
         report['new_facts']=sum(r.get('new_facts',0) for r in records)
         report['nominal_matrix_flops']=sum(r.get('layout_padded_flops',0) for r in records) if mode=='matrix' else 0
-        report['command_buffers']=epochs+report['run']['calls']+sum(r.get('batches',0) for r in records)
+        report['command_buffers']=epochs+sum(r.get('submitted_buffers',0) for r in records)
         (path/'report.json').write_text(json.dumps(report,indent=2)+'\n');return report
     except Exception as error:
         (path/'failure.json').write_text(json.dumps({'error':str(error),'operations':records},indent=2)+'\n');raise
     finally:gpu.close()
 
-def bench(reference,frontend,worker,out,reuse_native=None):
+def bench(reference,frontend,worker,out,reuse_native=None,candidate_audit=None,modes=None):
     if os.environ.get('MTL_DEBUG_LAYER')=='1':raise ValueError('disable Metal validation for timing; capture already verifies it')
-    w=load(reference)
-    if digest(worker)!=w['worker_sha256'] or digest(frontend)!=w['native_frontend_sha256']:raise ValueError('benchmark binaries must match capture')
+    w=load(reference,validate_runtime=candidate_audit is None)
+    if digest(frontend)!=w['native_frontend_sha256']:raise ValueError('native binary must match capture')
+    if candidate_audit is None:
+        if digest(worker)!=w['worker_sha256']:raise ValueError('changed worker requires a candidate audit')
+    else:
+        audit=json.loads(candidate_audit.read_text())
+        if (not audit['all_boundaries_exact'] or audit['workload_sha256']!=digest(reference/'workload.json')
+            or audit['worker_sha256']!=digest(worker)):raise ValueError('candidate audit does not match')
+        for name,sha in audit['sources'].items():
+            if digest(HERE/name)!=sha:raise ValueError('changed audited source: '+name)
     out.mkdir(parents=True,exist_ok=False)
     compiler,compilation=compile_events(w)
     if reuse_native is not None:
@@ -158,7 +170,10 @@ def bench(reference,frontend,worker,out,reuse_native=None):
     else:native=native_lane(w,frontend,compiler,out/'native',reference)
     lanes={}
     # Each configuration once, sequential; never select the best repetition.
-    for mode,coalesce in [('matrix',False),('direct',False),('matrix',True),('direct',True)]:
+    selected=modes.split(',') if modes else ['matrix-step','direct-step','matrix-batched','direct-batched']
+    for name in selected:
+        mode,cadence=name.split('-');coalesce=cadence=='batched'
+        if mode not in ['matrix','direct','local'] or cadence not in ['step','batched']:raise ValueError('unknown lane')
         name=mode+('-batched' if coalesce else '-step')
         lanes[name]=gpu_lane(w,worker,out/name,mode,coalesce)
         print(name,lanes[name]['replay_seconds'],flush=True)
@@ -167,6 +182,7 @@ def bench(reference,frontend,worker,out,reuse_native=None):
             'reference':str(reference),'workload_sha256':digest(reference/'workload.json'),
             'frontend_sha256':digest(frontend),'worker_sha256':digest(worker),'source_sha256':w['source_sha256'],
             'sources':{name:digest(HERE/name) for name in ['bench_dynamic.py','verify_dynamic_raytrace.py','dynamic_client.py']},
+            'candidate_audit':str(candidate_audit) if candidate_audit else None,
             'compilation':compilation,'native':native,'lanes':lanes,
             'historical_validation_adapter_seconds':source_report['diagnostic_event_adapter_seconds'],
             'historical_validation_rows_scanned':source_report['event_snapshot_rows_scanned'],
@@ -179,5 +195,6 @@ if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--reference',type=Path,required=True);p.add_argument('--frontend',type=Path,required=True)
     p.add_argument('--worker',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--reuse-native',type=Path,help='reuse a passed same-input/binary/schedule control; do not rerun unchanged CPU')
-    a=p.parse_args();r=bench(a.reference,a.frontend,a.worker,a.output,a.reuse_native)
+    p.add_argument('--candidate-audit',type=Path);p.add_argument('--modes',help='comma separated matrix/direct/local-step/batched lanes')
+    a=p.parse_args();r=bench(a.reference,a.frontend,a.worker,a.output,a.reuse_native,a.candidate_audit,a.modes)
     print('native selected seconds:',r['native']['selected_seconds'],'wiring:',r['compilation']['initial_seconds']+r['compilation']['later_seconds'])

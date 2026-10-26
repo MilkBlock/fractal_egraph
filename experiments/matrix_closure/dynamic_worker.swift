@@ -4,15 +4,23 @@ func need(_ ok:Bool,_ why:String)throws{if !ok{throw NSError(domain:why,code:1)}
 let args=CommandLine.arguments
 try need(args.count==4,"dynamic_worker library.json kernel.metal dynamic.metal")
 let libraryDescription=try JSONSerialization.jsonObject(with:Data(contentsOf:URL(fileURLWithPath:args[1]))) as! [String:Any]
-try need(libraryDescription["schema"] as? String=="matrix-dynamic/v1","library schema")
+let schema=libraryDescription["schema"] as? String
+try need(schema=="matrix-dynamic/v1" || schema=="matrix-scheduled/v1","library schema")
 guard let device=MTLCreateSystemDefaultDevice(),let queue=device.makeCommandQueue() else{fatalError("Metal unavailable")}
 let options=MTLCompileOptions();options.fastMathEnabled=false
-let source=try String(contentsOfFile:args[2],encoding:.utf8)+String(contentsOfFile:args[3],encoding:.utf8)
+let localPath=URL(fileURLWithPath:args[3]).deletingLastPathComponent().appendingPathComponent("local.metal").path
+let source=try String(contentsOfFile:args[2],encoding:.utf8)+String(contentsOfFile:args[3],encoding:.utf8)+String(contentsOfFile:localPath,encoding:.utf8)
 let library=try device.makeLibrary(source:source,options:options)
 let mode=ProcessInfo.processInfo.environment["MATRIX_CLOSURE_MODE"] ?? "matrix"
-try need(mode=="matrix" || mode=="direct","execution mode")
+try need(["matrix","direct","local"].contains(mode),"execution mode")
+let period=(libraryDescription["period"] as? Int) ?? 1
+try need(period>0 && (period==1 || mode=="local"),"multiple rulesets require the temporal local executor")
+try need((period==1 && schema=="matrix-dynamic/v1") ||
+         (period>1 && schema=="matrix-scheduled/v1" && (libraryDescription["schedule"] as? [String])?.count==period),"schedule schema or period mismatch")
+func arity(_ bank:Int)->Int{bank/period}
+func phase(_ bank:Int)->Int{bank%period+1}
 var pipes:[String:MTLComputePipelineState]=[:]
-for name in ["begin_run","closure_gemm","dyn_initialize","dyn_alias","dyn_seed","dyn_reset_birth","dyn_rows","dyn_gather","dyn_publish","dyn_direct","dyn_finish"]{
+for name in ["begin_run","closure_gemm","dyn_initialize","dyn_alias","dyn_seed","dyn_reset_birth","dyn_rows","dyn_gather","dyn_publish","dyn_direct","dyn_finish","local_init","local_index","local_begin_pass","local_relax","local_end_pass","local_max_time","local_reveal"]{
  pipes[name]=try device.makeComputePipelineState(function:library.makeFunction(name:name)!)
 }
 func shared<T>(_ a:[T])->MTLBuffer{a.withUnsafeBytes{b in b.isEmpty ? device.makeBuffer(length:4,options:.storageModeShared)! : device.makeBuffer(bytes:b.baseAddress!,length:b.count,options:.storageModeShared)!}}
@@ -35,9 +43,11 @@ for spec in libraryDescription["separators"] as! [[String:Any]]{
 }
 struct Bank{
  var count:Int;let capacity:Int;let rows:MTLBuffer;let x:MTLBuffer;let scores:MTLBuffer;let receipts:MTLBuffer
- init(_ device:MTLDevice,_ k:Int,_ n:Int,_ cap:Int){
+ init(_ device:MTLDevice,_ k:Int,_ n:Int,_ cap:Int,_ matrixScratch:Bool){
   func allocate(_ bytes:Int)->MTLBuffer{device.makeBuffer(length:max(4,bytes),options:.storageModePrivate)!}
-  count=n;capacity=cap;rows=allocate(cap*(k+2)*4);x=allocate(((cap+7)/8)*8*(k+1)*2);scores=allocate(cap*4);receipts=allocate(cap*12)
+  count=n;capacity=cap;rows=allocate(cap*(k+2)*4)
+  x=allocate(matrixScratch ? ((cap+7)/8)*8*(k+1)*2 : 4)
+  scores=allocate(matrixScratch ? cap*4 : 4);receipts=allocate(matrixScratch ? cap*12 : 4)
  }
  var bytes:Int{rows.length+x.length+scores.length+receipts.length}
 }
@@ -46,12 +56,17 @@ var state=priv(4),next=priv(4),hidden=priv(4),parent=priv(4),birth=priv(4)
 let meta=priv(32),status=device.makeBuffer(length:32,options:.storageModeShared)!
 var lastMeta=[UInt32](repeating:0,count:8)
 var poisoned=false
-func launch(_ cb:MTLCommandBuffer,_ name:String,_ buffers:[MTLBuffer],_ constants:[UInt32],_ count:Int,_ grouped:Bool=false,_ threshold:Float?=nil){
+var phaseOffset:UInt32=0,forecastReady=false
+var distance=priv(4),futureDistance=priv(4),localHeads=priv(4),localLinks=priv(4),localRecords=priv(4)
+var localFactCapacity=0,localClauseCapacity=0,forecastMax:UInt32=0
+let localControl=priv(32),localStatus=shared([UInt32](repeating:0,count:8))
+let localStride=(models.keys.max() ?? 0)+2
+func launch(_ cb:MTLCommandBuffer,_ name:String,_ buffers:[MTLBuffer],_ constants:[UInt32],_ count:Int,_ grouped:Bool=false,_ threshold:Float?=nil,_ groupWidth:Int=32){
  let e=cb.makeComputeCommandEncoder()!,pipe=pipes[name]!;e.setComputePipelineState(pipe);e.label=name
  for (i,b) in buffers.enumerated(){e.setBuffer(b,offset:0,index:i)}
  constants.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:buffers.count)}
  if var threshold=threshold{e.setBytes(&threshold,length:4,index:buffers.count+1)}
- if grouped{e.dispatchThreadgroups(MTLSize(width:count,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:32,height:1,depth:1))}
+ if grouped{e.dispatchThreadgroups(MTLSize(width:max(1,count),height:1,depth:1),threadsPerThreadgroup:MTLSize(width:groupWidth,height:1,depth:1))}
  else{e.dispatchThreads(MTLSize(width:max(1,count),height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,pipe.maxTotalThreadsPerThreadgroup),height:1,depth:1))}
  e.endEncoding()
 }
@@ -60,13 +75,14 @@ func complete(_ cb:MTLCommandBuffer)throws->Double{
  try need(cb.status == .completed,"GPU command failure; recreate runtime")
  return cb.gpuEndTime-cb.gpuStartTime
 }
-struct BankPatch{let arity:Int;let old:Int;let count:Int;let updates:[UInt32]}
+struct BankPatch{let id:Int;let arity:Int;let old:Int;let count:Int;let updates:[UInt32]}
 func apply(_ words:[UInt32])throws->[String:Any]{
  var at=1
  func take()throws->UInt32{try need(at<words.count,"truncated patch");let v=words[at];at+=1;return v}
  let expected=try take(),newEpoch=try take(),newCount=Int(try take()),newTypes=Int(try take()),mergeCount=Int(try take()),seedCount=Int(try take()),bankCount=Int(try take())
  try need(expected==epoch && epoch<UInt32.max && newEpoch==epoch+1,"stale event epoch")
  try need(newCount>=factCount && newTypes==newCount-factCount,"fact growth")
+ try need(mode != "local" || (UInt64(newCount)*UInt64(period)<UInt64(UInt32.max) && UInt64(newCount)+64<UInt64(UInt32.max)),"logical time coordinate range")
  var nextTypes=types
  for _ in 0..<newTypes{let t=try take();try need(t<UInt32((libraryDescription["predicates"] as! [String]).count),"fact predicate type");nextTypes.append(t)}
  var merges:[UInt32]=[],seeds:[UInt32]=[],patches:[BankPatch]=[],seenBanks=Set<Int>()
@@ -78,8 +94,8 @@ func apply(_ words:[UInt32])throws->[String:Any]{
   let id=try take(),present=try take(),hide=try take();try need(id<UInt32(newCount) && present==1 && hide<=1,"external fact seed");seeds += [id,present,hide]
  }
  for _ in 0..<bankCount{
-  let k=Int(try take()),old=Int(try take()),n=Int(try take()),u=Int(try take())
-  try need(models[k] != nil && seenBanks.insert(k).inserted && (banks[k]?.count ?? 0)==old,"bank version or arity")
+  let id=Int(try take()),old=Int(try take()),n=Int(try take()),u=Int(try take()),k=arity(id)
+  try need(models[k] != nil && seenBanks.insert(id).inserted && (banks[id]?.count ?? 0)==old,"bank version or arity")
   var updates:[UInt32]=[],slots=Set<UInt32>()
   for _ in 0..<u{
    let slot=try take(),generation=try take(),target=try take()
@@ -88,7 +104,7 @@ func apply(_ words:[UInt32])throws->[String:Any]{
    for _ in 0..<k{let dep=try take();try need(dep<UInt32(newCount),"context dependency");updates.append(dep)}
   }
   if n>old{try need((old..<n).allSatisfy{slots.contains(UInt32($0))},"uninitialized grown context")}
-  patches.append(BankPatch(arity:k,old:old,count:n,updates:updates))
+  patches.append(BankPatch(id:id,arity:k,old:old,count:n,updates:updates))
  }
  try need(at==words.count,"extra patch payload")
  // Every input check precedes mutation. Control metadata never contains truth.
@@ -104,12 +120,12 @@ func apply(_ words:[UInt32])throws->[String:Any]{
  if mergeCount>0{launch(cb,"dyn_alias",[state,hidden,parent,shared(merges)],[UInt32(mergeCount)],1)}
  if seedCount>0{launch(cb,"dyn_seed",[state,hidden,parent,shared(seeds)],[UInt32(seedCount)],seedCount)}
  for change in patches{
-  let k=change.arity,n=change.count
-  if n==0{cleared+=change.old;banks.removeValue(forKey:k);continue}
-  let old=banks[k],cap=capacity(old?.capacity ?? 0,n)
+  let k=change.arity,n=change.count,id=change.id
+  if n==0{cleared+=change.old;banks.removeValue(forKey:id);continue}
+  let old=banks[id],cap=capacity(old?.capacity ?? 0,n)
   var bank:Bank
   if cap != old?.capacity{
-   bank=Bank(device,k,n,cap);resized+=1
+   bank=Bank(device,k,n,cap,mode != "local");resized+=1
    let b=cb.makeBlitCommandEncoder()!
    for buffer in [bank.rows,bank.x,bank.scores,bank.receipts]{b.fill(buffer:buffer,range:0..<buffer.length,value:0)}
    if let old=old{let keep=min(old.count,n);if keep>0{b.copy(from:old.rows,sourceOffset:0,to:bank.rows,destinationOffset:0,size:keep*(k+2)*4)}}
@@ -118,22 +134,96 @@ func apply(_ words:[UInt32])throws->[String:Any]{
    bank=old!;bank.count=n
    if n<change.old{
     let b=cb.makeBlitCommandEncoder()!
-    for (buffer,stride) in [(bank.rows,(k+2)*4),(bank.x,(k+1)*2),(bank.scores,4),(bank.receipts,12)]{b.fill(buffer:buffer,range:n*stride..<change.old*stride,value:0)}
+    var retired=[(bank.rows,(k+2)*4)]
+    if mode != "local"{retired += [(bank.x,(k+1)*2),(bank.scores,4),(bank.receipts,12)]}
+    for (buffer,stride) in retired{b.fill(buffer:buffer,range:n*stride..<change.old*stride,value:0)}
     b.endEncoding()
    }
   }
   cleared+=max(0,change.old-n);written+=change.updates.count/(k+3)
   if !change.updates.isEmpty{launch(cb,"dyn_rows",[shared(change.updates),bank.rows],[UInt32(change.updates.count/(k+3)),UInt32(k+2)],change.updates.count/(k+3))}
-  banks[k]=bank
+  banks[id]=bank
  }
  launch(cb,"dyn_reset_birth",[state,parent,birth],[UInt32(newCount)],newCount)
  let b=cb.makeBlitCommandEncoder()!,reset=shared([UInt32(1),0,0,0,0,newEpoch,0,0])
  b.copy(from:reset,sourceOffset:0,to:meta,destinationOffset:0,size:32);b.endEncoding()
  let seconds=try complete(cb)
+ phaseOffset=UInt32((UInt64(phaseOffset)+UInt64(lastMeta[2]))%UInt64(period))
+ forecastReady=false
+ // Forecasts are unpublished scratch. Expire them at the same boundary as
+ // their contexts, including releasing every buffer when the last one retires.
+ if mode=="local"{
+  distance=priv(4);futureDistance=priv(4);localHeads=priv(4);localLinks=priv(4);localRecords=priv(4)
+  localFactCapacity=0;localClauseCapacity=0
+ }
  epoch=newEpoch;factCount=newCount;types=nextTypes;lastMeta=[1,0,0,0,0,epoch,0,0]
  return ["gpu_seconds":seconds,"slots_cleared":cleared,"slots_written":written,"buffers_resized":resized]
 }
+func forecast()throws->(Double,Int,Int){
+ if forecastReady{return (0,0,0)}
+ let clauses=banks.values.map{$0.count}.reduce(0,+)
+ if clauses==0{forecastMax=0;forecastReady=true;return (0,0,0)}
+ localFactCapacity=factCount;localClauseCapacity=clauses
+ distance=priv(factCount*4);futureDistance=priv(factCount*4);localHeads=priv(factCount*4)
+ localLinks=priv(clauses*4);localRecords=priv(clauses*localStride*4)
+ var seconds=0.0,buffers=0
+ let initCB=queue.makeCommandBuffer()!
+ launch(initCB,"local_init",[state,hidden,parent,distance,localHeads],[UInt32(factCount)],factCount)
+ var base=0
+ for id in banks.keys.sorted(){let b=banks[id]!
+  launch(initCB,"local_index",[b.rows,parent,localHeads,localLinks,localRecords],
+         [UInt32(b.count),UInt32(arity(id)),UInt32(base),UInt32(localStride),UInt32(phase(id))],b.count)
+  base+=b.count
+ }
+ let reset=shared([UInt32(1),0,0,0,0,0,0,0]),blit=initCB.makeBlitCommandEncoder()!
+ blit.copy(from:reset,sourceOffset:0,to:localControl,destinationOffset:0,size:32);blit.endEncoding()
+ seconds+=try complete(initCB);buffers+=1
+ var statusWords=[UInt32](repeating:0,count:8)
+ repeat{
+  let cb=queue.makeCommandBuffer()!
+  for _ in 0..<8{
+   launch(cb,"local_begin_pass",[localControl],[0],1)
+   launch(cb,"local_relax",[distance,futureDistance,localHeads,localLinks,localRecords,hidden,localControl],
+          [UInt32(factCount),UInt32(localStride),UInt32(period),phaseOffset],(factCount+63)/64,true,nil,64)
+   launch(cb,"local_end_pass",[localControl],[UInt32(factCount)],1);swap(&distance,&futureDistance)
+  }
+  let b=cb.makeBlitCommandEncoder()!;b.copy(from:localControl,sourceOffset:0,to:localStatus,destinationOffset:0,size:32);b.endEncoding()
+  seconds+=try complete(cb);buffers+=1
+  statusWords=Array(UnsafeBufferPointer(start:localStatus.contents().bindMemory(to:UInt32.self,capacity:8),count:8))
+  try need(statusWords[4]==0,"local logical-time convergence proof failed")
+ }while statusWords[0] != 0
+ let cb=queue.makeCommandBuffer()!
+ launch(cb,"local_max_time",[distance,localControl],[UInt32(factCount)],factCount)
+ let b=cb.makeBlitCommandEncoder()!;b.copy(from:localControl,sourceOffset:0,to:localStatus,destinationOffset:0,size:32);b.endEncoding()
+ seconds+=try complete(cb);buffers+=1
+ forecastMax=localStatus.contents().bindMemory(to:UInt32.self,capacity:8)[3]
+ forecastReady=true;return (seconds,buffers,Int(statusWords[2]))
+}
+func localRun(_ rounds:Int?,_ exact:Bool=false)throws->[String:Any]{
+ let started=CFAbsoluteTimeGetCurrent(),oldRuns=lastMeta[2],oldFacts=lastMeta[4],reused=forecastReady
+ try need(period==1 || exact || rounds==nil,"multi-ruleset schedules use advance, not Repeat-one-ruleset")
+ if rounds==nil{try need((UInt64(phaseOffset)+UInt64(oldRuns))%UInt64(period)==0,"saturate must begin at a schedule cycle boundary")}
+ var (seconds,buffers,passes)=try forecast()
+ let quietEnd=((UInt64(phaseOffset)+UInt64(forecastMax)+UInt64(period)-1)/UInt64(period)+1)*UInt64(period)-UInt64(phaseOffset)
+ let limit=max(UInt64(oldRuns)+UInt64(period),quietEnd)
+ let requested=rounds.map{UInt64(oldRuns)+UInt64($0)} ?? limit
+ let end=exact ? requested : min(requested,limit)
+ try need(end<UInt64(UInt32.max),"logical Run counter exhausted")
+ let cb=queue.makeCommandBuffer()!,b=cb.makeBlitCommandEncoder()!
+ var reset=lastMeta;reset[0]=1;reset[1]=0;reset[2]=UInt32(end)
+ let data=shared(reset);b.copy(from:data,sourceOffset:0,to:meta,destinationOffset:0,size:32);b.endEncoding()
+ if localClauseCapacity>0{launch(cb,"local_reveal",[state,hidden,parent,birth,distance,meta],[UInt32(factCount),UInt32(end)],factCount)}
+ let copy=cb.makeBlitCommandEncoder()!;copy.copy(from:meta,sourceOffset:0,to:status,destinationOffset:0,size:32);copy.endEncoding()
+ seconds+=try complete(cb);buffers+=1
+ lastMeta=Array(UnsafeBufferPointer(start:status.contents().bindMemory(to:UInt32.self,capacity:8),count:8))
+ return ["gpu_seconds":seconds,"control_seconds":CFAbsoluteTimeGetCurrent()-started,"batches":buffers,
+         "submitted_buffers":buffers,"runs_in_epoch":lastMeta[2],"runs_executed":lastMeta[2]-oldRuns,
+         "updated":lastMeta[1] != 0,"any_updated":lastMeta[4]>oldFacts,"new_facts":lastMeta[4]-oldFacts,
+         "new_facts_in_epoch":lastMeta[4],"stale_receipts_rejected":0,"forecast_reused":reused,
+         "forecast_passes":passes,"forecast_max_logical_time":forecastMax]
+}
 func run(_ rounds:Int?)throws->[String:Any]{
+ if mode=="local"{return try localRun(rounds)}
  let started=CFAbsoluteTimeGetCurrent();let oldRuns=lastMeta[2],oldFacts=lastMeta[4]
  var seconds=0.0,batches=0,remaining=rounds ?? Int.max
  // An explicit new Run after a quiet boundary is still a legal quiet Run.
@@ -190,6 +280,7 @@ while true{
    if words[0]==2{try need(words.count==3 && words[2]>0,"Run count");return try run(Int(words[2]))}
    if words[0]==3{try need(words.count==2,"Saturate shape");return try run(nil)}
    if words[0]==4{try need(words.count==2,"snapshot shape");payload=try snapshot();return [:]}
+   if words[0]==5{try need(mode=="local" && words.count==3 && words[2]>0,"advance shape");return try localRun(Int(words[2]),true)}
    throw NSError(domain:"unknown command",code:1)
   }
   info["ok"]=true;info["epoch"]=epoch;info["fact_count"]=factCount;info["mode"]=mode
@@ -197,6 +288,9 @@ while true{
   info["context_reserved_bytes"]=banks.values.map{$0.bytes}.reduce(0,+)
   info["context_capacity"]=banks.values.map{$0.capacity}.reduce(0,+)
   info["fact_capacity"]=factCapacity
+  info["phase_offset"]=phaseOffset
+  info["forecast_ready"]=forecastReady
+  info["forecast_reserved_bytes"]=mode=="local" && forecastReady && localClauseCapacity>0 ? distance.length+futureDistance.length+localHeads.length+localLinks.length+localRecords.length : 0
   info["device_allocated_bytes"]=device.currentAllocatedSize
   try respond(info,payload)
  }catch{try respond(["ok":false,"epoch":epoch,"error":String(describing:error)])}

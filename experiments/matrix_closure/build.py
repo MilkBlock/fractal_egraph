@@ -19,8 +19,9 @@ if __name__=='__main__':
     data={'scope':'standalone matrix closure with real native typed rules',
           'sources':{str(HERE/name):sha(HERE/name) for name in [
               'build.py','compiler.py','kernel.metal','worker.swift','run.py',
-              'dynamic.py','dynamic_client.py','dynamic_events.py','dynamic.metal','dynamic_worker.swift',
-              'dynamic_fixture.egg','verify_dynamic.py','verify_dynamic_raytrace.py','replay_dynamic.py']},
+              'dynamic.py','dynamic_client.py','dynamic_events.py','dynamic.metal','local.metal','dynamic_worker.swift',
+              'dynamic_fixture.egg','verify_dynamic.py','verify_dynamic_raytrace.py','replay_dynamic.py',
+              'scheduled_fixture.egg','verify_scheduled.py','audit_dynamic.py']},
           'worker_sha256':sha(a.output/'worker'),
           'dynamic_worker_sha256':sha(a.output/'dynamic-worker'),
           'oracle':json.loads((a.output/'oracle/build.json').read_text())}

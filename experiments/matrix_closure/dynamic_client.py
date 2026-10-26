@@ -42,6 +42,7 @@ class Resident:
         if patch['words'] is None:return dict(self.last_info,no_op_patch=True)
         return self.send(patch['words'])[0]
     def step(self,n=1):return self.send([2,self.epoch,n])[0]
+    def advance(self,n=1):return self.send([5,self.epoch,n])[0]
     def saturate(self):return self.send([3,self.epoch])[0]
     def snapshot(self):
         info,payload=self.send([4,self.epoch]);n=info['fact_count']

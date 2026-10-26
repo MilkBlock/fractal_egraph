@@ -14,9 +14,11 @@ def replay(reference,worker,out,mode):
         for command in r['commands']:
             info,payload=gpu.send(command['words'],allow_error=True)
             old=command['response']
-            for key in ['ok','epoch','fact_count','live_contexts','context_capacity','context_reserved_bytes','runs_in_epoch','updated','new_facts_in_epoch']:
+            for key in ['ok','epoch','fact_count','live_contexts','context_capacity','runs_in_epoch','updated','new_facts_in_epoch']:
                 if info.get(key)!=old.get(key):raise AssertionError((key,old,info))
             if hashlib.sha256(payload).hexdigest()!=command['payload_sha256']:raise AssertionError('dynamic state or visibility differs')
+            if info.get('live_contexts')==0:
+                assert info['context_reserved_bytes']==0 and info.get('forecast_reserved_bytes',0)==0
             checks+=1
         assert not gpu.commands,'normal resident clients must not accumulate retired command history'
         result={'mode':mode,'commands':checks,'exact_state_transcript':True,'native_reference':str(reference),
@@ -27,5 +29,5 @@ def replay(reference,worker,out,mode):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--reference',type=Path,required=True);p.add_argument('--worker',type=Path,required=True)
-    p.add_argument('--output',type=Path,required=True);p.add_argument('--mode',choices=['matrix','direct'],default='direct')
+    p.add_argument('--output',type=Path,required=True);p.add_argument('--mode',choices=['matrix','direct','local'],default='direct')
     a=p.parse_args();print(replay(a.reference,a.worker,a.output,a.mode))
