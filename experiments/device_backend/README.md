@@ -2,7 +2,7 @@
 
 The CPU keeps native parsing, typechecking and schedule control. Metal owns the evolving tables, matching, RHS actions, union-find and rebuild. Normal execution returns status/timing data, never bindings for CPU-side RHS execution.
 
-This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; RHS effects and merge callbacks are committed serially. It has completed all 10,097 raytrace Pass 3 Runs through saved device continuations. Strict final graph/selected-DAG equality has **not** passed; production Tiger emits 29 functions on both sides, and a separate production-interpreter check agrees on raytrace's official input. That finite-input result is not an equivalence proof. There is no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading, the ridge predictor and Tensor Core matching are not connected here.
+This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; necessary RHS effects and merge callbacks are committed serially. It has completed all 10,097 raytrace Pass 3 Runs from the original input, without CPU inference, matching the logical endpoint of the earlier device continuations. Strict final graph/selected-DAG equality with native has **not** passed; production Tiger emits 29 functions on both sides, and a separate production-interpreter check agrees on raytrace's official input plus three varied inputs. That finite-input result is not an equivalence proof. There is no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading, the ridge predictor and Tensor Core matching are not connected here.
 
 ## Run and verify
 
@@ -176,9 +176,9 @@ scanning the table took 46.90 seconds; complete-key subsumption took 33 ms for
 the entire Run. The final device checkpoints are byte-identical. This isolates
 a backend lookup bug/optimization, not Cell credit or full-program acceleration.
 
-The current suite passes 42 checks, including canonical GPU-only restoration,
-512-way congruence and exact ordering of 1024 parallel bindings. Full GPU output
-and production extraction validation remain pending.
+The regression suite includes canonical GPU-only restoration, 512-way congruence
+and exact ordering of 1024 parallel bindings. The final strict extraction check
+and finite-input execution check are separate; see below.
 
 ## Resumable merge-index refresh
 
@@ -201,3 +201,108 @@ Reports separate startup, schedule execution, state-export I/O and validation.
 `inference_seconds` is provided only without periodic checks, intermediate snapshots,
 phase logs or Metal validation. The start allocation metric is Metal resource
 allocation, not process RSS. A resumed suffix is never a full-run timing.
+
+## Used-column indexes and typed seed dispatch
+
+Query-index sorting uses stable four-bit digits. SIMD prefix sums count entries
+within each digit; group offsets preserve the original row order. The compiler
+also routes a seed row only to rules with a compatible first branching table.
+Grounded queries still execute once, including on an empty graph. Rules with
+several seed types keep all variants; final binding order and RHS remain unchanged.
+`--radix-digit-bits 1` and `--flat-dispatch` preserve the old execution variants.
+
+The same 3,865-Run suffix from checkpoint 6,232 has byte-identical final device
+states for these changes (699,784 rows):
+
+| Variant | GPU prepare | GPU match | GPU commit/rebuild | GPU total |
+|---|---:|---:|---:|---:|
+| Index all columns, binary radix | 46.01 s | 15.02 s | 13.86 s | 74.88 s |
+| Index used columns | 17.16 s | 14.44 s | 13.91 s | 45.50 s |
+| Four-bit stable radix | 10.01 s | 14.51 s | 13.71 s | 38.23 s |
+| Dispatch by seed type | 9.79 s | 4.94 s | 13.60 s | 28.34 s |
+
+These are backend improvements, not Cell-specific credit or a complete Pass 3
+speedup. The original all-column control was a diagnostic run with periodic
+snapshots (copies excluded from GPU phase times). The last three are clean suffix
+timings. Evidence: `used-index-results.json`, `radix-results.json`, and
+`seed-dispatch-results.json`. The current regression suite has 48 checks,
+including the stable/unstable RHS cases below. A separate snapshot/extraction
+suite has 10 checks.
+
+## Interpreting selected programs
+
+`check_selected_execution.py` loads the actual production Tiger output through
+eggcc's `FromEgglog`, preserving shared `Rc` identities, then executes it with
+eggcc's `interpret_dag_prog`. It does not implement a replacement evaluator. The
+test driver injects state parameters from the function signature and accepts
+primitive JSON input arguments; pointer inputs/returns require a different
+observational checker and are rejected here. Returned float bits and print logs
+are compared exactly.
+
+```sh
+python3 experiments/device_backend/check_selected_execution.py \
+  --eggcc /path/to/check_statewalk --build out/selected-vm \
+  --target /path/to/check_statewalk/target \
+  --library-path /opt/homebrew/opt/cbc/lib \
+  --before native-selected.egg --after gpu-selected.egg \
+  --inputs experiments/device_backend/fixtures/raytrace-inputs.json \
+  --output out/selected-execution
+```
+
+The first input is the benchmark's official arguments; the other three vary the
+scene parameters. `selected-execution-results.json` records agreement for all
+four, despite nine structurally different Function roots. These tests **do not
+replace** the failed strict DAG comparison, prove general equivalence, measure
+generated-machine-code quality, or establish a backend speedup.
+The original `raytrace` main prints only one scalar, not the rendered screen;
+the four checks therefore do not validate every computed pixel.
+
+## Stable empty RHS proofs
+
+Before ordered submission, the GPU may prove that a binding's entire RHS is
+empty **and stays empty for the rest of this action phase**. It can reuse an
+existing constructor (including hidden rows), an already-true equality, an
+already-hidden subsumption, or a non-improving min/max update. Arithmetic must
+succeed. Mutable function reads, allocating set operations, panics, and
+old/new/custom merge policies are not certified. Seminaive fact-free one-shot
+initializers do not get unrolled proofs.
+
+This depends on deferred unions: canonical keys cannot move while the ordered
+RHS batch is submitted. Hiding is monotone, an existing equality remains true,
+and min/max can only move farther in the direction that makes the certified
+write redundant. Unsupported or unproven cases execute their original RHS.
+Logical match counts, watermarks, source scheduling and the order of remaining
+actions are unchanged. This is a generic backend optimization, not Cell proof
+credit or sat-skip.
+
+Proofs are compiled into direct scalar code and use the existing rule-sorted
+binding permutation, so adjacent GPU lanes run the same program. They share
+the RHS command buffer. `noop_preflight_seconds: null` means no independent
+timestamp was taken; `rhs_commit_includes_preflight` marks that inclusion per
+command. `parallel_rebuild` is measured separately. `--no-noop-preflight` is the
+control. The unsuccessful bytecode version and its regression remain in the
+performance record, rather than being presented as an optimization.
+
+`full-pass3-results.json` records single clean runs from the original input,
+with no CPU rule execution. The source schedule has 10,097 Runs:
+
+| Execution | Complete inference | Notes |
+|---|---:|---|
+| Current local native kernel | 23.11 s | Historical unchanged control; not pristine upstream |
+| GPU, used indexes + four-bit radix + seed dispatch | 64.21 s | Complete fresh execution |
+| GPU, bytecode no-op filter | 103.02 s | Rejected implementation; extra work outweighed savings |
+| GPU, direct compiled proofs fused with RHS | 54.65 s | 1,539,006 empty RHS submissions skipped |
+
+The last GPU result has exactly the same final device state as its 64.21-second
+control. It is **still slower than native**. Its 54.65 seconds include host
+schedule/command wait; device time is 45.61 seconds. Startup was 0.94 seconds
+with a warm Metal compilation cache, reported separately. Cold compilation has
+taken around 70 seconds and must not be mistaken for this warm startup result.
+The proofs are not matrix/Tensor Core execution, and the backend does not yet
+load automatic Cell/ridge plans.
+
+`compare_runs.py --device-states --endpoints-only` checks the identical original
+typed program, executed schedule and final state across a fresh execution and a
+continuation, without a timing ratio. Only unused slots beyond each table's
+declared row arity are ignored; visibility, timestamps, fact IDs, all declared
+values, sets and equality classes are still compared.

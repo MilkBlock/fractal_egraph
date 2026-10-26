@@ -123,12 +123,12 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
 // QUERY_INDEX
 // DEVICE_ACTIONS
 kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],uint i[[thread_position_in_grid]]){if(i<IDCAP){p[i]=i;fp[i]=i;}}
-#define KERNEL_ARGS device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],device uint*control[[buffer(12)]],device uint*match_order[[buffer(15)]],uint lane[[thread_position_in_grid]]
+#define KERNEL_ARGS device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],device uint*control[[buffer(12)]],device uint*match_order[[buffer(15)]],device uint*noop[[buffer(18)]],uint lane[[thread_position_in_grid]]
 // PARALLEL_REBUILD
 // PARALLEL_QUERY
 // MATCH_SORT
 kernel void prepare(KERNEL_ARGS){
- if(lane||m.error)return;m.changed=0;m.matched=0;
+ if(lane||m.error)return;m.changed=0;m.matched=0;control[11]=0;
  if(m.epoch==0xffffffff){m.error=6;return;}m.epoch++;m.rounds++;r[ROW_WORDS+1]=m.epoch;
  bool reset=!INCREMENTAL_QUERY||m.rounds==1||r[QUERY_DIRTY]!=0;
  control[0]=reset;control[1]=reset?0:qheads[2*QBUCKETS];
@@ -148,11 +148,22 @@ kernel void prepare_build(KERNEL_ARGS){
  r[QUERY_DIRTY]=0;
  ensure_row_index(r,p,m);
 }
+kernel void check_empty_effects(KERNEL_ARGS){
+ if(!NOOP_PREFLIGHT||m.error||lane>=m.matched)return;
+ // Consume the existing rule-sorted permutation: adjacent lanes execute the
+ // same bytecode, rather than diverging across arbitrarily interleaved rules.
+ uint binding=m.matched>1?match_order[lane]:lane;
+ bool empty=DEFER_UNIONS[set]&&actions_stably_empty(uint(matches[binding*MSTRIDE]),binding,code,matches,r);
+ noop[binding]=uint(empty);
+ if(empty)atomic_fetch_add_explicit((device atomic_uint*)&control[11],1u,memory_order_relaxed);
+}
 kernel void commit_effects(KERNEL_ARGS){
  if(lane||m.error)return;uint startUnions=m.unions;
  p[IDCAP]=DEFER_UNIONS[set];p[IDCAP+1]=0;
  for(uint mi=0;mi<m.matched;mi++){
-  uint binding=QUERY_PARALLEL[set]&&m.matched>1?match_order[mi]:mi;uint rule=uint(matches[binding*MSTRIDE]);execute_actions(rule,binding,code,registers,matches,r,p,fp,m);
+  uint binding=QUERY_PARALLEL[set]&&m.matched>1?match_order[mi]:mi;
+  if(NOOP_PREFLIGHT&&QUERY_PARALLEL[set]&&noop[binding])continue;
+  uint rule=uint(matches[binding*MSTRIDE]);execute_actions(rule,binding,code,registers,matches,r,p,fp,m);
   if(m.error)return;
  }
  p[IDCAP]=0;for(uint i=0;i<p[IDCAP+1];i++)unite_now(p,p[IDCAP+2+2*i],p[IDCAP+3+2*i],m);

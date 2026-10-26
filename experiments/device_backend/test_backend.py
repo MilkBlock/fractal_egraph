@@ -40,6 +40,16 @@ def tests(build,out):
  assert flat['steps']==results['delta-join']['steps']
  assert json.loads((out/'flat-dispatch/gpu-state.json').read_text())==json.loads((out/'delta-join/gpu-state.json').read_text())
  results['typed-seed-dispatch']=True
+ stable=run(HERE/'fixtures/stable-empty-rhs.egg',build,out/'stable-empty-rhs')
+ assert stable['rhs_noops_skipped']==2
+ reference=run(HERE/'fixtures/stable-empty-rhs.egg',build,out/'stable-empty-rhs-off',noop_preflight=False)
+ assert stable['steps']==reference['steps']
+ assert json.loads((out/'stable-empty-rhs/gpu-state.json').read_text())==json.loads((out/'stable-empty-rhs-off/gpu-state.json').read_text())
+ results['stable-empty-rhs']=stable
+ unstable=run(HERE/'fixtures/unstable-empty-rhs.egg',build,out/'unstable-empty-rhs')
+ assert unstable['rhs_noops_skipped']==0
+ results['reject-unstable-empty-rhs']=unstable
+ t=stable['timings_seconds'];assert abs(t['rhs_commit']+t['parallel_rebuild']+(t['noop_preflight'] or 0)-t['commit'])<1e-7
  assert {'pure','mixed'}<=set(results['deferred-union']['deferred_rulesets'])
  # Eager union is a diagnostic counterfactual, and is known to lose a merge
  # constructor in this case. Never silently bless it as native-equivalent.

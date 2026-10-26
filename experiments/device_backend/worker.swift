@@ -13,6 +13,7 @@ let preparePipeline=try device.makeComputePipelineState(function:lib.makeFunctio
 let prepareClearPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"prepare_clear")!)
 let prepareBuildPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"prepare_build")!)
 let commitPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"commit_effects")!)
+let noopPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"check_empty_effects")!)
 let rebuildPipelines=try ["rebuild_start","rebuild_canonical","rebuild_insert","rebuild_assign","merge_scan","merge_offsets","merge_scatter","rebuild_merge","compact_scan","compact_offsets","compact_copy","compact_store"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 try need(rebuildPipelines[4].maxTotalThreadsPerThreadgroup>=256 && rebuildPipelines[8].maxTotalThreadsPerThreadgroup>=256,"rebuild scans require 256-thread groups")
 let rowIndexPipelines=try ["row_index_context","row_index_clear","row_index_parallel","row_index_ready"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
@@ -34,6 +35,7 @@ let queryHeads=privateBuffer((program["query_head_words"] as! Int)*4),queryLinks
 let rebuildControl=privateBuffer(48)
 let queryAlternate=privateBuffer((program["query_sort_words"] as! Int)*8)
 let matchOrder=privateBuffer((program["match_order_capacity"] as! Int)*4)
+let noopFlags=privateBuffer(matchCapacity*4)
 let initialMeta=(program["meta"] as! [NSNumber]).map{$0.uint32Value}
 func initializeState() throws {
 let initial=(program["initial_rows"] as! [NSNumber]).map{$0.int64Value}
@@ -64,13 +66,14 @@ func encode(_ cb:MTLCommandBuffer,_ pipeline:MTLComputePipelineState,_ threads:I
  for (i,b) in [rows,old,parent,factParent,meta,matches,watermarks].enumerated(){e.setBuffer(b,offset:0,index:i)}
  e.setBuffer(instructions,offset:0,index:8);e.setBuffer(registers,offset:0,index:9);e.setBuffer(queryHeads,offset:0,index:10);e.setBuffer(queryLinks,offset:0,index:11);e.setBuffer(rebuildControl,offset:0,index:12);e.setBuffer(queryAlternate,offset:0,index:14);e.setBuffer(matchOrder,offset:0,index:15)
  var k=sortK,d=sortD;withUnsafeBytes(of:&k){e.setBytes($0.baseAddress!,length:4,index:16)};withUnsafeBytes(of:&d){e.setBytes($0.baseAddress!,length:4,index:17)}
+ e.setBuffer(noopFlags,offset:0,index:18)
  var bit=radixBit;withUnsafeBytes(of:&bit){e.setBytes($0.baseAddress!,length:4,index:13)}
  var set=arg;withUnsafeBytes(of:&set){e.setBytes($0.baseAddress!,length:4,index:7)}
  if indirect{e.dispatchThreadgroups(indirectBuffer:rebuildControl,indirectBufferOffset:indirectOffset,threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
  else{e.dispatchThreads(MTLSize(width:threads,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(threads,256,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))};e.endEncoding()
 }
 func copyStatus(_ cb:MTLCommandBuffer,_ status:MTLBuffer,_ flags:MTLBuffer){
- let b=cb.makeBlitCommandEncoder()!;b.copy(from:meta,sourceOffset:0,to:status,destinationOffset:0,size:36);b.copy(from:rows,sourceOffset:(program["index_counter_offset"] as! Int)*8,to:status,destinationOffset:36,size:8);b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:16);b.copy(from:rows,sourceOffset:(program["query_dirty_offset"] as! Int)*8,to:status,destinationOffset:44,size:8);b.copy(from:rows,sourceOffset:((program["index_counter_offset"] as! Int)-(program["hash_capacity"] as! Int)-1)*8,to:status,destinationOffset:52,size:8);b.endEncoding()
+ let b=cb.makeBlitCommandEncoder()!;b.copy(from:meta,sourceOffset:0,to:status,destinationOffset:0,size:36);b.copy(from:rows,sourceOffset:(program["index_counter_offset"] as! Int)*8,to:status,destinationOffset:36,size:8);b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:16);b.copy(from:rows,sourceOffset:(program["query_dirty_offset"] as! Int)*8,to:status,destinationOffset:44,size:8);b.copy(from:rows,sourceOffset:((program["index_counter_offset"] as! Int)-(program["hash_capacity"] as! Int)-1)*8,to:status,destinationOffset:52,size:8);b.copy(from:rebuildControl,sourceOffset:44,to:status,destinationOffset:60,size:4);b.endEncoding()
 }
 try FileHandle.standardError.write(contentsOf:Data("device allocated_bytes=\(device.currentAllocatedSize)\n".utf8))
 let input=FileHandle.standardInput,output=FileHandle.standardOutput
@@ -79,7 +82,7 @@ func send(_ x:[UInt32])throws{try x.withUnsafeBytes{try output.write(contentsOf:
 var hostMeta=initialMeta
 var needsIndexReset=true
 var needsRowIndex=true
-try output.write(contentsOf:Data("DVB4".utf8))
+try output.write(contentsOf:Data("DVB6".utf8))
 while true{
  let d=try read(8),words=d.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let op=words[0],arg=words[1]
  if op==0{break}
@@ -87,9 +90,9 @@ while true{
   try need(Int(arg)<(program["sets"] as! [String]).count,"ruleset")
   if ProcessInfo.processInfo.environment["EGG_DEVICE_PHASE_LOG"]=="1"{try FileHandle.standardError.write(contentsOf:Data("device begin round=\(hostMeta[6]+1) set=\((program["sets"] as! [String])[Int(arg)]) rows=\(hostMeta[0])\n".utf8))}
   let parallelMatch=(program["parallel_match_sets"] as! [NSNumber])[Int(arg)].boolValue
-  var commands:[MTLCommandBuffer]=[];var orderCommand:MTLCommandBuffer?=nil
+  var commands:[MTLCommandBuffer]=[];var orderCommand:MTLCommandBuffer?=nil;var noopFused=false
   let matchStatus=device.makeBuffer(length:36,options:.storageModeShared)!
-  let status=device.makeBuffer(length:60,options:.storageModeShared)!,flags=device.makeBuffer(length:16,options:.storageModeShared)!
+  let status=device.makeBuffer(length:64,options:.storageModeShared)!,flags=device.makeBuffer(length:16,options:.storageModeShared)!
   for (stage,pipeline) in [preparePipeline,stepPipelines[Int(arg)],commitPipeline].enumerated(){
    if stage==2 && parallelMatch {
     commands[1].waitUntilCompleted();try need(commands[1].status == .completed,"parallel match failed: \(String(describing:commands[1].error))")
@@ -104,7 +107,12 @@ while true{
      if ProcessInfo.processInfo.environment["EGG_DEVICE_PHASE_LOG"]=="1"{sorted.waitUntilCompleted();try FileHandle.standardError.write(contentsOf:Data("device sorting complete count=\(info[5]) status=\(sorted.status.rawValue)\n".utf8))}
     }
    }
-   let cb=queue.makeCommandBuffer()!;encode(cb,pipeline,stage==1 && parallelMatch ? max(1,Int(hostMeta[0])):1,arg)
+   let cb=queue.makeCommandBuffer()!
+   if stage==2 && parallelMatch && program["noop_preflight"] as! Bool {
+    let info=matchStatus.contents().bindMemory(to:UInt32.self,capacity:9)
+    if info[4]==0 && info[5]>0{encode(cb,noopPipeline,Int(info[5]),arg);noopFused=true}
+   }
+   encode(cb,pipeline,stage==1 && parallelMatch ? max(1,Int(hostMeta[0])):1,arg)
    if stage==0{
     if program["parallel_prepare"] as! Bool {
      if needsRowIndex{encode(cb,rowIndexPipelines[0],1,arg);encode(cb,rowIndexPipelines[1],program["hash_capacity"] as! Int,arg);encode(cb,rowIndexPipelines[2],max(1,Int(hostMeta[0])),arg);encode(cb,rowIndexPipelines[3],1,arg)}
@@ -162,7 +170,9 @@ while true{
   needsIndexReset=status.contents().bindMemory(to:UInt32.self,capacity:15)[11] != 0
   needsRowIndex=status.contents().bindMemory(to:UInt32.self,capacity:15)[13] != status.contents().bindMemory(to:UInt32.self,capacity:15)[7]+1
   hostMeta=Array(UnsafeBufferPointer(start:status.contents().bindMemory(to:UInt32.self,capacity:9),count:9));try send(hostMeta)
-  var seconds=commands.map{$0.gpuEndTime-$0.gpuStartTime};seconds[2]+=rebuildSeconds;if let sorted=orderCommand{seconds[1]+=sorted.gpuEndTime-sorted.gpuStartTime};try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))};try output.write(contentsOf:Data(bytes:status.contents().advanced(by:36),count:8))
+  // The no-op filter and RHS share a command buffer. Do not add an otherwise
+  // unnecessary submission merely to obtain a separate GPU timestamp.
+  var seconds=commands.map{$0.gpuEndTime-$0.gpuStartTime};let rhsSeconds=seconds[2];seconds[2]+=rebuildSeconds;if let sorted=orderCommand{seconds[1]+=sorted.gpuEndTime-sorted.gpuStartTime};seconds.append(rhsSeconds);seconds.append(rebuildSeconds);seconds.append(noopFused ? -1 : 0);try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))};try output.write(contentsOf:Data(bytes:status.contents().advanced(by:36),count:8));try output.write(contentsOf:Data(bytes:status.contents().advanced(by:60),count:4))
  }else if op==2{
   // Explicit checkpoint only. No table contents are read by the control loop.
   let cb=queue.makeCommandBuffer()!,b=cb.makeBlitCommandEncoder()!
