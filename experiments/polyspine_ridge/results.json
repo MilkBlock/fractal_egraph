@@ -1,0 +1,1247 @@
+{
+  "schema": "polyspine-ridge-results/v1",
+  "scope": "offline native Pass-3 stage-boundary prediction",
+  "dataset": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/polyspine-pass3-data",
+  "dataset_sha256": "65efecab64ce508c671e822c53659fe8886e52088845a0300ebe99e9a9c0f34a",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "frontend_sha256": "55b78ec3c6249184a12335d0f7775b378e600a2fd25161bb4855feb542911e46",
+  "study_sources": {
+    "study.py": "3629d50de97f8e22b9ab9f421b10d1377b080fff000434681c39bf6bda456f03",
+    "features.py": "ca3b0b0608ef89759679b3ac93ea0f73d42f987b1ae63a61fad3468fbd273fb4"
+  },
+  "native_runs": 10121,
+  "native_trace_exact": true,
+  "frames": 48,
+  "stages": [
+    "type-analysis",
+    "always-run",
+    "is-resolved",
+    "terms"
+  ],
+  "variants": [
+    {
+      "variant": "structure",
+      "heads": [
+        {
+          "stage": "type-analysis",
+          "target": "HasType",
+          "train_rows": 107328,
+          "test_rows": 140644,
+          "test": {
+            "tp": 113677,
+            "fp": 13,
+            "fn": 5,
+            "tn": 26949,
+            "precision": 0.9998856539713256,
+            "recall": 0.9999560176633064,
+            "accuracy": 0.9998720172918859,
+            "brier": 0.000514929304504234
+          },
+          "pending": {
+            "tp": 74,
+            "fp": 13,
+            "fn": 0,
+            "tn": 26949,
+            "precision": 0.8505747126436781,
+            "recall": 1.0,
+            "accuracy": 0.9995191596389998,
+            "brier": 0.0016152576799726044
+          },
+          "prior": {
+            "tp": 113682,
+            "fp": 26962,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8082961235459742,
+            "recall": 1.0,
+            "accuracy": 0.8082961235459742,
+            "brier": 0.17596670399984796
+          },
+          "unseen_signature_test": {
+            "tp": 3358,
+            "fp": 13,
+            "fn": 5,
+            "tn": 145,
+            "precision": 0.9961435775734203,
+            "recall": 0.9985132322331252,
+            "accuracy": 0.9948878159613747,
+            "brier": 0.012531155749847665
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "always-run",
+          "target": "ExprIsPure",
+          "train_rows": 107378,
+          "test_rows": 140644,
+          "test": {
+            "tp": 26205,
+            "fp": 1542,
+            "fn": 5059,
+            "tn": 107838,
+            "precision": 0.944426424478322,
+            "recall": 0.8381844933469805,
+            "accuracy": 0.9530658968743778,
+            "brier": 0.04658904220721801
+          },
+          "pending": {
+            "tp": 29,
+            "fp": 1542,
+            "fn": 18,
+            "tn": 107838,
+            "precision": 0.018459579885423297,
+            "recall": 0.6170212765957447,
+            "accuracy": 0.985743920604604,
+            "brier": 0.019774759060842136
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 31264,
+            "tn": 109380,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.7777082563067035,
+            "brier": 0.17299904226452179
+          },
+          "unseen_signature_test": {
+            "tp": 366,
+            "fp": 105,
+            "fn": 160,
+            "tn": 2890,
+            "precision": 0.7770700636942676,
+            "recall": 0.6958174904942965,
+            "accuracy": 0.9247372905424596,
+            "brier": 0.08557191259776468
+          },
+          "contradictory_test_signatures": 102,
+          "signature_irreducible_errors": 3460
+        },
+        {
+          "stage": "is-resolved",
+          "target": "ExprIsResolved",
+          "train_rows": 113435,
+          "test_rows": 141000,
+          "test": {
+            "tp": 114206,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9999212012432692,
+            "recall": 1.0,
+            "accuracy": 0.9999361702127659,
+            "brier": 0.0002703444573271924
+          },
+          "pending": {
+            "tp": 490,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9819639278557114,
+            "recall": 1.0,
+            "accuracy": 0.9996701363436447,
+            "brier": 0.0010742734474505158
+          },
+          "prior": {
+            "tp": 114206,
+            "fp": 26794,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8099716312056737,
+            "recall": 1.0,
+            "accuracy": 0.8099716312056737,
+            "brier": 0.17563018388879473
+          },
+          "unseen_signature_test": {
+            "tp": 2909,
+            "fp": 9,
+            "fn": 0,
+            "tn": 142,
+            "precision": 0.9969156956819739,
+            "recall": 1.0,
+            "accuracy": 0.9970588235294118,
+            "brier": 0.0036316499003357433
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "terms",
+          "target": "ExtractedExpr",
+          "train_rows": 121727,
+          "test_rows": 141120,
+          "test": {
+            "tp": 31902,
+            "fp": 2125,
+            "fn": 11839,
+            "tn": 95254,
+            "precision": 0.9375495929702883,
+            "recall": 0.729338606799113,
+            "accuracy": 0.9010487528344672,
+            "brier": 0.08396120424289641
+          },
+          "pending": {
+            "tp": 393,
+            "fp": 2125,
+            "fn": 70,
+            "tn": 95254,
+            "precision": 0.15607625099285147,
+            "recall": 0.8488120950323974,
+            "accuracy": 0.9775658715071237,
+            "brier": 0.03872487927484066
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 43741,
+            "tn": 97379,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.6900439342403628,
+            "brier": 0.21498480218985236
+          },
+          "unseen_signature_test": {
+            "tp": 346,
+            "fp": 181,
+            "fn": 197,
+            "tn": 1302,
+            "precision": 0.6565464895635673,
+            "recall": 0.6372007366482505,
+            "accuracy": 0.8134254689042448,
+            "brier": 0.1827354816175869
+          },
+          "contradictory_test_signatures": 213,
+          "signature_irreducible_errors": 9266
+        }
+      ],
+      "fit_and_score_seconds": 0.1259144590003416
+    },
+    {
+      "variant": "stage",
+      "heads": [
+        {
+          "stage": "type-analysis",
+          "target": "HasType",
+          "train_rows": 107328,
+          "test_rows": 140644,
+          "test": {
+            "tp": 113677,
+            "fp": 13,
+            "fn": 5,
+            "tn": 26949,
+            "precision": 0.9998856539713256,
+            "recall": 0.9999560176633064,
+            "accuracy": 0.9998720172918859,
+            "brier": 0.0005150340642378032
+          },
+          "pending": {
+            "tp": 74,
+            "fp": 13,
+            "fn": 0,
+            "tn": 26949,
+            "precision": 0.8505747126436781,
+            "recall": 1.0,
+            "accuracy": 0.9995191596389998,
+            "brier": 0.001615329020915731
+          },
+          "prior": {
+            "tp": 113682,
+            "fp": 26962,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8082961235459742,
+            "recall": 1.0,
+            "accuracy": 0.8082961235459742,
+            "brier": 0.175966703999848
+          },
+          "unseen_signature_test": {
+            "tp": 3358,
+            "fp": 13,
+            "fn": 5,
+            "tn": 145,
+            "precision": 0.9961435775734203,
+            "recall": 0.9985132322331252,
+            "accuracy": 0.9948878159613747,
+            "brier": 0.012536734280451628
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "always-run",
+          "target": "ExprIsPure",
+          "train_rows": 107378,
+          "test_rows": 140644,
+          "test": {
+            "tp": 26205,
+            "fp": 1542,
+            "fn": 5059,
+            "tn": 107838,
+            "precision": 0.944426424478322,
+            "recall": 0.8381844933469805,
+            "accuracy": 0.9530658968743778,
+            "brier": 0.04658904220721801
+          },
+          "pending": {
+            "tp": 29,
+            "fp": 1542,
+            "fn": 18,
+            "tn": 107838,
+            "precision": 0.018459579885423297,
+            "recall": 0.6170212765957447,
+            "accuracy": 0.985743920604604,
+            "brier": 0.019774759060842136
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 31264,
+            "tn": 109380,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.7777082563067035,
+            "brier": 0.17299904226452179
+          },
+          "unseen_signature_test": {
+            "tp": 366,
+            "fp": 105,
+            "fn": 160,
+            "tn": 2890,
+            "precision": 0.7770700636942676,
+            "recall": 0.6958174904942965,
+            "accuracy": 0.9247372905424596,
+            "brier": 0.08557191259776468
+          },
+          "contradictory_test_signatures": 102,
+          "signature_irreducible_errors": 3460
+        },
+        {
+          "stage": "is-resolved",
+          "target": "ExprIsResolved",
+          "train_rows": 113435,
+          "test_rows": 141000,
+          "test": {
+            "tp": 114206,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9999212012432692,
+            "recall": 1.0,
+            "accuracy": 0.9999361702127659,
+            "brier": 0.0002703444573271924
+          },
+          "pending": {
+            "tp": 490,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9819639278557114,
+            "recall": 1.0,
+            "accuracy": 0.9996701363436447,
+            "brier": 0.0010742734474505158
+          },
+          "prior": {
+            "tp": 114206,
+            "fp": 26794,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8099716312056737,
+            "recall": 1.0,
+            "accuracy": 0.8099716312056737,
+            "brier": 0.17563018388879473
+          },
+          "unseen_signature_test": {
+            "tp": 2909,
+            "fp": 9,
+            "fn": 0,
+            "tn": 142,
+            "precision": 0.9969156956819739,
+            "recall": 1.0,
+            "accuracy": 0.9970588235294118,
+            "brier": 0.0036316499003357433
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "terms",
+          "target": "ExtractedExpr",
+          "train_rows": 121727,
+          "test_rows": 141120,
+          "test": {
+            "tp": 31902,
+            "fp": 2125,
+            "fn": 11839,
+            "tn": 95254,
+            "precision": 0.9375495929702883,
+            "recall": 0.729338606799113,
+            "accuracy": 0.9010487528344672,
+            "brier": 0.08396120424289641
+          },
+          "pending": {
+            "tp": 393,
+            "fp": 2125,
+            "fn": 70,
+            "tn": 95254,
+            "precision": 0.15607625099285147,
+            "recall": 0.8488120950323974,
+            "accuracy": 0.9775658715071237,
+            "brier": 0.03872487927484066
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 43741,
+            "tn": 97379,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.6900439342403628,
+            "brier": 0.21498480218985236
+          },
+          "unseen_signature_test": {
+            "tp": 346,
+            "fp": 181,
+            "fn": 197,
+            "tn": 1302,
+            "precision": 0.6565464895635673,
+            "recall": 0.6372007366482505,
+            "accuracy": 0.8134254689042448,
+            "brier": 0.1827354816175869
+          },
+          "contradictory_test_signatures": 213,
+          "signature_irreducible_errors": 9266
+        }
+      ],
+      "fit_and_score_seconds": 0.09759745799237862
+    },
+    {
+      "variant": "interfaces",
+      "heads": [
+        {
+          "stage": "type-analysis",
+          "target": "HasType",
+          "train_rows": 107328,
+          "test_rows": 140644,
+          "test": {
+            "tp": 113677,
+            "fp": 13,
+            "fn": 5,
+            "tn": 26949,
+            "precision": 0.9998856539713256,
+            "recall": 0.9999560176633064,
+            "accuracy": 0.9998720172918859,
+            "brier": 0.0005150340642378032
+          },
+          "pending": {
+            "tp": 74,
+            "fp": 13,
+            "fn": 0,
+            "tn": 26949,
+            "precision": 0.8505747126436781,
+            "recall": 1.0,
+            "accuracy": 0.9995191596389998,
+            "brier": 0.001615329020915731
+          },
+          "prior": {
+            "tp": 113682,
+            "fp": 26962,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8082961235459742,
+            "recall": 1.0,
+            "accuracy": 0.8082961235459742,
+            "brier": 0.175966703999848
+          },
+          "unseen_signature_test": {
+            "tp": 3358,
+            "fp": 13,
+            "fn": 5,
+            "tn": 145,
+            "precision": 0.9961435775734203,
+            "recall": 0.9985132322331252,
+            "accuracy": 0.9948878159613747,
+            "brier": 0.012536734280451628
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "always-run",
+          "target": "ExprIsPure",
+          "train_rows": 107378,
+          "test_rows": 140644,
+          "test": {
+            "tp": 26291,
+            "fp": 1531,
+            "fn": 4973,
+            "tn": 107849,
+            "precision": 0.9449716052045144,
+            "recall": 0.8409352610030706,
+            "accuracy": 0.9537555814681039,
+            "brier": 0.04678254706692816
+          },
+          "pending": {
+            "tp": 29,
+            "fp": 1531,
+            "fn": 18,
+            "tn": 107849,
+            "precision": 0.01858974358974359,
+            "recall": 0.6170212765957447,
+            "accuracy": 0.9858444442413664,
+            "brier": 0.02043619181299462
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 31264,
+            "tn": 109380,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.7777082563067035,
+            "brier": 0.17299904226452179
+          },
+          "unseen_signature_test": {
+            "tp": 362,
+            "fp": 94,
+            "fn": 164,
+            "tn": 2901,
+            "precision": 0.793859649122807,
+            "recall": 0.688212927756654,
+            "accuracy": 0.926725362113036,
+            "brier": 0.08643425355824765
+          },
+          "contradictory_test_signatures": 102,
+          "signature_irreducible_errors": 3460
+        },
+        {
+          "stage": "is-resolved",
+          "target": "ExprIsResolved",
+          "train_rows": 113435,
+          "test_rows": 141000,
+          "test": {
+            "tp": 114206,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9999212012432692,
+            "recall": 1.0,
+            "accuracy": 0.9999361702127659,
+            "brier": 0.0002703444573271924
+          },
+          "pending": {
+            "tp": 490,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9819639278557114,
+            "recall": 1.0,
+            "accuracy": 0.9996701363436447,
+            "brier": 0.0010742734474505158
+          },
+          "prior": {
+            "tp": 114206,
+            "fp": 26794,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8099716312056737,
+            "recall": 1.0,
+            "accuracy": 0.8099716312056737,
+            "brier": 0.17563018388879473
+          },
+          "unseen_signature_test": {
+            "tp": 2909,
+            "fp": 9,
+            "fn": 0,
+            "tn": 142,
+            "precision": 0.9969156956819739,
+            "recall": 1.0,
+            "accuracy": 0.9970588235294118,
+            "brier": 0.0036316499003357433
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "terms",
+          "target": "ExtractedExpr",
+          "train_rows": 121727,
+          "test_rows": 141120,
+          "test": {
+            "tp": 31902,
+            "fp": 2125,
+            "fn": 11839,
+            "tn": 95254,
+            "precision": 0.9375495929702883,
+            "recall": 0.729338606799113,
+            "accuracy": 0.9010487528344672,
+            "brier": 0.08396120424289641
+          },
+          "pending": {
+            "tp": 393,
+            "fp": 2125,
+            "fn": 70,
+            "tn": 95254,
+            "precision": 0.15607625099285147,
+            "recall": 0.8488120950323974,
+            "accuracy": 0.9775658715071237,
+            "brier": 0.03872487927484066
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 43741,
+            "tn": 97379,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.6900439342403628,
+            "brier": 0.21498480218985236
+          },
+          "unseen_signature_test": {
+            "tp": 346,
+            "fp": 181,
+            "fn": 197,
+            "tn": 1302,
+            "precision": 0.6565464895635673,
+            "recall": 0.6372007366482505,
+            "accuracy": 0.8134254689042448,
+            "brier": 0.1827354816175869
+          },
+          "contradictory_test_signatures": 213,
+          "signature_irreducible_errors": 9266
+        }
+      ],
+      "fit_and_score_seconds": 0.09376616700319573
+    },
+    {
+      "variant": "polyspine",
+      "heads": [
+        {
+          "stage": "type-analysis",
+          "target": "HasType",
+          "train_rows": 107328,
+          "test_rows": 140644,
+          "test": {
+            "tp": 113677,
+            "fp": 13,
+            "fn": 5,
+            "tn": 26949,
+            "precision": 0.9998856539713256,
+            "recall": 0.9999560176633064,
+            "accuracy": 0.9998720172918859,
+            "brier": 0.0005150340642378032
+          },
+          "pending": {
+            "tp": 74,
+            "fp": 13,
+            "fn": 0,
+            "tn": 26949,
+            "precision": 0.8505747126436781,
+            "recall": 1.0,
+            "accuracy": 0.9995191596389998,
+            "brier": 0.001615329020915731
+          },
+          "prior": {
+            "tp": 113682,
+            "fp": 26962,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8082961235459742,
+            "recall": 1.0,
+            "accuracy": 0.8082961235459742,
+            "brier": 0.175966703999848
+          },
+          "unseen_signature_test": {
+            "tp": 3358,
+            "fp": 13,
+            "fn": 5,
+            "tn": 145,
+            "precision": 0.9961435775734203,
+            "recall": 0.9985132322331252,
+            "accuracy": 0.9948878159613747,
+            "brier": 0.012536734280451628
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "always-run",
+          "target": "ExprIsPure",
+          "train_rows": 107378,
+          "test_rows": 140644,
+          "test": {
+            "tp": 26280,
+            "fp": 1419,
+            "fn": 4984,
+            "tn": 107961,
+            "precision": 0.9487707137441785,
+            "recall": 0.8405834186284544,
+            "accuracy": 0.954473706663633,
+            "brier": 0.044841846020314734
+          },
+          "pending": {
+            "tp": 19,
+            "fp": 1419,
+            "fn": 28,
+            "tn": 107961,
+            "precision": 0.01321279554937413,
+            "recall": 0.40425531914893614,
+            "accuracy": 0.9867765725095269,
+            "brier": 0.02019524689456267
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 31264,
+            "tn": 109380,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.7777082563067035,
+            "brier": 0.17299904226452179
+          },
+          "unseen_signature_test": {
+            "tp": 319,
+            "fp": 100,
+            "fn": 217,
+            "tn": 3030,
+            "precision": 0.7613365155131265,
+            "recall": 0.5951492537313433,
+            "accuracy": 0.9135297326786689,
+            "brier": 0.08260767740884527
+          },
+          "contradictory_test_signatures": 106,
+          "signature_irreducible_errors": 3100
+        },
+        {
+          "stage": "is-resolved",
+          "target": "ExprIsResolved",
+          "train_rows": 113435,
+          "test_rows": 141000,
+          "test": {
+            "tp": 114206,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9999212012432692,
+            "recall": 1.0,
+            "accuracy": 0.9999361702127659,
+            "brier": 0.0002703444573271924
+          },
+          "pending": {
+            "tp": 490,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9819639278557114,
+            "recall": 1.0,
+            "accuracy": 0.9996701363436447,
+            "brier": 0.0010742734474505158
+          },
+          "prior": {
+            "tp": 114206,
+            "fp": 26794,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8099716312056737,
+            "recall": 1.0,
+            "accuracy": 0.8099716312056737,
+            "brier": 0.17563018388879473
+          },
+          "unseen_signature_test": {
+            "tp": 2909,
+            "fp": 9,
+            "fn": 0,
+            "tn": 142,
+            "precision": 0.9969156956819739,
+            "recall": 1.0,
+            "accuracy": 0.9970588235294118,
+            "brier": 0.0036316499003357433
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "terms",
+          "target": "ExtractedExpr",
+          "train_rows": 121727,
+          "test_rows": 141120,
+          "test": {
+            "tp": 31902,
+            "fp": 2125,
+            "fn": 11839,
+            "tn": 95254,
+            "precision": 0.9375495929702883,
+            "recall": 0.729338606799113,
+            "accuracy": 0.9010487528344672,
+            "brier": 0.08396120424289641
+          },
+          "pending": {
+            "tp": 393,
+            "fp": 2125,
+            "fn": 70,
+            "tn": 95254,
+            "precision": 0.15607625099285147,
+            "recall": 0.8488120950323974,
+            "accuracy": 0.9775658715071237,
+            "brier": 0.03872487927484066
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 43741,
+            "tn": 97379,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.6900439342403628,
+            "brier": 0.21498480218985236
+          },
+          "unseen_signature_test": {
+            "tp": 346,
+            "fp": 181,
+            "fn": 197,
+            "tn": 1302,
+            "precision": 0.6565464895635673,
+            "recall": 0.6372007366482505,
+            "accuracy": 0.8134254689042448,
+            "brier": 0.1827354816175869
+          },
+          "contradictory_test_signatures": 213,
+          "signature_irreducible_errors": 9266
+        }
+      ],
+      "fit_and_score_seconds": 0.09879858396016061
+    },
+    {
+      "variant": "shuffled_seams",
+      "heads": [
+        {
+          "stage": "type-analysis",
+          "target": "HasType",
+          "train_rows": 107328,
+          "test_rows": 140644,
+          "test": {
+            "tp": 113677,
+            "fp": 13,
+            "fn": 5,
+            "tn": 26949,
+            "precision": 0.9998856539713256,
+            "recall": 0.9999560176633064,
+            "accuracy": 0.9998720172918859,
+            "brier": 0.0005150340642378032
+          },
+          "pending": {
+            "tp": 74,
+            "fp": 13,
+            "fn": 0,
+            "tn": 26949,
+            "precision": 0.8505747126436781,
+            "recall": 1.0,
+            "accuracy": 0.9995191596389998,
+            "brier": 0.001615329020915731
+          },
+          "prior": {
+            "tp": 113682,
+            "fp": 26962,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8082961235459742,
+            "recall": 1.0,
+            "accuracy": 0.8082961235459742,
+            "brier": 0.175966703999848
+          },
+          "unseen_signature_test": {
+            "tp": 3358,
+            "fp": 13,
+            "fn": 5,
+            "tn": 145,
+            "precision": 0.9961435775734203,
+            "recall": 0.9985132322331252,
+            "accuracy": 0.9948878159613747,
+            "brier": 0.012536734280451628
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "always-run",
+          "target": "ExprIsPure",
+          "train_rows": 107378,
+          "test_rows": 140644,
+          "test": {
+            "tp": 26241,
+            "fp": 1582,
+            "fn": 5023,
+            "tn": 107798,
+            "precision": 0.9431405671566689,
+            "recall": 0.839335977482088,
+            "accuracy": 0.9530374562725747,
+            "brier": 0.04657532004638306
+          },
+          "pending": {
+            "tp": 29,
+            "fp": 1582,
+            "fn": 18,
+            "tn": 107798,
+            "precision": 0.018001241464928614,
+            "recall": 0.6170212765957447,
+            "accuracy": 0.9853783801072862,
+            "brier": 0.020256278438052437
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 31264,
+            "tn": 109380,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.7777082563067035,
+            "brier": 0.17299904226452179
+          },
+          "unseen_signature_test": {
+            "tp": 8356,
+            "fp": 1056,
+            "fn": 2182,
+            "tn": 33437,
+            "precision": 0.8878028049298767,
+            "recall": 0.7929398367811729,
+            "accuracy": 0.9280939797028713,
+            "brier": 0.0667010992737354
+          },
+          "contradictory_test_signatures": 962,
+          "signature_irreducible_errors": 2748
+        },
+        {
+          "stage": "is-resolved",
+          "target": "ExprIsResolved",
+          "train_rows": 113435,
+          "test_rows": 141000,
+          "test": {
+            "tp": 114206,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9999212012432692,
+            "recall": 1.0,
+            "accuracy": 0.9999361702127659,
+            "brier": 0.0002703444573271924
+          },
+          "pending": {
+            "tp": 490,
+            "fp": 9,
+            "fn": 0,
+            "tn": 26785,
+            "precision": 0.9819639278557114,
+            "recall": 1.0,
+            "accuracy": 0.9996701363436447,
+            "brier": 0.0010742734474505158
+          },
+          "prior": {
+            "tp": 114206,
+            "fp": 26794,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.8099716312056737,
+            "recall": 1.0,
+            "accuracy": 0.8099716312056737,
+            "brier": 0.17563018388879473
+          },
+          "unseen_signature_test": {
+            "tp": 2909,
+            "fp": 9,
+            "fn": 0,
+            "tn": 142,
+            "precision": 0.9969156956819739,
+            "recall": 1.0,
+            "accuracy": 0.9970588235294118,
+            "brier": 0.0036316499003357433
+          },
+          "contradictory_test_signatures": 0,
+          "signature_irreducible_errors": 0
+        },
+        {
+          "stage": "terms",
+          "target": "ExtractedExpr",
+          "train_rows": 121727,
+          "test_rows": 141120,
+          "test": {
+            "tp": 31902,
+            "fp": 2125,
+            "fn": 11839,
+            "tn": 95254,
+            "precision": 0.9375495929702883,
+            "recall": 0.729338606799113,
+            "accuracy": 0.9010487528344672,
+            "brier": 0.08396120424289641
+          },
+          "pending": {
+            "tp": 393,
+            "fp": 2125,
+            "fn": 70,
+            "tn": 95254,
+            "precision": 0.15607625099285147,
+            "recall": 0.8488120950323974,
+            "accuracy": 0.9775658715071237,
+            "brier": 0.03872487927484066
+          },
+          "prior": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 43741,
+            "tn": 97379,
+            "precision": null,
+            "recall": 0.0,
+            "accuracy": 0.6900439342403628,
+            "brier": 0.21498480218985236
+          },
+          "unseen_signature_test": {
+            "tp": 346,
+            "fp": 181,
+            "fn": 197,
+            "tn": 1302,
+            "precision": 0.6565464895635673,
+            "recall": 0.6372007366482505,
+            "accuracy": 0.8134254689042448,
+            "brier": 0.1827354816175869
+          },
+          "contradictory_test_signatures": 213,
+          "signature_irreducible_errors": 9266
+        }
+      ],
+      "fit_and_score_seconds": 0.15355537499999627
+    }
+  ],
+  "split": {
+    "kind": "chronological outer-cycle holdout",
+    "train_cycles": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "test_cycles": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "same_binding_can_recur": "yes; future stages, not unseen-program generalization"
+  },
+  "width": 512,
+  "regularization": 1.0,
+  "threshold": 0.5,
+  "encoded_signatures": 70922,
+  "offline_encoding_seconds": 0.7349164580227807,
+  "offline_extraction_seconds": 42.756952539784834,
+  "offline_packing_seconds": 16.42971737490734,
+  "diagnostic_snapshot_seconds": 346.5374032111722,
+  "jobs": [
+    {
+      "variant": "structure",
+      "matrix": [
+        1852,
+        512,
+        4
+      ],
+      "relevant_scores": 7113,
+      "emitted_scores": 7408
+    },
+    {
+      "variant": "stage",
+      "matrix": [
+        7113,
+        512,
+        4
+      ],
+      "relevant_scores": 7113,
+      "emitted_scores": 28452
+    },
+    {
+      "variant": "interfaces",
+      "matrix": [
+        7113,
+        512,
+        4
+      ],
+      "relevant_scores": 7113,
+      "emitted_scores": 28452
+    },
+    {
+      "variant": "polyspine",
+      "matrix": [
+        7212,
+        512,
+        4
+      ],
+      "relevant_scores": 7212,
+      "emitted_scores": 28848
+    },
+    {
+      "variant": "shuffled_seams",
+      "matrix": [
+        42050,
+        512,
+        4
+      ],
+      "relevant_scores": 42050,
+      "emitted_scores": 168200
+    }
+  ],
+  "gpu": {
+    "coordinate_blocks": "separate local and recursive context",
+    "coordinate_input": "Analyze-derived constructor spine token bags; no opaque ID feature",
+    "coordinate_nonlinearity": "none",
+    "coordinate_tokens": 1738402,
+    "current_probe_bytes": 15475376,
+    "device": "Apple M3 Max",
+    "jobs": 5,
+    "kernels": 3,
+    "matrix_jobs": 5,
+    "matrix_probe_keys": 65340,
+    "matrix_row_kind": "distinct structural signatures",
+    "matrix_tiles": 8171,
+    "max_score_error": 0,
+    "nonzero_coefficient_flops": 179314176,
+    "output_bytes": 1045440,
+    "outputs": 261360,
+    "reference_limit": "FP16 arithmetic checked against CPU scores; predicate predictions remain speculative; Apple matrix operations are not NVIDIA Tensor Core evidence",
+    "resident_weight_prior_and_routing_bytes": 41360,
+    "retained_runs": 1,
+    "scheduled_tile_flops": 535494656,
+    "scope": "standalone speculative response evaluation; no exact GPU key index or native runtime speedup",
+    "temporary_code_bytes": 66908160,
+    "threshold_disagreements": 0,
+    "timing": {
+      "gpu_seconds": 0.005866749968845397,
+      "host_submit_wait_seconds": 0.006131374975666404
+    },
+    "useful_matrix_flops": 267632640,
+    "warmups": 1
+  },
+  "worker_sha256": "52f80836f690c030d9ac8f9ce4d42a93f88a333ab125ef5a3b365316e36af9fb",
+  "paired": [
+    {
+      "before": "structure",
+      "after": "polyspine",
+      "stage": "type-analysis",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    },
+    {
+      "before": "structure",
+      "after": "polyspine",
+      "stage": "always-run",
+      "fixed": 631,
+      "broken": 433,
+      "pending_fixed": 251,
+      "pending_broken": 138
+    },
+    {
+      "before": "structure",
+      "after": "polyspine",
+      "stage": "is-resolved",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    },
+    {
+      "before": "structure",
+      "after": "polyspine",
+      "stage": "terms",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    },
+    {
+      "before": "interfaces",
+      "after": "polyspine",
+      "stage": "type-analysis",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    },
+    {
+      "before": "interfaces",
+      "after": "polyspine",
+      "stage": "always-run",
+      "fixed": 534,
+      "broken": 433,
+      "pending_fixed": 240,
+      "pending_broken": 138
+    },
+    {
+      "before": "interfaces",
+      "after": "polyspine",
+      "stage": "is-resolved",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    },
+    {
+      "before": "interfaces",
+      "after": "polyspine",
+      "stage": "terms",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    },
+    {
+      "before": "shuffled_seams",
+      "after": "polyspine",
+      "stage": "type-analysis",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    },
+    {
+      "before": "shuffled_seams",
+      "after": "polyspine",
+      "stage": "always-run",
+      "fixed": 646,
+      "broken": 444,
+      "pending_fixed": 276,
+      "pending_broken": 123
+    },
+    {
+      "before": "shuffled_seams",
+      "after": "polyspine",
+      "stage": "is-resolved",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    },
+    {
+      "before": "shuffled_seams",
+      "after": "polyspine",
+      "stage": "terms",
+      "fixed": 0,
+      "broken": 0,
+      "pending_fixed": 0,
+      "pending_broken": 0
+    }
+  ],
+  "limits": [
+    "No claim of automatic whole-cell recognition, full matching or runtime speedup.",
+    "Writer tags are static possible producers; no per-row causal attribution.",
+    "CPU snapshot/feature extraction is offline and explicitly charged.",
+    "No new Expr key born during target stage is in this fixed pre-stage prediction domain.",
+    "Scores predict projected answer existence, not full rule matches or RHS effects.",
+    "All predicted negatives require exact fallback; no matches are skipped by this experiment.",
+    "Current-stage features use earlier committed facts, never post-stage labels.",
+    "GPU evaluation includes extra unused head scores; no throughput utilization claim."
+  ],
+  "full_report": "out/polyspine-pass3-ridge/results.json",
+  "artifact_note": "Compact copy of measured report; examples remain in full local report. Dataset and binary packets untracked."
+}
