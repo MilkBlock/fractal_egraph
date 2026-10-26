@@ -40,6 +40,15 @@ def tests(build,out):
  assert flat['steps']==results['delta-join']['steps']
  assert json.loads((out/'flat-dispatch/gpu-state.json').read_text())==json.loads((out/'delta-join/gpu-state.json').read_text())
  results['typed-seed-dispatch']=True
+ patched=run(HERE/'fixtures/query-value-updates.egg',build,out/'query-value-updates',capacity=1024)
+ rebuilt=run(HERE/'fixtures/query-value-updates.egg',build,out/'query-value-updates-full',capacity=1024,query_patch=False)
+ assert patched['steps']==rebuilt['steps']
+ assert json.loads((out/'query-value-updates/gpu-state.json').read_text())==json.loads((out/'query-value-updates-full/gpu-state.json').read_text())
+ results['point-index-updates']=patched
+ serial_index=run(HERE/'fixtures/query-value-updates.egg',build,out/'query-value-updates-serial',capacity=1024,parallel_prepare=False,parallel_match=False)
+ assert serial_index['steps']==patched['steps']
+ assert json.loads((out/'query-value-updates/gpu-state.json').read_text())==json.loads((out/'query-value-updates-serial/gpu-state.json').read_text())
+ results['point-index-updates-serial']=True
  for case in ['sets','integer','custom-merge']:
   bytecode=run(HERE/'fixtures'/(case+'.egg'),build,out/(case+'-bytecode'),direct_actions=False)
   assert bytecode['steps']==results[case]['steps']

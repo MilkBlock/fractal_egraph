@@ -52,7 +52,7 @@ CPU: schedule status; optional snapshot comparison
 
 Each ruleset has a match entry and shares prepare/commit kernels. Read-only rulesets assign the first branching table atom to GPU lanes. Emitted bindings are sorted on-device by original rule/variant/seed/inner order before RHS execution. Rulesets with allocating set primitives on the LHS retain serial matching; set columns and set-length reads are read-only. These stages have separate Metal command timing. RHS is fixed-width bytecode in GPU-private storage, with one device register file for the current binding. The large initialization RHS is not unrolled into thousands of Metal statements.
 
-Matching finishes before any RHS write, so the logical snapshot aliases the row buffer safely; an entire copy is unnecessary. Stable radix partition builds query indexes in parallel while retaining physical-row traversal order. Complete-key indexes use atomic minimum representatives. Query indexes persist across Runs. Append-only changes extend chains; existing value changes, visibility changes and union/rebuild invalidate them. Keys already fully bound use direct complete-key lookup.
+Matching finishes before any RHS write, so the logical snapshot aliases the row buffer safely; an entire copy is unnecessary. Stable radix partition builds query indexes in parallel while retaining physical-row traversal order. Complete-key indexes use atomic minimum representatives. Query indexes persist across Runs. Append-only changes extend chains; function value changes repair output/timestamp links; visibility changes and union/rebuild invalidate them. Keys already fully bound use direct complete-key lookup.
 
 Only column/table/timestamp chains actually traversed by the compiled queries are built. Parallel seed rows need no chain, but serial ruleset membership is included when computing this requirement. Per-table latest timestamps are maintained independently, including for tables with no indexed columns. `--all-index-columns` retains the former layout for differential testing.
 
@@ -225,7 +225,7 @@ These are backend improvements, not Cell-specific credit or a complete Pass 3
 speedup. The original all-column control was a diagnostic run with periodic
 snapshots (copies excluded from GPU phase times). The last three are clean suffix
 timings. Evidence: `used-index-results.json`, `radix-results.json`, and
-`seed-dispatch-results.json`. The current regression suite has 48 checks,
+`seed-dispatch-results.json`. The current regression suite has 53 checks,
 including the stable/unstable RHS cases below. A separate snapshot/extraction
 suite has 10 checks.
 
@@ -311,6 +311,31 @@ contain thousands of actions and do not benefit from unrolling. The
 2.04 seconds including control, with identical final device state. This is a
 suffix result, not the full-program speedup. The suite has three additional
 direct/interpreted differentials for sets, integer arithmetic and custom merge.
+
+## Repairing changed function rows
+
+When an indexed function changes its output, the GPU records its original output
+and timestamp once for that Run. The next prepare moves just those two index
+entries. Reverse links are stored only for output and timestamp positions; input
+columns cannot move without rebuild. Removal is constant time. Ordered insertion
+retains physical-row traversal order, scanning the destination bucket only for a
+middle insertion. Thus the cost is proportional to changed rows and traversed
+bucket lengths, not guaranteed constant in the worst case.
+
+Several writes to one row share one log entry. Newly appended rows are indexed
+with their final values without repair. Subsume/union/compaction request full
+rebuild and clear the pending log. Per-table latest timestamps are updated even
+when that table has no indexed columns. `--full-query-updates` is the former
+full-rebuild control; `query_index_refresh` reports actual full/patch phases.
+
+Together with direct RHS execution, the complete original Pass 3 is now
+**43.26 seconds**, versus the preceding 54.65-second GPU result, with exactly
+the same final device state. It used 1,882 patch phases and 1,479 full refreshes.
+GPU prepare fell from 16.20 to 8.45 seconds. Additional fixed device storage for
+the log and reverse links is 32 bytes per row-capacity slot (32 MiB at capacity
+1,048,576). This remains slower than the 23.11-second local native control.
+The cold shader setup in this run was 76.97 seconds and is separate from the
+inference figure. See `query-patch-results.json`.
 
 `compare_runs.py --device-states --endpoints-only` checks the identical original
 typed program, executed schedule and final state across a fresh execution and a

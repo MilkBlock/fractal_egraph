@@ -86,7 +86,7 @@ kernel void query_link_sorted(KERNEL_ARGS,device ulong*alternate[[buffer(14)]]){
  bool last=lane+1==control[7]||uint(keys[lane+1]>>32)!=h;
  if(last)qheads[QBUCKETS+h]=e;
  qlinks[e]=last?0xffffffff:uint(keys[lane+1]);
-
+ set_query_previous(old,qprev,e,(lane==0||uint(keys[lane-1]>>32)!=h)?0xffffffff:uint(keys[lane-1]));
 }
 
 long index_canon(device long*r,device uint*p,uint t,uint c,long x){return EQ[t*COLS+c]==1?long(rb_root(p,uint(x))):(EQ[t*COLS+c]==2?rb_set(r,x):x);}

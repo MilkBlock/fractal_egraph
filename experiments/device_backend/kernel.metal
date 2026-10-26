@@ -40,6 +40,17 @@ long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,
  if(POLICY[t]==1)return min(a,b);if(POLICY[t]==2)return max(a,b);
  if(a!=b)m.error=4;return a;
 }
+void record_query_update(device long*r,uint i){
+ if(!QUERY_PATCH){r[QUERY_DIRTY]=1;return;}
+ if(r[QUERY_DIRTY]==1||i>=uint(r[QUERY_LOG+1])||r[i*STRIDE+1]!=0)return;
+ if(!r[QUERY_OLD_TIME+i]){
+  uint n=uint(r[QUERY_LOG]);
+  if(n>=CAPACITY){r[QUERY_DIRTY]=1;return;}
+  uint t=uint(r[i*STRIDE]);r[QUERY_OLD_VALUE+i]=r[i*STRIDE+4+WIDTH[t]-1];r[QUERY_OLD_TIME+i]=r[i*STRIDE+2];
+  r[QUERY_CHANGED+n]=i;r[QUERY_LOG]=n+1;
+ }
+ r[QUERY_DIRTY]=2;
+}
 __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args,long value,bool create){
  if(m.error)return 0;
  long found=row_lookup(r,p,m,t,args);if(found>=0){uint i=uint(found);
@@ -48,7 +59,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
   long incoming=canon(r,p,t,WIDTH[t]-1,value);
   if(POLICY[t]==4 && r[i*STRIDE+2]==m.epoch && incoming!=old){m.error=7;return old;}
   long next=mergevalue(t,old,incoming,r,p,fp,m);
-  if(next!=r[at]){r[QUERY_DIRTY]=1;r[at]=next;r[i*STRIDE+2]=m.epoch;m.changed=1;}return next;
+  if(next!=r[at]){record_query_update(r,i);r[at]=next;r[i*STRIDE+2]=m.epoch;m.changed=1;}return next;
  }
  if(m.count>=CAPACITY || m.next_fact>=IDCAP){m.error=1;return 0;}
  if(create){
@@ -123,14 +134,14 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
 // QUERY_INDEX
 // DEVICE_ACTIONS
 kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],uint i[[thread_position_in_grid]]){if(i<IDCAP){p[i]=i;fp[i]=i;}}
-#define KERNEL_ARGS device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],device uint*control[[buffer(12)]],device uint*match_order[[buffer(15)]],device uint*noop[[buffer(18)]],uint lane[[thread_position_in_grid]]
+#define KERNEL_ARGS device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],device uint*control[[buffer(12)]],device uint*match_order[[buffer(15)]],device uint*noop[[buffer(18)]],device uint*qprev[[buffer(19)]],uint lane[[thread_position_in_grid]]
 // PARALLEL_REBUILD
 // PARALLEL_QUERY
 // MATCH_SORT
 kernel void prepare(KERNEL_ARGS){
  if(lane||m.error)return;m.changed=0;m.matched=0;control[11]=0;
  if(m.epoch==0xffffffff){m.error=6;return;}m.epoch++;m.rounds++;r[ROW_WORDS+1]=m.epoch;
- bool reset=!INCREMENTAL_QUERY||m.rounds==1||r[QUERY_DIRTY]!=0;
+ bool reset=!INCREMENTAL_QUERY||m.rounds==1||r[QUERY_DIRTY]==1;
  control[0]=reset;control[1]=reset?0:qheads[2*QBUCKETS];
  control[4]=reset?(2*QBUCKETS+255)/256:1;control[5]=1;control[6]=1;
  control[8]=max(1u,(m.count+255)/256);control[9]=1;control[10]=1;
@@ -143,8 +154,11 @@ kernel void prepare_clear(KERNEL_ARGS){
 kernel void prepare_build(KERNEL_ARGS){
  if(lane||m.error)return;
  // The read phase precedes every RHS write, so old safely aliases r.
- if(!PARALLEL_PREPARE||!control[0])build_query_index(old,control[1],m.count,false,qheads,qlinks);
+ if(!control[0]&&r[QUERY_DIRTY]==2)patch_query_index(old,qheads,qlinks,qprev);
+ if(!PARALLEL_PREPARE||!control[0])build_query_index(old,control[1],m.count,false,qheads,qlinks,qprev);
  else qheads[2*QBUCKETS]=m.count;
+ for(uint n=0;n<uint(r[QUERY_LOG]);n++)r[QUERY_OLD_TIME+uint(r[QUERY_CHANGED+n])]=0;
+ r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;
  r[QUERY_DIRTY]=0;
  ensure_row_index(r,p,m);
 }

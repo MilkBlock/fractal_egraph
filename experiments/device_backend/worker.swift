@@ -32,6 +32,7 @@ let old=rows
 let meta=privateBuffer(36),matches=privateBuffer((program["workspace_words"] as! Int)*8),watermarks=privateBuffer(nrules*4)
 let instructions=privateBuffer(max(8,(program["action_code"] as! [NSNumber]).count*8)),registers=privateBuffer((program["register_count"] as! Int)*8)
 let queryHeads=privateBuffer((program["query_head_words"] as! Int)*4),queryLinks=privateBuffer((program["query_link_words"] as! Int)*4)
+let queryPrevious=privateBuffer((program["query_prev_words"] as! Int)*4)
 let rebuildControl=privateBuffer(48)
 let queryAlternate=privateBuffer((program["query_sort_words"] as! Int)*8)
 let matchOrder=privateBuffer((program["match_order_capacity"] as! Int)*4)
@@ -66,7 +67,7 @@ func encode(_ cb:MTLCommandBuffer,_ pipeline:MTLComputePipelineState,_ threads:I
  for (i,b) in [rows,old,parent,factParent,meta,matches,watermarks].enumerated(){e.setBuffer(b,offset:0,index:i)}
  e.setBuffer(instructions,offset:0,index:8);e.setBuffer(registers,offset:0,index:9);e.setBuffer(queryHeads,offset:0,index:10);e.setBuffer(queryLinks,offset:0,index:11);e.setBuffer(rebuildControl,offset:0,index:12);e.setBuffer(queryAlternate,offset:0,index:14);e.setBuffer(matchOrder,offset:0,index:15)
  var k=sortK,d=sortD;withUnsafeBytes(of:&k){e.setBytes($0.baseAddress!,length:4,index:16)};withUnsafeBytes(of:&d){e.setBytes($0.baseAddress!,length:4,index:17)}
- e.setBuffer(noopFlags,offset:0,index:18)
+ e.setBuffer(noopFlags,offset:0,index:18);e.setBuffer(queryPrevious,offset:0,index:19)
  var bit=radixBit;withUnsafeBytes(of:&bit){e.setBytes($0.baseAddress!,length:4,index:13)}
  var set=arg;withUnsafeBytes(of:&set){e.setBytes($0.baseAddress!,length:4,index:7)}
  if indirect{e.dispatchThreadgroups(indirectBuffer:rebuildControl,indirectBufferOffset:indirectOffset,threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
@@ -81,13 +82,16 @@ func read(_ n:Int)throws->Data{var d=Data();while d.count<n{guard let p=try inpu
 func send(_ x:[UInt32])throws{try x.withUnsafeBytes{try output.write(contentsOf:Data($0))}}
 var hostMeta=initialMeta
 var needsIndexReset=true
+var needsIndexPatch=false
+var fullIndexPhases=0,patchIndexPhases=0
 var needsRowIndex=true
 try output.write(contentsOf:Data("DVB6".utf8))
 while true{
  let d=try read(8),words=d.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let op=words[0],arg=words[1]
- if op==0{break}
+ if op==0{try FileHandle.standardError.write(contentsOf:Data("device index_refresh full=\(fullIndexPhases) patch=\(patchIndexPhases)\n".utf8));break}
  if op==1{
   try need(Int(arg)<(program["sets"] as! [String]).count,"ruleset")
+  if needsIndexReset || !(program["incremental_queries"] as! Bool){fullIndexPhases+=1}else if needsIndexPatch{patchIndexPhases+=1}
   if ProcessInfo.processInfo.environment["EGG_DEVICE_PHASE_LOG"]=="1"{try FileHandle.standardError.write(contentsOf:Data("device begin round=\(hostMeta[6]+1) set=\((program["sets"] as! [String])[Int(arg)]) rows=\(hostMeta[0])\n".utf8))}
   let parallelMatch=(program["parallel_match_sets"] as! [NSNumber])[Int(arg)].boolValue
   var commands:[MTLCommandBuffer]=[];var orderCommand:MTLCommandBuffer?=nil;var noopFused=false
@@ -167,7 +171,8 @@ while true{
    copyStatus(cb,status,flags);cb.commit();cb.waitUntilCompleted();try need(cb.status == .completed,"rebuild finish failed")
    rebuildSeconds+=cb.gpuEndTime-cb.gpuStartTime
   }
-  needsIndexReset=status.contents().bindMemory(to:UInt32.self,capacity:15)[11] != 0
+  needsIndexReset=status.contents().bindMemory(to:UInt32.self,capacity:15)[11] == 1
+  needsIndexPatch=status.contents().bindMemory(to:UInt32.self,capacity:15)[11] == 2
   needsRowIndex=status.contents().bindMemory(to:UInt32.self,capacity:15)[13] != status.contents().bindMemory(to:UInt32.self,capacity:15)[7]+1
   hostMeta=Array(UnsafeBufferPointer(start:status.contents().bindMemory(to:UInt32.self,capacity:9),count:9));try send(hostMeta)
   // The no-op filter and RHS share a command buffer. Do not add an otherwise
