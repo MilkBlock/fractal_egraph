@@ -301,6 +301,17 @@ taken around 70 seconds and must not be mistaken for this warm startup result.
 The proofs are not matrix/Tensor Core execution, and the backend does not yet
 load automatic Cell/ridge plans.
 
+Recurring rule RHS programs now also compile to direct scalar GPU functions.
+Bindings, action order, integer failures, constructor/function writes, merge
+callbacks, unions and subsumption retain the same semantics. Seminaive rules
+with no LHS keep the compact interpreter: these one-shot fact initializers can
+contain thousands of actions and do not benefit from unrolling. The
+`--bytecode-actions` control retains the previous interpreter for every rule.
+`direct-action-results.json` compares the same 168-Run raytrace suffix: 2.89 to
+2.04 seconds including control, with identical final device state. This is a
+suffix result, not the full-program speedup. The suite has three additional
+direct/interpreted differentials for sets, integer arithmetic and custom merge.
+
 `compare_runs.py --device-states --endpoints-only` checks the identical original
 typed program, executed schedule and final state across a fresh execution and a
 continuation, without a timing ratio. Only unused slots beyond each table's

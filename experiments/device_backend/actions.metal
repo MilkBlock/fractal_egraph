@@ -4,7 +4,7 @@
 // deferred-union RHS phase. No mutable function reads, custom/new/old merge,
 // allocating set operations or fallible actions are certified here.
 // EMPTY_EFFECT_PROOFS
-__attribute__((noinline)) void execute_actions(uint rule,uint mi,device long*code,device long*v,device long*matches,
+__attribute__((noinline)) void execute_bytecode(uint rule,uint mi,device long*code,device long*v,device long*matches,
  device long*r,device uint*p,device uint*fp,device Meta&m){
  for(uint i=0;i<QUERY_WIDTH[rule];i++)v[i]=matches[mi*MSTRIDE+1+i];
  long args[COLS]={0};
@@ -34,3 +34,5 @@ __attribute__((noinline)) void execute_actions(uint rule,uint mi,device long*cod
   }
  }
 }
+
+// DIRECT_ACTIONS

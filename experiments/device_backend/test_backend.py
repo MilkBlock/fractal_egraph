@@ -40,6 +40,11 @@ def tests(build,out):
  assert flat['steps']==results['delta-join']['steps']
  assert json.loads((out/'flat-dispatch/gpu-state.json').read_text())==json.loads((out/'delta-join/gpu-state.json').read_text())
  results['typed-seed-dispatch']=True
+ for case in ['sets','integer','custom-merge']:
+  bytecode=run(HERE/'fixtures'/(case+'.egg'),build,out/(case+'-bytecode'),direct_actions=False)
+  assert bytecode['steps']==results[case]['steps']
+  assert json.loads((out/(case+'-bytecode')/'gpu-state.json').read_text())==json.loads((out/case/'gpu-state.json').read_text())
+  results['direct-actions-'+case]=True
  stable=run(HERE/'fixtures/stable-empty-rhs.egg',build,out/'stable-empty-rhs')
  assert stable['rhs_noops_skipped']==2
  reference=run(HERE/'fixtures/stable-empty-rhs.egg',build,out/'stable-empty-rhs-off',noop_preflight=False)
