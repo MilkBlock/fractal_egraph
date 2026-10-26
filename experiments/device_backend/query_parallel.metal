@@ -104,6 +104,10 @@ kernel void row_index_context(KERNEL_ARGS){if(lane||m.error)return;for(long h=2;
 kernel void row_index_clear(KERNEL_ARGS){if(!m.error&&lane<HASH_CAP)r[INDEX_OFFSET+1+lane]=0;}
 kernel void row_index_parallel(KERNEL_ARGS){
  if(m.error||lane>=m.count||r[lane*STRIDE+1]==2)return;
+ // Only a suspended rebuild callback uses this restricted index. Its complete
+ // transitive constructor vocabulary is known from the typed merge program.
+ // Final compaction invalidates it before any ordinary query/action can read it.
+ if(MERGE_TARGET_INDEX&&control[0]==2&&!MERGE_TARGET[uint(r[lane*STRIDE])])return;
  device atomic_uint*index=(device atomic_uint*)(r+INDEX_OFFSET+1);uint h=index_current_hash(r,p,lane);
  while(true){
   uint old=atomic_load_explicit(index+2*h,memory_order_relaxed);
@@ -112,7 +116,7 @@ kernel void row_index_parallel(KERNEL_ARGS){
   else h=(h+1)&(HASH_CAP-1);
  }
 }
-kernel void row_index_ready(KERNEL_ARGS){if(!lane&&!m.error){r[INDEX_OFFSET]=long(m.unions)+1;r[INDEX_OFFSET+HASH_CAP+1]++;}}
+kernel void row_index_ready(KERNEL_ARGS){if(!lane&&!m.error){r[INDEX_OFFSET]=long(m.unions)+1;r[INDEX_MERGE_VERSION]=p[MERGE_GENERATION];r[INDEX_OFFSET+HASH_CAP+1]++;}}
 
 kernel void query_table_time(KERNEL_ARGS){
  if(m.error||!control[0]||lane>=m.count||old[lane*STRIDE+1]!=0)return;

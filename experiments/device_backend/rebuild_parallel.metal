@@ -1,4 +1,15 @@
 uint rb_root(device uint*p,uint x){while(p[x]!=x)x=p[x];return x;}
+// An indirect batch executes the same full-rebuild/index-resume state machine.
+// Every dispatch boundary is a device memory boundary; zero groups suppress
+// already-converged work. There is no cross-threadgroup spin barrier.
+kernel void rebuild_dispatch(KERNEL_ARGS,constant uint&batch_mode[[buffer(27)]]){
+ if(lane)return;
+ uint mode=(!m.error&&control[0]==batch_mode)?control[0]:0,rows=(m.count+255)/256,hash=(HASH_CAP+255)/256;
+ if(mode)control[14]++;
+ uint groups[7]={mode==1?hash:0,mode==1?rows:0,uint(mode==1),
+                 mode==2?hash:0,mode==2?rows:0,uint(mode==2),uint(mode!=0)};
+ for(uint i=0;i<7;i++){control[16+3*i]=groups[i];control[17+3*i]=1;control[18+3*i]=1;}
+}
 long rb_set(device long*r,long h){
  device long*s=r+ROW_WORDS;
  for(long q=2;q<h;q+=s[q]+4){
@@ -61,7 +72,7 @@ kernel void merge_scan(KERNEL_ARGS,uint tid[[thread_index_in_threadgroup]],uint 
 }
 kernel void merge_offsets(KERNEL_ARGS){
  if(lane||m.error)return;uint count=0;
- for(uint b=0;b<(CAPACITY+255)/256;b++){uint n=qheads[b];qheads[b]=count;count+=n;}
+ for(uint b=0;b<(control[1]+255)/256;b++){uint n=qheads[b];qheads[b]=count;count+=n;}
  control[7]=count;
 }
 kernel void merge_scatter(KERNEL_ARGS){
@@ -73,6 +84,10 @@ kernel void rebuild_merge(KERNEL_ARGS){
  for(uint n=control[4];n<control[7]&&!m.error;n++){uint j=qlinks[2*CAPACITY+n];
   uint i=qlinks[j],t=uint(r[i*STRIDE]),oi=i*STRIDE+4+WIDTH[t]-1,oj=j*STRIDE+4+WIDTH[t]-1;
   long a=canon(r,p,t,WIDTH[t]-1,r[oi]),b=canon(r,p,t,WIDTH[t]-1,r[oj]);
+  // A union outside every callback key sort cannot invalidate any constructor
+  // lookup made by this typed callback program. The index is used only by
+  // these callbacks until final compaction invalidates it for ordinary queries.
+  if(MERGE_TARGET_INDEX&&MERGE_INDEX[t]&&r[INDEX_OFFSET]&&r[INDEX_MERGE_VERSION]==p[MERGE_GENERATION])r[INDEX_OFFSET]=long(m.unions)+1;
   if(PARALLEL_MERGE_INDEX&&a!=b&&MERGE_INDEX[t]&&r[INDEX_OFFSET]!=long(m.unions)+1){control[4]=n;control[0]=2;return;}
   if(POLICY[t]==4&&a!=b){m.error=7;break;}
   r[oi]=mergevalue(t,a,b,r,p,fp,m);

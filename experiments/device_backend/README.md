@@ -1,5 +1,11 @@
 # GPU-owned egglog backend
 
+Versioned query continuations, safe parallel union RHS, typed merge-index
+invalidation, rebuild batches, and optional GPU ridge ordering are described in
+[CONTEXT_EXECUTION.md](CONTEXT_EXECUTION.md). They are opt-in. The measured full
+Pass-3 result did not establish a substantial acceleration; the detailed ledger
+retains unsuccessful variants as well as all correctness gates.
+
 ## Snapshot action contract
 
 Constructor lookup predictions and ordinary `set` writes have separate staged

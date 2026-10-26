@@ -3,7 +3,19 @@ using namespace metal;
 // Generated schema/limits are inserted before this code.
 struct Meta {uint count,next_id,epoch,changed,error,matched,rounds,unions,next_fact;};
 uint root(device uint*p,uint x){while(p[x]!=x){p[x]=p[p[x]];x=p[x];}return x;}
-void unite_now(device uint*p,long a,long b,device Meta&m){uint x=root(p,uint(a)),y=root(p,uint(b));if(x!=y){p[max(x,y)]=min(x,y);m.changed=1;m.unions++;}}
+void unite_now(device uint*p,long a,long b,device Meta&m){uint x=root(p,uint(a)),y=root(p,uint(b));if(x!=y){if(p[MERGE_KEY_FLAGS+x]||p[MERGE_KEY_FLAGS+y]){p[MERGE_GENERATION]++;p[MERGE_KEY_FLAGS+min(x,y)]=1;}p[max(x,y)]=min(x,y);m.changed=1;m.unions++;}}
+uint parallel_root(device atomic_uint*p,uint x){uint y;while((y=atomic_load_explicit(p+x,memory_order_relaxed))!=x)x=y;return x;}
+void parallel_unite(device uint*p,long a,long b,device Meta&m){
+ device atomic_uint*parents=(device atomic_uint*)p;
+ while(true){uint x=parallel_root(parents,uint(a)),y=parallel_root(parents,uint(b));if(x==y)return;
+  uint hi=max(x,y),lo=min(x,y),expected=hi;
+  if(atomic_compare_exchange_weak_explicit(parents+hi,&expected,lo,memory_order_relaxed,memory_order_relaxed)){
+   if(p[MERGE_KEY_FLAGS+uint(a)])atomic_fetch_add_explicit(parents+MERGE_GENERATION,1u,memory_order_relaxed);
+   atomic_fetch_add_explicit((device atomic_uint*)&m.unions,1u,memory_order_relaxed);
+   atomic_store_explicit((device atomic_uint*)&m.changed,1u,memory_order_relaxed);return;
+  }
+ }
+}
 void unite(device uint*p,long a,long b,device Meta&m){
  if(!p[IDCAP]){unite_now(p,a,b,m);return;}
  uint x=root(p,uint(a)),y=root(p,uint(b));if(x==y)return;
@@ -24,7 +36,7 @@ __attribute__((noinline)) long ensure_constructor(device long*r,device uint*p,de
  if(m.error)return 0;
  long found=row_lookup(r,p,m,t,args);if(found>=0)return canon(r,p,t,WIDTH[t]-1,r[found*STRIDE+4+WIDTH[t]-1]);
  if(m.count>=CAPACITY||m.next_fact>=IDCAP||m.next_id>=IDCAP){m.error=1;return 0;}
- uint value=m.next_id++,i=m.count++,fid=m.next_fact++;p[value]=value;fp[fid]=fid;
+ uint value=m.next_id++,i=m.count++,fid=m.next_fact++;p[value]=value;p[MERGE_KEY_FLAGS+value]=MERGE_KEY_OUTPUT[t];fp[fid]=fid;
  r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
  r[i*STRIDE+4+WIDTH[t]-1]=value;r[CONSTRUCTOR_PRED+i]=0;row_index_insert(r,p,i);m.changed=1;return value;
@@ -62,7 +74,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
    if(KIND[t]==0&&i>=uint(r[QUERY_LOG+1])){
     if(!r[CONSTRUCTOR_PRED+i]){
      if(m.next_id>=IDCAP){m.error=1;return 0;}
-     uint predicted=m.next_id++;p[predicted]=predicted;r[CONSTRUCTOR_PRED+i]=predicted;
+     uint predicted=m.next_id++;p[predicted]=predicted;p[MERGE_KEY_FLAGS+predicted]=MERGE_KEY_OUTPUT[t];r[CONSTRUCTOR_PRED+i]=predicted;
      unite(p,old,predicted,m);
     }
     return root(p,uint(r[CONSTRUCTOR_PRED+i]));
@@ -76,7 +88,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
  }
  if(m.count>=CAPACITY || m.next_fact>=IDCAP){m.error=1;return 0;}
  if(create){
-  if(KIND[t]==0){if(m.next_id>=IDCAP){m.error=1;return 0;}value=m.next_id;p[m.next_id]=m.next_id;m.next_id++;}
+  if(KIND[t]==0){if(m.next_id>=IDCAP){m.error=1;return 0;}value=m.next_id;p[m.next_id]=m.next_id;p[MERGE_KEY_FLAGS+m.next_id]=MERGE_KEY_OUTPUT[t];m.next_id++;}
   else if(KIND[t]==1)value=0;
   else {m.error=3;return 0;}
  }
@@ -160,13 +172,36 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
 }
 // QUERY_INDEX
 // DEVICE_ACTIONS
-kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],uint i[[thread_position_in_grid]]){if(i<IDCAP){p[i]=i;fp[i]=i;}}
-#define KERNEL_ARGS device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],device uint*control[[buffer(12)]],device uint*match_order[[buffer(15)]],device uint*noop[[buffer(18)]],device uint*qprev[[buffer(19)]],uint lane[[thread_position_in_grid]]
+kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],uint i[[thread_position_in_grid]]){if(i<IDCAP){p[i]=i;fp[i]=i;p[MERGE_KEY_FLAGS+i]=ALL_MERGE_KEY_SORTS;}if(!i)p[MERGE_GENERATION]=0;}
+#define KERNEL_ARGS device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],device uint*control[[buffer(12)]],device uint*match_order[[buffer(15)]],device uint*noop[[buffer(18)]],device uint*qprev[[buffer(19)]],device long*contexts[[buffer(22)]],device uint*context_info[[buffer(23)]],device float*context_results[[buffer(25)]],uint lane[[thread_position_in_grid]]
+// CONTEXT_RIDGE
+// CONTEXT_KERNELS
 // PARALLEL_REBUILD
 // PARALLEL_QUERY
 // MATCH_SORT
+kernel void initialize_key_flags(KERNEL_ARGS){
+ if(lane>=m.count)return;uint t=uint(r[lane*STRIDE]);
+ for(uint c=0;c<WIDTH[t];c++)if(MERGE_KEY_COLUMN[t*COLS+c]){
+  uint id=uint(r[lane*STRIDE+4+c]);
+  // Restore flags for both raw handles and their canonical representatives.
+  atomic_store_explicit((device atomic_uint*)(p+MERGE_KEY_FLAGS+id),1u,memory_order_relaxed);
+  atomic_store_explicit((device atomic_uint*)(p+MERGE_KEY_FLAGS+rb_root(p,id)),1u,memory_order_relaxed);
+ }
+}
+// PARALLEL_UNION_ACTIONS
+kernel void commit_union_start(KERNEL_ARGS){if(!lane){control[15]=m.unions;p[IDCAP]=0;p[IDCAP+1]=0;}}
+kernel void commit_union_parallel(KERNEL_ARGS){
+ if(m.error||lane>=m.matched)return;
+ uint binding=m.matched>1?match_order[lane]:lane;
+ if((NOOP_PREFLIGHT||EFFECT_DEDUP)&&noop[binding])return;
+ union_actions(uint(matches[binding*MSTRIDE]),binding,matches,p,m);
+}
+kernel void commit_union_finish(KERNEL_ARGS){
+ if(lane)return;control[0]=m.unions!=control[15];control[3]=m.error;
+ for(uint i=SET_START[set];i<SET_START[set+1];i++)watermarks[SET_RULES[i]]=m.epoch-1;
+}
 kernel void prepare(KERNEL_ARGS){
- if(lane||m.error)return;m.changed=0;m.matched=0;control[11]=0;noop[MATCHCAP]=0;
+ if(lane||m.error)return;m.changed=0;m.matched=0;control[11]=0;control[14]=0;noop[MATCHCAP]=0;
  if(m.epoch==0xffffffff){m.error=6;return;}m.epoch++;m.rounds++;r[ROW_WORDS+1]=m.epoch;
  bool reset=!INCREMENTAL_QUERY||m.rounds==1||r[QUERY_DIRTY]==1;
  control[0]=reset;control[1]=reset?0:qheads[2*QBUCKETS];

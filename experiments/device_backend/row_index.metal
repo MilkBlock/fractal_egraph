@@ -16,6 +16,7 @@ __attribute__((noinline)) void ensure_row_index(device long*r,device uint*p,devi
  for(uint i=0;i<HASH_CAP;i++)r[INDEX_OFFSET+1+i]=0;
  for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2)row_index_insert(r,p,i);
  r[INDEX_OFFSET]=long(m.unions)+1;
+ r[INDEX_MERGE_VERSION]=p[MERGE_GENERATION];
 }
 long row_lookup(device long*r,device uint*p,device Meta&m,uint t,thread long*args){
  ensure_row_index(r,p,m);device long*index=r+INDEX_OFFSET+1;uint slot=row_hash(t,args,r,p);

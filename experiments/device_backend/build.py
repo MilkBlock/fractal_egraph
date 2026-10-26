@@ -14,7 +14,7 @@ def main():
  swift='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc';sdk='/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
  if (HERE/'worker.swift').exists():subprocess.run([swift,'-O','-sdk',sdk,str(HERE/'worker.swift'),'-o',str(o/'worker')],check=True)
  sha=lambda x:hashlib.sha256(x.read_bytes()).hexdigest()
- sources=[ROOT/'egglog/src/device_program.rs',ROOT/'egglog/egglog-bridge/src/device_import.rs',ROOT/'egglog/src/lib.rs',ROOT/'egglog/egglog-bridge/src/rule.rs',*[HERE/n for n in ['frontend.rs','compiler.py','worker.swift','kernel.metal','sets.metal','actions.metal','row_index.metal','query_index.metal','rebuild_parallel.metal','query_parallel.metal','match_sort.metal','run.py']]]
+ sources=[ROOT/'egglog/src/device_program.rs',ROOT/'egglog/egglog-bridge/src/device_import.rs',ROOT/'egglog/src/lib.rs',ROOT/'egglog/egglog-bridge/src/rule.rs',*[HERE/n for n in ['frontend.rs','compiler.py','query_contexts.py','context_ridge.py','contexts.metal','worker.swift','kernel.metal','sets.metal','actions.metal','row_index.metal','query_index.metal','rebuild_parallel.metal','query_parallel.metal','match_sort.metal','run.py']]]
  tracked=subprocess.check_output(['git','ls-files','-z','egglog'],cwd=ROOT).decode().split('\0')
  kernel=sorted(set([n for n in tracked if n.endswith(('.rs','.toml','.lock'))]+['egglog/src/device_program.rs']))
  digest=hashlib.sha256()
