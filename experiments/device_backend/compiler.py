@@ -17,7 +17,7 @@ INTEGER_OPS={'+':0,'-':1,'*':2,'/':3,'%':4,'min':5,'max':6,'bool-=':7,'bool-<':8
 def integer_op(c):
  return INTEGER_OPS.get(c['primitive']) if c['inputs']==['i64','i64'] else None
 
-def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True,all_index_columns=False,radix_digit_bits=4,seed_dispatch=True,noop_preflight=True,direct_actions=True,query_patch=True):
+def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True,all_index_columns=False,radix_digit_bits=4,seed_dispatch=True,noop_preflight=True,direct_actions=True,query_patch=True,effect_dedup=False,early_seed_guards=False,lhs_context_reuse=True):
  if radix_digit_bits not in (1,4):raise ValueError('radix digit bits must be 1 or 4')
  if p['schema']!='egglog-device-core/v1':raise ValueError('program schema')
  strings=set()
@@ -94,7 +94,8 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  serial_use={r for si,use in enumerate(sets) if not parallel_sets[si] for r in use}
  index_columns=[set() for _ in ts]
  union_cap=max(capacity,match_capacity*2)
- allvars=[];queries=[];query_seeds=[];action_code=[];action_starts=[];query_widths=[]
+ context_reuses=[]
+ allvars=[];queries=[];query_seeds=[];query_seed_guards=[];action_code=[];action_starts=[];query_widths=[]
  for rid,r in enumerate(rules):
   slots={};types={}
   def var(name,sort):
@@ -116,10 +117,10 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    for x in a['args']:
     if 'var' in x:var(x['var'],x['sort']['name'])
    if 'table' in a['call']:a['_table_atom']=len(table_atoms);table_atoms.append(a)
-  query_widths.append(len(slots));variants=[];seeds=set()
+  query_widths.append(len(slots));variants=[];seeds=set();seed_guards={}
   pivots=range(len(table_atoms)) if delta_queries and r['seminaive'] and table_atoms else [None]
   for pivot in pivots:
-   pending=list(atoms);known=set();lines=[];depth=0;stamps=[];pivot_pending=pivot is not None;seeded=False;seed_table=None;seed_row="0";seed_time="0"
+   pending=list(atoms);known=set();lines=[];depth=0;stamps=[];pivot_pending=pivot is not None;seeded=False;seed_table=None;seed_atom=None;seed_row="0";seed_time="0"
    def ready(a):return 'table' in a['call'] or all('literal' in x or x['var'] in known for x in a['args'][:-1])
    while pending:
     candidates=[i for i,a in enumerate(pending) if ready(a)]
@@ -157,7 +158,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
        selected=f'(watermarks[{rid}]?TIME_COLUMN:{column})'
       else:begin=head;following=f'qlinks[{entry}]';selected=str(column)
       if not seeded:
-       seed_table=t
+       seed_table=t;seed_atom=atom_index
        begin=f'(QUERY_PARALLEL[set]?(lane<m.count?lane*QSTRIDE+{selected}:0xffffffff):({begin}))'
        following=f'(QUERY_PARALLEL[set]?0xffffffff:({following}))'
        seed_row=iv;seed_time=f'(watermarks[{rid}]?uint(old[{iv}*STRIDE+2]):0u)' if pivot is not None and atom_index==pivot else '0u';seeded=True
@@ -198,8 +199,14 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    else:gate='true'
    if not seeded:gate=f'({gate})&&(!QUERY_PARALLEL[set]||lane==0)'
    seeds.add(seed_table)
+   if seed_table is not None:
+    seed_gate=gate
+    if pivot is not None and seed_atom<=pivot:
+     relation='>' if seed_atom==pivot else '<='
+     seed_gate=f'({seed_gate})&&(uint(old[lane*STRIDE+2]){relation}watermarks[{rid}])'
+    seed_guards.setdefault(seed_table,[]).append(seed_gate)
    variants.append(f'if({gate})'+'{uint sequence=0;long v[VARS]={0};do{'+ '\n'.join(lines)+'}while(false);}')
-  queries.append("\n".join(variants));query_seeds.append(seeds)
+  queries.append("\n".join(variants));query_seeds.append(seeds);query_seed_guards.append(seed_guards)
   action_starts.append(len(action_code))
   def instruction(op,dst=0,sub=0,k=0,value=0):action_code.extend([op,dst,sub,k,value])
   def input_value(x):
@@ -209,10 +216,23 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    return 0,(string_ids[x['literal']] if x['sort']['kind']=='String' else x['literal'])
   def load(i,x):
    k,value=input_value(x);instruction(0,i,0,k,value)
+  def identity(x):return ('v',x['var'],x['sort']['name']) if 'var' in x else ('l',x['literal'],x['sort']['name'])
+  aliases={}
+  def current_identity(x):return aliases.get(x['var'],identity(x)) if 'var' in x else identity(x)
+  evidence={}
+  for a in r['body']:
+   if 'table' in a['call'] and kind[ids[a['call']['table']]]==0:
+    evidence[(a['call']['table'],tuple(map(identity,a['args'][:-1])))]=a['args'][-1]
+  def snapshot_input(x):
+   if 'var' in x:
+    index=slots[x['var']]
+    if index>=query_widths[rid]:raise ValueError('context proof refers outside LHS')
+    return 2,index
+   return input_value(x)
   for a in r['head']:
    op=a['op']
    if op=='copy':
-    k,value=input_value(a['arg']);instruction(1,var(a['dst'],a['sort']['name']),0,k,value);known.add(a['dst'])
+    k,value=input_value(a['arg']);instruction(1,var(a['dst'],a['sort']['name']),0,k,value);known.add(a['dst']);aliases[a['dst']]=current_identity(a['arg'])
    elif op=='panic':instruction(9)
    elif op=='union':
     x,y=a['args']
@@ -220,6 +240,16 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
     load(0,x);load(1,y);instruction(2)
    elif op in ('let','set','subsume'):
     c=a['call']
+    proof=evidence.get((c.get('table'),tuple(map(current_identity,a['args'])))) if lhs_context_reuse and defer_unions else None
+    if proof is not None and op in ('let','set'):
+     k,value=snapshot_input(proof)
+     if op=='let':
+      instruction(1,var(a['dst'],a['sort']['name']),0,k,value);known.add(a['dst']);aliases[a['dst']]=identity(proof)
+     else:
+      instruction(0,0,0,k,value);load(1,a['value']);instruction(2)
+     context_reuses.append({'rule':rid,'table':c['table'],'op':op})
+     continue
+    if op=='let':aliases[a['dst']]=('rhs',a['dst'])
     if len(a['args'])>cols:raise ValueError('action argument capacity exceeded')
     for i,x in enumerate(a['args']):load(i,x)
     if 'primitive' in c:
@@ -254,7 +284,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  radix_passes=(radix_bits+radix_digit_bits-1)//radix_digit_bits
  query_head_words=max(2*(hash_cap+len(ts))+1+len(ts),((capacity*(cols+2)+255)//256+1)*16)
  prefix+=f'#define NOOP_PREFLIGHT {int(noop_preflight)}\n#define REGISTERS {max([len(x) for x in allvars]+[1])}\n'
- prefix+=f'#define QUERY_PATCH {int(query_patch)}\n#define QUERY_LOG (INDEX_OFFSET+HASH_CAP+3)\n#define QUERY_OLD_VALUE (QUERY_LOG+2)\n#define QUERY_OLD_TIME (QUERY_OLD_VALUE+CAPACITY)\n#define QUERY_CHANGED (QUERY_OLD_TIME+CAPACITY)\n'
+ prefix+=f'#define QUERY_PATCH {int(query_patch)}\n#define QUERY_LOG (INDEX_OFFSET+HASH_CAP+3)\n#define QUERY_OLD_VALUE (QUERY_LOG+2)\n#define QUERY_OLD_TIME (QUERY_OLD_VALUE+CAPACITY)\n#define QUERY_CHANGED (QUERY_OLD_TIME+CAPACITY)\n#define CONSTRUCTOR_PRED (QUERY_CHANGED+CAPACITY)\n'
  prefix+=f'#define PARALLEL_MERGE_INDEX {int(parallel_merge_index)}\n'
  prefix+=f'#define INDEXED_SUBSUME {int(indexed_subsume)}\n'
  prefix+=f'#define PARALLEL_PREPARE {int(parallel_prepare)}\n#define QUERY_RADIX_BITS {radix_bits}\n'
@@ -283,6 +313,14 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    op,_,sub,_,_=action_code[pc:pc+5]
    if op in (8,9) or (op==3 and kind[sub]!=0) or (op==4 and policy[sub] not in (0,1,2,3)):safe=False
   noop_rules.append(int(safe))
+ prefix+=f'#define EFFECT_DEDUP {int(effect_dedup)}\n'
+ effect_start=[0];effect_slots=[]
+ for rid in range(len(rules)):
+  # Every referenced initial slot is retained, even if it is later overwritten.
+  # This is conservative: extra slots reduce sharing, never merge different RHS.
+  slots=sorted({action_code[pc+4] for pc in range(action_starts[rid],action_starts[rid+1],5) if action_code[pc+3] and action_code[pc+4]<query_widths[rid]})
+  effect_slots.extend(slots);effect_start.append(len(effect_slots))
+ for name,data in [('EFFECT_SLOT_START',effect_start),('EFFECT_SLOTS',effect_slots)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
  prefix+='constant uint NOOP_RULE[]={'+','.join(map(str,noop_rules or [0]))+'};\n'
  # These proofs read only the frozen Run state. Generate scalar SSA-friendly
  # code rather than running a divergent interpreter in every GPU lane.
@@ -291,7 +329,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
   lines += [f'long arg{i}=0;' for i in range(cols)]
   for pc in range(action_starts[rid],action_starts[rid+1],5):
    op,dst,sub,k,literal=action_code[pc:pc+5]
-   value=f'v{literal}' if k else ('(-9223372036854775807L-1L)' if literal==-(1<<63) else str(literal)+'L')
+   value=f'matches[mi*MSTRIDE+1+{literal}]' if k==2 else f'v{literal}' if k else ('(-9223372036854775807L-1L)' if literal==-(1<<63) else str(literal)+'L')
    if op==0:lines.append(f'arg{dst}={value};')
    elif op==1:lines.append(f'v{dst}={value};')
    elif op==2:lines.append('if(arg0!=arg1)return false;' if proof else 'unite(p,arg0,arg1,m);')
@@ -308,7 +346,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
       lines.append(f'if(arg{width[sub]-1}{comparison}{field})return false;')
     elif op==3:lines.append(f'v{dst}=write_row(r,p,fp,m,{sub},key{pc},0,true);')
     elif op==4:lines.append(f'write_row(r,p,fp,m,{sub},key{pc},arg{width[sub]-1},false);')
-    else:lines.append(f'hide_row(r,p,fp,m,{sub},key{pc});')
+    else:lines.append(f'if(!hide_row(r,p,fp,m,{sub},key{pc}))return;')
    elif op==6:
     failure='return false;' if proof else 'm.error=5;return;'
     lines.append(f'if(!integer_valid({sub},arg0,arg1))'+'{'+failure+'}'+f'v{dst}=integer_eval({sub},arg0,arg1);')
@@ -383,11 +421,15 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
     body=''
     for rank,r in enumerate(use):
      if table in query_seeds[r]:
-      q=call(r,rank)
-      body+=('if(lane!=0){'+q+'}') if None in query_seeds[r] else q
+      q=call(r,rank);conditions=[]
+      if None in query_seeds[r]:conditions.append('lane!=0')
+      if early_seed_guards:
+       gates=list(dict.fromkeys(query_seed_guards[r][table]))
+       if 'true' not in gates:conditions.append('('+'||'.join('('+g+')' for g in gates)+')')
+      body+=('if('+'&&'.join(conditions)+'){'+q+'}') if conditions else q
     cases.append(f'case {table}:'+'{'+body+'break;}')
    calls='if(lane==0){'+grounded+'}if(lane>=m.count||old[lane*STRIDE+1]!=0)return;switch(uint(old[lane*STRIDE])){'+''.join(cases)+'default:break;}'
   else:calls=''.join(call(r,rank) for rank,r in enumerate(use))
   kernels.append(template.replace('kernel void step(',f'kernel void {name}(').replace('// MATCH_BODY',calls))
  source=common+query_functions+'\n'.join(kernels)
- return {'schema':'egglog-device-storage/v1','seed_dispatch':seed_dispatch,'noop_preflight':noop_preflight,'direct_actions':direct_actions,'query_patch':query_patch,'query_prev_words':2*capacity,'compiled_action_rules':compiled_actions,'noop_eligible_rules':noop_rules,'query_seed_tables':[[ts[t]['name'] if t is not None else None for t in sorted(seeds,key=lambda x:-1 if x is None else x)] for seeds in query_seeds],'parallel_rebuild':parallel_rebuild,'parallel_match_sets':parallel_sets,'indexed_subsume':indexed_subsume,'parallel_merge_index':parallel_merge_index,'index_columns':{t['name']:sorted(index_columns[i]) for i,t in enumerate(ts)},'match_order_capacity':max(256,1<<(match_capacity-1).bit_length()),'parallel_prepare':parallel_prepare,'query_radix_bits':radix_bits,'query_radix_passes':radix_passes,'query_radix_digit_bits':radix_digit_bits,'query_sort_words':capacity*(cols+2),'hash_capacity':hash_cap,'shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+5+3*capacity,'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':2+union_cap*2,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':query_head_words,'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'workspace_words':max(match_capacity*(nv+6),capacity*(cols+4)),'id_capacity':idcap,'stride':cols+4,'match_stride':nv+6,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}
+ return {'schema':'egglog-device-storage/v1','seed_dispatch':seed_dispatch,'noop_preflight':noop_preflight,'direct_actions':direct_actions,'query_patch':query_patch,'effect_dedup':effect_dedup,'early_seed_guards':early_seed_guards,'lhs_context_reuse':lhs_context_reuse,'rhs_context_reuses':context_reuses,'effect_input_slots':[effect_slots[effect_start[i]:effect_start[i+1]] for i in range(len(rules))],'query_prev_words':2*capacity,'compiled_action_rules':compiled_actions,'noop_eligible_rules':noop_rules,'query_seed_tables':[[ts[t]['name'] if t is not None else None for t in sorted(seeds,key=lambda x:-1 if x is None else x)] for seeds in query_seeds],'parallel_rebuild':parallel_rebuild,'parallel_match_sets':parallel_sets,'indexed_subsume':indexed_subsume,'parallel_merge_index':parallel_merge_index,'index_columns':{t['name']:sorted(index_columns[i]) for i,t in enumerate(ts)},'match_order_capacity':max(256,1<<(match_capacity-1).bit_length()),'parallel_prepare':parallel_prepare,'query_radix_bits':radix_bits,'query_radix_passes':radix_passes,'query_radix_digit_bits':radix_digit_bits,'query_sort_words':capacity*(cols+2),'hash_capacity':hash_cap,'shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+5+4*capacity,'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':2+union_cap*2,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':query_head_words,'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'workspace_words':max(match_capacity*(nv+6),capacity*(cols+4)),'id_capacity':idcap,'stride':cols+4,'match_stride':nv+6,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}

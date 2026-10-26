@@ -27,7 +27,7 @@ __attribute__((noinline)) long ensure_constructor(device long*r,device uint*p,de
  uint value=m.next_id++,i=m.count++,fid=m.next_fact++;p[value]=value;fp[fid]=fid;
  r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
- r[i*STRIDE+4+WIDTH[t]-1]=value;row_index_insert(r,p,i);m.changed=1;return value;
+ r[i*STRIDE+4+WIDTH[t]-1]=value;r[CONSTRUCTOR_PRED+i]=0;row_index_insert(r,p,i);m.changed=1;return value;
 }
 long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,device Meta&m){
  if(a==b)return a;
@@ -55,7 +55,20 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
  if(m.error)return 0;
  long found=row_lookup(r,p,m,t,args);if(found>=0){uint i=uint(found);
   uint at=i*STRIDE+4+WIDTH[t]-1;long old=canon(r,p,t,WIDTH[t]-1,r[at]);
-  if(create)return old;
+  if(create){
+   // Set writes are staged independently from native's constructor prediction
+   // cache. A later lookup of a newly-set key predicts a fresh return value;
+   // the two are joined only at the action/rebuild boundary.
+   if(KIND[t]==0&&i>=uint(r[QUERY_LOG+1])){
+    if(!r[CONSTRUCTOR_PRED+i]){
+     if(m.next_id>=IDCAP){m.error=1;return 0;}
+     uint predicted=m.next_id++;p[predicted]=predicted;r[CONSTRUCTOR_PRED+i]=predicted;
+     unite(p,old,predicted,m);
+    }
+    return root(p,uint(r[CONSTRUCTOR_PRED+i]));
+   }
+   return old;
+  }
   long incoming=canon(r,p,t,WIDTH[t]-1,value);
   if(POLICY[t]==4 && r[i*STRIDE+2]==m.epoch && incoming!=old){m.error=7;return old;}
   long next=mergevalue(t,old,incoming,r,p,fp,m);
@@ -69,19 +82,33 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
  }
  uint i=m.count++,fid=m.next_fact++;fp[fid]=fid;r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
- r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);row_index_insert(r,p,i);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
+ r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);r[CONSTRUCTOR_PRED+i]=create&&KIND[t]==0?value:0;row_index_insert(r,p,i);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
 }
-void hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
- // Native subsume creates a hidden constructor row when the key is absent.
- write_row(r,p,fp,m,t,args,0,true);if(m.error)return;
+bool hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
+ // Constructor predictions are visible to lookup-or-insert, but native's
+ // subsumption-column lookup reads only the committed Run snapshot. Missing
+ // that row masks the remaining RHS actions; earlier writes are retained.
+ long found=row_lookup(r,p,m,t,args);
+ if(found<0){
+  uint inserted=m.count;write_row(r,p,fp,m,t,args,0,true);if(m.error)return false;
+  r[inserted*STRIDE+1]=1;return false;
+ }
+ if(uint(found)>=uint(r[QUERY_LOG+1])){
+  if(!r[CONSTRUCTOR_PRED+uint(found)]){
+   write_row(r,p,fp,m,t,args,0,true);if(m.error)return false;
+   r[uint(found)*STRIDE+1]=1;
+  }
+  return false;
+ }
  if(INDEXED_SUBSUME&&p[IDCAP]){
   // Deferred unions preserve canonical unique keys throughout the RHS phase.
-  long found=row_lookup(r,p,m,t,args);if(found<0){m.error=3;return;}uint i=uint(found);
+  uint i=uint(found);
   if(r[i*STRIDE+1]==0){r[QUERY_DIRTY]=1;r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
  }else{
   // The legacy eager-union diagnostic can temporarily contain colliding keys.
-  for(uint i=0;i<m.count;i++)if(keyeq(r,i,t,args,p)&&r[i*STRIDE+1]==0){r[QUERY_DIRTY]=1;r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
+  for(uint i=0;i<uint(r[QUERY_LOG+1]);i++)if(keyeq(r,i,t,args,p)&&r[i*STRIDE+1]==0){r[QUERY_DIRTY]=1;r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
  }
+ return true;
 }
 // Query arithmetic rejects a match; failed RHS arithmetic raises an error.
 bool integer_valid(uint op,long a,long b){
@@ -139,7 +166,7 @@ kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],ui
 // PARALLEL_QUERY
 // MATCH_SORT
 kernel void prepare(KERNEL_ARGS){
- if(lane||m.error)return;m.changed=0;m.matched=0;control[11]=0;
+ if(lane||m.error)return;m.changed=0;m.matched=0;control[11]=0;noop[MATCHCAP]=0;
  if(m.epoch==0xffffffff){m.error=6;return;}m.epoch++;m.rounds++;r[ROW_WORDS+1]=m.epoch;
  bool reset=!INCREMENTAL_QUERY||m.rounds==1||r[QUERY_DIRTY]==1;
  control[0]=reset;control[1]=reset?0:qheads[2*QBUCKETS];
@@ -162,12 +189,52 @@ kernel void prepare_build(KERNEL_ARGS){
  r[QUERY_DIRTY]=0;
  ensure_row_index(r,p,m);
 }
-kernel void check_empty_effects(KERNEL_ARGS){
- if(!NOOP_PREFLIGHT||m.error||lane>=m.matched)return;
+uint effect_binding(uint ordered,device uint*order,uint count){return count>1?order[ordered]:ordered;}
+uint effect_hash(uint binding,uint mask,device long*matches){
+ uint q=binding*MSTRIDE,rule=uint(matches[q]);ulong h=ulong(rule)+0x9e3779b97f4a7c15UL;
+ h^=ulong(matches[q+1+VARS])+(h<<6)+(h>>2); // original rule rank
+ for(uint n=EFFECT_SLOT_START[rule];n<EFFECT_SLOT_START[rule+1];n++){
+  ulong x=ulong(matches[q+1+EFFECT_SLOTS[n]]);x^=x>>30;x*=0xbf58476d1ce4e5b9UL;h^=x+(h<<6)+(h>>2);
+ }
+ return uint(h^(h>>32))&mask;
+}
+bool same_effect(uint a,uint b,device long*matches){
+ uint qa=a*MSTRIDE,qb=b*MSTRIDE,rule=uint(matches[qa]);
+ if(matches[qb]!=rule||matches[qa+1+VARS]!=matches[qb+1+VARS])return false;
+ for(uint n=EFFECT_SLOT_START[rule];n<EFFECT_SLOT_START[rule+1];n++)if(matches[qa+1+EFFECT_SLOTS[n]]!=matches[qb+1+EFFECT_SLOTS[n]])return false;
+ return true;
+}
+kernel void group_same_effects(KERNEL_ARGS,constant uint&mask[[buffer(20)]],device atomic_uint*effects[[buffer(21)]]){
+ if(!EFFECT_DEDUP||!DEFER_UNIONS[set]||m.error||lane>=m.matched)return;
+ uint binding=effect_binding(lane,match_order,m.matched),rule=uint(matches[binding*MSTRIDE]);
+ if(!NOOP_RULE[rule])return;
+ uint h=effect_hash(binding,mask,matches);
+ while(true){
+  uint present=atomic_load_explicit(effects+h,memory_order_relaxed);
+  if(!present){uint expected=0;if(atomic_compare_exchange_weak_explicit(effects+h,&expected,lane+1,memory_order_relaxed,memory_order_relaxed))return;}
+  else if(same_effect(binding,effect_binding(present-1,match_order,m.matched),matches)){
+   atomic_fetch_min_explicit(effects+h,lane+1,memory_order_relaxed);return;
+  }else h=(h+1)&mask;
+ }
+}
+kernel void check_empty_effects(KERNEL_ARGS,constant uint&mask[[buffer(20)]],device atomic_uint*effects[[buffer(21)]]){
+ if((!NOOP_PREFLIGHT&&!EFFECT_DEDUP)||m.error||lane>=m.matched)return;
  // Consume the existing rule-sorted permutation: adjacent lanes execute the
  // same bytecode, rather than diverging across arbitrarily interleaved rules.
  uint binding=m.matched>1?match_order[lane]:lane;
- bool empty=DEFER_UNIONS[set]&&actions_stably_empty(uint(matches[binding*MSTRIDE]),binding,code,matches,r);
+ uint rule=uint(matches[binding*MSTRIDE]);
+ bool duplicate=false;
+ if(EFFECT_DEDUP&&DEFER_UNIONS[set]&&NOOP_RULE[rule]){
+  uint h=effect_hash(binding,mask,matches);
+  while(true){
+   uint present=atomic_load_explicit(effects+h,memory_order_relaxed);
+   if(!present){atomic_store_explicit((device atomic_uint*)&m.error,12u,memory_order_relaxed);return;}
+   if(same_effect(binding,effect_binding(present-1,match_order,m.matched),matches)){duplicate=present-1!=lane;break;}
+   h=(h+1)&mask;
+  }
+ }
+ if(duplicate){noop[binding]=1;atomic_fetch_add_explicit((device atomic_uint*)&noop[MATCHCAP],1u,memory_order_relaxed);return;}
+ bool empty=NOOP_PREFLIGHT&&DEFER_UNIONS[set]&&actions_stably_empty(rule,binding,code,matches,r);
  noop[binding]=uint(empty);
  if(empty)atomic_fetch_add_explicit((device atomic_uint*)&control[11],1u,memory_order_relaxed);
 }
@@ -176,7 +243,7 @@ kernel void commit_effects(KERNEL_ARGS){
  p[IDCAP]=DEFER_UNIONS[set];p[IDCAP+1]=0;
  for(uint mi=0;mi<m.matched;mi++){
   uint binding=QUERY_PARALLEL[set]&&m.matched>1?match_order[mi]:mi;
-  if(NOOP_PREFLIGHT&&QUERY_PARALLEL[set]&&noop[binding])continue;
+  if((NOOP_PREFLIGHT||EFFECT_DEDUP)&&QUERY_PARALLEL[set]&&noop[binding])continue;
   uint rule=uint(matches[binding*MSTRIDE]);execute_actions(rule,binding,code,registers,matches,r,p,fp,m);
   if(m.error)return;
  }

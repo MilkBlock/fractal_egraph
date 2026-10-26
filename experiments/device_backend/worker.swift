@@ -14,6 +14,7 @@ let prepareClearPipeline=try device.makeComputePipelineState(function:lib.makeFu
 let prepareBuildPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"prepare_build")!)
 let commitPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"commit_effects")!)
 let noopPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"check_empty_effects")!)
+let effectPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"group_same_effects")!)
 let rebuildPipelines=try ["rebuild_start","rebuild_canonical","rebuild_insert","rebuild_assign","merge_scan","merge_offsets","merge_scatter","rebuild_merge","compact_scan","compact_offsets","compact_copy","compact_store"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 try need(rebuildPipelines[4].maxTotalThreadsPerThreadgroup>=256 && rebuildPipelines[8].maxTotalThreadsPerThreadgroup>=256,"rebuild scans require 256-thread groups")
 let rowIndexPipelines=try ["row_index_context","row_index_clear","row_index_parallel","row_index_ready"].map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
@@ -36,7 +37,8 @@ let queryPrevious=privateBuffer((program["query_prev_words"] as! Int)*4)
 let rebuildControl=privateBuffer(48)
 let queryAlternate=privateBuffer((program["query_sort_words"] as! Int)*8)
 let matchOrder=privateBuffer((program["match_order_capacity"] as! Int)*4)
-let noopFlags=privateBuffer(matchCapacity*4)
+let noopFlags=privateBuffer((matchCapacity+1)*4)
+let effectHeads=privateBuffer(2*(program["match_order_capacity"] as! Int)*4)
 let initialMeta=(program["meta"] as! [NSNumber]).map{$0.uint32Value}
 func initializeState() throws {
 let initial=(program["initial_rows"] as! [NSNumber]).map{$0.int64Value}
@@ -62,19 +64,20 @@ withExtendedLifetime(stages) {}
 }
 try initializeState()
 program.removeValue(forKey:"initial_rows");program.removeValue(forKey:"initial_sets");program.removeValue(forKey:"action_code");for n in ["initial_parents","initial_fact_parents","initial_watermarks"]{program.removeValue(forKey:n)}
-func encode(_ cb:MTLCommandBuffer,_ pipeline:MTLComputePipelineState,_ threads:Int,_ arg:UInt32,indirect:Bool=false,indirectOffset:Int=16,radixBit:UInt32=0,sortK:UInt32=0,sortD:UInt32=0){
+func encode(_ cb:MTLCommandBuffer,_ pipeline:MTLComputePipelineState,_ threads:Int,_ arg:UInt32,indirect:Bool=false,indirectOffset:Int=16,radixBit:UInt32=0,sortK:UInt32=0,sortD:UInt32=0,effectMask:UInt32=1){
  let e=cb.makeComputeCommandEncoder()!;e.setComputePipelineState(pipeline)
  for (i,b) in [rows,old,parent,factParent,meta,matches,watermarks].enumerated(){e.setBuffer(b,offset:0,index:i)}
  e.setBuffer(instructions,offset:0,index:8);e.setBuffer(registers,offset:0,index:9);e.setBuffer(queryHeads,offset:0,index:10);e.setBuffer(queryLinks,offset:0,index:11);e.setBuffer(rebuildControl,offset:0,index:12);e.setBuffer(queryAlternate,offset:0,index:14);e.setBuffer(matchOrder,offset:0,index:15)
  var k=sortK,d=sortD;withUnsafeBytes(of:&k){e.setBytes($0.baseAddress!,length:4,index:16)};withUnsafeBytes(of:&d){e.setBytes($0.baseAddress!,length:4,index:17)}
  e.setBuffer(noopFlags,offset:0,index:18);e.setBuffer(queryPrevious,offset:0,index:19)
+ var mask=effectMask;withUnsafeBytes(of:&mask){e.setBytes($0.baseAddress!,length:4,index:20)};e.setBuffer(effectHeads,offset:0,index:21)
  var bit=radixBit;withUnsafeBytes(of:&bit){e.setBytes($0.baseAddress!,length:4,index:13)}
  var set=arg;withUnsafeBytes(of:&set){e.setBytes($0.baseAddress!,length:4,index:7)}
  if indirect{e.dispatchThreadgroups(indirectBuffer:rebuildControl,indirectBufferOffset:indirectOffset,threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
  else{e.dispatchThreads(MTLSize(width:threads,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(threads,256,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))};e.endEncoding()
 }
 func copyStatus(_ cb:MTLCommandBuffer,_ status:MTLBuffer,_ flags:MTLBuffer){
- let b=cb.makeBlitCommandEncoder()!;b.copy(from:meta,sourceOffset:0,to:status,destinationOffset:0,size:36);b.copy(from:rows,sourceOffset:(program["index_counter_offset"] as! Int)*8,to:status,destinationOffset:36,size:8);b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:16);b.copy(from:rows,sourceOffset:(program["query_dirty_offset"] as! Int)*8,to:status,destinationOffset:44,size:8);b.copy(from:rows,sourceOffset:((program["index_counter_offset"] as! Int)-(program["hash_capacity"] as! Int)-1)*8,to:status,destinationOffset:52,size:8);b.copy(from:rebuildControl,sourceOffset:44,to:status,destinationOffset:60,size:4);b.endEncoding()
+ let b=cb.makeBlitCommandEncoder()!;b.copy(from:meta,sourceOffset:0,to:status,destinationOffset:0,size:36);b.copy(from:rows,sourceOffset:(program["index_counter_offset"] as! Int)*8,to:status,destinationOffset:36,size:8);b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:16);b.copy(from:rows,sourceOffset:(program["query_dirty_offset"] as! Int)*8,to:status,destinationOffset:44,size:8);b.copy(from:rows,sourceOffset:((program["index_counter_offset"] as! Int)-(program["hash_capacity"] as! Int)-1)*8,to:status,destinationOffset:52,size:8);b.copy(from:rebuildControl,sourceOffset:44,to:status,destinationOffset:60,size:4);b.copy(from:noopFlags,sourceOffset:matchCapacity*4,to:status,destinationOffset:64,size:4);b.endEncoding()
 }
 try FileHandle.standardError.write(contentsOf:Data("device allocated_bytes=\(device.currentAllocatedSize)\n".utf8))
 let input=FileHandle.standardInput,output=FileHandle.standardOutput
@@ -85,7 +88,7 @@ var needsIndexReset=true
 var needsIndexPatch=false
 var fullIndexPhases=0,patchIndexPhases=0
 var needsRowIndex=true
-try output.write(contentsOf:Data("DVB6".utf8))
+try output.write(contentsOf:Data("DVB7".utf8))
 while true{
  let d=try read(8),words=d.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let op=words[0],arg=words[1]
  if op==0{try FileHandle.standardError.write(contentsOf:Data("device index_refresh full=\(fullIndexPhases) patch=\(patchIndexPhases)\n".utf8));break}
@@ -96,7 +99,7 @@ while true{
   let parallelMatch=(program["parallel_match_sets"] as! [NSNumber])[Int(arg)].boolValue
   var commands:[MTLCommandBuffer]=[];var orderCommand:MTLCommandBuffer?=nil;var noopFused=false
   let matchStatus=device.makeBuffer(length:36,options:.storageModeShared)!
-  let status=device.makeBuffer(length:64,options:.storageModeShared)!,flags=device.makeBuffer(length:16,options:.storageModeShared)!
+  let status=device.makeBuffer(length:68,options:.storageModeShared)!,flags=device.makeBuffer(length:16,options:.storageModeShared)!
   for (stage,pipeline) in [preparePipeline,stepPipelines[Int(arg)],commitPipeline].enumerated(){
    if stage==2 && parallelMatch {
     commands[1].waitUntilCompleted();try need(commands[1].status == .completed,"parallel match failed: \(String(describing:commands[1].error))")
@@ -112,9 +115,16 @@ while true{
     }
    }
    let cb=queue.makeCommandBuffer()!
-   if stage==2 && parallelMatch && program["noop_preflight"] as! Bool {
+   if stage==2 && parallelMatch && ((program["noop_preflight"] as! Bool)||(program["effect_dedup"] as! Bool)) {
     let info=matchStatus.contents().bindMemory(to:UInt32.self,capacity:9)
-    if info[4]==0 && info[5]>0{encode(cb,noopPipeline,Int(info[5]),arg);noopFused=true}
+    if info[4]==0 && info[5]>0{
+     var slots=2;while slots<2*Int(info[5]){slots*=2}
+     if program["effect_dedup"] as! Bool{
+      let clear=cb.makeBlitCommandEncoder()!;clear.fill(buffer:effectHeads,range:0..<(slots*4),value:0);clear.endEncoding()
+      encode(cb,effectPipeline,Int(info[5]),arg,effectMask:UInt32(slots-1))
+     }
+     encode(cb,noopPipeline,Int(info[5]),arg,effectMask:UInt32(slots-1));noopFused=true
+    }
    }
    encode(cb,pipeline,stage==1 && parallelMatch ? max(1,Int(hostMeta[0])):1,arg)
    if stage==0{
@@ -177,7 +187,7 @@ while true{
   hostMeta=Array(UnsafeBufferPointer(start:status.contents().bindMemory(to:UInt32.self,capacity:9),count:9));try send(hostMeta)
   // The no-op filter and RHS share a command buffer. Do not add an otherwise
   // unnecessary submission merely to obtain a separate GPU timestamp.
-  var seconds=commands.map{$0.gpuEndTime-$0.gpuStartTime};let rhsSeconds=seconds[2];seconds[2]+=rebuildSeconds;if let sorted=orderCommand{seconds[1]+=sorted.gpuEndTime-sorted.gpuStartTime};seconds.append(rhsSeconds);seconds.append(rebuildSeconds);seconds.append(noopFused ? -1 : 0);try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))};try output.write(contentsOf:Data(bytes:status.contents().advanced(by:36),count:8));try output.write(contentsOf:Data(bytes:status.contents().advanced(by:60),count:4))
+  var seconds=commands.map{$0.gpuEndTime-$0.gpuStartTime};let rhsSeconds=seconds[2];seconds[2]+=rebuildSeconds;if let sorted=orderCommand{seconds[1]+=sorted.gpuEndTime-sorted.gpuStartTime};seconds.append(rhsSeconds);seconds.append(rebuildSeconds);seconds.append(noopFused ? -1 : 0);try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))};try output.write(contentsOf:Data(bytes:status.contents().advanced(by:36),count:8));try output.write(contentsOf:Data(bytes:status.contents().advanced(by:60),count:8))
  }else if op==2{
   // Explicit checkpoint only. No table contents are read by the control loop.
   let cb=queue.makeCommandBuffer()!,b=cb.makeBlitCommandEncoder()!

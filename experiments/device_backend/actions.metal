@@ -10,14 +10,14 @@ __attribute__((noinline)) void execute_bytecode(uint rule,uint mi,device long*co
  long args[COLS]={0};
  for(uint pc=ACTION_START[rule];pc<ACTION_START[rule+1]&&!m.error;pc+=5){
   uint op=uint(code[pc]),dst=uint(code[pc+1]),sub=uint(code[pc+2]);
-  long value=code[pc+3]?v[code[pc+4]]:code[pc+4];
+  long value=code[pc+3]==2?matches[mi*MSTRIDE+1+code[pc+4]]:(code[pc+3]?v[code[pc+4]]:code[pc+4]);
   switch(op){
    case 0:args[dst]=value;break;
    case 1:v[dst]=value;break;
    case 2:unite(p,args[0],args[1],m);break;
    case 3:v[dst]=write_row(r,p,fp,m,sub,args,0,true);break;
    case 4:write_row(r,p,fp,m,sub,args,args[WIDTH[sub]-1],false);break;
-   case 5:hide_row(r,p,fp,m,sub,args);break;
+   case 5:if(!hide_row(r,p,fp,m,sub,args))return;break;
    case 6:if(!integer_valid(sub,args[0],args[1])){m.error=5;return;}v[dst]=integer_eval(sub,args[0],args[1]);break;
    case 7:{
     long x=0;

@@ -1,5 +1,5 @@
 """Real Metal/native differential tests. Not timing or acceleration claims."""
-import argparse,json
+import argparse,json,subprocess
 from pathlib import Path
 from run import run,compare,atomic_json
 HERE=Path(__file__).resolve().parent
@@ -63,6 +63,30 @@ def tests(build,out):
  unstable=run(HERE/'fixtures/unstable-empty-rhs.egg',build,out/'unstable-empty-rhs')
  assert unstable['rhs_noops_skipped']==0
  results['reject-unstable-empty-rhs']=unstable
+ repeated=run(HERE/'fixtures/repeated-effects.egg',build,out/'repeated-effects',effect_dedup=True)
+ repeat_control=run(HERE/'fixtures/repeated-effects.egg',build,out/'repeated-effects-off',effect_dedup=False)
+ assert repeated['duplicate_effects_skipped']==189 and repeated['rhs_noops_skipped']==1
+ assert repeated['steps']==repeat_control['steps']
+ assert json.loads((out/'repeated-effects/gpu-state.json').read_text())==json.loads((out/'repeated-effects-off/gpu-state.json').read_text())
+ results['repeated-effects']=repeated
+ ordered=run(HERE/'fixtures/ordered-effects.egg',build,out/'ordered-effects',effect_dedup=True)
+ assert ordered['duplicate_effects_skipped']==0
+ results['preserve-ordered-effects']=ordered
+ snapshot=run(HERE/'fixtures/snapshot-subsume.egg',build,out/'snapshot-subsume')
+ snapshot_vm=run(HERE/'fixtures/snapshot-subsume.egg',build,out/'snapshot-subsume-bytecode',direct_actions=False)
+ assert snapshot['steps']==snapshot_vm['steps']
+ assert json.loads((out/'snapshot-subsume/gpu-state.json').read_text())==json.loads((out/'snapshot-subsume-bytecode/gpu-state.json').read_text())
+ results['snapshot-subsume']=snapshot
+ prediction=run(HERE/'fixtures/set-prediction.egg',build,out/'set-prediction')
+ results['separate-set-and-prediction']=prediction
+ custom_duplicates=run(HERE/'fixtures/repeated-custom-set.egg',build,out/'repeated-custom-set',effect_dedup=True)
+ assert custom_duplicates['duplicate_effects_skipped']==0
+ results['preserve-repeated-custom-merge']=custom_duplicates
+ guarded=run(HERE/'fixtures/seed-pivot-guards.egg',build,out/'seed-pivot-guards',early_seed_guards=True)
+ late=run(HERE/'fixtures/seed-pivot-guards.egg',build,out/'seed-pivot-guards-late',early_seed_guards=False)
+ assert guarded['steps']==late['steps']
+ assert json.loads((out/'seed-pivot-guards/gpu-state.json').read_text())==json.loads((out/'seed-pivot-guards-late/gpu-state.json').read_text())
+ results['early-seed-pivot-guards']=guarded
  t=stable['timings_seconds'];assert abs(t['rhs_commit']+t['parallel_rebuild']+(t['noop_preflight'] or 0)-t['commit'])<1e-7
  assert {'pure','mixed'}<=set(results['deferred-union']['deferred_rulesets'])
  # Eager union is a diagnostic counterfactual, and is known to lose a merge
@@ -106,6 +130,9 @@ def tests(build,out):
   except (ValueError,RuntimeError,AssertionError) as e:assert error in str(e),(name,str(e));results[name]={'expected_rejection':str(e)}
   else:raise AssertionError(name+' accepted')
   assert not (out/name/'report.json').exists();assert (out/name/'failure.json').exists()
+ native_error=subprocess.run([str(build.resolve()/'frontend'),str(out/'overflow.egg'),'--native-full','--export-to',str(out/'native-overflow')],capture_output=True,text=True)
+ assert native_error.returncode!=0 and 'call of primitive + failed' in native_error.stderr
+ results['native-rhs-overflow-contract']=True
  # Deliberately corrupt successful snapshots: equal counts are not enough.
  p=json.loads((out/'pipeline/program.json').read_text());g=json.loads((out/'pipeline/gpu-state.json').read_text());n=json.loads((out/'pipeline/native-state.json').read_text())
  for corruption in ['visibility','value','equivalence']:

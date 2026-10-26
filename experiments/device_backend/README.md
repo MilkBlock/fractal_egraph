@@ -1,5 +1,22 @@
 # GPU-owned egglog backend
 
+## Snapshot action contract
+
+Constructor lookup predictions and ordinary `set` writes have separate staged
+identities. A subsumption lookup reads the committed Run snapshot: when absent,
+its constructor prediction remains but the rest of that RHS lane is masked.
+RHS primitive failure still raises an error. These cases are regression-tested
+before changing parallel action execution. LHS constructor witnesses can supply
+the same immutable RHS lookup during deferred unions (`--no-lhs-context-reuse`
+is the control); function values are not treated as immutable witnesses.
+
+The current validation in `out/device-lhs-context-tests/results.json` passed 60
+execution checks. Optional exact effect projection deduplication and early seed
+timestamp guards remain off by default: neither established a full GPU-time
+gain. Deduplication excludes order-sensitive/custom merges and reports skipped
+effect programs separately from logical matches. The corrected constructor
+prediction semantics do not repair the pre-existing full native graph mismatch.
+
 The CPU keeps native parsing, typechecking and schedule control. Metal owns the evolving tables, matching, RHS actions, union-find and rebuild. Normal execution returns status/timing data, never bindings for CPU-side RHS execution.
 
 This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; necessary RHS effects and merge callbacks are committed serially. It has completed all 10,097 raytrace Pass 3 Runs from the original input, without CPU inference, matching the logical endpoint of the earlier device continuations. Strict final graph/selected-DAG equality with native has **not** passed; production Tiger emits 29 functions on both sides, and a separate production-interpreter check agrees on raytrace's official input plus three varied inputs. That finite-input result is not an equivalence proof. There is no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading, the ridge predictor and Tensor Core matching are not connected here.
