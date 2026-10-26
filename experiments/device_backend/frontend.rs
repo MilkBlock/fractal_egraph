@@ -201,6 +201,22 @@ fn main() -> Result<()> {
                     "clone_seconds":clone_seconds,"runs":runs,"logical_matches":matches,
                     "scope":"native closure only, no intervening query/snapshot export"}));
             }
+            Some("time_runs") => {
+                // Replay an already verified native schedule without intervening
+                // exports or IPC. The caller checks every update flag afterwards.
+                let sets = q["sets"].as_array().ok_or("ruleset sequence")?;
+                let mut steps = Vec::with_capacity(sets.len());
+                let total = std::time::Instant::now();
+                for set in sets {
+                    let started = std::time::Instant::now();
+                    let r = eg.step_rules(set.as_str().ok_or("ruleset name")?)?;
+                    let seconds = started.elapsed().as_secs_f64();
+                    steps.push(json!({"seconds":seconds,"updated":r.updated,
+                        "logical_matches":r.num_matches_per_rule.values().sum::<usize>()}));
+                }
+                println!("{}", json!({"seconds":total.elapsed().as_secs_f64(),"steps":steps,
+                    "scope":"original native Run sequence, no intervening IPC or graph export"}));
+            }
             Some("snapshot") => println!(
                 "{}",
                 eg.device_checkpoint(&anchors).map_err(io::Error::other)?

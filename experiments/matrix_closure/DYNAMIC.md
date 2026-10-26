@@ -110,6 +110,9 @@ adapter scanned 11,751,307 rows and took 85.816 s; changed-wiring compilation to
 before timing production integration. The previous frozen-context timings do not
 measure this dynamic validation path.
 
+A subsequent [dynamic performance comparison](PERFORMANCE.md) measures the same
+real updates without per-Run verification traffic, including CPU wiring costs.
+
 ## Build and reproduce
 
 Use Python with NumPy and the existing shared Cargo target for a quick rebuild.
