@@ -5,6 +5,10 @@ predicate closures in GPU-private matrices and publishes their rows once.
 Raytrace's 17-rule `is-resolved` path is connected and checked; ordinary Run is
 unchanged. Architecture, supported semantics, native checks, measured limits and
 the separate parallel-RHS experiment: [MATRIX_SATURATE.md](MATRIX_SATURATE.md).
+The same switch now also compiles `terms-helpers-helpers` into a private
+matrix/equality closure, with exact i64 coordinates and one final global rebuild:
+[MATRIX_COMPARISON.md](MATRIX_COMPARISON.md). The family is recognized by typed
+rule shape and schema proof, not table/ruleset names.
 
 Versioned query continuations, safe parallel union RHS, typed merge-index
 invalidation, rebuild batches, and optional GPU ridge ordering are described in
@@ -48,8 +52,8 @@ python3 experiments/device_backend/run.py \
 Builds use the local `egglog/` offline. Reuse an existing Cargo target with `--target`; output run directories must be new.
 
 - Default: native comparison after each Run.
-- `--matrix-saturate`: replace certified positive fixed-carrier Saturate blocks
-  with resident matrix programs. Native graph checks occur at Saturate exits;
+- `--matrix-saturate`: replace certified positive-predicate and min-choice
+  equality Saturate blocks with resident matrix programs. Native graph checks occur at Saturate exits;
   ordinary Run boundaries retain their checks.
 - `--batch-rhs`: experimental parallel independent-constructor publication;
   retains ordered unsafe effects and remains off by default.

@@ -2,7 +2,7 @@
 import argparse,json
 from pathlib import Path
 
-def compare(before,after,device_states=False,endpoints_only=False,semantic_device=False):
+def compare(before,after,device_states=False,endpoints_only=False,semantic_device=False,saturation_macros=False):
     reports=[json.loads((p/'report.json').read_text()) for p in [before,after]]
     programs=[json.loads((p/'program.json').read_text()) for p in [before,after]]
     a,b=reports;pa,pb=programs
@@ -58,7 +58,13 @@ def compare(before,after,device_states=False,endpoints_only=False,semantic_devic
             if r['checks'][-1]['step']!=len(r['steps']):raise ValueError('check is not final')
         final_check=b['checks'][-1]
     order=lambda r:[(s['set'],s['updated']) for s in r['steps']]
-    if order(a)!=order(b):raise ValueError('different executed schedule')
+    if saturation_macros:
+        if not semantic_device:raise ValueError('compacted saturation requires complete typed graph comparison')
+        if not all(r['complete_schedule'] and not r['resumed_prefix_runs'] for r in reports):raise ValueError('macro comparison requires both complete schedules from initial state')
+        if pa['schedule']!=pb['schedule'] or json.loads((before/'core.json').read_text())!=json.loads((after/'core.json').read_text()):raise ValueError('different source schedule/core')
+        final_check['original_schedule_equal']=True
+        final_check['internal_run_history_equal']=order(a)==order(b)
+    elif order(a)!=order(b):raise ValueError('different executed schedule')
     if endpoints_only:
         return {'scope':'GPU endpoint comparison; no native-equivalence or speedup claim','before':str(before),'after':str(after),
                 'original_typed_program_equal':True,'executed_runs':len(a['steps']),'final_check':final_check}
@@ -70,6 +76,6 @@ def compare(before,after,device_states=False,endpoints_only=False,semantic_devic
     return {'scope':scope,'before':str(before),'after':str(after),'source_sha256':a['source_sha256'],'resumed_prefix_runs':a['resumed_prefix_runs'],'measured_runs':len(a['device_command_times']),'final_check':final_check,'timings':phases,'builds':[r['build'] for r in reports]}
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('before',type=Path);p.add_argument('after',type=Path);p.add_argument('--output',type=Path);p.add_argument('--device-states',action='store_true');p.add_argument('--semantic-device-states',action='store_true');p.add_argument('--endpoints-only',action='store_true');a=p.parse_args();r=compare(a.before,a.after,a.device_states or a.semantic_device_states,a.endpoints_only,a.semantic_device_states)
+    p=argparse.ArgumentParser();p.add_argument('before',type=Path);p.add_argument('after',type=Path);p.add_argument('--output',type=Path);p.add_argument('--device-states',action='store_true');p.add_argument('--semantic-device-states',action='store_true');p.add_argument('--endpoints-only',action='store_true');p.add_argument('--saturation-macros',action='store_true');a=p.parse_args();r=compare(a.before,a.after,a.device_states or a.semantic_device_states,a.endpoints_only,a.semantic_device_states,a.saturation_macros)
     if a.output:a.output.write_text(json.dumps(r,indent=2)+'\n')
     print(json.dumps(r,indent=2))

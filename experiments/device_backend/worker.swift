@@ -130,6 +130,54 @@ var needsRowIndex=true
 var rebuildWaits=0,rebuildIterations=0
 var contextCount=0,contextFallbacks=0
 var lastContextCount=0,lastContextOverflow=0
+func finishRebuild(_ arg:UInt32,_ status:MTLBuffer,_ flags:MTLBuffer)throws->Double{
+  var rebuildSeconds=0.0
+  var controlWords=Array(UnsafeBufferPointer(start:flags.contents().bindMemory(to:UInt32.self,capacity:4),count:4))
+  let needed=controlWords[0] != 0
+  while controlWords[0] != 0 && controlWords[3] == 0 {
+   let cb=queue.makeCommandBuffer()!
+   if rebuildBatch>1 {
+    let mode=controlWords[0]
+    let encoder=cb.makeComputeCommandEncoder()!
+    for iteration in 0..<rebuildBatch {
+     encode(cb,rebuildDispatch,1,arg,sharedEncoder:encoder,bindResources:iteration==0,rebuildMode:mode)
+     // Repeat only the current branch. A mode change ends active work until
+     // the next host submission; no unused alternate branch is dispatched.
+     if mode==1 {
+      for (i,offset) in [(0,88),(1,64),(2,76),(3,76),(4,76),(5,88),(6,76)]{
+       encode(cb,rebuildPipelines[i],1,arg,indirect:true,indirectOffset:offset,sharedEncoder:encoder,bindResources:false)
+      }
+     }else{
+      for (i,offset) in [(0,124),(1,100),(2,112),(3,124)]{
+       encode(cb,rowIndexPipelines[i],1,arg,indirect:true,indirectOffset:offset,sharedEncoder:encoder,bindResources:false)
+      }
+     }
+     encode(cb,rebuildPipelines[7],1,arg,indirect:true,indirectOffset:136,sharedEncoder:encoder,bindResources:false)
+    }
+    encoder.endEncoding()
+   }else if controlWords[0]==2 {
+    rebuildIterations+=1
+    encode(cb,rowIndexPipelines[0],1,arg);encode(cb,rowIndexPipelines[1],program["hash_capacity"] as! Int,arg);encode(cb,rowIndexPipelines[2],capacity,arg);encode(cb,rowIndexPipelines[3],1,arg);encode(cb,rebuildPipelines[7],1,arg)
+   }else{
+    rebuildIterations+=1
+    let widths=[1,program["hash_capacity"] as! Int,capacity,capacity,((capacity+255)/256)*256,1,capacity,1]
+    for i in 0..<8{encode(cb,rebuildPipelines[i],widths[i],arg)}
+   }
+   let b=cb.makeBlitCommandEncoder()!;b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:64);b.endEncoding();cb.commit();cb.waitUntilCompleted();rebuildWaits+=1
+   try need(cb.status == .completed,"parallel rebuild failed: \(String(describing:cb.error))")
+   rebuildSeconds+=cb.gpuEndTime-cb.gpuStartTime
+   controlWords=Array(UnsafeBufferPointer(start:flags.contents().bindMemory(to:UInt32.self,capacity:4),count:4))
+  }
+  if needed{rebuildIterations += rebuildBatch>1 ? Int(flags.contents().bindMemory(to:UInt32.self,capacity:16)[14]) : 0}
+  if needed {
+   let cb=queue.makeCommandBuffer()!
+   try need(rebuildPipelines[8].maxTotalThreadsPerThreadgroup>=256,"compaction requires 256 threads per group")
+   for (i,width) in [((capacity+255)/256)*256,1,capacity,capacity*stride].enumerated(){encode(cb,rebuildPipelines[8+i],width,arg)}
+   copyStatus(cb,status,flags);cb.commit();cb.waitUntilCompleted();try need(cb.status == .completed,"rebuild finish failed")
+   rebuildSeconds+=cb.gpuEndTime-cb.gpuStartTime
+  }
+  return rebuildSeconds
+}
 // Saturate-scoped execution: all recurrence and effect discovery stays private
 // until the final table publication. No binding matrix crosses the CPU boundary.
 let msDescription=program["matrix_saturate"] as? [String:Any]
@@ -209,10 +257,66 @@ func matrixSaturate(_ set:UInt32)throws->MatrixSatResult{
  return MatrixSatResult(accepted:true,reason:0,info:result,history:historyWords,phases:gpuPhases,indexCount:indexCount,markerCount:markersCount,scratchBytes:scratch)
 }
 
+let cuDescription=program["comparison_saturate"] as? [String:Any]
+let cuPlans=cuDescription?["programs"] as? [[String:Any]] ?? []
+let cuNames=["cu_count","cu_pack","cu_reset","cu_reduce","cu_gather","cu_mma","cu_apply","cu_congruence","cu_finish","cu_publish"]
+let cuPipelines=try (cuPlans.isEmpty ? []:cuNames).map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
+let cuWeights=shared((cuDescription?["weights"] as? [NSNumber] ?? []).map{Float16($0.floatValue).bitPattern})
+var cuCalls=0,cuIterations=0,cuUnions=0
+// Reuse allocation, never stale closure contents. Every invocation repacks
+// current row ports and copies the current canonical UF before inference.
+var cuBuffers:[String:MTLBuffer]=[:]
+func cuBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
+ if let b=cuBuffers[name],b.length>=max(4,bytes){return b}
+ let b=privateBuffer(bytes);cuBuffers[name]=b;return b
+}
+struct ComparisonResult {let accepted:Bool;let reason:UInt32;let info:[UInt32];let iterations:UInt32;let unions:UInt32;let costs:UInt32;let choices:UInt32;let scratch:Int;let phases:[Double];let index:Int64}
+func comparisonSaturate(_ set:UInt32)throws->ComparisonResult{
+ try need(hostMeta[4]==0 && cuPlans.contains(where:{($0["set"] as! Int)==Int(set)}),"uncertified comparison request")
+ let nrows=Int(hostMeta[0]),extent=Int(hostMeta[1]);var cfg:[UInt32]=[set,UInt32(nrows),UInt32(extent),0,0,0,ProcessInfo.processInfo.environment["EGGFUSE_MATRIX_AUDIT"]=="1" ? 1:0]
+ let ctrl=cuBuffer("control",64),readback=shared([UInt32](repeating:0,count:16));var phases=[Double](repeating:0,count:3),scratch=64
+ func launch(_ cb:MTLCommandBuffer,_ index:Int,_ buffers:[MTLBuffer],_ n:Int,_ grouped:Bool=false){
+  if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=cuNames[index];e.setComputePipelineState(cuPipelines[index]);e.setBuffer(rows,offset:0,index:0);e.setBuffer(ctrl,offset:0,index:1)
+  cfg.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:2)};for (i,b) in buffers.enumerated(){e.setBuffer(b,offset:0,index:i+3)}
+  if grouped{e.dispatchThreadgroups(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:32,height:1,depth:1))}
+  else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))};e.endEncoding()
+ }
+ func wait(_ cb:MTLCommandBuffer,_ phase:Int)throws->[UInt32]{
+  let b=cb.makeBlitCommandEncoder()!;b.copy(from:ctrl,sourceOffset:0,to:readback,destinationOffset:0,size:64);b.endEncoding();cb.commit();cb.waitUntilCompleted()
+  try need(cb.status == .completed,"comparison matrix device failure: \(String(describing:cb.error))");phases[phase]+=cb.gpuEndTime-cb.gpuStartTime
+  return Array(UnsafeBufferPointer(start:readback.contents().bindMemory(to:UInt32.self,capacity:16),count:16))
+ }
+ let count=queue.makeCommandBuffer()!,zero=count.makeBlitCommandEncoder()!;zero.fill(buffer:ctrl,range:0..<64,value:0);zero.endEncoding();launch(count,0,[],nrows)
+ var info=try wait(count,0)
+ func rejected(_ reason:UInt32)->ComparisonResult{ComparisonResult(accepted:false,reason:reason,info:hostMeta,iterations:info[3],unions:0,costs:info[0],choices:info[1],scratch:scratch,phases:phases+[0,0,-1],index:0)}
+ if info[6] != 0{return rejected(info[6])};if hostMeta[2]>=UInt32.max-1{return rejected(4)}
+ cfg[3]=info[0];cfg[4]=info[1];let nc=Int(info[0]),na=Int(info[1]);var hashes=2;while hashes<2*na{hashes*=2};cfg[5]=UInt32(hashes)
+ let local=cuBuffer("uf",extent*4),costs=cuBuffer("costs",nc*4),choices=cuBuffer("choices",na*4),ranges=cuBuffer("ranges",extent*8),heads=cuBuffer("heads",hashes*4),ports=cuBuffer("ports",na*16),x=cuBuffer("x",na*32*2),y=cuBuffer("y",na*16*4)
+ scratch += [local,costs,choices,ranges,heads,ports,x,y].map{$0.length}.reduce(0,+)
+ let pack=queue.makeCommandBuffer()!,copy=pack.makeBlitCommandEncoder()!;copy.copy(from:parent,sourceOffset:0,to:local,destinationOffset:0,size:extent*4);copy.endEncoding();launch(pack,1,[costs,choices],nrows);info=try wait(pack,0)
+ while info[2]==0{
+  let cb=queue.makeCommandBuffer()!
+  for _ in 0..<8{
+   launch(cb,2,[ranges,heads],max(extent*2,hashes));launch(cb,3,[costs,local,ranges],nc);launch(cb,4,[choices,local,ranges,ports,x],na)
+   launch(cb,5,[x,cuWeights,y],((na+7)/8)*2,true);launch(cb,6,[ports,y,local,ranges],na);launch(cb,7,[ports,heads,local],na);launch(cb,8,[],1)
+  }
+  info=try wait(cb,1)
+ }
+ if info[6] != 0{return rejected(info[6])}
+ let pub=queue.makeCommandBuffer()!;launch(pub,9,[local,parent,meta,watermarks,rebuildControl],info[4]>0 ? extent:1)
+ let status=shared([UInt32](repeating:0,count:17)),flags=shared([UInt32](repeating:0,count:16));copyStatus(pub,status,flags);pub.commit();pub.waitUntilCompleted();try need(pub.status == .completed,"comparison publication failed")
+ let rhs=pub.gpuEndTime-pub.gpuStartTime;let rebuild=try finishRebuild(set,status,flags);phases[2]+=rhs+rebuild
+ needsIndexReset=status.contents().bindMemory(to:UInt32.self,capacity:17)[11]==1;needsIndexPatch=status.contents().bindMemory(to:UInt32.self,capacity:17)[11]==2
+ needsRowIndex=status.contents().bindMemory(to:UInt32.self,capacity:17)[13] != status.contents().bindMemory(to:UInt32.self,capacity:17)[7]+1
+ let result=Array(UnsafeBufferPointer(start:status.contents().bindMemory(to:UInt32.self,capacity:17),count:9));let index=status.contents().advanced(by:36).loadUnaligned(as:Int64.self)
+ cuCalls+=1;cuIterations+=Int(info[3]);cuUnions+=Int(info[4])
+ return ComparisonResult(accepted:true,reason:0,info:result,iterations:info[3],unions:info[4],costs:info[0],choices:info[1],scratch:scratch,phases:phases+[rhs,rebuild,-1],index:index)
+}
+
 try output.write(contentsOf:Data("DVB7".utf8))
 while true{
  let d=try read(8),words=d.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let op=words[0],arg=words[1]
- if op==0{try FileHandle.standardError.write(contentsOf:Data("matrix_sat calls=\(msCalls) logical_runs=\(msLogicalRuns) rows=\(msPublished) scratch_peak=\(msPeakBytes)\n".utf8));try FileHandle.standardError.write(contentsOf:Data("batch_rhs proposals=\(batchTotals[0]) new_rows=\(batchTotals[1]) fallback_segments=\(batchTotals[2]) parallel_segments=\(batchTotals[3])\n".utf8));try FileHandle.standardError.write(contentsOf:Data("device index_refresh full=\(fullIndexPhases) patch=\(patchIndexPhases)\nrebuild iterations=\(rebuildIterations) waits=\(rebuildWaits)\ncontexts emitted=\(contextCount) fallback_runs=\(contextFallbacks)\n".utf8));break}
+ if op==0{try FileHandle.standardError.write(contentsOf:Data("comparison_sat calls=\(cuCalls) local_iterations=\(cuIterations) unions=\(cuUnions) retained_scratch=\(cuBuffers.values.map{$0.length}.reduce(0,+))\n".utf8));try FileHandle.standardError.write(contentsOf:Data("matrix_sat calls=\(msCalls) logical_runs=\(msLogicalRuns) rows=\(msPublished) scratch_peak=\(msPeakBytes)\n".utf8));try FileHandle.standardError.write(contentsOf:Data("batch_rhs proposals=\(batchTotals[0]) new_rows=\(batchTotals[1]) fallback_segments=\(batchTotals[2]) parallel_segments=\(batchTotals[3])\n".utf8));try FileHandle.standardError.write(contentsOf:Data("device index_refresh full=\(fullIndexPhases) patch=\(patchIndexPhases)\nrebuild iterations=\(rebuildIterations) waits=\(rebuildWaits)\ncontexts emitted=\(contextCount) fallback_runs=\(contextFallbacks)\n".utf8));break}
  if op==1{
   try need(Int(arg)<(program["sets"] as! [String]).count,"ruleset")
   if needsIndexReset || !(program["incremental_queries"] as! Bool){fullIndexPhases+=1}else if needsIndexPatch{patchIndexPhases+=1}
@@ -320,51 +424,7 @@ while true{
    let b=batchStatus.contents().bindMemory(to:UInt32.self,capacity:16)
    for (i,j) in [9,10,11,12].enumerated(){batchTotals[i]+=UInt64(b[j])}
   }
-  var rebuildSeconds=0.0
-  var controlWords=Array(UnsafeBufferPointer(start:flags.contents().bindMemory(to:UInt32.self,capacity:4),count:4))
-  let needed=controlWords[0] != 0
-  while controlWords[0] != 0 && controlWords[3] == 0 {
-   let cb=queue.makeCommandBuffer()!
-   if rebuildBatch>1 {
-    let mode=controlWords[0]
-    let encoder=cb.makeComputeCommandEncoder()!
-    for iteration in 0..<rebuildBatch {
-     encode(cb,rebuildDispatch,1,arg,sharedEncoder:encoder,bindResources:iteration==0,rebuildMode:mode)
-     // Repeat only the current branch. A mode change ends active work until
-     // the next host submission; no unused alternate branch is dispatched.
-     if mode==1 {
-      for (i,offset) in [(0,88),(1,64),(2,76),(3,76),(4,76),(5,88),(6,76)]{
-       encode(cb,rebuildPipelines[i],1,arg,indirect:true,indirectOffset:offset,sharedEncoder:encoder,bindResources:false)
-      }
-     }else{
-      for (i,offset) in [(0,124),(1,100),(2,112),(3,124)]{
-       encode(cb,rowIndexPipelines[i],1,arg,indirect:true,indirectOffset:offset,sharedEncoder:encoder,bindResources:false)
-      }
-     }
-     encode(cb,rebuildPipelines[7],1,arg,indirect:true,indirectOffset:136,sharedEncoder:encoder,bindResources:false)
-    }
-    encoder.endEncoding()
-   }else if controlWords[0]==2 {
-    rebuildIterations+=1
-    encode(cb,rowIndexPipelines[0],1,arg);encode(cb,rowIndexPipelines[1],program["hash_capacity"] as! Int,arg);encode(cb,rowIndexPipelines[2],capacity,arg);encode(cb,rowIndexPipelines[3],1,arg);encode(cb,rebuildPipelines[7],1,arg)
-   }else{
-    rebuildIterations+=1
-    let widths=[1,program["hash_capacity"] as! Int,capacity,capacity,((capacity+255)/256)*256,1,capacity,1]
-    for i in 0..<8{encode(cb,rebuildPipelines[i],widths[i],arg)}
-   }
-   let b=cb.makeBlitCommandEncoder()!;b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:64);b.endEncoding();cb.commit();cb.waitUntilCompleted();rebuildWaits+=1
-   try need(cb.status == .completed,"parallel rebuild failed: \(String(describing:cb.error))")
-   rebuildSeconds+=cb.gpuEndTime-cb.gpuStartTime
-   controlWords=Array(UnsafeBufferPointer(start:flags.contents().bindMemory(to:UInt32.self,capacity:4),count:4))
-  }
-  if needed{rebuildIterations += rebuildBatch>1 ? Int(flags.contents().bindMemory(to:UInt32.self,capacity:16)[14]) : 0}
-  if needed {
-   let cb=queue.makeCommandBuffer()!
-   try need(rebuildPipelines[8].maxTotalThreadsPerThreadgroup>=256,"compaction requires 256 threads per group")
-   for (i,width) in [((capacity+255)/256)*256,1,capacity,capacity*stride].enumerated(){encode(cb,rebuildPipelines[8+i],width,arg)}
-   copyStatus(cb,status,flags);cb.commit();cb.waitUntilCompleted();try need(cb.status == .completed,"rebuild finish failed")
-   rebuildSeconds+=cb.gpuEndTime-cb.gpuStartTime
-  }
+  let rebuildSeconds=try finishRebuild(arg,status,flags)
   needsIndexReset=status.contents().bindMemory(to:UInt32.self,capacity:15)[11] == 1
   needsIndexPatch=status.contents().bindMemory(to:UInt32.self,capacity:15)[11] == 2
   needsRowIndex=status.contents().bindMemory(to:UInt32.self,capacity:15)[13] != status.contents().bindMemory(to:UInt32.self,capacity:15)[7]+1
@@ -372,6 +432,10 @@ while true{
   // The no-op filter and RHS share a command buffer. Do not add an otherwise
   // unnecessary submission merely to obtain a separate GPU timestamp.
   var seconds=commands.map{$0.gpuEndTime-$0.gpuStartTime};let rhsSeconds=seconds[2];seconds[2]+=rebuildSeconds;if let sorted=orderCommand{seconds[1]+=sorted.gpuEndTime-sorted.gpuStartTime};seconds.append(rhsSeconds);seconds.append(rebuildSeconds);seconds.append(noopFused ? -1 : 0);try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))};try output.write(contentsOf:Data(bytes:status.contents().advanced(by:36),count:8));try output.write(contentsOf:Data(bytes:status.contents().advanced(by:60),count:8))
+ }else if op==5{
+  let result=try comparisonSaturate(arg);hostMeta=result.info;try send(hostMeta)
+  try result.phases.withUnsafeBytes{try output.write(contentsOf:Data($0))};var index=result.index;try withUnsafeBytes(of:&index){try output.write(contentsOf:Data($0))};try send([0,0])
+  let bytes=UInt64(result.scratch);try send([result.accepted ? 1:0,result.reason,result.iterations,result.unions,result.costs,result.choices,UInt32(truncatingIfNeeded:bytes),UInt32(bytes>>32)])
  }else if op==4{
   let result=try matrixSaturate(arg);hostMeta=result.info;try send(hostMeta)
   let seconds=result.phases+[result.phases[2],0.0,-1.0];try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))}

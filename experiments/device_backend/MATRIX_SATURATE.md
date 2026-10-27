@@ -1,5 +1,9 @@
 # Resident matrix saturation and batched RHS publication
 
+The subsequent [comparison-closure extension](MATRIX_COMPARISON.md) adds the
+real `terms-helpers-helpers` ruleset under the same flag. The results and
+predicate-only restrictions below describe the initial version.
+
 This is an opt-in execution path in the **actual GPU-owned eggfuse backend**.
 It takes native typed rules and real device rows, computes a local fixed point,
 then appends real rows to the existing device hashcons tables. It does not replay

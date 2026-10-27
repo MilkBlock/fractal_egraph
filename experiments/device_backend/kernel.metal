@@ -178,6 +178,7 @@ kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],ui
 // CONTEXT_KERNELS
 // BATCH_KERNELS
 // MATRIX_SAT_KERNELS
+// COMPARISON_KERNELS
 // PARALLEL_REBUILD
 // PARALLEL_QUERY
 // MATCH_SORT
