@@ -2,7 +2,7 @@
 // constructor records and a small affected-key index are written in that
 // private view. Structural interfaces and unresolved ports remain resident.
 // JOINT_PROGRAM
-#define JP_ARGS device long*r[[buffer(0)]],device uint*p[[buffer(1)]],device uint*fp[[buffer(2)]],device Meta&m[[buffer(3)]],device uint*wm[[buffer(4)]]
+#define JP_ARGS device long*r[[buffer(0)]],device uint*p[[buffer(1)]],device uint*fp[[buffer(2)]],device Meta&m[[buffer(3)]],device uint*wm[[buffer(4)]],device const uint*vm[[buffer(29)]],device const long*sv[[buffer(30)]]
 uint jp_add(device long*r,uint field,uint n){return atomic_fetch_add_explicit((device atomic_uint*)(r+JP_STATE+field),n,memory_order_relaxed);}
 void jp_fail(device Meta&m,uint e){atomic_store_explicit((device atomic_uint*)&m.error,e,memory_order_relaxed);}
 uint jp_count(device long*r,uint field){return uint(r[JP_STATE+field]);}
@@ -12,7 +12,7 @@ void jp_intern(uint key,device uint*map,device uint*roots,device long*r){
 }
 kernel void jp_begin(JP_ARGS,uint i[[thread_position_in_grid]]){
  if(i)return;for(uint j=0;j<128;j++)r[JP_STATE+j]=0;
- r[JP_STATE]=1;r[JP_STATE+2]=m.count;r[JP_STATE+3]=m.epoch;r[JP_STATE+4]=m.rounds;r[JP_STATE+5]=m.unions;r[JP_STATE+19]=m.next_id;r[JP_STATE+23]=m.count;r[JP_STATE+24]=m.next_fact;
+ r[JP_STATE]=1;r[JP_STATE+2]=m.count;r[JP_STATE+3]=m.epoch;r[JP_STATE+4]=m.rounds;r[JP_STATE+5]=m.unions;r[JP_STATE+19]=m.next_id;r[JP_STATE+23]=m.count;r[JP_STATE+24]=m.next_fact;r[JP_STATE+104]=r[ROW_WORDS];
 }
 kernel void jp_zero_maps(JP_ARGS,device uint*rootmap[[buffer(5)]],device uint*fmap[[buffer(6)]],device uint*props[[buffer(7)]],uint i[[thread_position_in_grid]]){
  if(i<uint(r[JP_STATE+19])){rootmap[i]=0xffffffff;fmap[i]=0;props[i]=0;}
@@ -73,9 +73,9 @@ kernel void jp_csr_clear(JP_ARGS,device uint*counts[[buffer(5)]],device uint*sta
  if(i<m.next_id){counts[i]=0;stamps[i]=0;ranges[2*i]=0;ranges[2*i+1]=0;}
 }
 kernel void jp_csr_count(JP_ARGS,device const uint*lists[[buffer(5)]],device uint*counts[[buffer(6)]],device uint*stamps[[buffer(7)]],device uint*ranges[[buffer(8)]],constant uint&lc[[buffer(9)]],uint i[[thread_position_in_grid]]){
- if(i>=jp_count(r,13))return;uint row=lists[i];if(r[row*STRIDE+1])return;uint id=uint(r[row*STRIDE+6]);
- atomic_fetch_add_explicit((device atomic_uint*)(counts+id),1u,memory_order_relaxed);atomic_fetch_max_explicit((device atomic_uint*)(stamps+id),uint(r[row*STRIDE+2]),memory_order_relaxed);
- cu_extreme((device atomic_uint*)(ranges+2*id),row,r,false);cu_extreme((device atomic_uint*)(ranges+2*id+1),row,r,true);
+ if(i>=jp_count(r,13))return;uint row=lists[i];if(sv[row*STRIDE+1])return;uint id=uint(sv[row*STRIDE+6]);
+ atomic_fetch_add_explicit((device atomic_uint*)(counts+id),1u,memory_order_relaxed);atomic_fetch_max_explicit((device atomic_uint*)(stamps+id),uint(sv[row*STRIDE+2]),memory_order_relaxed);
+ cu_extreme((device atomic_uint*)(ranges+2*id),row,sv,false);cu_extreme((device atomic_uint*)(ranges+2*id+1),row,sv,true);
 }
 kernel void jp_csr_offsets(JP_ARGS,device const uint*counts[[buffer(5)]],device uint*offsets[[buffer(6)]],device uint*cursors[[buffer(7)]],uint i[[thread_position_in_grid]]){
  if(i)return;uint n=0;for(uint j=0;j<m.next_id;j++){offsets[j]=n;cursors[j]=0;n+=counts[j];}offsets[m.next_id]=n;
@@ -92,7 +92,7 @@ kernel void jp_csr_add(JP_ARGS,device uint*offsets[[buffer(5)]],device uint*curs
  if(i<m.next_id){offsets[i]+=blocks[i/256];cursors[i]=0;}
 }
 kernel void jp_csr_fill(JP_ARGS,device const uint*lists[[buffer(5)]],device const uint*offsets[[buffer(6)]],device uint*cursors[[buffer(7)]],device uint*items[[buffer(8)]],uint i[[thread_position_in_grid]]){
- if(i>=jp_count(r,13))return;uint row=lists[i];if(r[row*STRIDE+1])return;uint id=uint(r[row*STRIDE+6]);uint at=atomic_fetch_add_explicit((device atomic_uint*)(cursors+id),1u,memory_order_relaxed);items[offsets[id]+at]=row;
+ if(i>=jp_count(r,13))return;uint row=lists[i];if(sv[row*STRIDE+1])return;uint id=uint(sv[row*STRIDE+6]);uint at=atomic_fetch_add_explicit((device atomic_uint*)(cursors+id),1u,memory_order_relaxed);items[offsets[id]+at]=row;
 }
 kernel void jp_prepare(JP_ARGS,uint i[[thread_position_in_grid]]){
  if(i)return;if(m.epoch==0xffffffff){m.error=6;return;}m.epoch++;m.changed=0;m.matched=0;r[ROW_WORDS+1]=m.epoch;
@@ -101,11 +101,11 @@ kernel void jp_prepare(JP_ARGS,uint i[[thread_position_in_grid]]){
 kernel void jp_groups(JP_ARGS,device const uint*markers[[buffer(5)]],device const uint*lists[[buffer(6)]],device const uint*fmap[[buffer(7)]],device const uint*counts[[buffer(8)]],device const uint*offsets[[buffer(9)]],device const uint*stamps[[buffer(10)]],device uint*g[[buffer(11)]],constant uint2&cfg[[buffer(12)]],uint i[[thread_position_in_grid]]){
  if(i>=cfg.x||m.error)return;uint q=16*i;for(uint j=0;j<16;j++)g[q+j]=0;
  uint phase=jp_count(r,1),row,rule,recipe,root,arity=0,refs[3]={0},sizes[3]={1,1,1},starts[3]={0},latest=0;
- if(phase==0){uint b=8*i;row=markers[b];recipe=markers[b+1];root=markers[b+2];arity=markers[b+3];rule=JP_TERM_RULES[recipe];latest=uint(r[row*STRIDE+2]);
-  for(uint j=0;j<arity;j++){uint fr=fmap[markers[b+4+j]];if(!fr)return;refs[j]=fr-1;uint id=uint(r[(fr-1)*STRIDE+5]);sizes[j]=counts[id];starts[j]=offsets[id];latest=max(latest,max(uint(r[(fr-1)*STRIDE+2]),stamps[id]));}
- }else{uint rank=i%3;row=lists[cfg.y+i/3];if(r[row*STRIDE+1])return;root=uint(r[row*STRIDE+4]);recipe=rank;rule=JP_HELPER_RULES[rank];latest=uint(r[row*STRIDE+2]);
-  if(rank){uint id=uint(r[row*STRIDE+5]);sizes[0]=counts[id];starts[0]=offsets[id];latest=max(latest,stamps[id]);arity=1;}
-  if(rank==1){uint fr=fmap[root];if(!fr)return;refs[0]=fr-1;uint id=uint(r[(fr-1)*STRIDE+5]);sizes[1]=counts[id];starts[1]=offsets[id];latest=max(latest,max(uint(r[(fr-1)*STRIDE+2]),stamps[id]));arity=2;}
+ if(phase==0){uint b=8*i;row=markers[b];recipe=markers[b+1];root=markers[b+2];arity=markers[b+3];rule=JP_TERM_RULES[recipe];latest=uint(sv[row*STRIDE+2]);
+  for(uint j=0;j<arity;j++){uint fr=fmap[markers[b+4+j]];if(!fr)return;refs[j]=fr-1;uint id=uint(sv[(fr-1)*STRIDE+5]);sizes[j]=counts[id];starts[j]=offsets[id];latest=max(latest,max(uint(sv[(fr-1)*STRIDE+2]),stamps[id]));}
+ }else{uint rank=i%3;row=lists[cfg.y+i/3];if(sv[row*STRIDE+1])return;root=uint(sv[row*STRIDE+4]);recipe=rank;rule=JP_HELPER_RULES[rank];latest=uint(sv[row*STRIDE+2]);
+  if(rank){uint id=uint(sv[row*STRIDE+5]);sizes[0]=counts[id];starts[0]=offsets[id];latest=max(latest,stamps[id]);arity=1;}
+  if(rank==1){uint fr=fmap[root];if(!fr)return;refs[0]=fr-1;uint id=uint(sv[(fr-1)*STRIDE+5]);sizes[1]=counts[id];starts[1]=offsets[id];latest=max(latest,max(uint(sv[(fr-1)*STRIDE+2]),stamps[id]));arity=2;}
  }
  if(jp_seminaive(rule)&&latest<=wm[rule])return;ulong n=ulong(sizes[0])*sizes[1]*sizes[2];if(n>MATCHCAP){jp_fail(m,2);return;}
  g[q]=uint(n);g[q+2]=row;g[q+3]=rule;g[q+4]=recipe;g[q+5]=root;
@@ -133,17 +133,17 @@ kernel void jp_bindings(JP_ARGS,device const uint*g[[buffer(5)]],device const ui
  if(phase==0){for(uint j=0;j<JP_ARITY[recipe];j++){selected[1+j]=g[at+6+j];selected[4+j]=costs[j];}}
  else{selected[1]=g[at+6];selected[2]=costs[0];selected[3]=costs[1];}
  long v[VARS]={0};uint w[JP_ATOMS];for(uint j=0;j<JP_ATOMS;j++)w[j]=0xffffffff;jp_add(r,48+phase,1);
- if(!jp_bind(rule,selected,r,v,w))return;uint atoms=jp_atom_count(rule),pivot=0;bool fresh=!jp_seminaive(rule);
- if(jp_seminaive(rule)){for(uint j=0;j<atoms;j++)if(uint(r[w[j]*STRIDE+2])>wm[rule]){pivot=jp_delta(rule)?j:0;fresh=true;break;}}if(!fresh)return;
+ if(!jp_bind(rule,selected,sv,vm[0],v,w))return;uint atoms=jp_atom_count(rule),pivot=0;bool fresh=!jp_seminaive(rule);
+ if(jp_seminaive(rule)){for(uint j=0;j<atoms;j++)if(uint(sv[w[j]*STRIDE+2])>wm[rule]){pivot=jp_delta(rule)?j:0;fresh=true;break;}}if(!fresh)return;
  for(uint j=0;j<atoms;j++){uint tag=uint(r[JP_ROW_TAG+w[j]]),producer=tag&3;if(producer<3&&producer!=phase){jp_add(r,59,1);uint bit=1u<<(8+phase);uint old=atomic_fetch_or_explicit((device atomic_uint*)(r+JP_ROW_TAG+w[j]),bit,memory_order_relaxed);if(!(old&bit))jp_add(r,60,1);}}
  uint q=job*MSTRIDE;matches[q]=rule;for(uint j=0;j<VARS;j++)matches[q+1+j]=v[j];for(uint j=0;j<JP_ATOMS;j++)witnesses[job*JP_ATOMS+j]=w[j];
- uint seed=jp_seed_atom(rule,pivot);matches[q+1+VARS]=jp_rule_rank(rule);matches[q+2+VARS]=pivot;matches[q+3+VARS]=jp_delta(rule)&&seed!=0xffffffff&&wm[rule]&&seed==pivot?uint(r[w[seed]*STRIDE+2]):0;matches[q+4+VARS]=seed==0xffffffff?0:w[seed];
+ uint seed=jp_seed_atom(rule,pivot);matches[q+1+VARS]=jp_rule_rank(rule);matches[q+2+VARS]=pivot;matches[q+3+VARS]=jp_delta(rule)&&seed!=0xffffffff&&wm[rule]&&seed==pivot?uint(sv[w[seed]*STRIDE+2]):0;matches[q+4+VARS]=seed==0xffffffff?0:w[seed];
  for(uint j=5+VARS;j<MSTRIDE;j++)matches[q+j]=0;
  jobinfo[job*6]=rootIndex;jobinfo[job*6+1]=recipe;bool safe=phase==0;
- for(uint j=0;j<3;j++){jobinfo[job*6+2+j]=costs[j];if(costs[j]!=0xffffffff){long value=r[costs[j]*STRIDE+5];safe=safe&&value>=-2048&&value<=2048;}}
+ for(uint j=0;j<3;j++){jobinfo[job*6+2+j]=costs[j];if(costs[j]!=0xffffffff){long value=sv[costs[j]*STRIDE+5];safe=safe&&value>=-2048&&value<=2048;}}
  jobinfo[job*6+5]=safe;
  for(uint j=0;j<cfg.y;j++)x[job*cfg.y+j]=0;
- if(safe){for(uint j=0;j<3;j++)if(costs[j]!=0xffffffff)x[job*cfg.y+4*recipe+j]=half(r[costs[j]*STRIDE+5]);x[job*cfg.y+4*recipe+3]=1;}
+ if(safe){for(uint j=0;j<3;j++)if(costs[j]!=0xffffffff)x[job*cfg.y+4*recipe+j]=half(sv[costs[j]*STRIDE+5]);x[job*cfg.y+4*recipe+3]=1;}
  valid[job]=1;
 }
 kernel void jp_affine_mma(JP_ARGS,device const half*x[[buffer(5)]],device const half*w[[buffer(6)]],device float*y[[buffer(7)]],constant uint&width[[buffer(8)]],uint tile[[threadgroup_position_in_grid]],uint lane[[thread_index_in_threadgroup]]){
@@ -154,7 +154,7 @@ kernel void jp_affine_mma(JP_ARGS,device const half*x[[buffer(5)]],device const 
 }
 kernel void jp_validate(JP_ARGS,device const uint*info[[buffer(5)]],device const float*y[[buffer(6)]],device uint*valid[[buffer(7)]],device long*numeric[[buffer(8)]],device uint*order[[buffer(9)]],uint job[[thread_position_in_grid]]){
  if(job>=jp_count(r,9)||!valid[job]||m.error)return;
- if(jp_count(r,1)==0){long values[JP_OPS]={0},v[3+JP_OPS]={0},cost=0;for(uint j=0;j<3;j++){uint row=info[6*job+2+j];if(row!=0xffffffff)v[j]=r[row*STRIDE+5];}
+ if(jp_count(r,1)==0){long values[JP_OPS]={0},v[3+JP_OPS]={0},cost=0;for(uint j=0;j<3;j++){uint row=info[6*job+2+j];if(row!=0xffffffff)v[j]=sv[row*STRIDE+5];}
   if(!jp_evaluate(info[6*job+1],v,values,cost)){jp_fail(m,5);return;}
   if(info[6*job+5]){if(long(y[job*8])!=cost){jp_fail(m,23);return;}int op=jp_result_op(info[6*job+1]);if(op>=0){values[op]=long(y[job*8]);jp_add(r,54,1);}}else jp_add(r,55,1);
   for(uint j=0;j<JP_OPS;j++)numeric[job*JP_OPS+j]=values[j];
@@ -291,3 +291,5 @@ kernel void jp_export_interfaces(JP_ARGS,device const uint*markers[[buffer(5)]],
 }
 
 // JOINT_REFRESH
+
+// STAGE_KERNELS

@@ -33,6 +33,12 @@ def summarize(reference,runs,output):
               'device_to_device_copy_bytes':sum(c['device_copy_bytes'] for c in calls),
               'joint_gpu_seconds':sum(c['gpu_seconds'] for c in calls),'joint_control_seconds':sum(c['control_seconds'] for c in calls),
               'normal_intermediate_binding_download_bytes':r['intermediate_binding_download_bytes']}
+        if 'stage_contexts' in r:
+            stage=r['stage_contexts'];scopes=stage['scopes']
+            lane['stage_contexts']={'scope_count':stage['scope_count'],'patches':stage['patches'],'audit':stage['audit'],
+                'patch_words':sum(x['patch_words'] for x in scopes),'device_copy_bytes':sum(x['device_copy_bytes'] for x in scopes),
+                'gpu_seconds':sum(x['gpu_seconds'] for x in scopes),'peak_resident_bytes':max((x['peak_resident_bytes'] for x in scopes),default=0),
+                'contract_sha256':r['stage_cell_contract_sha256'],'loaded_artifact':r.get('loaded_stage_cell')}
         lanes.append(lane)
     result={'schema':'resident-joint-polyspine-results/v1','scope':'Actual GPU-owned complete saved Pass-3 schedule; not pristine egglog',
             'reference':{'context_phase_rows':sum(c['root_contexts']*c['private_phases'] for c in before.get('joint_polyspine',{}).get('calls',[]) if c['accepted']),'directory':str(reference),'inference_seconds':before['inference_seconds'],'setup_seconds':before['setup_seconds'],'gpu_seconds':before['timings_seconds']['device_gpu'],'source_sha256':before['source_sha256'],'worker_sha256':before['build']['worker_sha256']},

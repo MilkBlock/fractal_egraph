@@ -195,7 +195,7 @@ def metal_program(p,core):
     for q in plans:
         lines=[];known=set();atoms=[a for a in q['rule_ast']['body'] if 'table' in a['call']]
         for j,(a,role) in enumerate(zip(atoms,q['roles'])):
-            lines.append(f'w[{j}]=selected[{role}];if(w[{j}]==0xffffffff||r[w[{j}]*STRIDE+1])return false;')
+            lines.append(f'w[{j}]=selected[{role}];if(w[{j}]==0xffffffff||w[{j}]>=limit||r[w[{j}]*STRIDE+1])return false;')
             for col,x in enumerate(a['args']):
                 value=f'r[w[{j}]*STRIDE+4+{col}]'
                 if 'literal' in x:lines.append(f'if({value}!={x["literal"]}L)return false;')
@@ -208,7 +208,7 @@ def metal_program(p,core):
             op=a['call']['primitive'];lines.append(f'if(!({expr(a["args"][0])}{op}{expr(a["args"][1])}))return false;')
             if 'var' in a['args'][-1]:lines.append(f'v[{q["slots"][a["args"][-1]["var"]]}]=0;')
         cases.append(f'case {q["rule"]}:{{'+''.join(lines)+'return true;}')
-    out.append('bool jp_bind(uint rule,thread uint*selected,device long*r,thread long*v,thread uint*w){switch(rule){'+''.join(cases)+'default:return false;}}')
+    out.append('bool jp_bind(uint rule,thread uint*selected,device const long*r,uint limit,thread long*v,thread uint*w){switch(rule){'+''.join(cases)+'default:return false;}}')
     evals=[]
     for i,r in enumerate(rec):
         lines=[]

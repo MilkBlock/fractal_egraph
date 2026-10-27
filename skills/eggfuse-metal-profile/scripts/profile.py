@@ -72,12 +72,14 @@ def prepare(a):
     expected = [v for k, v in report['build']['sources'].items() if k.endswith('/worker.swift')]
     if expected != [sha(a.source)]:
         raise ValueError('worker source does not match the saved run; supply its original source')
-    if '// JOINT_HOST' in text:
-        companion = a.source.with_name('joint_polyspine.swift')
-        expected = [v for k, v in report['build']['sources'].items() if k.endswith('/joint_polyspine.swift')]
+    for token, filename in [('// JOINT_HOST', 'joint_polyspine.swift'), ('// STAGE_HOST', 'stage_contexts.swift')]:
+        if token not in text:
+            continue
+        companion = a.source.with_name(filename)
+        expected = [v for k, v in report['build']['sources'].items() if k.endswith('/'+filename)]
         if not companion.is_file() or expected != [sha(companion)]:
-            raise ValueError('joint worker companion does not match the saved run')
-        text = replace_once(text, '// JOINT_HOST', companion.read_text())
+            raise ValueError('worker companion does not match the saved run: '+filename)
+        text = replace_once(text, token, companion.read_text())
     labels = ['var profileNames: [ObjectIdentifier: String] = [:]']
     for var, name in re.findall(r'let (\w+)=try device.makeComputePipelineState\(function:lib.makeFunction\(name:"([^"]+)"\)!\)', text):
         labels.append(f'profileNames[ObjectIdentifier({var})] = "{name}"')

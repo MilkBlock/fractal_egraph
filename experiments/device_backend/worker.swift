@@ -5,7 +5,8 @@ let a=CommandLine.arguments
 try need(a.count==2,"worker program.json")
 var program=try JSONSerialization.jsonObject(with:Data(contentsOf:URL(fileURLWithPath:a[1]))) as! [String:Any]
 try need(program["schema"] as? String == "egglog-device-storage/v1","schema")
-guard let device=MTLCreateSystemDefaultDevice(),let queue=device.makeCommandQueue() else{fatalError("Metal unavailable")}
+let device:MTLDevice = {guard let d=MTLCreateSystemDefaultDevice() else{fatalError("Metal unavailable")};return d}()
+let queue:MTLCommandQueue = {guard let q=device.makeCommandQueue() else{fatalError("Metal queue unavailable")};return q}()
 let opts=MTLCompileOptions();opts.fastMathEnabled=false
 let lib=try device.makeLibrary(source:program["shader"] as! String,options:opts)
 let initPipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"initialize")!)
@@ -271,12 +272,12 @@ func cuBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
  let b=privateBuffer(bytes);cuBuffers[name]=b;return b
 }
 struct ComparisonResult {let accepted:Bool;let reason:UInt32;let info:[UInt32];let iterations:UInt32;let unions:UInt32;let costs:UInt32;let choices:UInt32;let scratch:Int;let phases:[Double];let index:Int64}
-func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?=nil,listCapacity:Int=0,costCount:Int=0,choiceCount:Int=0,initialRanges:MTLBuffer?=nil,sourcePriority:MTLBuffer?=nil)throws->ComparisonResult{
+func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?=nil,listCapacity:Int=0,costCount:Int=0,choiceCount:Int=0,initialRanges:MTLBuffer?=nil,sourcePriority:MTLBuffer?=nil,readRows:MTLBuffer?=nil,readParents:MTLBuffer?=nil,readCosts:MTLBuffer?=nil,readChoices:MTLBuffer?=nil)throws->ComparisonResult{
  try need(hostMeta[4]==0 && cuPlans.contains(where:{($0["set"] as! Int)==Int(set)}),"uncertified comparison request")
  let nrows=Int(hostMeta[0]),extent=Int(hostMeta[1]);var cfg:[UInt32]=[set,UInt32(nrows),UInt32(extent),0,0,0,ProcessInfo.processInfo.environment["EGGFUSE_MATRIX_AUDIT"]=="1" ? 1:0,0]
  let ctrl=cuBuffer("control",64),readback=shared([UInt32](repeating:0,count:16));var phases=[Double](repeating:0,count:3),scratch=64
  func launch(_ cb:MTLCommandBuffer,_ index:Int,_ buffers:[MTLBuffer],_ n:Int,_ grouped:Bool=false){
-  if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=cuNames[index];e.setComputePipelineState(cuPipelines[index]);e.setBuffer(rows,offset:0,index:0);e.setBuffer(ctrl,offset:0,index:1)
+  if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=cuNames[index];e.setComputePipelineState(cuPipelines[index]);e.setBuffer(rows,offset:0,index:0);e.setBuffer(ctrl,offset:0,index:1);e.setBuffer(readRows ?? rows,offset:0,index:30)
   cfg.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:2)};for (i,b) in buffers.enumerated(){e.setBuffer(b,offset:0,index:i+3)}
   if grouped{e.dispatchThreadgroups(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:32,height:1,depth:1))}
   else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))};e.endEncoding()
@@ -294,7 +295,7 @@ func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?
  let local=cuBuffer("uf",extent*4),costs=cuBuffer("costs",nc*4),choices=cuBuffer("choices",na*4),ranges=cuBuffer("ranges",extent*8),heads=cuBuffer("heads",hashes*4),ports=cuBuffer("ports",na*16),x=cuBuffer("x",na*32*2),y=cuBuffer("y",na*16*4)
  let priority=cuBuffer("priority",na*4)
  scratch += [local,costs,choices,ranges,heads,ports,x,y,priority].map{$0.length}.reduce(0,+)
- let pack=queue.makeCommandBuffer()!,copy=pack.makeBlitCommandEncoder()!;copy.copy(from:parent,sourceOffset:0,to:local,destinationOffset:0,size:extent*4);if let lists=sourceLists{if nc>0{copy.copy(from:lists,sourceOffset:0,to:costs,destinationOffset:0,size:nc*4)};if na>0{copy.copy(from:lists,sourceOffset:3*listCapacity*4,to:choices,destinationOffset:0,size:na*4)}};copy.endEncoding();if sourceLists==nil{launch(pack,1,[costs,choices],nrows)};if let classes=sourcePriority{launch(pack,10,[choices,local,classes,priority],na)};info=try wait(pack,0)
+ let pack=queue.makeCommandBuffer()!,copy=pack.makeBlitCommandEncoder()!;copy.copy(from:readParents ?? parent,sourceOffset:0,to:local,destinationOffset:0,size:extent*4);if let lists=sourceLists{if nc>0{copy.copy(from:readCosts ?? lists,sourceOffset:0,to:costs,destinationOffset:0,size:nc*4)};if na>0{copy.copy(from:readChoices ?? lists,sourceOffset:readChoices == nil ? 3*listCapacity*4:0,to:choices,destinationOffset:0,size:na*4)}};copy.endEncoding();if sourceLists==nil{launch(pack,1,[costs,choices],nrows)};if let classes=sourcePriority{launch(pack,10,[choices,local,classes,priority],na)};info=try wait(pack,0)
  var firstIteration=true
  while info[2]==0{
   let cb=queue.makeCommandBuffer()!
@@ -318,11 +319,12 @@ func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?
  return ComparisonResult(accepted:true,reason:0,info:result,iterations:info[3],unions:info[4],costs:info[0],choices:info[1],scratch:scratch,phases:phases+[rhs,rebuild,-1],index:index)
 }
 
+// STAGE_HOST
 // JOINT_HOST
 try output.write(contentsOf:Data("DVB7".utf8))
 while true{
  let d=try read(8),words=d.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let op=words[0],arg=words[1]
- if op==0{try FileHandle.standardError.write(contentsOf:Data("comparison_sat calls=\(cuCalls) local_iterations=\(cuIterations) unions=\(cuUnions) retained_scratch=\(cuBuffers.values.map{$0.length}.reduce(0,+))\n".utf8));try FileHandle.standardError.write(contentsOf:Data("matrix_sat calls=\(msCalls) logical_runs=\(msLogicalRuns) rows=\(msPublished) scratch_peak=\(msPeakBytes)\n".utf8));try FileHandle.standardError.write(contentsOf:Data("batch_rhs proposals=\(batchTotals[0]) new_rows=\(batchTotals[1]) fallback_segments=\(batchTotals[2]) parallel_segments=\(batchTotals[3])\n".utf8));try FileHandle.standardError.write(contentsOf:Data("device index_refresh full=\(fullIndexPhases) patch=\(patchIndexPhases)\nrebuild iterations=\(rebuildIterations) waits=\(rebuildWaits)\ncontexts emitted=\(contextCount) fallback_runs=\(contextFallbacks)\n".utf8));break}
+ if op==0{try scWriteReport();try FileHandle.standardError.write(contentsOf:Data("comparison_sat calls=\(cuCalls) local_iterations=\(cuIterations) unions=\(cuUnions) retained_scratch=\(cuBuffers.values.map{$0.length}.reduce(0,+))\n".utf8));try FileHandle.standardError.write(contentsOf:Data("matrix_sat calls=\(msCalls) logical_runs=\(msLogicalRuns) rows=\(msPublished) scratch_peak=\(msPeakBytes)\n".utf8));try FileHandle.standardError.write(contentsOf:Data("batch_rhs proposals=\(batchTotals[0]) new_rows=\(batchTotals[1]) fallback_segments=\(batchTotals[2]) parallel_segments=\(batchTotals[3])\n".utf8));try FileHandle.standardError.write(contentsOf:Data("device index_refresh full=\(fullIndexPhases) patch=\(patchIndexPhases)\nrebuild iterations=\(rebuildIterations) waits=\(rebuildWaits)\ncontexts emitted=\(contextCount) fallback_runs=\(contextFallbacks)\n".utf8));break}
  if op==1{
   try need(Int(arg)<(program["sets"] as! [String]).count,"ruleset")
   if needsIndexReset || !(program["incremental_queries"] as! Bool){fullIndexPhases+=1}else if needsIndexPatch{patchIndexPhases+=1}

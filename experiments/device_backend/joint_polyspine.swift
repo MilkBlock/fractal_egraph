@@ -30,11 +30,14 @@ func jointPolyspine()throws->JointResult{
  let sets=plan["set_ids"] as! [Int],recipes=plan["recipes"] as! [[String:Any]],nrecipes=recipes.count
  let numericWidth=(nrecipes*4+7)/8*8,maxOps=max(1,recipes.map{($0["operations"] as! [[Int]]).count}.max() ?? 0)
  let maxAtoms=(plan["plans"] as! [[String:Any]]).map{($0["roles"] as! [Int]).count}.max() ?? 1
+ var stageRead:SCView?=nil
  let stateOffset=(program["index_counter_offset"] as! Int)+5+4*capacity
  let readback=shared([Int64](repeating:0,count:128)),metaBack=shared([UInt32](repeating:0,count:9))
  func launch(_ cb:MTLCommandBuffer,_ index:Int,_ bs:[MTLBuffer],_ n:Int,_ cfg:[UInt32]=[],_ grouped:Bool=false){
   if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=jpNames[index];e.setComputePipelineState(jpPipelines[index])
   for (i,b) in [rows,parent,factParent,meta,watermarks].enumerated(){e.setBuffer(b,offset:0,index:i)}
+  e.setBuffer(stageRead?.parts["rows"]?.buffer ?? rows,offset:0,index:30);e.setBuffer(stageRead?.parts["meta"]?.buffer ?? meta,offset:0,index:29)
+  if [14,16].contains(index),let wm=stageRead?.parts["watermarks"]?.buffer{e.setBuffer(wm,offset:0,index:4)}
   for (i,b) in bs.enumerated(){e.setBuffer(b,offset:0,index:5+i)}
   if !cfg.isEmpty{let padded=cfg.count==3 ? cfg+[0]:cfg;padded.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:5+bs.count)}}
   if grouped{e.dispatchThreadgroups(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:32,height:1,depth:1))}
@@ -54,7 +57,7 @@ func jointPolyspine()throws->JointResult{
  let markerCount=Int(stats[37]),markers=jpBuffer("markers",markerCount*8*4)
  var listCapacity=max(1,Int(stats[36])),lists=privateBuffer(max(1,Int(stats[36]))*5*4)
  let rootUpper=max(1,markerCount*4+Int(stats[33]+stats[34])),roots=jpBuffer("roots",rootUpper*4)
- let pack=queue.makeCommandBuffer()!;launch(pack,3,[markers,lists,fmap,rootmap,roots,props],entryRows,[0,UInt32(entryRows),UInt32(listCapacity)]);try wait(pack,0)
+ let pack=queue.makeCommandBuffer()!;if scEnabled{let clear=pack.makeBlitCommandEncoder()!;clear.fill(buffer:lists,range:0..<lists.length,value:0);clear.endEncoding()};launch(pack,3,[markers,lists,fmap,rootmap,roots,props],entryRows,[0,UInt32(entryRows),UInt32(listCapacity)]);try wait(pack,0)
  if hostMeta[4] != 0{return failure(hostMeta[4])}
  let rootCount=Int(stats[12]),rootstate=jpBuffer("root-state",rootCount*8*4),scores=jpBuffer("scores",rootCount*8*4)
  let model=plan["model"] as? [String:Any],training=program["polyspine_training"] as? Bool ?? false
@@ -87,6 +90,14 @@ func jointPolyspine()throws->JointResult{
   launch(setup,29,[markers,rootmap,stat],markerCount);launch(setup,30,[rootmap,headEncoding,heads,headCounts],entryRows);launch(setup,31,[stat,moffset,mcursor],1);launch(setup,32,[markers,rootmap,moffset,mcursor,mitems],markerCount);launch(setup,45,[props,markers,rootmap,moffset,mitems,roots,stat,staticContext],rootCount)
  };try wait(setup,0)
  if hostMeta[4] != 0{return failure(hostMeta[4])}
+ func stageParts()->[String:SCPart]{[
+  "rows":SCPart(buffer:rows,words:Int(hostMeta[0])*stride*2),"parents":SCPart(buffer:parent,words:Int(hostMeta[1])),
+  "fact_parents":SCPart(buffer:factParent,words:Int(hostMeta[8])),"watermarks":SCPart(buffer:watermarks,words:nrules),"meta":SCPart(buffer:meta,words:9),
+  "function_map":SCPart(buffer:fmap,words:entryIDs),"cost_rows":SCPart(buffer:lists,words:Int(stats[13])),"candidate_rows":SCPart(buffer:lists,words:Int(stats[14]),offset:listCapacity),
+  "function_rows":SCPart(buffer:lists,words:Int(stats[15]),offset:2*listCapacity),"choice_rows":SCPart(buffer:lists,words:Int(stats[16]),offset:3*listCapacity),"mutable_rows":SCPart(buffer:lists,words:Int(stats[17]),offset:4*listCapacity),"root_state":SCPart(buffer:rootstate,words:rootCount*8)]}
+ if scEnabled{try need(stats[104]>=2 && stats[104]<=setWords,"stage set arena extent invalid")}
+ let stageTracker:StageContexts? = scEnabled ? try autoreleasepool{try StageContexts(stageParts(),hostMeta,listCapacity,["markers":SCPart(buffer:markers,words:markerCount*8),"roots":SCPart(buffer:roots,words:rootCount),"rootmap":SCPart(buffer:rootmap,words:entryIDs),"set_arena":SCPart(buffer:rows,words:Int(stats[104])*2,offset:capacity*stride*2)],queue:queue)}:nil
+ var stageAccounted=stageTracker?.gpuSeconds ?? 0;phases[0]+=stageAccounted
  var publishedTo=entryRows
  func appendRows()throws{
   let end=Int(hostMeta[0]);if end==publishedTo{return}
@@ -94,6 +105,7 @@ func jointPolyspine()throws->JointResult{
   if hostMeta[4] != 0{return}
   let needed=Int(stats[17]+stats[36]);if needed>listCapacity{
    let newCapacity=max(1,needed),new=privateBuffer(newCapacity*5*4),cb=queue.makeCommandBuffer()!,copy=cb.makeBlitCommandEncoder()!
+   if scEnabled{copy.fill(buffer:new,range:0..<new.length,value:0)}
    for j in 0..<5{let n=Int(stats[j==4 ? 17:13+j]);if n>0{copy.copy(from:lists,sourceOffset:j*listCapacity*4,to:new,destinationOffset:j*newCapacity*4,size:n*4)}}
    copy.endEncoding();cb.commit();cb.waitUntilCompleted();try need(cb.status == .completed,"local port growth failed");phases[0]+=cb.gpuEndTime-cb.gpuStartTime;lists=new;listCapacity=newCapacity
   }
@@ -101,14 +113,17 @@ func jointPolyspine()throws->JointResult{
   try need(Int(stats[12])==rootCount,"certified program changed its root carrier")
  }
  while Int(stats[1])<3 && hostMeta[4]==0{
-  let phase=Int(stats[1])
+  let phase=Int(stats[1]);stageRead=stageTracker?.begin(phase)
+  if let view=stageRead{try need(view.metadata==hostMeta && view.listCapacity==listCapacity,"stage input version does not match its schedule boundary")}
+  let readCosts=stageRead?.parts["cost_rows"]?.buffer ?? lists,readCandidates=stageRead?.parts["candidate_rows"]?.buffer ?? lists,readFmap=stageRead?.parts["function_map"]?.buffer ?? fmap
+  let readMarkers=stageTracker?.interface["markers"]?.buffer ?? markers
   let extent=Int(hostMeta[1]),count=jpBuffer("cost-counts",extent*4),offsets=jpBuffer("cost-offsets",(extent+1)*4),cursors=jpBuffer("cost-cursors",extent*4),stamps=jpBuffer("cost-stamps",extent*4),ranges=jpBuffer("cost-ranges",extent*8),items=jpBuffer("cost-items",Int(stats[13])*4)
   let scans=jpBuffer("csr-scans",((extent+255)/256)*4),choiceCounts=jpBuffer("choice-counts",extent*4),priority=jpBuffer("class-priority",extent*4)
   let ngroups=phase==0 ? markerCount:Int(stats[14])*3,groups=jpBuffer("groups",ngroups*16*4)
   let groupBlocks=jpBuffer("group-blocks",((ngroups+255)/256)*4)
   let prepare=queue.makeCommandBuffer()!
   if phase<2{launch(prepare,13,[],1)}
-  launch(prepare,9,[count,stamps,ranges],extent);launch(prepare,10,[lists,count,stamps,ranges],Int(stats[13]),[UInt32(listCapacity)]);launch(prepare,26,[count,offsets,scans],((extent+255)/256)*256);launch(prepare,27,[scans,offsets],1);launch(prepare,28,[offsets,cursors,scans],extent);launch(prepare,12,[lists,offsets,cursors,items],Int(stats[13]))
+  launch(prepare,9,[count,stamps,ranges],extent);launch(prepare,10,[readCosts,count,stamps,ranges],Int(stats[13]),[UInt32(listCapacity)]);launch(prepare,26,[count,offsets,scans],((extent+255)/256)*256);launch(prepare,27,[scans,offsets],1);launch(prepare,28,[offsets,cursors,scans],extent);launch(prepare,12,[readCosts,offsets,cursors,items],Int(stats[13]))
   if featuresEnabled{
    launch(prepare,33,[summary,choiceCounts,priority],max(extent,rootCount));launch(prepare,34,[lists,rootmap,count,ranges,summary],Int(stats[14]),[UInt32(listCapacity)]);launch(prepare,35,[lists,choiceCounts],Int(stats[16]),[UInt32(listCapacity)])
    launch(prepare,46,[roots,fmap,count,ranges,summary,choiceCounts,markers,moffset,mitems,rootstate,initial,signatures,baseDirty],rootCount,[firstFeatures ? 1:0,fullRefresh ? 1:0])
@@ -125,14 +140,14 @@ func jointPolyspine()throws->JointResult{
     launch(prepare,50,[baseFeatures,ax,encoded,ae,ridgeInput,ai,rawScores,ar],rootCount,[model == nil ? 0:1])
    }
   }
-  if phase<2{launch(prepare,14,[markers,lists,fmap,count,offsets,stamps,groups],ngroups,[UInt32(ngroups),UInt32(listCapacity)]);launch(prepare,42,[groups,groupBlocks],((ngroups+255)/256)*256,[UInt32(ngroups)]);launch(prepare,43,[groupBlocks],1,[UInt32(ngroups)]);launch(prepare,44,[groups,groupBlocks],ngroups,[UInt32(ngroups)])};try wait(prepare,0)
+  if phase<2{launch(prepare,14,[readMarkers,readCandidates,readFmap,count,offsets,stamps,groups],ngroups,[UInt32(ngroups),stageRead == nil ? UInt32(listCapacity):0]);launch(prepare,42,[groups,groupBlocks],((ngroups+255)/256)*256,[UInt32(ngroups)]);launch(prepare,43,[groupBlocks],1,[UInt32(ngroups)]);launch(prepare,44,[groups,groupBlocks],ngroups,[UInt32(ngroups)])};try wait(prepare,0)
   if hostMeta[4] != 0{break}
   if training && !trainingFrames.contains(where:{$0.0==phase}){
    let frame=try download([(baseFeatures,rootCount*featureWidth*2),(ridgeInput,rootCount*136*2),(scores,rootCount*8*4),(rootstate,rootCount*8*4)],offsets:[phase*rootCount*featureWidth*2,phase*rootCount*136*2,0,0])
    trainingFrames.append((phase,hostMeta[2],frame[0],frame[1],frame[2],frame[3]))
   }
   if phase==2{
-   let result=try comparisonSaturate(UInt32(sets[2]),localOnly:true,sourceLists:lists,listCapacity:listCapacity,costCount:Int(stats[13]),choiceCount:Int(stats[16]),initialRanges:ranges,sourcePriority:model == nil ? nil:priority)
+   let result=try comparisonSaturate(UInt32(sets[2]),localOnly:true,sourceLists:lists,listCapacity:listCapacity,costCount:Int(stats[13]),choiceCount:Int(stats[16]),initialRanges:ranges,sourcePriority:model == nil ? nil:priority,readRows:stageRead?.parts["rows"]?.buffer,readParents:stageRead?.parts["parents"]?.buffer,readCosts:stageRead?.parts["cost_rows"]?.buffer,readChoices:stageRead?.parts["choice_rows"]?.buffer)
    if !result.accepted{return failure(result.reason)};hostMeta=result.info;for i in 0..<3{phases[i]+=result.phases[i]}
    let fix=queue.makeCommandBuffer()!;launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,5,[],program["hash_capacity"] as! Int);launch(fix,6,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,8,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,22,[roots,fmap,rootstate],rootCount);launch(fix,23,[],1);try wait(fix,2)
   }else{
@@ -149,9 +164,11 @@ func jointPolyspine()throws->JointResult{
    launch(commit,21,[matches,matchOrder,numeric,info,instructions,registers,rootstate,roots],1);launch(commit,23,[],1);try wait(commit,2)
    if hostMeta[4] != 0{break};try appendRows()
   }
+  if let tracker=stageTracker,hostMeta[4]==0{try tracker.seal(phase,stageParts(),hostMeta,listCapacity);phases[2]+=tracker.gpuSeconds-stageAccounted;stageAccounted=tracker.gpuSeconds}
   history.append([UInt32(phase),UInt32(sets[phase]),hostMeta[2],UInt32(stats[23]),phase==2 ? UInt32.max:hostMeta[5],hostMeta[3],hostMeta[7]])
  }
  if hostMeta[4] != 0{return failure(hostMeta[4])}
+ if let tracker=stageTracker{try tracker.finish(jpCalls,liveRows:rows);phases[2]+=tracker.gpuSeconds-stageAccounted}
  // Freeze immutable Interface payloads before compaction. savedRows is the
  // publication destination and no longer contains the entry after copy-back.
  let diagnosticPayload=training ? jpBuffer("diagnostic-interface",markerCount*(stride-4)*8):nil

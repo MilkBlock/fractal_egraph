@@ -39,6 +39,12 @@ This remains an experimental device backend with parallel index construction, ma
 
 ## Run and verify
 
+[Multi-stage Cell Bake and context patches](MULTI_STAGE_CELL.md) adds a
+loadable exact stage program with separate immutable read versions for the
+three terms stages. It is independent of ridge prediction. Use
+`--bake-stage-cell FILE` / `--stage-cell FILE`; stage audits and debug exports
+are opt-in outside Bake. Read the report's validation and performance scope.
+
 The opt-in [joint Polyspine program](JOINT_POLYSPINE.md) now connects the
 shared marker/Interface compiler, pending exact ports, frozen arithmetic,
 learned ridge heads and complete effect replay across the nested three
