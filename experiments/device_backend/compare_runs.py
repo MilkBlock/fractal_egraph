@@ -2,7 +2,7 @@
 import argparse,json
 from pathlib import Path
 
-def compare(before,after,device_states=False,endpoints_only=False):
+def compare(before,after,device_states=False,endpoints_only=False,semantic_device=False):
     reports=[json.loads((p/'report.json').read_text()) for p in [before,after]]
     programs=[json.loads((p/'program.json').read_text()) for p in [before,after]]
     a,b=reports;pa,pb=programs
@@ -15,7 +15,26 @@ def compare(before,after,device_states=False,endpoints_only=False):
         input_keys=['tables','strings','anchors']
     for key in input_keys:
         if pa.get(key)!=pb.get(key):raise ValueError('different input/configuration: '+key)
-    if device_states:
+    if semantic_device:
+        if not device_states:raise ValueError('semantic device comparison requires device states')
+        from run import compare as compare_graph
+        from export_snapshot import gpu_rows
+        sa,sb=[json.loads((p/'gpu-state.json').read_text()) for p in [before,after]]
+        # Compare the actual device graphs without replay, native import or rebuild.
+        # Allocation order is not part of graph equality. Typed primitive values,
+        # visibility, hashcons keys and the entire anchored equality partition are.
+        def root(i):
+            seen=set()
+            while sa['parents'][i]!=i:
+                if i in seen:raise ValueError('invalid device forest')
+                seen.add(i);i=sa['parents'][i]
+            return i
+        reference={'rows':gpu_rows(pa,sa),'anchors':[
+            {'sort':s,'old':old,'now':f'gpu:{root(i+1)}'}
+            for i,(s,old) in enumerate(pa['anchors'])]}
+        final_check=compare_graph(pb,sb['rows'],sb['parents'],reference,sb['sets'])
+        final_check.update(native_reference=False,identity_contract='typed graph bijection; physical allocation order may differ')
+    elif device_states:
         snapshots=[json.loads((p/'gpu-state.json').read_text()) for p in [before,after]]
         def roots(forest):
             result=[]
@@ -51,6 +70,6 @@ def compare(before,after,device_states=False,endpoints_only=False):
     return {'scope':scope,'before':str(before),'after':str(after),'source_sha256':a['source_sha256'],'resumed_prefix_runs':a['resumed_prefix_runs'],'measured_runs':len(a['device_command_times']),'final_check':final_check,'timings':phases,'builds':[r['build'] for r in reports]}
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('before',type=Path);p.add_argument('after',type=Path);p.add_argument('--output',type=Path);p.add_argument('--device-states',action='store_true');p.add_argument('--endpoints-only',action='store_true');a=p.parse_args();r=compare(a.before,a.after,a.device_states,a.endpoints_only)
+    p=argparse.ArgumentParser();p.add_argument('before',type=Path);p.add_argument('after',type=Path);p.add_argument('--output',type=Path);p.add_argument('--device-states',action='store_true');p.add_argument('--semantic-device-states',action='store_true');p.add_argument('--endpoints-only',action='store_true');a=p.parse_args();r=compare(a.before,a.after,a.device_states or a.semantic_device_states,a.endpoints_only,a.semantic_device_states)
     if a.output:a.output.write_text(json.dumps(r,indent=2)+'\n')
     print(json.dumps(r,indent=2))

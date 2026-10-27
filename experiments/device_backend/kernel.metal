@@ -176,6 +176,8 @@ kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],ui
 #define KERNEL_ARGS device long*r[[buffer(0)]],device long*old[[buffer(1)]],device uint*p[[buffer(2)]],device uint*fp[[buffer(3)]],device Meta&m[[buffer(4)]],device long*matches[[buffer(5)]],device uint*watermarks[[buffer(6)]],constant uint&set[[buffer(7)]],device long*code[[buffer(8)]],device long*registers[[buffer(9)]],device uint*qheads[[buffer(10)]],device uint*qlinks[[buffer(11)]],device uint*control[[buffer(12)]],device uint*match_order[[buffer(15)]],device uint*noop[[buffer(18)]],device uint*qprev[[buffer(19)]],device long*contexts[[buffer(22)]],device uint*context_info[[buffer(23)]],device float*context_results[[buffer(25)]],uint lane[[thread_position_in_grid]]
 // CONTEXT_RIDGE
 // CONTEXT_KERNELS
+// BATCH_KERNELS
+// MATRIX_SAT_KERNELS
 // PARALLEL_REBUILD
 // PARALLEL_QUERY
 // MATCH_SORT

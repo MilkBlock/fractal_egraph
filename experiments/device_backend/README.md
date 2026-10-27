@@ -1,5 +1,11 @@
 # GPU-owned egglog backend
 
+An opt-in **Saturate-level matrix executor** now completes certified local
+predicate closures in GPU-private matrices and publishes their rows once.
+Raytrace's 17-rule `is-resolved` path is connected and checked; ordinary Run is
+unchanged. Architecture, supported semantics, native checks, measured limits and
+the separate parallel-RHS experiment: [MATRIX_SATURATE.md](MATRIX_SATURATE.md).
+
 Versioned query continuations, safe parallel union RHS, typed merge-index
 invalidation, rebuild batches, and optional GPU ridge ordering are described in
 [CONTEXT_EXECUTION.md](CONTEXT_EXECUTION.md). They are opt-in. The measured full
@@ -25,7 +31,7 @@ prediction semantics do not repair the pre-existing full native graph mismatch.
 
 The CPU keeps native parsing, typechecking and schedule control. Metal owns the evolving tables, matching, RHS actions, union-find and rebuild. Normal execution returns status/timing data, never bindings for CPU-side RHS execution.
 
-This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; necessary RHS effects and merge callbacks are committed serially. It has completed all 10,097 raytrace Pass 3 Runs from the original input, without CPU inference, matching the logical endpoint of the earlier device continuations. Strict final graph/selected-DAG equality with native has **not** passed; production Tiger emits 29 functions on both sides, and a separate production-interpreter check agrees on raytrace's official input plus three varied inputs. That finite-input result is not an equivalence proof. There is no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading, the ridge predictor and Tensor Core matching are not connected here.
+This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; the default path commits necessary RHS effects and merge callbacks serially. It has completed all 10,097 raytrace Pass 3 Runs from the original input, without CPU inference, matching the logical endpoint of the earlier device continuations. Strict final graph/selected-DAG equality with native has **not** passed; production Tiger emits 29 functions on both sides, and a separate production-interpreter check agrees on raytrace's official input plus three varied inputs. That finite-input result is not an equivalence proof. There is no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading is not connected here. Optional continuation ridge ordering and certified matrix saturation are separate paths described above.
 
 ## Run and verify
 
@@ -42,6 +48,11 @@ python3 experiments/device_backend/run.py \
 Builds use the local `egglog/` offline. Reuse an existing Cargo target with `--target`; output run directories must be new.
 
 - Default: native comparison after each Run.
+- `--matrix-saturate`: replace certified positive fixed-carrier Saturate blocks
+  with resident matrix programs. Native graph checks occur at Saturate exits;
+  ordinary Run boundaries retain their checks.
+- `--batch-rhs`: experimental parallel independent-constructor publication;
+  retains ordered unsafe effects and remains off by default.
 - `--check-every N`: compare every N Run boundaries; execute the native reference in step order.
 - `--check-at-end`: run GPU first, then replay the native schedule and compare once.
 - `--check-every 0`: retire the CPU frontend before GPU Runs; no native inference or checkpoints.
