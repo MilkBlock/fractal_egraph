@@ -4,6 +4,9 @@ from pathlib import Path
 HERE=Path(__file__).resolve().parent
 
 def prepare(run,out):
+    report=json.loads((run/'report.json').read_text())
+    if any(s.get('kind') in ['joint_polyspine','comparison_saturate'] or 'matrix_macro' in s for s in report['steps']):
+        raise ValueError('this profiler replays ordinary Run only; a compacted Saturate needs scope-aware replay')
     skill=HERE.parents[1]/'skills/eggfuse-metal-profile/scripts/profile.py'
     subprocess.run(['python3',str(skill),'prepare','--run',str(run),'--source',str(HERE/'worker.swift'),'--output',str(out)],check=True)
     path=out/'worker.swift';source=path.read_text();anchor='var profileNames: [ObjectIdentifier: String] = [:]'

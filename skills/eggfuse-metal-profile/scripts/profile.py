@@ -64,12 +64,20 @@ def hotspots(a):
 
 
 def prepare(a):
-    out = fresh(a.output)
     report = json.loads((a.run / 'report.json').read_text())
+    if any(s.get('kind') in ['joint_polyspine', 'comparison_saturate'] or 'matrix_macro' in s for s in report['steps']):
+        raise ValueError('ordinary-Run capture cannot replay compacted Saturate scopes')
+    out = fresh(a.output)
     text = a.source.read_text()
     expected = [v for k, v in report['build']['sources'].items() if k.endswith('/worker.swift')]
     if expected != [sha(a.source)]:
         raise ValueError('worker source does not match the saved run; supply its original source')
+    if '// JOINT_HOST' in text:
+        companion = a.source.with_name('joint_polyspine.swift')
+        expected = [v for k, v in report['build']['sources'].items() if k.endswith('/joint_polyspine.swift')]
+        if not companion.is_file() or expected != [sha(companion)]:
+            raise ValueError('joint worker companion does not match the saved run')
+        text = replace_once(text, '// JOINT_HOST', companion.read_text())
     labels = ['var profileNames: [ObjectIdentifier: String] = [:]']
     for var, name in re.findall(r'let (\w+)=try device.makeComputePipelineState\(function:lib.makeFunction\(name:"([^"]+)"\)!\)', text):
         labels.append(f'profileNames[ObjectIdentifier({var})] = "{name}"')
@@ -91,7 +99,13 @@ def prepare(a):
    descriptor.outputURL=URL(fileURLWithPath:ProcessInfo.processInfo.environment["EGGFUSE_CAPTURE_PATH"]!)
    try MTLCaptureManager.shared().startCapture(with:descriptor)
   }''')
-    text = replace_once(text, '}else if op==2{', ' if captureThisRun { MTLCaptureManager.shared().stopCapture() }\n }else if op==2{')
+    # New protocol operations may precede checkpoints. End capture in the
+    # ordinary Run branch, not in whichever branch happens to precede op 2.
+    end = re.search(r'}else if op==\d+\s*{', text[text.index('if op==1{'):])
+    if end is None:
+        raise ValueError('ordinary Run protocol branch end is missing')
+    boundary = end.group(0)
+    text = replace_once(text, boundary, ' if captureThisRun { MTLCaptureManager.shared().stopCapture() }\n '+boundary)
     (out / 'worker.swift').write_text(text)
     command(['xcrun', 'swiftc', '-O', out / 'worker.swift', '-o', out / 'worker'])
     write(out / 'build.json', {'original_worker_source_sha256': sha(a.source),
