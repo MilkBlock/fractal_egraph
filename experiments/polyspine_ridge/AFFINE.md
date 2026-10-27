@@ -1,5 +1,8 @@
 # Fixed affine columns alongside Polyspine ridge
 
+Follow-up: [resumable marker contexts](MARKER_CONTEXT.md) preserve missing-input
+links and iterate GPU output columns into downstream contexts.
+
 This is an **offline experiment on real native Raytrace Pass 3**, not an engine
 speedup. It preserves the scale experiment's input, schedule, labels, root
 lineages, 512-wide ridge input, regularization 1, and threshold 0.5. The 12 actual
