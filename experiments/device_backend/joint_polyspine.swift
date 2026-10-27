@@ -2,7 +2,7 @@
 // sink is reused on a transactional device view, not on the published tables.
 let jpDescription=program["joint_polyspine"] as? [String:Any]
 let jpProgram=jpDescription?["program"] as? [String:Any]
-let jpNames=["jp_begin","jp_zero_maps","jp_count_range","jp_pack_range","jp_root_reset","jp_hash_clear","jp_hash_insert","jp_canonical","jp_retire","jp_csr_clear","jp_csr_count","jp_csr_offsets","jp_csr_fill","jp_prepare","jp_groups","jp_group_offsets","jp_bindings","jp_affine_mma","jp_validate","jp_sort_local","jp_sort_global","jp_commit","jp_comparison_roots","jp_advance","jp_close","jp_metrics","jp_csr_scan","jp_csr_blocks","jp_csr_add","jp_static_markers","jp_static_heads","jp_marker_offsets","jp_marker_items","jp_feature_clear","jp_candidate_summary","jp_choice_summary","jp_features","jp_feature_mma","jp_seams","jp_ridge_mma","jp_prediction_finish","jp_export_interfaces","jp_group_scan","jp_group_blocks","jp_group_add"]
+let jpNames=["jp_begin","jp_zero_maps","jp_count_range","jp_pack_range","jp_root_reset","jp_hash_clear","jp_hash_insert","jp_canonical","jp_retire","jp_csr_clear","jp_csr_count","jp_csr_offsets","jp_csr_fill","jp_prepare","jp_groups","jp_group_offsets","jp_bindings","jp_affine_mma","jp_validate","jp_sort_local","jp_sort_global","jp_commit","jp_comparison_roots","jp_advance","jp_close","jp_metrics","jp_csr_scan","jp_csr_blocks","jp_csr_add","jp_static_markers","jp_static_heads","jp_marker_offsets","jp_marker_items","jp_feature_clear","jp_candidate_summary","jp_choice_summary","jp_features","jp_feature_mma","jp_seams","jp_ridge_mma","jp_prediction_finish","jp_export_interfaces","jp_group_scan","jp_group_blocks","jp_group_add","jp_cache_static","jp_cache_signature","jp_cache_dependents","jp_cached_features","jp_cached_prediction","jp_cache_audit"]
 let jpPipelines=try (jpProgram==nil ? []:jpNames).map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 var jpPool:[String:MTLBuffer]=[:]
 func jpBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
@@ -59,10 +59,13 @@ func jointPolyspine()throws->JointResult{
  let rootCount=Int(stats[12]),rootstate=jpBuffer("root-state",rootCount*8*4),scores=jpBuffer("scores",rootCount*8*4)
  let model=plan["model"] as? [String:Any],training=program["polyspine_training"] as? Bool ?? false
  let featuresEnabled=model != nil || training,featureWidth=plan["feature_width"] as! Int
- let stat=jpBuffer("static-features",rootCount*featureWidth*4),heads=jpBuffer("head-sums",rootCount*64*4),headCounts=jpBuffer("head-counts",rootCount*4)
- let moffset=jpBuffer("marker-offsets",(rootCount+1)*4),mcursor=jpBuffer("marker-cursors",rootCount*4),mitems=jpBuffer("marker-items",markerCount*4)
- let initial=jpBuffer("initial-features",rootCount*4*8),baseFeatures=jpBuffer("base-features",rootCount*featureWidth*2),encoded=jpBuffer("encoded-features",rootCount*64*4),ridgeInput=jpBuffer("ridge-input",rootCount*136*2)
- let summary=jpBuffer("candidate-summary",rootCount*4*4)
+ let fullRefresh=program["polyspine_full_refresh"] as? Bool ?? false,refreshAudit=program["polyspine_refresh_audit"] as? Bool ?? false
+ let featureRows=featuresEnabled ? rootCount:0
+ let stat=jpBuffer("static-features",featureRows*featureWidth*4),heads=jpBuffer("head-sums",featureRows*64*4),headCounts=jpBuffer("head-counts",featureRows*4)
+ let moffset=jpBuffer("marker-offsets",(rootCount+1)*4),mcursor=jpBuffer("marker-cursors",featureRows*4),mitems=jpBuffer("marker-items",markerCount*4)
+ let initial=jpBuffer("initial-features",featureRows*4*8),baseFeatures=jpBuffer("base-features",3*featureRows*featureWidth*2),encoded=jpBuffer("encoded-features",3*featureRows*64*4),ridgeInput=jpBuffer("ridge-input",3*featureRows*136*2)
+ let staticContext=jpBuffer("immutable-context",featureRows*featureWidth*2),signatures=jpBuffer("feature-signatures",3*featureRows*16*8),baseDirty=jpBuffer("base-dirty",featureRows*4),outputDirty=jpBuffer("output-dirty",featureRows*4),rawScores=jpBuffer("raw-scores",3*featureRows*8*4)
+ let summary=jpBuffer("candidate-summary",featureRows*4*4)
  func halfMatrix(_ name:String)->MTLBuffer{shared((plan[name] as! [[NSNumber]]).flatMap{$0}.map{Float16($0.floatValue).bitPattern})}
  let encoding=halfMatrix("encoding"),headEncoding=halfMatrix("head_encoding"),roles=halfMatrix("role_encoding")
  let ridgeWeights=shared((model?["weights"] as? [NSNumber] ?? [NSNumber](repeating:0,count:136*8)).map{Float16($0.floatValue).bitPattern})
@@ -70,9 +73,9 @@ func jointPolyspine()throws->JointResult{
  let ridgeScales=shared(scaleValues.map{$0.floatValue})
  try need(ridgeScales.length>=6*MemoryLayout<Float>.size,"ridge scale/bias ABI requires six floats")
  var firstFeatures=true,trainingFrames:[(Int,UInt32,Data,Data,Data,Data)]=[]
- func download(_ fields:[(MTLBuffer,Int)])throws->[Data]{
+ func download(_ fields:[(MTLBuffer,Int)],offsets:[Int]=[])throws->[Data]{
   let cb=queue.makeCommandBuffer()!,b=cb.makeBlitCommandEncoder()!;let outputs=fields.map{device.makeBuffer(length:max(8,$0.1),options:.storageModeShared)!}
-  for ((src,n),dst) in zip(fields,outputs) where n>0{b.copy(from:src,sourceOffset:0,to:dst,destinationOffset:0,size:n)};b.endEncoding();cb.commit();cb.waitUntilCompleted();try need(cb.status == .completed,"Polyspine diagnostic download failed")
+  for (i,entry) in zip(fields,outputs).enumerated() where entry.0.1>0{let ((src,n),dst)=entry;b.copy(from:src,sourceOffset:offsets.isEmpty ? 0:offsets[i],to:dst,destinationOffset:0,size:n)};b.endEncoding();cb.commit();cb.waitUntilCompleted();try need(cb.status == .completed,"Polyspine diagnostic download failed")
   return zip(outputs,fields).map{Data(bytes:$0.0.contents(),count:$0.1.1)}
  }
  var weights=[UInt16](repeating:0,count:numericWidth*8)
@@ -80,8 +83,8 @@ func jointPolyspine()throws->JointResult{
  let affineWeights=shared(weights)
  let setup=queue.makeCommandBuffer()!;launch(setup,4,[rootstate,scores],rootCount);launch(setup,5,[],program["hash_capacity"] as! Int);launch(setup,6,[lists],Int(stats[17]),[UInt32(listCapacity)])
  if featuresEnabled{
-  let clear=setup.makeBlitCommandEncoder()!;for b in [stat,heads,headCounts,initial]{clear.fill(buffer:b,range:0..<b.length,value:0)};clear.endEncoding()
-  launch(setup,29,[markers,rootmap,stat],markerCount);launch(setup,30,[rootmap,headEncoding,heads,headCounts],entryRows);launch(setup,31,[stat,moffset,mcursor],1);launch(setup,32,[markers,rootmap,moffset,mcursor,mitems],markerCount)
+  let clear=setup.makeBlitCommandEncoder()!;for b in [stat,heads,headCounts,initial,signatures]{clear.fill(buffer:b,range:0..<b.length,value:0)};clear.endEncoding()
+  launch(setup,29,[markers,rootmap,stat],markerCount);launch(setup,30,[rootmap,headEncoding,heads,headCounts],entryRows);launch(setup,31,[stat,moffset,mcursor],1);launch(setup,32,[markers,rootmap,moffset,mcursor,mitems],markerCount);launch(setup,45,[props,markers,rootmap,moffset,mitems,roots,stat,staticContext],rootCount)
  };try wait(setup,0)
  if hostMeta[4] != 0{return failure(hostMeta[4])}
  var publishedTo=entryRows
@@ -108,15 +111,24 @@ func jointPolyspine()throws->JointResult{
   launch(prepare,9,[count,stamps,ranges],extent);launch(prepare,10,[lists,count,stamps,ranges],Int(stats[13]),[UInt32(listCapacity)]);launch(prepare,26,[count,offsets,scans],((extent+255)/256)*256);launch(prepare,27,[scans,offsets],1);launch(prepare,28,[offsets,cursors,scans],extent);launch(prepare,12,[lists,offsets,cursors,items],Int(stats[13]))
   if featuresEnabled{
    launch(prepare,33,[summary,choiceCounts,priority],max(extent,rootCount));launch(prepare,34,[lists,rootmap,count,ranges,summary],Int(stats[14]),[UInt32(listCapacity)]);launch(prepare,35,[lists,choiceCounts],Int(stats[16]),[UInt32(listCapacity)])
-   launch(prepare,36,[roots,fmap,count,ranges,summary,choiceCounts,props,markers,rootmap,moffset,mitems,stat,rootstate,initial,baseFeatures],rootCount,[firstFeatures ? 1:0])
-   launch(prepare,37,[baseFeatures,encoding,encoded],((rootCount+7)/8)*8,[],true);launch(prepare,38,[encoded,heads,headCounts,markers,rootmap,moffset,mitems,roles,ridgeInput],rootCount)
-   if model != nil{launch(prepare,39,[ridgeInput,ridgeWeights,scores],(rootCount+7)/8,[],true)}
-   launch(prepare,40,[scores,ridgeScales,roots,fmap,priority],rootCount,[model == nil ? 0:1]);firstFeatures=false
+   launch(prepare,46,[roots,fmap,count,ranges,summary,choiceCounts,markers,moffset,mitems,rootstate,initial,signatures,baseDirty],rootCount,[firstFeatures ? 1:0,fullRefresh ? 1:0])
+   launch(prepare,47,[markers,rootmap,moffset,mitems,baseDirty,outputDirty],rootCount)
+   launch(prepare,48,[staticContext,signatures,initial,stat,baseDirty,baseFeatures],rootCount)
+   launch(prepare,37,[baseFeatures,encoding,encoded,baseDirty],((rootCount+7)/8)*8,[1],true);launch(prepare,38,[encoded,heads,headCounts,markers,rootmap,moffset,mitems,roles,ridgeInput,outputDirty],rootCount,[1])
+   if model != nil{launch(prepare,39,[ridgeInput,ridgeWeights,rawScores,outputDirty],(rootCount+7)/8,[1],true)}
+   launch(prepare,49,[rawScores,scores,ridgeScales,roots,fmap,priority],rootCount,[model == nil ? 0:1]);firstFeatures=false
+   if refreshAudit{
+    let ax=jpBuffer("audit-features",rootCount*featureWidth*2),ae=jpBuffer("audit-encoding",rootCount*64*4),ai=jpBuffer("audit-input",rootCount*136*2),ar=jpBuffer("audit-raw",rootCount*8*4)
+    launch(prepare,36,[roots,fmap,count,ranges,summary,choiceCounts,props,markers,rootmap,moffset,mitems,stat,rootstate,initial,ax],rootCount,[0])
+    launch(prepare,37,[ax,encoding,ae,baseDirty],((rootCount+7)/8)*8,[0],true);launch(prepare,38,[ae,heads,headCounts,markers,rootmap,moffset,mitems,roles,ai,outputDirty],rootCount,[0])
+    if model != nil{launch(prepare,39,[ai,ridgeWeights,ar,outputDirty],(rootCount+7)/8,[0],true)}
+    launch(prepare,50,[baseFeatures,ax,encoded,ae,ridgeInput,ai,rawScores,ar],rootCount,[model == nil ? 0:1])
+   }
   }
   if phase<2{launch(prepare,14,[markers,lists,fmap,count,offsets,stamps,groups],ngroups,[UInt32(ngroups),UInt32(listCapacity)]);launch(prepare,42,[groups,groupBlocks],((ngroups+255)/256)*256,[UInt32(ngroups)]);launch(prepare,43,[groupBlocks],1,[UInt32(ngroups)]);launch(prepare,44,[groups,groupBlocks],ngroups,[UInt32(ngroups)])};try wait(prepare,0)
   if hostMeta[4] != 0{break}
   if training && !trainingFrames.contains(where:{$0.0==phase}){
-   let frame=try download([(baseFeatures,rootCount*featureWidth*2),(ridgeInput,rootCount*136*2),(scores,rootCount*8*4),(rootstate,rootCount*8*4)])
+   let frame=try download([(baseFeatures,rootCount*featureWidth*2),(ridgeInput,rootCount*136*2),(scores,rootCount*8*4),(rootstate,rootCount*8*4)],offsets:[phase*rootCount*featureWidth*2,phase*rootCount*136*2,0,0])
    trainingFrames.append((phase,hostMeta[2],frame[0],frame[1],frame[2],frame[3]))
   }
   if phase==2{

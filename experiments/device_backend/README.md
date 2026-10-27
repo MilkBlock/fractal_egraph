@@ -66,6 +66,10 @@ Builds use the local `egglog/` offline. Reuse an existing Cargo target with `--t
   exact fallback remains mandatory. It requires `--joint-polyspine`.
 - `--polyspine-training`: export pre-phase features and later effect labels for
   diagnostic fitting/auditing; excluded from clean inference timings.
+- Joint features now use [exact phase-local caches](FEATURE_REFRESH.md).
+  `--full-polyspine-refresh` forces recomputation; `--audit-polyspine-refresh`
+  checks cached features and model scores against full GPU recomputation at
+  every private phase. These controls do not change the matching fallback.
 - `--matrix-saturate`: replace certified positive-predicate and min-choice
   equality Saturate blocks with resident matrix programs. Native graph checks occur at Saturate exits;
   ordinary Run boundaries retain their checks.

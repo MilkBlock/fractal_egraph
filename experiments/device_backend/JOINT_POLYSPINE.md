@@ -1,5 +1,9 @@
 # Resident Polyspine program across the three terms rulesets
 
+Follow-up: [exact phase-local feature reuse](FEATURE_REFRESH.md) preserves the
+model and reduces repeated feature work. The initial implementation's timings
+below remain as historical evidence.
+
 `--joint-polyspine` recognizes the original nested schedule:
 
 ```text

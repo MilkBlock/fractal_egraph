@@ -35,14 +35,14 @@ def rejected_transaction(build,file,out,reason,capacity=4096):
             gpu.stdin.close();gpu.stdout.close()
     return {'accepted':False,'reason':reason,'published_state_byte_identical':True,'numeric_payload_not_downloaded':True}
 
-def tests(build,out):
+def tests(build,out,refresh_audit=False):
     out.mkdir(parents=True,exist_ok=False);results={}
     def pair(name,source,accepted=True,**options):
         training=options.pop('polyspine_training',False)
         file=out/(name+'.egg');file.write_text(source)
         before,after=out/(name+'-normal'),out/(name+'-joint')
         a=run(file,build,before,matrix_saturate=True,**options)
-        b=run(file,build,after,matrix_saturate=True,joint_polyspine=True,polyspine_training=training,**options)
+        b=run(file,build,after,matrix_saturate=True,joint_polyspine=True,polyspine_training=training or refresh_audit,polyspine_refresh_audit=refresh_audit,**options)
         assert any(c['accepted'] for c in b['joint_polyspine']['calls'])==accepted,name
         result=compare(before,after,device_states=True,semantic_device=True,saturation_macros=True)
         result['native_checks']=[a['checks'][-1],b['checks'][-1]];result['calls']=b['joint_polyspine']['calls'];results[name]=result
@@ -137,7 +137,7 @@ def tests(build,out):
         base=out/(name+'-joint');program=json.loads((base/'program.json').read_text())['joint_polyspine']['program']
         for label,bias in [('all-negative',[-1,-1,-1]),('all-positive',[1,1,1]),('threshold',[.5,.5,.5])]:
             model=out/f'{name}-{label}.json';model.write_text(json.dumps({'schema':'resident-polyspine-ridge/v1','layout_sha256':program['layout_sha256'],'weights':[0]*(136*8),'scales':[1,1,1],'bias':bias,'diagnostic':'adversarial safety model, not a trained performance model'}))
-            path=out/f'{name}-{label}';r=run(out/(name+'.egg'),build,path,joint_polyspine=True,polyspine_model=model,matrix_saturate=True)
+            path=out/f'{name}-{label}';r=run(out/(name+'.egg'),build,path,joint_polyspine=True,polyspine_model=model,matrix_saturate=True,polyspine_refresh_audit=refresh_audit)
             assert all(c['accepted'] for c in r['joint_polyspine']['calls'])
             check=compare(base,path,device_states=True,semantic_device=True,saturation_macros=True)
             if label=='all-negative':assert sum(r['joint_polyspine']['calls'][0]['statistics'][92:95])==0
@@ -167,7 +167,18 @@ def tests(build,out):
     except ValueError as e:assert 'layout' in str(e)
     else:raise AssertionError('stale model accepted')
     results['stale-model-rejected']=True
+    if refresh_audit:
+        reports=[json.loads(p.read_text()) for p in out.glob('*/report.json')]
+        calls=[c for r in reports if r['joint_polyspine']['feature_refresh_audit'] for c in r['joint_polyspine']['calls'] if c['accepted']]
+        assert calls and sum(c['statistics'][98] for c in calls)>0
+        for c in calls:
+            st=c['statistics'];assert st[97]+st[98]==st[96]==st[99]+st[100]==st[103]
+            assert st[99]>=st[97] and st[101]>=st[97] and (st[102]==0 or st[102]>=st[99])
+        path=out/'full-refresh';full=run(out/'multi-stage-tree.egg',build,path,joint_polyspine=True,polyspine_model=out/'multi-stage-tree-all-positive.json',matrix_saturate=True,polyspine_full_refresh=True,polyspine_refresh_audit=True)
+        for c in full['joint_polyspine']['calls']:assert c['statistics'][97]==c['statistics'][96]==c['statistics'][99]
+        results['full-refresh-ablation']=compare(out/'multi-stage-tree-all-positive',path,device_states=True,semantic_device=True,saturation_macros=True)
+        results['cached-feature-score-audit']={'phases':sum(c['private_phases'] for c in calls),'row_audits':sum(c['statistics'][103] for c in calls),'base_reused':sum(c['statistics'][98] for c in calls),'passed':True}
     (out/'results.json').write_text(json.dumps(results,indent=2)+'\n');return results
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();r=tests(a.build,a.output);print('passed',len(r),'joint cases')
+    p=argparse.ArgumentParser();p.add_argument('--audit-refresh',action='store_true');p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();r=tests(a.build,a.output,a.audit_refresh);print('passed',len(r),'joint cases')

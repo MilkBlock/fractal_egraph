@@ -192,6 +192,7 @@ kernel void jp_comparison_roots(JP_ARGS,device const uint*roots[[buffer(5)]],dev
  if(uint(r[JP_VERSION+id])==m.epoch){rootstate[i*8]|=4;rootstate[i*8+3]++;}
 }
 kernel void jp_metrics(JP_ARGS,device const uint*rootstate[[buffer(5)]],uint i[[thread_position_in_grid]]){
+ if(i==0){r[JP_STATE+98]=r[JP_STATE+96]-r[JP_STATE+97];r[JP_STATE+100]=r[JP_STATE+96]-r[JP_STATE+99];}
  if(i<jp_count(r,12))jp_add(r,80+(rootstate[8*i]&7),1);
  if(i<m.count){uint fid=uint(r[i*STRIDE+3]);if(fid>=jp_count(r,24))jp_add(r,88,1);else{jp_add(r,90,1);if(uint(r[i*STRIDE+2])>jp_count(r,3))jp_add(r,89,1);}}
 }
@@ -225,6 +226,7 @@ kernel void jp_marker_items(JP_ARGS,device const uint*markers[[buffer(5)]],devic
  if(i>=jp_count(r,11))return;uint owner=rootmap[markers[i*8+2]];uint k=atomic_fetch_add_explicit((device atomic_uint*)(cursor+owner),1u,memory_order_relaxed);items[offsets[owner]+k]=i;
 }
 kernel void jp_feature_clear(JP_ARGS,device uint*summary[[buffer(5)]],device uint*choicecounts[[buffer(6)]],device uint*priority[[buffer(7)]],uint i[[thread_position_in_grid]]){
+ if(i==0)r[JP_STATE+96]+=jp_count(r,12);
  if(i<jp_count(r,12))for(uint j=0;j<4;j++)summary[i*4+j]=0;
  if(i<m.next_id){choicecounts[i]=0;priority[i]=0;}
 }
@@ -259,22 +261,25 @@ kernel void jp_features(JP_ARGS,device const uint*roots[[buffer(5)]],device cons
  long numbers[4]={low,high,cmin,cmax};for(uint a=0;a<4;a++){ulong bits=(as_type<ulong>(numbers[a])^0x8000000000000000UL);for(uint b=0;b<8;b++)v[32+JP_RECIPES+8*a+b]=(a<2?ready:hasCandidate)?float((bits>>(56-8*b))&255)/255.0f:0;}
  for(uint j=0;j<JP_FEATURES;j++)x[i*JP_FEATURES+j]=half(v[j]);
 }
-kernel void jp_feature_mma(JP_ARGS,device const half*x[[buffer(5)]],device const half*e[[buffer(6)]],device float*y[[buffer(7)]],uint tile[[threadgroup_position_in_grid]],uint lane[[thread_index_in_threadgroup]]){
- uint row=(tile/8)*8,col=(tile%8)*8;threadgroup half a[64],b[64];threadgroup float out[64];simdgroup_float8x8 acc(0.0f);
- for(uint k=0;k<JP_FEATURES;k+=8){for(uint q=lane;q<64;q+=32){uint rr=q/8,cc=q%8;a[q]=row+rr<jp_count(r,12)?x[(row+rr)*JP_FEATURES+k+cc]:half(0);b[q]=e[(k+rr)*64+col+cc];}threadgroup_barrier(mem_flags::mem_threadgroup);simdgroup_half8x8 aa,bb;simdgroup_load(aa,a,8);simdgroup_load(bb,b,8);simdgroup_multiply_accumulate(acc,aa,bb,acc);threadgroup_barrier(mem_flags::mem_threadgroup);}
- simdgroup_store(acc,out,8);threadgroup_barrier(mem_flags::mem_threadgroup);for(uint q=lane;q<64;q+=32)if(row+q/8<jp_count(r,12))y[(row+q/8)*64+col+q%8]=out[q]/sqrt(float(JP_FEATURES));
+kernel void jp_feature_mma(JP_ARGS,device const half*x[[buffer(5)]],device const half*e[[buffer(6)]],device float*y[[buffer(7)]],device const uint*dirty[[buffer(8)]],constant uint&cached[[buffer(9)]],uint tile[[threadgroup_position_in_grid]],uint lane[[thread_index_in_threadgroup]]){
+ uint row=(tile/8)*8,col=(tile%8)*8;uint n=jp_count(r,12),base=cached?jp_count(r,1)*n:0;
+ if(cached){bool active=false;for(uint j=row;j<min(row+8,n);j++)active|=dirty[j]!=0;if(!active)return;if(lane==0&&col==0)jp_add(r,101,min(8u,n-row));}threadgroup half a[64],b[64];threadgroup float out[64];simdgroup_float8x8 acc(0.0f);
+ for(uint k=0;k<JP_FEATURES;k+=8){for(uint q=lane;q<64;q+=32){uint rr=q/8,cc=q%8;a[q]=row+rr<jp_count(r,12)?x[(base+row+rr)*JP_FEATURES+k+cc]:half(0);b[q]=e[(k+rr)*64+col+cc];}threadgroup_barrier(mem_flags::mem_threadgroup);simdgroup_half8x8 aa,bb;simdgroup_load(aa,a,8);simdgroup_load(bb,b,8);simdgroup_multiply_accumulate(acc,aa,bb,acc);threadgroup_barrier(mem_flags::mem_threadgroup);}
+ simdgroup_store(acc,out,8);threadgroup_barrier(mem_flags::mem_threadgroup);for(uint q=lane;q<64;q+=32)if(row+q/8<jp_count(r,12))y[(base+row+q/8)*64+col+q%8]=out[q]/sqrt(float(JP_FEATURES));
 }
-kernel void jp_seams(JP_ARGS,device const float*encoded[[buffer(5)]],device const int*heads[[buffer(6)]],device const uint*hcounts[[buffer(7)]],device const uint*markers[[buffer(8)]],device const uint*rootmap[[buffer(9)]],device const uint*offsets[[buffer(10)]],device const uint*items[[buffer(11)]],device const half*roles[[buffer(12)]],device half*x[[buffer(13)]],uint i[[thread_position_in_grid]]){
- if(i>=jp_count(r,12))return;for(uint k=0;k<64;k++){float seam=float(heads[i*64+k])/max(1u,hcounts[i]),count=1;
+kernel void jp_seams(JP_ARGS,device const float*encoded[[buffer(5)]],device const int*heads[[buffer(6)]],device const uint*hcounts[[buffer(7)]],device const uint*markers[[buffer(8)]],device const uint*rootmap[[buffer(9)]],device const uint*offsets[[buffer(10)]],device const uint*items[[buffer(11)]],device const half*roles[[buffer(12)]],device half*x[[buffer(13)]],device const uint*dirty[[buffer(14)]],constant uint&cached[[buffer(15)]],uint i[[thread_position_in_grid]]){
+ uint n=jp_count(r,12),base=cached?jp_count(r,1)*n:0;if(i>=n||(cached&&!dirty[i]))return;if(cached)jp_add(r,99,1);for(uint k=0;k<64;k++){float seam=float(heads[i*64+k])/max(1u,hcounts[i]),count=1;
   for(uint q=offsets[i];q<offsets[i+1];q++){uint mi=items[q],b=8*mi,rid=markers[b+1];for(uint j=0;j<markers[b+3];j++){uint child=rootmap[markers[b+4+j]],role=3*rid+j,at=(k+JP_ROLE_ROTATION[role])%64;
-   seam+=float(roles[role*64+k])*(encoded[child*64+at]+float(heads[child*64+at])/max(1u,hcounts[child]));count++;}}
-  x[i*136+k]=half(encoded[i*64+k]);x[i*136+64+k]=half(seam/count);}
- x[i*136+128]=1;for(uint k=129;k<136;k++)x[i*136+k]=0;
+   seam+=float(roles[role*64+k])*(encoded[(base+child)*64+at]+float(heads[child*64+at])/max(1u,hcounts[child]));count++;}}
+  x[(base+i)*136+k]=half(encoded[(base+i)*64+k]);x[(base+i)*136+64+k]=half(seam/count);}
+ x[(base+i)*136+128]=1;for(uint k=129;k<136;k++)x[(base+i)*136+k]=0;
 }
-kernel void jp_ridge_mma(JP_ARGS,device const half*x[[buffer(5)]],device const half*w[[buffer(6)]],device float*y[[buffer(7)]],uint tile[[threadgroup_position_in_grid]],uint lane[[thread_index_in_threadgroup]]){
- uint row=tile*8;threadgroup half a[64],b[64];threadgroup float out[64];simdgroup_float8x8 acc(0.0f);
- for(uint k=0;k<136;k+=8){for(uint q=lane;q<64;q+=32){uint rr=q/8,cc=q%8;a[q]=row+rr<jp_count(r,12)?x[(row+rr)*136+k+cc]:half(0);b[q]=w[(k+rr)*8+cc];}threadgroup_barrier(mem_flags::mem_threadgroup);simdgroup_half8x8 aa,bb;simdgroup_load(aa,a,8);simdgroup_load(bb,b,8);simdgroup_multiply_accumulate(acc,aa,bb,acc);threadgroup_barrier(mem_flags::mem_threadgroup);}
- simdgroup_store(acc,out,8);threadgroup_barrier(mem_flags::mem_threadgroup);for(uint q=lane;q<64;q+=32)if(row+q/8<jp_count(r,12))y[(row+q/8)*8+q%8]=out[q];
+kernel void jp_ridge_mma(JP_ARGS,device const half*x[[buffer(5)]],device const half*w[[buffer(6)]],device float*y[[buffer(7)]],device const uint*dirty[[buffer(8)]],constant uint&cached[[buffer(9)]],uint tile[[threadgroup_position_in_grid]],uint lane[[thread_index_in_threadgroup]]){
+ uint row=tile*8,n=jp_count(r,12),base=cached?jp_count(r,1)*n:0;
+ if(cached){bool active=false;for(uint j=row;j<min(row+8,n);j++)active|=dirty[j]!=0;if(!active)return;if(lane==0)jp_add(r,102,min(8u,n-row));}
+ threadgroup half a[64],b[64];threadgroup float out[64];simdgroup_float8x8 acc(0.0f);
+ for(uint k=0;k<136;k+=8){for(uint q=lane;q<64;q+=32){uint rr=q/8,cc=q%8;a[q]=row+rr<jp_count(r,12)?x[(base+row+rr)*136+k+cc]:half(0);b[q]=w[(k+rr)*8+cc];}threadgroup_barrier(mem_flags::mem_threadgroup);simdgroup_half8x8 aa,bb;simdgroup_load(aa,a,8);simdgroup_load(bb,b,8);simdgroup_multiply_accumulate(acc,aa,bb,acc);threadgroup_barrier(mem_flags::mem_threadgroup);}
+ simdgroup_store(acc,out,8);threadgroup_barrier(mem_flags::mem_threadgroup);for(uint q=lane;q<64;q+=32)if(row+q/8<jp_count(r,12))y[(base+row+q/8)*8+q%8]=out[q];
 }
 kernel void jp_prediction_finish(JP_ARGS,device float*scores[[buffer(5)]],device const float*scales[[buffer(6)]],device const uint*roots[[buffer(7)]],device const uint*fmap[[buffer(8)]],device uint*priority[[buffer(9)]],constant uint&enabled[[buffer(10)]],uint i[[thread_position_in_grid]]){
  if(i>=jp_count(r,12))return;for(uint j=0;j<3;j++){scores[i*8+j]=enabled?scores[i*8+j]*scales[j]+scales[3+j]:1.0f;if(enabled&&scores[i*8+j]>=.5f)jp_add(r,92+j,1);}
@@ -284,3 +289,5 @@ kernel void jp_export_interfaces(JP_ARGS,device const uint*markers[[buffer(5)]],
  if(i>=jp_count(r,11))return;uint row=markers[i*8],table=uint(r[row*STRIDE]);tables[i]=table;
  for(uint j=0;j<COLS;j++)payload[i*COLS+j]=j<WIDTH[table]?r[row*STRIDE+4+j]:0;
 }
+
+// JOINT_REFRESH

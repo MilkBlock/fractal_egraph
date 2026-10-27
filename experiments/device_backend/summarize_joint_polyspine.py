@@ -14,6 +14,8 @@ def summarize(reference,runs,output):
               'worker_sha256':r['build']['worker_sha256'],'frontend_sha256':r['build']['frontend_sha256'],
               'report_sha256':hashlib.sha256((directory/'report.json').read_bytes()).hexdigest(),
               'clean_timing':r['clean_timing'],'inference_seconds':r['inference_seconds'],'setup_seconds':r['setup_seconds'],
+              'feature_refresh_mode':r['joint_polyspine'].get('feature_refresh','full'),
+              'feature_refresh':{key:sum(c.get('feature_refresh',{}).get(key,0) for c in accepted) for key in ['context_checks','base_rows_recomputed','base_rows_reused','seam_rows_recomputed','seam_rows_reused','encoding_row_lanes','ridge_row_lanes','exact_audit_rows']},
               'model_enabled':model is not None,'training_capture':r['joint_polyspine']['training'],
               'final_check':check['final_check'],'joint_calls':len(calls),'accepted':len(accepted),
               'fallback_reasons':{str(reason):sum(c['reason']==reason for c in calls if not c['accepted']) for reason in {c['reason'] for c in calls if not c['accepted']}},
@@ -33,7 +35,7 @@ def summarize(reference,runs,output):
               'normal_intermediate_binding_download_bytes':r['intermediate_binding_download_bytes']}
         lanes.append(lane)
     result={'schema':'resident-joint-polyspine-results/v1','scope':'Actual GPU-owned complete saved Pass-3 schedule; not pristine egglog',
-            'reference':{'directory':str(reference),'inference_seconds':before['inference_seconds'],'setup_seconds':before['setup_seconds'],'gpu_seconds':before['timings_seconds']['device_gpu'],'source_sha256':before['source_sha256'],'worker_sha256':before['build']['worker_sha256']},
+            'reference':{'context_phase_rows':sum(c['root_contexts']*c['private_phases'] for c in before.get('joint_polyspine',{}).get('calls',[]) if c['accepted']),'directory':str(reference),'inference_seconds':before['inference_seconds'],'setup_seconds':before['setup_seconds'],'gpu_seconds':before['timings_seconds']['device_gpu'],'source_sha256':before['source_sha256'],'worker_sha256':before['build']['worker_sha256']},
             'lanes':lanes,'definitions':{
                 'service_histogram':'bit 0 terms binding, bit 1 helper binding, bit 2 changed comparison class; service is not net performance credit',
                 'context_visits':'instances across joint invocations, not distinct RipSat library families',
