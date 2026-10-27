@@ -48,9 +48,9 @@ let matchCapacity=program["match_capacity"] as! Int,matchStride=program["match_s
 func privateBuffer(_ bytes:Int)->MTLBuffer{device.makeBuffer(length:max(8,bytes),options:.storageModePrivate)!}
 func shared<T>(_ x:[T])->MTLBuffer{x.withUnsafeBytes{b in b.isEmpty ? device.makeBuffer(length:8,options:.storageModeShared)! : device.makeBuffer(bytes:b.baseAddress!,length:b.count,options:.storageModeShared)!}}
 let setWords=program["set_words"] as! Int
-let rows=privateBuffer((capacity*stride+setWords+(program["index_words"] as! Int))*8),parent=privateBuffer((ids+(program["union_words"] as! Int))*4),factParent=privateBuffer(ids*4)
-let old=rows
-let meta=privateBuffer(36),matches=privateBuffer((program["workspace_words"] as! Int)*8),watermarks=privateBuffer(nrules*4)
+var rows=privateBuffer((capacity*stride+setWords+(program["index_words"] as! Int))*8),parent=privateBuffer((ids+(program["union_words"] as! Int))*4),factParent=privateBuffer(ids*4)
+var old=rows
+var meta=privateBuffer(36),matches=privateBuffer((program["workspace_words"] as! Int)*8),watermarks=privateBuffer(nrules*4)
 let instructions=privateBuffer(max(8,(program["action_code"] as! [NSNumber]).count*8)),registers=privateBuffer((program["register_count"] as! Int)*8)
 let queryHeads=privateBuffer((program["query_head_words"] as! Int)*4),queryLinks=privateBuffer((program["query_link_words"] as! Int)*4)
 let queryPrevious=privateBuffer((program["query_prev_words"] as! Int)*4)
@@ -259,7 +259,7 @@ func matrixSaturate(_ set:UInt32)throws->MatrixSatResult{
 
 let cuDescription=program["comparison_saturate"] as? [String:Any]
 let cuPlans=cuDescription?["programs"] as? [[String:Any]] ?? []
-let cuNames=["cu_count","cu_pack","cu_reset","cu_reduce","cu_gather","cu_mma","cu_apply","cu_congruence","cu_finish","cu_publish"]
+let cuNames=["cu_count","cu_pack","cu_reset","cu_reduce","cu_gather","cu_mma","cu_apply","cu_congruence","cu_finish","cu_publish","cu_priority"]
 let cuPipelines=try (cuPlans.isEmpty ? []:cuNames).map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 let cuWeights=shared((cuDescription?["weights"] as? [NSNumber] ?? []).map{Float16($0.floatValue).bitPattern})
 var cuCalls=0,cuIterations=0,cuUnions=0
@@ -271,9 +271,9 @@ func cuBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
  let b=privateBuffer(bytes);cuBuffers[name]=b;return b
 }
 struct ComparisonResult {let accepted:Bool;let reason:UInt32;let info:[UInt32];let iterations:UInt32;let unions:UInt32;let costs:UInt32;let choices:UInt32;let scratch:Int;let phases:[Double];let index:Int64}
-func comparisonSaturate(_ set:UInt32)throws->ComparisonResult{
+func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?=nil,listCapacity:Int=0,costCount:Int=0,choiceCount:Int=0,initialRanges:MTLBuffer?=nil,sourcePriority:MTLBuffer?=nil)throws->ComparisonResult{
  try need(hostMeta[4]==0 && cuPlans.contains(where:{($0["set"] as! Int)==Int(set)}),"uncertified comparison request")
- let nrows=Int(hostMeta[0]),extent=Int(hostMeta[1]);var cfg:[UInt32]=[set,UInt32(nrows),UInt32(extent),0,0,0,ProcessInfo.processInfo.environment["EGGFUSE_MATRIX_AUDIT"]=="1" ? 1:0]
+ let nrows=Int(hostMeta[0]),extent=Int(hostMeta[1]);var cfg:[UInt32]=[set,UInt32(nrows),UInt32(extent),0,0,0,ProcessInfo.processInfo.environment["EGGFUSE_MATRIX_AUDIT"]=="1" ? 1:0,0]
  let ctrl=cuBuffer("control",64),readback=shared([UInt32](repeating:0,count:16));var phases=[Double](repeating:0,count:3),scratch=64
  func launch(_ cb:MTLCommandBuffer,_ index:Int,_ buffers:[MTLBuffer],_ n:Int,_ grouped:Bool=false){
   if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=cuNames[index];e.setComputePipelineState(cuPipelines[index]);e.setBuffer(rows,offset:0,index:0);e.setBuffer(ctrl,offset:0,index:1)
@@ -286,26 +286,31 @@ func comparisonSaturate(_ set:UInt32)throws->ComparisonResult{
   try need(cb.status == .completed,"comparison matrix device failure: \(String(describing:cb.error))");phases[phase]+=cb.gpuEndTime-cb.gpuStartTime
   return Array(UnsafeBufferPointer(start:readback.contents().bindMemory(to:UInt32.self,capacity:16),count:16))
  }
- let count=queue.makeCommandBuffer()!,zero=count.makeBlitCommandEncoder()!;zero.fill(buffer:ctrl,range:0..<64,value:0);zero.endEncoding();launch(count,0,[],nrows)
+ let count=queue.makeCommandBuffer()!,zero=count.makeBlitCommandEncoder()!;zero.fill(buffer:ctrl,range:0..<64,value:0);zero.endEncoding();if let _=sourceLists{let values=shared([UInt32(costCount),UInt32(choiceCount)]);let b=count.makeBlitCommandEncoder()!;b.copy(from:values,sourceOffset:0,to:ctrl,destinationOffset:0,size:8);b.endEncoding()}else{launch(count,0,[],nrows)}
  var info=try wait(count,0)
  func rejected(_ reason:UInt32)->ComparisonResult{ComparisonResult(accepted:false,reason:reason,info:hostMeta,iterations:info[3],unions:0,costs:info[0],choices:info[1],scratch:scratch,phases:phases+[0,0,-1],index:0)}
  if info[6] != 0{return rejected(info[6])};if hostMeta[2]>=UInt32.max-1{return rejected(4)}
  cfg[3]=info[0];cfg[4]=info[1];let nc=Int(info[0]),na=Int(info[1]);var hashes=2;while hashes<2*na{hashes*=2};cfg[5]=UInt32(hashes)
  let local=cuBuffer("uf",extent*4),costs=cuBuffer("costs",nc*4),choices=cuBuffer("choices",na*4),ranges=cuBuffer("ranges",extent*8),heads=cuBuffer("heads",hashes*4),ports=cuBuffer("ports",na*16),x=cuBuffer("x",na*32*2),y=cuBuffer("y",na*16*4)
- scratch += [local,costs,choices,ranges,heads,ports,x,y].map{$0.length}.reduce(0,+)
- let pack=queue.makeCommandBuffer()!,copy=pack.makeBlitCommandEncoder()!;copy.copy(from:parent,sourceOffset:0,to:local,destinationOffset:0,size:extent*4);copy.endEncoding();launch(pack,1,[costs,choices],nrows);info=try wait(pack,0)
+ let priority=cuBuffer("priority",na*4)
+ scratch += [local,costs,choices,ranges,heads,ports,x,y,priority].map{$0.length}.reduce(0,+)
+ let pack=queue.makeCommandBuffer()!,copy=pack.makeBlitCommandEncoder()!;copy.copy(from:parent,sourceOffset:0,to:local,destinationOffset:0,size:extent*4);if let lists=sourceLists{if nc>0{copy.copy(from:lists,sourceOffset:0,to:costs,destinationOffset:0,size:nc*4)};if na>0{copy.copy(from:lists,sourceOffset:3*listCapacity*4,to:choices,destinationOffset:0,size:na*4)}};copy.endEncoding();if sourceLists==nil{launch(pack,1,[costs,choices],nrows)};if let classes=sourcePriority{launch(pack,10,[choices,local,classes,priority],na)};info=try wait(pack,0)
+ var firstIteration=true
  while info[2]==0{
   let cb=queue.makeCommandBuffer()!
   for _ in 0..<8{
-   launch(cb,2,[ranges,heads],max(extent*2,hashes));launch(cb,3,[costs,local,ranges],nc);launch(cb,4,[choices,local,ranges,ports,x],na)
-   launch(cb,5,[x,cuWeights,y],((na+7)/8)*2,true);launch(cb,6,[ports,y,local,ranges],na);launch(cb,7,[ports,heads,local],na);launch(cb,8,[],1)
+   launch(cb,2,[ranges,heads],max(extent*2,hashes))
+   if firstIteration,let initial=initialRanges{let b=cb.makeBlitCommandEncoder()!;b.copy(from:initial,sourceOffset:0,to:ranges,destinationOffset:0,size:extent*8);b.endEncoding()}else{launch(cb,3,[costs,local,ranges],nc)};firstIteration=false
+   launch(cb,4,[choices,local,ranges,ports,x],na);launch(cb,5,[x,cuWeights,y],((na+7)/8)*2,true)
+   if sourcePriority != nil{for pass in [UInt32(1),UInt32(2)]{cfg[7]=pass;launch(cb,6,[ports,y,local,ranges,priority],na)}}else{cfg[7]=0;launch(cb,6,[ports,y,local,ranges,priority],na)}
+   launch(cb,7,[ports,heads,local],na);launch(cb,8,[],1)
   }
   info=try wait(cb,1)
  }
  if info[6] != 0{return rejected(info[6])}
  let pub=queue.makeCommandBuffer()!;launch(pub,9,[local,parent,meta,watermarks,rebuildControl],info[4]>0 ? extent:1)
  let status=shared([UInt32](repeating:0,count:17)),flags=shared([UInt32](repeating:0,count:16));copyStatus(pub,status,flags);pub.commit();pub.waitUntilCompleted();try need(pub.status == .completed,"comparison publication failed")
- let rhs=pub.gpuEndTime-pub.gpuStartTime;let rebuild=try finishRebuild(set,status,flags);phases[2]+=rhs+rebuild
+ let rhs=pub.gpuEndTime-pub.gpuStartTime;let rebuild=localOnly ? 0.0:try finishRebuild(set,status,flags);phases[2]+=rhs+rebuild
  needsIndexReset=status.contents().bindMemory(to:UInt32.self,capacity:17)[11]==1;needsIndexPatch=status.contents().bindMemory(to:UInt32.self,capacity:17)[11]==2
  needsRowIndex=status.contents().bindMemory(to:UInt32.self,capacity:17)[13] != status.contents().bindMemory(to:UInt32.self,capacity:17)[7]+1
  let result=Array(UnsafeBufferPointer(start:status.contents().bindMemory(to:UInt32.self,capacity:17),count:9));let index=status.contents().advanced(by:36).loadUnaligned(as:Int64.self)
@@ -313,6 +318,7 @@ func comparisonSaturate(_ set:UInt32)throws->ComparisonResult{
  return ComparisonResult(accepted:true,reason:0,info:result,iterations:info[3],unions:info[4],costs:info[0],choices:info[1],scratch:scratch,phases:phases+[rhs,rebuild,-1],index:index)
 }
 
+// JOINT_HOST
 try output.write(contentsOf:Data("DVB7".utf8))
 while true{
  let d=try read(8),words=d.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let op=words[0],arg=words[1]
@@ -432,6 +438,12 @@ while true{
   // The no-op filter and RHS share a command buffer. Do not add an otherwise
   // unnecessary submission merely to obtain a separate GPU timestamp.
   var seconds=commands.map{$0.gpuEndTime-$0.gpuStartTime};let rhsSeconds=seconds[2];seconds[2]+=rebuildSeconds;if let sorted=orderCommand{seconds[1]+=sorted.gpuEndTime-sorted.gpuStartTime};seconds.append(rhsSeconds);seconds.append(rebuildSeconds);seconds.append(noopFused ? -1 : 0);try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))};try output.write(contentsOf:Data(bytes:status.contents().advanced(by:36),count:8));try output.write(contentsOf:Data(bytes:status.contents().advanced(by:60),count:8))
+ }else if op==6{
+  let result=try jointPolyspine();hostMeta=result.info;try send(hostMeta)
+  try result.phases.withUnsafeBytes{try output.write(contentsOf:Data($0))};var index:Int64=0;try withUnsafeBytes(of:&index){try output.write(contentsOf:Data($0))};try send([0,0])
+  let bytes=UInt64(result.scratch);try send([result.accepted ? 1:0,result.reason,UInt32(result.history.count),UInt32(result.statistics[11]),UInt32(result.statistics[12]),UInt32(result.statistics[88]),UInt32(truncatingIfNeeded:bytes),UInt32(bytes>>32)])
+  var transfer=UInt64(result.transferBytes);try withUnsafeBytes(of:&transfer){try output.write(contentsOf:Data($0))};try result.statistics.withUnsafeBytes{try output.write(contentsOf:Data($0))}
+  for step in result.history{try send(step)}
  }else if op==5{
   let result=try comparisonSaturate(arg);hostMeta=result.info;try send(hostMeta)
   try result.phases.withUnsafeBytes{try output.write(contentsOf:Data($0))};var index=result.index;try withUnsafeBytes(of:&index){try output.write(contentsOf:Data($0))};try send([0,0])

@@ -4,6 +4,7 @@ import json,re
 from batch_rhs import lower as lower_batch_rhs
 from matrix_sat import lower as lower_matrix_sat
 from matrix_comparison import lower as lower_matrix_comparison
+from joint_polyspine import lower as lower_joint_polyspine
 from query_contexts import split_query, HEADER as CONTEXT_HEADER
 from context_ridge import feature_layout, lower as lower_ridge
 HERE=Path(__file__).resolve().parent
@@ -22,7 +23,7 @@ INTEGER_OPS={'+':0,'-':1,'*':2,'/':3,'%':4,'min':5,'max':6,'bool-=':7,'bool-<':8
 def integer_op(c):
  return INTEGER_OPS.get(c['primitive']) if c['inputs']==['i64','i64'] else None
 
-def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True,all_index_columns=False,radix_digit_bits=4,seed_dispatch=True,noop_preflight=True,direct_actions=True,query_patch=True,effect_dedup=False,early_seed_guards=False,lhs_context_reuse=True,rebuild_batch=1,parallel_rhs=False,split_matches=False,context_model=None,context_training=False,merge_target_index=False,batch_rhs=False,matrix_saturate=False):
+def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True,all_index_columns=False,radix_digit_bits=4,seed_dispatch=True,noop_preflight=True,direct_actions=True,query_patch=True,effect_dedup=False,early_seed_guards=False,lhs_context_reuse=True,rebuild_batch=1,parallel_rhs=False,split_matches=False,context_model=None,context_training=False,merge_target_index=False,batch_rhs=False,matrix_saturate=False,joint_polyspine=False,polyspine_model=None,polyspine_training=False):
  if (context_model is not None or context_training) and not split_matches:raise ValueError('context ridge requires split matching')
  if rebuild_batch<1:raise ValueError('rebuild batch must be positive')
  if radix_digit_bits not in (1,4):raise ValueError('radix digit bits must be 1 or 4')
@@ -103,7 +104,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  union_cap=max(capacity,match_capacity*2)
  context_reuses=[]
  contexts=[];context_bodies=[];prefix_queries=[]
- allvars=[];queries=[];query_seeds=[];query_seed_guards=[];action_code=[];action_starts=[];query_widths=[]
+ witness_plans=[];allvars=[];queries=[];query_seeds=[];query_seed_guards=[];action_code=[];action_starts=[];query_widths=[]
  for rid,r in enumerate(rules):
   slots={};types={}
   def var(name,sort):
@@ -126,9 +127,10 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
     if 'var' in x:var(x['var'],x['sort']['name'])
    if 'table' in a['call']:a['_table_atom']=len(table_atoms);table_atoms.append(a)
   query_widths.append(len(slots));variants=[];prefix_variants=[];seeds=set();seed_guards={}
+  rule_plans=[]
   pivots=range(len(table_atoms)) if delta_queries and r['seminaive'] and table_atoms else [None]
   for pivot in pivots:
-   pending=list(atoms);known=set();lines=[];depth=0;stamps=[];pivot_pending=pivot is not None;seeded=False;seed_table=None;seed_atom=None;seed_row="0";seed_time="0";branching=0;split_mark=None
+   table_order=[];pending=list(atoms);known=set();lines=[];depth=0;stamps=[];pivot_pending=pivot is not None;seeded=False;seed_table=None;seed_atom=None;seed_row="0";seed_time="0";branching=0;split_mark=None
    def ready(a):return 'table' in a['call'] or all('literal' in x or x['var'] in known for x in a['args'][:-1])
    while pending:
     if split_matches and rid not in serial_use and branching==2:
@@ -143,7 +145,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
     if at is None:raise ValueError('ungrounded primitive')
     a=pending.pop(at);c=a['call']
     if 'table' in c:
-     atom_index=a['_table_atom'];pivot_pending=pivot_pending and atom_index!=pivot
+     atom_index=a['_table_atom'];table_order.append(atom_index);pivot_pending=pivot_pending and atom_index!=pivot
      t=ids[c['table']]
      if len(a['args'])!=width[t]:raise ValueError('arity')
      bound=[i for i,x in enumerate(a['args']) if 'literal' in x or x['var'] in known]
@@ -203,6 +205,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    variant=0 if pivot is None else pivot
    suffix_order='matches[q+5+VARS]=0;matches[q+6+VARS]=sequence++;' if split_matches else 'matches[q+5+VARS]=sequence++;'
    lines.append(f'if({condition})'+'{ uint item; if(QUERY_PARALLEL[set])item=atomic_fetch_add_explicit((device atomic_uint*)&m.matched,1u,memory_order_relaxed);else item=m.matched++;if(item>=MATCHCAP){atomic_store_explicit((device atomic_uint*)&m.error,2u,memory_order_relaxed);return;}uint q=item*MSTRIDE;'+f'matches[q]={rid};'+f'for(uint c=0;c<VARS;c++)matches[q+1+c]=c<{query_widths[rid]}?v[c]:0L;matches[q+1+VARS]=rank;matches[q+2+VARS]={variant};matches[q+3+VARS]={seed_time};matches[q+4+VARS]={seed_row};'+suffix_order+'}')
+   rule_plans.append({'pivot':pivot,'order':table_order,'seed':seed_atom})
    open_lines=lines[:]
    lines+=['}']*depth
    if pivot is not None:gate=f'qheads[2*QBUCKETS+1+{ids[table_atoms[pivot]["call"]["table"]]}]>watermarks[{rid}]'
@@ -226,6 +229,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
     spec['features']=feature_layout(spec,slot_sorts)
     contexts.append(spec);context_bodies.append(body);prefix_variants.append(pref)
    else:prefix_variants.append(variants[-1])
+  witness_plans.append(rule_plans)
   prefix_queries.append("\n".join(prefix_variants))
   queries.append("\n".join(variants));query_seeds.append(seeds);query_seed_guards.append(seed_guards)
   action_starts.append(len(action_code))
@@ -296,6 +300,8 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    else:raise ValueError('unsupported action '+op)
   allvars.append(slots)
  action_starts.append(len(action_code))
+ joint_code,joint_info=lower_joint_polyspine(p,sets,allvars,witness_plans,joint_polyspine,polyspine_model)
+ joint_enabled=joint_info.get('program') is not None
  nv=max(query_widths+[1]);match_stride=nv+(7 if split_matches else 6)
  context_stride=max([c["words"] for c in contexts]+[CONTEXT_HEADER])
  if max(capacity*(cols+4),match_capacity*match_stride,match_capacity*context_stride,idcap)>=(1<<32):raise ValueError('device address space exhausted')
@@ -318,6 +324,10 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  prefix+=f'#define QSTRIDE {cols+2}\n#define TIME_COLUMN {cols+1}\n#define TABLE_COUNT {len(ts)}\n'
  prefix+=f'#define HASH_CAP {hash_cap}\n#define INDEX_OFFSET {capacity*(cols+4)+arena_words}\n'
  prefix+=f'#define ROW_WORDS {capacity*(cols+4)}\n#define SET_WORDS {arena_words}\n'
+ prefix+=f'#define JP_ENABLED {int(joint_enabled)}\n#define JP_STATE (INDEX_MERGE_VERSION+1)\n#define JP_NUM (JP_STATE+64)\n#define JP_HASH (JP_STATE+128)\n#define JP_VERSION (JP_HASH+HASH_CAP)\n#define JP_ROW_TAG (JP_VERSION+IDCAP)\n'
+ jp=joint_info.get('program');mutable=jp['mutable_tables'] if jp else [0xffffffff]*4
+ prefix+='constant uint JP_IDS[]={'+','.join(map(str,mutable))+'};\n'
+
  set_start=[0];set_rules=[]
  for use in sets:set_rules.extend(use);set_start.append(len(set_rules))
  def merge_has_table(e):
@@ -460,11 +470,11 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    lines.append(f'long {name}={expr};if(m.error)return a;');return name
   value=lower(t['merge_expr']);merge_cases.append(f'case {tid}:{{'+''.join(lines)+f'return {value};'+'}')
  matrix_code,matrix_info=lower_matrix_sat(p,sets,ids,string_ids,matrix_saturate)
- comparison_code,comparison_info=lower_matrix_comparison(p,matrix_saturate and parallel_rebuild)
+ comparison_code,comparison_info=lower_matrix_comparison(p,(matrix_saturate or joint_enabled) and parallel_rebuild)
  ridge_code,ridge_info=lower_ridge(contexts,context_model)
  ridge_code+=f'#define CONTEXT_TRAINING {int(context_training)}\n'
  # Metal scalar types are available after the include, before generated schema.
- source=(HERE/'kernel.metal').read_text().replace('// CONTEXT_RIDGE',ridge_code).replace('// MATRIX_SAT_KERNELS',(HERE/'matrix_sat.metal').read_text().replace('// MATRIX_SAT_PROGRAM',matrix_code)).replace('// COMPARISON_KERNELS',(HERE/'matrix_comparison.metal').read_text().replace('// COMPARISON_PROGRAM',comparison_code)).replace('// BATCH_KERNELS',(HERE/'batch_rhs.metal').read_text().replace('// BATCH_RECIPES',batch_code)).replace('// CONTEXT_KERNELS',(HERE/'contexts.metal').read_text()).replace('// MATCH_SORT',(HERE/'match_sort.metal').read_text()).replace('// PARALLEL_QUERY',(HERE/'query_parallel.metal').read_text()).replace('// PARALLEL_REBUILD',(HERE/'rebuild_parallel.metal').read_text()).replace('// QUERY_INDEX',(HERE/'query_index.metal').read_text()).replace('// ROW_INDEX',(HERE/'row_index.metal').read_text()).replace('// DEVICE_ACTIONS',(HERE/'actions.metal').read_text()).replace('// EMPTY_EFFECT_PROOFS',empty_proofs).replace('// DIRECT_ACTIONS',action_functions).replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
+ source=(HERE/'kernel.metal').read_text().replace('// CONTEXT_RIDGE',ridge_code).replace('// MATRIX_SAT_KERNELS',(HERE/'matrix_sat.metal').read_text().replace('// MATRIX_SAT_PROGRAM',matrix_code)).replace('// JOINT_KERNELS',(HERE/'joint_polyspine.metal').read_text().replace('// JOINT_PROGRAM',joint_code) if joint_enabled else 'int jp_numeric_slot(uint rule,uint slot){return -1;}').replace('// COMPARISON_KERNELS',(HERE/'matrix_comparison.metal').read_text().replace('// COMPARISON_PROGRAM',comparison_code)).replace('// BATCH_KERNELS',(HERE/'batch_rhs.metal').read_text().replace('// BATCH_RECIPES',batch_code)).replace('// CONTEXT_KERNELS',(HERE/'contexts.metal').read_text()).replace('// MATCH_SORT',(HERE/'match_sort.metal').read_text()).replace('// PARALLEL_QUERY',(HERE/'query_parallel.metal').read_text()).replace('// PARALLEL_REBUILD',(HERE/'rebuild_parallel.metal').read_text()).replace('// QUERY_INDEX',(HERE/'query_index.metal').read_text()).replace('// ROW_INDEX',(HERE/'row_index.metal').read_text()).replace('// DEVICE_ACTIONS',(HERE/'actions.metal').read_text()).replace('// EMPTY_EFFECT_PROOFS',empty_proofs).replace('// DIRECT_ACTIONS',action_functions).replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
  kernel_start=source.index('// Correctness-first reference executor.')
  common,template=source[:kernel_start],source[kernel_start:]
  signature=common.split('#define KERNEL_ARGS ',1)[1].splitlines()[0]
@@ -510,4 +520,4 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    kernels.append(template.replace('kernel void step(',f'kernel void fallback_{name}(').replace('// MATCH_BODY','if(!context_info[1])return;'+calls))
  source=common+query_functions+prefix_functions+suffix_functions+context_kernel+'\n'.join(kernels)
  source=source.replace('// PARALLEL_UNION_ACTIONS',union_actions)
- return {'schema':'egglog-device-storage/v1','batch_rhs':batch_info,'matrix_saturate':matrix_info,'comparison_saturate':comparison_info,'rebuild_batch':rebuild_batch,'merge_target_index':merge_target_index,'merge_target_tables':[ts[i]['name'] for i in sorted(merge_targets)],'context_training':context_training,'context_ridge':ridge_info,'split_matches':split_matches,'query_contexts':contexts,'context_capacity':match_capacity if contexts else 0,'context_stride':context_stride,'prefix_kernel_names':prefix_names,'fallback_kernel_names':fallback_names,'parallel_rhs_sets':parallel_rhs_sets,'parallel_rhs_rules':union_rules,'seed_dispatch':seed_dispatch,'noop_preflight':noop_preflight,'direct_actions':direct_actions,'query_patch':query_patch,'effect_dedup':effect_dedup,'early_seed_guards':early_seed_guards,'lhs_context_reuse':lhs_context_reuse,'rhs_context_reuses':context_reuses,'effect_input_slots':[effect_slots[effect_start[i]:effect_start[i+1]] for i in range(len(rules))],'query_prev_words':2*capacity,'compiled_action_rules':compiled_actions,'noop_eligible_rules':noop_rules,'query_seed_tables':[[ts[t]['name'] if t is not None else None for t in sorted(seeds,key=lambda x:-1 if x is None else x)] for seeds in query_seeds],'parallel_rebuild':parallel_rebuild,'parallel_match_sets':parallel_sets,'indexed_subsume':indexed_subsume,'parallel_merge_index':parallel_merge_index,'index_columns':{t['name']:sorted(index_columns[i]) for i,t in enumerate(ts)},'match_order_capacity':max(256,1<<(match_capacity-1).bit_length()),'parallel_prepare':parallel_prepare,'query_radix_bits':radix_bits,'query_radix_passes':radix_passes,'query_radix_digit_bits':radix_digit_bits,'query_sort_words':capacity*(cols+2),'hash_capacity':hash_cap,'shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+6+4*capacity,'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':3+union_cap*2+idcap,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':query_head_words,'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'workspace_words':max(match_capacity*match_stride,capacity*(cols+4)),'id_capacity':idcap,'stride':cols+4,'match_stride':match_stride,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}
+ return {'schema':'egglog-device-storage/v1','joint_polyspine':joint_info,'polyspine_training':polyspine_training,'batch_rhs':batch_info,'matrix_saturate':matrix_info,'comparison_saturate':comparison_info,'rebuild_batch':rebuild_batch,'merge_target_index':merge_target_index,'merge_target_tables':[ts[i]['name'] for i in sorted(merge_targets)],'context_training':context_training,'context_ridge':ridge_info,'split_matches':split_matches,'query_contexts':contexts,'context_capacity':match_capacity if contexts else 0,'context_stride':context_stride,'prefix_kernel_names':prefix_names,'fallback_kernel_names':fallback_names,'parallel_rhs_sets':parallel_rhs_sets,'parallel_rhs_rules':union_rules,'seed_dispatch':seed_dispatch,'noop_preflight':noop_preflight,'direct_actions':direct_actions,'query_patch':query_patch,'effect_dedup':effect_dedup,'early_seed_guards':early_seed_guards,'lhs_context_reuse':lhs_context_reuse,'rhs_context_reuses':context_reuses,'effect_input_slots':[effect_slots[effect_start[i]:effect_start[i+1]] for i in range(len(rules))],'query_prev_words':2*capacity,'compiled_action_rules':compiled_actions,'noop_eligible_rules':noop_rules,'query_seed_tables':[[ts[t]['name'] if t is not None else None for t in sorted(seeds,key=lambda x:-1 if x is None else x)] for seeds in query_seeds],'parallel_rebuild':parallel_rebuild,'parallel_match_sets':parallel_sets,'indexed_subsume':indexed_subsume,'parallel_merge_index':parallel_merge_index,'index_columns':{t['name']:sorted(index_columns[i]) for i,t in enumerate(ts)},'match_order_capacity':max(256,1<<(match_capacity-1).bit_length()),'parallel_prepare':parallel_prepare,'query_radix_bits':radix_bits,'query_radix_passes':radix_passes,'query_radix_digit_bits':radix_digit_bits,'query_sort_words':capacity*(cols+2),'hash_capacity':hash_cap,'shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+6+4*capacity+(128+hash_cap+idcap+capacity if joint_enabled else 0),'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':3+union_cap*2+idcap,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':query_head_words,'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'workspace_words':max(match_capacity*match_stride,capacity*(cols+4)),'id_capacity':idcap,'stride':cols+4,'match_stride':match_stride,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}

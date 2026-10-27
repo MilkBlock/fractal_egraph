@@ -5,8 +5,10 @@ handwritten Bop/Top cost formulas. Full correlated candidate tuples are kept.
 """
 from collections import defaultdict
 import itertools
-import numpy as np
-from features import identity
+try:
+    from .features import identity
+except ImportError:
+    from features import identity
 
 LO=-(1<<63);HI=(1<<63)-1
 
@@ -78,6 +80,7 @@ def pair_index(snapshot):
 
 
 def contexts(snapshot,keys,program):
+    import numpy as np
     lookup,functions=pair_index(snapshot);rootids={k:i for i,k in enumerate(keys)};rows=defaultdict(list)
     for r in snapshot['rows']:
         if not r['subsumed']:rows[r['table']].append(r)

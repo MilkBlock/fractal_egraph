@@ -39,6 +39,14 @@ This remains an experimental device backend with parallel index construction, ma
 
 ## Run and verify
 
+The opt-in [joint Polyspine program](JOINT_POLYSPINE.md) now connects the
+shared marker/Interface compiler, pending exact ports, frozen arithmetic,
+learned ridge heads and complete effect replay across the nested three
+`terms` rulesets. Its results directly feed later private stages before one
+global publication. It preserves all candidate Terms and equality evidence;
+it is not the previous minimum-cost-only analysis. See that report for the
+strict verification scope, retained storage costs and measured limitations.
+
 From the repository root, on macOS with Metal and Xcode:
 
 ```sh
@@ -52,6 +60,12 @@ python3 experiments/device_backend/run.py \
 Builds use the local `egglog/` offline. Reuse an existing Cargo target with `--target`; output run directories must be new.
 
 - Default: native comparison after each Run.
+- `--joint-polyspine`: execute the certified nested terms scope against one
+  resident transactional context; other schedules retain their normal path.
+- `--polyspine-model FILE`: enable compatible learned proposals in that context;
+  exact fallback remains mandatory. It requires `--joint-polyspine`.
+- `--polyspine-training`: export pre-phase features and later effect labels for
+  diagnostic fitting/auditing; excluded from clean inference timings.
 - `--matrix-saturate`: replace certified positive-predicate and min-choice
   equality Saturate blocks with resident matrix programs. Native graph checks occur at Saturate exits;
   ordinary Run boundaries retain their checks.

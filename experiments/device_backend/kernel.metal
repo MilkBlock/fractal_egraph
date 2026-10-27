@@ -2,6 +2,9 @@
 using namespace metal;
 // Generated schema/limits are inserted before this code.
 struct Meta {uint count,next_id,epoch,changed,error,matched,rounds,unions,next_fact;};
+bool jp_active(device long*r){return JP_ENABLED&&r[JP_STATE]!=0;}
+bool jp_key_table(uint t){return t==JP_IDS[1]||t==JP_IDS[3];}
+int jp_numeric_slot(uint rule,uint slot);
 uint root(device uint*p,uint x){while(p[x]!=x){p[x]=p[p[x]];x=p[x];}return x;}
 void unite_now(device uint*p,long a,long b,device Meta&m){uint x=root(p,uint(a)),y=root(p,uint(b));if(x!=y){if(p[MERGE_KEY_FLAGS+x]||p[MERGE_KEY_FLAGS+y]){p[MERGE_GENERATION]++;p[MERGE_KEY_FLAGS+min(x,y)]=1;}p[max(x,y)]=min(x,y);m.changed=1;m.unions++;}}
 uint parallel_root(device atomic_uint*p,uint x){uint y;while((y=atomic_load_explicit(p+x,memory_order_relaxed))!=x)x=y;return x;}
@@ -39,7 +42,7 @@ __attribute__((noinline)) long ensure_constructor(device long*r,device uint*p,de
  uint value=m.next_id++,i=m.count++,fid=m.next_fact++;p[value]=value;p[MERGE_KEY_FLAGS+value]=MERGE_KEY_OUTPUT[t];fp[fid]=fid;
  r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
- r[i*STRIDE+4+WIDTH[t]-1]=value;r[CONSTRUCTOR_PRED+i]=0;row_index_insert(r,p,i);m.changed=1;return value;
+ r[i*STRIDE+4+WIDTH[t]-1]=value;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];r[CONSTRUCTOR_PRED+i]=0;row_index_insert(r,p,i);m.changed=1;return value;
 }
 long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,device Meta&m){
  if(a==b)return a;
@@ -53,6 +56,7 @@ long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,
  if(a!=b)m.error=4;return a;
 }
 void record_query_update(device long*r,uint i){
+ if(jp_active(r))return;
  if(!QUERY_PATCH){r[QUERY_DIRTY]=1;return;}
  if(r[QUERY_DIRTY]==1||i>=uint(r[QUERY_LOG+1])||r[i*STRIDE+1]!=0)return;
  if(!r[QUERY_OLD_TIME+i]){
@@ -84,7 +88,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
   long incoming=canon(r,p,t,WIDTH[t]-1,value);
   if(POLICY[t]==4 && r[i*STRIDE+2]==m.epoch && incoming!=old){m.error=7;return old;}
   long next=mergevalue(t,old,incoming,r,p,fp,m);
-  if(next!=r[at]){record_query_update(r,i);r[at]=next;r[i*STRIDE+2]=m.epoch;m.changed=1;}return next;
+  if(next!=r[at]){record_query_update(r,i);r[at]=next;r[i*STRIDE+2]=m.epoch;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];m.changed=1;}return next;
  }
  if(m.count>=CAPACITY || m.next_fact>=IDCAP){m.error=1;return 0;}
  if(create){
@@ -94,7 +98,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
  }
  uint i=m.count++,fid=m.next_fact++;fp[fid]=fid;r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
- r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);r[CONSTRUCTOR_PRED+i]=create&&KIND[t]==0?value:0;row_index_insert(r,p,i);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
+ r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);r[CONSTRUCTOR_PRED+i]=create&&KIND[t]==0?value:0;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];row_index_insert(r,p,i);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
 }
 bool hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
  // Constructor predictions are visible to lookup-or-insert, but native's
@@ -179,6 +183,7 @@ kernel void initialize(device uint*p[[buffer(0)]],device uint*fp[[buffer(1)]],ui
 // BATCH_KERNELS
 // MATRIX_SAT_KERNELS
 // COMPARISON_KERNELS
+// JOINT_KERNELS
 // PARALLEL_REBUILD
 // PARALLEL_QUERY
 // MATCH_SORT

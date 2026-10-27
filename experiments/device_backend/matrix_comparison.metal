@@ -3,18 +3,18 @@
 // cfg = set, row count, id extent, cost count, choice count, hash size, audit.
 #define CU_ARGS device long*r[[buffer(0)]],device uint*c[[buffer(1)]],constant uint*cfg[[buffer(2)]]
 uint cu_root(device const uint*p,uint x){while(p[x]!=x)x=p[x];return x;}
-void cu_union(device uint*p,uint a,uint b,device uint*c){
+void cu_union(device uint*p,uint a,uint b,device uint*c,device long*r){
  device atomic_uint*uf=(device atomic_uint*)p;
  while(true){uint x=parallel_root(uf,a),y=parallel_root(uf,b);if(x==y)return;uint hi=max(x,y),lo=min(x,y),expected=hi;
-  if(atomic_compare_exchange_weak_explicit(uf+hi,&expected,lo,memory_order_relaxed,memory_order_relaxed)){atomic_fetch_add_explicit((device atomic_uint*)(c+5),1u,memory_order_relaxed);return;}}
+  if(atomic_compare_exchange_weak_explicit(uf+hi,&expected,lo,memory_order_relaxed,memory_order_relaxed)){atomic_fetch_add_explicit((device atomic_uint*)(c+5),1u,memory_order_relaxed);if(jp_active(r))atomic_fetch_max_explicit((device atomic_uint*)(r+JP_VERSION+lo),uint(r[ROW_WORDS+1])+1,memory_order_relaxed);return;}}
 }
 kernel void cu_count(CU_ARGS,uint i[[thread_position_in_grid]]){
- if(i>=cfg[1])return;uint3 s=cu_schema(cfg[0]);uint t=uint(r[i*STRIDE]);
+ if(i>=cfg[1]||r[i*STRIDE+1]==2)return;uint3 s=cu_schema(cfg[0]);uint t=uint(r[i*STRIDE]);
  if(t==s.x||t==s.y){if(r[i*STRIDE+1])atomic_store_explicit((device atomic_uint*)(c+6),1u,memory_order_relaxed);
  atomic_fetch_add_explicit((device atomic_uint*)(c+(t==s.x?0:1)),1u,memory_order_relaxed);}
 }
 kernel void cu_pack(CU_ARGS,device uint*costs[[buffer(3)]],device uint*choices[[buffer(4)]],uint i[[thread_position_in_grid]]){
- if(i>=cfg[1])return;uint3 s=cu_schema(cfg[0]);uint t=uint(r[i*STRIDE]);
+ if(i>=cfg[1]||r[i*STRIDE+1]==2)return;uint3 s=cu_schema(cfg[0]);uint t=uint(r[i*STRIDE]);
  if(t==s.x)costs[atomic_fetch_add_explicit((device atomic_uint*)(c+8),1u,memory_order_relaxed)]=i;
  if(t==s.y)choices[atomic_fetch_add_explicit((device atomic_uint*)(c+9),1u,memory_order_relaxed)]=i;
 }
@@ -27,11 +27,11 @@ void cu_extreme(device atomic_uint*at,uint row,device long*r,bool maximum){
  uint expected=old;if(atomic_compare_exchange_weak_explicit(at,&expected,row+1,memory_order_relaxed,memory_order_relaxed))return;old=expected;}
 }
 kernel void cu_reduce(CU_ARGS,device const uint*costs[[buffer(3)]],device const uint*p[[buffer(4)]],device uint*ranges[[buffer(5)]],uint i[[thread_position_in_grid]]){
- if(c[2]||i>=cfg[3])return;uint row=costs[i],id=cu_root(p,uint(r[row*STRIDE+6]));
+ if(c[2]||i>=cfg[3])return;uint row=costs[i];if(r[row*STRIDE+1])return;uint id=cu_root(p,uint(r[row*STRIDE+6]));
  cu_extreme((device atomic_uint*)(ranges+2*id),row,r,false);cu_extreme((device atomic_uint*)(ranges+2*id+1),row,r,true);
 }
 kernel void cu_gather(CU_ARGS,device const uint*choices[[buffer(3)]],device const uint*p[[buffer(4)]],device const uint*ranges[[buffer(5)]],device uint*ports[[buffer(6)]],device half*x[[buffer(7)]],uint i[[thread_position_in_grid]]){
- if(c[2]||i>=cfg[4])return;uint row=choices[i],a=cu_root(p,uint(r[row*STRIDE+4])),b=cu_root(p,uint(r[row*STRIDE+5]));
+ if(c[2]||i>=cfg[4])return;uint row=choices[i];if(r[row*STRIDE+1]){ports[4*i]=0xffffffff;ports[4*i+1]=0xffffffff;ports[4*i+2]=0;ports[4*i+3]=0;for(uint j=0;j<32;j++)x[32*i+j]=0;return;}uint a=cu_root(p,uint(r[row*STRIDE+4])),b=cu_root(p,uint(r[row*STRIDE+5]));
  ports[4*i]=a;ports[4*i+1]=b;ports[4*i+2]=cu_root(p,uint(r[row*STRIDE+6]));ports[4*i+3]=ranges[2*a]&&ranges[2*b];
  for(uint j=0;j<4;j++){uint witness=ranges[2*(j<2?a:b)+(j&1)];ulong bits=witness?(as_type<ulong>(r[(witness-1)*STRIDE+5])^0x8000000000000000UL):0;
   for(uint k=0;k<8;k++)x[32*i+8*j+k]=half((bits>>(56-8*k))&255);}
@@ -43,17 +43,21 @@ kernel void cu_mma(CU_ARGS,device const half*x[[buffer(3)]],device const half*w[
  simdgroup_store(acc,out,8);threadgroup_barrier(mem_flags::mem_threadgroup);for(uint q=lane;q<64;q+=32){uint rr=row+q/8,cc=col+q%8;if(rr<cfg[4])y[rr*16+cc]=out[q];}
 }
 int cu_sign(device const float*y,uint at){for(uint j=0;j<8;j++){float v=y[at+j];if(v>0)return 1;if(v<0)return -1;}return 0;}
-kernel void cu_apply(CU_ARGS,device const uint*ports[[buffer(3)]],device const float*y[[buffer(4)]],device uint*p[[buffer(5)]],device const uint*ranges[[buffer(6)]],uint i[[thread_position_in_grid]]){
+kernel void cu_priority(CU_ARGS,device const uint*choices[[buffer(3)]],device const uint*p[[buffer(4)]],device const uint*classes[[buffer(5)]],device uint*priority[[buffer(6)]],uint i[[thread_position_in_grid]]){
+ if(i>=cfg[4])return;uint row=choices[i];priority[i]=r[row*STRIDE+1]?0:classes[cu_root(p,uint(r[row*STRIDE+6]))];
+}
+kernel void cu_apply(CU_ARGS,device const uint*ports[[buffer(3)]],device const float*y[[buffer(4)]],device uint*p[[buffer(5)]],device const uint*ranges[[buffer(6)]],device const uint*priority[[buffer(7)]],uint i[[thread_position_in_grid]]){
  if(c[2]||i>=cfg[4]||!ports[4*i+3])return;uint a=ports[4*i],b=ports[4*i+1],out=ports[4*i+2];bool rightTie=cu_schema(cfg[0]).z;
+ if(cfg[7]&&priority[i]!=uint(cfg[7]==1))return;
  int l=cu_sign(y,16*i),rr=cu_sign(y,16*i+8);bool left=l>0||(l==0&&!rightTie),right=rr>0||(rr==0&&rightTie);
  if(cfg[6]){long amin=r[(ranges[2*a]-1)*STRIDE+5],amax=r[(ranges[2*a+1]-1)*STRIDE+5],bmin=r[(ranges[2*b]-1)*STRIDE+5],bmax=r[(ranges[2*b+1]-1)*STRIDE+5];
   if(left!=(rightTie?amin<bmax:amin<=bmax)||right!=(rightTie?bmin<=amax:bmin<amax)){atomic_store_explicit((device atomic_uint*)(c+6),2u,memory_order_relaxed);return;}}
- if(left)cu_union(p,out,a,c);if(right)cu_union(p,out,b,c);
+ if(left)cu_union(p,out,a,c,r);if(right)cu_union(p,out,b,c,r);
 }
 kernel void cu_congruence(CU_ARGS,device const uint*ports[[buffer(3)]],device uint*heads[[buffer(4)]],device uint*p[[buffer(5)]],uint i[[thread_position_in_grid]]){
- if(c[2]||i>=cfg[4])return;uint a=ports[4*i],b=ports[4*i+1],slot=(a*0x9e3779b9u+b*0x85ebca6bu)&(cfg[5]-1);device atomic_uint*h=(device atomic_uint*)heads;
+ if(c[2]||i>=cfg[4]||ports[4*i]==0xffffffff)return;uint a=ports[4*i],b=ports[4*i+1],slot=(a*0x9e3779b9u+b*0x85ebca6bu)&(cfg[5]-1);device atomic_uint*h=(device atomic_uint*)heads;
  while(true){uint old=atomic_load_explicit(h+slot,memory_order_relaxed);if(!old){uint expected=0;if(atomic_compare_exchange_weak_explicit(h+slot,&expected,i+1,memory_order_relaxed,memory_order_relaxed))return;}
- else if(ports[4*(old-1)]==a&&ports[4*(old-1)+1]==b){cu_union(p,ports[4*i+2],ports[4*(old-1)+2],c);return;}
+ else if(ports[4*(old-1)]==a&&ports[4*(old-1)+1]==b){cu_union(p,ports[4*i+2],ports[4*(old-1)+2],c,r);return;}
  else slot=(slot+1)&(cfg[5]-1);}
 }
 kernel void cu_finish(CU_ARGS,uint i[[thread_position_in_grid]]){

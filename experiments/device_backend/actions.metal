@@ -18,7 +18,7 @@ __attribute__((noinline)) void execute_bytecode(uint rule,uint mi,device long*co
    case 3:v[dst]=write_row(r,p,fp,m,sub,args,0,true);break;
    case 4:write_row(r,p,fp,m,sub,args,args[WIDTH[sub]-1],false);break;
    case 5:if(!hide_row(r,p,fp,m,sub,args))return;break;
-   case 6:if(!integer_valid(sub,args[0],args[1])){m.error=5;return;}v[dst]=integer_eval(sub,args[0],args[1]);break;
+   case 6:if(jp_active(r)&&uint(r[JP_STATE+1])==0){int j=jp_numeric_slot(rule,dst);if(j>=0){v[dst]=r[JP_NUM+uint(j)];break;}}if(!integer_valid(sub,args[0],args[1])){m.error=5;return;}v[dst]=integer_eval(sub,args[0],args[1]);break;
    case 7:{
     long x=0;
     if(sub==0)x=!args[0];
