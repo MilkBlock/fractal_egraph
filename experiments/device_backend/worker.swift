@@ -262,6 +262,7 @@ let cuDescription=program["comparison_saturate"] as? [String:Any]
 let cuPlans=cuDescription?["programs"] as? [[String:Any]] ?? []
 let cuNames=["cu_count","cu_pack","cu_reset","cu_reduce","cu_gather","cu_mma","cu_apply","cu_congruence","cu_finish","cu_publish","cu_priority"]
 let cuPipelines=try (cuPlans.isEmpty ? []:cuNames).map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
+let scFlatMap=shared([UInt32(0)])
 let cuWeights=shared((cuDescription?["weights"] as? [NSNumber] ?? []).map{Float16($0.floatValue).bitPattern})
 var cuCalls=0,cuIterations=0,cuUnions=0
 // Reuse allocation, never stale closure contents. Every invocation repacks
@@ -272,12 +273,12 @@ func cuBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
  let b=privateBuffer(bytes);cuBuffers[name]=b;return b
 }
 struct ComparisonResult {let accepted:Bool;let reason:UInt32;let info:[UInt32];let iterations:UInt32;let unions:UInt32;let costs:UInt32;let choices:UInt32;let scratch:Int;let phases:[Double];let index:Int64}
-func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?=nil,listCapacity:Int=0,costCount:Int=0,choiceCount:Int=0,initialRanges:MTLBuffer?=nil,sourcePriority:MTLBuffer?=nil,readRows:MTLBuffer?=nil,readParents:MTLBuffer?=nil,readCosts:MTLBuffer?=nil,readChoices:MTLBuffer?=nil)throws->ComparisonResult{
+func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?=nil,listCapacity:Int=0,costCount:Int=0,choiceCount:Int=0,initialRanges:MTLBuffer?=nil,sourcePriority:MTLBuffer?=nil,readRows:MTLBuffer?=nil,readRowMap:MTLBuffer?=nil,readParents:MTLBuffer?=nil,readCosts:MTLBuffer?=nil,readChoices:MTLBuffer?=nil)throws->ComparisonResult{
  try need(hostMeta[4]==0 && cuPlans.contains(where:{($0["set"] as! Int)==Int(set)}),"uncertified comparison request")
  let nrows=Int(hostMeta[0]),extent=Int(hostMeta[1]);var cfg:[UInt32]=[set,UInt32(nrows),UInt32(extent),0,0,0,ProcessInfo.processInfo.environment["EGGFUSE_MATRIX_AUDIT"]=="1" ? 1:0,0]
  let ctrl=cuBuffer("control",64),readback=shared([UInt32](repeating:0,count:16));var phases=[Double](repeating:0,count:3),scratch=64
  func launch(_ cb:MTLCommandBuffer,_ index:Int,_ buffers:[MTLBuffer],_ n:Int,_ grouped:Bool=false){
-  if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=cuNames[index];e.setComputePipelineState(cuPipelines[index]);e.setBuffer(rows,offset:0,index:0);e.setBuffer(ctrl,offset:0,index:1);e.setBuffer(readRows ?? rows,offset:0,index:30)
+  if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=cuNames[index];e.setComputePipelineState(cuPipelines[index]);e.setBuffer(rows,offset:0,index:0);e.setBuffer(ctrl,offset:0,index:1);e.setBuffer(readRows ?? rows,offset:0,index:30);e.setBuffer(readRowMap ?? scFlatMap,offset:0,index:28)
   cfg.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:2)};for (i,b) in buffers.enumerated(){e.setBuffer(b,offset:0,index:i+3)}
   if grouped{e.dispatchThreadgroups(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:32,height:1,depth:1))}
   else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))};e.endEncoding()

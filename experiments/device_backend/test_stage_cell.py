@@ -95,6 +95,23 @@ def tests(build,out):
         check=compare(out/(name+'-ordinary'),out/(name+'-stages'),device_states=True,semantic_device=True,saturation_macros=True)
         results[name]={'graph':check['final_check'],'contexts':audit_export(out/(name+'-stages'))}
         print(name,'passed',flush=True)
+    # Exercise the production asynchronous seal path (no debug-export fence).
+    # Many distinct constructors force page-pool growth and page sharing.
+    growth=out/'paged-growth.egg'
+    growth.write_text(BASE+''.join(f'(Add (Num {i}) (Num {i+1}))\n' for i in range(80))+SCHEDULE)
+    for name,file in [('async-correlated',out/'correlated-aliases.egg'),('paged-growth',growth)]:
+        candidate=run(file,build,out/name,stage_cell=library,stage_context_audit=True,matrix_saturate=True)
+        assert candidate['checks'][-1]['exact_rows_values_equivalence_visibility']
+        scopes=candidate['stage_contexts']['scopes']
+        assert scopes and all(x['seal_host_waits']==0 for x in scopes)
+        calls=candidate['joint_polyspine']['calls']
+        assert sum(x['statistics'][107] for x in calls)>0,'unchanged cost context never reused'
+        assert all(x['statistics'][106]+x['statistics'][107]==x['private_phases'] for x in calls)
+        results[name]={'native_graph':candidate['checks'][-1],
+            'projection_builds':sum(x['statistics'][106] for x in calls),
+            'projection_reuses':sum(x['statistics'][107] for x in calls),
+            'seal_host_waits':sum(x['seal_host_waits'] for x in scopes)}
+        print(name,'passed',flush=True)
     assert results['pending-union']['contexts']['old_context_unequal_pairs']>0
     assert results['new-bindings']['contexts']['old_context_missing_functions']>0
     wrong=copy.deepcopy(artifact);wrong['contract']['stages'][0]['reads']=[];wrong['contract_sha256']=digest(wrong['contract']);bad=out/'wrong.cell.json';bad.write_text(json.dumps(wrong))

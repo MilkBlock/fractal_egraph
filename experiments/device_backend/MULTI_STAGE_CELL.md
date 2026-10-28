@@ -38,11 +38,15 @@ C3 = apply(P2, C2)
     -- follow the original nested-loop schedule --> ...
 ```
 
-The matcher actually reads these reconstructed versions. Patch application
-copies the **parent version**, then applies exact offset/value updates. It does
-not copy the current live state and merely label it a patch result.
+The matcher reads immutable versions through a page map. Unchanged 1024-byte
+row pages share storage; changed pages get new physical storage. The page map
+keeps logical row identities stable, including non-root witnesses. Matching and
+comparison kernels read this representation directly, without flattening it.
+The pool grows from actual changed-page demand and returns pages on the GPU
+only after the last version reader has released them. Growth preserves existing
+physical indices and all old views. Debug exports flatten pages for inspection.
 
-Each view owns rows, union-find, fact redirects, rule watermarks, metadata,
+Each view versions rows, union-find, fact redirects, rule watermarks, metadata,
 function-map coordinates and per-table read lists. All are tied to one version.
 Source marker interfaces and the immutable container arena are shared within
 one invocation. Container content immutability follows the existing schema
@@ -54,16 +58,34 @@ parent array. Later union, function updates and retirement cannot change an
 older view's answer. The read path uses read-only pointers; effects still go
 to the joint program's separate transactional working state.
 
-Patches contain exact u32 word offsets and replacement bits, preserving i64,
-f64, visibility and timestamp fields. Changed words are not logical matches or
-new-fact counts. Components that did not change share their immutable buffers.
-Cost, candidate, function and comparison row lists have separate compact
-storage, so growing one list does not shift all other lists in the patch.
-GPU block counting/compaction reserves output per block, not per changed word.
-The baked write domain restricts row inspection: terms appends rows; helpers
-can update existing extraction-function rows and append; comparison can modify
-the known mutable row family. Audit mode still checks **every** reconstructed
-word against the full post-stage state, including components classified unchanged.
+The logical patch remains exact u32 replacement bits, preserving i64, f64,
+visibility and timestamps. A row publication journal is written by actual
+constructor/function changes, canonicalization and retirement. GPU dispatch
+first selects published pages, then compares and copies only those pages.
+Sharing an untouched page uses one thread, not an entire copying threadgroup.
+New row extents are always included, even when their bits are zero. Audit still
+compares every reconstructed row word, independently of the journal.
+
+The smaller auxiliary columns remain flat. Their patches are counted and
+applied in one GPU pass; offset/value records are compacted only for debug
+export. Certified append-only read lists share storage when their extents do
+not change. The function-key map is reusable when no new function row appeared,
+because its Expr keys cannot change inside this certified scope. Other skips
+require a no-action/no-comparison-change condition. Audit checks shared columns
+against live state too. This is not arbitrary mutation journaling for all sorts.
+
+The complete correlated TCPair witness projection is shared across stages. An
+exact publication generation invalidates it on insert, changed canonical ID,
+visibility or timestamp. New IDs without a cost witness extend it by zeros;
+its previous buffers are preserved when they grow. It never reduces multiple
+candidate witnesses to independent marginals or a single winner.
+
+Row-patch discovery runs in the effect command buffer before its existing status
+read. The successor seal is queued without waiting on the CPU. The next stage
+reads it in the same ordered Metal queue; errors and telemetry are consumed at
+that stage's normal status boundary. Debug export can wait to read data. This
+removes the **extra seal waits**, not every existing host synchronization in the
+joint program. The original schedule and dependent effect order are unchanged.
 
 The live set is the invocation entry, the latest input for each of three stages,
 and the next materialized input. It does not retain every iteration's full graph.
@@ -84,11 +106,13 @@ Dependent stage effects still follow the original schedule. Arbitrarily merging
 two patches derived from the same base is not implemented: the second patch
 cannot silently be applied on top of the first one's result.
 
-Current limitations are explicit: the full global row component is copied when
-it changes; patch construction compares old/new values within the certified
-write domains, rather than being fully emitted by mutation events. Each stage boundary has control waits. The
-matching program currently requires the certified terms ABI and an immutable
-Expr carrier during the joint invocation.
+Current limitations: the working row store is still materialized and RHS commit
+is ordered. Auxiliary state still uses exact flat-column snapshots, rather than
+a general incremental column engine. Projection arrays are indexed by the active
+identity domain; this is not yet a fully compact per-Cell parameter-matrix ABI.
+The matching program requires the certified terms ABI and an immutable Expr
+carrier during each joint invocation. Capacity/status waits in the existing
+executor remain. No claim of arbitrary concurrent ruleset effects is made.
 
 ## Run
 
@@ -128,7 +152,7 @@ and function answers, load the same library with new bindings, reject changed
 contracts and stale handles, preserve finite Runs, restore checkpoints, and
 check overflow/panic rollback.
 
-## Recorded validation and cost, 2026-10-28
+## Original implementation: validation and cost, 2026-10-28
 
 [Checks](multi-stage-checks.json): 12 new multi-stage checks plus 115 related
 backend/joint/comparison checks passed. The real initial Raytrace terms scope
@@ -161,5 +185,54 @@ the complete run. Its stage-maintenance command time is **7.27 s**, with peak
 tracked context storage **753,389,284 bytes** (about 718.5 MiB, not total RSS).
 Whole-component materialization amplifies the small patches substantially.
 That storage/dispatch cost is exposed rather than attributed to Cell reuse.
-The path remains opt-in. Page-level sharing or stage-specific compact read
-projections are future work; dependent-stage execution is still ordered.
+That implementation remained opt-in; the optimization below replaces its storage
+and maintenance path. Dependent-stage execution remains ordered.
+
+## Shared pages, publication journal, projections and asynchronous seals
+
+The same saved Raytrace Pass-3 source and complete schedule were used. These are
+single clean timings, with no fresh pristine CPU baseline or hardware occupancy
+measurement. [Results and fingerprints](stage-optimization-results.json) retain
+the full-graph check and actual stage counters.
+
+| Configuration | Inference | Context materialization | Tracked context peak |
+|---|---:|---:|---:|
+| Historical joint engine, contexts off | 40.519 s | — | — |
+| Original versioned contexts | 53.800 s | 161.03 GB | 753.39 MB |
+| Shared pages + journal + projection reuse + queued seal | 39.798 s | 12.79 GB | 235.47 MB |
+
+This removes 26.0% of the regressed inference time. The final single run is
+1.78% faster than the saved contexts-off baseline; that small difference alone
+does **not** establish a stable speedup. The main demonstrated gain is removing
+the 32.8% regression while preserving independently readable stage versions.
+Context materialization includes page-pool growth and flat auxiliary writes,
+not just blit commands; it excludes the pre-existing transactional working copy.
+Tracked context peak is not process RSS or total GPU allocation.
+
+Across 2,826 phases, the cost projection is rebuilt 454 times and reused 2,372
+times. Extra host waits for patch count/application are zero in the production
+path; initial capture, final scan and existing inference status waits remain.
+Dedicated stage GPU time excludes publication-journal work fused into existing
+commit commands, so use complete joint/whole-run time for performance comparison.
+
+Intermediate variants are retained, including an over-reserved page pool
+(43.561 s, 2027.74 MB tracked context peak) and a journal version (46.126 s).
+An intermediate sparse-dispatch version measured 40.735 s; the final version
+also preserves parent-array versions when path compression might change them
+without a new union. These variants motivated demand-driven allocation,
+eliminating unused diagnostic compaction, and dispatching copying threads only
+for actually changed pages.
+Do not select the best intermediate time and present it as the final code.
+
+Reproduce using the earlier Run commands with the current build. The Bake file
+contract is unchanged: concrete page placement is not part of Cell semantics.
+
+Validation: [127 relevant checks](stage-optimization-checks.json), including 14
+stage tests with old-version probes, correlated alternatives, finite Run,
+external union/subsume, dynamic page growth, no-export asynchronous execution,
+overflow/panic rollback, plus 60 backend, 19 comparison and 34 joint-program
+checks. The final build also passes all 2,826 full-Pass patch audits and preserves
+the exact internal phase history. Final complete typed graph equals the control
+at 699,784 rows / 524,742 eclasses. Independent native initial terms comparison
+passes at 27,793 rows / 21,655 eclasses. The manifest records the suite builds;
+the last change only tightened parent-array sharing in the stage path.

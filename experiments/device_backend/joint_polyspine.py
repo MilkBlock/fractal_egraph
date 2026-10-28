@@ -208,7 +208,7 @@ def metal_program(p,core):
             op=a['call']['primitive'];lines.append(f'if(!({expr(a["args"][0])}{op}{expr(a["args"][1])}))return false;')
             if 'var' in a['args'][-1]:lines.append(f'v[{q["slots"][a["args"][-1]["var"]]}]=0;')
         cases.append(f'case {q["rule"]}:{{'+''.join(lines)+'return true;}')
-    out.append('bool jp_bind(uint rule,thread uint*selected,device const long*r,uint limit,thread long*v,thread uint*w){switch(rule){'+''.join(cases)+'default:return false;}}')
+    out.append('template<typename R> bool jp_bind(uint rule,thread uint*selected,R r,uint limit,thread long*v,thread uint*w){switch(rule){'+''.join(cases)+'default:return false;}}')
     evals=[]
     for i,r in enumerate(rec):
         lines=[]

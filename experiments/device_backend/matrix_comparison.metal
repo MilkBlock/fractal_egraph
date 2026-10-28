@@ -1,7 +1,7 @@
 // Private equality closure. Global tables/UF are immutable until cu_publish.
 // COMPARISON_PROGRAM
 // cfg = set, row count, id extent, cost count, choice count, hash size, audit.
-#define CU_ARGS device long*r[[buffer(0)]],device uint*c[[buffer(1)]],constant uint*cfg[[buffer(2)]],device const long*sv[[buffer(30)]]
+#define CU_ARGS device long*r[[buffer(0)]],device uint*c[[buffer(1)]],constant uint*cfg[[buffer(2)]],device const uint*svmap[[buffer(28)]],device const long*svdata[[buffer(30)]]
 uint cu_root(device const uint*p,uint x){while(p[x]!=x)x=p[x];return x;}
 void cu_union(device uint*p,uint a,uint b,device uint*c,device long*r){
  device atomic_uint*uf=(device atomic_uint*)p;
@@ -21,7 +21,7 @@ kernel void cu_pack(CU_ARGS,device uint*costs[[buffer(3)]],device uint*choices[[
 kernel void cu_reset(CU_ARGS,device uint*ranges[[buffer(3)]],device uint*heads[[buffer(4)]],uint i[[thread_position_in_grid]]){
  if(c[2])return;if(i<2*cfg[2])ranges[i]=0;if(i<cfg[5])heads[i]=0;if(!i)c[5]=0;
 }
-void cu_extreme(device atomic_uint*at,uint row,device const long*r,bool maximum){
+template<typename R> void cu_extreme(device atomic_uint*at,uint row,R r,bool maximum){
  uint old=atomic_load_explicit(at,memory_order_relaxed);long value=r[row*STRIDE+5];
  while(true){if(old){long prev=r[(old-1)*STRIDE+5];if((maximum?prev>value:prev<value)||(prev==value&&old<=row+1))return;}
  uint expected=old;if(atomic_compare_exchange_weak_explicit(at,&expected,row+1,memory_order_relaxed,memory_order_relaxed))return;old=expected;}

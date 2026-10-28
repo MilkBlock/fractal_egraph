@@ -2,7 +2,7 @@
 // constructor records and a small affected-key index are written in that
 // private view. Structural interfaces and unresolved ports remain resident.
 // JOINT_PROGRAM
-#define JP_ARGS device long*r[[buffer(0)]],device uint*p[[buffer(1)]],device uint*fp[[buffer(2)]],device Meta&m[[buffer(3)]],device uint*wm[[buffer(4)]],device const uint*vm[[buffer(29)]],device const long*sv[[buffer(30)]]
+#define JP_ARGS device long*r[[buffer(0)]],device uint*p[[buffer(1)]],device uint*fp[[buffer(2)]],device Meta&m[[buffer(3)]],device uint*wm[[buffer(4)]],device const uint*vm[[buffer(29)]],device const uint*svmap[[buffer(28)]],device const long*svdata[[buffer(30)]]
 uint jp_add(device long*r,uint field,uint n){return atomic_fetch_add_explicit((device atomic_uint*)(r+JP_STATE+field),n,memory_order_relaxed);}
 void jp_fail(device Meta&m,uint e){atomic_store_explicit((device atomic_uint*)&m.error,e,memory_order_relaxed);}
 uint jp_count(device long*r,uint field){return uint(r[JP_STATE+field]);}
@@ -55,7 +55,7 @@ kernel void jp_hash_insert(JP_ARGS,device const uint*lists[[buffer(5)]],constant
 }
 kernel void jp_canonical(JP_ARGS,device const uint*lists[[buffer(5)]],constant uint&lc[[buffer(6)]],uint i[[thread_position_in_grid]]){
  if(i>=jp_count(r,17))return;uint row=lists[4*lc+i],t=uint(r[row*STRIDE]);if(r[row*STRIDE+1]==2)return;
- for(uint j=0;j<WIDTH[t];j++)if(EQ[t*COLS+j]){uint at=row*STRIDE+4+j;long v=long(cu_root(p,uint(r[at])));if(v!=r[at]){r[at]=v;r[row*STRIDE+2]=m.epoch;r[JP_ROW_TAG+row]=2;}}
+ for(uint j=0;j<WIDTH[t];j++)if(EQ[t*COLS+j]){uint at=row*STRIDE+4+j;long v=long(cu_root(p,uint(r[at])));if(v!=r[at]){sc_dirty(r,row,m.epoch);r[at]=v;r[row*STRIDE+2]=m.epoch;r[JP_ROW_TAG+row]=2;}}
 }
 kernel void jp_retire(JP_ARGS,device const uint*lists[[buffer(5)]],constant uint&lc[[buffer(6)]],uint i[[thread_position_in_grid]]){
  if(i>=jp_count(r,17))return;uint row=lists[4*lc+i],t=uint(r[row*STRIDE]);if(r[row*STRIDE+1]||!jp_key_table(t))return;
@@ -65,12 +65,12 @@ kernel void jp_retire(JP_ARGS,device const uint*lists[[buffer(5)]],constant uint
  parallel_unite(p,r[leader*STRIDE+4+WIDTH[t]-1],r[row*STRIDE+4+WIDTH[t]-1],m);
  device atomic_uint*f=(device atomic_uint*)fp;uint a=uint(r[row*STRIDE+3]),b=uint(r[leader*STRIDE+3]);
  while(true){a=parallel_root(f,a);b=parallel_root(f,b);if(a==b)break;uint hi=max(a,b),lo=min(a,b),expected=hi;if(atomic_compare_exchange_weak_explicit(f+hi,&expected,lo,memory_order_relaxed,memory_order_relaxed))break;}
- r[row*STRIDE+1]=2;r[leader*STRIDE+2]=m.epoch;r[JP_ROW_TAG+leader]=2;jp_add(r,23,0xffffffff);jp_add(r,47,1);
+ sc_dirty(r,row,m.epoch);sc_dirty(r,leader,m.epoch);r[row*STRIDE+1]=2;r[leader*STRIDE+2]=m.epoch;r[JP_ROW_TAG+leader]=2;jp_add(r,23,0xffffffff);jp_add(r,47,1);
 }
 // Dense function-key map + CSR of complete cost witnesses. The payload row
 // index identifies (Term,cost,return) together, not independent marginals.
 kernel void jp_csr_clear(JP_ARGS,device uint*counts[[buffer(5)]],device uint*stamps[[buffer(6)]],device uint*ranges[[buffer(7)]],uint i[[thread_position_in_grid]]){
- if(i<m.next_id){counts[i]=0;stamps[i]=0;ranges[2*i]=0;ranges[2*i+1]=0;}
+ if(!i)jp_add(r,106,1);if(i<m.next_id){counts[i]=0;stamps[i]=0;ranges[2*i]=0;ranges[2*i+1]=0;}
 }
 kernel void jp_csr_count(JP_ARGS,device const uint*lists[[buffer(5)]],device uint*counts[[buffer(6)]],device uint*stamps[[buffer(7)]],device uint*ranges[[buffer(8)]],constant uint&lc[[buffer(9)]],uint i[[thread_position_in_grid]]){
  if(i>=jp_count(r,13))return;uint row=lists[i];if(sv[row*STRIDE+1])return;uint id=uint(sv[row*STRIDE+6]);
@@ -293,3 +293,10 @@ kernel void jp_export_interfaces(JP_ARGS,device const uint*markers[[buffer(5)]],
 // JOINT_REFRESH
 
 // STAGE_KERNELS
+
+// A new ID without a cost witness extends the exact projection by zero rows.
+// Cached witness tuples retain Term, i64 cost and result ID together.
+kernel void jp_context_extend(JP_ARGS,device uint*counts[[buffer(5)]],device uint*stamps[[buffer(6)]],device uint*ranges[[buffer(7)]],device uint*offsets[[buffer(8)]],constant uint2&cfg[[buffer(9)]],uint i[[thread_position_in_grid]]){
+ if(!i){jp_add(r,107,1);jp_add(r,108,cfg.y-cfg.x);}uint at=cfg.x+i;
+ if(at<cfg.y){counts[at]=0;stamps[at]=0;ranges[2*at]=0;ranges[2*at+1]=0;}if(at>cfg.x&&at<=cfg.y)offsets[at]=offsets[cfg.x];
+}

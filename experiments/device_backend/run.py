@@ -241,6 +241,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     for k,v in zip(['prepare','match','commit','rhs_commit','parallel_rebuild'],ph):timings[k]+=v
     hist=[trace[i:i+7] for i in range(0,len(trace),7)]
     event={'accepted':bool(accepted),'reason':reason,'marker_bindings':markers,'root_contexts':roots,'private_phases':n,'surviving_new_rows':new,'scratch_bytes':lo+(hi<<32),'device_copy_bytes':copied,'control_seconds':elapsed,'gpu_seconds':sum(ph[:3]),'phase_history':hist,'statistics':list(stats),'global_publications':int(bool(accepted))}
+    event['cost_projection']={'builds':stats[106],'reuses':stats[107],'zero_extended_ids':stats[108],'invalidation':'exact TCPair publication generation; complete correlated witnesses retained'}
     event['feature_refresh']={key:stats[96+j] for j,key in enumerate(['context_checks','base_rows_recomputed','base_rows_reused','seam_rows_recomputed','seam_rows_reused','encoding_row_lanes','ridge_row_lanes','exact_audit_rows'])}
     joint_calls.append(event);device_times.append({'kind':'joint_polyspine','set':'terms/joint','gpu_seconds':sum(ph[:3]),'prepare_seconds':ph[0],'match_seconds':ph[1],'commit_seconds':ph[2],'rhs_commit_seconds':ph[3],'parallel_rebuild_seconds':ph[4],'index_rebuilds':index})
     if not accepted:return None

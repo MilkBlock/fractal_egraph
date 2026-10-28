@@ -1,8 +1,17 @@
 #include <metal_stdlib>
 using namespace metal;
 // Generated schema/limits are inserted before this code.
+// A row view is either flat or an immutable page map. The same accessor is
+// used by native GPU matching and the joint Cell kernels; IDs never become floats.
+struct SCRows {
+ device const long* data;device const uint* map;
+ long operator[](uint at) const {return data[SC_ENABLED&&map[0] ? map[1+at/128]*128+at%128 : at];}
+};
+#define sv SCRows{svdata,svmap}
 struct Meta {uint count,next_id,epoch,changed,error,matched,rounds,unions,next_fact;};
 bool jp_active(device long*r){return JP_ENABLED&&r[JP_STATE]!=0;}
+// Per-page publication journal. No logical match is treated as a mutation.
+void sc_dirty(device long*r,uint row,uint epoch){if(SC_ENABLED&&jp_active(r)&&uint(r[row*STRIDE])==JP_IDS[0])atomic_fetch_max_explicit((device atomic_uint*)(r+JP_STATE+105),epoch,memory_order_relaxed);if(SC_ENABLED&&jp_active(r))for(uint page=row*STRIDE/128;page<=((row+1)*STRIDE-1)/128;page++)atomic_fetch_max_explicit((device atomic_uint*)(r+JP_DIRTY+page),epoch,memory_order_relaxed);}
 bool jp_key_table(uint t){return t==JP_IDS[1]||t==JP_IDS[3];}
 int jp_numeric_slot(uint rule,uint slot);
 uint root(device uint*p,uint x){while(p[x]!=x){p[x]=p[p[x]];x=p[x];}return x;}
@@ -42,7 +51,7 @@ __attribute__((noinline)) long ensure_constructor(device long*r,device uint*p,de
  uint value=m.next_id++,i=m.count++,fid=m.next_fact++;p[value]=value;p[MERGE_KEY_FLAGS+value]=MERGE_KEY_OUTPUT[t];fp[fid]=fid;
  r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
- r[i*STRIDE+4+WIDTH[t]-1]=value;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];r[CONSTRUCTOR_PRED+i]=0;row_index_insert(r,p,i);m.changed=1;return value;
+ r[i*STRIDE+4+WIDTH[t]-1]=value;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];r[CONSTRUCTOR_PRED+i]=0;sc_dirty(r,i,m.epoch);row_index_insert(r,p,i);m.changed=1;return value;
 }
 long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,device Meta&m){
  if(a==b)return a;
@@ -88,7 +97,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
   long incoming=canon(r,p,t,WIDTH[t]-1,value);
   if(POLICY[t]==4 && r[i*STRIDE+2]==m.epoch && incoming!=old){m.error=7;return old;}
   long next=mergevalue(t,old,incoming,r,p,fp,m);
-  if(next!=r[at]){record_query_update(r,i);r[at]=next;r[i*STRIDE+2]=m.epoch;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];m.changed=1;}return next;
+  if(next!=r[at]){record_query_update(r,i);sc_dirty(r,i,m.epoch);r[at]=next;r[i*STRIDE+2]=m.epoch;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];m.changed=1;}return next;
  }
  if(m.count>=CAPACITY || m.next_fact>=IDCAP){m.error=1;return 0;}
  if(create){
@@ -98,7 +107,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
  }
  uint i=m.count++,fid=m.next_fact++;fp[fid]=fid;r[i*STRIDE]=t;r[i*STRIDE+1]=0;r[i*STRIDE+2]=m.epoch;r[i*STRIDE+3]=fid;
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
- r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);r[CONSTRUCTOR_PRED+i]=create&&KIND[t]==0?value:0;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];row_index_insert(r,p,i);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
+ r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);r[CONSTRUCTOR_PRED+i]=create&&KIND[t]==0?value:0;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];sc_dirty(r,i,m.epoch);row_index_insert(r,p,i);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
 }
 bool hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
  // Constructor predictions are visible to lookup-or-insert, but native's
@@ -107,22 +116,22 @@ bool hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,th
  long found=row_lookup(r,p,m,t,args);
  if(found<0){
   uint inserted=m.count;write_row(r,p,fp,m,t,args,0,true);if(m.error)return false;
-  r[inserted*STRIDE+1]=1;return false;
+  sc_dirty(r,inserted,m.epoch);r[inserted*STRIDE+1]=1;return false;
  }
  if(uint(found)>=uint(r[QUERY_LOG+1])){
   if(!r[CONSTRUCTOR_PRED+uint(found)]){
    write_row(r,p,fp,m,t,args,0,true);if(m.error)return false;
-   r[uint(found)*STRIDE+1]=1;
+   sc_dirty(r,uint(found),m.epoch);r[uint(found)*STRIDE+1]=1;
   }
   return false;
  }
  if(INDEXED_SUBSUME&&p[IDCAP]){
   // Deferred unions preserve canonical unique keys throughout the RHS phase.
   uint i=uint(found);
-  if(r[i*STRIDE+1]==0){r[QUERY_DIRTY]=1;r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
+  if(r[i*STRIDE+1]==0){sc_dirty(r,i,m.epoch);r[QUERY_DIRTY]=1;r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
  }else{
   // The legacy eager-union diagnostic can temporarily contain colliding keys.
-  for(uint i=0;i<uint(r[QUERY_LOG+1]);i++)if(keyeq(r,i,t,args,p)&&r[i*STRIDE+1]==0){r[QUERY_DIRTY]=1;r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
+  for(uint i=0;i<uint(r[QUERY_LOG+1]);i++)if(keyeq(r,i,t,args,p)&&r[i*STRIDE+1]==0){sc_dirty(r,i,m.epoch);r[QUERY_DIRTY]=1;r[i*STRIDE+1]=1;r[i*STRIDE+2]=m.epoch;m.changed=1;}
  }
  return true;
 }

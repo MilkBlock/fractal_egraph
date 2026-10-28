@@ -29,6 +29,7 @@ def summarize(reference,runs,output):
               'matrix_rhs_rows':sums(54),'exact_integer_fallback_rows':sums(55),
               'positive_prediction_counts':[sums(92+j) for j in range(3)],
               'global_publications':sum(c['global_publications'] for c in accepted),
+              'cost_projection':{'builds':sums(106),'reuses':sums(107),'zero_extended_ids':sums(108)},
               'peak_retained_workspace_bytes':max((c['scratch_bytes'] for c in calls),default=0),
               'device_to_device_copy_bytes':sum(c['device_copy_bytes'] for c in calls),
               'joint_gpu_seconds':sum(c['gpu_seconds'] for c in calls),'joint_control_seconds':sum(c['control_seconds'] for c in calls),
@@ -37,7 +38,7 @@ def summarize(reference,runs,output):
             stage=r['stage_contexts'];scopes=stage['scopes']
             lane['stage_contexts']={'scope_count':stage['scope_count'],'patches':stage['patches'],'audit':stage['audit'],
                 'patch_words':sum(x['patch_words'] for x in scopes),'device_copy_bytes':sum(x['device_copy_bytes'] for x in scopes),
-                'gpu_seconds':sum(x['gpu_seconds'] for x in scopes),'peak_resident_bytes':max((x['peak_resident_bytes'] for x in scopes),default=0),
+                'gpu_seconds':sum(x['gpu_seconds'] for x in scopes),'seal_host_waits':sum(x.get('seal_host_waits',2*x['patches']) for x in scopes),'row_pages_copied':sum(x.get('row_pages_copied',0) for x in scopes),'peak_resident_bytes':max((x['peak_resident_bytes'] for x in scopes),default=0),
                 'contract_sha256':r['stage_cell_contract_sha256'],'loaded_artifact':r.get('loaded_stage_cell')}
         lanes.append(lane)
     result={'schema':'resident-joint-polyspine-results/v1','scope':'Actual GPU-owned complete saved Pass-3 schedule; not pristine egglog',
@@ -47,7 +48,8 @@ def summarize(reference,runs,output):
                 'context_visits':'instances across joint invocations, not distinct RipSat library families',
                 'fresh_rows':'real private hashcons allocations; some are retired by later congruence',
                 'cross_stage_version_consumer_pairs':'distinct (row version, consumer stage) uses on successful exact bindings',
-                'copy_bytes':'GPU-private transactional view copies; not CPU/GPU table transfer',
+                'copy_bytes':'Device context materialization volume including page copies/growth and auxiliary column writes; not CPU/GPU table transfer',
+                'stage_gpu_seconds':'Dedicated stage command buffers only; commit-integrated journal work is in joint GPU time',
                 'timing':'single candidate runs; saved unchanged reference retained with provenance'},
             'limits':['Native equality is independently checked on the real initial nested terms scope and regression cases.',
                       'The full backend retains its pre-existing complete-Pass native mismatch.',
