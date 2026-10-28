@@ -41,7 +41,10 @@ This remains an experimental device backend with parallel index construction, ma
 
 [Analyzer-exported executable Cell recipes](EXECUTABLE_CELL.md) connect native
 Analyze evidence to parameterized stage instructions loaded with `--cell-program`.
-The first admitted family is fresh single-spine extraction. Covered continuations
+The v1 family is fresh single-spine extraction. The v2 [multi-candidate update
+program](CELL_UPDATES.md) now accepts existing results, multiple spines and
+complete cost-witness bags; its full Pass-3 off/on comparison is recorded there.
+Covered continuations
 bypass internal matching and publish by stage; unsupported contexts keep the
 complete query path. This is distinct from the stage-description file below.
 

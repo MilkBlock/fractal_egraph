@@ -1,5 +1,8 @@
 # Analyzer-exported multi-stage Cell recipes
 
+This page documents v1. The [v2 update extension](CELL_UPDATES.md) also handles
+existing function values and multi-candidate/multi-witness contexts.
+
 The actual GPU-owned runtime can now load an offline executable Cell artifact.
 This is separate from the older `--stage-cell` file, which describes stage
 contexts and scheduling but still uses generic rule matching within them.

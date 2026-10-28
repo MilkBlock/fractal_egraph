@@ -3,7 +3,7 @@ import json
 
 def lower(artifact,core,strings,joint):
     templates=[] if artifact is None else artifact['templates']
-    if templates and not joint.get('program'):raise ValueError('Cell instructions require the admitted joint carrier')
+    if artifact is not None and not joint.get('program'):raise ValueError('Cell instructions require the admitted joint carrier')
     tables={t['name']:i for i,t in enumerate(core['tables'])};width=max([t['slots'] for t in templates]+[1])
     def operand(x,prefix='v'):
         if 'slot' in x:return f'{prefix}[{x["slot"]}]'

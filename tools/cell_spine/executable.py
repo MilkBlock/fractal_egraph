@@ -7,6 +7,7 @@ singleton guards, never by frequency. The runtime consumes these operations.
 import argparse,copy,hashlib,json
 from pathlib import Path
 from .closure_contract import helper_contract
+from .update_recipe import derive_update
 from experiments.polyspine_ridge.resumable_program import compile_links
 from experiments.device_backend.matrix_comparison import recognize
 
@@ -87,7 +88,7 @@ def derive(core,rule_name):
                       'cost_interval':[0,affine['initializer_cost']],'exclusive_upper':True,'no_new_cost_alias':True},
             'scope':'guarded fresh extraction Cell; existing/multiple-candidate contexts use the ordinary program'}
 
-def compile_library(core,analysis,source):
+def compile_library(core,analysis,source,updates=False,updates_only=False):
     cell=analysis.get('saturated_rule_composition',{}).get('cell_egraph',analysis)
     evidence=cell.get('executable_program_evidence',{})
     if evidence.get('schema')!='analyzer-cell-program-evidence/v1':raise ValueError('native analyzer evidence is missing')
@@ -105,23 +106,33 @@ def compile_library(core,analysis,source):
         except (ValueError,KeyError,StopIteration) as error:rejected.append({'rule':rule['name'],'reason':str(error)});continue
         t['evidence']={'analyzer_rule':witness['id'],'applications':witness['applications'],'example':witness['example']}
         templates.append(t)
-    if not templates:raise ValueError('no executable Cell admitted')
+    update=derive_update(core) if updates or updates_only else None
+    update_evidence=observed.get(('terms-helpers',1),{})
+    if update and not update_evidence.get('existing_value_requests',0):raise ValueError('no native evidence of an existing function value update')
+    if updates_only:templates=[]
+    if not templates and update is None:raise ValueError('no executable Cell admitted')
     payload={'schema':'executable-multistage-cell/v1','environment':environment(core),'templates':templates,
              'evidence':{'source_sha256':hashlib.sha256(source.encode()).hexdigest(),'cell_eclasses':cell.get('eclasses',0),'producer_edges':evidence['producer_edges'],'scope':evidence['scope']},
              'rejected':rejected,'proof':'native observations select spines; typed total-min-choice contract plus fresh/singleton runtime guards certify these finite recipes'}
+    if update:
+        payload['schema']='executable-multistage-cell/v2';payload['update_program']=update;payload['update_evidence']=update_evidence
+        payload['proof']='observed native transitions; typed complete helper/min-choice proof; correlated bag inputs and exact stage publication'
     return {**payload,'sha256':digest(payload)}
 
 def load(path,core):
     x=json.loads(Path(path).read_text());payload={k:v for k,v in x.items() if k!='sha256'}
-    if x.get('schema')!='executable-multistage-cell/v1' or x.get('sha256')!=digest(payload):raise ValueError('invalid executable Cell artifact')
+    if x.get('schema') not in ['executable-multistage-cell/v1','executable-multistage-cell/v2'] or x.get('sha256')!=digest(payload):raise ValueError('invalid executable Cell artifact')
     if x['environment']!=environment(core):raise ValueError('Cell program rule environment changed')
+    if x['schema'].endswith('/v2'):
+        if x.get('update_program')!=derive_update(core):raise ValueError('Cell update program failed typed proof validation')
+        if not x.get('update_evidence',{}).get('existing_value_requests',0):raise ValueError('Cell update lacks old-value evidence')
     for t in x['templates']:
         if {k:v for k,v in t.items() if k!='evidence'}!=derive(core,t['rule']):raise ValueError('Cell program failed typed proof validation')
         if t['evidence']['applications']<=0:raise ValueError('Cell lacks native evidence')
     return x
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--analysis',type=Path,required=True);p.add_argument('--core',type=Path,required=True);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--analysis',type=Path,required=True);p.add_argument('--core',type=Path,required=True);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--updates',action='store_true');p.add_argument('--updates-only',action='store_true');a=p.parse_args()
     if a.output.exists():raise ValueError('output already exists')
-    program=compile_library(json.loads(a.core.read_text()),json.loads(a.analysis.read_text()),a.source.read_text())
-    a.output.write_text(json.dumps(program,indent=2)+'\n');print('exported',len(program['templates']),'executable multi-stage Cells')
+    program=compile_library(json.loads(a.core.read_text()),json.loads(a.analysis.read_text()),a.source.read_text(),updates=a.updates,updates_only=a.updates_only)
+    a.output.write_text(json.dumps(program,indent=2)+'\n');print('exported',len(program['templates']),'fresh Cell recipes; bag update program:',bool(program.get('update_program')))

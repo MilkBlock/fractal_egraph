@@ -1,6 +1,6 @@
 //! Incremental evidence for the offline executable Cell compiler. Observations
 //! select templates; a separate typed closure check must justify execution.
-use super::super::super::{Captured, Input};
+use super::super::super::{Captured, Input, PreviousRow};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 #[derive(Default)]
@@ -30,11 +30,22 @@ impl Census {
                     let Input::Var(name)=input else{return None};let v=&c.pool.values[*token];
                     Some(json!({"name":name,"token":token,"sort":v.sort,"literal":c.pool.literals.get(token)}))
                 }).collect();
-                json!({"id":r.rule,"name":rule.name,"ruleset":rule.ruleset,"ordinal":c.rules[..r.rule].iter().filter(|x|x.rule.ruleset==rule.ruleset).count(),"applications":0,
+                json!({"id":r.rule,"name":rule.name,"ruleset":rule.ruleset,"ordinal":c.rules[..r.rule].iter().filter(|x|x.rule.ruleset==rule.ruleset).count(),"applications":0,"existing_value_requests":0,
                     "body_operators":c.rules[r.rule].calls.values().filter(|(path,_)|path.starts_with("body/")).filter_map(|(_,e)|if let egglog::ast::Expr::Call(_,op,_) = e {Some(op.clone())} else {None}).collect::<Vec<_>>(),
-                    "example":{"event":r.id,"record":index,"bindings":bindings,"parents":r.parents,"unions":r.unions,"updated_rows":r.updated_rows}})
+                    "example":{"event":r.id,"record":index,"bindings":bindings,"parents":r.parents,"unions":r.unions,"updated_rows":r.updated_rows,"function_writes":r.sets}})
             });
             entry["applications"] = json!(entry["applications"].as_u64().unwrap() + 1);
+            let existing = r
+                .sets
+                .iter()
+                .filter(|s| matches!(s.before, PreviousRow::Present(_)))
+                .count();
+            entry["existing_value_requests"] =
+                json!(entry["existing_value_requests"].as_u64().unwrap() + existing as u64);
+            if existing > 0 && entry.get("existing_update_example").is_none() {
+                entry["existing_update_example"] =
+                    json!({"event":r.id,"record":index,"function_writes":r.sets});
+            }
             for &parent in &r.parents {
                 *self
                     .links
