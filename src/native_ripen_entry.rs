@@ -579,6 +579,17 @@ fn extract(
                 return Err("set commits interleave match order for one target; stage replay cannot reorder them".into());
             }
             last_commit_by_target.insert(key.clone(), w.commit);
+            fn constructor_term(e: &Expr, constructors: &BTreeSet<String>) -> bool {
+                    match e {
+                        Expr::Lit(..) => true,
+                        Expr::Call(_, op, args) => {
+                            constructors.contains(op)
+                                && args.iter().all(|e| constructor_term(e, constructors))
+                        }
+                        _ => false,
+                    }
+                }
+            let mut old_term = None;
             let before = match &w.before {
                 PreviousRow::Unknown => {
                     return Err("unknown pre-update row; recapture with commit witnesses".into());
@@ -615,6 +626,7 @@ fn extract(
                             )),
                         );
                     }
+                    old_term = Some(old.clone());
                     immediate(eq(target.clone(), old))
                 }
             };
@@ -632,16 +644,6 @@ fn extract(
                 // constructor-only RHS terms rather than treating a new equality
                 // value as a missing scalar literal. Mutable lookups and fresh
                 // primitives must not be re-evaluated by the post-action check.
-                fn constructor_term(e: &Expr, constructors: &BTreeSet<String>) -> bool {
-                    match e {
-                        Expr::Lit(..) => true,
-                        Expr::Call(_, op, args) => {
-                            constructors.contains(op)
-                                && args.iter().all(|e| constructor_term(e, constructors))
-                        }
-                        _ => false,
-                    }
-                }
                 let term = subst(proposed_expr, &guard_env)?;
                 if !constructor_term(&term, &constructors) {
                     return Err(
@@ -651,12 +653,27 @@ fn extract(
                 }
                 term
             } else {
-                return Err(
-                    "merged set result differs from proposal and has no recorded symbolic binding"
-                        .into(),
-                );
+                let merge = environment.commands.iter().find_map(|command| match command {
+                    Command::Function {name, merge: Some(expr), ..} if name == op => Some(expr.clone()),
+                    _ => None,
+                }).ok_or("merged set result has no declared merge expression")?;
+                let old = old_term.ok_or("merged set result has no known old-value witness")?;
+                let new = subst(proposed_expr, &guard_env)?;
+                // Freeze by symbolic constructor identity, not a mutable lookup
+                // re-evaluated after the set. Other merge programs need explicit
+                // operand storage and remain rejected rather than guessed.
+                if !constructor_term(&old, constructors) || !constructor_term(&new, constructors) {
+                    return Err("merge operands require a stable constructor binding".into());
+                }
+                let bindings = BTreeMap::from([("old".to_owned(),old),("new".to_owned(),new)]);
+                let result = subst(&merge, &bindings)?;
+                if !constructor_term(&result, constructors) {
+                    return Err("merged result requires a stable constructor expression".into());
+                }
+                result
             };
-            update_evidence.push(json!({"record":i,"action":action_index,"before":w.before,"commit":w.commit,"table":op}));
+            values.entry(after_id).or_insert_with(||after.clone());
+            update_evidence.push(json!({"record":i,"action":action_index,"before":w.before,"commit":w.commit,"table":op,"after_expression":after.to_string()}));
             written.insert(key);
             set_guards.insert(action_index, (before, immediate(eq(target, after))));
         }
@@ -1195,6 +1212,28 @@ mod tests {
         let wrong = w.after[0];
         *w.after.last_mut().unwrap() = wrong;
         assert!(prepare_members(&c, &[0]).is_err());
+    }
+
+    #[test]
+    fn declared_constructor_merge_defines_the_new_result_without_guessing() {
+        let mut c = captured(
+            r#"
+            (datatype E (V i64) (Join E E))
+            (function Chosen (E) E :merge (Join old new))
+            (rule ((= x (V 0))) ((set (Chosen x) (V 2))))
+            (set (Chosen (V 0)) (V 1)) (run 1)
+        "#,
+        );
+        assert_eq!(c.records.len(), 1);
+        let (entry, _, origin) = prepare_members(&c, &[0]).unwrap();
+        let after = origin["set_update_witnesses"][0]["after_expression"].as_str().unwrap();
+        assert!(after.starts_with("(Join "), "{after}");
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, &entry).unwrap();
+        let witness = &mut c.records[0].sets[0];
+        let PreviousRow::Present(old) = &witness.before else { panic!("missing old value") };
+        *witness.after.last_mut().unwrap() = *old.last().unwrap();
+        assert!(prepare_members(&c, &[0]).is_err(), "a forged merge result was accepted");
     }
 
     #[test]

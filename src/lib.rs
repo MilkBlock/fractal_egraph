@@ -19,3 +19,5 @@ pub mod reuse_graph;
 pub mod slotted_canon;
 pub mod slotted_dot;
 pub mod slotted_layer;
+
+pub mod cell_recipe;

@@ -700,7 +700,12 @@ fn export_state(
             rows.insert(fact);
         }
     }
-    for (op, inputs, output) in &tables {
+    for (op, _, _) in &tables {
+        // Relation declarations may lower to a fresh equality-sort result,
+        // rather than Unit. Export the installed native schema, not a guess.
+        let function = eg.get_function(op).ok_or("missing exported table")?;
+        let inputs = function.schema().input.iter().map(|s|s.name().to_owned()).collect::<Vec<_>>();
+        let output = function.schema().output.name().to_owned();
         let mut raw = vec![];
         eg.function_for_each(op, |r| raw.push((r.vals.to_vec(), r.subsumed)))?;
         for (row, subsumed) in raw {
@@ -715,7 +720,7 @@ fn export_state(
             let fact = Row {
                 op: op.clone(),
                 args,
-                result: vertex(output, *row.last().unwrap())?,
+                result: vertex(&output, *row.last().unwrap())?,
             };
             if rows.contains(&fact) && hidden.contains(&fact) != subsumed {
                 return Err("ambiguous canonical row visibility".into());
