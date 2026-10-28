@@ -26,13 +26,26 @@ pub fn snapshot_graph(
     rows: &J,
 ) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
     use crate::saturated_rule_composition::{Row, SaturatedRuleComposition, Vertex};
+    fn value_key(v: &J) -> Result<String> {
+        let sort=text(&v["sort"])?;
+        // serde_json/preserve_order is enabled by the native serialization
+        // frontend. Object insertion order is never part of a value's identity.
+        Ok(if let Some(eq)=v.get("eq") {
+            serde_json::to_string(&(sort,"eq",eq))?
+        } else if let Some(elements)=v.get("elements") {
+            let mut keys=arr(elements)?.iter().map(value_key).collect::<Result<Vec<_>>>()?;
+            keys.sort();keys.dedup();serde_json::to_string(&(sort,"set",keys))?
+        } else {
+            serde_json::to_string(&(sort,"literal",v.get("value").ok_or("missing snapshot value")?))?
+        })
+    }
     fn intern(
         v: &J,
         ids: &mut BTreeMap<String, usize>,
         vs: &mut Vec<Vertex>,
         extra: &mut Vec<Row>,
     ) -> Result<usize> {
-        let key = serde_json::to_string(v)?;
+        let key = value_key(v)?;
         if let Some(i) = ids.get(&key) {
             return Ok(*i);
         }

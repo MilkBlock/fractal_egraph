@@ -1,5 +1,16 @@
 use super::*;
 #[test]
+fn snapshot_identity_is_independent_of_json_object_order() -> Result<()> {
+    let rows: J=serde_json::from_str(r#"[
+      {"table":"N","values":[{"sort":"i64","value":0},{"eq":"v","sort":"E"}],"subsumed":false},
+      {"table":"root","values":[{"sort":"E","eq":"v"}],"subsumed":false}
+    ]"#)?;
+    let graph=snapshot_graph(&rows)?;
+    assert_eq!(graph.values.len(),2);
+    assert_eq!(graph.rows[0].result,graph.rows[1].result);
+    Ok(())
+}
+#[test]
 fn device_source_keeps_original_control_and_does_not_mutate_native() -> Result<()> {
     let mut eg = EGraph::default();
     eg.parse_and_run_program(
