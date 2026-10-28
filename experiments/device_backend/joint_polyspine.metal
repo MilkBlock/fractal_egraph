@@ -2,6 +2,7 @@
 // constructor records and a small affected-key index are written in that
 // private view. Structural interfaces and unresolved ports remain resident.
 // JOINT_PROGRAM
+int sd_index(uint recipe);
 #define JP_ARGS device long*r[[buffer(0)]],device uint*p[[buffer(1)]],device uint*fp[[buffer(2)]],device Meta&m[[buffer(3)]],device uint*wm[[buffer(4)]],device uint*cpInfo[[buffer(24)]],device long*cpData[[buffer(25)]],device const uint*cpOwnerMap[[buffer(26)]],device const uint*vm[[buffer(29)]],device const uint*svmap[[buffer(28)]],device const long*svdata[[buffer(30)]]
 uint jp_add(device long*r,uint field,uint n){return atomic_fetch_add_explicit((device atomic_uint*)(r+JP_STATE+field),n,memory_order_relaxed);}
 void jp_fail(device Meta&m,uint e){atomic_store_explicit((device atomic_uint*)&m.error,e,memory_order_relaxed);}
@@ -126,7 +127,7 @@ kernel void jp_group_add(JP_ARGS,device uint*g[[buffer(5)]],device const uint*bl
  if(i<groups&&!m.error)g[16*i+1]+=blocks[i/256];
 }
 kernel void jp_bindings(JP_ARGS,device const uint*g[[buffer(5)]],device const uint*items[[buffer(6)]],device long*matches[[buffer(7)]],device uint*witnesses[[buffer(8)]],device uint*valid[[buffer(9)]],device uint*jobinfo[[buffer(10)]],device half*x[[buffer(11)]],device const uint*rootmap[[buffer(12)]],device const float*scores[[buffer(13)]],constant uint4&cfg[[buffer(14)]],uint job[[thread_position_in_grid]]){
- if(job>=jp_count(r,9)||m.error)return;if(UP_ENABLED&&jp_count(r,1)==1){jp_fail(m,29);return;}uint lo=0,hi=cfg.x;while(lo+1<hi){uint mid=(lo+hi)/2;if(g[mid*16+1]<=job)lo=mid;else hi=mid;}uint at=lo*16;
+ if(job>=jp_count(r,9)||m.error)return;if(UP_ENABLED&&jp_count(r,1)==1){jp_fail(m,29);return;}uint lo=0,hi=cfg.x;while(lo+1<hi){uint mid=(lo+hi)/2;if(g[mid*16+1]<=job)lo=mid;else hi=mid;}uint at=lo*16;if(SD_ENABLED&&jp_count(r,1)==0&&sd_index(g[at+4])>=0)return;
  uint rootid=g[at+5],rootIndex=rootmap[rootid];if(CP_ENABLED&&(cpInfo[4*rootIndex+2]>0&&cpInfo[4*rootIndex+2]<8)){jp_fail(m,28);return;}uint phase=jp_count(r,1);bool priority=cfg.z==0||scores[rootIndex*8+phase]>=.5f;if(priority!=(cfg.w==1))return;
  valid[job]=0;for(uint j=0;j<cfg.y;j++)x[job*cfg.y+j]=0;uint rule=g[at+3],recipe=g[at+4],offset=job-g[at+1],selected[7];for(uint j=0;j<7;j++)selected[j]=0xffffffff;selected[0]=g[at+2];uint costs[3]={0xffffffff,0xffffffff,0xffffffff};
  for(uint j=0;j<3;j++){uint n=g[at+9+j],digit=n?offset%n:0;offset=n?offset/n:0;if((phase==0&&j<JP_ARITY[recipe])||(phase==1&&((recipe==1&&j<2)||(recipe==2&&j==0))))costs[j]=items[g[at+12+j]+digit];}

@@ -248,6 +248,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     hist=[trace[i:i+7] for i in range(0,len(trace),7)]
     event={'accepted':bool(accepted),'reason':reason,'marker_bindings':markers,'root_contexts':roots,'private_phases':n,'surviving_new_rows':new,'scratch_bytes':lo+(hi<<32),'device_copy_bytes':copied,'control_seconds':elapsed,'gpu_seconds':sum(ph[:3]),'phase_history':hist,'statistics':list(stats),'global_publications':int(bool(accepted))}
     event['cell_program']={'comparison_rows_skipped':stats[120],'hits':stats[124],'operations':stats[125],'groups_skipped':stats[126],'invalidations':stats[127]}
+    event['spine_program']={k:stats[38+i] for i,k in enumerate(['candidate_tuples','actions','fallback_actions','multivalue_tuples'])}
     event['cell_updates']={k:stats[25+i] for i,k in enumerate(['groups_considered','guard_pairs_eliminated','guard_pairs_checked','actions','existing_result_actions','multiple_witness_actions','owners'])}
     event['block_effects']={'enabled':p['block_merge'],'set_requests':stats[110],'set_blocks':stats[111],'sets_merged':stats[112],'peak_pending_sets':stats[113],'union_blocks':stats[114],'union_changes':stats[115],'publication_waits_removed':stats[116],'producer_audit_rows':stats[117],'function_keys_published':stats[121],'sets_carried_through_comparison':stats[123]}
     event['cost_projection']={'builds':stats[106],'reuses':stats[107],'zero_extended_ids':stats[108],'invalidation':'exact TCPair publication generation; complete correlated witnesses retained'}

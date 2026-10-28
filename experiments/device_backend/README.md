@@ -44,6 +44,8 @@ Analyze evidence to parameterized stage instructions loaded with `--cell-program
 The v1 family is fresh single-spine extraction. The v2 [multi-candidate update
 program](CELL_UPDATES.md) now accepts existing results, multiple spines and
 complete cost-witness bags; its full Pass-3 off/on comparison is recorded there.
+[V3 boundary recipes](CELL_SPINES.md) additionally execute observed `terms`
+spines directly from their exact ports, with complete fallback for missing recipes.
 Covered continuations
 bypass internal matching and publish by stage; unsupported contexts keep the
 complete query path. This is distinct from the stage-description file below.

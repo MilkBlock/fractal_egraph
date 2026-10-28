@@ -2,7 +2,7 @@
 // sink is reused on a transactional device view, not on the published tables.
 let jpDescription=program["joint_polyspine"] as? [String:Any]
 let jpProgram=jpDescription?["program"] as? [String:Any]
-let jpNames=["jp_begin","jp_zero_maps","jp_count_range","jp_pack_range","jp_root_reset","jp_hash_clear","jp_hash_insert","jp_canonical","jp_retire","jp_csr_clear","jp_csr_count","jp_csr_offsets","jp_csr_fill","jp_prepare","jp_groups","jp_group_offsets","jp_bindings","jp_affine_mma","jp_validate","jp_sort_local","jp_sort_global","jp_commit","jp_comparison_roots","jp_advance","jp_close","jp_metrics","jp_csr_scan","jp_csr_blocks","jp_csr_add","jp_static_markers","jp_static_heads","jp_marker_offsets","jp_marker_items","jp_feature_clear","jp_candidate_summary","jp_choice_summary","jp_features","jp_feature_mma","jp_seams","jp_ridge_mma","jp_prediction_finish","jp_export_interfaces","jp_group_scan","jp_group_blocks","jp_group_add","jp_cache_static","jp_cache_signature","jp_cache_dependents","jp_cached_features","jp_cached_prediction","jp_cache_audit","jp_context_extend","jp_prepare_sets","jp_publish_sets","cp_index","cp_recognize","cp_validate","cp_emit","cp_seed","cp_seed_finish","cp_finish","up_groups","up_actions","up_commit"]
+let jpNames=["jp_begin","jp_zero_maps","jp_count_range","jp_pack_range","jp_root_reset","jp_hash_clear","jp_hash_insert","jp_canonical","jp_retire","jp_csr_clear","jp_csr_count","jp_csr_offsets","jp_csr_fill","jp_prepare","jp_groups","jp_group_offsets","jp_bindings","jp_affine_mma","jp_validate","jp_sort_local","jp_sort_global","jp_commit","jp_comparison_roots","jp_advance","jp_close","jp_metrics","jp_csr_scan","jp_csr_blocks","jp_csr_add","jp_static_markers","jp_static_heads","jp_marker_offsets","jp_marker_items","jp_feature_clear","jp_candidate_summary","jp_choice_summary","jp_features","jp_feature_mma","jp_seams","jp_ridge_mma","jp_prediction_finish","jp_export_interfaces","jp_group_scan","jp_group_blocks","jp_group_add","jp_cache_static","jp_cache_signature","jp_cache_dependents","jp_cached_features","jp_cached_prediction","jp_cache_audit","jp_context_extend","jp_prepare_sets","jp_publish_sets","cp_index","cp_recognize","cp_validate","cp_emit","cp_seed","cp_seed_finish","cp_finish","up_groups","up_actions","up_commit","sd_actions","sd_commit"]
 let jpPipelines=try (jpProgram==nil ? []:jpNames).map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 var jpPool:[String:MTLBuffer]=[:]
 func jpBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
@@ -34,6 +34,8 @@ func jointPolyspine()throws->JointResult{
  var stageRead:SCView?=nil,stageTracker:StageContexts?=nil
  let cpPlan=program["cell_program"] as? [String:Any],cpEnabled=(program["cell_program"] as? [String:Any])?["enabled"] as? Bool ?? false
  let upEnabled=cpPlan?["update_program"] is [String:Any]
+ let sdPlan=cpPlan?["spine_program"] as? [String:Any],sdEnabled=(cpPlan?["spine_program"] as? [String:Any])?["enabled"] as? Bool ?? false
+ let sdWidth=(sdPlan?["width"] as? Int) ?? 1,sdAll=(sdPlan?["all_recipes"] as? Bool) ?? false
  let updateWidth=((cpPlan?["update_program"] as? [String:Any])?["stages"] as? [[String:Any]])?.map{$0["slots"] as! Int}.max() ?? 1
  var cpInfo=privateBuffer(16),cpData=privateBuffer(8),cpOwners=privateBuffer(4),cpKnown=privateBuffer(4),cpChoices=privateBuffer(4)
  let stateOffset=(program["index_counter_offset"] as! Int)+5+4*capacity
@@ -177,8 +179,10 @@ func jointPolyspine()throws->JointResult{
   }else{
    let jobs=Int(stats[9]),valid=jpBuffer("job-valid",jobs*4),info=jpBuffer("job-info",jobs*6*4),witnesses=jpBuffer("job-witnesses",jobs*maxAtoms*4),numeric=jpBuffer("job-numeric",jobs*maxOps*8),x=jpBuffer("job-x",jobs*numericWidth*2),y=jpBuffer("job-y",jobs*8*4)
    let updatePayload=jpBuffer("update-payload",phase==1 && upEnabled ? jobs*updateWidth*8:8)
+   let spinePayload=jpBuffer("spine-payload",phase==0 && sdEnabled ? jobs*sdWidth*8:8)
    let compute=queue.makeCommandBuffer()!
-   if phase==1 && upEnabled{launch(compute,62,[groups,items,matches,witnesses,valid,info,updatePayload,rootmap],jobs,[UInt32(ngroups)])}else{for pass in [1,0]{launch(compute,16,[groups,items,matches,witnesses,valid,info,x,rootmap,scores],jobs,[UInt32(ngroups),UInt32(numericWidth),model == nil ? 0:1,UInt32(pass)])}}
+   if phase==0 && sdEnabled{launch(compute,64,[groups,items,matches,witnesses,valid,info,spinePayload,x,rootmap],jobs,[UInt32(ngroups),UInt32(numericWidth)])}
+   if phase==1 && upEnabled{launch(compute,62,[groups,items,matches,witnesses,valid,info,updatePayload,rootmap],jobs,[UInt32(ngroups)])}else if !(phase==0 && sdEnabled && sdAll){for pass in [1,0]{launch(compute,16,[groups,items,matches,witnesses,valid,info,x,rootmap,scores],jobs,[UInt32(ngroups),UInt32(numericWidth),model == nil ? 0:1,UInt32(pass)])}}
    if phase==0{launch(compute,17,[x,affineWeights,y],(jobs+7)/8,[UInt32(numericWidth)],true)}
    launch(compute,18,[info,y,valid,numeric,matchOrder],jobs);try wait(compute,1)
    if hostMeta[4] != 0{break}
@@ -186,7 +190,7 @@ func jointPolyspine()throws->JointResult{
    if matched>1{var padded=256;while padded<matched{padded*=2};launch(commit,19,[matches,witnesses,matchOrder],padded);var k=512;while k<=padded{var d=k/2;while d>0{launch(commit,20,[matches,witnesses,matchOrder],padded,[UInt32(k),UInt32(d)]);d/=2};k*=2}}
    // The next schedule state depends only on completed device effects. Keep
    // that transition on this command buffer; no host round-trip is needed.
-   if phase==1 && upEnabled{launch(commit,63,[matchOrder,info,updatePayload,rootstate],1)}else{launch(commit,21,[matches,matchOrder,numeric,info,instructions,registers,rootstate,roots],1)};if cpEnabled{launch(commit,57,[rootstate,cpChoices],1)};if blockMerge && phase==1{launch(commit,52,[rootstate],1)};launch(commit,23,[],1);try wait(commit,2,true)
+   if phase==0 && sdEnabled{launch(commit,65,[matches,matchOrder,numeric,info,instructions,registers,rootstate,spinePayload],1)}else if phase==1 && upEnabled{launch(commit,63,[matchOrder,info,updatePayload,rootstate],1)}else{launch(commit,21,[matches,matchOrder,numeric,info,instructions,registers,rootstate,roots],1)};if cpEnabled{launch(commit,57,[rootstate,cpChoices],1)};if blockMerge && phase==1{launch(commit,52,[rootstate],1)};launch(commit,23,[],1);try wait(commit,2,true)
    if hostMeta[4] != 0{break};try appendRows()
   }
   if let tracker=stageTracker,hostMeta[4]==0{try tracker.seal(phase,stageParts(),hostMeta,listCapacity);phases[2]+=tracker.gpuSeconds-stageAccounted;stageAccounted=tracker.gpuSeconds}

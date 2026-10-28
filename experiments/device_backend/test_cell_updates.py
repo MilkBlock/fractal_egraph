@@ -21,7 +21,7 @@ TRAIN='''(let a (Const (Int 1) (Base (IntT)) (InFunc "cell-training")))
 '''
 ROOT='(let root (Empty (Base (IntT)) (InFunc "update-held-out")))\n'
 
-def tests(build,analyzer,source,out,evidence_from=None):
+def tests(build,analyzer,source,out,evidence_from=None,spines=False):
     out.mkdir(parents=True,exist_ok=False);text=source.read_text();base=text[:text.index('(ruleset initialization)')]
     training=out/'training.egg';training.write_text(base+TRAIN+SCHEDULE)
     if evidence_from is None:
@@ -33,7 +33,7 @@ def tests(build,analyzer,source,out,evidence_from=None):
         assert training.read_text()==(evidence_from/'training.egg').read_text()
         analysis=evidence_from/'analysis-v2/analysis.json';core=evidence_from/'training-reference/core.json'
     core=json.loads(core.read_text());analysis=json.loads(analysis.read_text())
-    lib=compile_library(core,analysis,training.read_text(),updates_only=True)
+    lib=compile_library(core,analysis,training.read_text(),updates_only=True,spines=spines)
     assert lib['update_evidence']['existing_value_requests']>0 and not lib['templates']
     artifact=out/'updates.json';artifact.write_text(json.dumps(lib,indent=2)+'\n')
     results={'provenance':{'pass3_source_sha256':hashlib.sha256(text.encode()).hexdigest(),'artifact_sha256':lib['sha256'],
@@ -67,6 +67,10 @@ def tests(build,analyzer,source,out,evidence_from=None):
 (PotentialExtractedExpr root (TCPair (TermConst (Int 5)) 5))
 (ruleset later) (rule ((= p (TCPair t c)) (= c 5)) ((union p (TCPair (TermConst (Int 1)) 1))) :ruleset later)
 '''+SCHEDULE+'(run later 1)\n'+SCHEDULE,
+        'finite-entry-sentinel':'''(let a (Const (Int 1) (Base (IntT)) (InFunc "finite-entry")))
+(let b (Arg (Base (IntT)) (InFunc "finite-entry"))) (Bop (Add) a b)
+(run terms 1) (run terms-helpers 1)
+'''+SCHEDULE,
         'finite-run':ROOT+'''(set (ExtractedExpr root) (TCPair (TermConst (Int 10)) 10))
 (PotentialExtractedExpr root (TCPair (TermConst (Int 5)) 5))
 (run terms 1) (run terms-helpers 1) (run terms-helpers-helpers 1)
@@ -77,13 +81,14 @@ def tests(build,analyzer,source,out,evidence_from=None):
         report=run(file,build,out/name,cell_program=artifact,stage_contexts=True,stage_context_audit=True,check_at_end=True)
         calls=report['joint_polyspine']['calls'];assert report['checks'][-1]['exact_rows_values_equivalence_visibility']
         assert all(c['accepted'] and c['statistics'][49]==0 for c in calls),'original helper matcher executed'
+        if spines:assert all(c['statistics'][48]==0 for c in calls),'covered terms used original binder'
         if name=='finite-run':assert not calls
         else:
             assert sum(c['cell_updates']['actions'] for c in calls)>0
             assert sum(c['cell_updates']['existing_result_actions'] for c in calls)>0
         if name=='correlated-bags':assert sum(c['cell_updates']['multiple_witness_actions'] for c in calls)>0
         results[name]={'native':report['checks'][-1],'updates':[c['cell_updates'] for c in calls],
-                       'original_helper_bindings':sum(c['statistics'][49] for c in calls)}
+                       'original_helper_bindings':sum(c['statistics'][49] for c in calls),'original_terms_bindings':sum(c['statistics'][48] for c in calls),'spines':[c['spine_program'] for c in calls]}
         print(name,results[name],flush=True)
     # Fresh and existing-owner programs can coexist without double execution.
     combined=compile_library(core,analysis,training.read_text(),updates=True)
@@ -118,5 +123,5 @@ def tests(build,analyzer,source,out,evidence_from=None):
     (out/'results.json').write_text(json.dumps(results,indent=2)+'\n');return results
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--analyzer',type=Path,required=True);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--evidence-from',type=Path);a=p.parse_args()
-    print('passed',len(tests(a.build,a.analyzer,a.source,a.output,a.evidence_from)),'update checks')
+    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--analyzer',type=Path,required=True);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--evidence-from',type=Path);p.add_argument('--spines',action='store_true');a=p.parse_args()
+    print('passed',len(tests(a.build,a.analyzer,a.source,a.output,a.evidence_from,a.spines)),'update checks')

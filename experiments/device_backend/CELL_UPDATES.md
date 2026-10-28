@@ -1,5 +1,8 @@
 # Parameterized multi-candidate Cell updates
 
+The subsequent [v3 boundary recipe path](CELL_SPINES.md) also covers observed
+`terms` seed programs. The measurements on this page remain the v2 ablation.
+
 This extends the analyzer-exported v1 fresh-Cell recipes with a v2 executable
 update program for the real Pass-3 extraction rules. Existing results, multiple
 spines per owner, multiple candidates and multiple TCPair witnesses are allowed.
