@@ -2,7 +2,7 @@
 // sink is reused on a transactional device view, not on the published tables.
 let jpDescription=program["joint_polyspine"] as? [String:Any]
 let jpProgram=jpDescription?["program"] as? [String:Any]
-let jpNames=["jp_begin","jp_zero_maps","jp_count_range","jp_pack_range","jp_root_reset","jp_hash_clear","jp_hash_insert","jp_canonical","jp_retire","jp_csr_clear","jp_csr_count","jp_csr_offsets","jp_csr_fill","jp_prepare","jp_groups","jp_group_offsets","jp_bindings","jp_affine_mma","jp_validate","jp_sort_local","jp_sort_global","jp_commit","jp_comparison_roots","jp_advance","jp_close","jp_metrics","jp_csr_scan","jp_csr_blocks","jp_csr_add","jp_static_markers","jp_static_heads","jp_marker_offsets","jp_marker_items","jp_feature_clear","jp_candidate_summary","jp_choice_summary","jp_features","jp_feature_mma","jp_seams","jp_ridge_mma","jp_prediction_finish","jp_export_interfaces","jp_group_scan","jp_group_blocks","jp_group_add","jp_cache_static","jp_cache_signature","jp_cache_dependents","jp_cached_features","jp_cached_prediction","jp_cache_audit","jp_context_extend","jp_prepare_sets","jp_publish_sets"]
+let jpNames=["jp_begin","jp_zero_maps","jp_count_range","jp_pack_range","jp_root_reset","jp_hash_clear","jp_hash_insert","jp_canonical","jp_retire","jp_csr_clear","jp_csr_count","jp_csr_offsets","jp_csr_fill","jp_prepare","jp_groups","jp_group_offsets","jp_bindings","jp_affine_mma","jp_validate","jp_sort_local","jp_sort_global","jp_commit","jp_comparison_roots","jp_advance","jp_close","jp_metrics","jp_csr_scan","jp_csr_blocks","jp_csr_add","jp_static_markers","jp_static_heads","jp_marker_offsets","jp_marker_items","jp_feature_clear","jp_candidate_summary","jp_choice_summary","jp_features","jp_feature_mma","jp_seams","jp_ridge_mma","jp_prediction_finish","jp_export_interfaces","jp_group_scan","jp_group_blocks","jp_group_add","jp_cache_static","jp_cache_signature","jp_cache_dependents","jp_cached_features","jp_cached_prediction","jp_cache_audit","jp_context_extend","jp_prepare_sets","jp_publish_sets","cp_index","cp_recognize","cp_validate","cp_emit","cp_seed","cp_seed_finish","cp_finish"]
 let jpPipelines=try (jpProgram==nil ? []:jpNames).map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 var jpPool:[String:MTLBuffer]=[:]
 func jpBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
@@ -32,6 +32,8 @@ func jointPolyspine()throws->JointResult{
  let numericWidth=(nrecipes*4+7)/8*8,maxOps=max(1,recipes.map{($0["operations"] as! [[Int]]).count}.max() ?? 0)
  let maxAtoms=(plan["plans"] as! [[String:Any]]).map{($0["roles"] as! [Int]).count}.max() ?? 1
  var stageRead:SCView?=nil,stageTracker:StageContexts?=nil
+ let cpPlan=program["cell_program"] as? [String:Any],cpEnabled=(program["cell_program"] as? [String:Any])?["enabled"] as? Bool ?? false
+ var cpInfo=privateBuffer(16),cpData=privateBuffer(8),cpOwners=privateBuffer(4),cpKnown=privateBuffer(4),cpChoices=privateBuffer(4)
  let stateOffset=(program["index_counter_offset"] as! Int)+5+4*capacity
  let readback=shared([Int64](repeating:0,count:128)),metaBack=shared([UInt32](repeating:0,count:9))
  func launch(_ cb:MTLCommandBuffer,_ index:Int,_ bs:[MTLBuffer],_ n:Int,_ cfg:[UInt32]=[],_ grouped:Bool=false){
@@ -39,6 +41,7 @@ func jointPolyspine()throws->JointResult{
   for (i,b) in [rows,parent,factParent,meta,watermarks].enumerated(){e.setBuffer(b,offset:0,index:i)}
   e.setBuffer(stageRead?.parts["rows"]?.rowPages?.pool.data ?? rows,offset:0,index:30);e.setBuffer(stageRead?.parts["rows"]?.rowPages?.map ?? scFlatMap,offset:0,index:28);e.setBuffer(stageRead?.parts["meta"]?.buffer ?? meta,offset:0,index:29)
   if [14,16].contains(index),let wm=stageRead?.parts["watermarks"]?.buffer{e.setBuffer(wm,offset:0,index:4)}
+  e.setBuffer(cpInfo,offset:0,index:24);e.setBuffer(cpData,offset:0,index:25);e.setBuffer(cpOwners,offset:0,index:26)
   for (i,b) in bs.enumerated(){e.setBuffer(b,offset:0,index:5+i)}
   if !cfg.isEmpty{let padded=cfg.count==3 ? cfg+[0]:cfg;padded.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:5+bs.count)}}
   if grouped{e.dispatchThreadgroups(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:32,height:1,depth:1))}
@@ -98,9 +101,7 @@ func jointPolyspine()throws->JointResult{
   "fact_parents":SCPart(buffer:factParent,words:Int(hostMeta[8])),"watermarks":SCPart(buffer:watermarks,words:nrules),"meta":SCPart(buffer:meta,words:9),
   "function_map":SCPart(buffer:fmap,words:entryIDs),"cost_rows":SCPart(buffer:lists,words:Int(stats[13])),"candidate_rows":SCPart(buffer:lists,words:Int(stats[14]),offset:listCapacity),
   "function_rows":SCPart(buffer:lists,words:Int(stats[15]),offset:2*listCapacity),"choice_rows":SCPart(buffer:lists,words:Int(stats[16]),offset:3*listCapacity),"mutable_rows":SCPart(buffer:lists,words:Int(stats[17]),offset:4*listCapacity),"root_state":SCPart(buffer:rootstate,words:rootCount*8)]}
- if scEnabled{try need(stats[104]>=2 && stats[104]<=setWords,"stage set arena extent invalid")}
- stageTracker = scEnabled ? try autoreleasepool{try StageContexts(stageParts(),hostMeta,listCapacity,["markers":SCPart(buffer:markers,words:markerCount*8),"roots":SCPart(buffer:roots,words:rootCount),"rootmap":SCPart(buffer:rootmap,words:entryIDs),"set_arena":SCPart(buffer:rows,words:Int(stats[104])*2,offset:capacity*stride*2)],queue:queue)}:nil
- var stageAccounted=stageTracker?.gpuSeconds ?? 0;phases[0]+=stageAccounted
+ var stageAccounted=0.0
  var projectionGeneration:Int64 = -1,projectionExtent=0
  var publishedTo=entryRows
  func appendRows()throws{
@@ -116,6 +117,15 @@ func jointPolyspine()throws->JointResult{
   let add=queue.makeCommandBuffer()!;launch(add,3,[markers,lists,fmap,rootmap,roots,props],end-publishedTo,[UInt32(publishedTo),UInt32(end),UInt32(listCapacity)]);try wait(add,0);publishedTo=end
   try need(Int(stats[12])==rootCount,"certified program changed its root carrier")
  }
+ if cpEnabled{
+  cpInfo=jpBuffer("cp-info",rootCount*16);cpData=jpBuffer("cp-data",rootCount*((cpPlan!["width"] as! Int)+1)*8);cpOwners=rootmap
+  cpKnown=jpBuffer("cp-known",(program["id_capacity"] as! Int)*4);cpChoices=jpBuffer("cp-choices",capacity*4)
+  let cb=queue.makeCommandBuffer()!,z=cb.makeBlitCommandEncoder()!;for b in [cpInfo,cpData,cpKnown,cpChoices]{z.fill(buffer:b,range:0..<b.length,value:0)};z.endEncoding()
+  launch(cb,54,[markers,lists],max(markerCount,Int(stats[14])),[UInt32(listCapacity)]);try wait(cb,0)
+ }
+ if scEnabled{try need(stats[104]>=2 && stats[104]<=setWords,"stage set arena extent invalid")}
+ stageTracker = scEnabled ? try autoreleasepool{try StageContexts(stageParts(),hostMeta,listCapacity,["markers":SCPart(buffer:markers,words:markerCount*8),"roots":SCPart(buffer:roots,words:rootCount),"rootmap":SCPart(buffer:rootmap,words:entryIDs),"set_arena":SCPart(buffer:rows,words:Int(stats[104])*2,offset:capacity*stride*2)],queue:queue)}:nil
+ stageAccounted=stageTracker?.gpuSeconds ?? 0;phases[0]+=stageAccounted
  while Int(stats[1])<3 && hostMeta[4]==0{
   let phase=Int(stats[1]);stageRead=stageTracker?.begin(phase)
   if let view=stageRead{try need(view.metadata==hostMeta && view.listCapacity==listCapacity,"stage input version does not match its schedule boundary")}
@@ -134,6 +144,7 @@ func jointPolyspine()throws->JointResult{
    launch(prepare,9,[count,stamps,ranges],extent);launch(prepare,10,[readCosts,count,stamps,ranges],Int(stats[13]),[UInt32(listCapacity)]);launch(prepare,26,[count,offsets,scans],((extent+255)/256)*256);launch(prepare,27,[scans,offsets],1);launch(prepare,28,[offsets,cursors,scans],extent);launch(prepare,12,[readCosts,offsets,cursors,items],Int(stats[13]))
    projectionGeneration=stats[105];projectionExtent=extent
   }
+  if cpEnabled{launch(prepare,56,[fmap,count],rootCount);if phase==0{launch(prepare,55,[markers,fmap,count,offsets,items,cpKnown],1)}}
   if featuresEnabled{
    launch(prepare,33,[summary,choiceCounts,priority],max(extent,rootCount));launch(prepare,34,[lists,rootmap,count,ranges,summary],Int(stats[14]),[UInt32(listCapacity)]);launch(prepare,35,[lists,choiceCounts],Int(stats[16]),[UInt32(listCapacity)])
    launch(prepare,46,[roots,fmap,count,ranges,summary,choiceCounts,markers,moffset,mitems,rootstate,initial,signatures,baseDirty],rootCount,[firstFeatures ? 1:0,fullRefresh ? 1:0])
@@ -157,9 +168,9 @@ func jointPolyspine()throws->JointResult{
    trainingFrames.append((phase,hostMeta[2],frame[0],frame[1],frame[2],frame[3]))
   }
   if phase==2{
-   let result=try comparisonSaturate(UInt32(sets[2]),localOnly:true,sourceLists:lists,listCapacity:listCapacity,costCount:Int(stats[13]),choiceCount:Int(stats[16]),initialRanges:ranges,sourcePriority:model == nil ? nil:priority,readRows:stageRead?.parts["rows"]?.rowPages?.pool.data,readRowMap:stageRead?.parts["rows"]?.rowPages?.map,readParents:stageRead?.parts["parents"]?.buffer,readCosts:stageRead?.parts["cost_rows"]?.buffer,readChoices:stageRead?.parts["choice_rows"]?.buffer,deferPublication:blockMerge,scopeEpoch:savedHost[2])
+   let result=try comparisonSaturate(UInt32(sets[2]),localOnly:true,sourceLists:lists,listCapacity:listCapacity,costCount:Int(stats[13]),choiceCount:Int(stats[16]),initialRanges:cpEnabled ? nil:ranges,sourcePriority:model == nil ? nil:priority,readRows:stageRead?.parts["rows"]?.rowPages?.pool.data,readRowMap:stageRead?.parts["rows"]?.rowPages?.map,readParents:stageRead?.parts["parents"]?.buffer,readCosts:stageRead?.parts["cost_rows"]?.buffer,readChoices:stageRead?.parts["choice_rows"]?.buffer,deferPublication:blockMerge,scopeEpoch:savedHost[2],choiceCertificates:cpEnabled ? cpChoices:nil,seed:cpEnabled ? { cb,local,control in launch(cb,58,[local,control],rootCount);launch(cb,59,[control],1) }:nil)
    if !result.accepted{return failure(result.reason)};hostMeta=result.info;for i in 0..<3{phases[i]+=result.phases[i]}
-   let fix=queue.makeCommandBuffer()!;if let block=result.block{try block.encodeMerge(fix,savedHost[2]);launch(fix,53,[rootstate,fmap],1)};launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,5,[],program["hash_capacity"] as! Int);launch(fix,6,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,8,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,22,[roots,fmap,rootstate],rootCount);launch(fix,23,[],1);try wait(fix,2,true);if blockMerge && hostMeta[4]==0{try appendRows()}
+   let fix=queue.makeCommandBuffer()!;if let block=result.block{try block.encodeMerge(fix,savedHost[2]);launch(fix,53,[rootstate,fmap],1)};launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,5,[],program["hash_capacity"] as! Int);launch(fix,6,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,8,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,22,[roots,fmap,rootstate],rootCount);if cpEnabled{launch(fix,60,[fmap,rootstate],rootCount)};launch(fix,23,[],1);try wait(fix,2,true);if blockMerge && hostMeta[4]==0{try appendRows()}
    if let copy=result.block?.copy{try need(copy.status == .completed,"union block transfer failed");phases[0]+=copy.gpuEndTime-copy.gpuStartTime}
   }else{
    let jobs=Int(stats[9]),valid=jpBuffer("job-valid",jobs*4),info=jpBuffer("job-info",jobs*6*4),witnesses=jpBuffer("job-witnesses",jobs*maxAtoms*4),numeric=jpBuffer("job-numeric",jobs*maxOps*8),x=jpBuffer("job-x",jobs*numericWidth*2),y=jpBuffer("job-y",jobs*8*4)
@@ -172,7 +183,7 @@ func jointPolyspine()throws->JointResult{
    if matched>1{var padded=256;while padded<matched{padded*=2};launch(commit,19,[matches,witnesses,matchOrder],padded);var k=512;while k<=padded{var d=k/2;while d>0{launch(commit,20,[matches,witnesses,matchOrder],padded,[UInt32(k),UInt32(d)]);d/=2};k*=2}}
    // The next schedule state depends only on completed device effects. Keep
    // that transition on this command buffer; no host round-trip is needed.
-   launch(commit,21,[matches,matchOrder,numeric,info,instructions,registers,rootstate,roots],1);if blockMerge && phase==1{launch(commit,52,[rootstate],1)};launch(commit,23,[],1);try wait(commit,2,true)
+   launch(commit,21,[matches,matchOrder,numeric,info,instructions,registers,rootstate,roots],1);if cpEnabled{launch(commit,57,[rootstate,cpChoices],1)};if blockMerge && phase==1{launch(commit,52,[rootstate],1)};launch(commit,23,[],1);try wait(commit,2,true)
    if hostMeta[4] != 0{break};try appendRows()
   }
   if let tracker=stageTracker,hostMeta[4]==0{try tracker.seal(phase,stageParts(),hostMeta,listCapacity);phases[2]+=tracker.gpuSeconds-stageAccounted;stageAccounted=tracker.gpuSeconds}

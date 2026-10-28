@@ -15,6 +15,8 @@ mod normalize;
 mod families;
 #[path = "native_cell_ports.rs"]
 mod ports;
+#[path = "native_cell_program.rs"]
+mod cell_program;
 
 const DSL: &str = r#"
 (datatype*
@@ -46,6 +48,7 @@ pub(super) struct Registry {
     families: families::Census,
     family_members: BTreeSet<(usize, usize)>,
     port_progressions: Json,
+    executable_evidence: cell_program::Census,
     catalog_revision: usize,
     port_version: Option<(usize, usize, usize, usize)>,
 }
@@ -76,6 +79,7 @@ impl Registry {
             families: families::Census::default(),
             family_members: BTreeSet::new(),
             port_progressions: json!({"families":[]}),
+            executable_evidence: cell_program::Census::default(),
             catalog_revision: 0,
             port_version: None,
         })
@@ -85,6 +89,7 @@ impl Registry {
     }
     pub fn observe_history(&mut self, c: &super::super::Captured, store: &super::super::cs::Store, catalog: Option<&Json>) -> Result<()> {
         self.families.observe(c, store);
+        self.executable_evidence.observe(c);
         let version=(c.records.len(),c.changes.len(),store.windows.len(),self.catalog_revision);
         if self.port_version!=Some(version) {
             self.port_progressions = ports::report(c, store, catalog);
@@ -323,7 +328,7 @@ impl Registry {
         // Observation-specific coordinates are rebuilt from this snapshot's
         // catalog, whose class numbers need not be stable across refreshes.
         repetition["port_progressions"] = self.port_progressions.clone();
-        json!({"repetition_families":repetition,"graft_interfaces":grafts,"graft_interface_scope":"conditional replay extension, independent of historical edges; only exact completed endpoint certificates", "registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
+        json!({"executable_program_evidence":self.executable_evidence.report(),"repetition_families":repetition,"graft_interfaces":grafts,"graft_interface_scope":"conditional replay extension, independent of historical edges; only exact completed endpoint certificates", "registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
     }
 }
 

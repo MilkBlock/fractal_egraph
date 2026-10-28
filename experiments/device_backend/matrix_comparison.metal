@@ -1,7 +1,7 @@
 // Private equality closure. Global tables/UF are immutable until cu_publish.
 // COMPARISON_PROGRAM
 // cfg = set, row count, id extent, cost count, choice count, hash size, audit.
-#define CU_ARGS device long*r[[buffer(0)]],device uint*c[[buffer(1)]],constant uint*cfg[[buffer(2)]],device const uint*svmap[[buffer(28)]],device const long*svdata[[buffer(30)]]
+#define CU_ARGS device long*r[[buffer(0)]],device uint*c[[buffer(1)]],constant uint*cfg[[buffer(2)]],device const uint*certificates[[buffer(27)]],device const uint*svmap[[buffer(28)]],device const long*svdata[[buffer(30)]]
 uint cu_root(device const uint*p,uint x){while(p[x]!=x)x=p[x];return x;}
 void cu_union(device uint*p,uint a,uint b,device uint*c,device long*r){
  device atomic_uint*uf=(device atomic_uint*)p;
@@ -33,6 +33,12 @@ kernel void cu_reduce(CU_ARGS,device const uint*costs[[buffer(3)]],device const 
 kernel void cu_gather(CU_ARGS,device const uint*choices[[buffer(3)]],device const uint*p[[buffer(4)]],device const uint*ranges[[buffer(5)]],device uint*ports[[buffer(6)]],device half*x[[buffer(7)]],uint i[[thread_position_in_grid]]){
  if(c[2]||i>=cfg[4])return;uint row=choices[i];if(sv[row*STRIDE+1]){ports[4*i]=0xffffffff;ports[4*i+1]=0xffffffff;ports[4*i+2]=0;ports[4*i+3]=0;for(uint j=0;j<32;j++)x[32*i+j]=0;return;}uint a=cu_root(p,uint(sv[row*STRIDE+4])),b=cu_root(p,uint(sv[row*STRIDE+5]));
  ports[4*i]=a;ports[4*i+1]=b;ports[4*i+2]=cu_root(p,uint(sv[row*STRIDE+6]));ports[4*i+3]=ranges[2*a]&&ranges[2*b];
+ // Artifact union already proves this choice. Keep congruence ports, and
+ // recheck the complete cost range: future aliases can invalidate the proof.
+ if(cfg[8]&&certificates[row]&&ports[4*i+2]==b&&ranges[2*a]&&ranges[2*b+1]&&sv[(ranges[2*a]-1)*STRIDE+5]>sv[(ranges[2*b+1]-1)*STRIDE+5]){
+  ports[4*i+3]=0;for(uint j=0;j<32;j++)x[32*i+j]=0;
+  atomic_fetch_add_explicit((device atomic_uint*)(r+JP_STATE+120),1u,memory_order_relaxed);return;
+ }
  for(uint j=0;j<4;j++){uint witness=ranges[2*(j<2?a:b)+(j&1)];ulong bits=witness?(as_type<ulong>(sv[(witness-1)*STRIDE+5])^0x8000000000000000UL):0;
   for(uint k=0;k<8;k++)x[32*i+8*j+k]=half((bits>>(56-8*k))&255);}
 }

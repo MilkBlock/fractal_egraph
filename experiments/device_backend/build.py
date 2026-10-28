@@ -19,9 +19,9 @@ def main():
   shutil.copy2(native,o/'frontend')
   subprocess.run(['xcrun','swiftc','-O',str(swift_source(o)),'-o',str(o/'worker')],check=True)
   old.update(frontend=str(o/'frontend'),worker_sha256=sha(o/'worker'),reused_native_build=str(a.reuse_native_build.resolve()),git_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip())
-  for name in ['compiler.py','batch_rhs.py','batch_rhs.metal','matrix_sat.py','matrix_sat.metal','matrix_comparison.py','matrix_comparison.metal','joint_polyspine.py','joint_polyspine.metal','joint_refresh.metal','joint_polyspine.swift','stage_cell.py','stage_contexts.metal','stage_contexts.swift','query_contexts.py','context_ridge.py','contexts.metal','worker.swift','kernel.metal','sets.metal','actions.metal','row_index.metal','query_index.metal','rebuild_parallel.metal','query_parallel.metal','match_sort.metal','run.py']:
+  for name in ['compiler.py','batch_rhs.py','batch_rhs.metal','matrix_sat.py','matrix_sat.metal','matrix_comparison.py','matrix_comparison.metal','joint_polyspine.py','joint_polyspine.metal','joint_refresh.metal','joint_polyspine.swift','stage_cell.py','cell_program.py','cell_program.metal','stage_contexts.metal','stage_contexts.swift','query_contexts.py','context_ridge.py','contexts.metal','worker.swift','kernel.metal','sets.metal','actions.metal','row_index.metal','query_index.metal','rebuild_parallel.metal','query_parallel.metal','match_sort.metal','run.py']:
    old['sources'][str(HERE/name)]=sha(HERE/name)
-  for path in ['experiments/polyspine_ridge/resumable_program.py','experiments/polyspine_ridge/affine_terms.py','tools/cell_spine/interfaces.py']:old['sources'][str(ROOT/path)]=sha(ROOT/path)
+  for path in ['experiments/polyspine_ridge/resumable_program.py','experiments/polyspine_ridge/affine_terms.py','tools/cell_spine/interfaces.py','tools/cell_spine/closure_contract.py','tools/cell_spine/executable.py']:old['sources'][str(ROOT/path)]=sha(ROOT/path)
   (o/'build.json').write_text(json.dumps(old,indent=2));return
  (o/'Cargo.toml').write_text('[package]\nname="egglog-device-frontend"\nversion="0.1.0"\nedition="2024"\n[dependencies]\negglog={path='+json.dumps(str(ROOT/'egglog'))+',default-features=false,features=["serde"]}\nserde_json="1"\n[profile.dev]\ndebug=0\nincremental=false\n')
  dest=o/'src/main.rs'
@@ -34,7 +34,7 @@ def main():
  swift='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc';sdk='/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
  if not a.frontend_only and (HERE/'worker.swift').exists():subprocess.run([swift,'-O','-sdk',sdk,str(swift_source(o)),'-o',str(o/'worker')],check=True)
  sha=lambda x:hashlib.sha256(x.read_bytes()).hexdigest()
- sources=[ROOT/'egglog/src/device_program.rs',ROOT/'egglog/egglog-bridge/src/device_import.rs',ROOT/'egglog/src/lib.rs',ROOT/'egglog/egglog-bridge/src/rule.rs',*[HERE/n for n in ['frontend.rs','compiler.py','batch_rhs.py','batch_rhs.metal','matrix_sat.py','matrix_sat.metal','matrix_comparison.py','matrix_comparison.metal','joint_polyspine.py','joint_polyspine.metal','joint_refresh.metal','joint_polyspine.swift','stage_cell.py','stage_contexts.metal','stage_contexts.swift','query_contexts.py','context_ridge.py','contexts.metal','worker.swift','kernel.metal','sets.metal','actions.metal','row_index.metal','query_index.metal','rebuild_parallel.metal','query_parallel.metal','match_sort.metal','run.py']]]
+ sources=[ROOT/'egglog/src/device_program.rs',ROOT/'egglog/egglog-bridge/src/device_import.rs',ROOT/'egglog/src/lib.rs',ROOT/'egglog/egglog-bridge/src/rule.rs',*[HERE/n for n in ['frontend.rs','compiler.py','batch_rhs.py','batch_rhs.metal','matrix_sat.py','matrix_sat.metal','matrix_comparison.py','matrix_comparison.metal','joint_polyspine.py','joint_polyspine.metal','joint_refresh.metal','joint_polyspine.swift','stage_cell.py','cell_program.py','cell_program.metal','stage_contexts.metal','stage_contexts.swift','query_contexts.py','context_ridge.py','contexts.metal','worker.swift','kernel.metal','sets.metal','actions.metal','row_index.metal','query_index.metal','rebuild_parallel.metal','query_parallel.metal','match_sort.metal','run.py']]]
  tracked=subprocess.check_output(['git','ls-files','-z','egglog'],cwd=ROOT).decode().split('\0')
  kernel=sorted(set([n for n in tracked if n.endswith(('.rs','.toml','.lock'))]+['egglog/src/device_program.rs']))
  digest=hashlib.sha256()
@@ -42,7 +42,7 @@ def main():
   f=ROOT/name
   if f.is_file():digest.update(name.encode()+b'\0'+sha(f).encode())
  sources.append(HERE/'compact_observer.rs')
- sources.extend(ROOT/n for n in ['experiments/polyspine_ridge/resumable_program.py','experiments/polyspine_ridge/affine_terms.py','tools/cell_spine/interfaces.py'])
+ sources.extend(ROOT/n for n in ['experiments/polyspine_ridge/resumable_program.py','experiments/polyspine_ridge/affine_terms.py','tools/cell_spine/interfaces.py','tools/cell_spine/closure_contract.py','tools/cell_spine/executable.py'])
  provenance={'profile':'release' if a.release else 'debug','sources':{str(x):sha(x) for x in sources},'native_kernel_source_sha256':digest.hexdigest(),'git_head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'baseline_tag':subprocess.check_output(['git','rev-parse','egglog-baseline'],cwd=ROOT,text=True).strip(),'native_kernel_dirty':subprocess.check_output(['git','status','--short','--','egglog'],cwd=ROOT,text=True).splitlines(),'frontend':str(o/'frontend'),'frontend_sha256':sha(o/'frontend'),'worker_sha256':sha(o/'worker') if not a.frontend_only else None}
  (o/'build.json').write_text(json.dumps(provenance,indent=2))
 if __name__=='__main__':main()

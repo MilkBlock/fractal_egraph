@@ -281,12 +281,12 @@ struct ComparisonBlock {
  }
 }
 struct ComparisonResult {let accepted:Bool;let reason:UInt32;let info:[UInt32];let iterations:UInt32;let unions:UInt32;let costs:UInt32;let choices:UInt32;let scratch:Int;let phases:[Double];let index:Int64;var block:ComparisonBlock?=nil}
-func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?=nil,listCapacity:Int=0,costCount:Int=0,choiceCount:Int=0,initialRanges:MTLBuffer?=nil,sourcePriority:MTLBuffer?=nil,readRows:MTLBuffer?=nil,readRowMap:MTLBuffer?=nil,readParents:MTLBuffer?=nil,readCosts:MTLBuffer?=nil,readChoices:MTLBuffer?=nil,deferPublication:Bool=false,scopeEpoch:UInt32=0)throws->ComparisonResult{
+func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?=nil,listCapacity:Int=0,costCount:Int=0,choiceCount:Int=0,initialRanges:MTLBuffer?=nil,sourcePriority:MTLBuffer?=nil,readRows:MTLBuffer?=nil,readRowMap:MTLBuffer?=nil,readParents:MTLBuffer?=nil,readCosts:MTLBuffer?=nil,readChoices:MTLBuffer?=nil,deferPublication:Bool=false,scopeEpoch:UInt32=0,choiceCertificates:MTLBuffer?=nil,seed:((MTLCommandBuffer,MTLBuffer,MTLBuffer)->Void)?=nil)throws->ComparisonResult{
  try need(hostMeta[4]==0 && cuPlans.contains(where:{($0["set"] as! Int)==Int(set)}),"uncertified comparison request")
- let nrows=Int(hostMeta[0]),extent=Int(hostMeta[1]);var cfg:[UInt32]=[set,UInt32(nrows),UInt32(extent),0,0,0,ProcessInfo.processInfo.environment["EGGFUSE_MATRIX_AUDIT"]=="1" ? 1:0,0]
+ let nrows=Int(hostMeta[0]),extent=Int(hostMeta[1]);var cfg:[UInt32]=[set,UInt32(nrows),UInt32(extent),0,0,0,ProcessInfo.processInfo.environment["EGGFUSE_MATRIX_AUDIT"]=="1" ? 1:0,0,choiceCertificates == nil ? 0:1]
  let ctrl=deferPublication ? privateBuffer(64):cuBuffer("control",64),readback=shared([UInt32](repeating:0,count:16));var phases=[Double](repeating:0,count:3),scratch=64
  func launch(_ cb:MTLCommandBuffer,_ index:Int,_ buffers:[MTLBuffer],_ n:Int,_ grouped:Bool=false){
-  if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=cuNames[index];e.setComputePipelineState(cuPipelines[index]);e.setBuffer(rows,offset:0,index:0);e.setBuffer(ctrl,offset:0,index:1);e.setBuffer(readRows ?? rows,offset:0,index:30);e.setBuffer(readRowMap ?? scFlatMap,offset:0,index:28)
+  if n==0{return};let e=cb.makeComputeCommandEncoder()!;e.label=cuNames[index];e.setComputePipelineState(cuPipelines[index]);e.setBuffer(rows,offset:0,index:0);e.setBuffer(ctrl,offset:0,index:1);e.setBuffer(readRows ?? rows,offset:0,index:30);e.setBuffer(readRowMap ?? scFlatMap,offset:0,index:28);e.setBuffer(choiceCertificates ?? scFlatMap,offset:0,index:27)
   cfg.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:2)};for (i,b) in buffers.enumerated(){e.setBuffer(b,offset:0,index:i+3)}
   if grouped{e.dispatchThreadgroups(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:32,height:1,depth:1))}
   else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))};e.endEncoding()
@@ -304,7 +304,7 @@ func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?
  let local=cuBuffer("uf",extent*4),costs=cuBuffer("costs",nc*4),choices=cuBuffer("choices",na*4),ranges=cuBuffer("ranges",extent*8),heads=cuBuffer("heads",hashes*4),ports=cuBuffer("ports",na*16),x=cuBuffer("x",na*32*2),y=cuBuffer("y",na*16*4)
  let priority=cuBuffer("priority",na*4)
  scratch += [local,costs,choices,ranges,heads,ports,x,y,priority].map{$0.length}.reduce(0,+)
- let pack=queue.makeCommandBuffer()!,copy=pack.makeBlitCommandEncoder()!;copy.copy(from:readParents ?? parent,sourceOffset:0,to:local,destinationOffset:0,size:extent*4);if let lists=sourceLists{if nc>0{copy.copy(from:readCosts ?? lists,sourceOffset:0,to:costs,destinationOffset:0,size:nc*4)};if na>0{copy.copy(from:readChoices ?? lists,sourceOffset:readChoices == nil ? 3*listCapacity*4:0,to:choices,destinationOffset:0,size:na*4)}};copy.endEncoding();if sourceLists==nil{launch(pack,1,[costs,choices],nrows)};if let classes=sourcePriority{launch(pack,10,[choices,local,classes,priority],na)};info=try wait(pack,0)
+ let pack=queue.makeCommandBuffer()!,copy=pack.makeBlitCommandEncoder()!;copy.copy(from:readParents ?? parent,sourceOffset:0,to:local,destinationOffset:0,size:extent*4);if let lists=sourceLists{if nc>0{copy.copy(from:readCosts ?? lists,sourceOffset:0,to:costs,destinationOffset:0,size:nc*4)};if na>0{copy.copy(from:readChoices ?? lists,sourceOffset:readChoices == nil ? 3*listCapacity*4:0,to:choices,destinationOffset:0,size:na*4)}};copy.endEncoding();if sourceLists==nil{launch(pack,1,[costs,choices],nrows)};if let classes=sourcePriority{launch(pack,10,[choices,local,classes,priority],na)};seed?(pack,local,ctrl);info=try wait(pack,0)
  let edgeScratch=deferPublication ? cuBuffer("block-edge-scratch",max(8,extent*8)):local
  var firstIteration=true
  while info[2]==0{

@@ -35,9 +35,15 @@ prediction semantics do not repair the pre-existing full native graph mismatch.
 
 The CPU keeps native parsing, typechecking and schedule control. Metal owns the evolving tables, matching, RHS actions, union-find and rebuild. Normal execution returns status/timing data, never bindings for CPU-side RHS execution.
 
-This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; the default path commits necessary RHS effects and merge callbacks serially. It has completed all 10,097 raytrace Pass 3 Runs from the original input, without CPU inference, matching the logical endpoint of the earlier device continuations. Strict final graph/selected-DAG equality with native has **not** passed; production Tiger emits 29 functions on both sides, and a separate production-interpreter check agrees on raytrace's official input plus three varied inputs. That finite-input result is not an equivalence proof. There is no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic Analyze library loading is not connected here. Optional continuation ridge ordering and certified matrix saturation are separate paths described above.
+This remains an experimental device backend with parallel index construction, matching, congruence grouping and compaction; the default path commits necessary RHS effects and merge callbacks serially. It has completed all 10,097 raytrace Pass 3 Runs from the original input, without CPU inference, matching the logical endpoint of the earlier device continuations. Strict final graph/selected-DAG equality with native has **not** passed; production Tiger emits 29 functions on both sides, and a separate production-interpreter check agrees on raytrace's official input plus three varied inputs. That finite-input result is not an equivalence proof. There is no full Pass 3 acceleration claim. Explicit Cell/spine/marker `.egg` programs run through the same backend; automatic general Analyze library loading is not connected here; an opt-in guarded executable recipe path is described below. Optional continuation ridge ordering and certified matrix saturation are separate paths described above.
 
 ## Run and verify
+
+[Analyzer-exported executable Cell recipes](EXECUTABLE_CELL.md) connect native
+Analyze evidence to parameterized stage instructions loaded with `--cell-program`.
+The first admitted family is fresh single-spine extraction. Covered continuations
+bypass internal matching and publish by stage; unsupported contexts keep the
+complete query path. This is distinct from the stage-description file below.
 
 [Multi-stage Cell Bake and context patches](MULTI_STAGE_CELL.md) adds a
 loadable exact stage program with separate immutable read versions for the

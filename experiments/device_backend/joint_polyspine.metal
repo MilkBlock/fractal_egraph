@@ -2,7 +2,7 @@
 // constructor records and a small affected-key index are written in that
 // private view. Structural interfaces and unresolved ports remain resident.
 // JOINT_PROGRAM
-#define JP_ARGS device long*r[[buffer(0)]],device uint*p[[buffer(1)]],device uint*fp[[buffer(2)]],device Meta&m[[buffer(3)]],device uint*wm[[buffer(4)]],device const uint*vm[[buffer(29)]],device const uint*svmap[[buffer(28)]],device const long*svdata[[buffer(30)]]
+#define JP_ARGS device long*r[[buffer(0)]],device uint*p[[buffer(1)]],device uint*fp[[buffer(2)]],device Meta&m[[buffer(3)]],device uint*wm[[buffer(4)]],device uint*cpInfo[[buffer(24)]],device long*cpData[[buffer(25)]],device const uint*cpOwnerMap[[buffer(26)]],device const uint*vm[[buffer(29)]],device const uint*svmap[[buffer(28)]],device const long*svdata[[buffer(30)]]
 uint jp_add(device long*r,uint field,uint n){return atomic_fetch_add_explicit((device atomic_uint*)(r+JP_STATE+field),n,memory_order_relaxed);}
 void jp_fail(device Meta&m,uint e){atomic_store_explicit((device atomic_uint*)&m.error,e,memory_order_relaxed);}
 uint jp_count(device long*r,uint field){return uint(r[JP_STATE+field]);}
@@ -101,9 +101,9 @@ kernel void jp_prepare(JP_ARGS,uint i[[thread_position_in_grid]]){
 kernel void jp_groups(JP_ARGS,device const uint*markers[[buffer(5)]],device const uint*lists[[buffer(6)]],device const uint*fmap[[buffer(7)]],device const uint*counts[[buffer(8)]],device const uint*offsets[[buffer(9)]],device const uint*stamps[[buffer(10)]],device uint*g[[buffer(11)]],constant uint2&cfg[[buffer(12)]],uint i[[thread_position_in_grid]]){
  if(i>=cfg.x||m.error)return;uint q=16*i;for(uint j=0;j<16;j++)g[q+j]=0;
  uint phase=jp_count(r,1),row,rule,recipe,root,arity=0,refs[3]={0},sizes[3]={1,1,1},starts[3]={0},latest=0;
- if(phase==0){uint b=8*i;row=markers[b];recipe=markers[b+1];root=markers[b+2];arity=markers[b+3];rule=JP_TERM_RULES[recipe];latest=uint(sv[row*STRIDE+2]);
+ if(phase==0){uint b=8*i;row=markers[b];recipe=markers[b+1];root=markers[b+2];arity=markers[b+3];rule=JP_TERM_RULES[recipe];latest=uint(sv[row*STRIDE+2]);if(CP_ENABLED&&(cpInfo[4*cpOwnerMap[root]+2]>0&&cpInfo[4*cpOwnerMap[root]+2]<8)){jp_add(r,126,1);return;}
   for(uint j=0;j<arity;j++){uint fr=fmap[markers[b+4+j]];if(!fr)return;refs[j]=fr-1;uint id=uint(sv[(fr-1)*STRIDE+5]);sizes[j]=counts[id];starts[j]=offsets[id];latest=max(latest,max(uint(sv[(fr-1)*STRIDE+2]),stamps[id]));}
- }else{uint rank=i%3;row=lists[cfg.y+i/3];if(sv[row*STRIDE+1])return;root=uint(sv[row*STRIDE+4]);recipe=rank;rule=JP_HELPER_RULES[rank];latest=uint(sv[row*STRIDE+2]);
+ }else{uint rank=i%3;row=lists[cfg.y+i/3];if(sv[row*STRIDE+1])return;root=uint(sv[row*STRIDE+4]);recipe=rank;rule=JP_HELPER_RULES[rank];latest=uint(sv[row*STRIDE+2]);if(CP_ENABLED&&(cpInfo[4*cpOwnerMap[root]+2]>0&&cpInfo[4*cpOwnerMap[root]+2]<8)){jp_add(r,126,1);return;}
   if(rank){uint id=uint(sv[row*STRIDE+5]);sizes[0]=counts[id];starts[0]=offsets[id];latest=max(latest,stamps[id]);arity=1;}
   if(rank==1){uint fr=fmap[root];if(!fr)return;refs[0]=fr-1;uint id=uint(sv[(fr-1)*STRIDE+5]);sizes[1]=counts[id];starts[1]=offsets[id];latest=max(latest,max(uint(sv[(fr-1)*STRIDE+2]),stamps[id]));arity=2;}
  }
@@ -127,7 +127,7 @@ kernel void jp_group_add(JP_ARGS,device uint*g[[buffer(5)]],device const uint*bl
 }
 kernel void jp_bindings(JP_ARGS,device const uint*g[[buffer(5)]],device const uint*items[[buffer(6)]],device long*matches[[buffer(7)]],device uint*witnesses[[buffer(8)]],device uint*valid[[buffer(9)]],device uint*jobinfo[[buffer(10)]],device half*x[[buffer(11)]],device const uint*rootmap[[buffer(12)]],device const float*scores[[buffer(13)]],constant uint4&cfg[[buffer(14)]],uint job[[thread_position_in_grid]]){
  if(job>=jp_count(r,9)||m.error)return;uint lo=0,hi=cfg.x;while(lo+1<hi){uint mid=(lo+hi)/2;if(g[mid*16+1]<=job)lo=mid;else hi=mid;}uint at=lo*16;
- uint rootid=g[at+5],rootIndex=rootmap[rootid],phase=jp_count(r,1);bool priority=cfg.z==0||scores[rootIndex*8+phase]>=.5f;if(priority!=(cfg.w==1))return;
+ uint rootid=g[at+5],rootIndex=rootmap[rootid];if(CP_ENABLED&&(cpInfo[4*rootIndex+2]>0&&cpInfo[4*rootIndex+2]<8)){jp_fail(m,28);return;}uint phase=jp_count(r,1);bool priority=cfg.z==0||scores[rootIndex*8+phase]>=.5f;if(priority!=(cfg.w==1))return;
  valid[job]=0;for(uint j=0;j<cfg.y;j++)x[job*cfg.y+j]=0;uint rule=g[at+3],recipe=g[at+4],offset=job-g[at+1],selected[7];for(uint j=0;j<7;j++)selected[j]=0xffffffff;selected[0]=g[at+2];uint costs[3]={0xffffffff,0xffffffff,0xffffffff};
  for(uint j=0;j<3;j++){uint n=g[at+9+j],digit=n?offset%n:0;offset=n?offset/n:0;if((phase==0&&j<JP_ARITY[recipe])||(phase==1&&((recipe==1&&j<2)||(recipe==2&&j==0))))costs[j]=items[g[at+12+j]+digit];}
  if(phase==0){for(uint j=0;j<JP_ARITY[recipe];j++){selected[1+j]=g[at+6+j];selected[4+j]=costs[j];}}

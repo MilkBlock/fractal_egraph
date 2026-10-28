@@ -8,12 +8,14 @@ HERE=Path(__file__).resolve().parent
 BASE=(HERE/'fixtures/polyspine-terms.egg').read_text()
 SCHEDULE='(run-schedule (saturate (run terms) (saturate (run terms-helpers) (saturate (run terms-helpers-helpers)))))\n'
 
-def rejected_transaction(build,file,out,reason,capacity=4096,stage_contexts=False,block_merge=False):
+def rejected_transaction(build,file,out,reason,capacity=4096,stage_contexts=False,block_merge=False,cell_program=None):
     out.mkdir(parents=True)
     with (out/'native.log').open('w') as log:
         native=subprocess.Popen([str((build/'frontend').resolve()),str(file.resolve())],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log,text=True)
         core=json.loads(native.stdout.readline());native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait();native.stdin.close();native.stdout.close()
-    p=compile_program(core,capacity=capacity,joint_polyspine=True,stage_contexts=stage_contexts,block_merge=block_merge,block_merge_audit=block_merge);p['stage_context_audit']=stage_contexts;assert p['joint_polyspine']['program']
+    from tools.cell_spine.executable import load as load_cell_program
+    executable=load_cell_program(cell_program,core) if cell_program else None
+    p=compile_program(core,capacity=capacity,joint_polyspine=True,stage_contexts=stage_contexts,block_merge=block_merge,block_merge_audit=block_merge,cell_program=executable);p['stage_context_audit']=stage_contexts;assert p['joint_polyspine']['program']
     path=out/'program.json';path.write_text(json.dumps(p))
     with (out/'gpu.log').open('w') as log:
         gpu=subprocess.Popen([str((build/'worker').resolve()),str(path.resolve())],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log)

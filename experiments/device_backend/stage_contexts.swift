@@ -113,7 +113,9 @@ final class StageContexts {
    // keys are immutable Expr IDs; updating a value does not rewrite its row map.
    let appendOnly=["cost_rows","candidate_rows","function_rows","choice_rows","mutable_rows"].contains(name)
    let sameFunctions=before.parts["function_rows"]!.words==live["function_rows"]!.words
-   let noActions=phase<2 && metadata[5]==0
+   // Direct Cell instructions can change state without an original-rule match.
+   let recipeActive=(program["cell_program"] as? [String:Any])?["enabled"] as? Bool ?? false
+   let noActions=phase<2 && metadata[5]==0 && !recipeActive
    let noComparisonChanges=phase==2 && metadata[7]==before.metadata[7] && rowCount.contents().load(as:UInt32.self)==0
    let unchanged=b.words==a.words && (appendOnly || (name=="function_map" && sameFunctions) || (["parents","fact_parents","root_state"].contains(name) && noActions) || (["fact_parents","root_state"].contains(name) && noComparisonChanges && !(program["block_merge"] as? Bool ?? false)))
    if unchanged{out[name]=a;changed[name]=SCChange(buffer:empty,count:0,extent:b.words);if scAudit{scLaunch(cb,3,[a.buffer,b.buffer,error],b.words,[UInt32(b.words)],offsets:[a.offset,b.offset,0])};continue}
