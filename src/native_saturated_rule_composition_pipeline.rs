@@ -245,6 +245,9 @@ impl Pipeline {
             };
             match result {
                 Ok(mut session) => {
+                    if let Some(unit) = self.jobs[id]["cell_unit"].as_u64() {
+                        self.cells.register_device(unit as usize, &session.before, &session.rulesets);
+                    }
                     session.initialization["seconds"] = json!(started.elapsed().as_secs_f64());
                     self.jobs[id]["initialization"] = session.initialization.clone();
                     self.jobs[id]["state"] = json!("Running");

@@ -21,6 +21,28 @@ fn main() -> Result<()> {
             .map(|c| c["unit"].as_u64().unwrap() as usize)
             .collect()
     };
+    if args.iter().any(|s| s == "--export-device") {
+        let library = p.device_library(&units)?;
+        std::fs::write(&args[1], serde_json::to_vec_pretty(&library)?)?;
+        eprintln!(
+            "exported {} instances, {} typed programs, {} rejected",
+            library["instances"].as_array().unwrap().len(),
+            library["programs"].as_array().unwrap().len(),
+            library["rejected"].as_array().unwrap().len()
+        );
+        return Ok(());
+    }
+    if args.iter().any(|s| s == "--device-oracle") {
+        let references = units
+            .iter()
+            .map(|u| p.device_reference(*u))
+            .collect::<Result<Vec<_>>>()?;
+        std::fs::write(
+            &args[1],
+            serde_json::to_vec_pretty(&json!({"references":references}))?,
+        )?;
+        return Ok(());
+    }
     for unit in units {
         let validation = p.execute(unit, true, false).map(|_| ());
         let result = match validation.and_then(|_| p.verify_endpoint(unit)) {

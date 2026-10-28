@@ -47,7 +47,7 @@ pub(super) struct Session {
     ports: Vec<(String, egglog::ArcSort, Value)>,
     trace: TraceSession,
     producers: BTreeMap<u64, Producer>,
-    rulesets: Vec<String>,
+    pub(super) rulesets: Vec<String>,
     round: usize,
     schedule: String,
     pub report: Json,
@@ -226,6 +226,7 @@ impl Session {
             TraceSession::with_effects()
         };
         let c = Captured {
+            device_source: None,
             reuse_plan: Json::Null,
             reuse_signatures: BTreeSet::new(),
             changes: vec![],
@@ -422,6 +423,15 @@ impl Session {
         let mut exported = json!({"status":"running"});
         if self.done {
             self.eg.run_program(self.checks.clone())?;
+            if std::env::var_os("EGG_LAYOUT_DEVICE_ORACLE").is_some() {
+                // Test-only native endpoint, never fed to the device executor.
+                let reference=(|| -> Result<Json> {
+                    let anchors=self.before.capture_device_anchors().map_err(|e|format!("{e}"))?;
+                    Ok(self.eg.device_checkpoint(&anchors).map_err(|e|format!("{e}"))?)
+                })();
+                crate::pipeline::write_json(&self.out.join("cell-device-reference.json"),
+                    &match reference {Ok(v)=>json!({"checkpoint":v}),Err(e)=>json!({"error":e.to_string()})})?;
+            }
             match export_state(&self.eg, &self.c, &self.ports, true, &self.out, false) {
                 Ok(state) => {
                     std::fs::write(

@@ -23,6 +23,36 @@ INTEGER_OPS={'+':0,'-':1,'*':2,'/':3,'%':4,'min':5,'max':6,'bool-=':7,'bool-<':8
 def integer_op(c):
  return INTEGER_OPS.get(c['primitive']) if c['inputs']==['i64','i64'] else None
 
+def encode_initial(p,cols,string_ids,native_order=False):
+ """Typed instance data only; does not recompile rules for another binding."""
+ ts=p['tables'];ids={t['name']:i for i,t in enumerate(ts)}
+ set_ids={name:i for i,name in enumerate(sorted({s['name'] for t in ts for s in t['schema'] if s['kind']=='set'}))}
+ def atoms(x):
+  if 'elements' in x:
+   for e in x['elements']:yield from atoms(e)
+  else:yield x
+ keys={(x['sort'],x['eq']) for row in p['initial'] for v in row['values'] for x in atoms(v) if 'eq' in x}
+ def order(k):
+  if not native_order:return k
+  m=re.fullmatch(r'Value\((\d+)\)',k[1])
+  if not m:raise ValueError('native identity ordering needs an exported Value ordinal')
+  return (k[0],int(m[1]))
+ anchors=sorted(keys,key=order);identity={k:i+1 for i,k in enumerate(anchors)}
+ arena=[2,1];intern={}
+ def encode(x):
+  if 'eq' in x:return identity[(x['sort'],x['eq'])]
+  if 'elements' in x:
+   es=tuple(sorted({encode(e) for e in x['elements']}));key=(x['sort'],es)
+   if key not in intern:
+    intern[key]=len(arena);arena.extend([len(es),len(es),set_ids[x['sort']],1,*es]);arena[0]=len(arena)
+   return intern[key]
+  return string_ids[x['value']] if x['sort']=='String' else x['value']
+ flat=[]
+ for i,row in enumerate(p['initial']):
+  vs=[encode(x) for x in row['values']]
+  flat += [ids[row['table']],int(row['subsumed']),1,i+1,*vs,*([0]*(cols-len(vs)))]
+ return anchors,arena,flat
+
 def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True,all_index_columns=False,radix_digit_bits=4,seed_dispatch=True,noop_preflight=True,direct_actions=True,query_patch=True,effect_dedup=False,early_seed_guards=False,lhs_context_reuse=True,rebuild_batch=1,parallel_rhs=False,split_matches=False,context_model=None,context_training=False,merge_target_index=False,batch_rhs=False,matrix_saturate=False,joint_polyspine=False,polyspine_model=None,polyspine_training=False,polyspine_full_refresh=False,polyspine_refresh_audit=False,stage_contexts=False,block_merge=False,block_merge_audit=False,cell_program=None,scheduled_matrix=False):
  scheduled_info=None
  if scheduled_matrix:
@@ -62,24 +92,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    else:raise ValueError('unsupported custom merge '+merge)
   policy.append(pol)
  set_sorts=sorted({s['name'] for t in ts for s in t['schema'] if s['kind']=='set'});set_ids={name:i for i,name in enumerate(set_sorts)}
- def atoms(x):
-  if 'elements' in x:
-   for e in x['elements']:yield from atoms(e)
-  else:yield x
- anchors=sorted({(x['sort'],x['eq']) for row in p['initial'] for v in row['values'] for x in atoms(v) if 'eq' in x});identity={k:i+1 for i,k in enumerate(anchors)}
- arena=[2,1];intern={}
- def encode(x):
-  if 'eq' in x:return identity[(x['sort'],x['eq'])]
-  if 'elements' in x:
-   es=tuple(sorted({encode(e) for e in x['elements']}));key=(x['sort'],es)
-   if key not in intern:
-    intern[key]=len(arena);arena.extend([len(es),len(es),set_ids[x['sort']],1,*es]);arena[0]=len(arena)
-   return intern[key]
-  return string_ids[x['value']] if x['sort']=='String' else x['value']
- flat=[]
- for i,row in enumerate(p['initial']):
-  vs=[encode(x) for x in row['values']]
-  flat += [ids[row['table']],int(row['subsumed']),1,i+1,*vs,*([0]*(cols-len(vs)))]
+ anchors,arena,flat=encode_initial(p,cols,string_ids)
  arena_words=max(len(arena),capacity*16) if set_sorts else 2
  if capacity<1 or capacity<len(p['initial']) or match_capacity<1:raise ValueError('invalid initial capacity')
  idcap=max(capacity*2+1,len(anchors)+capacity+1)
@@ -502,7 +515,9 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  kernel_start=source.index('// Correctness-first reference executor.')
  common,template=source[:kernel_start],source[kernel_start:]
  signature=common.split('#define KERNEL_ARGS ',1)[1].splitlines()[0]
- signature=re.sub(r'\[\[.*?\]\]','',signature)+',uint rank'
+ # Helpers also run inside a device-controlled local schedule, whose ruleset
+ # ID is a thread value rather than a host-bound constant-buffer reference.
+ signature=re.sub(r'\[\[.*?\]\]','',signature).replace('constant uint&set','uint set')+',uint rank'
  call_args='r,old,p,fp,m,matches,watermarks,set,code,registers,qheads,qlinks,control,match_order,noop,qprev,contexts,context_info,context_results,lane'
  query_functions='\n'.join(f'__attribute__((noinline)) void query_{rid}({signature})'+'{'+q+'}' for rid,q in enumerate(queries))
  context_rules={c['rule'] for c in contexts}

@@ -1,5 +1,68 @@
 use super::*;
 #[test]
+fn device_source_keeps_original_control_and_does_not_mutate_native() -> Result<()> {
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(
+        None,
+        "(datatype E (N i64)) (ruleset s) (rule ((N n) (< n 8)) ((N (+ n 1))) :ruleset s) (N 0)",
+    )?;
+    let commands = eg.parse_program(None, "(run-schedule (repeat 5 (run s))) (check (N 5))")?;
+    let before = eg.device_snapshot().unwrap();
+    eg.parse_and_run_program(None,"(ruleset analyzer-device-check-0)")?;
+    let p = crate::cell_schedule::device_entry(&mut eg, &commands)?;
+    let mut control=&p["schedule"][0];
+    while control["sequence"].as_array().is_some_and(|s|s.len()==1) {control=&control["sequence"][0];}
+    assert_eq!(control["repeat"], 5);
+    assert!(p["schedule"][1]["assert_table"].is_string());
+    assert_eq!(eg.device_snapshot().unwrap(), before);
+    assert!(eg.get_function("AnalyzerDeviceCheck_1").is_none());
+    assert_eq!(p["schedule"][1]["assert_table"],"AnalyzerDeviceCheck_1");
+    let commands = eg.parse_program(None, "(run s 1) (N 9) (run s 1)")?;
+    assert!(crate::cell_schedule::device_entry(&mut eg, &commands).is_err());
+    let commands = eg.parse_program(None, "(run-schedule (run s :until (N 2)))")?;
+    assert!(crate::cell_schedule::device_entry(&mut eg, &commands).is_err());
+    Ok(())
+}
+#[test]
+fn device_recipe_exports_typed_rules_and_not_observed_endpoints() -> Result<()> {
+    let source = r#"(datatype E (V i64) (Pair E E))
+(function Size (E) i64 :merge (min old new)) (relation Ready (E))
+(ruleset size) (ruleset alias)
+(rule ((= x (Pair a b)) (= sa (Size a)) (= sb (Size b))) ((set (Size x) (+ 1 (+ sa sb)))) :ruleset size)
+(rule ((= x (V n)) (= y (V m)) (< n m)) ((union x y) (Ready x)) :ruleset alias)
+(Pair (V 1) (V 2)) (set (Size (V 1)) 3) (set (Size (V 2)) 5)"#;
+    let mut l = Library::default();
+    l.register(0, &[], &json!({}), source, source)?;
+    let p = Program {
+        document: json!({"schema":"analyzer-cell-recipes/v1","expressions":l.expressions,"instructions":l.commands,"environments":l.environments,"cells":l.cells.values().collect::<Vec<_>>()}),
+    };
+    let core = p.device_program(0)?;
+    assert_eq!(core["schema"], "egglog-device-core/v1");
+    assert_eq!(core["rulesets"].as_array().unwrap().len(), 2);
+    let rules = serde_json::to_string(&core["rulesets"])?;
+    assert!(
+        rules.contains("\"set\"") && rules.contains("\"union\"") && rules.contains("\"primitive\"")
+    );
+    assert!(
+        core["tables"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|t| t["name"] == "Size" && t["merge"] == "(min old new)")
+    );
+    let mut altered = p.document.clone();
+    altered["cells"][0]["completion"] = json!({"fake_terminal_rows":[1,2,3]});
+    assert_eq!(core, (Program { document: altered }).device_program(0)?);
+    let library = p.device_library(&[0])?;
+    assert_eq!(library["programs"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        library["instances"][0]["live_substitution_authorized"],
+        false
+    );
+    assert!(library["programs"][0].get("initial").is_none());
+    Ok(())
+}
+#[test]
 fn native_ast_roundtrip_scopes_updates_primitives_and_visibility() -> Result<()> {
     let source = r#"(datatype X (N i64) (A X) (B X))
 (function F (X) i64 :merge (min old new))

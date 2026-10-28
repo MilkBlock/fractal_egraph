@@ -54,6 +54,11 @@ pub struct Library {
     seen: BTreeMap<usize, String>,
     source_schedule: Option<J>,
     stage_events: Vec<J>,
+    device_programs: Vec<J>,
+    device_program_ids: BTreeMap<String, usize>,
+    device_instances: BTreeMap<usize, J>,
+    device_rejected: BTreeMap<usize, String>,
+    device_source: Option<J>,
 }
 struct Encoding<'a> {
     lib: &'a mut Library,
@@ -151,12 +156,50 @@ impl Encoding<'_> {
     }
 }
 impl Library {
+    pub fn observe_device_source(&mut self, source: Option<&J>) {
+        if self.device_source.is_none() && source.is_some() {
+            self.device_source = source.cloned();
+            self.dirty = true;
+        }
+    }
+    /// Capture the already prepared native state once, before local saturation.
+    /// This adds no second preparation/replay and never exports a terminal cache.
+    pub fn register_device(&mut self, unit: usize, eg: &EGraph, rulesets: &[String]) {
+        if self.device_instances.contains_key(&unit) || self.device_rejected.contains_key(&unit) {
+            return;
+        }
+        let result = (|| -> Result<()> {
+            let mut core = eg
+                .export_device_program(rulesets)
+                .map_err(|e| format!("{e}"))?;
+            let initial = core.as_object_mut().unwrap().remove("initial").unwrap();
+            core["schedule"] = json!([{"saturate":{"sequence":rulesets.iter().map(|name|json!({"run":name})).collect::<Vec<_>>()}}]);
+            core["assertion_tables"] = json!([]);
+            let key = serde_json::to_string(&core)?;
+            let next = self.device_programs.len();
+            let id = *self.device_program_ids.entry(key).or_insert_with(|| {
+                self.device_programs.push(core);
+                next
+            });
+            self.device_instances.insert(unit,json!({"unit":unit,"program":id,"initial":initial,
+                "inputs":self.cells.get(&unit).map(|c|c["inputs"].clone()),
+                "scope":"actual initialized isolated ripen session","live_substitution_authorized":false}));
+            Ok(())
+        })();
+        if let Err(e) = result {
+            self.device_rejected.insert(unit, e.to_string());
+        }
+        self.dirty = true;
+    }
     pub fn observe_schedule(&mut self, source: &str, events: Vec<J>) -> Result<()> {
         if self.source_schedule.is_none() {
-            self.source_schedule=Some(crate::cell_schedule::source_program(source)?);
-            self.dirty=true;
+            self.source_schedule = Some(crate::cell_schedule::source_program(source)?);
+            self.dirty = true;
         }
-        if self.stage_events!=events {self.stage_events=events;self.dirty=true;}
+        if self.stage_events != events {
+            self.stage_events = events;
+            self.dirty = true;
+        }
         Ok(())
     }
     fn intern_expr(&mut self, v: J) -> Result<usize> {
@@ -346,12 +389,23 @@ impl Library {
         v["stage_events"] = json!(self.stage_events);
         v["cells"] = json!(self.cells.values().collect::<Vec<_>>());
         crate::pipeline::write_json(path, &v)?;
+        crate::pipeline::write_json(
+            &path.with_file_name("cell-device-recipes.json"),
+            &json!({
+                "schema":"analyzer-device-cells/v1","programs":self.device_programs,
+                "source_program":self.device_source,"source_schedule":self.source_schedule,
+                "instances":self.device_instances.iter().map(|(unit,instance)|{let mut v=instance.clone();v["observed_completion"]=self.cells.get(unit).map(|c|c["ripen_state"].clone()).unwrap_or(J::Null);v}).collect::<Vec<_>>(),
+                "rejected":self.device_rejected.iter().map(|(unit,reason)|json!({"unit":unit,"reason":reason})).collect::<Vec<_>>(),
+                "contract":"exact initialized local programs; no endpoint substitution; does not authorize global skipping"
+            }),
+        )?;
         self.dirty = false;
         Ok(())
     }
 }
 
 mod codec;
+mod device;
 mod endpoint;
 pub use codec::Program;
 pub use endpoint::{completion, public_snapshot, snapshot_graph};

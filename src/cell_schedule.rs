@@ -54,6 +54,85 @@ pub fn source_program(source: &str) -> Result<Value> {
     )
 }
 
+/// Typed original-program entry, captured before its first Run. Interleaved
+/// host actions are explicit barriers, not silently reordered into a closure.
+pub fn device_entry(eg: &mut EGraph, remaining: &[Command]) -> Result<Value> {
+    use egglog::ast::{Action, Actions, Expr, Rule};
+    use std::collections::BTreeSet;
+    let mut eg = eg.fork_shared();
+    let mut sets = BTreeSet::new();
+    let mut schedule = Vec::new();
+    let mut assertions = Vec::new();
+    fn encode_control(s: &Schedule, sets: &mut BTreeSet<String>) -> Result<Value> {
+        Ok(match s {
+            Schedule::Run(_, r) if r.until.is_none() => {
+                sets.insert(r.ruleset.clone());
+                json!({"run":r.ruleset})
+            }
+            Schedule::Run(..) => {
+                return Err(
+                    "until requires a device control probe; retain original executor".into(),
+                );
+            }
+            Schedule::Sequence(_, bs) => {
+                json!({"sequence":bs.iter().map(|s|encode_control(s,sets)).collect::<Result<Vec<_>>>()?})
+            }
+            Schedule::Repeat(_, n, b) => json!({"repeat":n,"body":encode_control(b,sets)?}),
+            Schedule::Saturate(_, b) => json!({"saturate":encode_control(b,sets)?}),
+        })
+    }
+    for command in remaining {
+        match command {
+            Command::RunSchedule(s) => schedule.push(encode_control(s, &mut sets)?),
+            Command::Check(span, facts) => {
+                let mut ordinal = assertions.len();
+                let (name, set) = loop {
+                    let name = format!("AnalyzerDeviceCheck_{ordinal}");
+                    let set = format!("analyzer-device-check-{ordinal}");
+                    if eg.get_function(&name).is_none() {
+                        // add_ruleset panics on a collision. Probe through the
+                        // read-only exporter before mutating this private clone.
+                        match eg.export_device_program(std::slice::from_ref(&set)) {
+                            Err(e) if e == format!("missing ruleset {set}") => break (name, set),
+                            Err(e) => return Err(e.into()),
+                            Ok(_) => {}
+                        }
+                    }
+                    ordinal += 1;
+                };
+                eg.parse_and_run_program(None, &format!("(relation {name} ()) (ruleset {set})"))?;
+                eg.run_program(vec![Command::Rule {
+                    rule: Rule {
+                        span: span.clone(),
+                        name: format!("probe-{set}"),
+                        ruleset: set.clone(),
+                        naive: false,
+                        body: facts.clone(),
+                        head: Actions::new(vec![Action::Expr(
+                            span.clone(),
+                            Expr::Call(span.clone(), name.clone(), vec![]),
+                        )]),
+                    },
+                }])?;
+                sets.insert(set.clone());
+                schedule.push(json!({"run":set,"assert_table":name}));
+                assertions.push(name);
+            }
+            _ => {
+                return Err(
+                    "interleaved host command requires a separate publication region".into(),
+                );
+            }
+        }
+    }
+    let mut core = eg
+        .export_device_program(&sets.into_iter().collect::<Vec<_>>())
+        .map_err(|e| format!("{e}"))?;
+    core["schedule"] = json!(schedule);
+    core["assertion_tables"] = json!(assertions);
+    Ok(core)
+}
+
 /// Leaf execution stays native, including until, seminaive and RHS/rebuild.
 /// Begin permits interface maintenance; end is after native commit/rebuild.
 pub fn execute(

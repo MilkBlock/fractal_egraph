@@ -195,6 +195,7 @@ struct CaptureBoundary {
     end: usize,
 }
 struct Captured {
+    device_source: Option<Json>,
     reuse_plan: Json,
     reuse_signatures: BTreeSet<String>,
     changes: Vec<crate::closure_contract::Change>,
@@ -298,6 +299,7 @@ fn capture_text_with_planner(
     let trace = TraceSession::with_dependencies();
     trace.set_rhs_lookup_reads(true);
     let mut c = Captured {
+        device_source: None,
         reuse_plan: Json::Null,
         reuse_signatures: BTreeSet::new(),
         changes: vec![],
@@ -340,8 +342,14 @@ fn capture_text_with_planner(
     let mut producers = BTreeMap::new();
     let mut count = 0;
     let mut known = true;
-    for (command_index, command) in commands.into_iter().enumerate() {
+    for (command_index, command) in commands.iter().cloned().enumerate() {
         if let Command::RunSchedule(s) = &command {
+            if c.device_source.is_none() {
+                c.device_source=Some(match crate::cell_schedule::device_entry(&mut eg,&commands[command_index..]) {
+                    Ok(core)=>json!({"status":"ready","core":core}),
+                    Err(e)=>json!({"status":"unsupported","reason":e.to_string()}),
+                });
+            }
             let simple = matches!(s, egglog::ast::Schedule::Repeat(_,_,b) if matches!(**b,egglog::ast::Schedule::Run(..)));
             if !simple { known = false; }
             crate::cell_schedule::execute(&mut eg, &trace, s, command_index, &mut |eg,stage| {

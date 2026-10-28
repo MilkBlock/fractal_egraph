@@ -89,7 +89,11 @@ impl Registry {
     pub fn contains(&self, unit: usize) -> bool {
         self.values.contains_key(&unit)
     }
+    pub fn register_device(&mut self, unit: usize, eg: &egglog::EGraph, rulesets: &[String]) {
+        self.recipes.register_device(unit, eg, rulesets);
+    }
     pub fn observe_history(&mut self, c: &super::super::Captured, store: &super::super::cs::Store, catalog: Option<&Json>) -> Result<()> {
+        self.recipes.observe_device_source(c.device_source.as_ref());
         self.recipes.observe_schedule(&c.preview_source,c.boundaries.iter().filter_map(|b|b.stage.clone()).collect())?;
         self.families.observe(c, store);
         self.executable_evidence.observe(c);
