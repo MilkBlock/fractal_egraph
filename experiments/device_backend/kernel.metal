@@ -78,6 +78,12 @@ void record_query_update(device long*r,uint i){
 }
 __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args,long value,bool create){
  if(m.error)return 0;
+ // Certified helper heads end in one set. Producers keep a request; only
+ // the block merger invokes the original merge function in request order.
+ if(JP_BLOCK_EFFECTS&&jp_active(r)&&r[JP_STATE+119]&&!create&&t==JP_IDS[2]){
+  uint n=uint(r[JP_STATE+109]);if(n>=MATCHCAP){m.error=2;return 0;}
+  uint at=JP_SET_LOG+3*n;r[at]=args[0];r[at+1]=value;r[at+2]=r[JP_STATE+118];r[JP_STATE+109]=n+1;r[JP_STATE+110]++;r[JP_STATE+113]=max(r[JP_STATE+113],long(n+1));return value;
+ }
  long found=row_lookup(r,p,m,t,args);if(found>=0){uint i=uint(found);
   uint at=i*STRIDE+4+WIDTH[t]-1;long old=canon(r,p,t,WIDTH[t]-1,r[at]);
   if(create){

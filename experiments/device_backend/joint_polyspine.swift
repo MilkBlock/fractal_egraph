@@ -2,7 +2,7 @@
 // sink is reused on a transactional device view, not on the published tables.
 let jpDescription=program["joint_polyspine"] as? [String:Any]
 let jpProgram=jpDescription?["program"] as? [String:Any]
-let jpNames=["jp_begin","jp_zero_maps","jp_count_range","jp_pack_range","jp_root_reset","jp_hash_clear","jp_hash_insert","jp_canonical","jp_retire","jp_csr_clear","jp_csr_count","jp_csr_offsets","jp_csr_fill","jp_prepare","jp_groups","jp_group_offsets","jp_bindings","jp_affine_mma","jp_validate","jp_sort_local","jp_sort_global","jp_commit","jp_comparison_roots","jp_advance","jp_close","jp_metrics","jp_csr_scan","jp_csr_blocks","jp_csr_add","jp_static_markers","jp_static_heads","jp_marker_offsets","jp_marker_items","jp_feature_clear","jp_candidate_summary","jp_choice_summary","jp_features","jp_feature_mma","jp_seams","jp_ridge_mma","jp_prediction_finish","jp_export_interfaces","jp_group_scan","jp_group_blocks","jp_group_add","jp_cache_static","jp_cache_signature","jp_cache_dependents","jp_cached_features","jp_cached_prediction","jp_cache_audit","jp_context_extend"]
+let jpNames=["jp_begin","jp_zero_maps","jp_count_range","jp_pack_range","jp_root_reset","jp_hash_clear","jp_hash_insert","jp_canonical","jp_retire","jp_csr_clear","jp_csr_count","jp_csr_offsets","jp_csr_fill","jp_prepare","jp_groups","jp_group_offsets","jp_bindings","jp_affine_mma","jp_validate","jp_sort_local","jp_sort_global","jp_commit","jp_comparison_roots","jp_advance","jp_close","jp_metrics","jp_csr_scan","jp_csr_blocks","jp_csr_add","jp_static_markers","jp_static_heads","jp_marker_offsets","jp_marker_items","jp_feature_clear","jp_candidate_summary","jp_choice_summary","jp_features","jp_feature_mma","jp_seams","jp_ridge_mma","jp_prediction_finish","jp_export_interfaces","jp_group_scan","jp_group_blocks","jp_group_add","jp_cache_static","jp_cache_signature","jp_cache_dependents","jp_cached_features","jp_cached_prediction","jp_cache_audit","jp_context_extend","jp_prepare_sets","jp_publish_sets"]
 let jpPipelines=try (jpProgram==nil ? []:jpNames).map{try device.makeComputePipelineState(function:lib.makeFunction(name:$0)!)}
 var jpPool:[String:MTLBuffer]=[:]
 func jpBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
@@ -11,6 +11,7 @@ func jpBuffer(_ name:String,_ bytes:Int)->MTLBuffer{
 struct JointResult {let accepted:Bool;let reason:UInt32;let info:[UInt32];let statistics:[Int64];let history:[[UInt32]];let phases:[Double];let scratch:Int;let transferBytes:Int}
 var jpCalls=0,jpFallbacks=0
 func jointPolyspine()throws->JointResult{
+ let blockMerge=program["block_merge"] as? Bool ?? false
  guard let plan=jpProgram else{throw NSError(domain:"no certified joint Polyspine program",code:1)}
  let savedRows=rows,savedOld=old,savedParent=parent,savedFacts=factParent,savedMeta=meta,savedWM=watermarks,savedHost=hostMeta
  let savedRowIndex=needsRowIndex
@@ -156,9 +157,10 @@ func jointPolyspine()throws->JointResult{
    trainingFrames.append((phase,hostMeta[2],frame[0],frame[1],frame[2],frame[3]))
   }
   if phase==2{
-   let result=try comparisonSaturate(UInt32(sets[2]),localOnly:true,sourceLists:lists,listCapacity:listCapacity,costCount:Int(stats[13]),choiceCount:Int(stats[16]),initialRanges:ranges,sourcePriority:model == nil ? nil:priority,readRows:stageRead?.parts["rows"]?.rowPages?.pool.data,readRowMap:stageRead?.parts["rows"]?.rowPages?.map,readParents:stageRead?.parts["parents"]?.buffer,readCosts:stageRead?.parts["cost_rows"]?.buffer,readChoices:stageRead?.parts["choice_rows"]?.buffer)
+   let result=try comparisonSaturate(UInt32(sets[2]),localOnly:true,sourceLists:lists,listCapacity:listCapacity,costCount:Int(stats[13]),choiceCount:Int(stats[16]),initialRanges:ranges,sourcePriority:model == nil ? nil:priority,readRows:stageRead?.parts["rows"]?.rowPages?.pool.data,readRowMap:stageRead?.parts["rows"]?.rowPages?.map,readParents:stageRead?.parts["parents"]?.buffer,readCosts:stageRead?.parts["cost_rows"]?.buffer,readChoices:stageRead?.parts["choice_rows"]?.buffer,deferPublication:blockMerge,scopeEpoch:savedHost[2])
    if !result.accepted{return failure(result.reason)};hostMeta=result.info;for i in 0..<3{phases[i]+=result.phases[i]}
-   let fix=queue.makeCommandBuffer()!;launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,5,[],program["hash_capacity"] as! Int);launch(fix,6,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,8,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,22,[roots,fmap,rootstate],rootCount);launch(fix,23,[],1);try wait(fix,2,true)
+   let fix=queue.makeCommandBuffer()!;if let block=result.block{try block.encodeMerge(fix,savedHost[2]);launch(fix,53,[rootstate,fmap],1)};launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,5,[],program["hash_capacity"] as! Int);launch(fix,6,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,8,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,7,[lists],Int(stats[17]),[UInt32(listCapacity)]);launch(fix,22,[roots,fmap,rootstate],rootCount);launch(fix,23,[],1);try wait(fix,2,true);if blockMerge && hostMeta[4]==0{try appendRows()}
+   if let copy=result.block?.copy{try need(copy.status == .completed,"union block transfer failed");phases[0]+=copy.gpuEndTime-copy.gpuStartTime}
   }else{
    let jobs=Int(stats[9]),valid=jpBuffer("job-valid",jobs*4),info=jpBuffer("job-info",jobs*6*4),witnesses=jpBuffer("job-witnesses",jobs*maxAtoms*4),numeric=jpBuffer("job-numeric",jobs*maxOps*8),x=jpBuffer("job-x",jobs*numericWidth*2),y=jpBuffer("job-y",jobs*8*4)
    let compute=queue.makeCommandBuffer()!
@@ -170,7 +172,7 @@ func jointPolyspine()throws->JointResult{
    if matched>1{var padded=256;while padded<matched{padded*=2};launch(commit,19,[matches,witnesses,matchOrder],padded);var k=512;while k<=padded{var d=k/2;while d>0{launch(commit,20,[matches,witnesses,matchOrder],padded,[UInt32(k),UInt32(d)]);d/=2};k*=2}}
    // The next schedule state depends only on completed device effects. Keep
    // that transition on this command buffer; no host round-trip is needed.
-   launch(commit,21,[matches,matchOrder,numeric,info,instructions,registers,rootstate,roots],1);launch(commit,23,[],1);try wait(commit,2,true)
+   launch(commit,21,[matches,matchOrder,numeric,info,instructions,registers,rootstate,roots],1);if blockMerge && phase==1{launch(commit,52,[rootstate],1)};launch(commit,23,[],1);try wait(commit,2,true)
    if hostMeta[4] != 0{break};try appendRows()
   }
   if let tracker=stageTracker,hostMeta[4]==0{try tracker.seal(phase,stageParts(),hostMeta,listCapacity);phases[2]+=tracker.gpuSeconds-stageAccounted;stageAccounted=tracker.gpuSeconds}

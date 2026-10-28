@@ -236,3 +236,14 @@ the exact internal phase history. Final complete typed graph equals the control
 at 699,784 rows / 524,742 eclasses. Independent native initial terms comparison
 passes at 27,793 rows / 21,655 eclasses. The manifest records the suite builds;
 the last change only tightened parent-array sharing in the stage path.
+
+
+## Deferred block publication
+
+The next step is [block effects](BLOCK_EFFECTS.md). When a stage Cell is loaded,
+helper function updates can remain pending through the comparison stage, and
+equality is returned as a compact edge block. The merger joins those edges with
+live equality and publishes the prepared function values before the next
+consumer iteration. `--eager-stage-merge` selects the earlier publication path.
+The historical timings and checks above belong to the earlier storage change;
+see the block-effect report for its separate validation and performance.

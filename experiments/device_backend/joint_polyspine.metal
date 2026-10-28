@@ -176,16 +176,48 @@ kernel void jp_sort_global(JP_ARGS,device long*matches[[buffer(5)]],device const
 }
 kernel void jp_commit(JP_ARGS,device long*matches[[buffer(5)]],device const uint*order[[buffer(6)]],device const long*numeric[[buffer(7)]],device const uint*info[[buffer(8)]],device long*code[[buffer(9)]],device long*registers[[buffer(10)]],device uint*rootstate[[buffer(11)]],device const uint*roots[[buffer(12)]],uint lane[[thread_position_in_grid]]){
  if(lane||m.error)return;p[IDCAP]=1;p[IDCAP+1]=0;
- uint phase=jp_count(r,1);
+ uint phase=jp_count(r,1);if(JP_BLOCK_EFFECTS&&phase==1){r[JP_STATE+109]=0;r[JP_STATE+119]=1;}
  for(uint i=0;i<m.matched&&!m.error;i++){uint job=order[i],rule=uint(matches[job*MSTRIDE]),owner=info[job*6],before=m.count;
-  long key[COLS]={long(roots[owner])};long oldrow=phase==1?query_lookup(r,JP_IDS[2],key):-1,oldvalue=oldrow>=0?r[oldrow*STRIDE+5]:-1;
+  long key[COLS]={long(roots[owner])};long oldrow=(phase==1&&(!JP_BLOCK_EFFECTS||JP_BLOCK_AUDIT))?query_lookup(r,JP_IDS[2],key):-1,oldvalue=oldrow>=0?r[oldrow*STRIDE+5]:-1;
   if(phase==0)for(uint j=0;j<JP_OPS;j++)r[JP_NUM+j]=numeric[job*JP_OPS+j];
-  execute_bytecode(rule,job,code,registers,matches,r,p,fp,m);rootstate[owner*8]|=1u<<phase;
+  uint beforeUnions=m.unions;r[JP_STATE+118]=owner;execute_bytecode(rule,job,code,registers,matches,r,p,fp,m);rootstate[owner*8]|=1u<<phase;
   rootstate[owner*8+1+phase]+=m.count-before;jp_add(r,56+phase,m.count-before);
-  if(phase==1){long nextrow=query_lookup(r,JP_IDS[2],key),nextvalue=nextrow>=0?r[nextrow*STRIDE+5]:-1;if(nextvalue!=oldvalue){rootstate[owner*8+4]++;jp_add(r,61,1);}}
+  if(phase==1&&JP_BLOCK_EFFECTS&&JP_BLOCK_AUDIT){long checkrow=query_lookup(r,JP_IDS[2],key),checkvalue=checkrow>=0?r[checkrow*STRIDE+5]:-1;if(checkrow!=oldrow||checkvalue!=oldvalue||m.unions!=beforeUnions){m.error=26;return;}jp_add(r,117,1);}
+  if(phase==1&&!JP_BLOCK_EFFECTS){long nextrow=query_lookup(r,JP_IDS[2],key),nextvalue=nextrow>=0?r[nextrow*STRIDE+5]:-1;if(nextvalue!=oldvalue){rootstate[owner*8+4]++;jp_add(r,61,1);}}
  }
  p[IDCAP]=0;if(p[IDCAP+1]){m.error=24;return;}
  r[JP_STATE+23]+=m.count-uint(r[JP_STATE+20]);uint set=JP_SETS[phase];for(uint i=SET_START[set];i<SET_START[set+1];i++)wm[SET_RULES[i]]=m.epoch-1;
+}
+// Producer blocks contain exact typed requests, including duplicates. A
+// custom merge is not assumed associative, commutative, or idempotent.
+kernel void jp_prepare_sets(JP_ARGS,device uint*rootstate[[buffer(5)]],uint lane[[thread_position_in_grid]]){
+ if(lane||m.error||!JP_BLOCK_EFFECTS)return;r[JP_STATE+119]=0;r[JP_STATE+122]=m.epoch;
+ uint n=uint(r[JP_STATE+109]);if(n)jp_add(r,111,1);p[IDCAP]=1;p[IDCAP+1]=0;
+ for(uint i=0;i<n&&!m.error;i++){uint at=JP_SET_LOG+3*i,owner=uint(r[at+2]),q=8*owner,before=m.count;long key[COLS]={r[at]},value=r[at+1];
+  long baseRow=query_lookup(r,JP_IDS[2],key),baseValue=baseRow>=0?r[baseRow*STRIDE+5]:-1;
+  long oldvalue=rootstate[q+5]?long(rootstate[q+6]):baseValue;value=canon(r,p,JP_IDS[2],1,value);
+  long next=oldvalue<0?value:mergevalue(JP_IDS[2],canon(r,p,JP_IDS[2],1,oldvalue),value,r,p,fp,m);
+  rootstate[q+5]=1;rootstate[q+6]=uint(next);rootstate[q+7]=uint(baseRow+1);r[at+1]=baseValue;
+  rootstate[q+2]+=m.count-before;jp_add(r,57,m.count-before);jp_add(r,23,m.count-before);
+  if(next!=oldvalue){rootstate[q+4]++;jp_add(r,61,1);m.changed=1;}
+  if(JP_BLOCK_AUDIT){long check=query_lookup(r,JP_IDS[2],key);if(check!=baseRow||(check>=0&&r[check*STRIDE+5]!=baseValue)){m.error=26;return;}}
+ }
+ p[IDCAP]=0;if(p[IDCAP+1])m.error=24;
+}
+// The comparison stage can consume local merge expressions before the
+// function table is changed. Only the block merger publishes the final value.
+kernel void jp_publish_sets(JP_ARGS,device uint*rootstate[[buffer(5)]],device uint*fmap[[buffer(6)]],uint lane[[thread_position_in_grid]]){
+ if(lane||m.error||!JP_BLOCK_EFFECTS)return;uint n=uint(r[JP_STATE+109]),comparisonChanged=m.changed;
+ for(uint i=0;i<n&&!m.error;i++){uint at=JP_SET_LOG+3*i,owner=uint(r[at+2]),q=8*owner;if(!rootstate[q+5])continue;
+  long key[COLS]={r[at]},baseValue=r[at+1],rawValue=long(rootstate[q+6]);long row=query_lookup(r,JP_IDS[2],key);uint before=m.count;
+  if(row+1!=long(rootstate[q+7])||(row>=0&&r[row*STRIDE+5]!=baseValue)){m.error=27;return;}
+  long value=canon(r,p,JP_IDS[2],1,rawValue);uint stamp=value==rawValue?uint(r[JP_STATE+122]):m.epoch;
+  if(row<0){write_row(r,p,fp,m,JP_IDS[2],key,value,false);row=query_lookup(r,JP_IDS[2],key);if(row<0){m.error=27;return;}r[row*STRIDE+2]=stamp;}
+  else if(rawValue!=baseValue||value!=baseValue){r[row*STRIDE+5]=value;r[row*STRIDE+2]=stamp;sc_dirty(r,uint(row),m.epoch);r[JP_ROW_TAG+row]=1;}
+  fmap[uint(key[0])]=uint(row+1);rootstate[q+2]+=m.count-before;jp_add(r,57,m.count-before);jp_add(r,23,m.count-before);
+  rootstate[q+5]=0;rootstate[q+6]=0;rootstate[q+7]=0;jp_add(r,121,1);
+ }
+ jp_add(r,112,n);r[JP_STATE+109]=0;m.changed=comparisonChanged;
 }
 kernel void jp_comparison_roots(JP_ARGS,device const uint*roots[[buffer(5)]],device const uint*fmap[[buffer(6)]],device uint*rootstate[[buffer(7)]],uint i[[thread_position_in_grid]]){
  if(i>=jp_count(r,12))return;uint f=fmap[roots[i]];if(!f)return;uint id=uint(r[(f-1)*STRIDE+5]);

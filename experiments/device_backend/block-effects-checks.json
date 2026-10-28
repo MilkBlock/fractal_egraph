@@ -1,0 +1,49 @@
+{
+  "schema": "deferred-block-effects-checks/v1",
+  "scope": "actual experimental GPU runtime; synthetic edge-join probe is separately labelled",
+  "suites": [
+    {
+      "path": "out/block-cross-stage-tests/results.json",
+      "checks": 8,
+      "sha256": "1e8b34608b267645fc856cccdea8d9fe1493bb68562c06b86b826e6ffe10c615"
+    },
+    {
+      "path": "out/block-cross-stage-regression/results.json",
+      "checks": 14,
+      "sha256": "aa7f9c2d2120ea6248d8164bd27c0a7f05a82fe6073c55aa8991bc5dc0344619"
+    },
+    {
+      "path": "out/block-effects-regression-comparison/results.json",
+      "checks": 19,
+      "sha256": "b2521f7da72be9ef3d8cceec9535d59ede3730d46875c5f749bed6211fe2430f"
+    },
+    {
+      "path": "out/block-effects-regression-joint/results.json",
+      "checks": 34,
+      "sha256": "903375cb9ef9c9744a16c004a95ad68dc347cf462c638fe567acf2087351d0a9"
+    }
+  ],
+  "check_count": 75,
+  "build": "out/device-build-block-cross-stage",
+  "full_audit": {
+    "path": "out/block-effects-pass3-audit/report.json",
+    "scopes": 12,
+    "patches": 2826,
+    "producer_requests_audited": 113916,
+    "clean_and_audited_schedule_equal": true
+  },
+  "independent_native_initial_terms": {
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 27793,
+    "eclasses": 21655,
+    "step": 2
+  },
+  "native_path": "out/block-effects-native/report.json",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "worker_sha256": "9cdf6772520b68ed7c54e5834157ee77018835aec12aeb34c70d3e24bfc0a18a",
+  "limitations": [
+    "Full-Pass native mismatch predates this feature; complete graph is compared against the eager GPU control.",
+    "Pending custom function merges preserve request order and key ownership; arbitrary concurrent custom merges are not certified.",
+    "Matching/capacity/convergence host waits still exist."
+  ]
+}

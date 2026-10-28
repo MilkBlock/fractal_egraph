@@ -6,7 +6,7 @@ uint cu_root(device const uint*p,uint x){while(p[x]!=x)x=p[x];return x;}
 void cu_union(device uint*p,uint a,uint b,device uint*c,device long*r){
  device atomic_uint*uf=(device atomic_uint*)p;
  while(true){uint x=parallel_root(uf,a),y=parallel_root(uf,b);if(x==y)return;uint hi=max(x,y),lo=min(x,y),expected=hi;
-  if(atomic_compare_exchange_weak_explicit(uf+hi,&expected,lo,memory_order_relaxed,memory_order_relaxed)){atomic_fetch_add_explicit((device atomic_uint*)(c+5),1u,memory_order_relaxed);if(jp_active(r))atomic_fetch_max_explicit((device atomic_uint*)(r+JP_VERSION+lo),uint(r[ROW_WORDS+1])+1,memory_order_relaxed);return;}}
+  if(atomic_compare_exchange_weak_explicit(uf+hi,&expected,lo,memory_order_relaxed,memory_order_relaxed)){atomic_fetch_add_explicit((device atomic_uint*)(c+5),1u,memory_order_relaxed);if(jp_active(r)&&!JP_BLOCK_EFFECTS)atomic_fetch_max_explicit((device atomic_uint*)(r+JP_VERSION+lo),uint(r[ROW_WORDS+1])+1,memory_order_relaxed);return;}}
 }
 kernel void cu_count(CU_ARGS,uint i[[thread_position_in_grid]]){
  if(i>=cfg[1]||sv[i*STRIDE+1]==2)return;uint3 s=cu_schema(cfg[0]);uint t=uint(sv[i*STRIDE]);
@@ -68,9 +68,43 @@ kernel void cu_publish(CU_ARGS,device const uint*local[[buffer(3)]],device uint*
  if(c[4]&&i<cfg[2]){uint to=cu_root(local,i);p[i]=to;
   device atomic_uint*flags=(device atomic_uint*)(p+MERGE_KEY_FLAGS);
   if(atomic_load_explicit(flags+i,memory_order_relaxed))atomic_store_explicit(flags+to,1u,memory_order_relaxed);}
- if(!i){m.epoch++;m.rounds++;m.changed=c[4]>0;m.matched=0;m.unions+=c[4];p[IDCAP]=0;p[IDCAP+1]=0;
+ if(!i){if(JP_BLOCK_EFFECTS&&jp_active(r)){r[JP_STATE+114]++;r[JP_STATE+115]+=c[4];r[JP_STATE+116]++;}m.epoch++;m.rounds++;m.changed=c[4]>0;m.matched=0;m.unions+=c[4];p[IDCAP]=0;p[IDCAP+1]=0;
   if(c[4]){p[MERGE_GENERATION]+=c[4];r[INDEX_OFFSET]=0;r[QUERY_DIRTY]=1;}
   r[ROW_WORDS+1]=m.epoch;for(uint j=SET_START[cfg[0]];j<SET_START[cfg[0]+1];j++)wm[SET_RULES[j]]=m.epoch;
   for(uint j=0;j<16;j++)control[j]=0;control[0]=c[4]>0;
  }
+}
+
+// A completed local equality block contributes edges, never a replacement UF.
+// Therefore another block's committed union cannot be overwritten by a stale
+// local parent array. Positive cost evidence remains valid under more equality.
+kernel void cu_block_begin(CU_ARGS,device Meta&m[[buffer(3)]],uint i[[thread_position_in_grid]]){
+ if(i||c[6])return;c[12]=m.unions;m.changed=0;
+}
+kernel void cu_block_union(CU_ARGS,device const uint2*edges[[buffer(3)]],device uint*p[[buffer(4)]],device Meta&m[[buffer(5)]],uint i[[thread_position_in_grid]]){
+ if(c[6]||i>=cfg[3])return;uint a=edges[i].x,b=edges[i].y;device atomic_uint*uf=(device atomic_uint*)p;
+ while(true){a=parallel_root(uf,a);b=parallel_root(uf,b);if(a==b)return;uint lo=min(a,b),hi=max(a,b),expected=hi;
+  if(atomic_compare_exchange_weak_explicit(uf+hi,&expected,lo,memory_order_relaxed,memory_order_relaxed)){
+   atomic_fetch_add_explicit((device atomic_uint*)&m.unions,1u,memory_order_relaxed);
+   if(jp_active(r))atomic_fetch_max_explicit((device atomic_uint*)(r+JP_VERSION+lo),m.epoch+1,memory_order_relaxed);return;
+  }
+ }
+}
+kernel void cu_block_finish(CU_ARGS,device uint*p[[buffer(3)]],device Meta&m[[buffer(4)]],device uint*wm[[buffer(5)]],device uint*control[[buffer(6)]],uint i[[thread_position_in_grid]]){
+ if(c[6])return;
+ if(i<cfg[2]){device atomic_uint*uf=(device atomic_uint*)p;uint to=parallel_root(uf,i);atomic_store_explicit(uf+i,to,memory_order_relaxed);device atomic_uint*flags=uf+MERGE_KEY_FLAGS;if(atomic_load_explicit(flags+i,memory_order_relaxed))atomic_store_explicit(flags+to,1u,memory_order_relaxed);}
+ if(!i){uint added=m.unions-c[12];c[13]=added;m.epoch++;m.rounds++;m.changed=added>0;m.matched=0;p[IDCAP]=0;p[IDCAP+1]=0;
+  if(added){p[MERGE_GENERATION]+=added;r[INDEX_OFFSET]=0;r[QUERY_DIRTY]=1;}
+  if(jp_active(r)){r[JP_STATE+114]++;r[JP_STATE+115]+=added;r[JP_STATE+116]++;}
+  r[ROW_WORDS+1]=m.epoch;for(uint j=SET_START[cfg[0]];j<SET_START[cfg[0]+1];j++)wm[SET_RULES[j]]=m.epoch;
+  for(uint j=0;j<16;j++)control[j]=0;control[0]=added>0;
+ }
+}
+
+// A basis for the new equivalence information: one edge for each old root
+// that ceased to be a root. Old aliases need no duplicate record.
+kernel void cu_block_delta(CU_ARGS,device const uint*before[[buffer(3)]],device const uint*after[[buffer(4)]],device uint2*edges[[buffer(5)]],uint i[[thread_position_in_grid]]){
+ if(!i&&c[2]&&!c[6]&&jp_active(r))r[JP_STATE+123]+=r[JP_STATE+109];
+ if(!c[2]||c[6]||i>=cfg[2]||before[i]!=i)return;uint to=cu_root(after,i);if(to==i)return;
+ uint at=atomic_fetch_add_explicit((device atomic_uint*)(c+14),1u,memory_order_relaxed);if(at>=cfg[2]){atomic_store_explicit((device atomic_uint*)(c+6),5u,memory_order_relaxed);return;}edges[at]=uint2(i,to);
 }

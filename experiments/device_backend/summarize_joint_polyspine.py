@@ -30,6 +30,7 @@ def summarize(reference,runs,output):
               'positive_prediction_counts':[sums(92+j) for j in range(3)],
               'global_publications':sum(c['global_publications'] for c in accepted),
               'cost_projection':{'builds':sums(106),'reuses':sums(107),'zero_extended_ids':sums(108)},
+              'block_effects':{'enabled':r.get('block_merge',False),'set_requests':sums(110),'set_blocks':sums(111),'sets_merged':sums(112),'function_keys_published':sums(121),'sets_carried_through_comparison':sums(123),'union_blocks':sums(114),'union_changes':sums(115),'publication_waits_removed':sums(116),'producer_audit_rows':sums(117)},
               'peak_retained_workspace_bytes':max((c['scratch_bytes'] for c in calls),default=0),
               'device_to_device_copy_bytes':sum(c['device_copy_bytes'] for c in calls),
               'joint_gpu_seconds':sum(c['gpu_seconds'] for c in calls),'joint_control_seconds':sum(c['control_seconds'] for c in calls),
