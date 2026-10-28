@@ -236,6 +236,7 @@ fn capture_text_with_planner(
 ) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
+    crate::structural_key::source::install(&mut eg, text)?;
     let mut commands =
         crate::visual_rule::surface_program(eg.parse_program(Some(name.to_owned()), text)?);
     let declarations: Vec<_> = commands

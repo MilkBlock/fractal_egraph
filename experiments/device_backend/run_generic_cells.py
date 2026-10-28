@@ -16,7 +16,7 @@ def build_worker(output):
         stamp.write_text(fingerprint)
     return worker.resolve()
 
-def run_library(library, build, output, capacity=256, match_capacity=1024, quantum=8, grow=True):
+def run_library(library, build, output, capacity=256, match_capacity=1024, quantum=8, grow=True,marker_program=None,compiled_program=None):
     if quantum <= 0: raise ValueError('quantum must be positive; it is dispatch batching, not a termination bound')
     output.mkdir(parents=True, exist_ok=False)
     worker = build_worker(build); reports=[]; rejected=list(library.get('rejected',[]))
@@ -30,10 +30,23 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
         while todo:
             try:
                 compilation={**todo[0][1],'cell_input_constants':[c['initial'] for _,c in todo]}
-                p=lower(compilation,cap,mc);frames=[]
+                if compiled_program is None:p=lower(compilation,cap,mc,marker_program=marker_program)
+                else:
+                    folder_art=compiled_program.parent;manifest=json.loads((folder_art/'manifest.json').read_text())
+                    if manifest.get('backend')!='local':raise ValueError('compiled artifact is not a local program')
+                    for filename,expected in manifest['files'].items():
+                        if Path(filename).name!=filename or hashlib.sha256((folder_art/filename).read_bytes()).hexdigest()!=expected:raise ValueError('compiled local artifact checksum mismatch')
+                    artifact_core=json.loads((folder_art/'core.json').read_text())
+                    if artifact_core!=todo[0][1]:raise ValueError('compiled local input differs')
+                    if marker_program is None or manifest['marker_sha256']!=marker_program['sha256']:raise ValueError('compiled local marker contract differs')
+                    from tools.eggfuse.marker_ir import validate
+                    validate(marker_program,artifact_core)
+                    p=json.loads(compiled_program.read_text());grow=False
+                    if p['shader']!=(folder_art/'kernel.metal').read_text() or p['tables']!=artifact_core['tables']:raise ValueError('compiled local kernel/schema differs')
+                frames=[]
                 for instance,core in todo:
                     anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
-                    if len(anchors)>=p['id_capacity'] or len(arena)>p['set_words']:
+                    if len(core['initial'])>p['capacity'] or len(anchors)>=p['id_capacity'] or len(arena)>p['set_words']:
                         raise ValueError('initial instance exceeds shared arena; increase capacity')
                     frames.append(dict(initial_rows=flat,initial_sets=arena,anchors=anchors,
                         meta=[len(core['initial']),len(anchors)+1,1,0,0,0,0,0,len(core['initial'])+1]))

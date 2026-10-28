@@ -1,0 +1,129 @@
+"""Single compiler entry; the marked .egg is the CPU/GPU semantic reference."""
+import argparse,hashlib,json,os,shutil,subprocess,sys
+from pathlib import Path
+from .passes import PassManager,digest
+from .marker_ir import build as build_markers,validate as validate_markers
+
+ROOT=Path(__file__).resolve().parents[2]
+BACKEND=ROOT/'experiments/device_backend'
+sys.path.insert(0,str(BACKEND))
+
+def command(args,log):
+    with Path(log).open('w') as f:subprocess.run(list(map(str,args)),cwd=ROOT,env=dict(os.environ,EGG_LAYOUT_GRAPHS='0'),stdout=f,stderr=subprocess.STDOUT,check=True)
+
+def native_core(frontend,source,folder):
+    with (folder/'frontend.log').open('w') as error:
+        proc=subprocess.run([str(frontend),str(source)],input='',text=True,stdout=subprocess.PIPE,stderr=error,check=True)
+    return json.loads(proc.stdout.splitlines()[0])
+
+def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu'):
+    source=Path(source).resolve();build=Path(build).resolve();tools=Path(tools).resolve()
+    pm=PassManager(output,stop_after);source_file=pm.publish(source,'source.egg')
+    base=[Path(__file__),ROOT/'tools/eggfuse/passes.py']
+    ast_binary=tools/'lhs_ast';key_binary=tools/'structural_key_source';frontend=tools/'eggfuse_frontend';analyzer=tools.parent/'egg_layout'
+    needed=[ast_binary,key_binary]
+    if stop_after!='sk':needed.append(analyzer)
+    if stop_after not in ('sk','analyze'):needed.append(frontend)
+    if stop_after=='verify' and run_gpu:needed.append(build/'worker')
+    for binary in needed:
+        if not binary.is_file():raise ValueError('missing built tool '+str(binary))
+    def valid_json(folder,name):json.loads((folder/name).read_text())
+    key_code=base+[ROOT/'tools/cell_spine'/n for n in ['structural_keys.py','key_demand.py','terms.py','pass3_markers.py']]
+    def keys(folder):
+        from tools.cell_spine.structural_keys import compile_source
+        compile_source(source_file,folder/'result',metadata_binary=key_binary,ast_binary=ast_binary)
+    sk=pm.run('structural_keys',{'source':source_file,'metadata_tool':key_binary,'ast_tool':ast_binary},
+        {'policy':'source-declared only'},key_code,['result/source_sk.egg','result/report.json','result/policy.json'],keys,
+        lambda f:valid_json(f/'result','report.json'),preserves=['unannotated choice policy'])/'result'
+    sk_source=pm.publish(sk/'source_sk.egg','source_sk.egg')
+    if stop_after=='sk':return pm
+    analysis=pm.run('analyze',{'source_sk':sk_source,'analyzer':analyzer},{'graphs':False},base,
+        ['result/cell-recipes.json','result/cell-device-recipes.json','result/analysis.json','result/catalog/*.json','result/catalog/states/*.json','result/saturated-rule-composition/cells/*/observed-saturated-state.json'],
+        lambda f:command([analyzer,'analyze','--source',sk_source,'--output',f/'result'],f/'analyze.log'),
+        lambda f:valid_json(f/'result','cell-recipes.json'),preserves=['source semantics'])/'result'
+    # The catalogue is an explicit dependency: changing Bake invalidates only
+    # consumers of its evidence, not the already completed SK pass.
+    witness_files=sorted((analysis/'catalog/states').glob('*.json'))+sorted((analysis/'saturated-rule-composition/cells').glob('*/observed-saturated-state.json'))
+    witness_index=pm.output/'analysis-index.json';witness_index.write_text(json.dumps({str(p.relative_to(analysis)):digest(p) for p in witness_files},sort_keys=True))
+    if stop_after=='analyze':return pm
+    marker_inputs={'source_sk':sk_source,'analysis':analysis/'cell-recipes.json','catalog':witness_index,'ast_tool':ast_binary,'solver_python':solver_python}
+    venv=Path(solver_python).parent.parent/'pyvenv.cfg'
+    if venv.exists():marker_inputs['solver_environment']=venv
+    if profile:marker_inputs['profile']=Path(profile).resolve()
+    def markers(folder):
+        request=dict(source=str(sk_source),analysis=str(analysis),output=str(folder/'result'),ast_binary=str(ast_binary),profile=str(Path(profile).resolve()) if profile else None)
+        (folder/'request.json').write_text(json.dumps(request))
+        command([solver_python,'-m','tools.eggfuse.select_markers',folder/'request.json'],folder/'markers.log')
+    marked=pm.run('markers',marker_inputs,{'selection':'profile' if profile else 'explicit structural baseline'},
+        base+[ROOT/'tools/cell_spine'/n for n in ['pass3_markers.py','solver.py','terms.py','takeover.py','representation.py','lhs_coverage.py']]+[ROOT/'tools/eggfuse/select_markers.py'],
+        ['result/published.egg','result/shared.egg','result/markers.json'],markers,lambda f:valid_json(f/'result','markers.json'),
+        preserves=['original guards and effects','full correlated binding keys'])/'result'
+    marked_source=pm.publish(marked/'published.egg','source_sk_mk.egg')
+    def marker_ir(folder):
+        core=native_core(frontend,marked_source,folder)
+        ir=build_markers(json.loads((marked/'markers.json').read_text()),core,marked_source.read_bytes(),(analysis/'cell-recipes.json').read_bytes())
+        (folder/'core.json').write_text(json.dumps(core));(folder/'marker-program.json').write_text(json.dumps(ir,indent=2))
+    ir=pm.run('marker_ir',{'marked_source':marked_source,'markers':marked/'markers.json','analysis':analysis/'cell-recipes.json','frontend':frontend},{},
+        base+[ROOT/'tools/eggfuse/marker_ir.py'],['core.json','marker-program.json'],marker_ir,
+        lambda f:validate_markers(json.loads((f/'marker-program.json').read_text()),json.loads((f/'core.json').read_text())),preserves=['typed marker contract'])
+    marker_file=pm.publish(ir/'marker-program.json','marker-program.json')
+    if stop_after=='markers':return pm
+    def lower(folder):
+        from compiler import compile_program
+        core=json.loads((ir/'core.json').read_text());m=json.loads(marker_file.read_text())
+        if backend=='local':
+            from generic_cell import lower as local_lower
+            program=local_lower(core,capacity,match_capacity,marker_program=m)
+        else:program=compile_program(core,capacity=capacity,match_capacity=match_capacity,marker_program=m)
+        (folder/'program.json').write_text(json.dumps(program));(folder/'kernel.metal').write_text(program['shader'])
+        shutil.copyfile(ir/'core.json',folder/'core.json')
+        (folder/'manifest.json').write_text(json.dumps(dict(schema='eggfuse-device-artifact/v1',backend=backend,source_sha256=digest(marked_source),marker_sha256=m['sha256'],
+            files={n:digest(folder/n) for n in ['core.json','program.json','kernel.metal']}),indent=2))
+    lowering_files=[BACKEND/(name+'.py') for name in ['compiler','batch_rhs','matrix_sat','matrix_comparison','joint_polyspine','query_contexts','context_ridge','stage_cell','cell_program','cell_updates','cell_spines','scheduled_matrix','generic_cell']]
+    device=pm.run('device',{'core':ir/'core.json','marker_ir':marker_file},dict(backend=backend,capacity=capacity,match_capacity=match_capacity),
+        base+lowering_files+list(BACKEND.glob('*.metal'))+[ROOT/'tools/eggfuse/marker_ir.py'],['program.json','kernel.metal','core.json','manifest.json'],lower,
+        lambda f:valid_json(f,'program.json'),preserves=['marked program semantics'])
+    for filename in ['program.json','kernel.metal','core.json','manifest.json']:pm.publish(device/filename,'eggfuse_related_files/'+filename)
+    if stop_after=='device':return pm
+    references=[]
+    for name,reference in [('sk_native',sk_source),('marked_native',marked_source)]:
+        references.append(pm.run(name,{'source':reference,'frontend':frontend},{'schedule':'original source commands'},base,
+            ['result/native-state.json','result/report.json'],
+            lambda f,reference=reference:command([frontend,reference,'--native-full','--export-to',f/'result'],f/'native.log'),
+            lambda f:valid_json(f/'result','native-state.json'),preserves=['independent native oracle'])/'result')
+    def verify(folder):
+        from run import compare,run
+        from .verify import compare_source
+        result=compare_source(json.loads((references[0]/'native-state.json').read_text()),json.loads((references[1]/'native-state.json').read_text()),json.loads(marker_file.read_text()))
+        if run_gpu:
+            runtime=folder/'runtime';runtime.mkdir();os.symlink(frontend,runtime/'frontend');os.symlink(build/'worker',runtime/'worker')
+            spec=json.loads((build/'build.json').read_text());spec.update(frontend=str(frontend),frontend_sha256=digest(frontend));(runtime/'build.json').write_text(json.dumps(spec))
+            if backend=='local':
+                from run_generic_cells import run_library
+                c=json.loads((ir/'core.json').read_text());initial=c.pop('initial')
+                library=dict(schema='analyzer-device-cells/v1',programs=[c],instances=[dict(unit=0,program=0,initial=initial)])
+                gpu=run_library(library,runtime,folder/'gpu',capacity,match_capacity,marker_program=json.loads(marker_file.read_text()),compiled_program=device/'program.json')
+                if not gpu['complete']:raise ValueError('local device program did not complete')
+                state_folder=folder/'gpu/program-0/cell-0';seconds=gpu['programs'][0]['inference_seconds']
+            else:
+                gpu=run(marked_source,runtime,folder/'gpu',check_every=0,capacity=capacity,match_capacity=match_capacity,save_final_state=True,marker_program=marker_file,compiled_program=device/'program.json')
+                state_folder=folder/'gpu';seconds=gpu['inference_seconds']
+            program=json.loads((state_folder/'program.json').read_text());state=json.loads((state_folder/'gpu-state.json').read_text())
+            checks=set(program['assertion_tables']);rows=[r for r in state['rows'] if program['tables'][r[0]]['name'] not in checks]
+            result['gpu']=compare(program,rows,state['parents'],json.loads((references[1]/'native-state.json').read_text()),state['sets'])
+            result['gpu_inference_seconds']=seconds;result['backend']=backend;result['device_marker_contract']=program['marker_program']
+        (folder/'verification.json').write_text(json.dumps(result,indent=2))
+    verify_inputs={'sk_reference':references[0]/'native-state.json','mk_reference':references[1]/'native-state.json','marked_source':marked_source,'marker_ir':marker_file,'frontend':frontend,'device':device/'program.json'}
+    if run_gpu:verify_inputs['worker']=build/'worker'
+    verification=pm.run('verify',verify_inputs,
+        {'gpu':run_gpu,'backend':backend,'compare':'complete original tables modulo canonical identity'},
+        base+[ROOT/'tools/eggfuse/verify.py',BACKEND/'run.py',BACKEND/'verify_native_source.py',BACKEND/'run_generic_cells.py',BACKEND/'generic_cell.swift'],['verification.json'],verify,
+        lambda f:valid_json(f,'verification.json'),preserves=['verified observable result'])
+    pm.publish(verification/'verification.json','verification.json');return pm
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,required=True)
+    p.add_argument('--tools',type=Path,default=ROOT/'target/debug/examples');p.add_argument('--solver-python',type=Path,default=Path(sys.executable));p.add_argument('--profile',type=Path)
+    p.add_argument('--stop-after',choices=['sk','analyze','markers','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
+    pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend)
+    print(json.dumps(dict(output=str(pm.output),passes=[dict(name=r['name'],cached=r['cached']) for r in pm.receipts],complete=a.stop_after=='verify',gpu_checked=a.stop_after=='verify' and not a.cpu_only),indent=2))

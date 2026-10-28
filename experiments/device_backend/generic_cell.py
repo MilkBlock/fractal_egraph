@@ -12,12 +12,17 @@ from scheduled_matrix import control
 HERE = Path(__file__).resolve().parent
 
 
-def lower(core, capacity=256, match_capacity=1024):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None):
     # Until probes are a future extension. Reject before allocating/mutating.
     ids = {s['name']: i for i, s in enumerate(core['rulesets'])}
     schedule = copy.deepcopy({'sequence': core['schedule']})
     checks={}
     def take_checks(s):
+        if s.pop('assert',False):
+            rs=next(r for r in core['rulesets'] if r['name']==s['run'])
+            names={a['call']['table'] for r in rs['rules'] for a in r['head'] if a.get('call',{}).get('table') in core.get('assertion_tables',[])}
+            if len(names)!=1:raise ValueError('assertion needs one explicit helper table')
+            s['assert_table']=names.pop()
         if 'assert_table' in s:
             checks[id(s)]=s.pop('assert_table')
         if s.get('assert'):raise ValueError('assertion needs its explicit table identity')
@@ -50,7 +55,7 @@ def lower(core, capacity=256, match_capacity=1024):
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
                         parallel_match=False, parallel_prepare=False,
                         parallel_rebuild=False, noop_preflight=False,
-                        query_patch=False, split_matches=False)
+                        query_patch=False, split_matches=False,marker_program=marker_program)
     # Preserve native min-ID representative preference *within each sort*.
     # Lexicographic Value(10) < Value(2) can spuriously refresh a seminaive row.
     anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)

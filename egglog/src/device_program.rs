@@ -20,7 +20,10 @@ fn sort(s: &ArcSort) -> Result<Json> {
     } else if matches!(s.name(), "i64" | "Unit" | "String" | "bool" | "f64") {
         Ok(json!({"name":s.name(),"kind":s.name()}))
     } else {
-        Err(format!("device backend: unsupported sort {}", s.name()))
+        // Preserve a typed semantic program even when a particular device has
+        // no physical representation for this declared extension. Backends
+        // must reject opaque sorts explicitly; values still require a codec.
+        Ok(json!({"name":s.name(),"kind":"opaque","container":s.is_container_sort()}))
     }
 }
 fn term(t: &ResolvedAtomTerm) -> Result<Json> {
@@ -147,8 +150,9 @@ impl EGraph {
         anchors.0=current.into_values().collect();
         Ok(json!({"rows":self.device_snapshot_tables(names)?,"anchors":aliases}))
     }
-    /// Export typed core rules plus one initialized state. Unsupported sorts are
-    /// rejected before the GPU takes ownership; this is not a fallback protocol.
+    /// Export typed core rules plus one initialized state. Unknown schema types
+    /// remain opaque; a device compiler must reject them before taking ownership.
+    /// Populated values without an export codec still fail here.
     pub fn export_device_program(&self, sets: &[String]) -> Result<Json> {
         let mut tables = vec![];
         for name in self.get_function_names() {

@@ -1,0 +1,12 @@
+; cell-choice/v1 {"function":"winner","score":"rank","order":"max","tie_break":"structural"}
+(datatype E (N i64))
+(function rank (E) i64 :merge (max old new))
+(function winner () E :merge new)
+(relation Candidate (E))
+(ruleset choose)
+(rule ((Candidate x)) ((set (winner) x)) :ruleset choose)
+(N 1) (N 2)
+(set (rank (N 1)) 7) (set (rank (N 2)) 7)
+(Candidate (N 1)) (Candidate (N 2))
+(run choose 1)
+(check (= (winner) (N 1)))

@@ -35,11 +35,18 @@ fn schedule(s: &Schedule, sets: &mut BTreeSet<String>, eg: &mut EGraph, assertio
         }
     })
 }
-fn main() -> Result<()> {
+pub fn execute(install: impl Fn(&mut EGraph, &str) -> Result<()>) -> Result<()> {
     EGraph::set_num_threads(1);
     let path = std::env::args().nth(1).ok_or("SOURCE.egg")?;
     let mut eg = EGraph::default();
-    let cmds = eg.parse_program(Some(path.clone()), &std::fs::read_to_string(path)?)?;
+    let source = std::fs::read_to_string(&path)?;
+    install(&mut eg, &source)?;
+    let cmds = eg.parse_program(Some(path.clone()), &source)?;
+    if std::env::args().any(|a| a == "--native-check") {
+        eg.run_program(cmds)?;
+        println!("{}",json!({"native_commands_completed":true,"scope":"source checks only; not full graph equivalence"}));
+        return Ok(());
+    }
     if std::env::args().any(|a|a=="--selected-dag") {
         eg.run_program(cmds)?;
         println!("{}",eg.export_device_program(&[]).map_err(io::Error::other)?);
@@ -243,4 +250,7 @@ fn main() -> Result<()> {
         io::stdout().flush()?;
     }
     Ok(())
+}
+fn main() -> Result<()> {
+    execute(|_, _| Ok(()))
 }

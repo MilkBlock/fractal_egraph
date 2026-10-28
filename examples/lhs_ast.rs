@@ -12,6 +12,9 @@ use egglog::{
 use serde_json::{Value as Json, json};
 use std::{collections::BTreeMap, error::Error, fs, io::Write};
 
+#[path = "support/egg_source.rs"]
+mod egg_source;
+
 fn expression(expr: &Expr) -> Json {
     match expr {
         Expr::Var(_, name) => json!({"kind": "var", "name": name}),
@@ -110,6 +113,20 @@ fn schedule(s: &egglog::ast::Schedule) -> Json {
     json!({"kind":"other"})
 }
 
+fn schedule_tree(s: &egglog::ast::Schedule) -> Json {
+    use egglog::ast::GenericSchedule as S;
+    match s {
+        S::Run(_, cfg) => {
+            json!({"kind":"run","ruleset":cfg.ruleset,"text":egg_source::schedule_text(s)})
+        }
+        S::Sequence(_, xs) => {
+            json!({"kind":"seq","children":xs.iter().map(schedule_tree).collect::<Vec<_>>()})
+        }
+        S::Repeat(_, n, x) => json!({"kind":"repeat","count":n,"child":schedule_tree(x)}),
+        S::Saturate(_, x) => json!({"kind":"saturate","child":schedule_tree(x)}),
+    }
+}
+
 fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
     let mut egraph = EGraph::default();
     let commands = egraph.parse_program(Some(source_name.to_owned()), source)?;
@@ -170,7 +187,7 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
                 declarations.push(declaration);
             }
             _ => other_commands.push(json!({
-                "command_ordinal": command_ordinal, "text": command.to_string(),
+                "command_ordinal": command_ordinal, "text": egg_source::printed(command),
             })),
         }
     }
@@ -211,6 +228,9 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
         "signatures": signatures,
         "duplicate_signatures": duplicate_signatures,
         "rules": rules,
+        "combined_rulesets": commands.iter().filter_map(|c| if let Command::UnstableCombinedRuleset(_,name,children)=c {
+            Some((name.clone(),children.clone()))
+        } else {None}).collect::<BTreeMap<_,_>>(),
         // Surface rewrite patterns are useful for shared matching circuits. Keep
         // them separate from Rule bodies so existing consumers retain semantics.
         "rewrites": commands.iter().enumerate().filter_map(|(ordinal, command)| {
@@ -246,7 +266,8 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
             if let Command::RunSchedule(s) = c { Some(schedule(s)) } else {None}
         }).collect::<Vec<_>>(),
         "commands": commands.iter().enumerate().map(|(ordinal, c)| json!({
-            "ordinal": ordinal, "text": c.to_string(),
+            "ordinal": ordinal, "text": egg_source::printed(c),
+            "schedule":if let Command::RunSchedule(s)=c {schedule_tree(s)} else {Json::Null},
             "kind": match c {
                 Command::Action(_) => "action", Command::RunSchedule(_) => "schedule",
                 Command::Check(..) => "check", Command::Rule{..} | Command::Rewrite(..) | Command::BiRewrite(..) => "rule",
