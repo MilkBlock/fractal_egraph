@@ -11,19 +11,27 @@ use std::{
     io::{self, BufRead, Write},
 };
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-fn schedule(s: &Schedule, sets: &mut BTreeSet<String>) -> Result<Value> {
+fn schedule(s: &Schedule, sets: &mut BTreeSet<String>, eg: &mut EGraph, assertions: &mut Vec<String>) -> Result<Value> {
     Ok(match s {
-        Schedule::Run(_, r) => {
-            if r.until.is_some() {
-                return Err("until predicates not supported by device control yet".into());
-            }
+        Schedule::Run(span, r) => {
             sets.insert(r.ruleset.clone());
-            json!({"run":r.ruleset})
+            let mut node=json!({"run":r.ruleset});
+            if let Some(facts)=&r.until {
+                use egglog::ast::{Rule,Actions,Action,Expr};
+                let name=format!("DeviceBackendUntil_{}",assertions.len());
+                let set=format!("device-backend-until-{}",assertions.len());
+                if eg.get_function(&name).is_some(){return Err("until helper name collision".into());}
+                eg.parse_and_run_program(None,&format!("(relation {name} ()) (ruleset {set})"))?;
+                eg.run_program(vec![Command::Rule{rule:Rule{span:span.clone(),name:format!("probe-{set}"),ruleset:set.clone(),naive:true,body:facts.clone(),
+                    head:Actions::new(vec![Action::Expr(span.clone(),Expr::Call(span.clone(),name.clone(),vec![]))])}}])?;
+                sets.insert(set.clone());assertions.push(name);node["until_run"]=json!(set);
+            }
+            node
         }
-        Schedule::Repeat(_, n, s) => json!({"repeat":n,"body":schedule(s,sets)?}),
-        Schedule::Saturate(_, s) => json!({"saturate":schedule(s,sets)?}),
+        Schedule::Repeat(_, n, s) => json!({"repeat":n,"body":schedule(s,sets,eg,assertions)?}),
+        Schedule::Saturate(_, s) => json!({"saturate":schedule(s,sets,eg,assertions)?}),
         Schedule::Sequence(_, ss) => {
-            json!({"sequence":ss.iter().map(|s|schedule(s,sets)).collect::<Result<Vec<_>>>()?})
+            json!({"sequence":ss.iter().map(|s|schedule(s,sets,eg,assertions)).collect::<Result<Vec<_>>>()?})
         }
     })
 }
@@ -87,7 +95,7 @@ fn main() -> Result<()> {
     let mut assertions = vec![];
     for c in &cmds[at..] {
         match c {
-            Command::RunSchedule(s) => schedules.push(schedule(s, &mut sets)?),
+            Command::RunSchedule(s) => schedules.push(schedule(s, &mut sets, &mut eg, &mut assertions)?),
             Command::Check(_, facts) => {
                 let name = format!("DeviceBackendCheck_{}", assertions.len());
                 let set = format!("device-backend-check-{}", assertions.len());

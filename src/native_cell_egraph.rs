@@ -90,6 +90,7 @@ impl Registry {
         self.values.contains_key(&unit)
     }
     pub fn observe_history(&mut self, c: &super::super::Captured, store: &super::super::cs::Store, catalog: Option<&Json>) -> Result<()> {
+        self.recipes.observe_schedule(&c.preview_source,c.boundaries.iter().filter_map(|b|b.stage.clone()).collect())?;
         self.families.observe(c, store);
         self.executable_evidence.observe(c);
         let version=(c.records.len(),c.changes.len(),store.windows.len(),self.catalog_revision);

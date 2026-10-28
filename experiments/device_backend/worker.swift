@@ -258,6 +258,8 @@ func matrixSaturate(_ set:UInt32)throws->MatrixSatResult{
  return MatrixSatResult(accepted:true,reason:0,info:result,history:historyWords,phases:gpuPhases,indexCount:indexCount,markerCount:markersCount,scratchBytes:scratch)
 }
 
+// SCHEDULED_HOST
+
 let cuDescription=program["comparison_saturate"] as? [String:Any]
 let cuPlans=cuDescription?["programs"] as? [[String:Any]] ?? []
 let cuNames=["cu_count","cu_pack","cu_reset","cu_reduce","cu_gather","cu_mma","cu_apply","cu_congruence","cu_finish","cu_publish","cu_priority","cu_block_begin","cu_block_union","cu_block_finish","cu_block_delta"]
@@ -460,6 +462,11 @@ while true{
   // The no-op filter and RHS share a command buffer. Do not add an otherwise
   // unnecessary submission merely to obtain a separate GPU timestamp.
   var seconds=commands.map{$0.gpuEndTime-$0.gpuStartTime};let rhsSeconds=seconds[2];seconds[2]+=rebuildSeconds;if let sorted=orderCommand{seconds[1]+=sorted.gpuEndTime-sorted.gpuStartTime};seconds.append(rhsSeconds);seconds.append(rebuildSeconds);seconds.append(noopFused ? -1 : 0);try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))};try output.write(contentsOf:Data(bytes:status.contents().advanced(by:36),count:8));try output.write(contentsOf:Data(bytes:status.contents().advanced(by:60),count:8))
+ }else if op==8{
+  let result=try scheduledMatrix(arg);hostMeta=result.info;try send(hostMeta)
+  let seconds=result.phases;try seconds.withUnsafeBytes{try output.write(contentsOf:Data($0))}
+  try send([result.accepted ? 1:0,result.reason,UInt32(result.history.count/8),UInt32(result.markerCount),UInt32(result.scratchBytes & 0xffffffff),UInt32(result.scratchBytes>>32),UInt32(smLastForwarded)])
+  try send(result.history)
  }else if op==6{
   let result=try jointPolyspine();hostMeta=result.info;try send(hostMeta)
   try result.phases.withUnsafeBytes{try output.write(contentsOf:Data($0))};var index:Int64=0;try withUnsafeBytes(of:&index){try output.write(contentsOf:Data($0))};try send([0,0])

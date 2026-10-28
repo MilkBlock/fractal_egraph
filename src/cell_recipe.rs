@@ -52,6 +52,8 @@ pub struct Library {
     scope_ids: BTreeMap<String, usize>,
     dirty: bool,
     seen: BTreeMap<usize, String>,
+    source_schedule: Option<J>,
+    stage_events: Vec<J>,
 }
 struct Encoding<'a> {
     lib: &'a mut Library,
@@ -149,6 +151,14 @@ impl Encoding<'_> {
     }
 }
 impl Library {
+    pub fn observe_schedule(&mut self, source: &str, events: Vec<J>) -> Result<()> {
+        if self.source_schedule.is_none() {
+            self.source_schedule=Some(crate::cell_schedule::source_program(source)?);
+            self.dirty=true;
+        }
+        if self.stage_events!=events {self.stage_events=events;self.dirty=true;}
+        Ok(())
+    }
     fn intern_expr(&mut self, v: J) -> Result<usize> {
         let k = serde_json::to_string(&v)?;
         let n = self.expressions.len();
@@ -227,7 +237,7 @@ impl Library {
         });
         self.dirty = true;
         self.cells.insert(unit,json!({"unit":unit,"parents":parents,"environment":environment,"inputs":inputs,"prepare":setup,"final_checks":checks,"validation":validation,
-            "stage_boundaries":origin["replay_plan"],"external_injections":origin["staged_injections"],"relative_binding":origin["reuse_recipe"],"interface":origin["reuse_interface_terms"],"numeric_conditions":origin["analysis_program"],
+            "records":origin["members"],"stage_boundaries":origin["replay_plan"],"stage_boundary_kind":"application replay; original Run boundaries are in stage_events","external_injections":origin["staged_injections"],"relative_binding":origin["reuse_recipe"],"interface":origin["reuse_interface_terms"],"numeric_conditions":origin["analysis_program"],
             "closure":{"op":"saturate","body":{"op":"sequence","body":sets.into_iter().map(|s|json!({"op":"run","ruleset":s,"until":null})).collect::<Vec<_>>()}},
             "program_status":"ready","completion_status":"not_observed","scope":"isolated native ripen; not the tier0 schedule","live_substitution_authorized":false}));
         Ok(())
@@ -332,6 +342,8 @@ impl Library {
         v["instructions"] = json!(self.commands);
         v["environments"] = json!(self.environments);
         v["scopes"] = json!(self.scopes);
+        v["source_schedule"] = json!(self.source_schedule);
+        v["stage_events"] = json!(self.stage_events);
         v["cells"] = json!(self.cells.values().collect::<Vec<_>>());
         crate::pipeline::write_json(path, &v)?;
         self.dirty = false;

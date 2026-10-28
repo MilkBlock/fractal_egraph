@@ -410,6 +410,7 @@ impl Session {
         };
         if self.record_history {
             self.c.boundaries.push(CaptureBoundary {
+                stage: None,
                 ripen: Some(f.clone()),
                 kind: "ripen-round".into(),
                 round: Some(self.round),

@@ -21,3 +21,4 @@ pub mod slotted_dot;
 pub mod slotted_layer;
 
 pub mod cell_recipe;
+pub mod cell_schedule;

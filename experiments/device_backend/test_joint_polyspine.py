@@ -8,14 +8,14 @@ HERE=Path(__file__).resolve().parent
 BASE=(HERE/'fixtures/polyspine-terms.egg').read_text()
 SCHEDULE='(run-schedule (saturate (run terms) (saturate (run terms-helpers) (saturate (run terms-helpers-helpers)))))\n'
 
-def rejected_transaction(build,file,out,reason,capacity=4096,stage_contexts=False,block_merge=False,cell_program=None):
+def rejected_transaction(build,file,out,reason,capacity=4096,stage_contexts=False,block_merge=False,cell_program=None,scheduled=False):
     out.mkdir(parents=True)
     with (out/'native.log').open('w') as log:
         native=subprocess.Popen([str((build/'frontend').resolve()),str(file.resolve())],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log,text=True)
         core=json.loads(native.stdout.readline());native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait();native.stdin.close();native.stdout.close()
     from tools.cell_spine.executable import load as load_cell_program
     executable=load_cell_program(cell_program,core) if cell_program else None
-    p=compile_program(core,capacity=capacity,joint_polyspine=True,stage_contexts=stage_contexts,block_merge=block_merge,block_merge_audit=block_merge,cell_program=executable);p['stage_context_audit']=stage_contexts;assert p['joint_polyspine']['program']
+    p=compile_program(core,capacity=capacity,joint_polyspine=not scheduled,scheduled_matrix=scheduled,stage_contexts=stage_contexts,block_merge=block_merge,block_merge_audit=block_merge,cell_program=executable);p['stage_context_audit']=stage_contexts;assert (p['scheduled_matrix']['programs'] if scheduled else p['joint_polyspine']['program'])
     path=out/'program.json';path.write_text(json.dumps(p))
     with (out/'gpu.log').open('w') as log:
         gpu=subprocess.Popen([str((build/'worker').resolve()),str(path.resolve())],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log)
@@ -26,11 +26,19 @@ def rejected_transaction(build,file,out,reason,capacity=4096,stage_contexts=Fals
                 command(2);raw=read(gpu.stdout,36);m=struct.unpack('<9I',raw)
                 raw+=read(gpu.stdout,m[0]*p['stride']*8+m[1]*4+m[8]*4)
                 n=read(gpu.stdout,4);raw+=n+read(gpu.stdout,struct.unpack('<I',n)[0]*8);return raw
-            before=snapshot();command(6);read(gpu.stdout,100)
-            header=struct.unpack('<8I',read(gpu.stdout,32));read(gpu.stdout,8);stats=struct.unpack('<128q',read(gpu.stdout,1024));read(gpu.stdout,header[2]*28)
-            assert header[0]==0 and header[1]==reason,header
-            assert all(x==0 for x in stats[64:80]),'numeric RHS payload leaked into control telemetry'
+            before=snapshot()
+            if scheduled:
+                command(8);read(gpu.stdout,60);header=struct.unpack('<7I',read(gpu.stdout,28));read(gpu.stdout,header[2]*32)
+                assert header[0]==0 and header[1]==reason,header
+            else:
+                command(6);read(gpu.stdout,100)
+                header=struct.unpack('<8I',read(gpu.stdout,32));read(gpu.stdout,8);stats=struct.unpack('<128q',read(gpu.stdout,1024));read(gpu.stdout,header[2]*28)
+                assert header[0]==0 and header[1]==reason,header
+                assert all(x==0 for x in stats[64:80]),'numeric RHS payload leaked into control telemetry'
             assert snapshot()==before,'rejected macro changed published rows, IDs, parents or metadata'
+            if scheduled:
+                command(1);status=struct.unpack('<9I',read(gpu.stdout,36));read(gpu.stdout,64)
+                assert status[5]==1 and status[3]==1,'rejected patch advanced the original rule watermarks'
             command(0);gpu.wait(timeout=30)
         finally:
             if gpu.poll() is None:gpu.terminate();gpu.wait()
