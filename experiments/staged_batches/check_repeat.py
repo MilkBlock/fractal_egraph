@@ -33,6 +33,9 @@ def check(build,out):
       'escaped-result':BASE+'''(function Chosen () E :merge new) (ruleset export)
 (rule ((= p (P x))) ((set (Chosen) p)) :ruleset export)
 (run-schedule (repeat 2 (run a) (run b)) (run export))''',
+      'subsume-boundary':BASE+'''(ruleset hide)
+(rule ((= x (N 0))) ((subsume (P x))) :ruleset hide)
+(run-schedule (repeat 1 (run a) (run b)) (run hide) (repeat 2 (run a) (run b)))''',
       'union-boundary':BASE+'''(ruleset merge)
 (rule ((= left (N 0)) (= right (N 1))) ((union left right)) :ruleset merge)
 (run-schedule (repeat 1 (run a) (run b)) (run merge) (repeat 2 (run a) (run b)))''',

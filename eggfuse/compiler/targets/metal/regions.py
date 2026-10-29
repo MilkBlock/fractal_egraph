@@ -47,10 +47,10 @@ void rc_compact(device long*c,device long*r){
             out.append(f'for(uint item=0;item<uint(c[{ph+3}]);item++){{uint pa=uint(c[{ph+2}])+item*{pw};long v[{max(1,slots)}]={{0}};')
             out.extend(f'v[{j}]=c[pa+{j}];' for j in range(ps))
             # Anchor fact IDs are monotonically allocated; scalar query-index
-            # enumeration and keyed extension preserve their descending order.
+            # enumeration and keyed extension preserve their ascending physical-row/fact-ID order.
             # Merge with the previous tuple stream, then validate witnesses via
             # the shared fact-ID -> current-row map (no table-key lookup).
-            out.append(f'uint anchor=uint(c[pa+{ps+1}]);while(oldCursor<oldCount&&uint(c[oldStart+oldCursor*{width}+{slots+1}])>anchor)oldCursor++;')
+            out.append(f'uint anchor=uint(c[pa+{ps+1}]);while(oldCursor<oldCount&&uint(c[oldStart+oldCursor*{width}+{slots+1}])<anchor)oldCursor++;')
             out.append(f'if(oldCursor<oldCount&&uint(c[oldStart+oldCursor*{width}+{slots+1}])==anchor){{uint prev=oldStart+oldCursor*{width};bool valid=true;')
             for j in range(depth):
                 out.append(f'uint fid{j}=uint(c[prev+{slots+2*j+1}]),row{j}=uint(r[RC_FACT_ROW+fid{j}]);valid&=row{j}>0; if(row{j}>0){{row{j}--;valid&=old[row{j}*STRIDE+3]==fid{j}&&old[row{j}*STRIDE+1]==0&&old[row{j}*STRIDE+2]==c[prev+{slots+2*j}];}}')

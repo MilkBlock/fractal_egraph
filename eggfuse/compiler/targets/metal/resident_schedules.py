@@ -51,7 +51,7 @@ def metal(source):
     source+='''
 kernel void resident_schedule_index(MS_ARGS,uint lane[[thread_position_in_grid]]){
  if(c[4]||lane>=cfg[5])return;uint row=c[8]+lane,t=uint(rows[row*STRIDE]);
- rows[RC_FACT_ROW+uint(rows[row*STRIDE+3])]=row+1;
+ rows[RC_FACT_ROW+uint(rows[row*STRIDE+3])]=row+1;rc_fact_dirty(rows,row);
  atomic_fetch_max_explicit((device atomic_uint*)(rows+RC_VERSION+t),uint(rows[row*STRIDE+2]),memory_order_relaxed);
  if(!lane){rows[INDEX_OFFSET]=0;rows[QUERY_DIRTY]=1;rows[QUERY_LOG]=0;rows[QUERY_LOG+1]=c[8]+cfg[5];}
 }

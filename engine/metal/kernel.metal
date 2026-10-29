@@ -12,7 +12,8 @@ struct Meta {uint count,next_id,epoch,changed,error,matched,rounds,unions,next_f
 void rc_dirty(device long*r,uint table,uint epoch){if(RC_ENABLED)r[RC_VERSION+table]=epoch;}
 bool jp_active(device long*r){return JP_ENABLED&&r[JP_STATE]!=0;}
 // Per-page publication journal. No logical match is treated as a mutation.
-void sc_dirty(device long*r,uint row,uint epoch){rc_dirty(r,uint(r[row*STRIDE]),epoch);if(RC_ENABLED)r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;if(SC_ENABLED&&jp_active(r)&&uint(r[row*STRIDE])==JP_IDS[0])atomic_fetch_max_explicit((device atomic_uint*)(r+JP_STATE+105),epoch,memory_order_relaxed);if(SC_ENABLED&&jp_active(r))for(uint page=row*STRIDE/128;page<=((row+1)*STRIDE-1)/128;page++)atomic_fetch_max_explicit((device atomic_uint*)(r+JP_DIRTY+page),epoch,memory_order_relaxed);}
+void rc_fact_dirty(device long*r,uint row){if(RC_ENABLED){uint fid=uint(r[row*STRIDE+3]);long at=r[RC_FACT_REV+fid];if(at<0xffffffffL)r[RC_FACT_REV+fid]=at+1;}}
+void sc_dirty(device long*r,uint row,uint epoch){rc_fact_dirty(r,row);rc_dirty(r,uint(r[row*STRIDE]),epoch);if(RC_ENABLED)r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;if(SC_ENABLED&&jp_active(r)&&uint(r[row*STRIDE])==JP_IDS[0])atomic_fetch_max_explicit((device atomic_uint*)(r+JP_STATE+105),epoch,memory_order_relaxed);if(SC_ENABLED&&jp_active(r))for(uint page=row*STRIDE/128;page<=((row+1)*STRIDE-1)/128;page++)atomic_fetch_max_explicit((device atomic_uint*)(r+JP_DIRTY+page),epoch,memory_order_relaxed);}
 bool jp_key_table(uint t){return t==JP_IDS[1]||t==JP_IDS[3];}
 int jp_numeric_slot(uint rule,uint slot);
 uint root(device uint*p,uint x){while(p[x]!=x){p[x]=p[p[x]];x=p[x];}return x;}
@@ -167,7 +168,7 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
   for(long h=2;h<r[ROW_WORDS];h+=r[ROW_WORDS+h]+4)set_canon(r,p,h);
   for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){uint t=uint(r[i*STRIDE]);
    for(uint c=0;c<WIDTH[t];c++){uint at=i*STRIDE+4+c;long x=canon(r,p,t,c,r[at]);
-    if(x!=r[at]||(EQ[t*COLS+c]==2&&r[ROW_WORDS+x+3]==m.epoch)){rc_dirty(r,t,m.epoch);r[at]=x;r[i*STRIDE+2]=m.epoch;m.changed=1;}}
+    if(x!=r[at]||(EQ[t*COLS+c]==2&&r[ROW_WORDS+x+3]==m.epoch)){rc_dirty(r,t,m.epoch);rc_fact_dirty(r,i);r[at]=x;r[i*STRIDE+2]=m.epoch;m.changed=1;}}
   }
   // The resident arena already reserves generation tags for these same heads.
   // Rebuild owns the scratch index until it returns; the next query reset
@@ -199,7 +200,7 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
     long key[COLS]={0};for(uint c=0;c<WIDTH[t]-1;c++)key[c]=r[j*STRIDE+4+c];
     if(row_lookup(r,p,m,t,key)==j)r[INDEX_OFFSET]=0;
    }else if(!RC_ENABLED)r[INDEX_OFFSET]=0;
-   r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;rc_dirty(r,t,m.epoch);
+   r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;rc_dirty(r,t,m.epoch);rc_fact_dirty(r,i);
    fp[root(fp,uint(r[j*STRIDE+3]))]=root(fp,uint(r[i*STRIDE+3]));m.changed=1;
   }
   again=before!=m.unions||count!=m.count;

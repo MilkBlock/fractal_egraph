@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     from eggfuse.ir.recipe import digest
@@ -57,13 +57,14 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     tape = encode(schedule) if checks or batch else control(schedule, ids)
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
                         parallel_match=bool(batch), parallel_prepare=False,
-                        parallel_rebuild=False, noop_preflight=False,
-                        query_patch=bool(batch and patch_queries), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts),spine_cache=spine_cache)
+                        parallel_rebuild=False, noop_preflight=bool(batch and parallel_noops),
+                        query_patch=bool(batch and patch_queries), batch_rhs=bool(batch and parallel_constructors), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts),spine_cache=spine_cache,local_certificates=local_certificates,ordered_query_patch=ordered_query_patch,witness_order=not ordered_query_patch)
     scheduled=None
     if batch and scheduled_regions:
         from .resident_schedules import prepare as prepare_schedules
         scheduled=prepare_schedules(core,p,region_program)
     p['resident_schedules']=scheduled
+    p['local_certificates']=dict(enabled=local_certificates,proof='single immutable constructor witness and idempotent effects; invalidate only after a mutation of the exact witnessed row')
     p['spine_cache_execution']=dict(enabled=spine_cache,contract='same complete analyzed library and Cell recipes; false uses exact parallel residual queries instead of serial cache construction')
     if scheduled:
         by_schedule={digest(x['schedule']):x for x in scheduled['programs']}
@@ -190,6 +191,15 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
             from .resident_rebuild import lower as lower_rebuild
             for i,name in enumerate(['HASH','ROWS','ONE','COMPACT','FINISH']):defines+=f'#define BC_RB_{name} {3*(p["resident_rebuild"]["dispatch_base"]+i)}\n'
             text+='\n'+lower_rebuild((HERE/'rebuild_parallel.metal').read_text())
+        p['resident_writes']=dict(schema='eggfuse-resident-writes/v1',enabled=parallel_constructors,
+            dispatch_base=p['resident_rebuild']['dispatch_base']+(5 if parallel_block_rebuild else 0),
+            eligible_rules=p['batch_rhs']['eligible_rules'],
+            contract='contiguous independent constructor segments; stable first-witness IDs; other effects retain exact order')
+        defines+=f'#define BC_PARALLEL_CONSTRUCTORS {int(parallel_constructors)}\n'
+        if parallel_constructors:
+            from .resident_writes import lower as lower_writes
+            for i,name in enumerate(['BINDINGS','EFFECTS','HASH','ONE']):defines+=f'#define BC_WRITE_{name} {3*(p["resident_writes"]["dispatch_base"]+i)}\n'
+            text+='\n'+lower_writes((HERE/'batch_rhs.metal').read_text())
         calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls)).replace('// CACHE_PREPARE', ''.join(cache_calls)).replace('// PARALLEL_QUERIES', ''.join(parallel_calls))
     p['shader'] += '\n' + defines + '\n' + text

@@ -32,7 +32,7 @@ def lower(source):
         if name.startswith('compact_'):pre+='if(control[0]!=0)return;\n'
         else:pre+='if(control[0]!=1)return;\n'
         if name=='rebuild_canonical':
-            body=body.replace('r[at]=v;r[lane*STRIDE+2]=m.epoch;', 'atomic_store_explicit((device atomic_uint*)(r+RC_VERSION+t),m.epoch,memory_order_relaxed);r[at]=v;r[lane*STRIDE+2]=m.epoch;')
+            body=body.replace('r[at]=v;r[lane*STRIDE+2]=m.epoch;', 'atomic_store_explicit((device atomic_uint*)(r+RC_VERSION+t),m.epoch,memory_order_relaxed);rc_fact_dirty(r,lane);r[at]=v;r[lane*STRIDE+2]=m.epoch;')
         if name=='rebuild_merge':
             # Callback evaluation uses the original ordered scalar lookup. A
             # later optimization may split its index refresh without reordering.
@@ -41,7 +41,7 @@ def lower(source):
    long key[COLS]={0};for(uint c=0;c<WIDTH[t]-1;c++)key[c]=r[j*STRIDE+4+c];
    if(row_lookup(r,p,m,t,key)==j)r[INDEX_OFFSET]=0;
   }
-  rc_dirty(r,t,m.epoch);r[i*STRIDE+1]=''')
+  rc_dirty(r,t,m.epoch);rc_fact_dirty(r,i);r[i*STRIDE+1]=''')
         if name=='compact_offsets':body=body.replace('(CAPACITY+255)/256','(m.count+255)/256')
         if name=='compact_copy':body=body.replace('matches[to*STRIDE+c]','scratch[(instance*batchCfg.z+to)*STRIDE+c]')
         if name=='compact_store':

@@ -41,7 +41,7 @@ def timings(repo, program, checkpoint, build, output):
         'let actualProfileWorkerDigest=digest(try Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[0]).resolvingSymlinksInPath()))\nlet workerDigest="'+base_hash+'"')
     replace('let quantum=UInt32(program["quantum"] as? Int ?? 8)',
         'let quantum=UInt32(1)\nvar profileTotals=[String:Double](),profileCounts=[String:Int](),profileSlices=[(String,MTLCommandBuffer)](),profileName=""')
-    replace('let cb=queue.makeCommandBuffer()!', 'profileSlices.removeAll(keepingCapacity:true)\n var cb=queue.makeCommandBuffer()!')
+    replace(' let cb=queue.makeCommandBuffer()!\n cb.label=transportVersion', ' profileSlices.removeAll(keepingCapacity:true)\n var cb=queue.makeCommandBuffer()!\n cb.label=transportVersion')
     replace('if capturing && phaseStarted {e.endEncoding();e=cb.makeComputeCommandEncoder()!;bind(e)}',
         'if phaseStarted {e.endEncoding();cb.commit();profileSlices.append((profileName,cb));cb=queue.makeCommandBuffer()!;e=cb.makeComputeCommandEncoder()!;bind(e)}\n    profileName=name;cb.label=name')
     replace('gpuSeconds+=cb.gpuEndTime-cb.gpuStartTime;dispatches+=1',

@@ -1,9 +1,10 @@
 // Three device stages share one resident context/effect matrix. The host queues
 // a fixed quantum without reading matches or deciding logical stage transitions.
-#define BC_ARGS device long*all_rows[[buffer(0)]],device uint*all_uint[[buffer(1)]],device long*all_long[[buffer(2)]],device Meta*all_meta[[buffer(3)]],device uint*all_state[[buffer(4)]],device long*code[[buffer(5)]],device const uint*tape[[buffer(6)]],device uint*all_history[[buffer(7)]],device long*all_markers[[buffer(8)]],constant uint4&cfg[[buffer(9)]],device long*all_batch[[buffer(10)]],constant uint4&batchCfg[[buffer(11)]],device atomic_uint*dispatch[[buffer(12)]],device ulong*hashes[[buffer(13)]]
-#define BC_INPUTS device long*all_rows,device uint*all_uint,device long*all_long,device Meta*all_meta,device uint*all_state,device long*code,device const uint*tape,device uint*all_history,device long*all_markers,constant uint4&cfg,device long*all_batch,constant uint4&batchCfg,device atomic_uint*dispatch,device ulong*hashes
-#define BC_VALUES all_rows,all_uint,all_long,all_meta,all_state,code,tape,all_history,all_markers,cfg,all_batch,batchCfg,dispatch,hashes
+#define BC_ARGS device long*all_rows[[buffer(0)]],device uint*all_uint[[buffer(1)]],device long*all_long[[buffer(2)]],device Meta*all_meta[[buffer(3)]],device uint*all_state[[buffer(4)]],device long*code[[buffer(5)]],device const uint*tape[[buffer(6)]],device uint*all_history[[buffer(7)]],device long*all_markers[[buffer(8)]],constant uint4&cfg[[buffer(9)]],device long*all_batch[[buffer(10)]],constant uint4&batchCfg[[buffer(11)]],device atomic_uint*dispatch[[buffer(12)]],device ulong*hashes[[buffer(13)]],constant uint4&writeCfg[[buffer(16)]],device uint*all_write_uint[[buffer(17)]],device long*all_write_long[[buffer(18)]]
+#define BC_INPUTS device long*all_rows,device uint*all_uint,device long*all_long,device Meta*all_meta,device uint*all_state,device long*code,device const uint*tape,device uint*all_history,device long*all_markers,constant uint4&cfg,device long*all_batch,constant uint4&batchCfg,device atomic_uint*dispatch,device ulong*hashes,constant uint4&writeCfg,device uint*all_write_uint,device long*all_write_long
+#define BC_VALUES all_rows,all_uint,all_long,all_meta,all_state,code,tape,all_history,all_markers,cfg,all_batch,batchCfg,dispatch,hashes,writeCfg,all_write_uint,all_write_long
 __attribute__((noinline)) void bc_finish_run(BC_INPUTS,uint instance,bool continuation);
+bool bc_requires_sort(uint set){return QUERY_PARALLEL[set]||!QUERY_PATCH_SORTED;}
 uint bc_order_offset(uint count,bool parallel){
  if(!BC_PARALLEL_SORT||!parallel||count<=BC_SMALL_SORT)return 0;
  uint at=0;for(uint span=BC_SORT_TILE;span<count;span*=2)at=MATCHCAP-at;return at;
@@ -20,7 +21,7 @@ __attribute__((noinline)) void bc_prepare_queries(BC_INPUTS,uint instance,bool r
  for(uint j=0;j<uint(r[QUERY_LOG]);j++)r[QUERY_OLD_TIME+uint(r[QUERY_CHANGED+j])]=0;
  if(reset)s[5]++;else s[6]++;r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;r[QUERY_DIRTY]=0;ensure_row_index(r,p,m);
  if(m.rounds==1)for(uint row=0;row<m.count;row++)r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;
- rc_compact(contexts,r);bc_reindex_certificates(stats,m.unions,ulong(r[RC_VISIBILITY]));s[7]=1;
+ rc_compact(contexts,r);bc_reindex_certificates(stats,r,m.count,m.unions,ulong(r[RC_VISIBILITY]));s[7]=1;
  uint set=tape[4*s[0]+1];
  if(QUERY_PARALLEL[set]){
   switch(set){// CACHE_PREPARE
@@ -47,14 +48,14 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
  device uint*stack=s+8;device long*r=all_rows+instance*GC_ROW_WORDS;device long*old=r;
  // LOCAL_POINTERS
  device uint*p=parent;device float*context_results=(device float*)contexts;
- if(m.rounds==0)for(uint row=0;row<m.count;row++){uint t=uint(r[row*STRIDE]);r[RC_VERSION+t]=max(r[RC_VERSION+t],r[row*STRIDE+2]);r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;}
+ if(m.rounds==0)for(uint row=0;row<m.count;row++){uint t=uint(r[row*STRIDE]);r[RC_VERSION+t]=max(r[RC_VERSION+t],r[row*STRIDE+2]);r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;r[RC_FACT_REV+uint(r[row*STRIDE+3])]=1;}
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));bool grew=stats[9]!=long(batchCfg.x);stats[9]=batchCfg.x;
  if(m.error==37){m.error=0;contexts[14]=1;rc_compact(contexts,r);}
  // Checkpoint diagnostic: stop only between complete logical Runs. A pending
  // block continuation finishes before the gate can close.
  if(batchCfg.y && s[3]>=batchCfg.y && stats[10]!=2){stats[10]=0;return;}
- if(stats[10]==6||stats[10]==8)return;
- if(stats[10]==2){if(grew)bc_reindex_certificates(stats,m.unions,ulong(r[RC_VISIBILITY]));atomic_fetch_max_explicit(dispatch,uint(stats[11]),memory_order_relaxed);return;}stats[10]=0;
+ if(stats[10]==6||stats[10]==8||stats[10]==9||stats[10]==10)return;
+ if(stats[10]==2){if(grew)bc_reindex_certificates(stats,r,m.count,m.unions,ulong(r[RC_VISIBILITY]));atomic_fetch_max_explicit(dispatch,uint(stats[11]),memory_order_relaxed);return;}stats[10]=0;
  context_info=(device uint*)stats;
  while(!m.error&&!s[2]){
   uint pc=s[0],op=tape[4*pc],arg=tape[4*pc+1];
@@ -122,7 +123,7 @@ kernel void batched_cell_sort_local(BC_ARGS,uint2 group[[threadgroup_position_in
  device Meta&m=all_meta[instance];device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
  if(m.error||(stats[10]!=3&&stats[10]!=4))return;
  device uint*order=all_uint+instance*GC_UINT_WORDS+GC_MATCH_ORDER;
- if(stats[10]==4){if(lane<m.matched)order[lane]=lane;return;}
+ if(stats[10]==4&&QUERY_PATCH_SORTED){if(lane<m.matched)order[lane]=lane;return;}
  device long*matches=all_long+instance*GC_LONG_WORDS+GC_MATCHES;
  threadgroup uint ids[BC_SORT_TILE];ids[tid]=lane<m.matched?lane:0xffffffff;threadgroup_barrier(mem_flags::mem_threadgroup);
  for(uint k=2;k<=BC_SORT_TILE;k*=2)for(uint d=k/2;d;d/=2){
@@ -134,7 +135,7 @@ kernel void batched_cell_sort_local(BC_ARGS,uint2 group[[threadgroup_position_in
 kernel void batched_cell_sort_merge(BC_ARGS,constant uint4&sortCfg[[buffer(14)]],uint2 group[[threadgroup_position_in_grid]],uint tid[[thread_index_in_threadgroup]]){
  uint instance=group.y,lane=group.x*128+tid;if(instance>=cfg.x)return;device Meta&m=all_meta[instance];
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
- if(m.error||stats[10]!=3||lane>=m.matched||sortCfg.x>=m.matched)return;
+ if(m.error||(stats[10]!=3&&(stats[10]!=4||QUERY_PATCH_SORTED))||lane>=m.matched||sortCfg.x>=m.matched)return;
  device uint*order=all_uint+instance*GC_UINT_WORDS+GC_MATCH_ORDER;
  device uint*input=order+sortCfg.y;device uint*output=order+sortCfg.z;
  device long*matches=all_long+instance*GC_LONG_WORDS+GC_MATCHES;
@@ -154,7 +155,7 @@ kernel void batched_cell_pack(BC_ARGS,constant uint&packStep[[buffer(14)]],uint 
  if(BC_PARALLEL_SORT&&packStep==0&&m.matched>BC_SMALL_SORT){
   if(tid)return;
   atomic_fetch_max_explicit(dispatch+9,(m.matched+BC_SORT_TILE-1)/BC_SORT_TILE,memory_order_relaxed);
-  uint pass=0;for(uint span=BC_SORT_TILE;span<MATCHCAP;span*=2,pass++)if(stats[10]==3&&m.matched>span)
+  uint pass=0;for(uint span=BC_SORT_TILE;span<MATCHCAP;span*=2,pass++)if((stats[10]==3||!QUERY_PATCH_SORTED)&&m.matched>span)
    atomic_fetch_max_explicit(dispatch+12+3*pass,(m.matched+127)/128,memory_order_relaxed);
   return;
  }
@@ -164,7 +165,7 @@ kernel void batched_cell_pack(BC_ARGS,constant uint&packStep[[buffer(14)]],uint 
  if(BC_PARALLEL_SORT&&m.matched<=BC_SMALL_SORT){
   // Four ordinals per lane fit in 4 KiB of threadgroup memory. Finish small
   // batches in the same kernel that publishes their descriptors.
-  if(m.matched>1&&stats[10]==3){
+  if(m.matched>1&&(stats[10]==3||!QUERY_PATCH_SORTED)){
    threadgroup uint ids[BC_SMALL_SORT];uint limit=1;while(limit<m.matched)limit*=2;
    for(uint i=tid;i<limit;i+=BC_SORT_TILE)ids[i]=i<m.matched?i:0xffffffff;
    threadgroup_barrier(mem_flags::mem_threadgroup);
@@ -179,10 +180,10 @@ kernel void batched_cell_pack(BC_ARGS,constant uint&packStep[[buffer(14)]],uint 
   }else for(uint i=tid;i<m.matched;i+=BC_SORT_TILE)match_order[i]=i;
   threadgroup_barrier(mem_flags::mem_device);
   if(tid)return;
- }else if(BC_PARALLEL_SORT){if(tid)return;match_order+=bc_order_offset(m.matched,stats[10]==3);}
+ }else if(BC_PARALLEL_SORT){if(tid)return;match_order+=bc_order_offset(m.matched,stats[10]==3||!QUERY_PATCH_SORTED);}
  else {if(tid)return;
  for(uint i=0;i<m.matched;i++)match_order[i]=i;
- if(stats[10]==3)for(uint span=1;span<m.matched;span*=2){
+ if(stats[10]==3||!QUERY_PATCH_SORTED)for(uint span=1;span<m.matched;span*=2){
   for(uint start=0;start<m.matched;start+=2*span){uint mid=min(start+span,m.matched),end=min(start+2*span,m.matched),a=start,b=mid;
    for(uint i=start;i<end;i++)match_order[MATCHCAP+i]=(b==end||(a<mid&&match_before(match_order[a],match_order[b],matches)))?match_order[a++]:match_order[b++];
   }
@@ -205,12 +206,20 @@ kernel void batched_cell_evaluate(BC_ARGS,uint2 group[[threadgroup_position_in_g
  uint instance=group.y,tile=group.x;if(instance>=cfg.x)return;
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
  if((stats[10]!=1&&stats[10]!=2)||tile>=uint(stats[11]))return;
- device long*meta=stats+BC_STATS;uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);if(plan<0)return;
+ device long*meta=stats+BC_STATS;uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);
  device long*data=meta+3*batchCfg.x+start*BC_STRIDE;
  device long*matches=all_long+instance*GC_LONG_WORDS+GC_MATCHES;
  device uint*match_order=all_uint+instance*GC_UINT_WORDS+GC_MATCH_ORDER;
  device uint*s=all_state+instance*GC_STATE_WORDS;
- match_order+=bc_order_offset(all_meta[instance].matched,QUERY_PARALLEL[tape[4*s[0]+1]]);
+ match_order+=bc_order_offset(all_meta[instance].matched,bc_requires_sort(tape[4*s[0]+1]));
+ if(plan<0){
+  if(tid<count&&stats[10]==1){
+   uint binding=match_order[start+tid],rule=uint(matches[binding*MSTRIDE]);
+   device long*r=all_rows+instance*GC_ROW_WORDS;device long*o=data+tid*BC_STRIDE;o[BC_FAST]=0;
+   if(NOOP_PREFLIGHT&&NOOP_RULE[rule]){o[BC_FAST]=actions_stably_empty(rule,binding,code,matches,r);rc_count(stats,29);}
+  }
+  return;
+ }
  threadgroup float as[256],bs[256],cs[256];
  if(tid<count&&stats[10]==1)bc_prepare(plan,match_order[start+tid],matches,data+tid*BC_STRIDE);
  threadgroup_barrier(mem_flags::mem_device|mem_flags::mem_threadgroup);
@@ -244,15 +253,26 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  device uint*stack=s+8;device long*r=all_rows+instance*GC_ROW_WORDS;device long*old=r;
  // LOCAL_POINTERS
  device uint*p=parent;device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
- if(m.error||(stats[10]!=1&&stats[10]!=2))return;device long*meta=stats+BC_STATS;device long*data=meta+3*batchCfg.x;
- match_order+=bc_order_offset(m.matched,QUERY_PARALLEL[tape[4*s[0]+1]]);
- uint pc=s[0],set=tape[4*pc+1];bool resuming=stats[10]==2;long progressed=stats[1]+stats[2];p[IDCAP]=1;p[IDCAP+1]=0;if(resuming)stats[16]++;stats[21]=0;
+ if(m.error||(stats[10]!=1&&stats[10]!=2&&stats[10]!=10))return;device long*meta=stats+BC_STATS;device long*data=meta+3*batchCfg.x;
+ match_order+=bc_order_offset(m.matched,bc_requires_sort(tape[4*s[0]+1]));
+ uint pc=s[0],set=tape[4*pc+1];bool resumedPublisher=stats[10]==10;
+ if(!resumedPublisher){control[26]=stats[10]==2;control[27]=0;ulong progress=ulong(stats[1]+stats[2]);control[28]=uint(progress);control[29]=uint(progress>>32);p[IDCAP]=1;p[IDCAP+1]=0;if(control[26])stats[16]++;stats[21]=0;}
+ bool resuming=control[26];long progressed=long(ulong(control[28])|(ulong(control[29])<<32));
  for(uint tile=0;tile<uint(stats[11])&&!m.error;tile++){
   uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);
+  if(start+count<=control[27])continue;
+  if(BC_PARALLEL_CONSTRUCTORS&&!resuming&&plan<0&&BATCH_RULE[uint(matches[match_order[start]*MSTRIDE])]){
+   uint end=start;
+   for(uint t=tile;t<uint(stats[11]);t++){
+    uint next=uint(meta[3*t]),nr=uint(matches[match_order[next]*MSTRIDE]);
+    if(meta[3*t+2]>=0||!BATCH_RULE[nr])break;end=next+uint(meta[3*t+1]);
+   }
+   if(end-start>=256){ensure_row_index(r,p,m);control[23]=start;control[24]=end;stats[10]=9;return;}
+  }
   for(uint j=0;j<count&&!m.error;j++){
    uint binding=match_order[start+j];device long*o=data+(start+j)*BC_STRIDE;
    if(plan>=0){stats[7]+=o[BC_FAST]!=0;bc_publish(plan,binding,matches,o,r,p,fp,m,stats);stats[21]+=bc_waiting(plan,o);}
-   else if(!resuming){execute_actions(uint(matches[binding*MSTRIDE]),binding,code,registers,matches,r,p,fp,m);stats[5]++;}
+   else if(!resuming){if(NOOP_PREFLIGHT&&o[BC_FAST])stats[28]++;else execute_actions(uint(matches[binding*MSTRIDE]),binding,code,registers,matches,r,p,fp,m);stats[5]++;}
   }
  }
  if(m.error)return;

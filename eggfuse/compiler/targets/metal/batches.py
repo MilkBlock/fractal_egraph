@@ -30,7 +30,7 @@ def lower(core,regions,string_ids):
         if call['primitive']=='guard':return f'bool({args[0]})','0L'
         if call['primitive'] in ('<','>','<=','>=','!='):return f'({args[0]}{call["primitive"]}{args[1]})','0L'
         raise ValueError('unsupported batch primitive '+call['primitive'])
-    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 28\n']
+    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 34\n']
     result.append("""
 bool bc_check_return(uint table,thread long*key,long value,device long*r,device uint*p,device Meta&m){
  long row=row_lookup(r,p,m,table,key);if(row<0)return false;
@@ -41,24 +41,35 @@ bool bc_check_return(uint table,thread long*key,long value,device long*r,device 
  return false;
 }
 uint bc_hash(uint rule,uint fid){return (rule*0x9e3779b9u)^(fid*0x85ebca6bu);}
-bool bc_completed(device long*c,uint rule,uint fid,uint unions,ulong visibility){
+bool bc_completed(device long*c,uint rule,uint fid,uint revision,uint unions,ulong visibility){
  uint cap=uint(c[9]);if(!cap)return false;uint base=BC_STATS+cap*(3+BC_STRIDE),records=base+2*cap,h=bc_hash(rule,fid)&(2*cap-1);
  for(uint probe=0;probe<2*cap;probe++,h=(h+1)&(2*cap-1)){
   uint entry=uint(c[base+h]);if(!entry)return false;uint at=records+4*(entry-1);
-  if(c[at]==rule&&c[at+1]==fid){if(c[at+2]==unions&&c[at+3]==visibility){rc_count(c,12);return true;}return false;}
+  if(c[at]==rule&&c[at+1]==fid){if(BC_LOCAL_CERTIFICATES?(revision!=0xffffffff&&c[at+2]==revision):(c[at+2]==unions&&c[at+3]==visibility)){rc_count(c,12);return true;}return false;}
  }return false;
 }
-void bc_certify(device long*c,uint rule,uint fid,uint unions,ulong visibility){
+void bc_certify(device long*c,uint rule,uint fid,uint revision,uint unions,ulong visibility){
  uint cap=uint(c[9]),base=BC_STATS+cap*(3+BC_STRIDE),records=base+2*cap,h=bc_hash(rule,fid)&(2*cap-1);
- while(c[base+h]){uint at=records+4*(uint(c[base+h])-1);if(c[at]==rule&&c[at+1]==fid){c[at+2]=unions;c[at+3]=visibility;return;}h=(h+1)&(2*cap-1);}
- uint entry=uint(c[15]);c[15]=entry+1;uint at=records+4*entry;c[at]=rule;c[at+1]=fid;c[at+2]=unions;c[at+3]=visibility;c[base+h]=entry+1;
+ while(c[base+h]){uint at=records+4*(uint(c[base+h])-1);if(c[at]==rule&&c[at+1]==fid){c[at+2]=BC_LOCAL_CERTIFICATES?revision:unions;c[at+3]=BC_LOCAL_CERTIFICATES?0:visibility;return;}h=(h+1)&(2*cap-1);}
+ uint entry=uint(c[15]);c[15]=entry+1;uint at=records+4*entry;c[at]=rule;c[at+1]=fid;c[at+2]=BC_LOCAL_CERTIFICATES?revision:unions;c[at+3]=BC_LOCAL_CERTIFICATES?0:visibility;c[base+h]=entry+1;
 }
-void bc_reindex_certificates(device long*c,uint unions,ulong visibility){
+void bc_reindex_certificates(device long*c,device long*r,uint rows,uint unions,ulong visibility){
  uint cap=uint(c[9]),base=BC_STATS+cap*(3+BC_STRIDE),records=base+2*cap,old=uint(c[15]);
+ if(BC_LOCAL_CERTIFICATES){
+  if(c[27]&&c[24]==cap)return;
+  for(uint i=0;i<2*cap;i++)c[base+i]=0;c[15]=0;
+  for(uint i=0;i<old;i++){
+   uint at=records+4*i,fid=uint(c[at+1]),rev=uint(r[RC_FACT_REV+fid]),row=uint(r[RC_FACT_ROW+fid]);
+   if(rev!=0xffffffff&&rev==uint(c[at+2])&&row&&row<=rows&&r[(row-1)*STRIDE+3]==fid&&r[(row-1)*STRIDE+1]==0)
+    bc_certify(c,uint(c[at]),fid,rev,unions,visibility);
+  }
+  c[24]=cap;c[27]=1;return;
+ }
+
  if(RC_LAZY_COMPACTION&&c[27]&&c[24]==cap&&c[25]==unions&&ulong(c[26])==visibility)return;
  if(!RC_LAZY_COMPACTION||old){
   for(uint i=0;i<2*cap;i++)c[base+i]=0;c[15]=0;
-  for(uint i=0;i<old;i++){uint at=records+4*i;if(c[at+2]==unions&&c[at+3]==visibility)bc_certify(c,uint(c[at]),uint(c[at+1]),unions,visibility);}
+  for(uint i=0;i<old;i++){uint at=records+4*i;if(c[at+2]==unions&&c[at+3]==visibility)bc_certify(c,uint(c[at]),uint(c[at+1]),0,unions,visibility);}
  }
  c[24]=cap;c[25]=unions;c[26]=long(visibility);c[27]=1;
 }
@@ -135,7 +146,7 @@ void bc_reindex_certificates(device long*c,uint unions,ulong visibility){
             can_certify=si>0 and certifiable(rule,recipe['tables'])
             certified+=int(can_certify)
             deps='&&'.join(f'o[2*BC_WIDTH+{d}]==1' for d in step['requires']) or 'true'
-            commits.append(f'do{{if(o[2*BC_WIDTH+{si}]==1||!({deps}))break;bool pass=true;uint witness=0;')
+            commits.append(f'do{{if(o[2*BC_WIDTH+{si}]==1||!({deps}))break;bool pass=true;uint witness=0,witnessRevision=0;')
             if si:
                 # The block owner flushes unions once, then resumes this exact
                 # context. Already committed steps never execute a second time.
@@ -148,7 +159,7 @@ void bc_reindex_certificates(device long*c,uint unions,ulong visibility){
                     if 'table' in a['call']:
                         tid=ts[a['call']['table']];vs=','.join(values[:-1]) or '0'
                         commits.append(f'if(!({ready(args)}))pass=false;else{{long key[COLS]={{'+vs+'};'+f'long row=row_lookup(r,p,m,{tid},key);if(row<0||r[row*STRIDE+1]!=0)pass=false;else{{')
-                        if can_certify:commits.append('witness=uint(r[row*STRIDE+3]);')
+                        if can_certify:commits.append('witness=uint(r[row*STRIDE+3]);witnessRevision=uint(r[RC_FACT_REV+witness]);')
                         commits.append(f'if(canon(r,p,{tid},{len(args)-1},r[row*STRIDE+4+{len(args)-1}])!=canon(r,p,{tid},{len(args)-1},{values[-1]}))pass=false;'+'}}')
                     else:
                         condition,value=primitive(a['call'],values[:-1]);commits.append(f'if(!({ready(args[:-1])})||!({condition}))pass=false;')
@@ -190,7 +201,7 @@ void bc_reindex_certificates(device long*c,uint unions,ulong visibility){
                             commits.append('}')
                     else:raise ValueError('uncertified batch action')
                     commits.append('stats[4]++;if(m.error)return;}')
-            if can_certify:commits.append(f'if(!p[IDCAP+1])bc_certify(stats,{step["rule"]},witness,m.unions,ulong(r[RC_VISIBILITY]));')
+            if can_certify:commits.append(f'if(!p[IDCAP+1]&&(!BC_LOCAL_CERTIFICATES||(witnessRevision!=0xffffffff&&witnessRevision==uint(r[RC_FACT_REV+witness]))))bc_certify(stats,{step["rule"]},witness,witnessRevision,m.unions,ulong(r[RC_VISIBILITY]));')
             commits.append(f'o[2*BC_WIDTH+{si}]=1;stats[{2 if si else 1}]++;'+'}while(false);')
         descriptors[-1]['max_certificates']=certified
         result.append(f'__attribute__((noinline)) void bc_commit_{ti}(uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){{'+''.join(commits)+'}')
@@ -226,7 +237,7 @@ void bc_matrix_{ti}(device long*data,uint count,uint tid,threadgroup float*as,th
     result.append('void bc_evaluate(int plan,device long*o){switch(plan){'+''.join(eval_cases)+'default:break;}}')
     result.append('void bc_publish(int plan,uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){switch(plan){'+''.join(commit_cases)+'default:m.error=32;}}')
     result.append('void bc_matrix(int plan,device long*data,uint count,uint tid,threadgroup float*as,threadgroup float*bs,threadgroup float*cs){switch(plan){'+''.join(mma_cases)+'default:break;}}')
-    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v4',width=W,steps=S,stride=stride,tile=128,stats_words=28,words=28+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
+    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v5',width=W,steps=S,stride=stride,tile=128,stats_words=34,words=34+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
         soundness='seed snapshot witness and per-successor actual row/guard validation; ordered complete effects',
         reproducibility='fixed query order, seed binding ordinal, step ordinal, action ordinal',
         batch_program_sha256=batch['sha256'])

@@ -50,9 +50,10 @@ var hostMeta=[UInt32]()
 let msDescription=(program["resident_schedules"] as? [String:Any])?["matrix"] as? [String:Any]
 let msPlans=msDescription?["programs"] as? [[String:Any]] ?? []
 let msWeights=shared((msDescription?["weights"] as? [NSNumber] ?? []).map{$0.uint16Value})
-var msLogicalRuns=0,msPublished=0,msPeakBytes=0,smForwardedTotal=0
+var msLogicalRuns=0,msPublished=0,msPeakBytes=0,smForwardedTotal=0,smBindingTotal=0
 '''
     text=text.replace('smLastForwarded=Int(info[15]);', 'smLastForwarded=Int(info[15]);smForwardedTotal+=smLastForwarded;')
+    text=text.replace('smCalls+=1;smRuns+=rounds;', 'smBindingTotal+=Swift.stride(from:2,to:historyWords.count,by:12).map{Int(historyWords[$0])}.reduce(0,+);smCalls+=1;smRuns+=rounds;')
     return pre+text
 
 

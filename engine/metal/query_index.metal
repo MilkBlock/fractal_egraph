@@ -52,6 +52,14 @@ void move_query_link(device long*rows,device uint*heads,device uint*links,device
  uint before=previous[query_reverse_slot(rows,e)],after=links[e];
  if(before==0xffffffff)heads[from]=after;else links[before]=after;
  if(after==0xffffffff)heads[QBUCKETS+from]=before;else set_query_previous(rows,previous,after,before);
+ // Matching carries explicit loop-row coordinates in the new resident ABI.
+ // A patch can therefore insert at the head in O(1); the resulting bindings
+ // are sorted by those coordinates, not by their discovery/arrival order.
+ if(!QUERY_PATCH_SORTED){
+  after=heads[to];links[e]=after;set_query_previous(rows,previous,e,0xffffffff);
+  if(after==0xffffffff)heads[QBUCKETS+to]=e;else set_query_previous(rows,previous,after,e);
+  heads[to]=e;return;
+ }
  // Retain physical-row traversal order, including partial-key hash collisions.
  // Appending or prepending is constant time; middle insertion scans that bucket.
  uint tail=heads[QBUCKETS+to];

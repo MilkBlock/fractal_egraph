@@ -333,7 +333,7 @@ def check_lazy_contexts(build_dir,out):
     lib=dict(schema='analyzer-device-cells/v1',programs=[core],instances=[dict(unit=0,program=0,initial=initial)])
     reports={};original=runtime.lower
     for lazy in [False,True]:
-        def lower(*args,**kwargs):return original(*args,**kwargs,lazy_contexts=lazy)
+        def lower(*args,**kwargs):return original(*args,**kwargs,lazy_contexts=lazy,spine_cache=True)
         runtime.lower=lower
         try:reports[lazy]=runtime.run_library(lib,build_dir,out/str(lazy),8192,1024,region_program=plan,audit_numeric=True)
         finally:runtime.lower=original
