@@ -75,6 +75,11 @@ Cold recorded pass costs: SK 11.02 s; environment validation 2.66 s; small Analy
 device lowering 0.71 s. Native references used the debug frontend and took
 548.53 / 556.78 s; these are validation costs, not CPU performance baselines.
 
+The command below describes the specialized implementation at `a18077a`.
+On subsequent revisions, `--multi-stage-cell` selects the generic region runtime;
+its execution strategy and timings are different. Use the recorded revision to
+reproduce these historical timings, not the current flag with an old baseline.
+
 ```sh
 python3 -m eggfuse compile \
   --source /Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg \

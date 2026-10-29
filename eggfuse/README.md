@@ -37,10 +37,22 @@ conservative dependencies and event routes. It rejects altered wiring/scope or
 contracts inconsistent with the typed source. It does not claim that all those
 programs have an efficient specialized lowering. Generic execution still does
 local queries; optimized terms regions retain their existing separate typed
-admission proof. Event routes are descriptive until a runtime subscription and
-residual-query implementation is certified.
+admission proof. The generic region pass now installs table-version subscriptions and
+witness-validated Spine caches; per-key event delivery remains unfinished.
 
 Real eggcc context rules have been checked through this IR, including growing
 constructors, constructor set, union, finite Run, late union, renamed symbols,
 and context-to-terms execution. Actual native Analyze exports are also checked
 in fresh GPU processes. See [results](../experiments/recipe_ir/README.md).
+
+## Generic multi-stage regions
+
+`compile --multi-stage-cell` now asks the analyzer for a generic region/Spine
+plan and emits `region-program.json`. It no longer selects the dedicated terms
+exporter. `run --artifact` accepts the resulting `regions` backend. This explicit
+mode currently uses serial control within a shared GPU arena and retains exact
+residual queries; it is a correctness substrate, not a full-Pass-3 throughput
+replacement. See [contracts and checks](../experiments/region_cells/README.md).
+The ordinary default GPU path remains unchanged. Canonical execution rejects
+legacy dedicated-terms artifacts/switches; historical experiment runners remain
+available for reproducing their saved results.

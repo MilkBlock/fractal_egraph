@@ -9,9 +9,10 @@ struct SCRows {
 };
 #define sv SCRows{svdata,svmap}
 struct Meta {uint count,next_id,epoch,changed,error,matched,rounds,unions,next_fact;};
+void rc_dirty(device long*r,uint table,uint epoch){if(RC_ENABLED)r[RC_VERSION+table]=epoch;}
 bool jp_active(device long*r){return JP_ENABLED&&r[JP_STATE]!=0;}
 // Per-page publication journal. No logical match is treated as a mutation.
-void sc_dirty(device long*r,uint row,uint epoch){if(SC_ENABLED&&jp_active(r)&&uint(r[row*STRIDE])==JP_IDS[0])atomic_fetch_max_explicit((device atomic_uint*)(r+JP_STATE+105),epoch,memory_order_relaxed);if(SC_ENABLED&&jp_active(r))for(uint page=row*STRIDE/128;page<=((row+1)*STRIDE-1)/128;page++)atomic_fetch_max_explicit((device atomic_uint*)(r+JP_DIRTY+page),epoch,memory_order_relaxed);}
+void sc_dirty(device long*r,uint row,uint epoch){rc_dirty(r,uint(r[row*STRIDE]),epoch);if(RC_ENABLED)r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;if(SC_ENABLED&&jp_active(r)&&uint(r[row*STRIDE])==JP_IDS[0])atomic_fetch_max_explicit((device atomic_uint*)(r+JP_STATE+105),epoch,memory_order_relaxed);if(SC_ENABLED&&jp_active(r))for(uint page=row*STRIDE/128;page<=((row+1)*STRIDE-1)/128;page++)atomic_fetch_max_explicit((device atomic_uint*)(r+JP_DIRTY+page),epoch,memory_order_relaxed);}
 bool jp_key_table(uint t){return t==JP_IDS[1]||t==JP_IDS[3];}
 int jp_numeric_slot(uint rule,uint slot);
 uint root(device uint*p,uint x){while(p[x]!=x){p[x]=p[p[x]];x=p[x];}return x;}
@@ -165,7 +166,7 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
   for(long h=2;h<r[ROW_WORDS];h+=r[ROW_WORDS+h]+4)set_canon(r,p,h);
   for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){uint t=uint(r[i*STRIDE]);
    for(uint c=0;c<WIDTH[t];c++){uint at=i*STRIDE+4+c;long x=canon(r,p,t,c,r[at]);
-    if(x!=r[at]||(EQ[t*COLS+c]==2&&r[ROW_WORDS+x+3]==m.epoch)){r[at]=x;r[i*STRIDE+2]=m.epoch;m.changed=1;}}
+    if(x!=r[at]||(EQ[t*COLS+c]==2&&r[ROW_WORDS+x+3]==m.epoch)){rc_dirty(r,t,m.epoch);r[at]=x;r[i*STRIDE+2]=m.epoch;m.changed=1;}}
   }
   for(uint h=0;h<HASH_CAP;h++)heads[h]=0;
   uint count=m.count,before=m.unions;
@@ -180,14 +181,14 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
    long a=canon(r,p,t,WIDTH[t]-1,r[oi]),b=canon(r,p,t,WIDTH[t]-1,r[oj]);
    if(POLICY[t]==4&&a!=b){m.error=7;return;}
    r[oi]=mergevalue(t,a,b,r,p,fp,m);
-   r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;
+   r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;rc_dirty(r,t,m.epoch);
    fp[root(fp,uint(r[j*STRIDE+3]))]=root(fp,uint(r[i*STRIDE+3]));m.changed=1;
    // Writes performed by a later merge must not find a just-retired row.
    r[INDEX_OFFSET]=0;
   }
   again=before!=m.unions||count!=m.count;
  }
- uint n=0;for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){if(n!=i)for(uint c=0;c<STRIDE;c++)r[n*STRIDE+c]=r[i*STRIDE+c];n++;}m.count=n;r[INDEX_OFFSET]=0;r[QUERY_DIRTY]=1;
+ uint n=0;for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2){if(n!=i)for(uint c=0;c<STRIDE;c++)r[n*STRIDE+c]=r[i*STRIDE+c];if(RC_ENABLED)r[RC_FACT_ROW+uint(r[n*STRIDE+3])]=n+1;n++;}m.count=n;r[INDEX_OFFSET]=0;r[QUERY_DIRTY]=1;
 }
 // QUERY_INDEX
 // DEVICE_ACTIONS

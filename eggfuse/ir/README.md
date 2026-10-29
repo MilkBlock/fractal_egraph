@@ -30,8 +30,16 @@ retains actual initialized instances and their completion status, not stored
 terminal answers. The source program is separate from isolated ripen programs;
 its original control is not replaced by the isolated joint saturation schedule.
 
-Current limits: no new arbitrary Cell partition proof, no generic installed
+Current limits: no new arbitrary Cell partition proof, no per-key installed
 event subscribers, no elimination of all queries, no automatic authorization of
 unfinished/nonterminating instances, and no repair of the existing complete
 Pass-3 native/device difference. The initial IR favors inspectable exact semantics
 and compatibility, not minimum serialized size or GPU-resident metadata size.
+
+
+`eggfuse-regions/v1` is the analyzer's optimization plan over this contract.
+`regions.py` independently validates consumer wiring, typed keyed extensions,
+original delta-variant order and stage control. The engine uses that verifier,
+not the analyzer's SCC/Spine-selection pass. The optional region runtime installs
+canonical table-mutation versions, caches actual correlated tuples, and validates
+fact witnesses when a table changes; it retains exact residual queries.

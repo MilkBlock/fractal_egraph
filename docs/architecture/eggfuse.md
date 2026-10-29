@@ -4,6 +4,11 @@
 源码归属和统一入口，见[当前组件与边界](../../eggfuse/README.md)。Rust crate 拆分、通用事件
 订阅和更广的全局快路径仍未完成。审计中的性能数字来自已保存的完整 Pass-3 对照。
 
+新增状态：通用 region pass 和 GPU Spine 接线已实现，见
+[通用区域执行记录](../../experiments/region_cells/README.md)。源码 marker 选择器和旧实验快路径的
+下述审计保留。新路径已能通过完整键共享关联 binding、响应 table mutation，并复用仍有效的
+fact 见证；尚未完成逐端口订阅、通用高吞吐并行执行或全量 Pass-3 判等修复。
+
 ## 结论
 
 项目统一称 **eggfuse**。Analyzer 和 engine 都是它的组件；两者之间还需要一个职责明确的

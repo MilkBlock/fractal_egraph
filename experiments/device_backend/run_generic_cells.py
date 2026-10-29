@@ -22,7 +22,7 @@ def build_worker(output):
         stamp.write_text(fingerprint)
     return worker.resolve()
 
-def run_library(library, build, output, capacity=256, match_capacity=1024, quantum=8, grow=True,marker_program=None,compiled_program=None):
+def run_library(library, build, output, capacity=256, match_capacity=1024, quantum=8, grow=True,marker_program=None,compiled_program=None,region_program=None):
     from eggfuse.ir.library import adapt,decode
     recipe_library=library if library.get('schema')=='eggfuse-recipe-library/v1' else adapt(library)
     library=decode(recipe_library)
@@ -40,10 +40,10 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
         while todo:
             try:
                 compilation={**todo[0][1],'cell_input_constants':[c['initial'] for _,c in todo]}
-                if compiled_program is None:p=lower(compilation,cap,mc,marker_program=marker_program)
+                if compiled_program is None:p=lower(compilation,cap,mc,marker_program=marker_program,region_program=region_program)
                 else:
                     folder_art=compiled_program.parent;manifest=json.loads((folder_art/'manifest.json').read_text())
-                    if manifest.get('backend')!='local':raise ValueError('compiled artifact is not a local program')
+                    if manifest.get('backend') not in ('local','regions'):raise ValueError('compiled artifact is not a local/region program')
                     for filename,expected in manifest['files'].items():
                         if Path(filename).name!=filename or hashlib.sha256((folder_art/filename).read_bytes()).hexdigest()!=expected:raise ValueError('compiled local artifact checksum mismatch')
                     artifact_core=json.loads((folder_art/'core.json').read_text())
@@ -93,6 +93,9 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
             'complete':not rejected and all(s['completed'] for r in reports for s in r['instances']),
             'instances':sum(len(r['instances']) for r in reports),
             'contract':'full local exact rules; no rule names or observed endpoints used for execution'}
+    result['worker_provenance']=dict(binary_sha256=hashlib.sha256(worker.read_bytes()).hexdigest(),
+        source_sha256=hashlib.sha256((ROOT/'engine/metal/generic_cell.swift').read_bytes()).hexdigest(),
+        source='engine/metal/generic_cell.swift')
     (output/'results.json').write_text(json.dumps(result,indent=2)+'\n');return result
 
 def source_library(library):

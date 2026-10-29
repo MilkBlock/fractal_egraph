@@ -21,6 +21,19 @@ def summarize(folder,reference=None):
     receipts=load(folder/'pipeline.json');failed=receipts.get('failed')
     runs=[Path(r['directory']) for r in receipts['passes'] if r['name']=='verify']
     if failed and failed['pass_name']=='verify':runs.append(Path(failed['directory']))
+    if runs and (runs[-1]/'gpu/results.json').exists():
+        from eggfuse.engine.regions import execution_summary
+        run=runs[-1]/'gpu';r=load(run/'results.json')
+        state=load(run/'program-0/cell-0/gpu-state.json');p=load(run/'program-0/cell-0/program.json')
+        if not p.get('region_program'):raise ValueError('this report requires a region or ordinary GPU artifact')
+        if reference:raise ValueError('region-vs-legacy timing comparison needs an explicit paired run')
+        result=dict(schema='eggfuse-region-run-summary/v1',pipeline=str(folder.resolve()),run=str(run.resolve()),
+            scope=p['generic_cell']['contract'],complete_schedule=r['complete'],
+            inference_seconds=sum(x['inference_seconds'] for x in r['programs']),
+            rows=len(state['rows']),multi_stage_cell=execution_summary(r),
+            verification=load(runs[-1]/'verification.json') if (runs[-1]/'verification.json').exists() else None,
+            verification_failure=failed,parallelism='serial within the shared identity domain; no performance claim')
+        (folder/'run-summary.json').write_text(json.dumps(result,indent=2)+'\n');return result
     if not runs or not (runs[-1]/'gpu/report.json').exists():raise ValueError('no completed GPU inference in pipeline')
     run=runs[-1]/'gpu';r=load(run/'report.json');p=load(run/'program.json');state=load(run/'gpu-state.json')
     result=dict(schema='eggfuse-pipeline-run-summary/v1',pipeline=str(folder.resolve()),run=str(run.resolve()),

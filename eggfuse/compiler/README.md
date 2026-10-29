@@ -252,3 +252,16 @@ Event routes share one consumer description per table and require actual
 post-merge canonical visible rows. They retain residual query and stage gates.
 The new routes are **not yet installed as generic runtime subscriptions**; they
 do not authorize skipping a matcher. See [Recipe IR](../ir/README.md).
+
+## Generic region pass (2026-10-29)
+
+The explicit `--multi-stage-cell` option now emits analyzer-owned
+`region-program.json`, shared keyed Spine DAGs, mutation subscriptions and the
+original control program. Its device artifact uses `backend=regions`. It does
+not load the specialized terms library described in the earlier historical
+sections. Source-marker output and Recipe IR remain required artifacts.
+
+This first general runtime is serial within one shared GPU identity domain;
+branching/guard residuals and Run-level local rebuild are retained. Wider
+expressiveness and verified context reuse are not a new throughput result.
+See [implementation boundaries](../../experiments/region_cells/README.md).

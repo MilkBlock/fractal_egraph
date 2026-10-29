@@ -10,4 +10,10 @@ def validate_recipe_artifact(folder,manifest,program,core):
     recipe=json.loads((folder/'recipe-program.json').read_text())
     validate(recipe,core,scope='original_program')
     require(descriptor==dict(schema=recipe['schema'],sha256=recipe['sha256'],scope=recipe['scope']), 'compiled Recipe IR descriptor differs')
+    if program.get('region_program') is not None:
+        from eggfuse.ir.regions import validate_plan as verify
+        require('region-program.json' in manifest['files'],'region descriptor has no artifact')
+        regions=json.loads((folder/'region-program.json').read_text())
+        verify(regions,recipe)
+        require(regions==program['region_program'],'compiled regions differ from artifact')
     return recipe

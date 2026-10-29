@@ -18,7 +18,8 @@ def native_core(frontend,source,folder):
 
 def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu',multi_stage_cell=False,bake_source=None):
     source=Path(source).resolve();build=Path(build).resolve();tools=Path(tools).resolve()
-    if multi_stage_cell and backend!='gpu':raise ValueError('multi-stage Cell requires the ordinary GPU backend')
+    if multi_stage_cell and backend!='gpu':raise ValueError('multi-stage Cell selects the regions runtime; do not combine it with --backend local')
+    if multi_stage_cell:backend='regions'
     pm=PassManager(output,stop_after);source_file=pm.publish(source,'source.egg')
     base=[Path(__file__),ROOT/'eggfuse/compiler/passes.py']
     ast_binary=tools/'lhs_ast';key_binary=tools/'structural_key_source';frontend=tools/'eggfuse_frontend';analyzer=tools.parent/'egg_layout'
@@ -52,7 +53,7 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         command([analyzer,'analyze','--source',evidence_source,'--output',folder/'result'],folder/'analyze.log')
         from eggfuse.analyzer.native import publish_recipes
         publish_recipes(folder/'result')
-    analysis=pm.run('analyze',{'source_sk':evidence_source,'analyzer':analyzer},{'graphs':False},base+[ROOT/'eggfuse/analyzer/native.py',ROOT/'eggfuse/analyzer/recipes.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/ir/recipe.py'],
+    analysis=pm.run('analyze',{'source_sk':evidence_source,'analyzer':analyzer},{'graphs':False},base+[ROOT/'eggfuse/analyzer/native.py',ROOT/'eggfuse/analyzer/recipes.py',ROOT/'eggfuse/analyzer/regions.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/ir/recipe.py'],
         ['result/recipe-library.json','result/cell-recipes.json','result/cell-device-recipes.json','result/analysis.json','result/catalog/*.json','result/catalog/states/*.json','result/saturated-rule-composition/cells/*/observed-saturated-state.json'],
         analyze,
         lambda f:valid_json(f/'result','cell-recipes.json'),preserves=['source semantics'])/'result'
@@ -94,54 +95,49 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         base+[ROOT/'eggfuse/ir/recipe.py'],['recipe-program.json'],recipe_ir,check_recipe,preserves=['typed query/effect/control and binding correlation'])
     recipe_file=pm.publish(recipe/'recipe-program.json','recipe-program.json')
     if stop_after=='recipe':return pm
-    cell_file=None
-    execution=dict(stage_contexts=multi_stage_cell,joint_polyspine=multi_stage_cell,
-                   block_merge=multi_stage_cell,matrix_saturate=multi_stage_cell)
+    region_file=None
+    execution=dict(stage_contexts=False,joint_polyspine=False,block_merge=False,matrix_saturate=False)
     if multi_stage_cell:
-        def bake_cell(folder):
-            from .recipes.executable import compile_library,load
-            from eggfuse.ir.recipe import instantiate
-            source_core=json.loads((ir/'core.json').read_text())
-            core=instantiate(json.loads(recipe_file.read_text()),source_core['initial'],'original_program')
-            library=compile_library(core,json.loads((analysis/'analysis.json').read_text()),evidence_source.read_text(),spines=True)
-            path=folder/'multi-stage-cell.json';path.write_text(json.dumps(library,indent=2))
-            load(path,core)
-        cell=pm.run('multi_stage_cell',{'core':ir/'core.json','recipe_ir':recipe_file,'evidence':analysis/'analysis.json','evidence_source':evidence_source},
-            {'mode':'boundary recipes plus complete candidate updates'},
-            base+[ROOT/'eggfuse/ir/recipe.py']+[ROOT/'eggfuse/compiler/recipes'/n for n in ['executable.py','closure_contract.py','update_recipe.py','spine_recipe.py','resumable.py','affine.py']],
-            ['multi-stage-cell.json'],bake_cell,lambda f:valid_json(f,'multi-stage-cell.json'),preserves=['typed stage and effect contract'])
-        cell_file=pm.publish(cell/'multi-stage-cell.json','multi-stage-cell.json')
+        def regions(folder):
+            from eggfuse.analyzer.regions import analyze
+            marker_names=[x['name'] for x in json.loads(marker_file.read_text())['markers']]
+            plan=analyze(json.loads(recipe_file.read_text()),marker_names)
+            (folder/'region-program.json').write_text(json.dumps(plan,indent=2))
+        def check_regions(folder):
+            from eggfuse.analyzer.regions import verify
+            verify(json.loads((folder/'region-program.json').read_text()),json.loads(recipe_file.read_text()))
+        region=pm.run('multi_stage_cell',{'recipe_ir':recipe_file,'marker_ir':marker_file},
+            {'mode':'generic correlated Spine regions; residual queries retained'},
+            base+[ROOT/'eggfuse/analyzer/regions.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/recipe.py'],
+            ['region-program.json'],regions,check_regions,preserves=['full rule set, correlated witnesses and original stage control'])
+        region_file=pm.publish(region/'region-program.json','region-program.json')
     def lower(folder):
         from .targets.metal.compiler import compile_program
         from eggfuse.ir.recipe import instantiate
         original=json.loads((ir/'core.json').read_text());recipe_value=json.loads(recipe_file.read_text())
         core=instantiate(recipe_value,original['initial'],'original_program');m=json.loads(marker_file.read_text())
-        if backend=='local':
+        if backend in ('local','regions'):
             from .targets.metal.generic_cell import lower as local_lower
-            program=local_lower(core,capacity,match_capacity,marker_program=m)
+            program=local_lower(core,capacity,match_capacity,marker_program=m,region_program=json.loads(region_file.read_text()) if region_file else None)
         else:
-            from .recipes.executable import load
             program=compile_program(core,capacity=capacity,match_capacity=match_capacity,marker_program=m,
-                                    cell_program=load(cell_file,core) if cell_file else None,**execution)
-            if multi_stage_cell:
-                from .multistage import validate_compilation
-                validate_compilation(program)
+                                    **execution)
         program['recipe_ir']=dict(schema=recipe_value['schema'],sha256=recipe_value['sha256'],scope=recipe_value['scope'])
         shutil.copyfile(recipe_file,folder/'recipe-program.json')
         shutil.copyfile(marker_file,folder/'marker-program.json')
         shutil.copyfile(marked_source,folder/'source_sk_mk.egg')
-        if cell_file:shutil.copyfile(cell_file,folder/'multi-stage-cell.json')
+        if region_file:shutil.copyfile(region_file,folder/'region-program.json')
         from .capabilities import report as capability_report
         (folder/'capabilities.json').write_text(json.dumps(capability_report(recipe_value,program,backend),indent=2))
         (folder/'program.json').write_text(json.dumps(program));(folder/'kernel.metal').write_text(program['shader'])
         shutil.copyfile(ir/'core.json',folder/'core.json')
         (folder/'manifest.json').write_text(json.dumps(dict(schema='eggfuse-device-artifact/v1',backend=backend,execution=execution,source_sha256=digest(marked_source),marker_sha256=m['sha256'],
-            files={n:digest(folder/n) for n in ['core.json','program.json','kernel.metal','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['multi-stage-cell.json'] if cell_file else [])}),indent=2))
-    lowering_files=[ROOT/'eggfuse/compiler/targets/metal'/(name+'.py') for name in ['compiler','batch_rhs','matrix_sat','matrix_comparison','joint_polyspine','query_contexts','context_ridge','stage_cell','cell_program','cell_updates','cell_spines','scheduled_matrix','generic_cell']]
-    device=pm.run('device',{'core':ir/'core.json','marker_ir':marker_file,'recipe_ir':recipe_file,**({'cell':cell_file} if cell_file else {})},dict(backend=backend,capacity=capacity,match_capacity=match_capacity,**execution),
-        base+lowering_files+list((ROOT/'engine/metal').glob('*.metal'))+list((ROOT/'eggfuse/compiler/recipes').glob('*.py'))+[ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/interface.py',ROOT/'eggfuse/compiler/capabilities.py'],['program.json','kernel.metal','core.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['multi-stage-cell.json'] if cell_file else []),lower,
+            files={n:digest(folder/n) for n in ['core.json','program.json','kernel.metal','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else [])}),indent=2))
+    lowering_files=[ROOT/'eggfuse/compiler/targets/metal'/(name+'.py') for name in ['compiler','batch_rhs','matrix_sat','matrix_comparison','joint_polyspine','query_contexts','context_ridge','stage_cell','cell_program','cell_updates','cell_spines','scheduled_matrix','generic_cell','regions']]
+    device=pm.run('device',{'core':ir/'core.json','marker_ir':marker_file,'recipe_ir':recipe_file,**({'regions':region_file} if region_file else {})},dict(backend=backend,capacity=capacity,match_capacity=match_capacity,**execution),
+        base+lowering_files+list((ROOT/'engine/metal').glob('*.metal'))+list((ROOT/'eggfuse/compiler/recipes').glob('*.py'))+[ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/interface.py',ROOT/'eggfuse/compiler/capabilities.py',ROOT/'eggfuse/ir/regions.py'],['program.json','kernel.metal','core.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else []),lower,
         lambda f:valid_json(f,'program.json'),preserves=['marked program semantics'])
-    for filename in ['program.json','kernel.metal','core.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['multi-stage-cell.json'] if cell_file else []):pm.publish(device/filename,'eggfuse_related_files/'+filename)
+    for filename in ['program.json','kernel.metal','core.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else []):pm.publish(device/filename,'eggfuse_related_files/'+filename)
     if stop_after=='device':return pm
     references=[]
     for name,reference in [('sk_native',sk_source),('marked_native',marked_source)]:
@@ -156,7 +152,7 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         if run_gpu:
             runtime=folder/'runtime';runtime.mkdir();os.symlink(frontend,runtime/'frontend');os.symlink(build/'worker',runtime/'worker')
             spec=json.loads((build/'build.json').read_text());spec.update(frontend=str(frontend),frontend_sha256=digest(frontend));(runtime/'build.json').write_text(json.dumps(spec))
-            if backend=='local':
+            if backend in ('local','regions'):
                 from run_generic_cells import run_library
                 c=json.loads((ir/'core.json').read_text());initial=c.pop('initial')
                 library=dict(schema='analyzer-device-cells/v1',programs=[c],instances=[dict(unit=0,program=0,initial=initial)])
@@ -164,12 +160,12 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
                 if not gpu['complete']:raise ValueError('local device program did not complete')
                 state_folder=folder/'gpu/program-0/cell-0';seconds=gpu['programs'][0]['inference_seconds']
             else:
-                gpu=run(marked_source,runtime,folder/'gpu',check_every=0,capacity=capacity,match_capacity=match_capacity,save_final_state=True,marker_program=marker_file,compiled_program=device/'program.json',cell_program=cell_file,**execution)
+                gpu=run(marked_source,runtime,folder/'gpu',check_every=0,capacity=capacity,match_capacity=match_capacity,save_final_state=True,marker_program=marker_file,compiled_program=device/'program.json',**execution)
                 state_folder=folder/'gpu';seconds=gpu['inference_seconds']
             program=json.loads((state_folder/'program.json').read_text());state=json.loads((state_folder/'gpu-state.json').read_text())
             checks=set(program['assertion_tables']);rows=[r for r in state['rows'] if program['tables'][r[0]]['name'] not in checks]
             if multi_stage_cell:
-                from .multistage import execution_summary
+                from eggfuse.engine.regions import execution_summary
                 result['multi_stage_cell']=execution_summary(gpu)
             result['gpu_inference_seconds']=seconds;result['backend']=backend;result['device_marker_contract']=program['marker_program']
             try:
@@ -183,13 +179,13 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
     if run_gpu:verify_inputs['worker']=build/'worker'
     verification=pm.run('verify',verify_inputs,
         {'gpu':run_gpu,'backend':backend,'shared_run_encoder':os.environ.get('EGGFUSE_SHARED_ENCODER')=='1','joint_shared_encoder':os.environ.get('EGGFUSE_JOINT_SHARED_ENCODER')=='1','joint_fuse_prepare':os.environ.get('EGGFUSE_JOINT_FUSE_PREPARE')=='1','joint_local_sort':os.environ.get('EGGFUSE_JOINT_LOCAL_SORT')=='1','compare':'complete original tables modulo canonical identity'},
-        base+[ROOT/'eggfuse/compiler/verify.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/engine/artifacts.py',BACKEND/'run.py',BACKEND/'verify_native_source.py',BACKEND/'run_generic_cells.py',ROOT/'engine/metal/generic_cell.swift'],['verification.json'],verify,
+        base+[ROOT/'eggfuse/compiler/verify.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/engine/artifacts.py',ROOT/'eggfuse/engine/regions.py',ROOT/'eggfuse/analyzer/regions.py',BACKEND/'run.py',BACKEND/'verify_native_source.py',BACKEND/'run_generic_cells.py',ROOT/'engine/metal/generic_cell.swift'],['verification.json'],verify,
         lambda f:valid_json(f,'verification.json'),preserves=['verified observable result'])
     pm.publish(verification/'verification.json','verification.json');return pm
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,required=True)
     p.add_argument('--tools',type=Path,default=ROOT/'target/debug/examples');p.add_argument('--solver-python',type=Path,default=Path(sys.executable));p.add_argument('--profile',type=Path)
-    p.add_argument('--bake-source',type=Path,help='Optional small training input; typed declarations/rules must match the execution environment');p.add_argument('--multi-stage-cell',action='store_true',help='Bake and execute certified boundary/update recipes in the joint terms stage program');p.add_argument('--stop-after',choices=['sk','analyze','markers','recipe','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
+    p.add_argument('--bake-source',type=Path,help='Optional small training input; typed declarations/rules must match the execution environment');p.add_argument('--multi-stage-cell',action='store_true',help='Analyze shared Spine regions; execute original stages in a shared GPU arena (currently serial within an arena)');p.add_argument('--stop-after',choices=['sk','analyze','markers','recipe','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
     pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend,a.multi_stage_cell,a.bake_source)
     print(json.dumps(dict(output=str(pm.output),passes=[dict(name=r['name'],cached=r['cached']) for r in pm.receipts],complete=a.stop_after=='verify',gpu_checked=a.stop_after=='verify' and not a.cpu_only),indent=2))

@@ -6,7 +6,7 @@ kernel void generic_cell_advance(
  device long*all_long[[buffer(2)]], device Meta*all_meta[[buffer(3)]],
  device uint*all_state[[buffer(4)]], device long*code[[buffer(5)]],
  device const uint*tape[[buffer(6)]], device uint*all_history[[buffer(7)]],
- constant uint4&cfg[[buffer(8)]], uint instance[[thread_position_in_grid]]) {
+ device long*all_markers[[buffer(8)]], constant uint4&cfg[[buffer(9)]], uint instance[[thread_position_in_grid]]) {
  if(instance>=cfg.x)return;
  device Meta&m=all_meta[instance];device uint*s=all_state+instance*GC_STATE_WORDS;
  if(s[2]||m.error)return;
@@ -34,16 +34,25 @@ kernel void generic_cell_advance(
   if(op!=0){m.error=20;return;}
   // Yield before a Run when history needs growing. No inference is dropped.
   if(s[3]>=cfg.z){s[4]=1;return;}
-  if(m.epoch==0xffffffff){m.error=6;return;}
-  uint set=arg,startUnions=m.unions;m.epoch++;m.rounds++;m.changed=0;m.matched=0;
+  if(!s[7]&&m.epoch==0xffffffff){m.error=6;return;}
+  uint set=arg,startUnions=m.unions;
+  if(!s[7]){m.epoch++;m.rounds++;m.changed=0;}
+  m.matched=0;
   r[ROW_WORDS+1]=m.epoch;
   bool reset=m.rounds==1||r[QUERY_DIRTY]==1;
   build_query_index(old,reset?0:qheads[2*QBUCKETS],m.count,reset,qheads,qlinks,qprev);
   if(reset)s[5]++;else s[6]++;
   r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;r[QUERY_DIRTY]=0;ensure_row_index(r,p,m);
+#if RC_ENABLED
+  if(m.rounds==1)for(uint row=0;row<m.count;row++)r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;
+  rc_compact(contexts,r);
+#endif
+  s[7]=1; // Retry a cache-allocation failure at this same frozen Run, before RHS.
   switch(set){// LOCAL_QUERIES
    default:m.error=20;return;
   }
+  if(m.error)return;
+  s[7]=0;
   p[IDCAP]=1;p[IDCAP+1]=0;
   for(uint binding=0;binding<m.matched&&!m.error;binding++)
    execute_actions(uint(matches[binding*MSTRIDE]),binding,code,registers,matches,r,p,fp,m);

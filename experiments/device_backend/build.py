@@ -19,7 +19,7 @@ def sha(path):
 def runtime_sources():
     """Actual compiler/worker inputs, never forwarding modules or symlinks."""
     sources = [HERE / n for n in ('build.py', 'run.py', 'run_generic_cells.py')]
-    for directory in ('eggfuse/compiler', 'eggfuse/ir', 'eggfuse/engine'):
+    for directory in ('eggfuse/analyzer', 'eggfuse/compiler', 'eggfuse/ir', 'eggfuse/engine'):
         sources.extend(p for p in (ROOT / directory).rglob('*.py')
                        if not p.name.startswith('test_'))
     sources.extend(p for p in METAL.iterdir() if p.suffix in ('.metal', '.swift'))

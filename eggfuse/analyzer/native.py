@@ -10,6 +10,10 @@ def publish_recipes(directory):
     source=directory/'cell-device-recipes.json'
     recipe=adapt(json.loads(source.read_text()))
     target=directory/'recipe-library.json';target.write_text(json.dumps(recipe,indent=2)+'\n')
+    source_program=recipe.get('source_program',{})
+    if source_program.get('status')=='ready':
+        from .regions import analyze
+        (directory/'region-program.json').write_text(json.dumps(analyze(source_program['recipe']),indent=2)+'\n')
     return target
 
 def main(args,binary=None):

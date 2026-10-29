@@ -1,4 +1,4 @@
-"""Canonical project entry; old module and native analyzer CLIs remain valid."""
+"""Canonical project entry; native analyzer CLI remains valid."""
 import argparse,sys
 
 def main():

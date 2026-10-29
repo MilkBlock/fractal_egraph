@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None):
     # Until probes are a future extension. Reject before allocating/mutating.
     ids = {s['name']: i for i, s in enumerate(core['rulesets'])}
     schedule = copy.deepcopy({'sequence': core['schedule']})
@@ -55,7 +55,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None):
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
                         parallel_match=False, parallel_prepare=False,
                         parallel_rebuild=False, noop_preflight=False,
-                        query_patch=False, split_matches=False,marker_program=marker_program)
+                        query_patch=False, split_matches=False,marker_program=marker_program,region_program=region_program)
     # Preserve native min-ID representative preference *within each sort*.
     # Lexicographic Value(10) < Value(2) can spuriously refresh a seminaive row.
     anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
@@ -73,7 +73,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None):
         at = 0
         for name, width in fields:
             layout[name] = at
-            offsets.append(f'device {prefix}*{name}=all_{prefix}+instance*GC_{prefix.upper()}_WORDS+{at};')
+            offsets.append('device long*contexts=all_markers+instance*cfg.w;' if name=='contexts' else f'device {prefix}*{name}=all_{prefix}+instance*GC_{prefix.upper()}_WORDS+{at};')
             at += width
         layout[prefix + '_words'] = at
     layout['row_words'] = rows
@@ -88,10 +88,13 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None):
     text = (HERE / 'generic_cell.metal').read_text()
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls))
     p['shader'] += '\n' + defines + '\n' + text
-    p['generic_cell'] = dict(schema='generic-cell-program/v1', layout=layout, control=tape,
+    p['generic_cell'] = dict(schema='generic-cell-program/v1', transport_version=2, layout=layout, control=tape,
         program_sha256=hashlib.sha256(json.dumps(core, sort_keys=True).encode()).hexdigest(),
-        contract='isolated exact local execution; not an authorization to skip global matches',
+        contract='shared global identity domain, original schedule, correlated event-versioned Spines' if region_program is not None else 'isolated exact local execution; not an authorization to skip global matches',
         queries='compiled exact local queries; not all LHS searches eliminated')
+    if region_program is not None:
+        p['region_cache']=dict(header_words=16+4*len(region_program['nodes']),initial_words=16+4*len(region_program['nodes'])+1024,
+                               growth='double capacity and resume untouched Run; no prior effects replayed')
     return p
 
 
