@@ -26,6 +26,10 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
   uint set=arg;stats[13]=m.unions;if(!s[7]){m.epoch++;m.rounds++;m.changed=0;}m.matched=0;r[ROW_WORDS+1]=m.epoch;
   bool reset=m.rounds==1||r[QUERY_DIRTY]==1;
   build_query_index(old,reset?0:qheads[2*QBUCKETS],m.count,reset,qheads,qlinks,qprev);
+  if(!reset&&r[QUERY_DIRTY]==2)patch_query_index(old,qheads,qlinks,qprev);
+  // Old values/timestamps are a per-Run journal, not permanent row state.
+  // Clear even after reset/compaction; the next update must log afresh.
+  for(uint j=0;j<uint(r[QUERY_LOG]);j++)r[QUERY_OLD_TIME+uint(r[QUERY_CHANGED+j])]=0;
   if(reset)s[5]++;else s[6]++;r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;r[QUERY_DIRTY]=0;ensure_row_index(r,p,m);
   if(m.rounds==1)for(uint row=0;row<m.count;row++)r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;
   rc_compact(contexts,r);bc_reindex_certificates(stats,m.unions,ulong(r[RC_VISIBILITY]));s[7]=1;

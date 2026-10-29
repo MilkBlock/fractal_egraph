@@ -11,7 +11,8 @@ that generation and initializes a bucket only when probing it. The next query
 reset advances the generation again. Collisions retain their original linear
 probe order, duplicate groups and merge ordering. Generation overflow explicitly
 clears tags. No new buffer, heuristic, smaller Bake library, or inference omission
-is introduced. Nonresident/QUERY_PATCH paths retain the original behavior.
+is introduced. Nonresident/parallel-prepare paths retain the original behavior.
+The later [query patch integration](QUERY_PATCH.md) also uses these tags.
 
 2026-10-30, one run per variant, same worker binary and source program:
 

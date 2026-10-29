@@ -25,7 +25,7 @@ def check(build,out,capacity):
     for mode in ['clear-capacity','clear-live','generation-wrap']:
         def lower(*args,**kwargs):
             p=original(*args,**kwargs)
-            needle='bool sparseGroups=RC_ENABLED&&!QUERY_PATCH;'
+            needle='bool sparseGroups=RC_ENABLED&&!PARALLEL_PREPARE;'
             assert p['shader'].count(needle)==1
             if mode=='clear-capacity':p['shader']=p['shader'].replace(needle,'bool sparseGroups=false;')
             if mode=='generation-wrap':

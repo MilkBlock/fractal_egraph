@@ -172,7 +172,7 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
   // The resident arena already reserves generation tags for these same heads.
   // Rebuild owns the scratch index until it returns; the next query reset
   // advances the generation again. Clear only visited buckets, not CAPACITY.
-  bool sparseGroups=RC_ENABLED&&!QUERY_PATCH;
+  bool sparseGroups=RC_ENABLED&&!PARALLEL_PREPARE;
   if(sparseGroups){if(++heads[Q_TOUCH]==0){for(uint h=0;h<QBUCKETS;h++)heads[Q_TOUCH+2+h]=0;heads[Q_TOUCH]=1;}}
   else for(uint h=0;h<HASH_CAP;h++)heads[h]=0;
   uint count=m.count,before=m.unions;
