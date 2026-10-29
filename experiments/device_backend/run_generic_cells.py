@@ -17,8 +17,12 @@ def build_worker(output):
     return worker.resolve()
 
 def run_library(library, build, output, capacity=256, match_capacity=1024, quantum=8, grow=True,marker_program=None,compiled_program=None):
+    from eggfuse.ir.library import adapt,decode
+    recipe_library=library if library.get('schema')=='eggfuse-recipe-library/v1' else adapt(library)
+    library=decode(recipe_library)
     if quantum <= 0: raise ValueError('quantum must be positive; it is dispatch batching, not a termination bound')
     output.mkdir(parents=True, exist_ok=False)
+    (output/'recipe-library.json').write_text(json.dumps(recipe_library))
     worker = build_worker(build); reports=[]; rejected=list(library.get('rejected',[]))
     for pi, instances, cores in groups(library):
         cap=max(capacity,max(len(c['initial']) for c in cores));mc=match_capacity
@@ -39,10 +43,12 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
                     artifact_core=json.loads((folder_art/'core.json').read_text())
                     if artifact_core!=todo[0][1]:raise ValueError('compiled local input differs')
                     if marker_program is None or manifest['marker_sha256']!=marker_program['sha256']:raise ValueError('compiled local marker contract differs')
-                    from tools.eggfuse.marker_ir import validate
+                    from eggfuse.compiler.marker_ir import validate
                     validate(marker_program,artifact_core)
                     p=json.loads(compiled_program.read_text());grow=False
                     if p['shader']!=(folder_art/'kernel.metal').read_text() or p['tables']!=artifact_core['tables']:raise ValueError('compiled local kernel/schema differs')
+                    from eggfuse.engine.artifacts import validate_recipe_artifact
+                    validate_recipe_artifact(folder_art,manifest,p,artifact_core)
                 frames=[]
                 for instance,core in todo:
                     anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
@@ -84,6 +90,9 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
     (output/'results.json').write_text(json.dumps(result,indent=2)+'\n');return result
 
 def source_library(library):
+    if library.get('schema')=='eggfuse-recipe-library/v1':
+        from eggfuse.ir.library import decode
+        library=decode(library)
     source=library.get('source_program')
     if not source or source.get('status')!='ready':raise ValueError('analyzer has no supported original program entry: '+str(source))
     core=dict(source['core']);initial=core.pop('initial')

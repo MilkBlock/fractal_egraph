@@ -1,0 +1,1 @@
+"""eggfuse compiler component."""

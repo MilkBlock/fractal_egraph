@@ -32,6 +32,17 @@ def main():
     assert prefix['steps'][0]['set']=='build' and len(prefix['steps'])==1
     assert sum(program['tables'][r[0]]['name']==ir['markers'][0]['name'] for r in state['rows'])==1
     summary['published_before_completion_run']=True;summary['runtime_did_not_recompile']=True
+    from eggfuse.engine.metal import run_artifact
+    import tempfile,shutil
+    with tempfile.TemporaryDirectory(prefix='eggfuse-artifact-') as tmp:
+        artifact=Path(tmp)/'artifact';shutil.copytree(folder/'eggfuse_related_files',artifact)
+        with patch.object(run,'compile_program',side_effect=AssertionError('artifact runner recompiled')):
+            loaded=run_artifact(artifact,runtime,a.output/'portable-artifact',check=True)
+        assert loaded['checks'][-1]['exact_rows_values_equivalence_visibility']
+    capability=json.loads((folder/'eggfuse_related_files/capabilities.json').read_text())
+    assert all(r['expressed'] and r['verified'] and r['generic_lowered'] and r['executed'] is None for r in capability['rules'])
+    summary['self_contained_artifact_without_relowering']=True
+
     negatives=[]
     for kind in ['guarantee','field','schedule','guard']:
         bad=copy.deepcopy(ir);other=copy.deepcopy(core)

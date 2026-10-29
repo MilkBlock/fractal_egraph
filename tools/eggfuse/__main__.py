@@ -1,2 +1,2 @@
-from .pipeline import main
+from eggfuse.compiler.pipeline import main
 main()

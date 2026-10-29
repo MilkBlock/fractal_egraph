@@ -1,1 +1,1 @@
-"""Explicit compiler passes from native egglog source to GPU artifacts."""
+"""Compatibility package. Canonical compiler: eggfuse.compiler."""

@@ -30,23 +30,7 @@ def coordinates(layout):
 def storage_columns(layout):return layout['columns']+layout.get('interface_columns',0)
 
 
-def native_row_interface(anchor,ports=()):
-    """Lossless native-row Interface plus unresolved typed read ports.
-
-    This is also used by the resident Polyspine compiler. It does not coalesce
-    different argument tuples merely because their returned root is equal.
-    Each occurrence keeps its owner fact, visibility and version at runtime.
-    """
-    fields=[f'v{i}' for i in range(len(anchor['args']))]
-    root=t.call(anchor['call']['table'],[t.var(v) for v in fields[:-1]])
-    layout={'fields':fields,'roots':[root],'decode':[]}
-    coords=coordinates(layout)
-    return {'schema':'typed-marker-interface/v1','owner':'canonical visible source fact',
-            'table':anchor['call']['table'],'coordinates':[{'field':v['name'],'column':i,'sort':a['sort']}
-               for i,(v,a) in enumerate(zip(coords,anchor['args']))],
-            'root_column':len(fields)-1,'ports':list(ports),
-            'correlation':'one complete structural argument tuple per binding row',
-            'lifetime':'source generation and active owner; unresolved ports remain subscribed'}
+from eggfuse.ir.interface import native_row_interface
 
 
 def extend(bundle,mode='auto'):

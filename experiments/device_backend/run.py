@@ -171,12 +171,14 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     if json.loads((folder/'core.json').read_text())!=original:raise ValueError('compiled artifact input/type/control differs')
     if manifest['source_sha256']!=hashlib.sha256(source.read_bytes()).hexdigest():raise ValueError('compiled source differs')
     if marker_ir is None or manifest['marker_sha256']!=marker_ir['sha256']:raise ValueError('compiled marker contract differs')
-    from tools.eggfuse.marker_ir import validate as validate_marker_ir
+    from eggfuse.compiler.marker_ir import validate as validate_marker_ir
     validate_marker_ir(marker_ir,original)
     p=json.loads(compiled_program.read_text())
     if p['shader']!=(folder/'kernel.metal').read_text() or p['tables']!=original['tables']:raise ValueError('compiled payload and emitted kernel/schema differ')
     if p['marker_program']['sha256']!=marker_ir['sha256']:raise ValueError('compiled marker descriptor differs')
-    from tools.eggfuse.multistage import validate_runtime_options
+    from eggfuse.engine.artifacts import validate_recipe_artifact
+    validate_recipe_artifact(folder,manifest,p,original)
+    from eggfuse.compiler.multistage import validate_runtime_options
     validate_runtime_options(manifest,p,dict(stage_contexts=stage_contexts,joint_polyspine=joint_polyspine,block_merge=block_merge,matrix_saturate=matrix_saturate),executable)
    else:
     p=compile_program(original,capacity,match_capacity,defer_unions,incremental_queries,delta_queries,parallel_rebuild,parallel_prepare,parallel_match,indexed_subsume,parallel_merge_index,all_index_columns,radix_digit_bits,seed_dispatch,noop_preflight,direct_actions,query_patch,effect_dedup,early_seed_guards,lhs_context_reuse,rebuild_batch,parallel_rhs,split_matches,json.loads(context_model.read_text()) if context_model else None,context_training,merge_target_index,batch_rhs,matrix_saturate,joint_polyspine,json.loads(polyspine_model.read_text()) if polyspine_model else None,polyspine_training,polyspine_full_refresh,polyspine_refresh_audit,stage_contexts,block_merge,stage_context_audit or os.environ.get("EGGFUSE_MATRIX_AUDIT")=="1",executable,scheduled_matrix,marker_program=marker_ir)

@@ -1,7 +1,9 @@
-import json,sys
+"""Compatibility import; implementation moved to eggfuse.compiler.select_markers."""
+import sys
 from pathlib import Path
-from tools.cell_spine.pass3_markers import compile_source
-if __name__=='__main__':
-    r=json.loads(Path(sys.argv[1]).read_text())
-    compile_source(Path(r['source']),Path(r['analysis']),Path(r['output']),Path(r['ast_binary']),
-                   json.loads(Path(r['profile']).read_text()) if r['profile'] else None)
+_ROOT=Path(__file__).resolve().parents[2]
+if str(_ROOT) not in sys.path:sys.path.insert(0,str(_ROOT))
+from eggfuse.compiler.select_markers import *
+
+if __name__ == "__main__":
+    main()

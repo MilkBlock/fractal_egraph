@@ -13,7 +13,8 @@ source.egg → source_sk.egg → Analyze/Bake
            → eggfuse device artifacts → GPU engine → 完整结果核对
 ```
 
-入口为 `python3 -m tools.eggfuse`，使用说明见[统一编译器](tools/eggfuse/README.md)。
+统一入口为 `python3 -m eggfuse`，提供 `analyze`、`compile`、`run`、`run-cells` 和 `report`。
+使用说明见[eggfuse 组件](eggfuse/README.md)与[编译器](eggfuse/compiler/README.md)；旧 `tools.eggfuse` 入口继续兼容。
 [组件审计与目录迁移方案](docs/architecture/eggfuse.md)说明当前能力、缺口和接口边界。
 
 **当前边界：** 通用 Cell 程序能在 GPU 上执行，但还会做局部查询；高效联合配方主要覆盖
