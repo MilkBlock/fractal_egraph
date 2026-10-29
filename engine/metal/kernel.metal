@@ -169,12 +169,21 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
    for(uint c=0;c<WIDTH[t];c++){uint at=i*STRIDE+4+c;long x=canon(r,p,t,c,r[at]);
     if(x!=r[at]||(EQ[t*COLS+c]==2&&r[ROW_WORDS+x+3]==m.epoch)){rc_dirty(r,t,m.epoch);r[at]=x;r[i*STRIDE+2]=m.epoch;m.changed=1;}}
   }
-  for(uint h=0;h<HASH_CAP;h++)heads[h]=0;
+  // The resident arena already reserves generation tags for these same heads.
+  // Rebuild owns the scratch index until it returns; the next query reset
+  // advances the generation again. Clear only visited buckets, not CAPACITY.
+  bool sparseGroups=RC_ENABLED&&!QUERY_PATCH;
+  if(sparseGroups){if(++heads[Q_TOUCH]==0){for(uint h=0;h<QBUCKETS;h++)heads[Q_TOUCH+2+h]=0;heads[Q_TOUCH]=1;}}
+  else for(uint h=0;h<HASH_CAP;h++)heads[h]=0;
   uint count=m.count,before=m.unions;
   // Freeze duplicate groups before merge effects can change any canonical key.
   for(uint i=0;i<count;i++)if(r[i*STRIDE+1]!=2){uint t=uint(r[i*STRIDE]);long args[COLS]={0};
    for(uint c=0;c<WIDTH[t]-1;c++)args[c]=r[i*STRIDE+4+c];uint h=row_hash(t,args,r,p);
-   while(heads[h]&&!keyeq(r,heads[h]-1,t,args,p))h=(h+1)&(HASH_CAP-1);
+   if(sparseGroups&&heads[Q_TOUCH+2+h]!=heads[Q_TOUCH]){heads[h]=0;heads[Q_TOUCH+2+h]=heads[Q_TOUCH];}
+   while(heads[h]&&!keyeq(r,heads[h]-1,t,args,p)){
+    h=(h+1)&(HASH_CAP-1);
+    if(sparseGroups&&heads[Q_TOUCH+2+h]!=heads[Q_TOUCH]){heads[h]=0;heads[Q_TOUCH+2+h]=heads[Q_TOUCH];}
+   }
    if(!heads[h])heads[h]=i+1;groups[i]=heads[h]-1;
   }
   for(uint j=0;j<count&&!m.error;j++)if(r[j*STRIDE+1]!=2&&groups[j]!=j){
