@@ -1,5 +1,8 @@
 # eggfuse components
 
+Resident runs support exact Run-boundary checkpoint/resume through
+`python3 -m eggfuse replay`; see [usage and validation](../experiments/staged_batches/CHECKPOINT.md).
+
 The project entry is `python3 -m eggfuse`. Run it from the repository root.
 The old Python forwarding modules and runtime symlinks have been removed.
 Native `egg_layout` and the actual backend experiment harness remain available.

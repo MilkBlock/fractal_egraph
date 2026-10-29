@@ -126,7 +126,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls)).replace('// CACHE_PREPARE', ''.join(cache_calls)).replace('// PARALLEL_QUERIES', ''.join(parallel_calls))
     p['shader'] += '\n' + defines + '\n' + text
-    p['generic_cell'] = dict(schema='generic-cell-program/v1', transport_version=7 if batch else 2, history_width=12 if batch else 8, kernel='batched_cell_prepare' if batch else 'generic_cell_advance', layout=layout, control=tape,
+    p['generic_cell'] = dict(schema='generic-cell-program/v1', transport_version=7 if batch else 2, checkpoint_version=1 if batch else 0, history_width=12 if batch else 8, kernel='batched_cell_prepare' if batch else 'generic_cell_advance', layout=layout, control=tape,
         program_sha256=hashlib.sha256(json.dumps(core, sort_keys=True).encode()).hexdigest(),
         contract='shared GPU contexts, witnessed saturation-local batches and deterministic block publication' if batch else 'shared global identity domain, original schedule, correlated event-versioned Spines' if region_program is not None else 'isolated exact local execution; not an authorization to skip global matches',
         queries='compiled exact residual queries plus witnessed saturation-local successors; history match counts exclude inline invocations')

@@ -3,10 +3,13 @@ import argparse,sys
 
 def main():
     parser=argparse.ArgumentParser(prog='eggfuse',description='eggfuse analyzer, compiler and engine')
-    parser.add_argument('command',choices=['analyze','compile','run','run-cells','report','inspect-recipe'])
+    parser.add_argument('command',choices=['analyze','compile','run','run-cells','replay','report','inspect-recipe'])
     if len(sys.argv)==1:parser.print_help();return 0
     if sys.argv[1] in ['-h','--help']:parser.print_help();return 0
     command=parser.parse_args(sys.argv[1:2]).command;args=sys.argv[2:]
+    if command=='replay':
+        from .engine.replay import main as replay
+        return replay(args)
     if command=='analyze':
         from .analyzer.native import main as analyze
         p=argparse.ArgumentParser(add_help=False);p.add_argument('--analyzer-bin');a,rest=p.parse_known_args(args)

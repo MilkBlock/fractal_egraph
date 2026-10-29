@@ -30,6 +30,9 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
     output.mkdir(parents=True, exist_ok=False)
     (output/'recipe-library.json').write_text(json.dumps(recipe_library))
     worker = build_worker(build); reports=[]; rejected=list(library.get('rejected',[]))
+    provenance=dict(binary_sha256=hashlib.sha256(worker.read_bytes()).hexdigest(),
+        source_sha256=hashlib.sha256((ROOT/'engine/metal/generic_cell.swift').read_bytes()).hexdigest(),
+        source='engine/metal/generic_cell.swift')
     for pi, instances, cores in groups(library):
         cap=max(capacity,max(len(c['initial']) for c in cores));mc=match_capacity
         folder=output/f'program-{pi}';folder.mkdir();todo=[];attempts=[];finished=[]
@@ -93,9 +96,7 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
             'complete':not rejected and all(s['completed'] for r in reports for s in r['instances']),
             'instances':sum(len(r['instances']) for r in reports),
             'contract':'full local exact rules; no rule names or observed endpoints used for execution'}
-    result['worker_provenance']=dict(binary_sha256=hashlib.sha256(worker.read_bytes()).hexdigest(),
-        source_sha256=hashlib.sha256((ROOT/'engine/metal/generic_cell.swift').read_bytes()).hexdigest(),
-        source='engine/metal/generic_cell.swift')
+    result['worker_provenance']=provenance
     (output/'results.json').write_text(json.dumps(result,indent=2)+'\n');return result
 
 def source_library(library):
