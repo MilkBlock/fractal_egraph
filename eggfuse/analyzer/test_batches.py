@@ -52,6 +52,20 @@ class BatchTests(unittest.TestCase):
         r=build(c)
         self.assertFalse(certifiable(r['rules'][0],r['tables']))
 
+    def test_pre_return_audit_artifacts_must_be_recompiled(self):
+        import json,tempfile
+        from pathlib import Path
+        from eggfuse.compiler.targets.metal.generic_cell import lower
+        from eggfuse.engine.artifacts import validate_recipe_artifact
+        c=fixture();r=from_core(c);ir=build(c);program=lower(c,8,32,region_program=r)
+        program['recipe_ir']=dict(schema=ir['schema'],sha256=ir['sha256'],scope=ir['scope'])
+        manifest={'files':{'recipe-program.json':'','region-program.json':''}}
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);(root/'recipe-program.json').write_text(json.dumps(ir));(root/'region-program.json').write_text(json.dumps(r))
+            validate_recipe_artifact(root,manifest,program,c)
+            program['batch_layout']['schema']='eggfuse-batch-layout/v2'
+            with self.assertRaisesRegex(ValueError,'receipt layout'):validate_recipe_artifact(root,manifest,program,c)
+
     def test_ambiguous_wiring_remains_residual(self):
         c=fixture();a=c['rulesets'][0]['rules'][0]
         a['head'].append(dict(op='let',dst='another',sort=E,call={'table':'Middle'},args=[var('r'),var('n',I)]))

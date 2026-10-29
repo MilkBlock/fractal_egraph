@@ -11,7 +11,7 @@ def execution_summary(report):
     batch=[sum((s.get('batch_statistics') or [0]*24)[i] for s in instances) for i in range(24)]
     stats=[sum(s.get('region_statistics',[0]*16)[i] for s in instances) for i in range(16)]
     matched=sum(h[2] for s in instances for h in s['history'])
-    return dict(matcher_binding_outputs=matched,executed_rule_invocations=matched+batch[2],match_count_scope='matcher outputs plus separately counted accepted inline invocations; neither count is committed mutations',batch_tiles=batch[0],batch_seed_invocations=batch[1],validated_successor_invocations=batch[2],rejected_successor_invocations=batch[3],batch_effect_requests=batch[4],residual_invocations=batch[5],max_tile_rows=max([(s.get('batch_statistics') or [0]*24)[6] for s in instances]+[0]),matrix_context_rows=batch[7],exact_numeric_audits=batch[8],completed_binding_shortcuts=batch[12],continuation_blocks=batch[16],union_merge_blocks=batch[17],actual_set_results=batch[18],custom_merge_requests=batch[19],constructor_set_requests=batch[20],
+    return dict(matcher_binding_outputs=matched,executed_rule_invocations=matched+batch[2],match_count_scope='matcher outputs plus separately counted accepted inline invocations; neither count is committed mutations',batch_tiles=batch[0],batch_seed_invocations=batch[1],validated_successor_invocations=batch[2],rejected_successor_invocations=batch[3],batch_effect_requests=batch[4],residual_invocations=batch[5],max_tile_rows=max([(s.get('batch_statistics') or [0]*24)[6] for s in instances]+[0]),matrix_context_rows=batch[7],exact_numeric_audits=batch[8],completed_binding_shortcuts=batch[12],continuation_blocks=batch[16],union_merge_blocks=batch[17],actual_set_results=batch[18],custom_merge_requests=batch[19],constructor_set_requests=batch[20],constructor_result_audits=batch[23],
         scope='original control gates with witnessed saturation-local successor firing in one shared GPU identity domain',
         cached_spine_reuses=stats[2],spine_builds=stats[3],correlated_rows_built=stats[4],
         correlated_rows_consumed=stats[5],prefix_table_reads=stats[6],invalidated_spines=stats[7],
@@ -75,6 +75,7 @@ def verify_repeat(first,second):
         seed_conditions='exact existing GPU matcher against the Run snapshot',
         successor_conditions='all actual canonical table rows and guards checked before publication; unions merge at block boundaries then resume saved contexts',
         numeric_effects='source i64 arithmetic audited before publication; bounded affine matrix path with integer fallback',
+        constructor_results='actual keyed row or its queued constructor-prediction equality; audited before successor use',
         completed=True,rounds=rounds,per_round_fingerprints_and_control_equal=True,final_rows_ids_values_visibility_equal=True,
         native_whole_graph_equivalence_required=False)
 

@@ -4,7 +4,7 @@ No whole-program CPU endpoint equivalence requirement. Positive fixtures have
 independent arithmetic/absence checks; source-rule validation is always active
 in the GPU block publisher and exact numeric audit is enabled here.
 """
-import argparse,copy,json,sys
+import argparse,copy,json,sys,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];sys.path[:0]=[str(ROOT),str(ROOT/'experiments/device_backend')]
 from test_generic_cells import core_for
@@ -43,6 +43,11 @@ def check(build_dir,out,only=None,real_dir=None):
 (rule ((Seed r x y)) ((Mid r x)) :ruleset a)
 (rule ((Seed r x y) (Mid r z) (= z (+ x y))) ((Wrong r z)) :ruleset b)
 (Seed (N 0) 5 1) (run-schedule (saturate (run a) (run b)))''',
+      'overflow-merge':'''(datatype E (N i64)) (relation Seed (E i64))
+(function Total (E) i64 :merge (+ old new)) (ruleset a)
+(rule ((Seed x n)) ((set (Total x) n)) :ruleset a)
+(Seed (N 0) 1) (set (Total (N 0)) 9223372036854775807)
+(run-schedule (saturate (run a)))''',
       'masked-overflow':'''(datatype E (N i64)) (relation Seed (E i64)) (relation Mid (E i64)) (relation Wrong (E i64))
 (ruleset a) (ruleset b)
 (rule ((Seed r n)) ((Mid r n)) :ruleset a)
@@ -55,6 +60,12 @@ def check(build_dir,out,only=None,real_dir=None):
 (rule ((Seen y)) ((Done y)) :ruleset c)
 (Seed (N 0) (N 2)) (Edge (N 0))
 (run-schedule (saturate (run a) (run b) (run c)))''',
+      'compacting-return':'''(datatype E (N i64) (K E) (Box E) (Gate E)) (relation Seed (E E E)) (relation Seen (E E))
+(ruleset a) (ruleset b)
+(rule ((Seed x y w)) ((K x) (K y) (Box w) (union x y) (union (Gate w) w)) :ruleset a)
+(rule ((= v (Gate w))) ((Seen v (Box w))) :ruleset b)
+(Seed (N 0) (N 1) (N 2)) (Gate (N 2))
+(run-schedule (saturate (run a) (run b)))''',
       'retired-continuation':'''(datatype E (N i64) (Edge E)) (relation Seed (E E)) (relation Kill (E)) (relation Done (E))
 (ruleset a) (ruleset b)
 (rule ((Seed x y)) ((union (Edge x) y)) :ruleset a)
@@ -116,6 +127,15 @@ def check(build_dir,out,only=None,real_dir=None):
             else:raise AssertionError('SSA overwrite accepted')
         initial=core.pop('initial');lib=dict(schema='analyzer-device-cells/v1',programs=[core],instances=[dict(unit=0,program=0,initial=initial)])
         runs=[run_library(lib,build_dir,out/(name+'-'+suffix),capacity=8192,match_capacity=4096,region_program=plan,audit_numeric=True) for suffix in ['first','repeat']]
+        if name=='overflow-merge':
+            states=[r['programs'][0]['instances'][0] for r in runs]
+            assert states[0]==states[1] and states[0]['meta'][4]==5
+            native=subprocess.run([str(build_dir/'frontend'),str(source),'--native-full','--export-to',str(out/'native-overflow')],text=True,capture_output=True)
+            assert native.returncode!=0
+            (out/'native-overflow.log').write_text(native.stdout+native.stderr)
+            results[name]=dict(expected_source_error='i64 merge overflow',device_error=5,native_failed=True,exact_repeated_private_state=True)
+            (out/'results.json').write_text(json.dumps(results,indent=2)+'\n');print(name,'expected error and repeated state verified',flush=True)
+            continue
         verified=verify_repeat(*runs);summary=execution_summary(runs[0]);folder=out/(name+'-first')
         if name=='wide':
             done=rows(runs[0],folder,'Done');expected=sorted(i%100+i%80-87 for i in range(513))
@@ -140,6 +160,9 @@ def check(build_dir,out,only=None,real_dir=None):
             assert rows(runs[0],folder,'Done')
             assert summary['continuation_blocks']>0 and summary['constructor_set_requests']>0
             assert summary['validated_successor_invocations']>0
+        if name=='compacting-return':
+            box=rows(runs[0],folder,'Box')[0][-1]
+            assert all(r[1]==box for r in rows(runs[0],folder,'Seen')), 'constructor prediction survived row compaction with wrong identity'
         if name=='retired-continuation':
             assert not rows(runs[0],folder,'Done')
             assert summary['rejected_successor_invocations']>0

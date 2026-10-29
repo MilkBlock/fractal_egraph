@@ -118,7 +118,11 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  if(m.error)return;
  // One finite pass over saved continuations after a block changed identities.
  // Completed steps are tickets; no seed or effect is replayed.
- if(pending&&stats[21]&&stats[1]+stats[2]>progressed){stats[10]=2;return;}
+ if(pending&&stats[21]&&stats[1]+stats[2]>progressed){
+  // Rebuild compacts physical rows. Per-Run constructor predictions are keyed
+  // by the old row positions and cannot survive into this continuation block.
+  r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;stats[10]=2;return;
+ }
  for(uint j=SET_START[set];j<SET_START[set+1];j++)watermarks[SET_RULES[j]]=m.epoch-1;
  device uint*h=all_history+(instance*cfg.z+s[3])*12;
  h[0]=set;h[1]=m.changed;h[2]=m.matched;h[3]=m.epoch;h[4]=m.count;h[5]=m.unions;h[6]=pc;h[7]=s[1];

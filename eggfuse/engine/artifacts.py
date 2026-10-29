@@ -19,7 +19,7 @@ def validate_recipe_artifact(folder,manifest,program,core):
         if regions.get('batch_program') is not None:
             batch=regions['batch_program'];layout=program.get('batch_layout',{})
             width=max([len(t['slots']) for t in batch['templates']]+[1]);steps=max([len(t['steps']) for t in batch['templates']]+[1])
-            require(layout.get('schema')=='eggfuse-batch-layout/v2' and layout.get('stats_words')==24,'batch receipt layout differs')
+            require(layout.get('schema')=='eggfuse-batch-layout/v3' and layout.get('stats_words')==24,'batch receipt layout differs')
             require(layout.get('batch_program_sha256')==batch['sha256'],'batch layout contract differs')
             require(layout.get('width')==width and layout.get('steps')==steps and layout.get('stride')==2*width+steps+1 and layout.get('tile')==128,'batch physical layout differs')
             require(program.get('generic_cell',{}).get('transport_version')==7,'recompile batch artifact for current worker ABI')

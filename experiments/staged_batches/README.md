@@ -68,8 +68,9 @@ not replayed. Original table storage still receives block effects on GPU.
 
 ## Results
 
-Sixteen fixtures each pass two fresh-process GPU executions (73 checked Runs
-per lane). In addition to result-slot/union/retirement tests, these include: wide signed affine
+Seventeen successful fixtures each pass two fresh-process GPU executions
+(77 checked Runs per lane). An eighteenth fixture verifies native/GPU merge
+overflow failure and identical repeated GPU failure state. In addition to result-slot/union/retirement tests, these include: wide signed affine
 inputs; contended min keys; exact min columns; 10^16; finite Run; losing min
 proposal; an already-bound arithmetic guard; masked overflow; union/subsume.
 The wide fixture has 513 independent seeds and three source stages:
@@ -147,3 +148,20 @@ source_sk_mk.egg -> region Recipe IR -> Metal` pipeline, with a separately check
 small Bake input sharing the same rule environment. No dedicated terms exporter
 or rule-name-dependent execution path is used. Static recipe counts do not
 measure runtime Cell coverage.
+
+
+### Constructor-return safety after compaction
+
+A continuation starts a new committed-row view after block rebuild. Physical
+row positions may have moved; the old per-Run constructor prediction side array
+must not be consulted for those moved rows. The `compacting-return` regression
+previously made `Seen(v, Box(w))` refer to a `K` class instead. This was repeatable
+but wrong, illustrating why L1 alone is insufficient. The new block boundary
+resets the committed-row cutoff before resumption. Check mode additionally
+verifies each table-call return against its actual key, allowing a different
+constructor return only with an explicit queued prediction equality. Failure
+is device error 36, not a silent correction.
+
+Layout version 3 rejects older artifacts that predate this return contract;
+recompile those artifacts. Worker transport remains ABI 7. Numeric audit and
+actual constructor-return audit are both diagnostics on the same execution path.
