@@ -1,17 +1,21 @@
 // Three device stages share one resident context/effect matrix. The host queues
 // a fixed quantum without reading matches or deciding logical stage transitions.
 #define BC_ARGS device long*all_rows[[buffer(0)]],device uint*all_uint[[buffer(1)]],device long*all_long[[buffer(2)]],device Meta*all_meta[[buffer(3)]],device uint*all_state[[buffer(4)]],device long*code[[buffer(5)]],device const uint*tape[[buffer(6)]],device uint*all_history[[buffer(7)]],device long*all_markers[[buffer(8)]],constant uint4&cfg[[buffer(9)]],device long*all_batch[[buffer(10)]],constant uint4&batchCfg[[buffer(11)]],device atomic_uint*dispatch[[buffer(12)]],device ulong*hashes[[buffer(13)]]
+uint bc_order_offset(uint count,bool parallel){
+ if(!BC_PARALLEL_SORT||!parallel||count<=BC_SMALL_SORT)return 0;
+ uint at=0;for(uint span=BC_SORT_TILE;span<count;span*=2)at=MATCHCAP-at;return at;
+}
 kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]]){
  if(instance>=cfg.x)return;
  device Meta&m=all_meta[instance];device uint*s=all_state+instance*GC_STATE_WORDS;
  device uint*stack=s+8;device long*r=all_rows+instance*GC_ROW_WORDS;device long*old=r;
  // LOCAL_POINTERS
  device uint*p=parent;device float*context_results=(device float*)contexts;
- device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));stats[9]=batchCfg.x;
+ device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));bool grew=stats[9]!=long(batchCfg.x);stats[9]=batchCfg.x;
  // Checkpoint diagnostic: stop only between complete logical Runs. A pending
  // block continuation finishes before the gate can close.
  if(batchCfg.y && s[3]>=batchCfg.y && stats[10]!=2){stats[10]=0;return;}
- if(stats[10]==2){atomic_fetch_max_explicit(dispatch,uint(stats[11]),memory_order_relaxed);return;}stats[10]=0;
+ if(stats[10]==2){if(grew)bc_reindex_certificates(stats,m.unions,ulong(r[RC_VISIBILITY]));atomic_fetch_max_explicit(dispatch,uint(stats[11]),memory_order_relaxed);return;}stats[10]=0;
  context_info=(device uint*)stats;
  while(!m.error&&!s[2]){
   uint pc=s[0],op=tape[4*pc],arg=tape[4*pc+1];
@@ -58,15 +62,72 @@ kernel void batched_cell_match(BC_ARGS,uint2 group[[threadgroup_position_in_grid
   default:m.error=20;return;
  }
 }
-kernel void batched_cell_pack(BC_ARGS,uint instance[[thread_position_in_grid]]){
+// Sorting operates only on immutable ordinals. Every binding and its evidence
+// stay correlated in the original match buffer. No CPU count readback is needed.
+kernel void batched_cell_sort_local(BC_ARGS,uint2 group[[threadgroup_position_in_grid]],uint tid[[thread_index_in_threadgroup]]){
+ uint instance=group.y,lane=group.x*BC_SORT_TILE+tid;if(instance>=cfg.x)return;
+ device Meta&m=all_meta[instance];device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
+ if(m.error||(stats[10]!=3&&stats[10]!=4))return;
+ device uint*order=all_uint+instance*GC_UINT_WORDS+GC_MATCH_ORDER;
+ if(stats[10]==4){if(lane<m.matched)order[lane]=lane;return;}
+ device long*matches=all_long+instance*GC_LONG_WORDS+GC_MATCHES;
+ threadgroup uint ids[BC_SORT_TILE];ids[tid]=lane<m.matched?lane:0xffffffff;threadgroup_barrier(mem_flags::mem_threadgroup);
+ for(uint k=2;k<=BC_SORT_TILE;k*=2)for(uint d=k/2;d;d/=2){
+  uint other=tid^d,a=ids[tid],b=ids[other];bool low=((tid&k)==0)==(tid<other),before=match_before(a,b,matches);
+  threadgroup_barrier(mem_flags::mem_threadgroup);ids[tid]=low?(before?a:b):(before?b:a);threadgroup_barrier(mem_flags::mem_threadgroup);
+ }
+ if(lane<m.matched)order[lane]=ids[tid];
+}
+kernel void batched_cell_sort_merge(BC_ARGS,constant uint4&sortCfg[[buffer(14)]],uint2 group[[threadgroup_position_in_grid]],uint tid[[thread_index_in_threadgroup]]){
+ uint instance=group.y,lane=group.x*128+tid;if(instance>=cfg.x)return;device Meta&m=all_meta[instance];
+ device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
+ if(m.error||stats[10]!=3||lane>=m.matched||sortCfg.x>=m.matched)return;
+ device uint*order=all_uint+instance*GC_UINT_WORDS+GC_MATCH_ORDER;
+ device uint*input=order+sortCfg.y;device uint*output=order+sortCfg.z;
+ device long*matches=all_long+instance*GC_LONG_WORDS+GC_MATCHES;
+ uint span=sortCfg.x,base=(lane/(2*span))*2*span,mid=min(base+span,m.matched),end=min(base+2*span,m.matched);
+ bool left=lane<mid;uint own=left?base:mid,other=left?mid:base,lo=other,hi=left?end:mid,id=input[lane];
+ // The comparator is total (including ordinal tie-break), so ranks are unique.
+ while(lo<hi){uint at=lo+(hi-lo)/2;if(match_before(input[at],id,matches))lo=at+1;else hi=at;}
+ output[base+(lane-own)+(lo-other)]=id;
+}
+kernel void batched_cell_pack(BC_ARGS,constant uint&packStep[[buffer(14)]],uint instance[[threadgroup_position_in_grid]],uint tid[[thread_index_in_threadgroup]]){
  if(instance>=cfg.x)return;device Meta&m=all_meta[instance];device uint*s=all_state+instance*GC_STATE_WORDS;
  device uint*stack=s+8;device long*r=all_rows+instance*GC_ROW_WORDS;
  // LOCAL_POINTERS
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
  if(m.error||(stats[10]!=3&&stats[10]!=4))return;
+ if(m.matched>batchCfg.x){if(!tid)m.error=34;return;}
+ if(BC_PARALLEL_SORT&&packStep==0&&m.matched>BC_SMALL_SORT){
+  if(tid)return;
+  atomic_fetch_max_explicit(dispatch+9,(m.matched+BC_SORT_TILE-1)/BC_SORT_TILE,memory_order_relaxed);
+  uint pass=0;for(uint span=BC_SORT_TILE;span<MATCHCAP;span*=2,pass++)if(stats[10]==3&&m.matched>span)
+   atomic_fetch_max_explicit(dispatch+12+3*pass,(m.matched+127)/128,memory_order_relaxed);
+  return;
+ }
  // Sort immutable match ordinals, never reorder the correlated binding itself.
  // The total key is source rule/variant/anchor/within-anchor ordinal. Atomic
  // arrival order is not a semantic tie breaker for distinct bindings.
+ if(BC_PARALLEL_SORT&&m.matched<=BC_SMALL_SORT){
+  // Four ordinals per lane fit in 4 KiB of threadgroup memory. Finish small
+  // batches in the same kernel that publishes their descriptors.
+  if(m.matched>1&&stats[10]==3){
+   threadgroup uint ids[BC_SMALL_SORT];uint limit=1;while(limit<m.matched)limit*=2;
+   for(uint i=tid;i<limit;i+=BC_SORT_TILE)ids[i]=i<m.matched?i:0xffffffff;
+   threadgroup_barrier(mem_flags::mem_threadgroup);
+   for(uint k=2;k<=limit;k*=2)for(uint d=k/2;d;d/=2){
+    uint values[BC_SMALL_SORT/BC_SORT_TILE];
+    for(uint i=tid;i<limit;i+=BC_SORT_TILE){uint other=i^d,a=ids[i],b=ids[other];bool low=((i&k)==0)==(i<other),before=match_before(a,b,matches);values[i/BC_SORT_TILE]=low?(before?a:b):(before?b:a);}
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    for(uint i=tid;i<limit;i+=BC_SORT_TILE)ids[i]=values[i/BC_SORT_TILE];
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+   }
+   for(uint i=tid;i<m.matched;i+=BC_SORT_TILE)match_order[i]=ids[i];
+  }else for(uint i=tid;i<m.matched;i+=BC_SORT_TILE)match_order[i]=i;
+  threadgroup_barrier(mem_flags::mem_device);
+  if(tid)return;
+ }else if(BC_PARALLEL_SORT){if(tid)return;match_order+=bc_order_offset(m.matched,stats[10]==3);}
+ else {if(tid)return;
  for(uint i=0;i<m.matched;i++)match_order[i]=i;
  if(stats[10]==3)for(uint span=1;span<m.matched;span*=2){
   for(uint start=0;start<m.matched;start+=2*span){uint mid=min(start+span,m.matched),end=min(start+2*span,m.matched),a=start,b=mid;
@@ -74,8 +135,8 @@ kernel void batched_cell_pack(BC_ARGS,uint instance[[thread_position_in_grid]]){
   }
   for(uint i=0;i<m.matched;i++)match_order[i]=match_order[MATCHCAP+i];
  }
+ }
   if(m.error)return;
-  if(m.matched>batchCfg.x){m.error=34;return;}
   uint tiles=0,start=0,certificates=uint(stats[15]);device long*meta=stats+BC_STATS;
   while(start<m.matched){uint rule=uint(matches[match_order[start]*MSTRIDE]),count=0;
    while(start+count<m.matched&&count<BC_TILE&&uint(matches[match_order[start+count]*MSTRIDE])==rule)count++;
@@ -95,6 +156,8 @@ kernel void batched_cell_evaluate(BC_ARGS,uint2 group[[threadgroup_position_in_g
  device long*data=meta+3*batchCfg.x+start*BC_STRIDE;
  device long*matches=all_long+instance*GC_LONG_WORDS+GC_MATCHES;
  device uint*match_order=all_uint+instance*GC_UINT_WORDS+GC_MATCH_ORDER;
+ device uint*s=all_state+instance*GC_STATE_WORDS;
+ match_order+=bc_order_offset(all_meta[instance].matched,QUERY_PARALLEL[tape[4*s[0]+1]]);
  threadgroup float as[256],bs[256],cs[256];
  if(tid<count&&stats[10]==1)bc_prepare(plan,match_order[start+tid],matches,data+tid*BC_STRIDE);
  threadgroup_barrier(mem_flags::mem_device|mem_flags::mem_threadgroup);
@@ -109,6 +172,7 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  // LOCAL_POINTERS
  device uint*p=parent;device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
  if(m.error||!stats[10])return;device long*meta=stats+BC_STATS;device long*data=meta+3*batchCfg.x;
+ match_order+=bc_order_offset(m.matched,QUERY_PARALLEL[tape[4*s[0]+1]]);
  uint pc=s[0],set=tape[4*pc+1];bool resuming=stats[10]==2;long progressed=stats[1]+stats[2];p[IDCAP]=1;p[IDCAP+1]=0;if(resuming)stats[16]++;stats[21]=0;
  for(uint tile=0;tile<uint(stats[11])&&!m.error;tile++){
   uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);

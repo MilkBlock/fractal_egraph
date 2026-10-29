@@ -32,14 +32,65 @@ let instances=program["instances"] as! [[String:Any]],n=instances.count
 let device=MTLCreateSystemDefaultDevice()!,queue=device.makeCommandQueue()!
 let options=MTLCompileOptions();options.fastMathEnabled=false
 let compileStart=CFAbsoluteTimeGetCurrent()
+FileHandle.standardError.write(Data("[metal] compiling library\n".utf8))
 let lib=try device.makeLibrary(source:program["shader"] as! String,options:options)
-let pipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:spec["kernel"] as? String ?? "generic_cell_advance")!)
-let batchEval:MTLComputePipelineState?=transportVersion==7 ? try device.makeComputePipelineState(function:lib.makeFunction(name:"batched_cell_evaluate")!):nil
-let batchPublish:MTLComputePipelineState?=transportVersion==7 ? try device.makeComputePipelineState(function:lib.makeFunction(name:"batched_cell_publish")!):nil
-let batchMatch:MTLComputePipelineState?=transportVersion==7 ? try device.makeComputePipelineState(function:lib.makeFunction(name:"batched_cell_match")!):nil
-let batchPack:MTLComputePipelineState?=transportVersion==7 ? try device.makeComputePipelineState(function:lib.makeFunction(name:"batched_cell_pack")!):nil
-let hashPipeline:MTLComputePipelineState?=transportVersion==7 ? try device.makeComputePipelineState(function:lib.makeFunction(name:"batched_cell_fingerprint")!):nil
-let hashFinish:MTLComputePipelineState?=transportVersion==7 ? try device.makeComputePipelineState(function:lib.makeFunction(name:"batched_cell_fingerprint_finish")!):nil
+let librarySeconds=CFAbsoluteTimeGetCurrent()-compileStart
+FileHandle.standardError.write(Data("[metal] library ready in \(librarySeconds)s\n".utf8))
+// Apple's process cache is insufficient for these large generated pipelines.
+// A content-addressed binary archive makes an actual cache hit observable.
+let cacheSetting=ProcessInfo.processInfo.environment["EGGFUSE_METAL_CACHE"]
+let cacheRoot=URL(fileURLWithPath:cacheSetting ?? URL(fileURLWithPath:CommandLine.arguments[0]).deletingLastPathComponent().appendingPathComponent("metal-cache").path)
+let cacheIdentity=(program["shader"] as! String)+"\nfast-math=false;pipeline-defaults-v1;"+String(device.registryID)+ProcessInfo.processInfo.operatingSystemVersionString+";capture="+(ProcessInfo.processInfo.environment["METAL_CAPTURE_ENABLED"] ?? "0")
+let cacheKey=digest(Data(cacheIdentity.utf8)),cacheURL=cacheRoot.appendingPathComponent(digest(Data(cacheIdentity.utf8))+".metalarc")
+var archive:MTLBinaryArchive?=nil,cacheHits=0,cacheMisses=0,cacheDirty=false,cacheWarnings=[String](),pipelineTimings=[String:Double]()
+if cacheSetting != "off" {
+ do {
+  try FileManager.default.createDirectory(at:cacheRoot,withIntermediateDirectories:true)
+  let descriptor=MTLBinaryArchiveDescriptor()
+  if FileManager.default.fileExists(atPath:cacheURL.path){descriptor.url=cacheURL}
+  do {archive=try device.makeBinaryArchive(descriptor:descriptor)}
+  catch {cacheWarnings.append("archive load: \(error)");archive=try device.makeBinaryArchive(descriptor:MTLBinaryArchiveDescriptor())}
+ }catch{cacheWarnings.append("archive unavailable: \(error)")}
+}
+func loadPipeline(_ name:String)throws->MTLComputePipelineState {
+ let began=CFAbsoluteTimeGetCurrent();defer{pipelineTimings[name]=CFAbsoluteTimeGetCurrent()-began}
+ let descriptor=MTLComputePipelineDescriptor();descriptor.computeFunction=lib.makeFunction(name:name)!
+ if let saved=archive {
+  descriptor.binaryArchives=[saved]
+  if let state=try? device.makeComputePipelineState(descriptor:descriptor,options:.failOnBinaryArchiveMiss,reflection:nil){cacheHits+=1;return state}
+  cacheMisses+=1
+  FileHandle.standardError.write(Data("[metal] compiling pipeline \(name)\n".utf8))
+  do {
+   try saved.addComputePipelineFunctions(descriptor:descriptor);cacheDirty=true
+   return try device.makeComputePipelineState(descriptor:descriptor,options:.failOnBinaryArchiveMiss,reflection:nil)
+  }catch{cacheWarnings.append("archive population \(name): \(error)")}
+ }else{cacheMisses+=1}
+ // Cache failure never substitutes a different shader or a guessed result.
+ descriptor.binaryArchives=[]
+ return try device.makeComputePipelineState(descriptor:descriptor,options:[],reflection:nil)
+}
+let pipeline=try loadPipeline(spec["kernel"] as? String ?? "generic_cell_advance")
+let batchEval:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_evaluate"):nil
+let batchPublish:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_publish"):nil
+let batchMatch:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_match"):nil
+let batchPack:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_pack"):nil
+let parallelSort=transportVersion==7 && (program["batch_sort"] as? [String:Any])?["enabled"] as? Bool == true
+var sortSpans=[Int](),sortSpan=256
+while sortSpan<(program["match_capacity"] as! Int){sortSpans.append(sortSpan);sortSpan*=2}
+let sortLocal:MTLComputePipelineState?=parallelSort ? try loadPipeline("batched_cell_sort_local"):nil
+let sortMerge:MTLComputePipelineState?=parallelSort ? try loadPipeline("batched_cell_sort_merge"):nil
+let hashPipeline:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint"):nil
+let hashFinish:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint_finish"):nil
+var cacheWriteSeconds=0.0
+if cacheDirty,let saved=archive {
+ let began=CFAbsoluteTimeGetCurrent(),temp=cacheRoot.appendingPathComponent("."+cacheKey+"-"+UUID().uuidString)
+ do {
+  try saved.serialize(to:temp)
+  // rename replaces only this content-addressed cache entry, atomically.
+  try require(rename(temp.path,cacheURL.path)==0,"cannot publish pipeline archive")
+ }catch{cacheWarnings.append("archive write: \(error)");try? FileManager.default.removeItem(at:temp)}
+ cacheWriteSeconds=CFAbsoluteTimeGetCurrent()-began
+}
 let compileSeconds=CFAbsoluteTimeGetCurrent()-compileStart
 func zeros(_ bytes:Int)->MTLBuffer {let b=device.makeBuffer(length:max(8,bytes),options:.storageModeShared)!;memset(b.contents(),0,b.length);return b}
 func copy<T>(_ x:[T],_ b:MTLBuffer,_ offset:Int=0){x.withUnsafeBytes{v in if !v.isEmpty {memcpy(b.contents().advanced(by:offset),v.baseAddress!,v.count)}}}
@@ -68,7 +119,9 @@ let batchStride=batchLayout?["stride"] as? Int ?? 1
 var batchCapacity=128,batchWords=transportVersion==7 ? batchHeader+128*(9+batchStride):1
 var batchData=zeros(n*batchWords*8),batchGrowths=0
 if transportVersion==7 && program["batch_audit_numeric"] as? Bool == true {for i in 0..<n {copy([Int64(1)],batchData,(i*batchWords+14)*8)}}
-let batchDispatch=zeros(36);copy([UInt32(0),UInt32(n),UInt32(1),UInt32(0),UInt32(n),UInt32(1),UInt32(0),UInt32(n),UInt32(1)],batchDispatch)
+let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)
+let batchDispatch=zeros(dispatchGroups*12)
+for i in 0..<dispatchGroups {copy([UInt32(0),UInt32(n),UInt32(1)],batchDispatch,i*12)}
 let hashChunks=(capacity*stride+2*ids+(program["set_words"] as! Int)+1023)/1024
 let hashData=zeros(transportVersion==7 ? n*hashChunks*16:8)
 var historyCapacity=16,history=zeros(n*16*historyWidth*4),dispatches=0,gpuSeconds=0.0
@@ -162,9 +215,13 @@ while true {
   try require(newWords<Int(UInt32.max),"batch context exceeds device address space")
   for i in 0..<n {
    memcpy(next.contents().advanced(by:i*newWords*8),batchData.contents().advanced(by:i*batchWords*8),batchHeader*8)
+   // Another arena may still have a block continuation. Its descriptors,
+   // exact slots and done bits survive a neighbor's capacity growth.
+   memcpy(next.contents().advanced(by:(i*newWords+batchHeader)*8),batchData.contents().advanced(by:(i*batchWords+batchHeader)*8),3*batchCapacity*8)
+   memcpy(next.contents().advanced(by:(i*newWords+batchHeader+3*newCapacity)*8),batchData.contents().advanced(by:(i*batchWords+batchHeader+3*batchCapacity)*8),batchCapacity*batchStride*8)
    let oldRecords=batchHeader+batchCapacity*(5+batchStride),newRecords=batchHeader+newCapacity*(5+batchStride)
    memcpy(next.contents().advanced(by:(i*newWords+newRecords)*8),batchData.contents().advanced(by:(i*batchWords+oldRecords)*8),4*batchCapacity*8)
-   copy([Int64(newCapacity)],next,(i*newWords+9)*8)
+   // Retain the old-capacity marker until the GPU rehashes certificate buckets.
    if u32(metas,i*9+4,1)[0]==34 {copy([UInt32(0)],metas,(i*9+4)*4)}
   }
   batchData=next;batchWords=newWords;batchCapacity=newCapacity;batchGrowths+=1
@@ -185,12 +242,16 @@ while true {
    e.setBuffer(batchData,offset:0,index:10)
    var batchCfg=SIMD4<UInt32>(UInt32(batchCapacity),stopAt ?? 0,0,0);e.setBytes(&batchCfg,length:16,index:11)
    e.setBuffer(batchDispatch,offset:0,index:12);e.setBuffer(hashData,offset:0,index:13)
+   var packStep=UInt32(0);e.setBytes(&packStep,length:4,index:14)
   }
  }
  if transportVersion==7 {
   try require(batchEval!.maxTotalThreadsPerThreadgroup>=128,"batch evaluator requires 128 lanes")
+  if parallelSort {try require(sortLocal!.maxTotalThreadsPerThreadgroup>=256,"local ordering requires 256 lanes")}
   for _ in 0..<quantum {
-   let clear=cb.makeBlitCommandEncoder()!;clear.fill(buffer:batchDispatch,range:0..<4,value:0);clear.fill(buffer:batchDispatch,range:12..<16,value:0);clear.fill(buffer:batchDispatch,range:24..<28,value:0);clear.endEncoding()
+   let clear=cb.makeBlitCommandEncoder()!
+   for i in 0..<dispatchGroups {clear.fill(buffer:batchDispatch,range:(i*12)..<(i*12+4),value:0)}
+   clear.endEncoding()
    var e=cb.makeComputeCommandEncoder()!;bind(e);var phaseStarted=false
    func phase(_ p:MTLComputePipelineState,_ name:String){
     // Capture-only separation makes phase attribution explicit. The normal
@@ -203,7 +264,23 @@ while true {
    e.memoryBarrier(scope:.buffers)
    phase(batchMatch!,"batched_cell_match");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:24,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
-   phase(batchPack!,"batched_cell_pack");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,batchPack!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
+   if parallelSort {
+    phase(batchPack!,"batched_cell_pack_or_schedule");var firstPack=UInt32(0);e.setBytes(&firstPack,length:4,index:14)
+    e.dispatchThreadgroups(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))
+    e.memoryBarrier(scope:.buffers)
+    phase(sortLocal!,"batched_cell_sort_local");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:36,threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))
+    e.memoryBarrier(scope:.buffers)
+    for (pass,span) in sortSpans.enumerated() where span<batchCapacity {
+     phase(sortMerge!,"batched_cell_sort_merge")
+     let cap=UInt32(program["match_capacity"] as! Int)
+     var sortCfg=SIMD4<UInt32>(UInt32(span),pass%2==0 ? 0:cap,pass%2==0 ? cap:0,0)
+     e.setBytes(&sortCfg,length:16,index:14)
+     e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:48+12*pass,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
+     e.memoryBarrier(scope:.buffers)
+    }
+   }
+   phase(batchPack!,"batched_cell_pack");var finalPack=UInt32(parallelSort ? 1:0);e.setBytes(&finalPack,length:4,index:14)
+   e.dispatchThreadgroups(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:parallelSort ? 256:1,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
    phase(batchEval!,"batched_cell_evaluate");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:0,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
@@ -252,6 +329,8 @@ for i in 0..<n {
   "history":Swift.stride(from:0,to:h.count,by:historyWidth).map{Array(h[$0..<$0+historyWidth])},"completed":m[4]==0 && s[2]==1])
 }
 let report:[String:Any]=["instances":results,"inference_seconds":seconds,"gpu_seconds":gpuSeconds,"shader_compile_seconds":compileSeconds,
+ "library_compile_seconds":librarySeconds,"pipeline_compile_seconds":pipelineTimings,
+ "pipeline_cache":["key":cacheKey,"path":cacheURL.path,"hits":cacheHits,"misses":cacheMisses,"write_seconds":cacheWriteSeconds,"warnings":cacheWarnings,"disabled":cacheSetting=="off"],
  "paused":results.contains{!($0["completed"] as! Bool)} && stopAt != nil,"restored_runs":restoredRounds,"checkpoint_seconds":checkpointSeconds,"program_sha256":programDigest,"worker_sha256":workerDigest,
  "profile_capture":capturing,
  "dispatches":dispatches,"storage_bytes":[rows,uints,longs,metas,states,code,tape,history,markerCache,batchData,hashData].reduce(0){$0+$1.length},

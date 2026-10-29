@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     from eggfuse.ir.recipe import digest
@@ -123,6 +123,9 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])})
         p['shader']+='\n'+batch_code
         p['batch_layout']=batch_layout
+        p['batch_sort']=dict(schema='eggfuse-resident-sort/v1',enabled=parallel_sort,tile=256,local_capacity=1024,
+            contract='same total binding order; local bitonic tiles and parallel rank merges; GPU-sized indirect dispatch')
+        defines+=f'\n#define BC_PARALLEL_SORT {int(parallel_sort)}\n#define BC_SORT_TILE 256\n#define BC_SMALL_SORT 1024\n'
         calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls)).replace('// CACHE_PREPARE', ''.join(cache_calls)).replace('// PARALLEL_QUERIES', ''.join(parallel_calls))
     p['shader'] += '\n' + defines + '\n' + text

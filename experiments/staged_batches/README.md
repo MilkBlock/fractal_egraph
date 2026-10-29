@@ -104,8 +104,9 @@ python3 -m eggfuse run --artifact out/new-batch-pipeline/eggfuse_related_files \
   --build out/eggfuse-clean-paths-build --output out/new-batch-run --check
 ```
 
-Shared-prefix preparation, deterministic match sorting and stable publication
-remain serial within a shared arena. Exact seed/residual matching and context
+Shared-prefix preparation and stable publication remain serial within a shared
+arena. [Deterministic binding ordering is now parallel](ORDERING.md), with a
+threadgroup path for small batches. Exact seed/residual matching and context
 evaluation now scale across threadgroups. The sorted source query/variant/anchor
 order, rather than atomic arrival order, determines effect publication. Ambiguous symbolic compositions and recursive backedges still use complete
 residual queries; correlated alternatives are not merged or sampled. Fully

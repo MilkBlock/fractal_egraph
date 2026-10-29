@@ -181,5 +181,99 @@ def check(build_dir,out,only=None,real_dir=None):
         (out/'results.json').write_text(json.dumps(results,indent=2)+'\n');print(name,summary,flush=True)
     return results
 
+def check_sort(build_dir,out):
+    """Same runtime, source bindings/effects and total order; only sorting differs."""
+    import run_generic_cells as runtime
+    out.mkdir(parents=True,exist_ok=False);results={};original=runtime.lower
+    for count in [0,1,255,256,257,513,4097,32768]:
+        source=out/f'bindings-{count}.egg'
+        source.write_text('''(datatype E (N i64)) (N 0)
+(relation Seed (i64 i64)) (relation Seen (i64 i64)) (relation Final (i64 i64))
+(function Pick (i64) i64 :merge new) (set (Pick 0) -1)
+(ruleset s) (ruleset t)
+(rule ((Seed x y)) ((set (Pick 0) (+ x y)) (Seen x y)) :ruleset s)
+(rule ((Seen x y)) ((Final x y)) :ruleset t)
+'''+''.join(f'(Seed {i} {(37*i+11)%997})\n' for i in range(count))+
+            '(run-schedule (saturate (run s) (run t)))')
+        core=core_for(source,build_dir);plan=from_core(core);initial=core.pop('initial')
+        lib=dict(schema='analyzer-device-cells/v1',programs=[core],instances=[dict(unit=0,program=0,initial=initial)])
+        reports={}
+        for enabled in [False,True]:
+            def lower(*args,**kwargs):return original(*args,**kwargs,parallel_sort=enabled)
+            runtime.lower=lower
+            try:reports[enabled]=runtime.run_library(lib,build_dir,out/f'{count}-{enabled}',capacity=max(512,4*count+64),match_capacity=max(19,count+19),region_program=plan,audit_numeric=True)
+            finally:runtime.lower=original
+        verified=verify_repeat(reports[False],reports[True])
+        folder=out/f'{count}-True';r=reports[True];s=r['programs'][0]['instances'][0]
+        expected={(i,(37*i+11)%997) for i in range(count)}
+        assert {tuple(row[:2]) for row in rows(r,folder,'Seen')}==expected
+        assert {tuple(row[:2]) for row in rows(r,folder,'Final')}==expected
+        # merge-new exposes binding order, not just the set of produced rows.
+        p=json.loads((folder/'program-0/attempt-0/program.json').read_text())
+        tid=next(i for i,t in enumerate(p['tables']) if t['name']=='Seed')
+        flat=p['instances'][0]['initial_rows'];seed=[flat[i:i+p['stride']] for i in range(0,len(flat),p['stride']) if flat[i]==tid]
+        final=max(seed,key=lambda row:row[3]) if seed else None
+        assert rows(r,folder,'Pick')[0][1]==(final[4]+final[5] if final else -1)
+        results[count]=dict(verification=verified,bindings=count,matched=sum(h[2] for h in s['history']),
+            semantic_scope='actual resident multi-stage Metal engine, unchanged matching and effects; executor sorting credit only',
+            timing_scope='single checked diagnostic per variant; not full Pass-3 speedup',
+            seconds={str(k):dict(gpu=v['programs'][0]['gpu_seconds'],inference=v['programs'][0]['inference_seconds']) for k,v in reports.items()})
+        (out/'sort-results.json').write_text(json.dumps(results,indent=2)+'\n')
+        print(count,results[count]['seconds'],flush=True)
+    # Independent arenas can pause at different positions within a Run. A large
+    # neighbor's growth must not erase a small arena's pending union continuation.
+    prefix='''(datatype E (N i64) (Edge E)) (relation Seed (E E)) (relation Done (E))
+(ruleset a) (ruleset b)
+(rule ((Seed x y)) ((union (Edge x) y)) :ruleset a)
+(rule ((= y (Edge x))) ((Done y)) :ruleset b)
+'''
+    cores=[]
+    for count in [1,129]:
+        source=out/f'arena-{count}.egg'
+        source.write_text(prefix+''.join(f'(Seed (N {3*i}) (N {3*i+2})) (Edge (N {3*i}))\n' for i in range(count))+'(run-schedule (saturate (run a) (run b)))')
+        cores.append(core_for(source,build_dir))
+    plan=from_core(cores[0]);base=dict(cores[0]);base.pop('initial')
+    lib=dict(schema='analyzer-device-cells/v1',programs=[base],instances=[dict(unit=i,program=0,initial=c['initial']) for i,c in enumerate(cores)])
+    private=run_library({**lib,'instances':lib['instances'][:1]},build_dir,out/'private-continuation',4096,1024,quantum=1,region_program=plan,audit_numeric=True)
+    shared=run_library(lib,build_dir,out/'shared-continuation',4096,1024,quantum=1,region_program=plan,audit_numeric=True)
+    assert private['complete'] and shared['complete']
+    a=private['programs'][0]['instances'][0];b=shared['programs'][0]['instances'][0]
+    for key in a:
+        if key=='batch_statistics':assert a[key][:9]+a[key][10:]==b[key][:9]+b[key][10:],key
+        else:assert a[key]==b[key],key
+    assert a['batch_statistics'][16]>0
+    results['neighbor-growth']=dict(continuation_retained=True,full_small_arena_state_and_history_equal=True)
+    (out/'sort-results.json').write_text(json.dumps(results,indent=2)+'\n')
+    return results
+
+
+def check_pipeline_cache(build_dir,out,program):
+    """A persisted pipeline must reproduce the same effects, including corruption recovery."""
+    import os
+    from run_generic_cells import build_worker
+    out.mkdir(parents=True,exist_ok=False);worker=build_worker(build_dir)
+    expected=json.loads(program.with_name('result.json').read_text())['instances']
+    cache=out/'archive';results={}
+    for mode in ['off','cold','warm','corrupt','changed-source']:
+        use=program
+        if mode=='corrupt':next(cache.glob('*.metalarc')).write_bytes(b'invalid archive regression')
+        if mode=='changed-source':
+            p=json.loads(program.read_text());p['shader']+='\n// cache key isolation regression\n'
+            use=out/'changed-program.json';use.write_text(json.dumps(p))
+        env={**os.environ,'EGGFUSE_METAL_CACHE':'off' if mode=='off' else str(cache)}
+        with (out/(mode+'.log')).open('w') as log:
+            subprocess.run([str(worker),str(use),str(out/(mode+'.json'))],env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+        r=json.loads((out/(mode+'.json')).read_text());assert r['instances']==expected
+        results[mode]={k:r[k] for k in ['shader_compile_seconds','library_compile_seconds','pipeline_compile_seconds','pipeline_cache']}
+        if mode=='warm':assert r['pipeline_cache']['hits']==len(r['pipeline_compile_seconds']) and r['pipeline_cache']['misses']==0
+        if mode=='corrupt':assert r['pipeline_cache']['warnings']
+        if mode=='changed-source':assert r['pipeline_cache']['key']!=results['warm']['pipeline_cache']['key'] and r['pipeline_cache']['hits']==0
+    results['full_states_and_histories_equal']=True
+    (out/'cache-results.json').write_text(json.dumps(results,indent=2)+'\n');return results
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--case',action='append');p.add_argument('--real-dir',type=Path);a=p.parse_args();check(a.build.resolve(),a.output.resolve(),a.case,a.real_dir)
+    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--case',action='append');p.add_argument('--real-dir',type=Path);p.add_argument('--sort-comparison',action='store_true');p.add_argument('--pipeline-cache-program',type=Path);a=p.parse_args()
+    if a.pipeline_cache_program:check_pipeline_cache(a.build.resolve(),a.output.resolve(),a.pipeline_cache_program.resolve())
+    elif a.sort_comparison:check_sort(a.build.resolve(),a.output.resolve())
+    else:check(a.build.resolve(),a.output.resolve(),a.case,a.real_dir)

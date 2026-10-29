@@ -27,6 +27,10 @@ python3 "$PROFILE_SKILL/scripts/capture_report.py" \
 当作生产加速比。快照要求同一程序、worker 和设备；切换实现后不能冒充旧状态仍可安全恢复。
 Xcode 27.1 收集 profile 后需要显式 embed/load，才有 encoder 数据；空列表必须报错。
 新适配器当前支持单 Run GPU capture；xctrace counters/CPU-wait 窗口仍仅由旧适配器提供。
+`resident.py --mode timings` 是轻量定位入口：只给同一 worker 加 host-side command-buffer
+分段计时，不修改 shader，复用 pipeline archive，核对与无插桩重放的完整状态。它额外暴露
+`profile_worker_sha256`，输入 checkpoint 仍严格验证原 worker；诊断 checkpoint 标为插桩版本。
+所得各阶段 GPU 时间会受调度切分扰动，只用于热点定位，不充当未插桩加速比或 occupancy。
 真实 Pass-3 巨型 shader 的 Apple 重放编译可能超过默认 300 秒。发生时先确认编译与推理的
 区别，保留失败，不自动反复采集；确需延长时显式传 `capture_report.py --timeout-seconds N`。
 
