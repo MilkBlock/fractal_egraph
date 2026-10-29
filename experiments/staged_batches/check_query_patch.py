@@ -37,6 +37,12 @@ def check(build,out):
             assert a[field][:5]+a[field][7:]==b[field][:5]+b[field][7:]
         else:assert a[field]==b[field],field
     assert a['state'][5]>20 and b['state'][5]==1
+    program=json.loads((out/'True/program-0/cell-0/program.json').read_text())
+    names={t['name']:i for i,t in enumerate(program['tables'])}
+    live=lambda name:[r for r in b['rows'] if r[0]==names[name] and r[1]==0]
+    assert len(live('Seen'))==64 and all(r[5]==7 for r in live('Seen'))
+    assert len(live('V'))==64 and all(r[5]==0 for r in live('V'))
+    assert not live('Bad')
     result=dict(scope='actual resident Metal engine, changing function values and an output-key consumer',
         initial_rows=len(initial),final_rows=len(a['rows']),runs=len(a['history']),
         full_rows_ids_visibility_and_history_equal=True,
