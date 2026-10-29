@@ -178,3 +178,47 @@ python3 experiments/unified_compiler/check.py \
   --build out/device-build --solver-python /path/to/scip-venv/bin/python \
   --output out/compiler-contract-checks
 ```
+
+## Complete Pass 3 with multi-stage Cells
+
+`--multi-stage-cell` adds an explicit executable-recipe pass. It exports boundary
+Spine recipes and candidate-update instructions from Analyze evidence, checks
+those instructions against the **marked** typed source, and lowers them with
+joint stages, stage contexts, block merge and matrix saturation enabled. The
+manifest binds these host execution options and the recipe checksum to the
+compiled kernel; loading with different options fails before GPU execution.
+Missing admission or an absent eligible schedule is an error, not silent success.
+
+For large inputs, `--bake-source TRAINING.egg` uses a smaller training program.
+Its declarations/merge definitions and every nonempty training ruleset must
+match the execution source's typed environment. Training may omit initialization
+and use different facts/schedule. The full execution source is still used for
+both native references and GPU inference. Unobserved cases retain exact fallback.
+This option is explicit: it does not claim whole-input Analyze coverage.
+
+```sh
+python3 -m tools.eggfuse \
+  --source /path/to/raytrace-pass-3-flat.egg \
+  --bake-source out/cell-update-pass3/training.egg \
+  --output out/unified-pass3-multistage --build out/device-build-scheduled-reviewed \
+  --solver-python /path/to/scip-venv/bin/python \
+  --capacity 1048576 --match-capacity 1048576 --multi-stage-cell
+```
+
+The currently certified joint family is `terms`, `terms-helpers`, and
+`terms-helpers-helpers`, including their original nested saturation. This flag
+is not certification of all Pass-3 rulesets. It does not enable Ridge prediction,
+change finite Run/repeat semantics, or imply nonzero source-marker selection.
+The execution receipt reports accepted scopes, stage patches, boundary/update
+recipe actions and fallbacks. Recipe actions are not committed-mutation counts.
+The pre-existing complete Pass-3 native/device difference must still be checked;
+a completed GPU schedule alone is not a successful semantic verification.
+
+The full Raytrace result and its known native/device validation failure are
+recorded in [PASS3.md](../../experiments/unified_compiler/PASS3.md). To inspect
+completed inference even when final verification failed, without rerunning:
+
+```sh
+python3 -m tools.eggfuse.report out/unified-pass3-multistage \
+  --reference out/cell-spines-pass3-full
+```
