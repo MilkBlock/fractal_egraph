@@ -248,7 +248,7 @@ def check_sort(build_dir,out):
     assert private['complete'] and shared['complete']
     a=private['programs'][0]['instances'][0];b=shared['programs'][0]['instances'][0]
     for key in a:
-        if key=='batch_statistics':assert a[key][:9]+a[key][10:]==b[key][:9]+b[key][10:],key
+        if key=='batch_statistics':assert [x for j,x in enumerate(a[key]) if j not in (9,24)]==[x for j,x in enumerate(b[key]) if j not in (9,24)],key
         else:assert a[key]==b[key],key
     assert a['batch_statistics'][16]>0
     results['neighbor-growth']=dict(continuation_retained=True,full_small_arena_state_and_history_equal=True)
@@ -318,9 +318,44 @@ def check_indexes(build_dir,out):
     (out/'index-results.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2));return result
 
 
+def check_lazy_contexts(build_dir,out):
+    import run_generic_cells as runtime
+    out.mkdir(parents=True,exist_ok=False);source=out/'context-reclamation.egg'
+    source.write_text('''(datatype E (N i64))
+(function V (E) i64 :merge (min old new)) (function F (E) i64 :merge (min old new))
+(relation Noise (E)) (relation Bad (E)) (ruleset a) (ruleset b)
+(rule ((Noise x) (= n (V x)) (= limit (F x)) (> n limit)) ((set (V x) (- n 1))) :ruleset a)
+(rule ((Noise x) (= n (F x)) (< n 0)) ((Bad x)) :ruleset b)
+'''+''.join(f'(Noise (N {i})) (set (F (N {i})) 2)\n' for i in range(2048))+
+        ''.join(f'(set (V (N {i})) 64)\n' for i in range(64))+
+        '(run-schedule (saturate (run a) (run b)))')
+    core=core_for(source,build_dir);plan=from_core(core);initial=core.pop('initial')
+    lib=dict(schema='analyzer-device-cells/v1',programs=[core],instances=[dict(unit=0,program=0,initial=initial)])
+    reports={};original=runtime.lower
+    for lazy in [False,True]:
+        def lower(*args,**kwargs):return original(*args,**kwargs,lazy_contexts=lazy)
+        runtime.lower=lower
+        try:reports[lazy]=runtime.run_library(lib,build_dir,out/str(lazy),8192,1024,region_program=plan,audit_numeric=True)
+        finally:runtime.lower=original
+        assert reports[lazy]['complete']
+    a,b=[v['programs'][0]['instances'][0] for v in reports.values()]
+    for field in ['meta','rows','parents','fact_parents','sets','watermarks','history']:
+        assert a[field]==b[field],field
+    assert b['region_statistics'][8]<a['region_statistics'][8]
+    assert not rows(reports[True],out/'True','Bad')
+    assert all(r[1]==2 for r in rows(reports[True],out/'True','V'))
+    assert b['region_statistics'][8]>0, 'must exercise reclamation, not only its bypass'
+    result=dict(contract='exact visible state, source progress and every Run fingerprint equal; maintenance counts may differ',
+        rounds=len(a['history']),compactions={'eager':a['region_statistics'][8],'lazy':b['region_statistics'][8]},
+        cache_capacity_words={'eager':a['region_statistics'][1],'lazy':b['region_statistics'][1]},
+        seconds={str(k):dict(inference=v['programs'][0]['inference_seconds'],gpu=v['programs'][0]['gpu_seconds']) for k,v in reports.items()})
+    (out/'lazy-results.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2));return result
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--case',action='append');p.add_argument('--real-dir',type=Path);p.add_argument('--sort-comparison',action='store_true');p.add_argument('--pipeline-cache-program',type=Path);p.add_argument('--index-comparison',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--case',action='append');p.add_argument('--real-dir',type=Path);p.add_argument('--sort-comparison',action='store_true');p.add_argument('--pipeline-cache-program',type=Path);p.add_argument('--index-comparison',action='store_true');p.add_argument('--lazy-context-comparison',action='store_true');a=p.parse_args()
     if a.pipeline_cache_program:check_pipeline_cache(a.build.resolve(),a.output.resolve(),a.pipeline_cache_program.resolve())
+    elif a.lazy_context_comparison:check_lazy_contexts(a.build.resolve(),a.output.resolve())
     elif a.index_comparison:check_indexes(a.build.resolve(),a.output.resolve())
     elif a.sort_comparison:check_sort(a.build.resolve(),a.output.resolve())
     else:check(a.build.resolve(),a.output.resolve(),a.case,a.real_dir)

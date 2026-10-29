@@ -203,7 +203,7 @@ while true {
  var pending=false,needGrowth=false,needCacheGrowth=false,needBatchGrowth=false
  for i in 0..<n {
   let s=u32(states,i*stateWords,8),m=u32(metas,i*9,9)
-  if s[2]==0 && (m[4]==0 || (cacheHeader>0 && m[4]==31) || (transportVersion==7 && m[4]==34)) {
+  if s[2]==0 && (m[4]==0 || (cacheHeader>0 && (m[4]==31 || m[4]==37)) || (transportVersion==7 && m[4]==34)) {
    pending=true;if s[4] != 0 {needGrowth=true};if m[4]==31 {needCacheGrowth=true};if m[4]==34 {needBatchGrowth=true}
   }
  }

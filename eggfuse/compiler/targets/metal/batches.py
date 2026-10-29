@@ -30,7 +30,7 @@ def lower(core,regions,string_ids):
         if call['primitive']=='guard':return f'bool({args[0]})','0L'
         if call['primitive'] in ('<','>','<=','>=','!='):return f'({args[0]}{call["primitive"]}{args[1]})','0L'
         raise ValueError('unsupported batch primitive '+call['primitive'])
-    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 24\n']
+    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 28\n']
     result.append("""
 bool bc_check_return(uint table,thread long*key,long value,device long*r,device uint*p,device Meta&m){
  long row=row_lookup(r,p,m,table,key);if(row<0)return false;
@@ -55,8 +55,12 @@ void bc_certify(device long*c,uint rule,uint fid,uint unions,ulong visibility){
 }
 void bc_reindex_certificates(device long*c,uint unions,ulong visibility){
  uint cap=uint(c[9]),base=BC_STATS+cap*(3+BC_STRIDE),records=base+2*cap,old=uint(c[15]);
- for(uint i=0;i<2*cap;i++)c[base+i]=0;c[15]=0;
- for(uint i=0;i<old;i++){uint at=records+4*i;if(c[at+2]==unions&&c[at+3]==visibility)bc_certify(c,uint(c[at]),uint(c[at+1]),unions,visibility);}
+ if(RC_LAZY_COMPACTION&&c[27]&&c[24]==cap&&c[25]==unions&&ulong(c[26])==visibility)return;
+ if(!RC_LAZY_COMPACTION||old){
+  for(uint i=0;i<2*cap;i++)c[base+i]=0;c[15]=0;
+  for(uint i=0;i<old;i++){uint at=records+4*i;if(c[at+2]==unions&&c[at+3]==visibility)bc_certify(c,uint(c[at]),uint(c[at+1]),unions,visibility);}
+ }
+ c[24]=cap;c[25]=unions;c[26]=long(visibility);c[27]=1;
 }
 """)
     descriptors=[];prepare_cases=[];eval_cases=[];commit_cases=[];mma_cases=[];select=[]
@@ -222,7 +226,7 @@ void bc_matrix_{ti}(device long*data,uint count,uint tid,threadgroup float*as,th
     result.append('void bc_evaluate(int plan,device long*o){switch(plan){'+''.join(eval_cases)+'default:break;}}')
     result.append('void bc_publish(int plan,uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){switch(plan){'+''.join(commit_cases)+'default:m.error=32;}}')
     result.append('void bc_matrix(int plan,device long*data,uint count,uint tid,threadgroup float*as,threadgroup float*bs,threadgroup float*cs){switch(plan){'+''.join(mma_cases)+'default:break;}}')
-    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v3',width=W,steps=S,stride=stride,tile=128,stats_words=24,words=24+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
+    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v4',width=W,steps=S,stride=stride,tile=128,stats_words=28,words=28+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
         soundness='seed snapshot witness and per-successor actual row/guard validation; ordered complete effects',
         reproducibility='fixed query order, seed binding ordinal, step ordinal, action ordinal',
         batch_program_sha256=batch['sha256'])

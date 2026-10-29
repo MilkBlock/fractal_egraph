@@ -17,13 +17,19 @@ def lower(plan, tables, string_ids, index_columns, cols):
     source.append('default:return 0;}}')
     source.append('''
 void rc_count(device long*c,uint index){uint v=atomic_fetch_add_explicit((device atomic_uint*)(c+index),1u,memory_order_relaxed);if(v==0xffffffff)atomic_fetch_add_explicit((device atomic_uint*)(c+index)+1,1u,memory_order_relaxed);}
+void rc_exhausted(device long*c,device Meta&m){
+ // Retry the untouched Run after reclaiming obsolete versions, before growth.
+ m.error=RC_LAZY_COMPACTION&&c[0]>RC_DATA+c[13]?37:31;
+}
 void rc_compact(device long*c,device long*r){
  bool dirty=c[12]!=0;c[12]=0;
  for(uint n=0;n<RC_NODES;n++){uint h=16+4*n;if(c[h]==1&&uint(c[h+1])!=rc_version(n,r)){c[h]=2;c[7]++;dirty=true;}}
- if(!dirty)return;
+ bool force=c[14]!=0;c[14]=0;
+ if(RC_LAZY_COMPACTION&&!force)return;
+ if(!dirty&&!force)return;
  uint end=uint(c[0]),write=RC_DATA;
  for(uint at=RC_DATA;at<end;){uint n=uint(c[at]),span=uint(c[at+1]),h=16+4*n;
-  if(c[h]&&uint(c[h+2])==at+2){for(uint i=0;i<span;i++)c[write+i]=c[at+i];c[h+2]=write+2;write+=span;}at+=span;
+  if(c[h]&&uint(c[h+2])==at+2){if(write!=at)for(uint i=0;i<span;i++)c[write+i]=c[at+i];c[h+2]=write+2;write+=span;}at+=span;
  }
  c[0]=write;c[8]++;
 }
@@ -35,7 +41,7 @@ void rc_compact(device long*c,device long*r){
         out=[f'__attribute__((noinline)) bool rc_build_{ni}(device long*r,device long*old,device Meta&m,device uint*qheads,device uint*qlinks,device long*c){{',
              f'uint version=rc_version({ni},r);if(c[{h}]==1&&uint(c[{h+1}])==version){{c[2]++;return true;}}']
         if parent:out.append(f'if(!rc_build_{parent["id"]}(r,old,m,qheads,qlinks,c))return false;')
-        out.append(f'uint oldStart=uint(c[{h+2}]),oldCount=c[{h}]?uint(c[{h+3}]):0,oldCursor=0;uint begin=uint(c[0]),count=0; if(begin+2>uint(c[1])){{m.error=31;return false;}}c[0]=begin+2;c[3]++;')
+        out.append(f'uint oldStart=uint(c[{h+2}]),oldCount=c[{h}]?uint(c[{h+3}]):0,oldSpan=c[{h}]?2+oldCount*{width}:0,oldCursor=0;uint begin=uint(c[0]),count=0; if(begin+2>uint(c[1])){{rc_exhausted(c,m);return false;}}c[0]=begin+2;c[3]++;')
         if parent:
             ph=HEADER+4*parent['id'];pw=parent['width'];ps=len(parent['sorts'])
             out.append(f'for(uint item=0;item<uint(c[{ph+3}]);item++){{uint pa=uint(c[{ph+2}])+item*{pw};long v[{max(1,slots)}]={{0}};')
@@ -48,7 +54,7 @@ void rc_compact(device long*c,device long*r){
             out.append(f'if(oldCursor<oldCount&&uint(c[oldStart+oldCursor*{width}+{slots+1}])==anchor){{uint prev=oldStart+oldCursor*{width};bool valid=true;')
             for j in range(depth):
                 out.append(f'uint fid{j}=uint(c[prev+{slots+2*j+1}]),row{j}=uint(r[RC_FACT_ROW+fid{j}]);valid&=row{j}>0; if(row{j}>0){{row{j}--;valid&=old[row{j}*STRIDE+3]==fid{j}&&old[row{j}*STRIDE+1]==0&&old[row{j}*STRIDE+2]==c[prev+{slots+2*j}];}}')
-            out.append(f'if(valid){{uint at=uint(c[0]);if(at+{width}>uint(c[1])){{c[0]=begin;m.error=31;return false;}}for(uint j=0;j<{width};j++)c[at+j]=c[prev+j];c[0]=at+{width};count++;c[11]++;continue;}}}}')
+            out.append(f'if(valid){{uint at=uint(c[0]);if(at+{width}>uint(c[1])){{c[0]=begin;rc_exhausted(c,m);return false;}}for(uint j=0;j<{width};j++)c[at+j]=c[prev+j];c[0]=at+{width};count++;c[11]++;continue;}}}}')
         else:out.append(f'do{{long v[{max(1,slots)}]={{0}};')
         bound=[i for i,a in enumerate(args) if 'literal' in a or a['slot'] in known]
         if all(i in bound for i in range(len(args)-1)):
@@ -63,14 +69,14 @@ void rc_compact(device long*c,device long*r){
             cell=f'old[ri*STRIDE+4+{col}]'
             if 'literal' in a or a['slot'] in known:out.append(f'if({cell}!={value(a)})continue;')
             else:out.append(f'{value(a)}={cell};');known.add(a['slot'])
-        out.append(f'uint at=uint(c[0]);if(at+{width}>uint(c[1])){{c[0]=begin;m.error=31;return false;}}')
+        out.append(f'uint at=uint(c[0]);if(at+{width}>uint(c[1])){{c[0]=begin;rc_exhausted(c,m);return false;}}')
         out.extend(f'c[at+{j}]=v[{j}];' for j in range(slots))
         if parent:
             for j in range(depth-1):out.append(f'c[at+{slots+2*j}]=c[pa+{ps+2*j}];c[at+{slots+2*j+1}]=c[pa+{ps+2*j+1}];')
         out.append(f'c[at+{slots+2*(depth-1)}]=old[ri*STRIDE+2];c[at+{slots+2*(depth-1)+1}]=old[ri*STRIDE+3];c[0]=at+{width};count++;')
         out.append('}while(false);' if all(i in bound for i in range(len(args)-1)) else '}')
         out.append('}' if parent else '}while(false);')
-        out.append(f'c[begin]={ni};c[begin+1]=uint(c[0])-begin;c[{h}]=1;c[{h+1}]=version;c[{h+2}]=begin+2;c[{h+3}]=count;c[4]+=count;c[12]=1;return true;}}')
+        out.append(f'c[begin]={ni};c[begin+1]=uint(c[0])-begin;if(RC_LAZY_COMPACTION)c[13]+=c[begin+1]-oldSpan;c[{h}]=1;c[{h+1}]=version;c[{h+2}]=begin+2;c[{h+3}]=count;c[4]+=count;c[12]=1;return true;}}')
         source.extend(out)
     return '\n'.join(source)
 

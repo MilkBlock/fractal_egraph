@@ -47,6 +47,7 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
  // LOCAL_POINTERS
  device uint*p=parent;device float*context_results=(device float*)contexts;
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));bool grew=stats[9]!=long(batchCfg.x);stats[9]=batchCfg.x;
+ if(m.error==37){m.error=0;contexts[14]=1;rc_compact(contexts,r);}
  // Checkpoint diagnostic: stop only between complete logical Runs. A pending
  // block continuation finishes before the gate can close.
  if(batchCfg.y && s[3]>=batchCfg.y && stats[10]!=2){stats[10]=0;return;}

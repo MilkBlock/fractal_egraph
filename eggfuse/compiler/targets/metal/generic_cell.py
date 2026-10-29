@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     from eggfuse.ir.recipe import digest
@@ -58,7 +58,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
                         parallel_match=bool(batch), parallel_prepare=False,
                         parallel_rebuild=False, noop_preflight=False,
-                        query_patch=bool(batch and patch_queries), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch))
+                        query_patch=bool(batch and patch_queries), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts))
     # Preserve native min-ID representative preference *within each sort*.
     # Lexicographic Value(10) < Value(2) can spuriously refresh a seminaive row.
     anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
