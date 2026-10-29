@@ -43,3 +43,11 @@ original delta-variant order and stage control. The engine uses that verifier,
 not the analyzer's SCC/Spine-selection pass. The optional region runtime installs
 canonical table-mutation versions, caches actual correlated tuples, and validates
 fact witnesses when a table changes; it retains exact residual queries.
+
+
+`eggfuse-batch-program/v1` adds source-rule references, typed global SSA mappings,
+producer dependencies and Saturate scope authorization. Successors are proposals:
+publication checks their actual canonical inputs/guards. A function's proposed
+value is never promoted to a committed witness without that check. This is an
+operational soundness contract, not a claim of identical CPU firing order or
+complete endpoint equality.

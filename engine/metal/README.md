@@ -14,3 +14,10 @@ Recipe IR and manifest before executing the precompiled program.
 This relocation does not alter kernel algorithms. The full saved Pass-3 kernel
 was checked byte-for-byte against the pre-migration kernel. Wider optimized Cell
 coverage still requires additional verified lowering and publication contracts.
+
+
+`batched_cell.metal` implements GPU-controlled preparation, multi-threadgroup
+context/matrix evaluation and stable block publication. The generic worker queues
+these stages without downloading bindings between logical Runs. The explicit
+region pipeline uses checked derivations and per-round GPU reproducibility as
+its verification contract; CPU whole-graph equality is not its acceptance gate.

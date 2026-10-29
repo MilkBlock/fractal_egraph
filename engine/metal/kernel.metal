@@ -117,6 +117,7 @@ __attribute__((noinline)) long write_row(device long*r,device uint*p,device uint
  r[i*STRIDE+4+WIDTH[t]-1]=canon(r,p,t,WIDTH[t]-1,value);r[CONSTRUCTOR_PRED+i]=create&&KIND[t]==0?value:0;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];sc_dirty(r,i,m.epoch);row_index_insert(r,p,i);m.changed=1;return r[i*STRIDE+4+WIDTH[t]-1];
 }
 bool hide_row(device long*r,device uint*p,device uint*fp,device Meta&m,uint t,thread long*args){
+ if(RC_ENABLED){if(r[RC_VISIBILITY]==0x7fffffffffffffffL){m.error=6;return false;}r[RC_VISIBILITY]++;}
  // Constructor predictions are visible to lookup-or-insert, but native's
  // subsumption-column lookup reads only the committed Run snapshot. Missing
  // that row masks the remaining RHS actions; earlier writes are retained.

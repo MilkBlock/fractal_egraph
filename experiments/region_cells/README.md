@@ -77,3 +77,12 @@ benchmarks. Full native tables, equality and visibility are checked separately
 from same-Run/match-history equality against the unoptimized GPU interpreter.
 Static prefix availability on the saved full Pass-3 typed core is reported
 separately from runtime reuse; it is not a hit-rate estimate.
+
+
+## Subsequent execution upgrade
+
+The batch path now uses multiple threadgroups for same-recipe context evaluation
+and witness-checked successor effects inside Saturate. This file records the
+prior region/cache baseline; its differential checker explicitly disables
+composition to keep that baseline useful. Current implementation and acceptance
+checks are documented in [staged batches](../staged_batches/README.md).

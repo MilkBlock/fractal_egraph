@@ -88,4 +88,7 @@ def validate_plan(plan,recipe):
             require(expected==patterns[v['node']] and sorts==nodes[v['node']]['sorts'] and names==v['slots'],'consumer binding wiring differs')
     members=[rid for region in plan['regions'] for rid in region['rules']]
     require(sorted(members)==list(range(len(originals))),'region partition omits or duplicates rules')
+    if 'batch_program' in plan:
+        from .batches import validate_batch
+        validate_batch(plan['batch_program'],recipe,plan)
     return plan

@@ -22,7 +22,7 @@ def build_worker(output):
         stamp.write_text(fingerprint)
     return worker.resolve()
 
-def run_library(library, build, output, capacity=256, match_capacity=1024, quantum=8, grow=True,marker_program=None,compiled_program=None,region_program=None):
+def run_library(library, build, output, capacity=256, match_capacity=1024, quantum=8, grow=True,marker_program=None,compiled_program=None,region_program=None,audit_numeric=False):
     from eggfuse.ir.library import adapt,decode
     recipe_library=library if library.get('schema')=='eggfuse-recipe-library/v1' else adapt(library)
     library=decode(recipe_library)
@@ -62,7 +62,7 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
                         raise ValueError('initial instance exceeds shared arena; increase capacity')
                     frames.append(dict(initial_rows=flat,initial_sets=arena,anchors=anchors,
                         meta=[len(core['initial']),len(anchors)+1,1,0,0,0,0,0,len(core['initial'])+1]))
-                p.update(instances=frames,quantum=quantum)
+                p.update(instances=frames,quantum=quantum,batch_audit_numeric=audit_numeric)
             except (ValueError,KeyError) as e:
                 rejected.extend(dict(unit=i['unit'],reason=str(e)) for i,_ in todo);break
             attempt=folder/f'attempt-{len(attempts)}';attempt.mkdir()

@@ -10,6 +10,7 @@ def report(recipe,device,backend):
     for p in (device.get('scheduled_matrix') or {}).get('programs',[]):regions.append(dict(kind='scheduled_matrix',rulesets=p['rulesets'],schedule=p['schedule']))
     plan=device.get('region_program')
     if plan:regions.append(dict(kind='generic_spine_regions',rulesets=[s['name'] for s in plan['rulesets']],schedule=plan['control'],cached_nodes=len(plan['nodes']),residual_queries=True))
+    batches=plan.get('batch_program',{}).get('templates',[]) if plan else []
     rows=[]
     for rs in recipe['rulesets']:
         for ordinal,rid in enumerate(rs['rule_ids']):
@@ -17,7 +18,7 @@ def report(recipe,device,backend):
             rows.append(dict(ruleset=rs['name'],ordinal=ordinal,recipe_rule=rid,name=r['metadata']['name'],
                 expressed=True,verified=True,generic_lowered=True,
                 available_fast_regions=[i for i,region in enumerate(regions) if rs['name'] in region['rulesets']],
-                executed=None,query_atoms=len(r['query']),operations=r['footprint']['operations']))
+                batch_seed_templates=[i for i,t in enumerate(batches) if t['steps'][0]['recipe_rule']==rid],batch_successor_templates=[i for i,t in enumerate(batches) if any(step['recipe_rule']==rid for step in t['steps'][1:])],executed=None,query_atoms=len(r['query']),operations=r['footprint']['operations']))
     return dict(schema='eggfuse-capabilities/v1',recipe_sha256=recipe['sha256'],backend=backend,
                 scope='compile-time availability; actual execution and effect counters belong to the runtime report',
                 event_routes=dict(tables=len(recipe['event_routes']),runtime_subscriptions_installed=bool(plan),granularity='canonical table mutation versions' if plan else None),

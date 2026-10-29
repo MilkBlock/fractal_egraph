@@ -32,7 +32,7 @@ def summarize(folder,reference=None):
             inference_seconds=sum(x['inference_seconds'] for x in r['programs']),
             rows=len(state['rows']),multi_stage_cell=execution_summary(r),
             verification=load(runs[-1]/'verification.json') if (runs[-1]/'verification.json').exists() else None,
-            verification_failure=failed,parallelism='serial within the shared identity domain; no performance claim')
+            verification_failure=failed,parallelism='multi-threadgroup batch evaluation; seed query and stable block publication currently serial per arena')
         (folder/'run-summary.json').write_text(json.dumps(result,indent=2)+'\n');return result
     if not runs or not (runs[-1]/'gpu/report.json').exists():raise ValueError('no completed GPU inference in pipeline')
     run=runs[-1]/'gpu';r=load(run/'report.json');p=load(run/'program.json');state=load(run/'gpu-state.json')

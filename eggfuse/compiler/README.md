@@ -261,7 +261,21 @@ original control program. Its device artifact uses `backend=regions`. It does
 not load the specialized terms library described in the earlier historical
 sections. Source-marker output and Recipe IR remain required artifacts.
 
-This first general runtime is serial within one shared GPU identity domain;
-branching/guard residuals and Run-level local rebuild are retained. Wider
-expressiveness and verified context reuse are not a new throughput result.
+The runtime now batches context evaluation across GPU threadgroups in one shared
+identity domain. Seed matching, ordered publication, branching/guard residuals
+and Run-level local rebuild remain. Verified context reuse is not a full-Pass-3
+throughput result.
 See [implementation boundaries](../../experiments/region_cells/README.md).
+
+
+### Batched saturation-local continuation
+
+The analyzer additionally exports `batch_program`: typed seed/successor slot
+maps, permitted Saturate scopes and producer dependencies. The target emits
+context matrices and exact effect programs; it does not invent rules by name.
+The region verifier now runs checked GPU inference twice for soundness evidence
+and L1 reproducibility. The former full native endpoint gate remains available
+in legacy diagnostic scripts, not as acceptance for this path.
+
+The current worker ABI is 4 (ABIs 1/2 remain readable; the intermediate development
+ABI 3 must be recompiled). See [the batch contract](../../experiments/staged_batches/README.md).

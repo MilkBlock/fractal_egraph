@@ -50,9 +50,20 @@ in fresh GPU processes. See [results](../experiments/recipe_ir/README.md).
 `compile --multi-stage-cell` now asks the analyzer for a generic region/Spine
 plan and emits `region-program.json`. It no longer selects the dedicated terms
 exporter. `run --artifact` accepts the resulting `regions` backend. This explicit
-mode currently uses serial control within a shared GPU arena and retains exact
-residual queries; it is a correctness substrate, not a full-Pass-3 throughput
-replacement. See [contracts and checks](../experiments/region_cells/README.md).
+mode retains exact residual queries and batches local arithmetic/continuations
+across GPU threadgroups; seed discovery and stable publication remain serial
+per arena. No full-Pass-3 throughput replacement is claimed. See [contracts and checks](../experiments/region_cells/README.md).
 The ordinary default GPU path remains unchanged. Canonical execution rejects
 legacy dedicated-terms artifacts/switches; historical experiment runners remain
 available for reproducing their saved results.
+
+
+## Resident staged batches
+
+The region runtime now evaluates same-recipe context tiles in multiple GPU
+threadgroups. Bounded affine columns use FP32 matrix multiplication; other i64
+columns stay exact. Typed successor programs reuse the context and publish full
+effects through a stable block merger. Initial seed search and publication are
+still serial per arena. `--check` validates runtime witnesses/numeric effects
+and fresh-process GPU round reproducibility, rather than requiring CPU endpoint
+equality. See [implementation and tests](../experiments/staged_batches/README.md).

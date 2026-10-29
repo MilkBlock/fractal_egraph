@@ -11,7 +11,7 @@ from eggfuse.ir.recipe import build, validate, digest, require
 from eggfuse.ir.regions import SCHEMA, query_order
 
 
-def analyze(recipe, marker_names=()):
+def analyze(recipe, marker_names=(), compose=True):
     core = validate(recipe)
     marker_names = sorted(set(marker_names))
     tables = {t['name']: t for t in core['tables']}
@@ -114,13 +114,17 @@ def analyze(recipe, marker_names=()):
         publication='one original control program in a shared GPU identity domain; internal Run read boundaries retained',
         storage='only actual correlated anchor tuples; dynamic packed arena with invalidation and reclamation',
         residual='all uncached atoms and guards retained; no inferred absence from training frequency')
+    from .batches import analyze as analyze_batches
+    if compose:
+        payload['batch_program']=analyze_batches(recipe,rules)
+        payload['publication']='original control gates; seeds read Run snapshots, witnessed successors may fire locally inside an enclosing Saturate'
     return dict(payload,sha256=digest(payload))
 
 
 def verify(program,recipe):
-    require(program == analyze(recipe,program.get('marker_names',[])), 'region plan differs from typed analysis')
+    require(program == analyze(recipe,program.get('marker_names',[]),compose='batch_program' in program), 'region plan differs from typed analysis')
     return program
 
 
-def from_core(core,marker_names=()):
-    return analyze(build(core),marker_names)
+def from_core(core,marker_names=(),compose=True):
+    return analyze(build(core),marker_names,compose)

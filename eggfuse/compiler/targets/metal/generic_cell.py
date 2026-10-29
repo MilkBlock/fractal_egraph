@@ -14,6 +14,9 @@ HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None):
     # Until probes are a future extension. Reject before allocating/mutating.
+    batch=region_program.get('batch_program') if region_program else None
+    from eggfuse.ir.recipe import digest
+    scope_ids={digest(s['control']):i+1 for i,s in enumerate(batch['scopes'])} if batch else {}
     ids = {s['name']: i for i, s in enumerate(core['rulesets'])}
     schedule = copy.deepcopy({'sequence': core['schedule']})
     checks={}
@@ -47,11 +50,11 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
             else:
                 repeat='repeat' in s;n=s['repeat'] if repeat else 0
                 if not isinstance(n,int) or not 0<=n<2**32:raise ValueError('invalid repeat')
-                at=len(code);code.append([1 if repeat else 2,n,0,0]);depth+=1;peak=max(peak,depth)
+                at=len(code);code.append([1 if repeat else 2,n,0,scope_ids.get(digest(s),0) if not repeat else 0]);depth+=1;peak=max(peak,depth)
                 emit(s['body'] if repeat else s['saturate']);depth-=1;code.append([3,at,0,0]);code[at][2]=len(code)
         emit(s);code.append([4,0,0,0]);return dict(instructions=code,stack_depth=peak)
     take_checks(schedule)
-    tape = encode(schedule) if checks else control(schedule, ids)
+    tape = encode(schedule) if checks or batch else control(schedule, ids)
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
                         parallel_match=False, parallel_prepare=False,
                         parallel_rebuild=False, noop_preflight=False,
@@ -79,19 +82,25 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     layout['row_words'] = rows
     # Control frames: kind, count, body, end, iteration, changed, any_changed, spare.
     layout['state_words'] = 8 + max(1, tape['stack_depth']) * 8
-    defines = '\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
+    defines = f'#define GC_MATCHES {layout["matches"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
     calls = []
     for si, rules in enumerate(p['set_rule_ids']):
         args = 'r,old,p,fp,m,matches,watermarks,set,code,registers,qheads,qlinks,control,match_order,noop,qprev,contexts,context_info,context_results,0'
         body = ''.join(f'query_{rid}({args},{rank});if(m.error)return;' for rank, rid in enumerate(rules))
         calls.append(f'case {si}:{{{body}break;}}')
-    text = (HERE / 'generic_cell.metal').read_text()
+    text = (HERE / ('batched_cell.metal' if batch else 'generic_cell.metal')).read_text()
+    if batch:
+        from .batches import lower as lower_batches
+        batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])})
+        p['shader']+='\n'+batch_code
+        p['batch_layout']=batch_layout
+        calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls))
     p['shader'] += '\n' + defines + '\n' + text
-    p['generic_cell'] = dict(schema='generic-cell-program/v1', transport_version=2, layout=layout, control=tape,
+    p['generic_cell'] = dict(schema='generic-cell-program/v1', transport_version=4 if batch else 2, history_width=12 if batch else 8, kernel='batched_cell_prepare' if batch else 'generic_cell_advance', layout=layout, control=tape,
         program_sha256=hashlib.sha256(json.dumps(core, sort_keys=True).encode()).hexdigest(),
-        contract='shared global identity domain, original schedule, correlated event-versioned Spines' if region_program is not None else 'isolated exact local execution; not an authorization to skip global matches',
-        queries='compiled exact local queries; not all LHS searches eliminated')
+        contract='shared GPU contexts, witnessed saturation-local batches and deterministic block publication' if batch else 'shared global identity domain, original schedule, correlated event-versioned Spines' if region_program is not None else 'isolated exact local execution; not an authorization to skip global matches',
+        queries='compiled exact residual queries plus witnessed saturation-local successors; history match counts exclude inline invocations')
     if region_program is not None:
         p['region_cache']=dict(header_words=16+4*len(region_program['nodes']),initial_words=16+4*len(region_program['nodes'])+1024,
                                growth='double capacity and resume untouched Run; no prior effects replayed')

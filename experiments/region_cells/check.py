@@ -48,7 +48,7 @@ def check(build_path,out,real_dir=None):
     cases['growth']=BASE+''.join(f'(Pair (N {2*i}) (N {2*i+1})) (set (Cost (N {2*i})) 2) (set (Cost (N {2*i+1})) 7)\n' for i in range(80))+'(run first 1) (run second 1)'
     for name,source in cases.items():
         file=out/(name+'.egg');file.write_text(source)
-        core=core_for(file,build_path);plan=from_core(core)
+        core=core_for(file,build_path);plan=from_core(core,compose=False)
         verify_plan(plan,build(core))
         if name=='smoke':
             bad=copy.deepcopy(plan);bad['nodes'][0]['atom']['args'][0]={'literal':999,'sort':core['tables'][0]['schema'][0]}

@@ -8,13 +8,15 @@ let input=URL(fileURLWithPath:CommandLine.arguments[1]), output=URL(fileURLWithP
 let program=try JSONSerialization.jsonObject(with:Data(contentsOf:input)) as! [String:Any]
 let spec=program["generic_cell"] as! [String:Any],layout=spec["layout"] as! [String:Int]
 let transportVersion=spec["transport_version"] as? Int ?? 1
-try require(transportVersion==1 || transportVersion==2,"unknown local worker transport version")
+try require(transportVersion==1 || transportVersion==2 || transportVersion==4,"unknown local worker transport version")
 let instances=program["instances"] as! [[String:Any]],n=instances.count
 let device=MTLCreateSystemDefaultDevice()!,queue=device.makeCommandQueue()!
 let options=MTLCompileOptions();options.fastMathEnabled=false
 let compileStart=CFAbsoluteTimeGetCurrent()
 let lib=try device.makeLibrary(source:program["shader"] as! String,options:options)
-let pipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:"generic_cell_advance")!)
+let pipeline=try device.makeComputePipelineState(function:lib.makeFunction(name:spec["kernel"] as? String ?? "generic_cell_advance")!)
+let batchEval:MTLComputePipelineState?=transportVersion==4 ? try device.makeComputePipelineState(function:lib.makeFunction(name:"batched_cell_evaluate")!):nil
+let batchPublish:MTLComputePipelineState?=transportVersion==4 ? try device.makeComputePipelineState(function:lib.makeFunction(name:"batched_cell_publish")!):nil
 let compileSeconds=CFAbsoluteTimeGetCurrent()-compileStart
 func zeros(_ bytes:Int)->MTLBuffer {let b=device.makeBuffer(length:max(8,bytes),options:.storageModeShared)!;memset(b.contents(),0,b.length);return b}
 func copy<T>(_ x:[T],_ b:MTLBuffer,_ offset:Int=0){x.withUnsafeBytes{v in if !v.isEmpty {memcpy(b.contents().advanced(by:offset),v.baseAddress!,v.count)}}}
@@ -36,7 +38,14 @@ let actions=(program["action_code"] as! [NSNumber]).map{$0.int64Value},code=zero
 let control=spec["control"] as! [String:Any]
 let instructions=(control["instructions"] as! [[NSNumber]]).flatMap{$0.map{$0.uint32Value}}
 let tape=zeros(instructions.count*4);copy(instructions,tape)
-var historyCapacity=16,history=zeros(n*16*32),dispatches=0,gpuSeconds=0.0
+let historyWidth=spec["history_width"] as? Int ?? 8
+let batchLayout=program["batch_layout"] as? [String:Any]
+let batchStride=batchLayout?["stride"] as? Int ?? 1
+var batchCapacity=128,batchWords=transportVersion==4 ? 16+128*(9+batchStride):1
+var batchData=zeros(n*batchWords*8),batchGrowths=0
+if transportVersion==4 && program["batch_audit_numeric"] as? Bool == true {for i in 0..<n {copy([Int64(1)],batchData,(i*batchWords+14)*8)}}
+let batchDispatch=zeros(12);copy([UInt32(0),UInt32(n),UInt32(1)],batchDispatch)
+var historyCapacity=16,history=zeros(n*16*historyWidth*4),dispatches=0,gpuSeconds=0.0
 // Growth description is a string, so read numeric fields individually.
 let cacheProgram=program["region_cache"] as? [String:Any]
 let cacheHeader=cacheProgram?["header_words"] as? Int ?? 0
@@ -46,11 +55,11 @@ if cacheHeader>0 {for i in 0..<n {copy([Int64(cacheHeader),Int64(cacheWords)],ma
 let quantum=UInt32(program["quantum"] as? Int ?? 8)
 let start=CFAbsoluteTimeGetCurrent()
 while true {
- var pending=false,needGrowth=false,needCacheGrowth=false
+ var pending=false,needGrowth=false,needCacheGrowth=false,needBatchGrowth=false
  for i in 0..<n {
   let s=u32(states,i*stateWords,8),m=u32(metas,i*9,9)
-  if s[2]==0 && (m[4]==0 || (cacheHeader>0 && m[4]==31)) {
-   pending=true;if s[4] != 0 {needGrowth=true};if m[4]==31 {needCacheGrowth=true}
+  if s[2]==0 && (m[4]==0 || (cacheHeader>0 && m[4]==31) || (transportVersion==4 && m[4]==34)) {
+   pending=true;if s[4] != 0 {needGrowth=true};if m[4]==31 {needCacheGrowth=true};if m[4]==34 {needBatchGrowth=true}
   }
  }
  if !pending {break}
@@ -64,19 +73,53 @@ while true {
   }
   markerCache=next;cacheWords*=2;cacheGrowths+=1
  }
+ if needBatchGrowth {
+  let newCapacity=batchCapacity*2,newWords=16+newCapacity*(9+batchStride),next=zeros(n*newWords*8)
+  try require(newWords<Int(UInt32.max),"batch context exceeds device address space")
+  for i in 0..<n {
+   memcpy(next.contents().advanced(by:i*newWords*8),batchData.contents().advanced(by:i*batchWords*8),16*8)
+   let oldRecords=16+batchCapacity*(5+batchStride),newRecords=16+newCapacity*(5+batchStride)
+   memcpy(next.contents().advanced(by:(i*newWords+newRecords)*8),batchData.contents().advanced(by:(i*batchWords+oldRecords)*8),4*batchCapacity*8)
+   copy([Int64(newCapacity)],next,(i*newWords+9)*8)
+   if u32(metas,i*9+4,1)[0]==34 {copy([UInt32(0)],metas,(i*9+4)*4)}
+  }
+  batchData=next;batchWords=newWords;batchCapacity=newCapacity;batchGrowths+=1
+ }
  if needGrowth {
-  let next=zeros(n*historyCapacity*2*32)
-  for i in 0..<n {memcpy(next.contents().advanced(by:i*historyCapacity*2*32),history.contents().advanced(by:i*historyCapacity*32),historyCapacity*32);copy([UInt32(0)],states,(i*stateWords+4)*4)}
+  let next=zeros(n*historyCapacity*2*historyWidth*4)
+  for i in 0..<n {memcpy(next.contents().advanced(by:i*historyCapacity*2*historyWidth*4),history.contents().advanced(by:i*historyCapacity*historyWidth*4),historyCapacity*historyWidth*4);copy([UInt32(0)],states,(i*stateWords+4)*4)}
   history=next;historyCapacity*=2
  }
- let cb=queue.makeCommandBuffer()!,e=cb.makeComputeCommandEncoder()!
- cb.label="generic Cell local schedule";e.setComputePipelineState(pipeline)
- let buffers=[rows,uints,longs,metas,states,code,tape,history]+(transportVersion==2 ? [markerCache]:[])
- for (i,b) in buffers.enumerated(){e.setBuffer(b,offset:0,index:i)}
- var cfg=SIMD4<UInt32>(UInt32(n),quantum,UInt32(historyCapacity),UInt32(cacheWords))
- e.setBytes(&cfg,length:16,index:transportVersion==2 ? 9:8)
- e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))
- e.endEncoding();cb.commit();cb.waitUntilCompleted();try require(cb.status == .completed,"local Cell GPU command failed: \(String(describing:cb.error))")
+ let cb=queue.makeCommandBuffer()!
+ cb.label=transportVersion==4 ? "shared-context multi-stage batch":"generic Cell local schedule"
+ func bind(_ e:MTLComputeCommandEncoder){
+  let buffers=[rows,uints,longs,metas,states,code,tape,history]+(transportVersion>=2 ? [markerCache]:[])
+  for (i,b) in buffers.enumerated(){e.setBuffer(b,offset:0,index:i)}
+  var cfg=SIMD4<UInt32>(UInt32(n),quantum,UInt32(historyCapacity),UInt32(cacheWords))
+  e.setBytes(&cfg,length:16,index:transportVersion>=2 ? 9:8)
+  if transportVersion==4 {
+   e.setBuffer(batchData,offset:0,index:10)
+   var batchCfg=SIMD4<UInt32>(UInt32(batchCapacity),0,0,0);e.setBytes(&batchCfg,length:16,index:11)
+   e.setBuffer(batchDispatch,offset:0,index:12)
+  }
+ }
+ if transportVersion==4 {
+  try require(batchEval!.maxTotalThreadsPerThreadgroup>=128,"batch evaluator requires 128 lanes")
+  for _ in 0..<quantum {
+   let clear=cb.makeBlitCommandEncoder()!;clear.fill(buffer:batchDispatch,range:0..<4,value:0);clear.endEncoding()
+   let e=cb.makeComputeCommandEncoder()!;bind(e)
+   e.setComputePipelineState(pipeline);e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))
+   e.memoryBarrier(scope:.buffers)
+   e.setComputePipelineState(batchEval!);e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:0,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
+   e.memoryBarrier(scope:.buffers)
+   e.setComputePipelineState(batchPublish!);e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,batchPublish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
+   e.endEncoding()
+  }
+ }else{
+  let e=cb.makeComputeCommandEncoder()!;bind(e);e.setComputePipelineState(pipeline)
+  e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1));e.endEncoding()
+ }
+ cb.commit();cb.waitUntilCompleted();try require(cb.status == .completed,"local Cell GPU command failed: \(String(describing:cb.error))")
  gpuSeconds+=cb.gpuEndTime-cb.gpuStartTime;dispatches+=1
 }
 let seconds=CFAbsoluteTimeGetCurrent()-start
@@ -84,13 +127,13 @@ var results=[[String:Any]]()
 for i in 0..<n {
  let m=u32(metas,i*9,9),s=u32(states,i*stateWords,8)
  let raw=i64(rows,i*rowWords,Int(m[0])*stride),arena=i64(rows,i*rowWords+capacity*stride,program["set_words"] as! Int)
- let h=u32(history,i*historyCapacity*8,Int(s[3])*8)
+ let h=u32(history,i*historyCapacity*historyWidth,Int(s[3])*historyWidth)
  results.append(["meta":m,"state":s,"rows":Swift.stride(from:0,to:raw.count,by:stride).map{Array(raw[$0..<$0+stride])},
   "parents":u32(uints,i*uintWords+layout["parent"]!,Int(m[1])),"fact_parents":u32(uints,i*uintWords+layout["fp"]!,Int(m[8])),
-  "region_statistics":cacheHeader>0 ? i64(markerCache,i*cacheWords,16):[],"watermarks":u32(uints,i*uintWords+layout["watermarks"]!,program["rules"] as! Int),"sets":Array(arena.prefix(Int(arena[0]))),
-  "history":Swift.stride(from:0,to:h.count,by:8).map{Array(h[$0..<$0+8])},"completed":m[4]==0 && s[2]==1])
+  "batch_statistics":transportVersion==4 ? i64(batchData,i*batchWords,16):[],"region_statistics":cacheHeader>0 ? i64(markerCache,i*cacheWords,16):[],"watermarks":u32(uints,i*uintWords+layout["watermarks"]!,program["rules"] as! Int),"sets":Array(arena.prefix(Int(arena[0]))),
+  "history":Swift.stride(from:0,to:h.count,by:historyWidth).map{Array(h[$0..<$0+historyWidth])},"completed":m[4]==0 && s[2]==1])
 }
 let report:[String:Any]=["instances":results,"inference_seconds":seconds,"gpu_seconds":gpuSeconds,"shader_compile_seconds":compileSeconds,
- "dispatches":dispatches,"storage_bytes":[rows,uints,longs,metas,states,code,tape,history,markerCache].reduce(0){$0+$1.length},
- "stage_decisions_on_cpu":0,"region_cache_growths":cacheGrowths,"scope":spec["contract"]!]
+ "dispatches":dispatches,"storage_bytes":[rows,uints,longs,metas,states,code,tape,history,markerCache,batchData].reduce(0){$0+$1.length},
+ "stage_decisions_on_cpu":0,"batch_context_growths":batchGrowths,"batch_capacity":batchCapacity,"region_cache_growths":cacheGrowths,"scope":spec["contract"]!]
 try JSONSerialization.data(withJSONObject:report,options:[.sortedKeys]).write(to:output,options:.atomic)
