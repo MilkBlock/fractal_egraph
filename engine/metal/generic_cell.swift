@@ -87,6 +87,11 @@ let indexPipelines: [MTLComputePipelineState]=parallelIndexes ? try indexNames.m
 let hashIndexNames=["row_index_context","row_index_clear","row_index_parallel","row_index_ready"]
 let hashIndexPipelines: [MTLComputePipelineState]=parallelIndexes ? try hashIndexNames.map{try loadPipeline("resident_"+$0)}:[]
 let prepareFinish:MTLComputePipelineState?=parallelIndexes ? try loadPipeline("batched_cell_prepare_finish"):nil
+let rebuildSpec=program["resident_rebuild"] as? [String:Any]
+let parallelRebuild=transportVersion==7 && rebuildSpec?["enabled"] as? Bool == true
+let rebuildBase=rebuildSpec?["dispatch_base"] as? Int ?? 0
+let rebuildNames=["rebuild_gate","rebuild_start","rebuild_canonical","rebuild_insert","rebuild_assign","merge_scan","merge_offsets","merge_scatter","rebuild_merge","compact_gate","compact_scan","compact_offsets","compact_copy","compact_store","rebuild_finish"]
+let rebuildPipelines:[MTLComputePipelineState]=parallelRebuild ? try rebuildNames.map{try loadPipeline("resident_"+$0)}:[]
 let hashPipeline:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint"):nil
 let hashFinish:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint_finish"):nil
 var cacheWriteSeconds=0.0
@@ -127,7 +132,7 @@ let batchStride=batchLayout?["stride"] as? Int ?? 1
 var batchCapacity=128,batchWords=transportVersion==7 ? batchHeader+128*(9+batchStride):1
 var batchData=zeros(n*batchWords*8),batchGrowths=0
 if transportVersion==7 && program["batch_audit_numeric"] as? Bool == true {for i in 0..<n {copy([Int64(1)],batchData,(i*batchWords+14)*8)}}
-let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)+(parallelIndexes ? 6:0)
+let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)+(parallelIndexes ? 6:0)+(parallelRebuild ? 5:0)
 let batchDispatch=zeros(dispatchGroups*12)
 for i in 0..<dispatchGroups {copy([UInt32(0),UInt32(n),UInt32(1)],batchDispatch,i*12)}
 let hashChunks=(capacity*stride+2*ids+(program["set_words"] as! Int)+1023)/1024
@@ -139,7 +144,9 @@ let cacheHeader=cacheProgram?["header_words"] as? Int ?? 0
 var cacheWords=cacheProgram?["initial_words"] as? Int ?? 1
 var markerCache=zeros(n*cacheWords*8),cacheGrowths=0
 if cacheHeader>0 {for i in 0..<n {copy([Int64(cacheHeader),Int64(cacheWords)],markerCache,i*cacheWords*8)}}
-func buffers()->[(String,MTLBuffer)] {[("rows",rows),("uints",uints),("longs",longs),("metas",metas),("states",states),("history",history),("marker-cache",markerCache),("batch-data",batchData),("dispatch",batchDispatch),("hashes",hashData)]}
+var compactCapacity=parallelRebuild ? 128:1,compactGrowths=0
+var compactScratch=zeros(parallelRebuild ? n*compactCapacity*stride*8:8)
+func buffers()->[(String,MTLBuffer)] {[("rows",rows),("uints",uints),("longs",longs),("metas",metas),("states",states),("history",history),("marker-cache",markerCache),("batch-data",batchData),("dispatch",batchDispatch),("hashes",hashData)]+(parallelRebuild ? [("compact-scratch",compactScratch)]:[])}
 let chunkBytes=8*1024*1024
 func writeBuffer(_ b:MTLBuffer,_ url:URL)throws->String {
  try require(FileManager.default.createFile(atPath:url.path,contents:nil),"cannot create checkpoint buffer")
@@ -171,6 +178,7 @@ if let path=arguments["--resume"] {
  historyCapacity=sizes["history_capacity"]!;history=zeros(n*historyCapacity*historyWidth*4)
  cacheWords=sizes["cache_words"]!;markerCache=zeros(n*cacheWords*8)
  batchGrowths=sizes["batch_growths"]!;cacheGrowths=sizes["cache_growths"]!
+ if parallelRebuild {compactCapacity=sizes["compact_capacity"]!;compactGrowths=sizes["compact_growths"]!;compactScratch=zeros(n*compactCapacity*stride*8)}
  let files=manifest["buffers"] as! [String:[String:Any]]
  try require(Set(files.keys)==Set(buffers().map{$0.0}),"checkpoint buffer inventory differs")
  for (name,b) in buffers(){try require(files[name]!["bytes"] as? Int==b.length,"checkpoint layout differs");try restoreBuffer(b,dir.appendingPathComponent(name+".bin"),files[name]!["sha256"] as! String)}
@@ -200,11 +208,11 @@ while true {
  // This is an explicit diagnostic suspension, not a saturation budget. The
  // GPU gate prevents a queued quantum from starting Run N+1 after N completes.
  if let stop=stopAt, (0..<n).allSatisfy({u32(states,$0*stateWords+2,1)[0]==1 || (u32(states,$0*stateWords+3,1)[0]>=stop && atBoundary($0))}) {break}
- var pending=false,needGrowth=false,needCacheGrowth=false,needBatchGrowth=false
+ var pending=false,needGrowth=false,needCacheGrowth=false,needBatchGrowth=false,needCompactGrowth=false
  for i in 0..<n {
   let s=u32(states,i*stateWords,8),m=u32(metas,i*9,9)
-  if s[2]==0 && (m[4]==0 || (cacheHeader>0 && (m[4]==31 || m[4]==37)) || (transportVersion==7 && m[4]==34)) {
-   pending=true;if s[4] != 0 {needGrowth=true};if m[4]==31 {needCacheGrowth=true};if m[4]==34 {needBatchGrowth=true}
+  if s[2]==0 && (m[4]==0 || (cacheHeader>0 && (m[4]==31 || m[4]==37)) || (transportVersion==7 && m[4]==34) || (parallelRebuild && m[4]==38)) {
+   pending=true;if s[4] != 0 {needGrowth=true};if m[4]==31 {needCacheGrowth=true};if m[4]==34 {needBatchGrowth=true};if m[4]==38 {needCompactGrowth=true}
   }
  }
  if !pending {break}
@@ -234,6 +242,12 @@ while true {
   }
   batchData=next;batchWords=newWords;batchCapacity=newCapacity;batchGrowths+=1
  }
+ if needCompactGrowth {
+  let required=(0..<n).map{Int(u32(metas,$0*9,1)[0])}.max() ?? 1
+  while compactCapacity<required {compactCapacity*=2;compactGrowths+=1}
+  compactScratch=zeros(n*compactCapacity*stride*8)
+  for i in 0..<n {if u32(metas,i*9+4,1)[0]==38 {copy([UInt32(0)],metas,(i*9+4)*4)}}
+ }
  if needGrowth {
   let next=zeros(n*historyCapacity*2*historyWidth*4)
   for i in 0..<n {memcpy(next.contents().advanced(by:i*historyCapacity*2*historyWidth*4),history.contents().advanced(by:i*historyCapacity*historyWidth*4),historyCapacity*historyWidth*4);copy([UInt32(0)],states,(i*stateWords+4)*4)}
@@ -248,8 +262,9 @@ while true {
   e.setBytes(&cfg,length:16,index:transportVersion>=2 ? 9:8)
   if transportVersion==7 {
    e.setBuffer(batchData,offset:0,index:10)
-   var batchCfg=SIMD4<UInt32>(UInt32(batchCapacity),stopAt ?? 0,0,0);e.setBytes(&batchCfg,length:16,index:11)
+   var batchCfg=SIMD4<UInt32>(UInt32(batchCapacity),stopAt ?? 0,UInt32(compactCapacity),0);e.setBytes(&batchCfg,length:16,index:11)
    e.setBuffer(batchDispatch,offset:0,index:12);e.setBuffer(hashData,offset:0,index:13)
+   if parallelRebuild {e.setBuffer(compactScratch,offset:0,index:15)}
    var packStep=UInt32(0);e.setBytes(&packStep,length:4,index:14)
   }
  }
@@ -317,6 +332,18 @@ while true {
    e.memoryBarrier(scope:.buffers)
    phase(batchPublish!,"batched_cell_publish");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,batchPublish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
+   if parallelRebuild {
+    func rebuildPhase(_ index:Int,_ field:Int?=nil){
+     phase(rebuildPipelines[index],"resident_"+rebuildNames[index])
+     if let field=field {
+      e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(rebuildBase+field),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))
+     }else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:1,height:1,depth:1))}
+     e.memoryBarrier(scope:.buffers)
+    }
+    rebuildPhase(0);rebuildPhase(1,2);rebuildPhase(2,0);rebuildPhase(3,1);rebuildPhase(4,1)
+    rebuildPhase(5,1);rebuildPhase(6,2);rebuildPhase(7,1);rebuildPhase(8,2)
+    rebuildPhase(9);rebuildPhase(10,3);rebuildPhase(11,4);rebuildPhase(12,3);rebuildPhase(13,3);rebuildPhase(14,4)
+   }
    phase(hashPipeline!,"batched_cell_fingerprint");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
    phase(hashFinish!,"batched_cell_fingerprint_finish");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,hashFinish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
@@ -343,7 +370,7 @@ if let url=checkpointURL {
  var files=[String:[String:Any]]()
  for (name,b) in buffers(){files[name]=["bytes":b.length,"sha256":try writeBuffer(b,temporary.appendingPathComponent(name+".bin"))]}
  let manifest:[String:Any]=["schema":"eggfuse-resident-checkpoint/v1","program_sha256":programDigest,"worker_sha256":workerDigest,"device":device.name,"instances":n,"buffers":files,
-  "sizes":["batch_capacity":batchCapacity,"history_capacity":historyCapacity,"cache_words":cacheWords,"batch_growths":batchGrowths,"cache_growths":cacheGrowths],
+  "sizes":["batch_capacity":batchCapacity,"history_capacity":historyCapacity,"cache_words":cacheWords,"batch_growths":batchGrowths,"cache_growths":cacheGrowths,"compact_capacity":compactCapacity,"compact_growths":compactGrowths],
   "completed_runs":(0..<n).map{u32(states,$0*stateWords+3,1)[0]},"program_path":input.path,
   "contract":"full resident buffers at completed command buffer and logical Run boundary; no actions replayed"]
  try JSONSerialization.data(withJSONObject:manifest,options:[.sortedKeys,.prettyPrinted]).write(to:temporary.appendingPathComponent("manifest.json"),options:.atomic)
@@ -364,6 +391,6 @@ let report:[String:Any]=["instances":results,"inference_seconds":seconds,"gpu_se
  "pipeline_cache":["key":cacheKey,"path":cacheURL.path,"hits":cacheHits,"misses":cacheMisses,"write_seconds":cacheWriteSeconds,"warnings":cacheWarnings,"disabled":cacheSetting=="off"],
  "paused":results.contains{!($0["completed"] as! Bool)} && stopAt != nil,"restored_runs":restoredRounds,"checkpoint_seconds":checkpointSeconds,"program_sha256":programDigest,"worker_sha256":workerDigest,
  "profile_capture":capturing,
- "dispatches":dispatches,"storage_bytes":[rows,uints,longs,metas,states,code,tape,history,markerCache,batchData,hashData].reduce(0){$0+$1.length},
- "stage_decisions_on_cpu":0,"batch_context_growths":batchGrowths,"batch_capacity":batchCapacity,"region_cache_growths":cacheGrowths,"scope":spec["contract"]!]
+ "dispatches":dispatches,"storage_bytes":[rows,uints,longs,metas,states,code,tape,history,markerCache,batchData,hashData,compactScratch].reduce(0){$0+$1.length},
+ "stage_decisions_on_cpu":0,"batch_context_growths":batchGrowths,"batch_capacity":batchCapacity,"region_cache_growths":cacheGrowths,"compact_capacity":compactCapacity,"compact_growths":compactGrowths,"scope":spec["contract"]!]
 try JSONSerialization.data(withJSONObject:report,options:[.sortedKeys]).write(to:output,options:.atomic)

@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     from eggfuse.ir.recipe import digest
@@ -85,7 +85,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     layout['state_words'] = 8 + max(1, tape['stack_depth']) * 8
     defines = f'#define GC_MATCH_ORDER {layout["match_order"]}\n#define GC_MATCHES {layout["matches"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
     defines+=f'\n#define GC_CONTROL {layout["control"]}\n#define GC_QHEADS {layout["qheads"]}\n#define GC_QUERY_ALTERNATE {p["query_sort_words"]}\n'
-    calls = [];cache_calls=[];parallel_calls=[]
+    calls = [];cache_calls=[];parallel_calls=[];quiescent_cases=[]
     if batch:
         from eggfuse.ir.recipe import build
         recipe=build({k:v for k,v in core.items() if k!='cell_input_constants'},region_program['scope'])
@@ -94,6 +94,15 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         body = ''.join(f'query_{rid}({args},{rank});if(m.error)return;' for rank, rid in enumerate(rules))
         calls.append(f'case {si}:{{{body}break;}}')
         if batch:
+            tests=[]
+            for rid in rules:
+                rr=recipe['rules'][region_program['rules'][rid]['recipe_rule']]
+                reads=sorted(set(a['call']['table'] for a in rr['query'] if 'table' in a['call']))
+                if not rr['metadata']['seminaive'] or not reads:tests.append('false');continue
+                for name in reads:
+                    table=next(i for i,t in enumerate(p['tables']) if t['name']==name)
+                    tests.append(f'uint(r[RC_VERSION+{table}])<=watermarks[{rid}]')
+            quiescent_cases.append(f'case {si}:return '+('&&'.join(tests) or 'true')+';')
             needs={}
             for rid in rules:
                 rule=recipe['rules'][region_program['rules'][rid]['recipe_rule']]
@@ -123,10 +132,12 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     if batch:
         from .batches import lower as lower_batches
         batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])})
-        p['shader']+='\n'+batch_code
+        p['shader']+='\n'+batch_code+'\nbool bc_quiescent(uint set,device long*r,device uint*watermarks){switch(set){'+''.join(quiescent_cases)+'default:return false;}}'
         p['batch_layout']=batch_layout
         p['batch_sort']=dict(schema='eggfuse-resident-sort/v1',enabled=parallel_sort,tile=256,local_capacity=1024,
             contract='same total binding order; local bitonic tiles and parallel rank merges; GPU-sized indirect dispatch')
+        p['quiescent_runs']=dict(enabled=skip_quiescent,proof='every delta rule read-table version is at or below its watermark; source Run and control progress retained')
+        defines+=f'#define BC_SKIP_QUIESCENT {int(skip_quiescent)}\n'
         defines+=f'\n#define BC_PARALLEL_SORT {int(parallel_sort)}\n#define BC_SORT_TILE 256\n#define BC_SMALL_SORT 1024\n'
         sort_passes=0;span=256
         while span<match_capacity:sort_passes+=1;span*=2
@@ -140,6 +151,14 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
             from .resident_indexes import lower as lower_indexes
             if p['query_radix_digit_bits']!=4:raise ValueError('resident query indexes require four-bit radix kernels')
             text+='\n'+lower_indexes((HERE/'query_parallel.metal').read_text())
+        p['resident_rebuild']=dict(schema='eggfuse-resident-rebuild/v1',enabled=parallel_block_rebuild,
+            dispatch_base=index_base+(6 if parallel_indexes else 0),
+            contract='parallel canonicalization/grouping/compaction; original ordered merge callbacks; saved exact continuation')
+        defines+=f'#define BC_PARALLEL_REBUILD {int(parallel_block_rebuild)}\n'
+        if parallel_block_rebuild:
+            from .resident_rebuild import lower as lower_rebuild
+            for i,name in enumerate(['HASH','ROWS','ONE','COMPACT','FINISH']):defines+=f'#define BC_RB_{name} {3*(p["resident_rebuild"]["dispatch_base"]+i)}\n'
+            text+='\n'+lower_rebuild((HERE/'rebuild_parallel.metal').read_text())
         calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls)).replace('// CACHE_PREPARE', ''.join(cache_calls)).replace('// PARALLEL_QUERIES', ''.join(parallel_calls))
     p['shader'] += '\n' + defines + '\n' + text

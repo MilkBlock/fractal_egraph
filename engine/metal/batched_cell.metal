@@ -3,6 +3,7 @@
 #define BC_ARGS device long*all_rows[[buffer(0)]],device uint*all_uint[[buffer(1)]],device long*all_long[[buffer(2)]],device Meta*all_meta[[buffer(3)]],device uint*all_state[[buffer(4)]],device long*code[[buffer(5)]],device const uint*tape[[buffer(6)]],device uint*all_history[[buffer(7)]],device long*all_markers[[buffer(8)]],constant uint4&cfg[[buffer(9)]],device long*all_batch[[buffer(10)]],constant uint4&batchCfg[[buffer(11)]],device atomic_uint*dispatch[[buffer(12)]],device ulong*hashes[[buffer(13)]]
 #define BC_INPUTS device long*all_rows,device uint*all_uint,device long*all_long,device Meta*all_meta,device uint*all_state,device long*code,device const uint*tape,device uint*all_history,device long*all_markers,constant uint4&cfg,device long*all_batch,constant uint4&batchCfg,device atomic_uint*dispatch,device ulong*hashes
 #define BC_VALUES all_rows,all_uint,all_long,all_meta,all_state,code,tape,all_history,all_markers,cfg,all_batch,batchCfg,dispatch,hashes
+__attribute__((noinline)) void bc_finish_run(BC_INPUTS,uint instance,bool continuation);
 uint bc_order_offset(uint count,bool parallel){
  if(!BC_PARALLEL_SORT||!parallel||count<=BC_SMALL_SORT)return 0;
  uint at=0;for(uint span=BC_SORT_TILE;span<count;span*=2)at=MATCHCAP-at;return at;
@@ -51,6 +52,7 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
  // Checkpoint diagnostic: stop only between complete logical Runs. A pending
  // block continuation finishes before the gate can close.
  if(batchCfg.y && s[3]>=batchCfg.y && stats[10]!=2){stats[10]=0;return;}
+ if(stats[10]==6)return;
  if(stats[10]==2){if(grew)bc_reindex_certificates(stats,m.unions,ulong(r[RC_VISIBILITY]));atomic_fetch_max_explicit(dispatch,uint(stats[11]),memory_order_relaxed);return;}stats[10]=0;
  context_info=(device uint*)stats;
  while(!m.error&&!s[2]){
@@ -64,6 +66,14 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
   if(s[3]>=cfg.z){s[4]=1;return;}
   if(!s[7]&&m.epoch==0xffffffff){m.error=6;return;}
   uint set=arg;stats[13]=m.unions;if(!s[7]){m.epoch++;m.rounds++;m.changed=0;}m.matched=0;r[ROW_WORDS+1]=m.epoch;
+  if(m.rounds==1)for(uint row=0;row<m.count;row++){uint t=uint(r[row*STRIDE]);r[RC_VERSION+t]=max(r[RC_VERSION+t],r[row*STRIDE+2]);r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;}
+  if(BC_SKIP_QUIESCENT&&bc_quiescent(set,r,watermarks)){
+   bc_finish_run(BC_VALUES,instance,false);
+   // Audit emits a fingerprint at every Run. Ordinary execution can walk all
+   // unchanged source control on-device without another query/publication pass.
+   if(stats[14]||(batchCfg.y&&s[3]>=batchCfg.y))return;
+   continue;
+  }
   bool reset=m.rounds==1||r[QUERY_DIRTY]==1;
   if(BC_PARALLEL_INDEXES){
    stats[10]=5;control[19]=reset;control[0]=reset&&m.count>256;
@@ -202,13 +212,33 @@ kernel void batched_cell_evaluate(BC_ARGS,uint2 group[[threadgroup_position_in_g
  threadgroup_barrier(mem_flags::mem_device|mem_flags::mem_threadgroup);
  if(tid<count)bc_evaluate(plan,data+tid*BC_STRIDE);
 }
+__attribute__((noinline)) void bc_finish_run(BC_INPUTS,uint instance,bool continuation){
+ device Meta&m=all_meta[instance];device uint*s=all_state+instance*GC_STATE_WORDS;
+ device uint*stack=s+8;device long*r=all_rows+instance*GC_ROW_WORDS;
+ // LOCAL_POINTERS
+ device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
+ uint pc=s[0],set=tape[4*pc+1];
+ // One finite pass over saved continuations after a block changed identities.
+ // Completed steps are tickets; no seed or effect is replayed.
+ if(continuation){
+  // Rebuild compacts physical rows. Per-Run constructor predictions are keyed
+  // by the old row positions and cannot survive into this continuation block.
+  r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;stats[10]=2;return;
+ }
+ for(uint j=SET_START[set];j<SET_START[set+1];j++)watermarks[SET_RULES[j]]=m.epoch-1;
+ device uint*h=all_history+(instance*cfg.z+s[3])*12;
+ h[0]=set;h[1]=m.changed;h[2]=m.matched;h[3]=m.epoch;h[4]=m.count;h[5]=m.unions;h[6]=pc;h[7]=s[1];
+ h[8]=0;h[9]=0;h[10]=0;h[11]=0;
+ if(stats[14]){uint words=m.count*STRIDE+m.next_id+m.next_fact+uint(r[ROW_WORDS]);atomic_fetch_max_explicit(dispatch+3,(words+1023)/1024,memory_order_relaxed);}
+ s[3]++;s[0]++;stats[10]=0;if(s[1])stack[8*(s[1]-1)+5]|=m.changed;
+}
 kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]]){
  if(instance>=cfg.x)return;
  device Meta&m=all_meta[instance];device uint*s=all_state+instance*GC_STATE_WORDS;
  device uint*stack=s+8;device long*r=all_rows+instance*GC_ROW_WORDS;device long*old=r;
  // LOCAL_POINTERS
  device uint*p=parent;device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
- if(m.error||!stats[10])return;device long*meta=stats+BC_STATS;device long*data=meta+3*batchCfg.x;
+ if(m.error||(stats[10]!=1&&stats[10]!=2))return;device long*meta=stats+BC_STATS;device long*data=meta+3*batchCfg.x;
  match_order+=bc_order_offset(m.matched,QUERY_PARALLEL[tape[4*s[0]+1]]);
  uint pc=s[0],set=tape[4*pc+1];bool resuming=stats[10]==2;long progressed=stats[1]+stats[2];p[IDCAP]=1;p[IDCAP+1]=0;if(resuming)stats[16]++;stats[21]=0;
  for(uint tile=0;tile<uint(stats[11])&&!m.error;tile++){
@@ -222,21 +252,13 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  if(m.error)return;
  bool pending=p[IDCAP+1]!=0;uint unionsBefore=m.unions;
  p[IDCAP]=0;for(uint j=0;j<p[IDCAP+1];j++)unite_now(p,p[IDCAP+2+2*j],p[IDCAP+3+2*j],m);
- p[IDCAP+1]=0;if(m.unions!=unionsBefore){rebuild(r,p,fp,m,qheads,qlinks);stats[17]++;}
- if(m.error)return;
- // One finite pass over saved continuations after a block changed identities.
- // Completed steps are tickets; no seed or effect is replayed.
- if(pending&&stats[21]&&stats[1]+stats[2]>progressed){
-  // Rebuild compacts physical rows. Per-Run constructor predictions are keyed
-  // by the old row positions and cannot survive into this continuation block.
-  r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;stats[10]=2;return;
+ p[IDCAP+1]=0;if(m.unions!=unionsBefore){
+  stats[17]++;
+  if(BC_PARALLEL_REBUILD){control[0]=1;control[21]=pending&&stats[21]&&stats[1]+stats[2]>progressed;stats[10]=6;return;}
+  rebuild(r,p,fp,m,qheads,qlinks);
  }
- for(uint j=SET_START[set];j<SET_START[set+1];j++)watermarks[SET_RULES[j]]=m.epoch-1;
- device uint*h=all_history+(instance*cfg.z+s[3])*12;
- h[0]=set;h[1]=m.changed;h[2]=m.matched;h[3]=m.epoch;h[4]=m.count;h[5]=m.unions;h[6]=pc;h[7]=s[1];
- h[8]=0;h[9]=0;h[10]=0;h[11]=0;
- if(stats[14]){uint words=m.count*STRIDE+m.next_id+m.next_fact+uint(r[ROW_WORDS]);atomic_fetch_max_explicit(dispatch+3,(words+1023)/1024,memory_order_relaxed);}
- s[3]++;s[0]++;stats[10]=0;if(s[1])stack[8*(s[1]-1)+5]|=m.changed;
+ if(m.error)return;
+ bc_finish_run(BC_VALUES,instance,pending&&stats[21]&&stats[1]+stats[2]>progressed);
 }
 
 // Position-salted two-lane integer fingerprints. Bounded fixed work per lane;
