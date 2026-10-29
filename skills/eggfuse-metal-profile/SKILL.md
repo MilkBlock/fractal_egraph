@@ -91,3 +91,30 @@ python3 "$PROFILE_SKILL/scripts/capture_report.py" \
 - gpudebug 只关闭自己创建的 session，不能 `--terminate all`。脚本自动清理自己的 session。
 
 详见 [工具语义](references/profiling-notes.md) 与 [实测结果](references/2026-10-26-results.md)。修改后运行 `python3 -m unittest discover -s "$PROFILE_SKILL/scripts" -p 'test_*.py'`；新增 worker/Xcode 版本还需真实短窗口和 capture/reuse 验证。
+
+### Resident warm windows and frozen workers
+
+For the resident ABI7 timing adapter, `--mode timings --runs N` profiles N logical
+Runs from a physical checkpoint and verifies the complete suffix against the
+same frozen executor. Use a short warm window when a single first dispatch could
+be dominated by restored-buffer residency; retain the cold first-dispatch caveat.
+Capture mode remains exactly one Run. Never treat split-command-buffer timing as
+an end-to-end benchmark.
+
+New checkpoints contain a checksum-bound worker image and materialized source.
+The adapter uses these when present, so later workspace edits do not silently
+change a historical replay. Older checkpoints without an image still require
+the exact original worker. Do not bypass a worker mismatch. Instrumented
+checkpoints remain diagnostic only and cannot be used as ordinary resume points.
+
+### Encoder timestamp counters
+
+`resident.py --mode encoder --runs N` uses the public Metal timestamp counter set
+at encoder boundaries inside the original command buffers. It still separates
+encoders and can perturb timing; it does not report occupancy or bandwidth.
+On the inspected M3 Max, dispatch-boundary sampling is unsupported and
+stage-boundary sampling is supported. A timestamp calibration matched resolved
+counter deltas in nanoseconds against command-buffer GPU time. Do not divide
+these resolved values by Metal 4's `queryTimestampFrequency` (24 MHz here): that
+is a different raw timestamp representation. This mode retains exact suffix
+state/history verification and frozen-worker provenance.

@@ -12,7 +12,16 @@ def execution_summary(report):
     stats=[sum(s.get('region_statistics',[0]*16)[i] for s in instances) for i in range(16)]
     matched=sum(h[2] for s in instances for h in s['history'])
     private=sum(a.get('private_schedule_binding_outputs',0) for p in report['programs'] for a in p['attempts'])
-    return dict(proved_empty_rhs=sum((s.get('batch_statistics') or [])[28] for s in instances if len(s.get('batch_statistics') or [])>29),
+    return dict(seed_rows_examined=sum(s['batch_statistics'][36] for s in instances if len(s.get('batch_statistics') or [])>38),
+        active_seed_rows=sum(s['batch_statistics'][37] for s in instances if len(s.get('batch_statistics') or [])>38),
+        grounded_seed_jobs=sum(s['batch_statistics'][38] for s in instances if len(s.get('batch_statistics') or [])>38),
+        proved_empty_cell_seeds=sum(s['batch_statistics'][34] for s in instances if len(s.get('batch_statistics') or [])>35),
+        cell_noop_checks=sum(s['batch_statistics'][35] for s in instances if len(s.get('batch_statistics') or [])>35),
+        parallel_constructor_requests=sum(s['batch_statistics'][30] for s in instances if len(s.get('batch_statistics') or [])>33),
+        parallel_constructor_rows=sum(s['batch_statistics'][31] for s in instances if len(s.get('batch_statistics') or [])>33),
+        constructor_batches=sum(s['batch_statistics'][32] for s in instances if len(s.get('batch_statistics') or [])>33),
+        constructor_batch_fallbacks=sum(s['batch_statistics'][33] for s in instances if len(s.get('batch_statistics') or [])>33),
+        proved_empty_rhs=sum((s.get('batch_statistics') or [])[28] for s in instances if len(s.get('batch_statistics') or [])>29),
         parallel_noop_checks=sum((s.get('batch_statistics') or [])[29] for s in instances if len(s.get('batch_statistics') or [])>29),
         matcher_binding_outputs=matched-private,private_schedule_binding_outputs=private,executed_rule_invocations=matched+batch[2],match_count_scope='exact matcher outputs, private schedule invocations and accepted inline invocations are counted separately; none is committed mutations',batch_tiles=batch[0],batch_seed_invocations=batch[1],validated_successor_invocations=batch[2],rejected_successor_invocations=batch[3],batch_effect_requests=batch[4],residual_invocations=batch[5],max_tile_rows=max([(s.get('batch_statistics') or [0]*24)[6] for s in instances]+[0]),matrix_context_rows=batch[7],exact_numeric_audits=batch[8],completed_binding_shortcuts=batch[12],continuation_blocks=batch[16],union_merge_blocks=batch[17],actual_set_results=batch[18],custom_merge_requests=batch[19],constructor_set_requests=batch[20],constructor_result_audits=batch[23],
         scope='original control gates with witnessed saturation-local successor firing in one shared GPU identity domain',

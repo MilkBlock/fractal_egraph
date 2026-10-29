@@ -34,7 +34,10 @@ if let path=arguments["--resume"],program["resident_schedules"] is [String:Any] 
 var semanticProgram=program;semanticProgram.removeValue(forKey:"quantum")
 if program["resident_schedules"] is [String:Any] {semanticProgram["resident_private_schedule_execution"]=privateScheduleExecution}
 let programDigest=digest(try JSONSerialization.data(withJSONObject:semanticProgram,options:[.sortedKeys]))
-let workerDigest=digest(try Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[0]).resolvingSymlinksInPath()))
+let workerURL=URL(fileURLWithPath:CommandLine.arguments[0]).resolvingSymlinksInPath()
+let workerImage=try Data(contentsOf:workerURL)
+let workerSourceImage=try? Data(contentsOf:workerURL.deletingPathExtension().appendingPathExtension("swift"))
+let workerDigest=digest(workerImage)
 let instances=program["instances"] as! [[String:Any]],n=instances.count
 let device=MTLCreateSystemDefaultDevice()!,queue=device.makeCommandQueue()!
 let options=MTLCompileOptions();options.fastMathEnabled=false
@@ -89,8 +92,11 @@ let sortMerge:MTLComputePipelineState?=parallelSort ? try loadPipeline("batched_
 let indexSpec=program["resident_indexes"] as? [String:Any]
 let parallelIndexes=transportVersion==7 && indexSpec?["enabled"] as? Bool == true
 let indexBase=indexSpec?["dispatch_base"] as? Int ?? 0
+let indexFields=indexSpec?["dispatch_fields"] as? Int ?? 6
+let hierarchicalIndexes=parallelIndexes && indexSpec?["hierarchical"] as? Bool == true
 let indexNames=["query_row_scan","query_row_offsets","query_pairs","query_radix_scan","query_radix_offsets","query_radix_scatter","query_clear","query_link_sorted","query_table_time"]
 let indexPipelines: [MTLComputePipelineState]=parallelIndexes ? try indexNames.map{try loadPipeline("resident_"+$0)}:[]
+let radixBlocks:MTLComputePipelineState?=hierarchicalIndexes ? try loadPipeline("resident_query_radix_blocks"):nil
 let hashIndexNames=["row_index_context","row_index_clear","row_index_parallel","row_index_ready"]
 let hashIndexPipelines: [MTLComputePipelineState]=parallelIndexes ? try hashIndexNames.map{try loadPipeline("resident_"+$0)}:[]
 let prepareFinish:MTLComputePipelineState?=parallelIndexes ? try loadPipeline("batched_cell_prepare_finish"):nil
@@ -104,6 +110,11 @@ let parallelWrites=transportVersion==7 && writesSpec?["enabled"] as? Bool == tru
 let writesBase=writesSpec?["dispatch_base"] as? Int ?? 0
 let writesNames=["write_gate","batch_output_scan","batch_output_offsets","batch_clear","batch_propose","batch_group","batch_scan","batch_reserve","batch_publish","batch_index","batch_ordered","write_finish"]
 let writesPipelines:[MTLComputePipelineState]=parallelWrites ? try writesNames.map{try loadPipeline("resident_"+$0)}:[]
+let seedsSpec=program["resident_seeds"] as? [String:Any]
+let compactSeeds=transportVersion==7 && seedsSpec?["enabled"] as? Bool == true
+let seedsBase=seedsSpec?["dispatch_base"] as? Int ?? 0
+let seedsNames=["seed_scan","seed_offsets","seed_scatter"]
+let seedsPipelines:[MTLComputePipelineState]=compactSeeds ? try seedsNames.map{try loadPipeline("resident_"+$0)}:[]
 let hashPipeline:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint"):nil
 let hashFinish:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint_finish"):nil
 // RESIDENT_SCHEDULE_RUNTIME
@@ -145,7 +156,7 @@ let batchStride=batchLayout?["stride"] as? Int ?? 1
 var batchCapacity=128,batchWords=transportVersion==7 ? batchHeader+128*(9+batchStride):1
 var batchData=zeros(n*batchWords*8),batchGrowths=0
 if transportVersion==7 && program["batch_audit_numeric"] as? Bool == true {for i in 0..<n {copy([Int64(1)],batchData,(i*batchWords+14)*8)}}
-let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)+(parallelIndexes ? 6:0)+(parallelRebuild ? 5:0)+(parallelWrites ? 4:0)
+let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)+(parallelIndexes ? indexFields:0)+(parallelRebuild ? 5:0)+(parallelWrites ? 4:0)+(compactSeeds ? 2:0)
 let batchDispatch=zeros(dispatchGroups*12)
 for i in 0..<dispatchGroups {copy([UInt32(0),UInt32(n),UInt32(1)],batchDispatch,i*12)}
 let hashChunks=(capacity*stride+2*ids+(program["set_words"] as! Int)+1023)/1024
@@ -354,12 +365,24 @@ while true {
     }
     indexPhase(0,0);indexPhase(1,3);indexPhase(2,0)
     for bit in 0..<(indexSpec!["radix_passes"] as! Int){
-     indexPhase(3,1,UInt32(bit));indexPhase(4,3,UInt32(bit));indexPhase(5,1,UInt32(bit))
+     indexPhase(3,1,UInt32(bit))
+     if hierarchicalIndexes {
+      phase(radixBlocks!,"resident_query_radix_blocks")
+      e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(indexBase+6),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1));e.memoryBarrier(scope:.buffers)
+     }
+     indexPhase(4,3,UInt32(bit));indexPhase(5,1,UInt32(bit))
     }
     indexPhase(6,2);indexPhase(7,1);indexPhase(8,0)
     phase(prepareFinish!,"batched_cell_prepare_finish")
     e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,prepareFinish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
     e.memoryBarrier(scope:.buffers)
+   }
+   if compactSeeds {
+    for (index,field) in [0,1,0].enumerated(){
+     phase(seedsPipelines[index],"resident_"+seedsNames[index])
+     e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(seedsBase+field),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))
+     e.memoryBarrier(scope:.buffers)
+    }
    }
    phase(batchMatch!,"batched_cell_match");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:24,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
@@ -432,7 +455,11 @@ if let url=checkpointURL {
  try FileManager.default.createDirectory(at:temporary,withIntermediateDirectories:true)
  var files=[String:[String:Any]]()
  for (name,b) in buffers(){files[name]=["bytes":b.length,"sha256":try writeBuffer(b,temporary.appendingPathComponent(name+".bin"))]}
- let manifest:[String:Any]=["schema":"eggfuse-resident-checkpoint/v1","program_sha256":programDigest,"worker_sha256":workerDigest,"device":device.name,"instances":n,"buffers":files,
+ try workerImage.write(to:temporary.appendingPathComponent("worker"),options:.atomic)
+ try? FileManager.default.setAttributes([.posixPermissions:0o755],ofItemAtPath:temporary.appendingPathComponent("worker").path)
+ var frozenWorker:[String:Any]=["binary":"worker","sha256":digest(workerImage)]
+ if let source=workerSourceImage {try source.write(to:temporary.appendingPathComponent("worker.swift"),options:.atomic);frozenWorker["source"]="worker.swift";frozenWorker["source_sha256"]=digest(source)}
+ let manifest:[String:Any]=["frozen_worker":frozenWorker,"schema":"eggfuse-resident-checkpoint/v1","program_sha256":programDigest,"worker_sha256":workerDigest,"device":device.name,"instances":n,"buffers":files,
   "sizes":["batch_capacity":batchCapacity,"history_capacity":historyCapacity,"cache_words":cacheWords,"batch_growths":batchGrowths,"cache_growths":cacheGrowths,"compact_capacity":compactCapacity,"compact_growths":compactGrowths,"write_capacity":writeCapacity,"write_growths":writeGrowths],
   "completed_runs":(0..<n).map{u32(states,$0*stateWords+3,1)[0]},"program_path":input.path,
   "private_schedule_execution":privateScheduleExecution,"contract":"full resident buffers at completed command buffer and logical Run boundary; no actions replayed; exact-Run diagnostics pin ordinary schedule execution"]

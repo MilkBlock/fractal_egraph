@@ -30,7 +30,7 @@ def lower(core,regions,string_ids):
         if call['primitive']=='guard':return f'bool({args[0]})','0L'
         if call['primitive'] in ('<','>','<=','>=','!='):return f'({args[0]}{call["primitive"]}{args[1]})','0L'
         raise ValueError('unsupported batch primitive '+call['primitive'])
-    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 34\n']
+    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 40\n']
     result.append("""
 bool bc_check_return(uint table,thread long*key,long value,device long*r,device uint*p,device Meta&m){
  long row=row_lookup(r,p,m,table,key);if(row<0)return false;
@@ -216,7 +216,7 @@ void bc_matrix_{ti}(device long*data,uint count,uint tid,threadgroup float*as,th
   simdgroup_float8x8 acc(0.0f);
   for(uint k=0;k<{K};k+=8){{
    for(uint pos=lane;pos<64;pos+=32){{uint row=base+group*8+pos/8,input=k+pos%8;float value=0;
-    if(row<count&&data[row*BC_STRIDE+BC_FAST]){{switch(input){{'''
+    if(row<count&&data[row*BC_STRIDE+BC_FAST]>0){{switch(input){{'''
             source+=''.join(f'case {j}:value=float(data[row*BC_STRIDE+{slot}]);break;' for j,slot in enumerate(numeric))
             source+=f'''case {len(numeric)}:value=1;break;default:break;}}}}
     as[pos]=value;uint kk=k+pos/8,cc=col+pos%8;bs[pos]=kk<{K}&&cc<{P}?BC_COEF_{ti}[kk*{P}+cc]:0;
@@ -225,7 +225,7 @@ void bc_matrix_{ti}(device long*data,uint count,uint tid,threadgroup float*as,th
   }}
   simdgroup_store(acc,cs,8);simdgroup_barrier(mem_flags::mem_threadgroup);
   for(uint pos=lane;pos<64;pos+=32){{uint row=base+group*8+pos/8,c=col+pos%8;
-   if(row<count&&c<{P}&&data[row*BC_STRIDE+BC_FAST]){{uint dst=0;switch(c){{'''
+   if(row<count&&c<{P}&&data[row*BC_STRIDE+BC_FAST]>0){{uint dst=0;switch(c){{'''
             source+=''.join(f'case {j}:dst={slot};break;' for j,slot in enumerate(outputs))
             source+='default:break;}data[row*BC_STRIDE+dst]=long(cs[pos]);data[row*BC_STRIDE+BC_WIDTH+dst]=1;}}simdgroup_barrier(mem_flags::mem_threadgroup);}}'
             result.append(source);mma_cases.append(f'case {ti}:bc_matrix_{ti}(data,count,tid,as,bs,cs);break;')
@@ -234,10 +234,11 @@ void bc_matrix_{ti}(device long*data,uint count,uint tid,threadgroup float*as,th
     result.append('bool bc_scope(uint id,device uint*stack,uint depth){for(uint i=0;i<depth;i++)if(stack[8*i+7]==id)return true;return false;}')
     result.append('int bc_select(uint rule,device uint*stack,uint depth){'+''.join(select)+'return -1;}')
     result.append('void bc_prepare(int plan,uint binding,device long*matches,device long*o){for(uint i=0;i<BC_STRIDE;i++)o[i]=0;switch(plan){'+''.join(prepare_cases)+'default:break;}}')
-    result.append('void bc_evaluate(int plan,device long*o){switch(plan){'+''.join(eval_cases)+'default:break;}}')
-    result.append('void bc_publish(int plan,uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){switch(plan){'+''.join(commit_cases)+'default:m.error=32;}}')
+    result.append('bool bc_single_step(int plan){switch(plan){'+''.join(f'case {i}:return true;' for i,t in enumerate(unique) if len(t['steps'])==1)+'default:return false;}}')
+    result.append('void bc_evaluate(int plan,device long*o){if(o[BC_FAST]<0)return;switch(plan){'+''.join(eval_cases)+'default:break;}}')
+    result.append('void bc_publish(int plan,uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){if(o[BC_FAST]<0){if(o[2*BC_WIDTH]!=1){o[2*BC_WIDTH]=1;stats[1]++;stats[28]++;stats[34]++;}return;}switch(plan){'+''.join(commit_cases)+'default:m.error=32;}}')
     result.append('void bc_matrix(int plan,device long*data,uint count,uint tid,threadgroup float*as,threadgroup float*bs,threadgroup float*cs){switch(plan){'+''.join(mma_cases)+'default:break;}}')
-    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v5',width=W,steps=S,stride=stride,tile=128,stats_words=34,words=34+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
+    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v6',width=W,steps=S,stride=stride,tile=128,stats_words=40,words=40+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
         soundness='seed snapshot witness and per-successor actual row/guard validation; ordered complete effects',
         reproducibility='fixed query order, seed binding ordinal, step ordinal, action ordinal',
         batch_program_sha256=batch['sha256'])

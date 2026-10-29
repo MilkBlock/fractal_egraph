@@ -3,6 +3,9 @@
 #define BC_ARGS device long*all_rows[[buffer(0)]],device uint*all_uint[[buffer(1)]],device long*all_long[[buffer(2)]],device Meta*all_meta[[buffer(3)]],device uint*all_state[[buffer(4)]],device long*code[[buffer(5)]],device const uint*tape[[buffer(6)]],device uint*all_history[[buffer(7)]],device long*all_markers[[buffer(8)]],constant uint4&cfg[[buffer(9)]],device long*all_batch[[buffer(10)]],constant uint4&batchCfg[[buffer(11)]],device atomic_uint*dispatch[[buffer(12)]],device ulong*hashes[[buffer(13)]],constant uint4&writeCfg[[buffer(16)]],device uint*all_write_uint[[buffer(17)]],device long*all_write_long[[buffer(18)]]
 #define BC_INPUTS device long*all_rows,device uint*all_uint,device long*all_long,device Meta*all_meta,device uint*all_state,device long*code,device const uint*tape,device uint*all_history,device long*all_markers,constant uint4&cfg,device long*all_batch,constant uint4&batchCfg,device atomic_uint*dispatch,device ulong*hashes,constant uint4&writeCfg,device uint*all_write_uint,device long*all_write_long
 #define BC_VALUES all_rows,all_uint,all_long,all_meta,all_state,code,tape,all_history,all_markers,cfg,all_batch,batchCfg,dispatch,hashes,writeCfg,all_write_uint,all_write_long
+#if BC_COMPACT_SEEDS
+void bc_seed_bounds(uint set,device uint*seeds,device uint*qheads,device uint*watermarks);
+#endif
 __attribute__((noinline)) void bc_finish_run(BC_INPUTS,uint instance,bool continuation);
 bool bc_requires_sort(uint set){return QUERY_PARALLEL[set]||!QUERY_PATCH_SORTED;}
 uint bc_order_offset(uint count,bool parallel){
@@ -28,7 +31,14 @@ __attribute__((noinline)) void bc_prepare_queries(BC_INPUTS,uint instance,bool r
    default:m.error=20;return;
   }
   if(m.error)return;stats[10]=3;
-  atomic_fetch_max_explicit(dispatch+6,max(1u,(m.count+127)/128),memory_order_relaxed);return;
+  #if BC_COMPACT_SEEDS
+  bc_seed_bounds(set,seed_rows,qheads,watermarks);
+  atomic_fetch_max_explicit(dispatch+BC_SEED_SCAN,(m.count+255)/256,memory_order_relaxed);
+  atomic_fetch_max_explicit(dispatch+BC_SEED_ONE,1u,memory_order_relaxed);
+#else
+  atomic_fetch_max_explicit(dispatch+6,max(1u,(m.count+127)/128),memory_order_relaxed);
+#endif
+  return;
  }
  switch(set){// LOCAL_QUERIES
   default:m.error=20;return;
@@ -112,6 +122,10 @@ kernel void batched_cell_match(BC_ARGS,uint2 group[[threadgroup_position_in_grid
  device uint*p=parent;device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
  context_info=(device uint*)stats;device float*context_results=(device float*)contexts;
  if(m.error||stats[10]!=3)return;uint set=tape[4*s[0]+1];
+#if BC_COMPACT_SEEDS
+ if(lane>control[30])return;
+ lane=lane==control[30]?0xffffffff:seed_rows[CAPACITY+lane];
+#endif
  switch(set){// PARALLEL_QUERIES
   default:m.error=20;return;
  }
@@ -221,7 +235,14 @@ kernel void batched_cell_evaluate(BC_ARGS,uint2 group[[threadgroup_position_in_g
   return;
  }
  threadgroup float as[256],bs[256],cs[256];
- if(tid<count&&stats[10]==1)bc_prepare(plan,match_order[start+tid],matches,data+tid*BC_STRIDE);
+ if(tid<count&&stats[10]==1){
+  uint binding=match_order[start+tid],rule=uint(matches[binding*MSTRIDE]);device long*o=data+tid*BC_STRIDE;
+  bc_prepare(plan,binding,matches,o);
+  if(BC_CELL_NOOPS&&bc_single_step(plan)&&NOOP_RULE[rule]){
+   rc_count(stats,35);device long*r=all_rows+instance*GC_ROW_WORDS;
+   if(actions_stably_empty(rule,binding,code,matches,r))o[BC_FAST]=-1;
+  }
+ }
  threadgroup_barrier(mem_flags::mem_device|mem_flags::mem_threadgroup);
  bc_matrix(plan,data,count,tid,as,bs,cs);
  threadgroup_barrier(mem_flags::mem_device|mem_flags::mem_threadgroup);
@@ -271,7 +292,7 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
   }
   for(uint j=0;j<count&&!m.error;j++){
    uint binding=match_order[start+j];device long*o=data+(start+j)*BC_STRIDE;
-   if(plan>=0){stats[7]+=o[BC_FAST]!=0;bc_publish(plan,binding,matches,o,r,p,fp,m,stats);stats[21]+=bc_waiting(plan,o);}
+   if(plan>=0){stats[7]+=o[BC_FAST]>0;bc_publish(plan,binding,matches,o,r,p,fp,m,stats);stats[21]+=bc_waiting(plan,o);}
    else if(!resuming){if(NOOP_PREFLIGHT&&o[BC_FAST])stats[28]++;else execute_actions(uint(matches[binding*MSTRIDE]),binding,code,registers,matches,r,p,fp,m);stats[5]++;}
   }
  }

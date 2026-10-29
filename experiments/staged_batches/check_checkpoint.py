@@ -87,7 +87,22 @@ def check(build, out):
         byte = f.read(1); f.seek(0); f.write(bytes([byte[0]^1]))
     rejected(program, 'corrupt-buffer')
     with buf.open('r+b') as f: f.write(byte)
-    results['negative_checks'] = dict(changed_program_rejected=True, corrupt_buffer_rejected=True)
+    # The checkpoint carries its exact worker, independent of this worktree's
+    # later source or executable. No replacement binary is built on resume.
+    fresh=out/'absent-build';assert not fresh.exists()
+    frozen=replay(program,fresh,out/'frozen-worker-resumed',checkpoint)
+    assert frozen['complete'] and frozen['worker_source']=='checkpoint image'
+    assert not (fresh/'generic-cell-worker').exists()
+    image=checkpoint/'worker'
+    with image.open('r+b') as f:
+        byte=f.read(1);f.seek(0);f.write(bytes([byte[0]^1]))
+    try:
+        try:replay(program,fresh,out/'corrupt-worker',checkpoint)
+        except ValueError as error:assert 'frozen worker checksum' in str(error)
+        else:raise AssertionError('corrupted worker executed')
+    finally:
+        with image.open('r+b') as f:f.write(byte)
+    results['negative_checks'] = dict(changed_program_rejected=True, corrupt_buffer_rejected=True,corrupt_worker_rejected=True,frozen_resume_without_current_build=True)
     (out/'results.json').write_text(json.dumps(results, indent=2)+'\n')
     return results
 

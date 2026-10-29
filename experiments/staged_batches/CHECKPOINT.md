@@ -48,3 +48,17 @@ tests pass. No new full Raytrace speedup is claimed.
 python3 experiments/staged_batches/check_checkpoint.py \
   --build out/eggfuse-clean-paths-build --output out/checkpoint-check
 ```
+
+## Frozen executor images
+
+New checkpoints also save the executed worker bytes and, when available, its
+materialized Swift source. Resume verifies and uses that exact image; it does
+not rebuild from a possibly changed worktree. The Metal pipeline archive remains
+in the requested build cache, avoiding recompilation merely because the worker
+image is loaded from a checkpoint directory. Diagnostic instrumented snapshots
+are explicitly rejected as ordinary continuation points.
+
+The regression resumes with a nonexistent current build and checks rejection of
+a corrupted worker image. This is independent of source/program and state-buffer
+checksum tests. Exact-Run diagnostics still pin ordinary schedule execution,
+including after resume; they are not timing evidence for private region fusion.

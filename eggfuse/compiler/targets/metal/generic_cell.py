@@ -12,9 +12,10 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
+    compact_seeds=bool(compact_seeds and batch and not spine_cache)
     from eggfuse.ir.recipe import digest
     scope_ids={digest(s['control']):i+1 for i,s in enumerate(batch['scopes'])} if batch else {}
     ids = {s['name']: i for i, s in enumerate(core['rulesets'])}
@@ -58,7 +59,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
                         parallel_match=bool(batch), parallel_prepare=False,
                         parallel_rebuild=False, noop_preflight=bool(batch and parallel_noops),
-                        query_patch=bool(batch and patch_queries), batch_rhs=bool(batch and parallel_constructors), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts),spine_cache=spine_cache,local_certificates=local_certificates,ordered_query_patch=ordered_query_patch,witness_order=not ordered_query_patch)
+                        query_patch=bool(batch and patch_queries), batch_rhs=bool(batch and parallel_constructors), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts),spine_cache=spine_cache,local_certificates=local_certificates,ordered_query_patch=ordered_query_patch,witness_order=not ordered_query_patch,compact_seeds=compact_seeds)
     scheduled=None
     if batch and scheduled_regions:
         from .resident_schedules import prepare as prepare_schedules
@@ -95,7 +96,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     uint_fields = [('parent', p['id_capacity'] + p['union_words']),
                    ('fp', p['id_capacity']), ('watermarks', max(1, p['rules'])),
                    ('qheads', p['query_head_words']), ('qlinks', p['query_link_words']),
-                   ('qprev', p['query_prev_words']), ('control', 40),
+                   ('qprev', p['query_prev_words']), ('radix_sums',max(16,((p['query_sort_words']+65535)//65536)*16) if parallel_indexes and hierarchical_indexes else 1), ('seed_rows',2*capacity+(capacity+255)//256+2*len(p['tables']) if compact_seeds else 1), ('control', 40),
                    ('match_order', 2*match_capacity if batch else 1), ('noop', 1), ('context_info', 16)]
     if batch and parallel_indexes:p['workspace_words']=max(p['workspace_words'],2*p['query_sort_words'])
     long_fields = [('matches', p['workspace_words']),
@@ -148,7 +149,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
                 nodes={v['node'] for v in region_program['rules'][rid]['variants'] if v['node'] is not None and spine_cache}
                 tests=[f'lane<uint(contexts[{16+4*n+3}])' for n in sorted(nodes)]
                 seed_tables=p['query_seed_tables'][rid]
-                if None in seed_tables:tests.append('lane==0')
+                if None in seed_tables:tests.append('lane==0xffffffff' if compact_seeds else 'lane==0')
                 for name in seed_tables:
                     if name is not None:
                         tid=next(i for i,t in enumerate(p['tables']) if t['name']==name)
@@ -168,6 +169,8 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         p['batch_sort']=dict(schema='eggfuse-resident-sort/v1',enabled=parallel_sort,tile=256,local_capacity=1024,
             contract='same total binding order; local bitonic tiles and parallel rank merges; GPU-sized indirect dispatch')
         p['quiescent_runs']=dict(enabled=skip_quiescent,proof='every delta rule read-table version is at or below its watermark; source Run and control progress retained')
+        p['cell_noop_proofs']=dict(enabled=cell_noops,contract='single-step Cell only; existing stable RHS no-op proof on frozen bindings; no mutable receipts are forwarded')
+        defines+=f'#define BC_CELL_NOOPS {int(cell_noops)}\n'
         defines+=f'#define BC_SCHEDULED {int(bool(scheduled))}\n'
         defines+=f'#define BC_SKIP_QUIESCENT {int(skip_quiescent)}\n'
         defines+=f'\n#define BC_PARALLEL_SORT {int(parallel_sort)}\n#define BC_SORT_TILE 256\n#define BC_SMALL_SORT 1024\n'
@@ -175,16 +178,16 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         while span<match_capacity:sort_passes+=1;span*=2
         index_base=3+(1+sort_passes if parallel_sort else 0)
         p['resident_indexes']=dict(schema='eggfuse-resident-indexes/v1',enabled=parallel_indexes,
-            dispatch_base=index_base,radix_passes=p['query_radix_passes'],
+            dispatch_base=index_base,dispatch_fields=7 if hierarchical_indexes else 6,hierarchical=hierarchical_indexes,radix_passes=p['query_radix_passes'],
             scratch='reuse match arena before matching; no persistent per-row/per-plan allocation')
         defines+=f'#define BC_PARALLEL_INDEXES {int(parallel_indexes)}\n'
-        for i,name in enumerate(['ROWS','PAIRS','CLEAR','GATE','HASH_ROWS','HASH_BUCKETS']):defines+=f'#define BC_INDEX_{name} {3*(index_base+i)}\n'
+        for i,name in enumerate(['ROWS','PAIRS','CLEAR','GATE','HASH_ROWS','HASH_BUCKETS']+(['HIST'] if hierarchical_indexes else [])):defines+=f'#define BC_INDEX_{name} {3*(index_base+i)}\n'
         if parallel_indexes:
             from .resident_indexes import lower as lower_indexes
             if p['query_radix_digit_bits']!=4:raise ValueError('resident query indexes require four-bit radix kernels')
-            text+='\n'+lower_indexes((HERE/'query_parallel.metal').read_text())
+            text+='\n'+lower_indexes((HERE/'query_parallel.metal').read_text(),hierarchical_indexes)
         p['resident_rebuild']=dict(schema='eggfuse-resident-rebuild/v1',enabled=parallel_block_rebuild,
-            dispatch_base=index_base+(6 if parallel_indexes else 0),
+            dispatch_base=index_base+(p['resident_indexes']['dispatch_fields'] if parallel_indexes else 0),
             contract='parallel canonicalization/grouping/compaction; original ordered merge callbacks; saved exact continuation')
         defines+=f'#define BC_PARALLEL_REBUILD {int(parallel_block_rebuild)}\n'
         if parallel_block_rebuild:
@@ -200,6 +203,14 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
             from .resident_writes import lower as lower_writes
             for i,name in enumerate(['BINDINGS','EFFECTS','HASH','ONE']):defines+=f'#define BC_WRITE_{name} {3*(p["resident_writes"]["dispatch_base"]+i)}\n'
             text+='\n'+lower_writes((HERE/'batch_rhs.metal').read_text())
+        p['resident_seeds']=dict(schema='eggfuse-resident-seeds/v1',enabled=compact_seeds,
+            dispatch_base=p['resident_writes']['dispatch_base']+(4 if parallel_constructors else 0),
+            contract='exact compiled per-consumer delta gates; no sampled candidates, budgets or removed Cell programs')
+        defines+=f'#define BC_COMPACT_SEEDS {int(compact_seeds)}\n'
+        if compact_seeds:
+            from .resident_seeds import lower as lower_seeds
+            for i,name in enumerate(['SCAN','ONE']):defines+=f'#define BC_SEED_{name} {3*(p["resident_seeds"]["dispatch_base"]+i)}\n'
+            text+='\n'+lower_seeds(p)
         calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls)).replace('// CACHE_PREPARE', ''.join(cache_calls)).replace('// PARALLEL_QUERIES', ''.join(parallel_calls))
     p['shader'] += '\n' + defines + '\n' + text

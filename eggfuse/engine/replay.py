@@ -1,5 +1,6 @@
 """Suspend/resume a saved resident program without replaying its prefix."""
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -25,13 +26,24 @@ def replay(program, build, output, resume=None, stop_after_runs=None, quantum=No
     output.mkdir(parents=True, exist_ok=False)
     saved = output / 'program.json'
     saved.write_text(json.dumps(payload))
-    worker = build_worker(Path(build).resolve())
+    worker = None
+    if resume is not None:
+        directory=Path(resume).resolve();manifest=json.loads((directory/'manifest.json').read_text())
+        if manifest.get('instrumented_base_worker_sha256'):raise ValueError('diagnostic instrumentation checkpoints are not ordinary resume points')
+        frozen=manifest.get('frozen_worker')
+        if frozen:
+            if Path(frozen['binary']).name!=frozen['binary']:raise ValueError('invalid frozen worker path')
+            worker=directory/frozen['binary']
+            with worker.open('rb') as f:fingerprint=hashlib.file_digest(f,'sha256').hexdigest()
+            if fingerprint!=frozen['sha256'] or fingerprint!=manifest['worker_sha256']:raise ValueError('frozen worker checksum differs')
+    if worker is None:worker=build_worker(Path(build).resolve())
     command = [str(worker), str(saved), str(output / 'result.json')]
     if resume is not None:
         command += ['--resume', str(Path(resume).resolve())]
     if stop_after_runs is not None:
         command += ['--stop-after-runs', str(stop_after_runs), '--checkpoint', str(output / 'checkpoint')]
     env = dict(os.environ)
+    env.setdefault('EGGFUSE_METAL_CACHE',str(Path(build).resolve()/'metal-cache'))
     if capture is not None:
         command += ['--capture', str(Path(capture).resolve())]
         env['METAL_CAPTURE_ENABLED'] = '1'
@@ -43,7 +55,7 @@ def replay(program, build, output, resume=None, stop_after_runs=None, quantum=No
     summary = {key: result[key] for key in ('paused', 'restored_runs', 'inference_seconds', 'gpu_seconds',
                                            'shader_compile_seconds', 'checkpoint_seconds',
                                            'program_sha256', 'worker_sha256')}
-    summary.update(complete=all(s['completed'] for s in result['instances']),
+    summary.update(worker_source='checkpoint image' if resume is not None and manifest.get('frozen_worker') else 'current build',complete=all(s['completed'] for s in result['instances']),
                    completed_runs=[len(s['history']) for s in result['instances']],
                    checkpoint=str(output / 'checkpoint') if stop_after_runs is not None else None,
                    profile_capture=capture is not None,
