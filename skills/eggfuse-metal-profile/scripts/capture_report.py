@@ -67,9 +67,15 @@ def main():
     a.output.mkdir(parents=True, exist_ok=False)
     session = None
     try:
-        initial = invoke(['--gputrace', str(a.trace.resolve())], [
-            'profile load' if a.reuse else 'profile run --gpu-state default --exec overlapping',
-            'go performance', 'info --all', 'go encoders', 'list --all',
+        # Xcode 27.1 leaves the collecting session's performance browser empty
+        # even after `profile load` says "already loaded". Reopen the embedded
+        # result in a fresh session, without repeating GPU collection.
+        if not a.reuse:
+            invoke(['--gputrace', str(a.trace.resolve())], [
+                'profile run --gpu-state default --exec overlapping',
+                'profile embed', 'exit --terminate'], a.output/'collection.txt')
+        initial = invoke(['--gputrace', str(a.trace.resolve())], ['profile load',
+            'go performance', 'go encoders', 'list --all',
             'go ..', 'go shaders', 'list --all', 'exit'], a.output/'overview.txt')
         ids = re.findall(r'^Session (\d+) created\.$', initial, re.M)
         if not ids:
@@ -103,8 +109,6 @@ def main():
         for s in shaders:
             if s['values'][0]['value'] in functions:
                 commands += ['info '+s['name']]
-        if not a.reuse:
-            commands += ['profile embed']
         commands += ['exit --terminate']
         details = invoke(['--session', session], commands, a.output/'details.txt')
         result = {'diagnostic_replay_only': True, 'trace': str(a.trace.resolve()),

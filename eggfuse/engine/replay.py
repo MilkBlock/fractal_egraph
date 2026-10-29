@@ -1,6 +1,7 @@
 """Suspend/resume a saved resident program without replaying its prefix."""
 import argparse
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -8,7 +9,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def replay(program, build, output, resume=None, stop_after_runs=None, quantum=None):
+def replay(program, build, output, resume=None, stop_after_runs=None, quantum=None, capture=None):
     sys.path.insert(0, str(ROOT / 'experiments/device_backend'))
     from run_generic_cells import build_worker
     program, output = Path(program).resolve(), Path(output).resolve()
@@ -30,8 +31,12 @@ def replay(program, build, output, resume=None, stop_after_runs=None, quantum=No
         command += ['--resume', str(Path(resume).resolve())]
     if stop_after_runs is not None:
         command += ['--stop-after-runs', str(stop_after_runs), '--checkpoint', str(output / 'checkpoint')]
+    env = dict(os.environ)
+    if capture is not None:
+        command += ['--capture', str(Path(capture).resolve())]
+        env['METAL_CAPTURE_ENABLED'] = '1'
     with (output / 'worker.log').open('w') as log:
-        subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True)
+        subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True, env=env)
     result = json.loads((output / 'result.json').read_text())
     if any(s['meta'][4] for s in result['instances']):
         raise ValueError('GPU execution failed; see result.json')
@@ -41,6 +46,7 @@ def replay(program, build, output, resume=None, stop_after_runs=None, quantum=No
     summary.update(complete=all(s['completed'] for s in result['instances']),
                    completed_runs=[len(s['history']) for s in result['instances']],
                    checkpoint=str(output / 'checkpoint') if stop_after_runs is not None else None,
+                   profile_capture=capture is not None,
                    timing_scope='resumed suffix only; excludes shader compilation, checkpoint IO and state export')
     (output / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
     return summary
@@ -54,6 +60,7 @@ def main(args):
     p.add_argument('--resume', type=Path)
     p.add_argument('--stop-after-runs', type=int, help='absolute completed Run count per instance, not additional Runs')
     p.add_argument('--quantum', type=int)
+    p.add_argument('--capture', type=Path, help='diagnostic .gputrace for exactly one resumed Run; not benchmark timing')
     a = p.parse_args(args)
-    print(json.dumps(replay(a.program, a.build, a.output, a.resume, a.stop_after_runs, a.quantum), indent=2))
+    print(json.dumps(replay(a.program, a.build, a.output, a.resume, a.stop_after_runs, a.quantum, a.capture), indent=2))
     return 0

@@ -9,7 +9,7 @@ try require(CommandLine.arguments.count>=3,"usage: generic-cell-worker program.j
 var arguments=[String:String](),at=3
 while at<CommandLine.arguments.count {
  let key=CommandLine.arguments[at]
- try require(["--resume","--checkpoint","--stop-after-runs"].contains(key) && at+1<CommandLine.arguments.count && arguments[key]==nil,"invalid or repeated worker option: \(key)")
+ try require(["--resume","--checkpoint","--stop-after-runs","--capture"].contains(key) && at+1<CommandLine.arguments.count && arguments[key]==nil,"invalid or repeated worker option: \(key)")
  arguments[key]=CommandLine.arguments[at+1];at+=2
 }
 var stopAt:UInt32?=nil
@@ -121,6 +121,17 @@ func atBoundary(_ i:Int)->Bool {
 }
 for i in 0..<n {if arguments["--resume"] != nil {try require(atBoundary(i),"checkpoint is not a completed Run boundary")}}
 if let stop=stopAt {try require(restoredRounds.allSatisfy{$0<=stop},"stop-after-runs precedes checkpoint")}
+let capturing=arguments["--capture"] != nil
+if let path=arguments["--capture"] {
+ try require(n==1 && stopAt != nil && Int(stopAt!)==Int(restoredRounds[0])+1,"capture must execute exactly one Run from the loaded state")
+ try require(!FileManager.default.fileExists(atPath:path),"capture destination already exists")
+ for (name,b) in buffers(){b.label="resident."+name};code.label="resident.action-code";tape.label="resident.control"
+ let descriptor=MTLCaptureDescriptor();descriptor.captureObject=queue
+ descriptor.destination = .gpuTraceDocument;descriptor.outputURL=URL(fileURLWithPath:path)
+ try require(MTLCaptureManager.shared().supportsDestination(.gpuTraceDocument),"GPU capture unavailable; set METAL_CAPTURE_ENABLED=1")
+ try MTLCaptureManager.shared().startCapture(with:descriptor)
+}
+defer {if capturing && MTLCaptureManager.shared().isCapturing {MTLCaptureManager.shared().stopCapture()}}
 let quantum=UInt32(program["quantum"] as? Int ?? 8)
 let start=CFAbsoluteTimeGetCurrent()
 var lastProgress=start
@@ -164,7 +175,7 @@ while true {
   history=next;historyCapacity*=2
  }
  let cb=queue.makeCommandBuffer()!
- cb.label=transportVersion==7 ? "shared-context multi-stage batch":"generic Cell local schedule"
+ cb.label=transportVersion==7 ? "resident run=\(u32(states,3,1)[0]+1) pc=\(u32(states,0,1)[0])":"generic Cell local schedule"
  func bind(_ e:MTLComputeCommandEncoder){
   let buffers=[rows,uints,longs,metas,states,code,tape,history]+(transportVersion>=2 ? [markerCache]:[])
   for (i,b) in buffers.enumerated(){e.setBuffer(b,offset:0,index:i)}
@@ -180,20 +191,27 @@ while true {
   try require(batchEval!.maxTotalThreadsPerThreadgroup>=128,"batch evaluator requires 128 lanes")
   for _ in 0..<quantum {
    let clear=cb.makeBlitCommandEncoder()!;clear.fill(buffer:batchDispatch,range:0..<4,value:0);clear.fill(buffer:batchDispatch,range:12..<16,value:0);clear.fill(buffer:batchDispatch,range:24..<28,value:0);clear.endEncoding()
-   let e=cb.makeComputeCommandEncoder()!;bind(e)
-   e.setComputePipelineState(pipeline);e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))
+   var e=cb.makeComputeCommandEncoder()!;bind(e);var phaseStarted=false
+   func phase(_ p:MTLComputePipelineState,_ name:String){
+    // Capture-only separation makes phase attribution explicit. The normal
+    // execution path retains its single encoder and existing barriers.
+    if capturing && phaseStarted {e.endEncoding();e=cb.makeComputeCommandEncoder()!;bind(e)}
+    if capturing {e.label="fn=\(name) resident"}
+    e.setComputePipelineState(p);phaseStarted=true
+   }
+   phase(pipeline,"batched_cell_prepare");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
-   e.setComputePipelineState(batchMatch!);e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:24,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
+   phase(batchMatch!,"batched_cell_match");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:24,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
-   e.setComputePipelineState(batchPack!);e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,batchPack!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
+   phase(batchPack!,"batched_cell_pack");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,batchPack!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
-   e.setComputePipelineState(batchEval!);e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:0,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
+   phase(batchEval!,"batched_cell_evaluate");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:0,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
-   e.setComputePipelineState(batchPublish!);e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,batchPublish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
+   phase(batchPublish!,"batched_cell_publish");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,batchPublish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
-   e.setComputePipelineState(hashPipeline!);e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
+   phase(hashPipeline!,"batched_cell_fingerprint");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
-   e.setComputePipelineState(hashFinish!);e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,hashFinish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
+   phase(hashFinish!,"batched_cell_fingerprint_finish");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,hashFinish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
    e.endEncoding()
   }
  }else{
@@ -208,6 +226,7 @@ while true {
  }
 }
 let seconds=CFAbsoluteTimeGetCurrent()-start
+if capturing {MTLCaptureManager.shared().stopCapture()}
 var checkpointSeconds=0.0
 if let url=checkpointURL {
  for i in 0..<n {try require(atBoundary(i),"refusing checkpoint with unfinished Run or execution error")}
@@ -234,6 +253,7 @@ for i in 0..<n {
 }
 let report:[String:Any]=["instances":results,"inference_seconds":seconds,"gpu_seconds":gpuSeconds,"shader_compile_seconds":compileSeconds,
  "paused":results.contains{!($0["completed"] as! Bool)} && stopAt != nil,"restored_runs":restoredRounds,"checkpoint_seconds":checkpointSeconds,"program_sha256":programDigest,"worker_sha256":workerDigest,
+ "profile_capture":capturing,
  "dispatches":dispatches,"storage_bytes":[rows,uints,longs,metas,states,code,tape,history,markerCache,batchData,hashData].reduce(0){$0+$1.length},
  "stage_decisions_on_cpu":0,"batch_context_growths":batchGrowths,"batch_capacity":batchCapacity,"region_cache_growths":cacheGrowths,"scope":spec["contract"]!]
 try JSONSerialization.data(withJSONObject:report,options:[.sortedKeys]).write(to:output,options:.atomic)

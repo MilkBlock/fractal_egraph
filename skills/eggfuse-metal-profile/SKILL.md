@@ -9,6 +9,25 @@ description: 用 Xcode xctrace、Metal GPU Counters 和 gpudebug 定位 eggfuse/
 
 当前适配器覆盖 `experiments/device_backend` 的 GPU 自有存储后端，接受保存的 `program.json`、`report.json` 和对应 `worker.swift`，支持 DVB6/7。不要使用旧 CPU 提交式 assisted matcher 的报告，也不要把这个后端叫 pristine egglog。其它 worker 需补明确适配器，不能猜测协议。
 
+新增 **resident ABI7** 适配器：`scripts/resident.py`，用于 `engine/metal/generic_cell.swift`。
+它使用 `eggfuse replay` 的完整 GPU 快照，仅执行下一个 Run；不使用 DVB6/7 协议、不重放前缀。
+先用新编译的 program 保存目标 Run 之前的 checkpoint，再采集：
+
+```sh
+python3 "$PROFILE_SKILL/scripts/resident.py" --repo "$REPO" \
+  --program "$PROGRAM" --checkpoint "$CHECKPOINT" --build "$BUILD" \
+  --output "$PROFILE_OUTPUT"
+python3 "$PROFILE_SKILL/scripts/capture_report.py" \
+  --trace "$PROFILE_OUTPUT/run.gputrace" --output "$PROFILE_OUTPUT/analysis"
+```
+
+`PROFILE_OUTPUT` 可以指向用户指定的移动硬盘。适配器把子进程 TMPDIR 也放在那里，但不保证
+所有 Apple 系统缓存随之迁移。它核对 capture 与无 capture 重放的完整状态；有已有单 Run
+结果时传 `--reference result.json` 复用。capture 临时拆分 encoder 以分辨各阶段，采集耗时不可
+当作生产加速比。快照要求同一程序、worker 和设备；切换实现后不能冒充旧状态仍可安全恢复。
+Xcode 27.1 收集 profile 后需要显式 embed/load，才有 encoder 数据；空列表必须报错。
+新适配器当前支持单 Run GPU capture；xctrace counters/CPU-wait 窗口仍仅由旧适配器提供。
+
 ## 快速路径
 
 1. 检查 `df -h`、正在运行的 GPU workload，以及 `xcrun --find xctrace` / `gpucapture` / `gpudebug`。不要与其它 GPU benchmark 或训练并行，也不要停止别人的任务。
