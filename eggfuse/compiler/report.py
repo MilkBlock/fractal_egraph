@@ -76,6 +76,10 @@ def summarize(folder,reference=None):
     return result
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('pipeline',type=Path);p.add_argument('--reference',type=Path);a=p.parse_args()
-    r=summarize(a.pipeline,a.reference);print(json.dumps(r,indent=2))
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('pipeline',type=Path);p.add_argument('--reference',type=Path);p.add_argument('--run',action='store_true',help='summarize an existing portable region run without rerunning');a=p.parse_args()
+    if a.run:
+        from eggfuse.engine.regions import summarize_run
+        r=summarize_run(a.pipeline)
+    else:r=summarize(a.pipeline,a.reference)
+    print(json.dumps(r,indent=2))
 if __name__=='__main__':main()

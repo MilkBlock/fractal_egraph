@@ -5,6 +5,10 @@ uint query_hash(uint table,uint column,long value){
  x^=x>>30;x*=0xbf58476d1ce4e5b9UL;x^=x>>27;x*=0x94d049bb133111ebUL;x^=x>>31;
  return uint(x)&(HASH_CAP-1);
 }
+// Resident matching uses generation-tagged heads. Rebuild may use the head
+// storage as scratch; advancing the generation invalidates every old bucket
+// without a serial scan over the maximum-capacity allocation.
+uint query_head(device uint*heads,uint h){return RC_ENABLED&&!QUERY_PATCH&&heads[Q_TOUCH+2+h]!=heads[Q_TOUCH]?0xffffffff:heads[h];}
 // Reverse links are needed only for output/timestamp entries. Input columns
 // never move without rebuild, so do not allocate a reverse link per column.
 uint query_reverse_slot(device long*rows,uint e){
@@ -18,13 +22,18 @@ void set_query_previous(device long*rows,device uint*previous,uint e,uint before
  if(slot!=0xffffffff)previous[slot]=before;
 }
 void append_query_link(device long*rows,device uint*heads,device uint*links,device uint*previous,uint h,uint e){
+ if(RC_ENABLED&&!QUERY_PATCH&&heads[Q_TOUCH+2+h]!=heads[Q_TOUCH]){heads[h]=0xffffffff;heads[QBUCKETS+h]=0xffffffff;heads[Q_TOUCH+2+h]=heads[Q_TOUCH];}
  links[e]=0xffffffff;
  set_query_previous(rows,previous,e,heads[QBUCKETS+h]);
- if(heads[h]==0xffffffff)heads[h]=e;else links[heads[QBUCKETS+h]]=e;
+ if(heads[h]==0xffffffff){heads[h]=e;}else links[heads[QBUCKETS+h]]=e;
  heads[QBUCKETS+h]=e;
 }
 __attribute__((noinline)) void build_query_index(device long*old,uint start,uint count,bool reset,device uint*heads,device uint*links,device uint*previous){
- if(reset){for(uint j=0;j<2*QBUCKETS;j++)heads[j]=0xffffffff;for(uint t=0;t<TABLE_COUNT;t++)heads[2*QBUCKETS+1+t]=0;}
+ if(reset){
+  if(RC_ENABLED&&!QUERY_PATCH){if(++heads[Q_TOUCH]==0){for(uint h=0;h<QBUCKETS;h++)heads[Q_TOUCH+2+h]=0;heads[Q_TOUCH]=1;}}
+  else for(uint j=0;j<2*QBUCKETS;j++)heads[j]=0xffffffff;
+  for(uint t=0;t<TABLE_COUNT;t++)heads[2*QBUCKETS+1+t]=0;
+ }
  // Tail insertion preserves physical-row order across append-only updates.
  for(uint i=start;i<count;i++){if(old[i*STRIDE+1]!=0)continue;uint t=uint(old[i*STRIDE]);
   heads[2*QBUCKETS+1+t]=max(heads[2*QBUCKETS+1+t],uint(old[i*STRIDE+2]));
@@ -65,7 +74,7 @@ __attribute__((noinline)) void patch_query_index(device long*rows,device uint*he
 // Timestamp buckets share the hash arena, so verify both entry kind and key.
 uint delta_first(uint t,uint limit,thread uint&stamp,device long*old,device uint*heads,device uint*links){
  while(stamp<limit){
-  uint e=heads[query_hash(t,TIME_COLUMN,long(stamp))];
+  uint e=query_head(heads,query_hash(t,TIME_COLUMN,long(stamp)));
   while(e!=0xffffffff){uint i=e/QSTRIDE;
    if(e%QSTRIDE==TIME_COLUMN&&old[i*STRIDE]==t&&uint(old[i*STRIDE+2])==stamp)return e;
    e=links[e];

@@ -16,6 +16,7 @@ def lower(plan, tables, string_ids, index_columns, cols):
         source.append(f'case {n["id"]}:return {version};')
     source.append('default:return 0;}}')
     source.append('''
+void rc_count(device long*c,uint index){uint v=atomic_fetch_add_explicit((device atomic_uint*)(c+index),1u,memory_order_relaxed);if(v==0xffffffff)atomic_fetch_add_explicit((device atomic_uint*)(c+index)+1,1u,memory_order_relaxed);}
 void rc_compact(device long*c,device long*r){
  bool dirty=c[12]!=0;c[12]=0;
  for(uint n=0;n<RC_NODES;n++){uint h=16+4*n;if(c[h]==1&&uint(c[h+1])!=rc_version(n,r)){c[h]=2;c[7]++;dirty=true;}}
@@ -55,7 +56,7 @@ void rc_compact(device long*c,device long*r){
             out.append('long key[COLS]={'+vals+'};c[6]++;'+f'long row=query_lookup(r,{tid},key);if(row<0)continue;do{{uint ri=uint(row);')
         else:
             col=bound[-1] if bound else cols;index_columns[tid].add(col)
-            head=f'qheads[query_hash({tid},{col},{value(args[col])})]' if bound else f'qheads[HASH_CAP+{tid}]'
+            head=f'query_head(qheads,query_hash({tid},{col},{value(args[col])}))' if bound else f'query_head(qheads,HASH_CAP+{tid})'
             out.append(f'for(uint qe={head};qe!=0xffffffff;qe=qlinks[qe]){{if(qe%QSTRIDE!={col})continue;uint ri=qe/QSTRIDE;c[6]++;')
         out.append(f'if(old[ri*STRIDE]!={tid}||old[ri*STRIDE+1]!=0)continue;')
         for col,a in enumerate(args):
@@ -74,10 +75,10 @@ void rc_compact(device long*c,device long*r){
     return '\n'.join(source)
 
 
-def restore(variant, nodes, slots, rid, pivot):
+def restore(variant, nodes, slots, rid, pivot,parallel=False):
     node=nodes[variant['node']];h=HEADER+4*node['id'];ns=len(node['sorts'])
-    lines=[f'if(!rc_build_{node["id"]}(r,old,m,qheads,qlinks,contexts))return;',
-           f'for(uint rc_i=0;rc_i<uint(contexts[{h+3}]);rc_i++){{uint rc_at=uint(contexts[{h+2}])+rc_i*{node["width"]};contexts[5]++;']
+    lines=[f'if(!QUERY_PARALLEL[set]&&!rc_build_{node["id"]}(r,old,m,qheads,qlinks,contexts))return;',
+           f'for(uint rc_i=QUERY_PARALLEL[set]?lane:0;rc_i<uint(contexts[{h+3}]);rc_i+=QUERY_PARALLEL[set]?uint(contexts[{h+3}]):1){{uint rc_at=uint(contexts[{h+2}])+rc_i*{node["width"]};rc_count(contexts,5);'] if parallel else [f'if(!rc_build_{node["id"]}(r,old,m,qheads,qlinks,contexts))return;',f'for(uint rc_i=0;rc_i<uint(contexts[{h+3}]);rc_i++){{uint rc_at=uint(contexts[{h+2}])+rc_i*{node["width"]};contexts[5]++;']
     for name,slot in variant['slots'].items():lines.append(f'v[{slots[name]}]=contexts[rc_at+{slot}];')
     stamps=[]
     for j,atom in enumerate(variant['table_atoms']):

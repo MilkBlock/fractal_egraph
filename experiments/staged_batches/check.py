@@ -21,7 +21,7 @@ def rows(result,folder,table):
     width=len(p['tables'][tid]['schema']);return [r[4:4+width] for r in i['rows'] if r[0]==tid and r[1]==0]
 
 
-def check(build_dir,out):
+def check(build_dir,out,only=None,real_dir=None):
     out.mkdir(parents=True,exist_ok=False);base=(ROOT/'experiments/staged_batches/chain.egg').read_text().split('(Pair (N 0)')[0]
     schedule='(run-schedule (saturate (run build) (run advance) (run finish)))'
     wide=base+''.join(f'(Pair (N {2*i}) (N {2*i+1})) (set (Cost (N {2*i})) {i%100-50}) (set (Cost (N {2*i+1})) {i%80-40})\n' for i in range(513))+schedule
@@ -48,6 +48,44 @@ def check(build_dir,out):
 (rule ((Seed r n)) ((Mid r n)) :ruleset a)
 (rule ((Mid r n) (< n 0)) ((Wrong r (+ n 1))) :ruleset b)
 (Seed (N 0) 9223372036854775807) (run-schedule (saturate (run a) (run b)))''',
+      'constructor-resume':'''(datatype E (N i64) (Edge E)) (relation Seed (E E)) (relation Seen (E)) (relation Done (E))
+(ruleset a) (ruleset b) (ruleset c)
+(rule ((Seed x y)) ((union (Edge x) y)) :ruleset a)
+(rule ((= y (Edge x))) ((Seen y)) :ruleset b)
+(rule ((Seen y)) ((Done y)) :ruleset c)
+(Seed (N 0) (N 2)) (Edge (N 0))
+(run-schedule (saturate (run a) (run b) (run c)))''',
+      'retired-continuation':'''(datatype E (N i64) (Edge E)) (relation Seed (E E)) (relation Kill (E)) (relation Done (E))
+(ruleset a) (ruleset b)
+(rule ((Seed x y)) ((union (Edge x) y)) :ruleset a)
+(rule ((Kill x)) ((subsume (Edge x))) :ruleset a)
+(rule ((= y (Edge x))) ((Done y)) :ruleset b)
+(Seed (N 0) (N 2)) (Kill (N 0)) (Edge (N 0))
+(run-schedule (saturate (run a) (run b)))''',
+      'shared-identity':'''(datatype E (N i64) (Shared E)) (relation Seed (E i64)) (relation Seen (E E)) (relation Done (E))
+(ruleset a) (ruleset b)
+(rule ((Seed x n)) ((Seen x (Shared x))) :ruleset a)
+(rule ((Seen x y)) ((Done y)) :ruleset b)
+(Seed (N 0) 1) (Seed (N 0) 2)
+(run-schedule (saturate (run a) (run b)))''',
+      'actual-min-port':'''(datatype E (N i64)) (relation Seed (E i64)) (function Best (E) i64 :merge (min old new)) (relation Done (E i64))
+(ruleset a) (ruleset b)
+(rule ((Seed x n)) ((set (Best x) n)) :ruleset a)
+(rule ((= n (Best x))) ((Done x (+ n 1))) :ruleset b)
+(Seed (N 0) 12) (set (Best (N 0)) 3)
+(run-schedule (saturate (run a) (run b)))''',
+      'custom-chain':'''(datatype E (N i64) (Choice E E)) (relation Seed (E E)) (function F (E) E :merge (Choice old new)) (relation Done (E E))
+(ruleset a) (ruleset b)
+(rule ((Seed x y) (= old (F x))) ((set (F x) y)) :ruleset a)
+(rule ((= c (Choice left right))) ((union c right) (Done left right)) :ruleset b)
+(Seed (N 0) (N 1)) (set (F (N 0)) (N 0))
+(run-schedule (saturate (run a) (run b)))''',
+      'custom-merge':'''(datatype E (N i64) (Choice E E)) (relation Seed (E E E)) (function F (E) E :merge (Choice old new)) (relation Done (E E))
+(ruleset a) (ruleset b)
+(rule ((Seed x y z)) ((set (F x) y) (set (F x) z)) :ruleset a)
+(rule ((= c (Choice left right))) ((Done left right)) :ruleset b)
+(Seed (N 0) (N 1) (N 2)) (Seed (N 0) (N 3) (N 4))
+(run-schedule (saturate (run a) (run b)))''',
       'union-and-subsume':'''(datatype E (N i64) (Edge E E)) (relation Seen (E)) (relation Done (E))
 (ruleset observe) (ruleset edit)
 (rule ((= e (Edge x y))) ((Seen e)) :ruleset observe)
@@ -55,12 +93,20 @@ def check(build_dir,out):
 (rule ((= e (Edge x y))) ((union x y) (subsume (Edge x y))) :ruleset edit)
 (Edge (N 0) (N 1)) (run-schedule (saturate (run observe) (run edit)))'''
     }
+    cases['independent-unions']=cases['constructor-resume'].replace('(Seed (N 0) (N 2)) (Edge (N 0))', ''.join(f'(Seed (N {3*i}) (N {3*i+2})) (Edge (N {3*i}))' for i in range(129)))
+    if real_dir:
+        for name in ['finite','late-union','context-to-terms','renamed']:
+            cases['real-'+name]=(real_dir/(name+'.egg')).read_text()
+    if only:
+        missing=set(only)-set(cases)
+        if missing:raise ValueError('unknown fixture '+str(missing))
+        cases={k:v for k,v in cases.items() if k in only}
     results={}
     for name,text in cases.items():
         source=out/(name+'.egg');source.write_text(text);core=core_for(source,build_dir);plan=from_core(core)
         validate_batch(plan['batch_program'],build(core),plan)
         if name=='wide':
-            bad=copy.deepcopy(plan['batch_program']);t=bad['templates'][-1]
+            bad=copy.deepcopy(plan['batch_program']);t=next(t for t in bad['templates'] if len(t['steps'])==3)
             step=t['steps'][0];r=build(core)['rules'][step['recipe_rule']]
             dst=next(i for i,s in enumerate(r['slots']) if s['definition']!='query' and s['sort']['kind']=='i64')
             input_slot=next(i for i,s in enumerate(t['slots'][:t['input_width']]) if s['sort']['kind']=='i64')
@@ -87,9 +133,30 @@ def check(build_dir,out):
         if name=='finite':assert summary['validated_successor_invocations']==0
         if name in ['lost-min','bound-guard','masked-overflow']:assert not rows(runs[0],folder,'Wrong')
         if name=='lost-min':assert summary['rejected_successor_invocations']>0
+        if name=='independent-unions':
+            assert len(rows(runs[0],folder,'Done'))==129
+            assert summary['continuation_blocks']<=2 and summary['validated_successor_invocations']==258
+        if name=='constructor-resume':
+            assert rows(runs[0],folder,'Done')
+            assert summary['continuation_blocks']>0 and summary['constructor_set_requests']>0
+            assert summary['validated_successor_invocations']>0
+        if name=='retired-continuation':
+            assert not rows(runs[0],folder,'Done')
+            assert summary['rejected_successor_invocations']>0
+        if name=='shared-identity':
+            assert len(rows(runs[0],folder,'Shared'))==1 and len(rows(runs[0],folder,'Done'))==1
+        if name=='actual-min-port':
+            assert [r[1] for r in rows(runs[0],folder,'Done')]==[4]
+            assert summary['validated_successor_invocations']>0
+        if name=='custom-chain':
+            assert summary['validated_successor_invocations']>0 and summary['union_merge_blocks']>0
+        if name=='custom-merge':
+            assert len(rows(runs[0],folder,'Choice'))==3
+            assert summary['custom_merge_requests']>=4
+            assert len(rows(runs[0],folder,'Done'))==3 # every correlated callback, not just a winner
         results[name]=dict(verification=verified,execution=summary,templates=len(plan['batch_program']['templates']))
         (out/'results.json').write_text(json.dumps(results,indent=2)+'\n');print(name,summary,flush=True)
     return results
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();check(a.build.resolve(),a.output.resolve())
+    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--case',action='append');p.add_argument('--real-dir',type=Path);a=p.parse_args();check(a.build.resolve(),a.output.resolve(),a.case,a.real_dir)

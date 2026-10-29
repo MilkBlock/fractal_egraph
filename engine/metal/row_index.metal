@@ -8,12 +8,14 @@ void row_index_insert(device long*r,device uint*p,uint i){
  for(uint c=0;c<WIDTH[t]-1;c++)args[c]=r[i*STRIDE+4+c];
  uint slot=row_hash(t,args,r,p);
  while(index[slot]){if(keyeq(r,uint(index[slot]-1),t,args,p))return;slot=(slot+1)&(HASH_CAP-1);}
+ if(RC_ENABLED&&!jp_active(r)){uint n=uint(r[RC_INDEX_TOUCH]);r[RC_INDEX_TOUCH+1+n]=slot;r[RC_INDEX_TOUCH]=n+1;}
  index[slot]=long(i)+1;
 }
 __attribute__((noinline)) void ensure_row_index(device long*r,device uint*p,device Meta&m){
  if(jp_active(r)||r[INDEX_OFFSET]==long(m.unions)+1)return;
  r[INDEX_OFFSET+HASH_CAP+1]++;
- for(uint i=0;i<HASH_CAP;i++)r[INDEX_OFFSET+1+i]=0;
+ if(RC_ENABLED){for(uint i=0;i<uint(r[RC_INDEX_TOUCH]);i++)r[INDEX_OFFSET+1+uint(r[RC_INDEX_TOUCH+1+i])]=0;r[RC_INDEX_TOUCH]=0;}
+ else for(uint i=0;i<HASH_CAP;i++)r[INDEX_OFFSET+1+i]=0;
  for(uint i=0;i<m.count;i++)if(r[i*STRIDE+1]!=2)row_index_insert(r,p,i);
  r[INDEX_OFFSET]=long(m.unions)+1;
  r[INDEX_MERGE_VERSION]=p[MERGE_GENERATION];

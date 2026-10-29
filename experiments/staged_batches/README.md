@@ -1,8 +1,8 @@
 # Resident multi-stage context batches
 
 This is an execution path in the actual eggfuse Metal backend, tested on small
-programs. It is not a whole-Raytrace speedup result or a proof of CPU endpoint
-completeness. The acceptance contract is sound rule applications and reproducible
+programs. Full Raytrace Pass 3 verification is tracked separately. These
+checks are not a proof of CPU endpoint completeness or a speedup claim. The acceptance contract is sound rule applications and reproducible
 GPU rounds, as requested.
 
 ## Execution path
@@ -29,15 +29,20 @@ GPU rounds, as requested.
    not a claimed parallel hashcons or segmented-reduction implementation.
 6. Each proposed successor checks its complete concrete rows and guards against
    actual state before publishing effects. A proposed set value which loses its
-   merge is not evidence. Pending unions defer successor execution. Ordinary
-   union/custom-merge/subsume rules remain on the exact residual action path.
+   merge is not evidence. Constructor `set`, custom merges and explicit union now use the same
+   recipe path. Sets return separate prior/proposed/actual values. Source merge
+   expressions provide read-only callback witnesses; all resulting constructor
+   nodes remain in the graph. A failed witness is not permission to publish.
+   Subsume/delete and unsupported primitives keep the original residual path.
 7. Successfully completed, immutable single-atom consumers receive completion
    certificates. A later query can skip the certified binding before evaluating
    its remaining conditions. Union and visibility generations invalidate these
-   certificates. The restriction is deliberate: no blanket 'Cell is done' flag
+   certificates. Custom/non-idempotent function updates never receive such
+   tickets. The restriction is deliberate: no blanket 'Cell is done' flag
    is attached to mutable inputs or branching queries.
 
-Three device stages share the same resident storage; they are not a per-rule
+Preparation, parallel matching, ordered packing, evaluation and publication
+share the same resident storage; they are not a per-rule
 interpreter split into extra launches. The CPU queues a fixed dispatch quantum,
 then only checks completion/allocation status. Context/certificate arenas grow
 from actual demand and retry before RHS; already committed logical rounds are
@@ -63,7 +68,8 @@ not replayed. Original table storage still receives block effects on GPU.
 
 ## Results
 
-Nine fixtures each pass two fresh-process GPU executions: wide signed affine
+Sixteen fixtures each pass two fresh-process GPU executions (73 checked Runs
+per lane). In addition to result-slot/union/retirement tests, these include: wide signed affine
 inputs; contended min keys; exact min columns; 10^16; finite Run; losing min
 proposal; an already-bound arithmetic guard; masked overflow; union/subsume.
 The wide fixture has 513 independent seeds and three source stages:
@@ -97,7 +103,47 @@ python3 -m eggfuse run --artifact out/new-batch-pipeline/eggfuse_related_files \
   --build out/eggfuse-clean-paths-build --output out/new-batch-run --check
 ```
 
-Seed discovery, cache refresh and stable publication are still serial within a
-shared arena. Evaluation now scales across threadgroups. General branching
-composition, broader merge-program lowering and fully parallel keyed publication
-remain unfinished. No end-to-end 2x or full GPU occupancy claim is made.
+Shared-prefix preparation, deterministic match sorting and stable publication
+remain serial within a shared arena. Exact seed/residual matching and context
+evaluation now scale across threadgroups. The sorted source query/variant/anchor
+order, rather than atomic arrival order, determines effect publication. Ambiguous symbolic compositions and recursive backedges still use complete
+residual queries; correlated alternatives are not merged or sampled. Fully
+parallel seed discovery and keyed publication remain unfinished. No end-to-end 2x or full GPU occupancy claim is made.
+
+
+## Result slots and continuation blocks (Recipe v2, transport ABI 7)
+
+Each typed `set` has a receipt containing the prior-value slot (possibly absent),
+the actual return-value slot, and typed readback instructions for merge-created
+constructors. Min/max consumers use the actual returned number, not the proposal.
+Constructor `set` retains its equality obligation. Custom merge callbacks run in
+stable request order through the shared source-derived `mergevalue` implementation.
+They are not replaced by min/max or replayed in the readback path.
+
+The shared context matrix stores values, readiness bits, and a completed-step
+bitmap. Publication checks concrete LHS rows and guards, executes full effects,
+and fills actual identities. After a union/rebuild block, the same matrix resumes:
+completed steps and ordinary residual RHSs do not run again. A new union never
+pauses unrelated contexts whose positive witnesses are already valid. Only
+steps whose witnesses have not yet become valid remain pending. There is no
+candidate cap or retry timeout: a pass must finish another finite recipe step to
+request another continuation. New recursive work remains in the original exact
+schedule.
+
+The first full-run attempt exposed the importance of this distinction: a global
+`pending union` check serialized thousands of independent contexts into separate
+rebuilds within one logical Run. It was removed; the independent-unions fixture
+requires 129 contexts/258 successors to finish with at most two continuation
+blocks. Capacity growth still happens before publishing any RHS of that Run.
+
+Per-round diagnostics now hash positions and values in parallel fixed-size GPU
+chunks, followed by deterministic integer reduction. The final state remains
+compared in full. The validator also checks that every completed round actually
+received a fingerprint; an omitted diagnostic cannot silently pass by comparing
+two zero hashes. These checks are diagnostic overhead, not inference speedup.
+
+Full-source compilation uses the normal `source.egg -> source_sk.egg ->
+source_sk_mk.egg -> region Recipe IR -> Metal` pipeline, with a separately checked
+small Bake input sharing the same rule environment. No dedicated terms exporter
+or rule-name-dependent execution path is used. Static recipe counts do not
+measure runtime Cell coverage.

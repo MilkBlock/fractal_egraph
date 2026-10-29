@@ -56,9 +56,9 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     take_checks(schedule)
     tape = encode(schedule) if checks or batch else control(schedule, ids)
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
-                        parallel_match=False, parallel_prepare=False,
+                        parallel_match=bool(batch), parallel_prepare=False,
                         parallel_rebuild=False, noop_preflight=False,
-                        query_patch=False, split_matches=False,marker_program=marker_program,region_program=region_program)
+                        query_patch=False, split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch))
     # Preserve native min-ID representative preference *within each sort*.
     # Lexicographic Value(10) < Value(2) can spuriously refresh a seminaive row.
     anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
@@ -68,7 +68,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
                    ('fp', p['id_capacity']), ('watermarks', max(1, p['rules'])),
                    ('qheads', p['query_head_words']), ('qlinks', p['query_link_words']),
                    ('qprev', p['query_prev_words']), ('control', 40),
-                   ('match_order', 1), ('noop', 1), ('context_info', 16)]
+                   ('match_order', 2*match_capacity if batch else 1), ('noop', 1), ('context_info', 16)]
     long_fields = [('matches', p['workspace_words']),
                    ('registers', p['register_count']), ('contexts', 1)]
     layout = {}; offsets = []
@@ -82,12 +82,41 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     layout['row_words'] = rows
     # Control frames: kind, count, body, end, iteration, changed, any_changed, spare.
     layout['state_words'] = 8 + max(1, tape['stack_depth']) * 8
-    defines = f'#define GC_MATCHES {layout["matches"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
-    calls = []
+    defines = f'#define GC_MATCH_ORDER {layout["match_order"]}\n#define GC_MATCHES {layout["matches"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
+    calls = [];cache_calls=[];parallel_calls=[]
+    if batch:
+        from eggfuse.ir.recipe import build
+        recipe=build({k:v for k,v in core.items() if k!='cell_input_constants'},region_program['scope'])
     for si, rules in enumerate(p['set_rule_ids']):
         args = 'r,old,p,fp,m,matches,watermarks,set,code,registers,qheads,qlinks,control,match_order,noop,qprev,contexts,context_info,context_results,0'
         body = ''.join(f'query_{rid}({args},{rank});if(m.error)return;' for rank, rid in enumerate(rules))
         calls.append(f'case {si}:{{{body}break;}}')
+        if batch:
+            needs={}
+            for rid in rules:
+                rule=recipe['rules'][region_program['rules'][rid]['recipe_rule']]
+                tables=[next(i for i,t in enumerate(p['tables']) if t['name']==a['call']['table']) for a in rule['query'] if 'table' in a['call']]
+                for variant in region_program['rules'][rid]['variants']:
+                    n=variant['node'];pivot=variant['pivot']
+                    if n is None:continue
+                    if pivot is not None:gate=f'qheads[2*QBUCKETS+1+{tables[pivot]}]>watermarks[{rid}]'
+                    elif rule['metadata']['seminaive'] and tables:gate='('+'||'.join(f'qheads[2*QBUCKETS+1+{t}]>watermarks[{rid}]' for t in tables)+')'
+                    else:gate='true'
+                    needs.setdefault(n,set()).add(gate)
+            cache_calls.append(f'case {si}:{{'+''.join('if(('+('||'.join(sorted(gates)))+f')&&!rc_build_{n}(r,old,m,qheads,qlinks,contexts))return;' for n,gates in sorted(needs.items()))+'break;}')
+            pcalls=[]
+            for rank,rid in enumerate(rules):
+                nodes={v['node'] for v in region_program['rules'][rid]['variants'] if v['node'] is not None}
+                tests=[f'lane<uint(contexts[{16+4*n+3}])' for n in sorted(nodes)]
+                seed_tables=p['query_seed_tables'][rid]
+                if None in seed_tables:tests.append('lane==0')
+                for name in seed_tables:
+                    if name is not None:
+                        tid=next(i for i,t in enumerate(p['tables']) if t['name']==name)
+                        tests.append(f'(lane<m.count&&old[lane*STRIDE]=={tid}&&old[lane*STRIDE+1]==0)')
+                guard='||'.join(tests) or 'lane==0'
+                pcalls.append(f'if({guard}){{query_{rid}('+args.replace(',0',',lane')+f',{rank});if(m.error)return;}}')
+            parallel_calls.append(f'case {si}:{{'+''.join(pcalls)+'break;}')
     text = (HERE / ('batched_cell.metal' if batch else 'generic_cell.metal')).read_text()
     if batch:
         from .batches import lower as lower_batches
@@ -95,9 +124,9 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         p['shader']+='\n'+batch_code
         p['batch_layout']=batch_layout
         calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
-    text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls))
+    text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls)).replace('// CACHE_PREPARE', ''.join(cache_calls)).replace('// PARALLEL_QUERIES', ''.join(parallel_calls))
     p['shader'] += '\n' + defines + '\n' + text
-    p['generic_cell'] = dict(schema='generic-cell-program/v1', transport_version=4 if batch else 2, history_width=12 if batch else 8, kernel='batched_cell_prepare' if batch else 'generic_cell_advance', layout=layout, control=tape,
+    p['generic_cell'] = dict(schema='generic-cell-program/v1', transport_version=7 if batch else 2, history_width=12 if batch else 8, kernel='batched_cell_prepare' if batch else 'generic_cell_advance', layout=layout, control=tape,
         program_sha256=hashlib.sha256(json.dumps(core, sort_keys=True).encode()).hexdigest(),
         contract='shared GPU contexts, witnessed saturation-local batches and deterministic block publication' if batch else 'shared global identity domain, original schedule, correlated event-versioned Spines' if region_program is not None else 'isolated exact local execution; not an authorization to skip global matches',
         queries='compiled exact residual queries plus witnessed saturation-local successors; history match counts exclude inline invocations')

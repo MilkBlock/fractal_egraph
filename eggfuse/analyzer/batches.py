@@ -14,12 +14,8 @@ def eligible(rule,tables):
         if 'primitive' in a['call'] and a['call']['primitive'] not in ('+','-','*','/','%','min','max','<','>','<=','>=','!=','guard','not','and','or','xor','=>','bool-=','bool-<','bool->','bool-<=','bool->='):return False
     for e in rule['effects']:
         k=e['kind']
-        if k not in ('copy','construct','compute','set','union'):return False
-        if k=='set':
-            t=tables[e['call']['table']]
-            if t['kind']!='function' or t.get('merge') not in ('(min old new)','(min new old)','(max old new)','(max new old)'):return False
+        if k not in ('copy','construct','compute','set','union','read'):return False
         if k=='compute' and (e['call']['output']!='i64' or e['call']['primitive'] not in ('+','-','*','/','%','min','max')):return False
-        if k=='union':return False # defer original union action phase; residual rule stays exact
     return True
 
 
@@ -84,6 +80,10 @@ def analyze(recipe,region_rules):
             width=sum(s['definition']=='query' for s in sr['slots'])
             if not width:continue
             slots=copy.deepcopy(sr['slots'][:width]);facts=[];steps=[];used=set()
+            aliases={}
+            def resolve(x):
+                while 'slot' in x and x['slot'] in aliases:x=aliases[x['slot']]
+                return copy.deepcopy(x)
             initial={i:{'slot':i} for i in range(width)}
             for a in sr['query']:
                 if 'table' in a['call']:facts.append(dict(table=a['call']['table'],args=copy.deepcopy(a['args']),producer=-1))
@@ -93,13 +93,34 @@ def analyze(recipe,region_rules):
                 for i,s in enumerate(rule['slots']):
                     if i not in mapping:
                         mapping[i]={'slot':len(slots)};slots.append(copy.deepcopy(s))
-                def val(x):return copy.deepcopy(mapping[x['slot']]) if 'slot' in x else copy.deepcopy(x)
-                outputs=[]
-                for e in rule['effects']:
+                def val(x):return resolve(mapping[x['slot']]) if 'slot' in x else copy.deepcopy(x)
+                outputs=[];receipts=[]
+                def new_slot(sort,name):
+                    at=len(slots);slots.append(dict(name=name,sort=copy.deepcopy(sort),definition='receipt'));return {'slot':at}
+                for ei,e in enumerate(rule['effects']):
+                    if e['kind']=='copy':aliases[mapping[e['dst']]['slot']]=val(e['arg'])
                     if e['kind'] in ('construct','set'):
                         args=list(map(val,e['args']))+[val({'slot':e['dst']}) if e['kind']=='construct' else val(e['value'])]
+                        table=tables[e['call']['table']]
+                        if e['kind']=='set':
+                            before=new_slot(table['schema'][-1],'previous value')
+                            actual=new_slot(table['schema'][-1],'actual value')
+                            old=next((f['args'][-1] for f in reversed(facts+outputs) if f['table']==table['name'] and f['args'][:-1]==args[:-1]),before)
+                            receipt=dict(effect=ei,before=before,actual=actual,merge=[])
+                            def merge(expr):
+                                if 'var' in expr:return old if expr['var']=='old' else args[-1]
+                                if 'literal' in expr:return copy.deepcopy(expr)
+                                aa=[merge(a) for a in expr['args']];call=expr['call']
+                                sort=tables[call['table']]['schema'][-1] if 'table' in call else {'name':call['output'],'kind':call['output']}
+                                dst=new_slot(sort,'merge result')
+                                receipt['merge'].append(dict(call=copy.deepcopy(call),args=aa,dst=dst))
+                                if 'table' in call:outputs.append(dict(table=call['table'],args=aa+[dst],producer=step))
+                                return dst
+                            if table.get('merge_expr'):merge(table['merge_expr'])
+                            receipts.append(receipt)
+                            if table['schema'][-1]['kind']!='eq':args[-1]=actual
                         outputs.append(dict(table=e['call']['table'],args=args,producer=step))
-                steps.append(dict(rule=r['id'],recipe_rule=r['recipe_rule'],mapping=[mapping[i] for i in range(len(rule['slots']))],requires=sorted(x for x in deps if x>=0)))
+                steps.append(dict(rule=r['id'],recipe_rule=r['recipe_rule'],mapping=[mapping[i] for i in range(len(rule['slots']))],requires=sorted(x for x in deps if x>=0),receipts=receipts))
                 # A set proposes a replacement for its exact symbolic key. Its
                 # successor still verifies the *actual* post-merge value.
                 for f in outputs:
@@ -124,8 +145,8 @@ def analyze(recipe,region_rules):
                         if 'slot' in a['args'][-1]:known.add(a['args'][-1]['slot'])
                     else:
                         append(r,env,deps);progress=True
-            if len(steps)>1:templates.append(dict(scope=scope_id,seed=seed['id'],input_width=width,slots=slots,steps=steps))
-    payload=dict(schema='eggfuse-batch-program/v1',recipe_sha256=recipe['sha256'],scopes=scopes_,templates=templates,
+            if len(steps)>1 or any(e['kind'] in ('set','union') for e in sr['effects']):templates.append(dict(scope=scope_id,seed=seed['id'],input_width=width,slots=slots,steps=steps))
+    payload=dict(schema='eggfuse-batch-program/v2',recipe_sha256=recipe['sha256'],scopes=scopes_,templates=templates,
         ordering='source seed binding ordinal, then recipe step and effect ordinal',
         correctness='exact seed query; every successor checks actual canonical rows/guards before effect publication',
         coverage='unique symbolic wiring only; ambiguous/cyclic/uncovered work keeps original matching')

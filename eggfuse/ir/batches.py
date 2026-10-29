@@ -3,7 +3,7 @@ from .recipe import digest,require
 
 
 def validate_batch(plan,recipe,regions):
-    require(plan['schema']=='eggfuse-batch-program/v1','unknown batch program')
+    require(plan['schema']=='eggfuse-batch-program/v2','unknown batch program')
     require(plan['sha256']==digest({k:v for k,v in plan.items() if k!='sha256'}),'batch checksum differs')
     require(plan['recipe_sha256']==recipe['sha256'],'batch source differs')
     subtrees=[]
@@ -22,6 +22,7 @@ def validate_batch(plan,recipe,regions):
         return leaves(s['saturate'])
     for scope in plan['scopes']:
         require(scope['control'] in subtrees and scope['rulesets']==sorted(set(leaves(scope['control']))),'batch scope differs')
+    tables={t['name']:t for t in recipe['tables']}
     for t in plan['templates']:
         require(0<=t['scope']<len(plan['scopes']) and t['steps'] and t['steps'][0]['rule']==t['seed'],'invalid batch seed/scope')
         allowed={r for s in regions['rulesets'] if s['name'] in plan['scopes'][t['scope']]['rulesets'] for r in s['rules']}
@@ -59,7 +60,34 @@ def validate_batch(plan,recipe,regions):
                 elif 'slot' in v and v['slot'] not in defined:
                     require(i not in table_slots,'unbound table input')
                     defined.add(v['slot']);producers[v['slot']]=si
+            for receipt in step.get('receipts',[]):
+                ei=receipt['effect'];require(type(ei) is int and 0<=ei<len(r['effects']),'invalid receipt effect')
+                effect=r['effects'][ei];require(effect['kind']=='set','receipt is not a set result')
+                sort=tables[effect['call']['table']]['schema'][-1]
+                def fresh(v,sort):
+                    require(set(v)=={'slot'} and type(v['slot']) is int and 0<=v['slot']<len(t['slots']),'invalid receipt slot')
+                    idx=v['slot'];require(idx not in defined and t['slots'][idx]['sort']==sort,'receipt overwrites live slot or sort')
+                    defined.add(idx);producers[idx]=si
+                fresh(receipt['before'],sort);fresh(receipt['actual'],sort)
+                for e in receipt['merge']:
+                    call=e['call']
+                    signature=tables[call['table']]['schema'] if 'table' in call else [dict(name=n,kind=n) for n in call['inputs']+[call['output']]]
+                    require(len(signature)==len(e['args'])+1,'merge receipt arity differs')
+                    for arg,sort_ in zip(e['args'],signature[:-1]):
+                        require((arg['slot'] in defined and t['slots'][arg['slot']]['sort']==sort_) if 'slot' in arg else arg.get('sort')==sort_,'merge receipt uses unready/untyped input')
+                    fresh(e['dst'],signature[-1])
             # Successors are suggestions only. The generated merger rechecks
             # every table atom and primitive using actual post-merge identities.
             # No proposed set value or unvalidated local fact authorizes a step.
     return plan
+
+
+def certifiable(rule,tables):
+    """Immutable binding with idempotent effects, not arbitrary function merge."""
+    ts={t['name']:t for t in tables};atoms=[a for a in rule['query'] if 'table' in a['call']]
+    if len(atoms)!=1 or ts[atoms[0]['call']['table']]['kind']!='constructor':return False
+    for e in rule['effects']:
+        if e['kind'] in ('copy','compute','construct'):continue
+        if e['kind']=='set' and ts[e['call']['table']].get('merge') in ('(min old new)','(min new old)','(max old new)','(max new old)'):continue
+        return False
+    return True

@@ -32,6 +32,26 @@ class BatchTests(unittest.TestCase):
             bad['sha256']=digest({k:v for k,v in bad.items() if k!='sha256'})
             with self.assertRaises(ValueError):validate_batch(bad,build(c),r)
 
+    def test_constructor_set_and_union_keep_typed_receipts(self):
+        c=fixture();a=c['rulesets'][0]['rules'][0]
+        a['head'].append(dict(op='set',call={'table':'Middle'},args=[var('r'),var('n',I)],value=var('r')))
+        a['head'].append(dict(op='union',args=[var('r'),var('f')]))
+        r=from_core(c);b=r['batch_program'];validate_batch(b,build(c),r)
+        t=next(t for t in b['templates'] if t['steps'][0]['receipts'])
+        receipt=t['steps'][0]['receipts'][0]
+        self.assertNotEqual(receipt['before'],receipt['actual'])
+        bad=copy.deepcopy(b);t=next(t for t in bad['templates'] if t['steps'][0]['receipts'])
+        t['steps'][0]['receipts'][0]['actual']={'slot':0}
+        bad['sha256']=digest({k:v for k,v in bad.items() if k!='sha256'})
+        with self.assertRaisesRegex(ValueError,'receipt overwrites'):validate_batch(bad,build(c),r)
+
+    def test_mutable_custom_merge_never_receives_stable_completion(self):
+        from eggfuse.ir.batches import certifiable
+        c=fixture();a=c['rulesets'][0]['rules'][0];c['tables'].append(dict(name='Best',kind='function',schema=[E,E],merge='new'))
+        a['head'].append(dict(op='set',call={'table':'Best'},args=[var('r')],value=var('f')))
+        r=build(c)
+        self.assertFalse(certifiable(r['rules'][0],r['tables']))
+
     def test_ambiguous_wiring_remains_residual(self):
         c=fixture();a=c['rulesets'][0]['rules'][0]
         a['head'].append(dict(op='let',dst='another',sort=E,call={'table':'Middle'},args=[var('r'),var('n',I)]))
