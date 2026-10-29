@@ -78,7 +78,9 @@ def verify_repeat(first,second):
         successor_conditions='all actual canonical table rows and guards checked before publication; unions merge at block boundaries then resume saved contexts',
         numeric_effects='source i64 arithmetic audited before publication; bounded affine matrix path with integer fallback',
         constructor_results='actual keyed row or its queued constructor-prediction equality; audited before successor use',
-        completed=True,rounds=rounds,per_round_fingerprints_and_control_equal=True,final_rows_ids_values_visibility_equal=True,
+        completed=True,rounds=rounds,per_round_fingerprints_and_control_equal=True,
+        fingerprint_scope='global resident rows at ordinary Run boundaries; cumulative private fact-coordinate fingerprints inside certified schedule regions',
+        final_rows_ids_values_visibility_equal=True,
         native_whole_graph_equivalence_required=False)
 
 

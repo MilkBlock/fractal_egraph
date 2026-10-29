@@ -47,12 +47,13 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
  device uint*stack=s+8;device long*r=all_rows+instance*GC_ROW_WORDS;device long*old=r;
  // LOCAL_POINTERS
  device uint*p=parent;device float*context_results=(device float*)contexts;
+ if(m.rounds==0)for(uint row=0;row<m.count;row++){uint t=uint(r[row*STRIDE]);r[RC_VERSION+t]=max(r[RC_VERSION+t],r[row*STRIDE+2]);r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;}
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));bool grew=stats[9]!=long(batchCfg.x);stats[9]=batchCfg.x;
  if(m.error==37){m.error=0;contexts[14]=1;rc_compact(contexts,r);}
  // Checkpoint diagnostic: stop only between complete logical Runs. A pending
  // block continuation finishes before the gate can close.
  if(batchCfg.y && s[3]>=batchCfg.y && stats[10]!=2){stats[10]=0;return;}
- if(stats[10]==6)return;
+ if(stats[10]==6||stats[10]==8)return;
  if(stats[10]==2){if(grew)bc_reindex_certificates(stats,m.unions,ulong(r[RC_VISIBILITY]));atomic_fetch_max_explicit(dispatch,uint(stats[11]),memory_order_relaxed);return;}stats[10]=0;
  context_info=(device uint*)stats;
  while(!m.error&&!s[2]){
@@ -60,13 +61,18 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
   if(op==1||op==2){if(op==1&&!arg){s[0]=tape[pc*4+2];continue;}uint at=8*s[1]++;stack[at]=op;stack[at+1]=arg;stack[at+2]=pc+1;stack[at+3]=tape[pc*4+2];for(uint j=4;j<8;j++)stack[at+j]=0;stack[at+7]=tape[pc*4+3];s[0]++;continue;}
   if(op==3){if(!s[1]){m.error=20;return;}uint at=8*(s[1]-1),changed=stack[at+5];stack[at+4]++;stack[at+6]|=changed;
    if(changed&&(stack[at]==2||stack[at+4]<stack[at+1])){stack[at+5]=0;s[0]=stack[at+2];}else{s[0]=stack[at+3];s[1]--;if(s[1])stack[8*(s[1]-1)+5]|=stack[at+6];}continue;}
+  if(op==6){
+   // Single-arena private publication has a typed completeness proof. A stop
+   // inside it uses the complete original Run path, never a partial patch.
+   if(BC_SCHEDULED&&cfg.x==1&&!batchCfg.w){stats[10]=8;return;}
+   s[0]++;continue;
+  }
   if(op==4){s[2]=1;return;}
   if(op==5){bool found=false;for(uint i=0;i<m.count;i++)found|=r[i*STRIDE]==arg&&r[i*STRIDE+1]==0;if(!found){m.error=8;return;}s[0]++;continue;}
   if(op!=0){m.error=20;return;}
   if(s[3]>=cfg.z){s[4]=1;return;}
   if(!s[7]&&m.epoch==0xffffffff){m.error=6;return;}
   uint set=arg;stats[13]=m.unions;if(!s[7]){m.epoch++;m.rounds++;m.changed=0;}m.matched=0;r[ROW_WORDS+1]=m.epoch;
-  if(m.rounds==1)for(uint row=0;row<m.count;row++){uint t=uint(r[row*STRIDE]);r[RC_VERSION+t]=max(r[RC_VERSION+t],r[row*STRIDE+2]);r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;}
   if(BC_SKIP_QUIESCENT&&bc_quiescent(set,r,watermarks)){
    bc_finish_run(BC_VALUES,instance,false);
    // Audit emits a fingerprint at every Run. Ordinary execution can walk all

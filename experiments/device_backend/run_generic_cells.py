@@ -15,10 +15,12 @@ HERE = Path(__file__).resolve().parent
 def build_worker(output):
     output.mkdir(parents=True, exist_ok=True)
     source = ROOT / 'engine/metal/generic_cell.swift'; worker = output / 'generic-cell-worker'
-    fingerprint = hashlib.sha256(source.read_bytes()).hexdigest()
+    from eggfuse.engine.scheduled import worker_source
+    text=worker_source();fingerprint = hashlib.sha256(text.encode()).hexdigest()
     stamp = output / 'generic-cell-worker.sha256'
     if not worker.exists() or not stamp.exists() or stamp.read_text() != fingerprint:
-        subprocess.run(['xcrun','swiftc','-O',str(source),'-o',str(worker)],check=True)
+        materialized=output/'generic-cell-worker.swift';materialized.write_text(text)
+        subprocess.run(['xcrun','swiftc','-O',str(materialized),'-o',str(worker)],check=True)
         stamp.write_text(fingerprint)
     return worker.resolve()
 
@@ -31,7 +33,8 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
     (output/'recipe-library.json').write_text(json.dumps(recipe_library))
     worker = build_worker(build); reports=[]; rejected=list(library.get('rejected',[]))
     provenance=dict(binary_sha256=hashlib.sha256(worker.read_bytes()).hexdigest(),
-        source_sha256=hashlib.sha256((ROOT/'engine/metal/generic_cell.swift').read_bytes()).hexdigest(),
+        source_sha256=(build/'generic-cell-worker.sha256').read_text(),
+        source_components={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [ROOT/'engine/metal/generic_cell.swift',ROOT/'engine/metal/scheduled_matrix.swift',ROOT/'eggfuse/engine/scheduled.py']},
         source='engine/metal/generic_cell.swift')
     for pi, instances, cores in groups(library):
         cap=max(capacity,max(len(c['initial']) for c in cores));mc=match_capacity

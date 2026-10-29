@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     from eggfuse.ir.recipe import digest
@@ -58,7 +58,34 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
                         parallel_match=bool(batch), parallel_prepare=False,
                         parallel_rebuild=False, noop_preflight=False,
-                        query_patch=bool(batch and patch_queries), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts))
+                        query_patch=bool(batch and patch_queries), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts),spine_cache=spine_cache)
+    scheduled=None
+    if batch and scheduled_regions:
+        from .resident_schedules import prepare as prepare_schedules
+        scheduled=prepare_schedules(core,p,region_program)
+    p['resident_schedules']=scheduled
+    p['spine_cache_execution']=dict(enabled=spine_cache,contract='same complete analyzed library and Cell recipes; false uses exact parallel residual queries instead of serial cache construction')
+    if scheduled:
+        by_schedule={digest(x['schedule']):x for x in scheduled['programs']}
+        # A private-region gate retains a complete diagnostic fallback and
+        # the original finite Repeat counts; neither path infers a fixed point.
+        def private_encode(node):
+            result=[];depth=0;peak=0
+            def emit(x,allow=True):
+                nonlocal depth,peak
+                hit=by_schedule.get(digest(x)) if allow else None
+                if hit is not None:
+                    at=len(result);result.append([6,hit['index'],0,0]);emit(x,False);result[at][2]=len(result);return
+                if 'run' in x:
+                    result.append([0,ids[x['run']],0,0])
+                    if id(x) in checks:result.append([5,next(i for i,t in enumerate(core['tables']) if t['name']==checks[id(x)]),0,0])
+                elif 'sequence' in x:
+                    for child in x['sequence']:emit(child,allow)
+                else:
+                    repeat='repeat' in x;at=len(result);result.append([1 if repeat else 2,x['repeat'] if repeat else 0,0,scope_ids.get(digest(x),0) if not repeat else 0]);depth+=1;peak=max(peak,depth)
+                    emit(x['body'] if repeat else x['saturate'],allow);depth-=1;result.append([3,at,0,0]);result[at][2]=len(result)
+            emit(node);result.append([4,0,0,0]);return dict(instructions=result,stack_depth=peak)
+        tape=private_encode(schedule)
     # Preserve native min-ID representative preference *within each sort*.
     # Lexicographic Value(10) < Value(2) can spuriously refresh a seminaive row.
     anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
@@ -109,7 +136,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
                 tables=[next(i for i,t in enumerate(p['tables']) if t['name']==a['call']['table']) for a in rule['query'] if 'table' in a['call']]
                 for variant in region_program['rules'][rid]['variants']:
                     n=variant['node'];pivot=variant['pivot']
-                    if n is None:continue
+                    if n is None or not spine_cache:continue
                     if pivot is not None:gate=f'qheads[2*QBUCKETS+1+{tables[pivot]}]>watermarks[{rid}]'
                     elif rule['metadata']['seminaive'] and tables:gate='('+'||'.join(f'qheads[2*QBUCKETS+1+{t}]>watermarks[{rid}]' for t in tables)+')'
                     else:gate='true'
@@ -117,7 +144,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
             cache_calls.append(f'case {si}:{{'+''.join('if(('+('||'.join(sorted(gates)))+f')&&!rc_build_{n}(r,old,m,qheads,qlinks,contexts))return;' for n,gates in sorted(needs.items()))+'break;}')
             pcalls=[]
             for rank,rid in enumerate(rules):
-                nodes={v['node'] for v in region_program['rules'][rid]['variants'] if v['node'] is not None}
+                nodes={v['node'] for v in region_program['rules'][rid]['variants'] if v['node'] is not None and spine_cache}
                 tests=[f'lane<uint(contexts[{16+4*n+3}])' for n in sorted(nodes)]
                 seed_tables=p['query_seed_tables'][rid]
                 if None in seed_tables:tests.append('lane==0')
@@ -132,11 +159,15 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     if batch:
         from .batches import lower as lower_batches
         batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])})
+        if scheduled:
+            from .resident_schedules import metal as scheduled_metal
+            p['shader']+='\n'+scheduled_metal((HERE/'scheduled_matrix.metal').read_text())
         p['shader']+='\n'+batch_code+'\nbool bc_quiescent(uint set,device long*r,device uint*watermarks){switch(set){'+''.join(quiescent_cases)+'default:return false;}}'
         p['batch_layout']=batch_layout
         p['batch_sort']=dict(schema='eggfuse-resident-sort/v1',enabled=parallel_sort,tile=256,local_capacity=1024,
             contract='same total binding order; local bitonic tiles and parallel rank merges; GPU-sized indirect dispatch')
         p['quiescent_runs']=dict(enabled=skip_quiescent,proof='every delta rule read-table version is at or below its watermark; source Run and control progress retained')
+        defines+=f'#define BC_SCHEDULED {int(bool(scheduled))}\n'
         defines+=f'#define BC_SKIP_QUIESCENT {int(skip_quiescent)}\n'
         defines+=f'\n#define BC_PARALLEL_SORT {int(parallel_sort)}\n#define BC_SORT_TILE 256\n#define BC_SMALL_SORT 1024\n'
         sort_passes=0;span=256

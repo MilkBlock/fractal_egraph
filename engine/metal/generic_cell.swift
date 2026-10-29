@@ -25,7 +25,14 @@ try require(transportVersion==1 || transportVersion==2 || transportVersion==7,"u
 if !arguments.isEmpty {try require(transportVersion==7 && spec["checkpoint_version"] as? Int == 1,"checkpoint requires a freshly compiled resident ABI7 program")}
 func digest(_ data:Data)->String {SHA256.hash(data:data).map{String(format:"%02x",$0)}.joined()}
 // Dispatch quantum is a host batching choice, never part of logical state.
+var privateScheduleExecution=program["resident_schedules"] is [String:Any]
+if stopAt != nil {privateScheduleExecution=false}
+if let path=arguments["--resume"],program["resident_schedules"] is [String:Any] {
+ let manifest=try JSONSerialization.jsonObject(with:Data(contentsOf:URL(fileURLWithPath:path).appendingPathComponent("manifest.json"))) as! [String:Any]
+ privateScheduleExecution=manifest["private_schedule_execution"] as? Bool ?? false
+}
 var semanticProgram=program;semanticProgram.removeValue(forKey:"quantum")
+if program["resident_schedules"] is [String:Any] {semanticProgram["resident_private_schedule_execution"]=privateScheduleExecution}
 let programDigest=digest(try JSONSerialization.data(withJSONObject:semanticProgram,options:[.sortedKeys]))
 let workerDigest=digest(try Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[0]).resolvingSymlinksInPath()))
 let instances=program["instances"] as! [[String:Any]],n=instances.count
@@ -94,6 +101,7 @@ let rebuildNames=["rebuild_gate","rebuild_start","rebuild_canonical","rebuild_in
 let rebuildPipelines:[MTLComputePipelineState]=parallelRebuild ? try rebuildNames.map{try loadPipeline("resident_"+$0)}:[]
 let hashPipeline:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint"):nil
 let hashFinish:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint_finish"):nil
+// RESIDENT_SCHEDULE_RUNTIME
 var cacheWriteSeconds=0.0
 if cacheDirty,let saved=archive {
  let began=CFAbsoluteTimeGetCurrent(),temp=cacheRoot.appendingPathComponent("."+cacheKey+"-"+UUID().uuidString)
@@ -216,6 +224,33 @@ while true {
   }
  }
  if !pending {break}
+ if transportVersion==7 && n==1 && i64(batchData,10,1)[0]==8 {
+  let before=u32(states,0,8),pc=Int(before[0]),sid=instructions[4*pc+1]
+  hostMeta=u32(metas,0,9)
+  let completed=try scheduledMatrix(sid)
+  if completed.accepted {
+   let count=completed.history.count/12,required=Int(before[3])+count
+   while historyCapacity<required {
+    let next=zeros(n*historyCapacity*2*historyWidth*4);memcpy(next.contents(),history.contents(),history.length);history=next;historyCapacity*=2
+   }
+   var trace=completed.history
+   for i in 0..<count {
+    trace[12*i+6]=UInt32(pc+1)+trace[12*i+5]
+    trace[12*i+7]=before[1]+completed.history[12*i+6]
+    trace[12*i+5]=hostMeta[7]
+   }
+   copy(trace,history,Int(before[3])*historyWidth*4)
+   copy([instructions[4*pc+2]],states,0);copy([UInt32(required)],states,3*4)
+   if before[1]>0 && completed.info[3] != 0 {copy([UInt32(1)],states,(8+8*(Int(before[1])-1)+5)*4)}
+   if i64(batchData,14,1)[0] != 0 {copy([Int64(required)],batchData,22*8)}
+   gpuSeconds+=completed.phases.reduce(0,+)
+  }else{
+   // Private failure published nothing. Retain the complete ordinary program.
+   copy([before[0]+1],states,0)
+  }
+  copy([Int64(0)],batchData,10*8)
+  continue
+ }
  if needCacheGrowth {
   try require(cacheWords <= Int(UInt32.max)/2, "region cache exceeds device address space")
   let next=zeros(n*cacheWords*2*8)
@@ -262,7 +297,7 @@ while true {
   e.setBytes(&cfg,length:16,index:transportVersion>=2 ? 9:8)
   if transportVersion==7 {
    e.setBuffer(batchData,offset:0,index:10)
-   var batchCfg=SIMD4<UInt32>(UInt32(batchCapacity),stopAt ?? 0,UInt32(compactCapacity),0);e.setBytes(&batchCfg,length:16,index:11)
+   var batchCfg=SIMD4<UInt32>(UInt32(batchCapacity),stopAt ?? 0,UInt32(compactCapacity),privateScheduleExecution ? 0:1);e.setBytes(&batchCfg,length:16,index:11)
    e.setBuffer(batchDispatch,offset:0,index:12);e.setBuffer(hashData,offset:0,index:13)
    if parallelRebuild {e.setBuffer(compactScratch,offset:0,index:15)}
    var packStep=UInt32(0);e.setBytes(&packStep,length:4,index:14)
@@ -372,7 +407,7 @@ if let url=checkpointURL {
  let manifest:[String:Any]=["schema":"eggfuse-resident-checkpoint/v1","program_sha256":programDigest,"worker_sha256":workerDigest,"device":device.name,"instances":n,"buffers":files,
   "sizes":["batch_capacity":batchCapacity,"history_capacity":historyCapacity,"cache_words":cacheWords,"batch_growths":batchGrowths,"cache_growths":cacheGrowths,"compact_capacity":compactCapacity,"compact_growths":compactGrowths],
   "completed_runs":(0..<n).map{u32(states,$0*stateWords+3,1)[0]},"program_path":input.path,
-  "contract":"full resident buffers at completed command buffer and logical Run boundary; no actions replayed"]
+  "private_schedule_execution":privateScheduleExecution,"contract":"full resident buffers at completed command buffer and logical Run boundary; no actions replayed; exact-Run diagnostics pin ordinary schedule execution"]
  try JSONSerialization.data(withJSONObject:manifest,options:[.sortedKeys,.prettyPrinted]).write(to:temporary.appendingPathComponent("manifest.json"),options:.atomic)
  try FileManager.default.moveItem(at:temporary,to:url);checkpointSeconds=CFAbsoluteTimeGetCurrent()-began
 }
@@ -392,5 +427,5 @@ let report:[String:Any]=["instances":results,"inference_seconds":seconds,"gpu_se
  "paused":results.contains{!($0["completed"] as! Bool)} && stopAt != nil,"restored_runs":restoredRounds,"checkpoint_seconds":checkpointSeconds,"program_sha256":programDigest,"worker_sha256":workerDigest,
  "profile_capture":capturing,
  "dispatches":dispatches,"storage_bytes":[rows,uints,longs,metas,states,code,tape,history,markerCache,batchData,hashData,compactScratch].reduce(0){$0+$1.length},
- "stage_decisions_on_cpu":0,"batch_context_growths":batchGrowths,"batch_capacity":batchCapacity,"region_cache_growths":cacheGrowths,"compact_capacity":compactCapacity,"compact_growths":compactGrowths,"scope":spec["contract"]!]
+ "stage_decisions_on_cpu":0,"private_schedule_execution":privateScheduleExecution,"private_schedule_regions":smCalls,"private_schedule_runs":smRuns,"private_schedule_rows":smRows,"private_schedule_forwarded_reads":smForwardedTotal,"private_schedule_peak_bytes":msPeakBytes,"batch_context_growths":batchGrowths,"batch_capacity":batchCapacity,"region_cache_growths":cacheGrowths,"compact_capacity":compactCapacity,"compact_growths":compactGrowths,"scope":spec["contract"]!]
 try JSONSerialization.data(withJSONObject:report,options:[.sortedKeys]).write(to:output,options:.atomic)

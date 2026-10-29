@@ -28,8 +28,10 @@ def timings(repo, program, checkpoint, build, output):
     manifest=json.loads((checkpoint/'manifest.json').read_text())
     if manifest['instances']!=1 or manifest['worker_sha256']!=base_hash:
         raise ValueError('timing adapter requires a checkpoint from this exact base worker')
-    source=repo/'engine/metal/generic_cell.swift';text=source.read_text()
-    if sha(source)!=(build/'generic-cell-worker.sha256').read_text():
+    source=repo/'engine/metal/generic_cell.swift'
+    from eggfuse.engine.scheduled import worker_source
+    text=worker_source()
+    if hashlib.sha256(text.encode()).hexdigest()!=(build/'generic-cell-worker.sha256').read_text():
         raise ValueError('base worker source fingerprint differs')
     def replace(before,after):
         nonlocal text

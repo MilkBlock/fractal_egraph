@@ -16,6 +16,10 @@ def validate_recipe_artifact(folder,manifest,program,core):
         regions=json.loads((folder/'region-program.json').read_text())
         verify(regions,recipe)
         require(regions==program['region_program'],'compiled regions differ from artifact')
+        if program.get('resident_schedules') is not None:
+            from eggfuse.compiler.targets.metal.resident_schedules import description
+            expected,_,_=description(core,program,regions)
+            require(program['resident_schedules']==expected,'private schedule certificate differs from typed source')
         if regions.get('batch_program') is not None:
             batch=regions['batch_program'];layout=program.get('batch_layout',{})
             width=max([len(t['slots']) for t in batch['templates']]+[1]);steps=max([len(t['steps']) for t in batch['templates']]+[1])

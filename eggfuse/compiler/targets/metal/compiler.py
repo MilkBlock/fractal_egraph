@@ -53,7 +53,7 @@ def encode_initial(p,cols,string_ids,native_order=False):
   flat += [ids[row['table']],int(row['subsumed']),1,i+1,*vs,*([0]*(cols-len(vs)))]
  return anchors,arena,flat
 
-def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True,all_index_columns=False,radix_digit_bits=4,seed_dispatch=True,noop_preflight=True,direct_actions=True,query_patch=True,effect_dedup=False,early_seed_guards=False,lhs_context_reuse=True,rebuild_batch=1,parallel_rhs=False,split_matches=False,context_model=None,context_training=False,merge_target_index=False,batch_rhs=False,matrix_saturate=False,joint_polyspine=False,polyspine_model=None,polyspine_training=False,polyspine_full_refresh=False,polyspine_refresh_audit=False,stage_contexts=False,block_merge=False,block_merge_audit=False,cell_program=None,scheduled_matrix=False,marker_program=None,region_program=None,resident_contexts=False,lazy_contexts=False):
+def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True,all_index_columns=False,radix_digit_bits=4,seed_dispatch=True,noop_preflight=True,direct_actions=True,query_patch=True,effect_dedup=False,early_seed_guards=False,lhs_context_reuse=True,rebuild_batch=1,parallel_rhs=False,split_matches=False,context_model=None,context_training=False,merge_target_index=False,batch_rhs=False,matrix_saturate=False,joint_polyspine=False,polyspine_model=None,polyspine_training=False,polyspine_full_refresh=False,polyspine_refresh_audit=False,stage_contexts=False,block_merge=False,block_merge_audit=False,cell_program=None,scheduled_matrix=False,marker_program=None,region_program=None,resident_contexts=False,lazy_contexts=False,spine_cache=True):
  marker_names=set()
  marker_shortcuts={}
  if marker_program is not None:
@@ -190,7 +190,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    table_order=[];pending=list(atoms);known=set();lines=[];depth=0;stamps=[];pivot_pending=pivot is not None;seeded=False;seed_table=None;seed_atom=None;seed_row="0";seed_time="0";branching=0;split_mark=None;marker_checked=False
    if region_program is not None:
     spec=next(v for v in region_program['rules'][rid]['variants'] if v['pivot']==pivot)
-    if spec['node'] is not None:
+    if spine_cache and spec['node'] is not None:
      from .regions import restore
      lines,stamps,seed_row=restore(spec,region_program['nodes'],slots,rid,pivot,parallel_match)
      known=set(spec['slots']);depth=1;table_order=list(spec['table_atoms']);branching=1
