@@ -14,7 +14,7 @@ def eligible(rule,tables):
         if 'primitive' in a['call'] and a['call']['primitive'] not in ('+','-','*','/','%','min','max','<','>','<=','>=','!=','guard','not','and','or','xor','=>','bool-=','bool-<','bool->','bool-<=','bool->='):return False
     for e in rule['effects']:
         k=e['kind']
-        if k not in ('copy','construct','compute','set','union','read'):return False
+        if k not in ('copy','construct','compute','set','union'):return False
         if k=='compute' and (e['call']['output']!='i64' or e['call']['primitive'] not in ('+','-','*','/','%','min','max')):return False
     return True
 

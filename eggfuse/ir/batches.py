@@ -33,6 +33,7 @@ def validate_batch(plan,recipe,regions):
             rid=step['rule'];require(rid in allowed and rid not in used,'batch rule outside saturation scope or repeated');used.add(rid)
             require(step['recipe_rule']==regions['rules'][rid]['recipe_rule'],'batch rule mapping differs')
             r=recipe['rules'][step['recipe_rule']];mapping=step['mapping']
+            require(all(e['kind'] in ('copy','construct','compute','set','union') for e in r['effects']),'batch requires an unsupported or partial RHS operation')
             require(len(mapping)==len(r['slots']),'batch mapping width differs')
             require(all(type(i) is int and 0<=i<si for i in step['requires']),'invalid local dependency')
             for i,(v,s) in enumerate(zip(mapping,r['slots'])):

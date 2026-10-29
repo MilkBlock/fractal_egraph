@@ -66,6 +66,11 @@ class BatchTests(unittest.TestCase):
             program['batch_layout']['schema']='eggfuse-batch-layout/v2'
             with self.assertRaisesRegex(ValueError,'receipt layout'):validate_recipe_artifact(root,manifest,program,c)
 
+    def test_partial_rhs_read_is_not_speculatively_executed(self):
+        c=fixture();c['tables'].append(dict(name='Input',kind='function',schema=[E,I],merge=None))
+        c['rulesets'][0]['rules'][0]['head'].append(dict(op='let',dst='late',sort=I,call={'table':'Input'},args=[var('r')]))
+        self.assertFalse(from_core(c)['batch_program']['templates'])
+
     def test_ambiguous_wiring_remains_residual(self):
         c=fixture();a=c['rulesets'][0]['rules'][0]
         a['head'].append(dict(op='let',dst='another',sort=E,call={'table':'Middle'},args=[var('r'),var('n',I)]))
