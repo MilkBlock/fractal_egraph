@@ -35,14 +35,14 @@ def duration_ns(text):
     return float(m[1]) * {'ns': 1, 'µs': 1000, 'us': 1000, 'ms': 1e6, 's': 1e9}[m[2]]
 
 
-def invoke(args, commands, path):
+def invoke(args, commands, path, timeout=300):
     try:
         # File output preserves partial logs and avoids an inherited daemon pipe
         # keeping communicate() alive after the CLI has exited.
         with path.open('w') as log:
             p = subprocess.run(['xcrun', 'gpudebug', *args, '--json'],
                                input='\n'.join(commands)+'\n', stdout=log,
-                               stderr=subprocess.STDOUT, text=True, timeout=300)
+                               stderr=subprocess.STDOUT, text=True, timeout=timeout)
     except BaseException:
         if '--gputrace' in args:
             for own in re.findall(r'^Session (\d+) created\.$', path.read_text(), re.M):
@@ -63,7 +63,9 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--reuse', action='store_true', help='load embedded profiling instead of collecting again')
     p.add_argument('--top', type=int, default=3, help='inspect longest encoders, by duration (not Cost percent)')
+    p.add_argument('--timeout-seconds', type=int, default=300, help='explicit Apple replay/compilation timeout; not an inference budget')
     a = p.parse_args()
+    if a.timeout_seconds <= 0:p.error('--timeout-seconds must be positive')
     a.output.mkdir(parents=True, exist_ok=False)
     session = None
     try:
@@ -73,10 +75,10 @@ def main():
         if not a.reuse:
             invoke(['--gputrace', str(a.trace.resolve())], [
                 'profile run --gpu-state default --exec overlapping',
-                'profile embed', 'exit --terminate'], a.output/'collection.txt')
+                'profile embed', 'exit --terminate'], a.output/'collection.txt', a.timeout_seconds)
         initial = invoke(['--gputrace', str(a.trace.resolve())], ['profile load',
             'go performance', 'go encoders', 'list --all',
-            'go ..', 'go shaders', 'list --all', 'exit'], a.output/'overview.txt')
+            'go ..', 'go shaders', 'list --all', 'exit'], a.output/'overview.txt', a.timeout_seconds)
         ids = re.findall(r'^Session (\d+) created\.$', initial, re.M)
         if not ids:
             raise RuntimeError('gpudebug did not expose a session ID')
@@ -110,7 +112,7 @@ def main():
             if s['values'][0]['value'] in functions:
                 commands += ['info '+s['name']]
         commands += ['exit --terminate']
-        details = invoke(['--session', session], commands, a.output/'details.txt')
+        details = invoke(['--session', session], commands, a.output/'details.txt', a.timeout_seconds)
         result = {'diagnostic_replay_only': True, 'trace': str(a.trace.resolve()),
                   'reused_embedded_profile': a.reuse, 'selected_encoders': selected,
                   'overview': records, 'details': json_records(details),
