@@ -1,1 +1,0 @@
-../../engine/metal/joint_refresh.metal

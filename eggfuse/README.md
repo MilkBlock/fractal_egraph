@@ -1,8 +1,9 @@
 # eggfuse components
 
 The project entry is `python3 -m eggfuse`. Run it from the repository root.
-Existing `egg_layout`, `tools.eggfuse` and backend experiment commands remain
-compatible. Native Rust modules currently remain in `src/`; the crate split in
+The old Python forwarding modules and runtime symlinks have been removed.
+Native `egg_layout` and the actual backend experiment harness remain available.
+Native Rust modules currently remain in `src/`; the crate split in
 [the architecture plan](../docs/architecture/eggfuse.md) is a later step.
 
 | Component | Current implementation |

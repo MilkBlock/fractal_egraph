@@ -183,7 +183,7 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
     if run_gpu:verify_inputs['worker']=build/'worker'
     verification=pm.run('verify',verify_inputs,
         {'gpu':run_gpu,'backend':backend,'shared_run_encoder':os.environ.get('EGGFUSE_SHARED_ENCODER')=='1','joint_shared_encoder':os.environ.get('EGGFUSE_JOINT_SHARED_ENCODER')=='1','joint_fuse_prepare':os.environ.get('EGGFUSE_JOINT_FUSE_PREPARE')=='1','joint_local_sort':os.environ.get('EGGFUSE_JOINT_LOCAL_SORT')=='1','compare':'complete original tables modulo canonical identity'},
-        base+[ROOT/'eggfuse/compiler/verify.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/engine/artifacts.py',BACKEND/'run.py',BACKEND/'verify_native_source.py',BACKEND/'run_generic_cells.py',BACKEND/'generic_cell.swift'],['verification.json'],verify,
+        base+[ROOT/'eggfuse/compiler/verify.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/engine/artifacts.py',BACKEND/'run.py',BACKEND/'verify_native_source.py',BACKEND/'run_generic_cells.py',ROOT/'engine/metal/generic_cell.swift'],['verification.json'],verify,
         lambda f:valid_json(f,'verification.json'),preserves=['verified observable result'])
     pm.publish(verification/'verification.json','verification.json');return pm
 

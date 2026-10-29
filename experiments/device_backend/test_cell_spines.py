@@ -2,7 +2,7 @@
 import argparse,copy,json
 from pathlib import Path
 from run import run
-from tools.cell_spine.executable import compile_library,digest,load
+from eggfuse.compiler.recipes.executable import compile_library,digest,load
 
 def tests(build,evidence,out):
     out.mkdir(parents=True,exist_ok=False)

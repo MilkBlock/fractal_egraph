@@ -1,1 +1,0 @@
-../../engine/metal/query_parallel.metal

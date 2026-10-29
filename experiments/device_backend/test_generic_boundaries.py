@@ -4,7 +4,7 @@ from pathlib import Path
 from test_generic_cells import core_for
 from run_generic_cells import run_library
 from verify_native_source import verify
-from generic_cell import lower
+from eggfuse.compiler.targets.metal.generic_cell import lower
 
 def one(source,build,out,name):
     path=out/(name+'.egg');path.write_text(source)

@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'experiments/device_backend'))
 from run import run
-from scheduled_matrix import validate_stage_evidence,bind_analyzer
+from eggfuse.compiler.targets.metal.scheduled_matrix import validate_stage_evidence,bind_analyzer
 from verify_native_source import verify
 
 def main():

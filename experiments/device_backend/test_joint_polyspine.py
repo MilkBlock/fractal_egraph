@@ -3,7 +3,7 @@ import argparse,json,struct,subprocess
 from pathlib import Path
 from run import run,read
 from compare_runs import compare
-from compiler import compile_program
+from eggfuse.compiler.targets.metal.compiler import compile_program
 HERE=Path(__file__).resolve().parent
 BASE=(HERE/'fixtures/polyspine-terms.egg').read_text()
 SCHEDULE='(run-schedule (saturate (run terms) (saturate (run terms-helpers) (saturate (run terms-helpers-helpers)))))\n'
@@ -13,7 +13,7 @@ def rejected_transaction(build,file,out,reason,capacity=4096,stage_contexts=Fals
     with (out/'native.log').open('w') as log:
         native=subprocess.Popen([str((build/'frontend').resolve()),str(file.resolve())],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log,text=True)
         core=json.loads(native.stdout.readline());native.stdin.write('{"op":"quit"}\n');native.stdin.flush();native.wait();native.stdin.close();native.stdout.close()
-    from tools.cell_spine.executable import load as load_cell_program
+    from eggfuse.compiler.recipes.executable import load as load_cell_program
     executable=load_cell_program(cell_program,core) if cell_program else None
     p=compile_program(core,capacity=capacity,joint_polyspine=not scheduled,scheduled_matrix=scheduled,stage_contexts=stage_contexts,block_merge=block_merge,block_merge_audit=block_merge,cell_program=executable);p['stage_context_audit']=stage_contexts;assert (p['scheduled_matrix']['programs'] if scheduled else p['joint_polyspine']['program'])
     path=out/'program.json';path.write_text(json.dumps(p))

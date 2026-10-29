@@ -14,7 +14,7 @@ It is opt-in (`--cell-program FILE`). No native engine change is needed.
    ruleset/ordinal, a typed binding example, effect evidence and producer links
    under `cell_egraph.executable_program_evidence`. This is an evidence census,
    not a claim that every observed program is a certified saturated Cell.
-2. `tools.cell_spine.executable` uses those observations to select spines, checks
+2. `eggfuse.compiler.recipes.executable` uses those observations to select spines, checks
    the typed rule/merge environment, and exports exact parameter slots and
    stage instructions. Source identity and typed body shape are checked; names
    assigned by Analyze are not assumed to equal the frontend's rule names.
@@ -38,7 +38,7 @@ on the existing complete query path. A later alias invalidates the recipe and
 resumes that path, preserving already-published evidence.
 
 This is not a general proof generator for arbitrary `.egg` programs. The shared
-helper/total-min-choice verifier was moved into `tools/cell_spine/closure_contract.py`;
+helper/total-min-choice verifier was moved into `eggfuse/compiler/recipes/closure_contract.py`;
 only validated shapes have executable recipes. Analyzer observations select
 what to generalize; observations alone are not the proof. The artifact contains
 SSA-like typed operations and evidence, not a cached concrete final graph.
@@ -95,7 +95,7 @@ The test calls real Analyze, builds a file using its evidence, and starts fresh
 workers on held-out bindings. The manual export/load boundary is:
 
 ```sh
-python3 -m tools.cell_spine.executable \
+python3 -m eggfuse.compiler.recipes.executable \
   --analysis ANALYSIS/analysis.json --core NATIVE_RUN/core.json \
   --source TRAINING.egg --output cells.json
 python3 experiments/device_backend/run.py \

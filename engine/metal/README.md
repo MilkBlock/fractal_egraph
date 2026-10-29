@@ -2,8 +2,8 @@
 
 These are the actual Swift workers and Metal execution primitives. Compile-time
 recognition and code generation live in `eggfuse/compiler/targets/metal/`.
-The old `experiments/device_backend/*.metal` and runtime `*.swift` paths are
-compatibility symlinks, so saved build/profile scripts continue to resolve them.
+The old backend runtime symlinks have been removed. Build and profiling scripts
+read this directory directly; edit these files to change the runtime.
 
 Build transport remains available through `experiments/device_backend/build.py`;
 its provenance now includes the canonical compiler/IR source files. Python host

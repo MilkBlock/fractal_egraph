@@ -76,7 +76,7 @@ device lowering 0.71 s. Native references used the debug frontend and took
 548.53 / 556.78 s; these are validation costs, not CPU performance baselines.
 
 ```sh
-python3 -m tools.eggfuse \
+python3 -m eggfuse compile \
   --source /Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg \
   --bake-source out/cell-update-pass3/training.egg \
   --output out/unified-pass3-multistage \
@@ -85,9 +85,9 @@ python3 -m tools.eggfuse \
   --capacity 1048576 --match-capacity 1048576 --multi-stage-cell
 
 # Read completed inference/failed verification without running them again:
-python3 -m tools.eggfuse.report out/unified-pass3-multistage \
+python3 -m eggfuse report out/unified-pass3-multistage \
   --reference out/cell-spines-pass3-full
-python3 -m unittest tools.eggfuse.test_multistage tools.eggfuse.test_passes -v
+python3 -m unittest eggfuse.compiler.test_multistage eggfuse.compiler.test_passes -v
 ```
 
 Raw input SHA256:

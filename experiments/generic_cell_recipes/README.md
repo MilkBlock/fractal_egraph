@@ -3,7 +3,7 @@
 Analyze now automatically publishes `cell-recipes.json` and a compact
 `cell_egraph.generic_recipes` summary. The representation is independent of
 specific rulesets, constructors, helper names and arithmetic patterns. It is
-separate from the specialized v1-v3 Metal recipes in `tools/cell_spine/executable.py`.
+separate from the specialized v1-v3 Metal recipes in `eggfuse/compiler/recipes/executable.py`.
 
 ## What is exported
 

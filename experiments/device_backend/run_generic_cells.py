@@ -1,14 +1,20 @@
 """Run a loaded analyzer library on Metal; no native engine during execution."""
 import argparse, hashlib, json, subprocess, time
 from pathlib import Path
-from generic_cell import groups, lower
-from compiler import encode_initial
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from eggfuse.compiler.targets.metal.generic_cell import groups, lower
+from eggfuse.compiler.targets.metal.compiler import encode_initial
 
 HERE = Path(__file__).resolve().parent
 
 def build_worker(output):
     output.mkdir(parents=True, exist_ok=True)
-    source = HERE / 'generic_cell.swift'; worker = output / 'generic-cell-worker'
+    source = ROOT / 'engine/metal/generic_cell.swift'; worker = output / 'generic-cell-worker'
     fingerprint = hashlib.sha256(source.read_bytes()).hexdigest()
     stamp = output / 'generic-cell-worker.sha256'
     if not worker.exists() or not stamp.exists() or stamp.read_text() != fingerprint:

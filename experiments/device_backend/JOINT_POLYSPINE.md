@@ -23,7 +23,7 @@ runtime preconditions retain the ordinary execution path.
 
 ## Reused analysis and Interface components
 
-- `polyspine_ridge.resumable_program.compile_links` is the shared compiler
+- `eggfuse.compiler.recipes.resumable.compile_links` is the shared compiler
   extracted from the previous marker-context analyzer. Both the analyzer and
   this runtime consume its typed ports, unresolved dependencies, complete heads
   and original integer-operation DAGs.

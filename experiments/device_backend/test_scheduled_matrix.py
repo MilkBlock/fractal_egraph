@@ -2,7 +2,7 @@
 import argparse,json,os,hashlib
 from pathlib import Path
 from run import run
-from compiler import compile_program
+from eggfuse.compiler.targets.metal.compiler import compile_program
 from compare_runs import compare
 from verify_native_source import verify
 from test_joint_polyspine import rejected_transaction

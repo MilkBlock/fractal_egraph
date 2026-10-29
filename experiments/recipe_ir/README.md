@@ -2,7 +2,8 @@
 
 This is a correctness/integration change, not a new Pass-3 speedup result.
 The actual compiler and Metal runtime sources have moved to their component
-locations, with compatibility modules/symlinks at the old paths.
+locations. The initial migration retained compatibility modules/symlinks; the
+subsequent cleanup removes them after migrating callers.
 
 ## Implemented
 
@@ -47,7 +48,7 @@ locations, with compatibility modules/symlinks at the old paths.
 6. Fifteen IR/cache/contract unit tests pass, including re-signed corrupt wiring,
    forged guarantees/footprints, scope promotion, ambiguous typed calls, and a
    valid different program substituted for the expected source.
-7. Source-marker compatibility and native/GPU tests pass, including old imports,
+7. Source-marker compatibility and native/GPU tests pass, including the then-supported old imports,
    immutable publisher/completion, late union, alias fibers, finite Run, local
    execution and cache reuse. A copied artifact runs from a separate temporary
    directory while the lowering function is patched to fail if called.
@@ -71,8 +72,8 @@ legacy host/oracle harness are later migration steps.
 ## Reproduce
 
 ```sh
-python3 -m unittest eggfuse.ir.test_recipe tools.eggfuse.test_passes \
-  tools.eggfuse.test_multistage -v
+python3 -m unittest eggfuse.ir.test_recipe eggfuse.compiler.test_passes \
+  eggfuse.compiler.test_multistage -v
 python3 experiments/recipe_ir/check_context.py \
   --source /path/to/original/raytrace-pass-3-flat.egg \
   --build out/device-build-scheduled-reviewed --output out/new-context-ir
@@ -92,3 +93,35 @@ Raw reports are under `out/recipe-ir-real-context`, `out/recipe-ir-native-contex
 `out/recipe-ir-generic-tests`, `out/recipe-ir-boundaries`,
 `out/eggfuse-components-final`, and `out/eggfuse-final-terms`. No generated binaries,
 mutation streams or large input/endpoint graphs are tracked.
+
+## Legacy path removal (2026-10-29)
+
+Removed 55 forwarding/source-alias paths: the old `tools.eggfuse` package,
+18 Python compatibility modules and 25 Swift/Metal symlinks. Current scripts,
+source links and the profiling skill use the canonical components. Historical
+result JSON remains unchanged. The real frontend/host/oracle harness under
+`experiments/device_backend` and Rust analyzer still exist; they are not aliases.
+
+Validation after deletion:
+
+- 17 shared-IR/pass/layout tests pass, including six direct scripts launched
+  outside the repository without `PYTHONPATH`.
+- A fresh worker build reads `engine/metal`; its generated Swift is byte-identical
+  to the previous component build. The manifest records actual source files and
+  preserves the reused native frontend's original fingerprints.
+- `experiments/unified_compiler/check.py` passes with the rebuilt worker:
+  native/GPU checks, local backend, marker publication, artifact loading without
+  relowering, cache reuse and rejection of altered contracts.
+- Polyspine marker unit checks: five pass; three native/Metal-worker cases remain
+  skipped without their optional fixtures. Profiling skill validation and its
+  eight unit checks pass.
+
+Reproduce the path-sensitive unit checks with:
+
+```sh
+python3 -m unittest eggfuse.ir.test_recipe eggfuse.compiler.test_passes \
+  eggfuse.compiler.test_multistage eggfuse.compiler.test_layout -v
+```
+
+This cleanup changes source ownership and entry points, not inference algorithms;
+no new Pass-3 timing or whole-program equivalence claim is made.

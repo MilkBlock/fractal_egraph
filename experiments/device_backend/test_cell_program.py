@@ -7,7 +7,7 @@ import argparse,copy,hashlib,json,os,subprocess
 from pathlib import Path
 from run import run
 from test_joint_polyspine import BASE,SCHEDULE,rejected_transaction
-from tools.cell_spine.executable import compile_library,load,digest
+from eggfuse.compiler.recipes.executable import compile_library,load,digest
 
 
 def tests(build,analyzer,out,evidence_from=None,resume=False):

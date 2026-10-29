@@ -3,7 +3,7 @@ import argparse,copy,hashlib,json,struct
 from pathlib import Path
 from run import run
 from compare_runs import compare
-from stage_cell import digest,load
+from eggfuse.compiler.targets.metal.stage_cell import digest,load
 from test_joint_polyspine import BASE,SCHEDULE,rejected_transaction
 
 def words_to_rows(words,stride):

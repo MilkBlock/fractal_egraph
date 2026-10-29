@@ -16,7 +16,7 @@ and an example/count of requests with a known previous value. This separates
 an observed function update from merely observing a rule name. The exporter
 requires this evidence for v2 and validates all helper and comparison rules.
 
-`update_recipe.py` exports three helper programs from the typed native AST:
+`eggfuse/compiler/recipes/update_recipe.py` exports three helper programs from the typed native AST:
 initialization, conditional update and negative-cost failure. Parameters are
 exact row fields identified by role/column. The artifact also retains the
 complete comparison contract, dependency generations and native request-order
@@ -84,7 +84,7 @@ both fresh recipes and updates, or `--updates-only` to isolate the update
 program. The latter is the measured full-Pass-3 configuration:
 
 ```sh
-python3 -m tools.cell_spine.executable \
+python3 -m eggfuse.compiler.recipes.executable \
   --analysis ANALYSIS/analysis.json --core NATIVE_RUN/core.json \
   --source TRAINING.egg --output updates.json --updates-only
 python3 experiments/device_backend/run.py \

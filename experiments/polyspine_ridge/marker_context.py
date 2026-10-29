@@ -4,15 +4,19 @@ All alternatives/bindings remain in the export. The optional min-cost projection
 is deliberately narrower than full candidate/union semantics.
 """
 from collections import defaultdict
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import numpy as np
 from affine_terms import compile_program,pair_index,exact,HI
 from features import identity
 
 
-try:
-    from .resumable_program import compile_links
-except ImportError:
-    from resumable_program import compile_links
+from eggfuse.compiler.recipes.resumable import compile_links
 
 
 def csr(keys,n):

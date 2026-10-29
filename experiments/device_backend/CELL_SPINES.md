@@ -62,7 +62,7 @@ the existing terms/helper counters for direct comparison.
 The native training source/evidence from `CELL_UPDATES.md` can be reused:
 
 ```sh
-python3 -m tools.cell_spine.executable \
+python3 -m eggfuse.compiler.recipes.executable \
   --analysis out/cell-update-pass3/analysis-v2/analysis.json \
   --core out/cell-update-pass3/training-reference/core.json \
   --source out/cell-update-pass3/training.egg \

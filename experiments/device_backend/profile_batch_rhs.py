@@ -8,7 +8,7 @@ def prepare(run,out):
     if any(s.get('kind') in ['joint_polyspine','comparison_saturate'] or 'matrix_macro' in s for s in report['steps']):
         raise ValueError('this profiler replays ordinary Run only; a compacted Saturate needs scope-aware replay')
     skill=HERE.parents[1]/'skills/eggfuse-metal-profile/scripts/profile.py'
-    subprocess.run(['python3',str(skill),'prepare','--run',str(run),'--source',str(HERE/'worker.swift'),'--output',str(out)],check=True)
+    subprocess.run(['python3',str(skill),'prepare','--run',str(run),'--source',str(HERE.parents[1]/'engine/metal/worker.swift'),'--output',str(out)],check=True)
     path=out/'worker.swift';source=path.read_text();anchor='var profileNames: [ObjectIdentifier: String] = [:]'
     if source.count(anchor)!=1:raise ValueError('profile name-map ABI changed')
     source=source.replace(anchor,anchor+'\nfor (p,n) in zip(batchPipelines,batchNames) { profileNames[ObjectIdentifier(p)] = n }')

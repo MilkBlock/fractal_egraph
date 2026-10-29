@@ -3,7 +3,7 @@ import argparse,itertools,json,math
 from pathlib import Path
 from run import run
 from compare_runs import compare
-from matrix_sat import separator
+from eggfuse.compiler.targets.metal.matrix_sat import separator
 
 
 def tests(build,out):

@@ -5,8 +5,14 @@ comparison contract; GPU state is never reimported and repaired by native rebuil
 """
 import argparse,json,struct,subprocess,time,hashlib,os,re
 from pathlib import Path
-from compiler import compile_program
-from joint_polyspine import normalize_schedule
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from eggfuse.compiler.targets.metal.compiler import compile_program
+from eggfuse.compiler.targets.metal.joint_polyspine import normalize_schedule
 
 def read(pipe,n):
  b=b''
@@ -156,7 +162,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     if not control['checks'] or control['checks'][-1]['step']!=len(control['steps']):raise ValueError('stored reference lacks a final native checkpoint')
    executable=None
    if cell_program is not None:
-    from tools.cell_spine.executable import load as load_cell_program
+    from eggfuse.compiler.recipes.executable import load as load_cell_program
     executable=load_cell_program(cell_program,original)
    marker_ir=json.loads(marker_program.read_text()) if marker_program is not None else None
    if marker_ir is not None and marker_ir["source_sha256"]!=hashlib.sha256(source.read_bytes()).hexdigest():raise ValueError("marker source fingerprint mismatch")
@@ -183,11 +189,11 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
    else:
     p=compile_program(original,capacity,match_capacity,defer_unions,incremental_queries,delta_queries,parallel_rebuild,parallel_prepare,parallel_match,indexed_subsume,parallel_merge_index,all_index_columns,radix_digit_bits,seed_dispatch,noop_preflight,direct_actions,query_patch,effect_dedup,early_seed_guards,lhs_context_reuse,rebuild_batch,parallel_rhs,split_matches,json.loads(context_model.read_text()) if context_model else None,context_training,merge_target_index,batch_rhs,matrix_saturate,joint_polyspine,json.loads(polyspine_model.read_text()) if polyspine_model else None,polyspine_training,polyspine_full_refresh,polyspine_refresh_audit,stage_contexts,block_merge,stage_context_audit or os.environ.get("EGGFUSE_MATRIX_AUDIT")=="1",executable,scheduled_matrix,marker_program=marker_ir)
    if schedule_library is not None:
-    from scheduled_matrix import bind_analyzer
+    from eggfuse.compiler.targets.metal.scheduled_matrix import bind_analyzer
     bind_analyzer(json.loads(schedule_library.read_text()),original,p,source.read_bytes().decode("utf-8"))
    p['stage_context_audit']=stage_context_audit;p['stage_context_export']=stage_context_export
    if stage_cell is not None:
-    from stage_cell import load as load_stage_cell
+    from eggfuse.compiler.targets.metal.stage_cell import load as load_stage_cell
     loaded=load_stage_cell(stage_cell,p['stage_cell']);p['stage_cell']={k:loaded[k] for k in ['contract','contract_sha256']}
    prefix=load_resume(resume,original,p,require_native_resume) if resume else []
    if max_runs is not None and max_runs<=len(prefix):raise ValueError('max-runs must exceed resumed prefix')
@@ -516,7 +522,7 @@ def run(source,build,out,check_every=1,capacity=4096,match_capacity=16384,check_
     result['stage_contexts']=stages;result['stage_cell_contract_sha256']=p['stage_cell']['contract_sha256']
     result['loaded_stage_cell']=str(stage_cell) if stage_cell else None
     if bake_stage_cell is not None:
-     from stage_cell import save as save_stage_cell
+     from eggfuse.compiler.targets.metal.stage_cell import save as save_stage_cell
      save_stage_cell(bake_stage_cell,p['stage_cell'],result,stages);result['baked_stage_cell']=str(bake_stage_cell)
    (out/'report.json').write_text(json.dumps(result,indent=2)+'\n');return result
   except Exception as e:

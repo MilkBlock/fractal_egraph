@@ -1,1 +1,0 @@
-../../engine/metal/query_index.metal

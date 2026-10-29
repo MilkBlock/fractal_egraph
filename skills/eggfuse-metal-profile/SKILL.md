@@ -21,7 +21,7 @@ description: 用 Xcode xctrace、Metal GPU Counters 和 gpudebug 定位 eggfuse/
 ```sh
 python3 "$PROFILE_SKILL/scripts/profile.py" hotspots --run "$RUN"
 python3 "$PROFILE_SKILL/scripts/profile.py" prepare \
-  --run "$RUN" --source experiments/device_backend/worker.swift --output out/profile-build
+  --run "$RUN" --source engine/metal/worker.swift --output out/profile-build
 python3 "$PROFILE_SKILL/scripts/profile.py" record \
   --run "$RUN" --build out/profile-build --output out/profile-window \
   --mode counters --start-after "$START" --end-run "$END" \

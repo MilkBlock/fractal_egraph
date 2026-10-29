@@ -6,10 +6,10 @@ rules/declarations are copied verbatim from the saved production Pass-3 file.
 import argparse,copy,hashlib,json,os,subprocess
 from pathlib import Path
 from run import run
-from compiler import compile_program
+from eggfuse.compiler.targets.metal.compiler import compile_program
 from compare_runs import compare
 from test_joint_polyspine import SCHEDULE,rejected_transaction
-from tools.cell_spine.executable import compile_library,load,digest
+from eggfuse.compiler.recipes.executable import compile_library,load,digest
 
 TRAIN='''(let a (Const (Int 1) (Base (IntT)) (InFunc "cell-training")))
 (let b (Arg (Base (IntT)) (InFunc "cell-training")))

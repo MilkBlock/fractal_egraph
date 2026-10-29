@@ -3,8 +3,8 @@ import argparse,copy,json,subprocess,sys
 from pathlib import Path
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT))
-from tools.eggfuse.pipeline import compile_pipeline
-from tools.eggfuse.marker_ir import validate,digest
+from eggfuse.compiler.pipeline import compile_pipeline
+from eggfuse.compiler.marker_ir import validate,digest
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--solver-python',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
@@ -83,10 +83,10 @@ def main():
     key=compile_pipeline(ROOT/'experiments/unified_compiler/choice.egg',a.output/'choice',a.build,tools,a.solver_python.absolute(),stop_after='sk')
     result=subprocess.run([str(tools/'eggfuse_frontend'),str(key.output/'source_sk.egg'),'--native-check'],capture_output=True,text=True,check=True)
     summary['source_declared_key_policy']=json.loads(result.stdout)
-    from tools.eggfuse.pipeline import native_core
+    from eggfuse.compiler.pipeline import native_core
     opaque_dir=a.output/'opaque-key-ir';opaque_dir.mkdir()
     opaque=native_core(tools/'eggfuse_frontend',key.output/'source_sk.egg',opaque_dir)
-    from compiler import compile_program
+    from eggfuse.compiler.targets.metal.compiler import compile_program
     try:compile_program(opaque)
     except ValueError as e:
         assert 'physical lowering' in str(e);summary['unsupported_gpu_key_type_rejected']=str(e)

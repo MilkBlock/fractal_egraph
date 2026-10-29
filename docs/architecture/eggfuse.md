@@ -1,7 +1,7 @@
 # eggfuse：组件边界与架构审计
 
 状态：2026-10-29。本文保留架构审计及目标设计。第一阶段已落实公共 Recipe IR、编译器/Metal
-源码归属和兼容入口，见[当前组件与边界](../../eggfuse/README.md)。Rust crate 拆分、通用事件
+源码归属和统一入口，见[当前组件与边界](../../eggfuse/README.md)。Rust crate 拆分、通用事件
 订阅和更广的全局快路径仍未完成。审计中的性能数字来自已保存的完整 Pass-3 对照。
 
 ## 结论
@@ -50,7 +50,7 @@
 
 ### 2. 参数化和 fast recipe 的覆盖没有统一
 
-`tools/cell_spine/executable.py::environment/derive` 直接限定三个 `terms` ruleset；
+`eggfuse/compiler/recipes/executable.py::environment/derive` 直接限定三个 `terms` ruleset；
 `closure_contract.py`、`update_recipe.py` 和 `joint_polyspine.py` 对实际 helpers、候选关系、
 代价表与 merge 形状进行检查。检查是必要的，但目前主要是一种已知模式的专用编译器。
 
@@ -67,8 +67,8 @@
 带关联键的动态上下文，以及发布后可精确失效的 marker。当前完整 Pass-3 流程选出了
 零个新增源码 marker，不能把 terms 内部端口复用说成源码 marker 已经覆盖了热点。
 
-[Marker Program](../../tools/eggfuse/marker_ir.py) 和
-[native-row Interface](../../tools/cell_spine/interfaces.py) 都有价值，但当前消费者和
+[Marker Program](../../eggfuse/compiler/marker_ir.py) 和
+[native-row Interface](../../eggfuse/ir/interface.py) 都有价值，但当前消费者和
 授权方式不同，需要收敛，而不是再造第三套来源不明的缓存。
 
 ### 4. 完整输入分析的成本还没有得到控制
@@ -200,7 +200,7 @@ artifact manifest + Device Program + kernels
 源码 marker 是可检查的语义视图，GPU 上的矩阵／索引布局是其物理实现，两者不必一一同形。
 一个优化 recipe 必须保留来源和降级方式；学习模型不能改变固定算术列或替代精确授权。
 
-现有 `tools/eggfuse/passes.py` 可继续使用。它已有依赖、指纹、产物校验、失败记录和缓存。
+现有 `eggfuse/compiler/passes.py` 可继续使用。它已有依赖、指纹、产物校验、失败记录和缓存。
 不足在于：边界主要是文件，有的下游直接导入上游实验实现；调度编码与停止语义有多份实现；
 不少 pass 共享 `pipeline.py` 的整文件指纹，局部编排修改会失效过多缓存。
 
@@ -236,10 +236,10 @@ eggfuse/                         # 项目名称；无需强制改本机 checkout
 | 现在 | 目标职责 |
 |---|---|
 | `src/native_*`、`src/cell_recipe*`、`src/cell_schedule.rs` | analyzer 与共享语义 IR；逐模块拆分 |
-| `tools/eggfuse/*` | compiler 编排；先迁为稳定 Python 包，旧模块留薄兼容入口 |
+| `eggfuse/compiler/*` | compiler 编排；旧 Python 转发入口已经删除 |
 | `tools/cell_spine/*` | 将稳定编译 pass 与独立研究原型分开，不能整目录照搬 |
-| `experiments/device_backend/compiler.py`、各 `lower` 模块 | compiler 的 Metal target，不能算 engine 的“识别能力” |
-| `experiments/device_backend/worker.swift`、运行时 `.metal` | engine；只依赖 Device/Recipe 契约和底层运行原语 |
+| `eggfuse/compiler/targets/metal/compiler.py`、各 `lower` 模块 | compiler 的 Metal target，不能算 engine 的“识别能力” |
+| `engine/metal/worker.swift`、运行时 `.metal` | engine；只依赖 Device/Recipe 契约和底层运行原语 |
 | `frontend.rs`、`compare_runs.py`、snapshot/extraction 检查 | CLI/frontend 或 validation；独立于计时循环 |
 | `test_*`、fixture、profile/bench 脚本、`*-results.json` | tests、benchmarks、实验报告 |
 | 从 `experiments/polyspine_ridge` 导入的配方编译逻辑 | 提取稳定部分至 compiler，模型训练留在 experiments |
@@ -249,7 +249,7 @@ Validation 可以同时驱动它们；engine 不反向导入 analyzer 或研究�
 
 ## 实施顺序与验收
 
-1. **本轮：统一项目名称、公布真实组件/能力地图。** 保留旧 `egg_layout` 包、CLI、路径兼容。
+1. **本轮：统一项目名称、公布真实组件/能力地图。** 保留原生 `egg_layout` 包和 CLI；已迁移的 Python/Metal 路径不再保留兼容入口。
    不混入 Git remote 发布或整仓路径重写。
 2. **统一 Recipe IR 与 verifier。** 适配 generic 和 terms 两类现有产物；符号改名后仍可识别
    同一结构，且保持所有 guard、参数关联、effect 与控制。先用原解释器作语义基线。
@@ -262,7 +262,7 @@ Validation 可以同时驱动它们；engine 不反向导入 analyzer 或研究�
    公共端口共享；更新/union/subsume 触发必要的局部更新与原路径回退。
 6. **再做布局与融合。** 按相同接线批量执行，固定算术与预测分开，保留精确身份；以真正
    减少重复查询/推导为目标，不以更多矩阵、更多 Cell 或更多 macro 调用为目标。
-7. **沿上述边界逐目录迁移。** 每次只迁一层，保留兼容入口，检查旧脚本/skill、原生结果、
+7. **沿上述边界逐目录迁移。** 每次只迁一层，迁移脚本/skill 后删除旧路径，检查原生结果、
    产物加载与 benchmark 配置。路径变动与语义变动分开提交；不为了搬文件重复跑全部历史。
 
 每条规则应有 `可表达 → 可验证 → 可优化 → 本次实际执行` 的状态及拒绝原因。每个原阶段
@@ -271,11 +271,11 @@ Validation 可以同时驱动它们；engine 不反向导入 analyzer 或研究�
 
 ## 证据入口
 
-- [统一编译流程](../../tools/eggfuse/README.md)
+- [统一编译流程](../../eggfuse/compiler/README.md)
 - [完整 Pass 3 与原生差异](../../experiments/unified_compiler/PASS3.md)
 - [联合执行消融及覆盖口径](../../experiments/joint_execution_fusion/README.md)
 - [Rust recipe 导出](../../src/cell_recipe.rs)
-- [通用 GPU Cell 执行](../../experiments/device_backend/generic_cell.py)
-- [特定多阶段配方 exporter](../../tools/cell_spine/executable.py)
-- [联合快路径契约](../../experiments/device_backend/joint_polyspine.py)
-- [固定载体矩阵准入](../../experiments/device_backend/matrix_sat.py)
+- [通用 GPU Cell 执行](../../eggfuse/compiler/targets/metal/generic_cell.py)
+- [特定多阶段配方 exporter](../../eggfuse/compiler/recipes/executable.py)
+- [联合快路径契约](../../eggfuse/compiler/targets/metal/joint_polyspine.py)
+- [固定载体矩阵准入](../../eggfuse/compiler/targets/metal/matrix_sat.py)

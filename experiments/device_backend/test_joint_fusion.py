@@ -3,7 +3,7 @@ import argparse,json,os
 from pathlib import Path
 from run import run
 from compare_runs import compare
-from tools.cell_spine.executable import compile_library
+from eggfuse.compiler.recipes.executable import compile_library
 from test_joint_polyspine import SCHEDULE
 
 def tests(build,evidence,out):

@@ -15,7 +15,7 @@ def bench(source,build,output,marker,cell,capacity,match_capacity,optimization="
   assert r['complete_schedule'] and r['clean_timing'] and r['joint_polyspine']['calls']
   reports[mode]=r;print(mode,r['inference_seconds'],r['joint_execution'],flush=True)
  check=compare(output/'off',output/'on',device_states=True,semantic_device=True,saturation_macros=True)
- from tools.eggfuse.multistage import execution_summary
+ from eggfuse.compiler.multistage import execution_summary
  result=dict(scope='actual complete source schedule; same binary on/off; not pristine native equivalence',
              optimization=optimization,source_sha256=reports['on']['source_sha256'],worker_sha256=reports['on']['build']['worker_sha256'],
              graph=check['final_check'],lanes={})

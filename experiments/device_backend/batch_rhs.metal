@@ -1,1 +1,0 @@
-../../engine/metal/batch_rhs.metal

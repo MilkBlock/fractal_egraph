@@ -173,7 +173,7 @@ profile costing, the common contracts and target lowering. The imported source
 adapter's old application-specific/two-atom limitations are not hidden.
 
 ```sh
-python3 -m unittest tools.eggfuse.test_passes -v
+python3 -m unittest eggfuse.compiler.test_passes -v
 python3 experiments/unified_compiler/check.py \
   --build out/device-build --solver-python /path/to/scip-venv/bin/python \
   --output out/compiler-contract-checks
@@ -219,17 +219,17 @@ recorded in [PASS3.md](../../experiments/unified_compiler/PASS3.md). To inspect
 completed inference even when final verification failed, without rerunning:
 
 ```sh
-python3 -m tools.eggfuse.report out/unified-pass3-multistage \
+python3 -m eggfuse report out/unified-pass3-multistage \
   --reference out/cell-spines-pass3-full
 ```
 
 ## Shared Recipe IR and relocated implementation
 
-The canonical Python package is now `eggfuse.compiler`. `tools.eggfuse` remains
-a compatibility entry. Metal lowering lives in `targets/metal/`, validated
+The canonical Python package is `eggfuse.compiler`; invoke it with
+`python3 -m eggfuse compile`. Metal lowering lives in `targets/metal/`, validated
 terms recipes in `recipes/`, and runtime Swift/Metal in `engine/metal/` at the
-repository root. Historical backend paths remain compatibility modules or
-symlinks; benchmark reports were not relocated.
+repository root. Old forwarding modules and runtime symlinks are deleted.
+Benchmark reports retain their recorded paths and provenance.
 
 Analyze additionally publishes `recipe-library.json`. The compiler emits
 `recipe-program.json` from the marked typed source, validates it, and reconstructs

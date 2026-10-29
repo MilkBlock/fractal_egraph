@@ -1,1 +1,0 @@
-../../engine/metal/cell_spines.metal
