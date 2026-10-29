@@ -95,8 +95,15 @@ withExtendedLifetime(stages) {}
 }
 try initializeState()
 program.removeValue(forKey:"initial_rows");program.removeValue(forKey:"initial_sets");program.removeValue(forKey:"action_code");for n in ["initial_parents","initial_fact_parents","initial_watermarks"]{program.removeValue(forKey:n)}
+let sharedRunEncoding=ProcessInfo.processInfo.environment["EGGFUSE_SHARED_ENCODER"]=="1"
+var activeRunCommand:ObjectIdentifier?=nil,activeRunEncoder:MTLComputeCommandEncoder?=nil
+var sharedRunDispatches=0,sharedRunEncoders=0
+func beginRunEncoder(_ cb:MTLCommandBuffer){if sharedRunEncoding{precondition(activeRunEncoder==nil);activeRunCommand=ObjectIdentifier(cb);activeRunEncoder=cb.makeComputeCommandEncoder()!;sharedRunEncoders+=1}}
+func endRunEncoder(){activeRunEncoder?.endEncoding();activeRunEncoder=nil;activeRunCommand=nil}
 func encode(_ cb:MTLCommandBuffer,_ pipeline:MTLComputePipelineState,_ threads:Int,_ arg:UInt32,indirect:Bool=false,indirectOffset:Int=16,radixBit:UInt32=0,sortK:UInt32=0,sortD:UInt32=0,effectMask:UInt32=1,contextPhase:UInt32=1,contextExport:MTLBuffer?=nil,sharedEncoder:MTLComputeCommandEncoder?=nil,bindResources:Bool=true,rebuildMode:UInt32=0,batchIndirectOffset:Int?=nil){
- let e=sharedEncoder ?? cb.makeComputeCommandEncoder()!;e.setComputePipelineState(pipeline)
+ let automatic=activeRunCommand==ObjectIdentifier(cb) ? activeRunEncoder:nil
+ let e=sharedEncoder ?? automatic ?? cb.makeComputeCommandEncoder()!;e.setComputePipelineState(pipeline)
+ if automatic != nil{sharedRunDispatches+=1}
  if bindResources {
  for (i,b) in [rows,old,parent,factParent,meta,matches,watermarks].enumerated(){e.setBuffer(b,offset:0,index:i)}
  e.setBuffer(instructions,offset:0,index:8);e.setBuffer(registers,offset:0,index:9);e.setBuffer(queryHeads,offset:0,index:10);e.setBuffer(queryLinks,offset:0,index:11);e.setBuffer(rebuildControl,offset:0,index:12);e.setBuffer(queryAlternate,offset:0,index:14);e.setBuffer(matchOrder,offset:0,index:15)
@@ -114,7 +121,7 @@ func encode(_ cb:MTLCommandBuffer,_ pipeline:MTLComputePipelineState,_ threads:I
  if let offset=batchIndirectOffset{e.dispatchThreadgroups(indirectBuffer:batchState,indirectBufferOffset:offset,threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
  else if indirect{e.dispatchThreadgroups(indirectBuffer:indirectOffset == -1 ? contextInfo : rebuildControl,indirectBufferOffset:indirectOffset == -1 ? 8 : indirectOffset,threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
  else{e.dispatchThreads(MTLSize(width:threads,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(threads,256,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))}
- if sharedEncoder != nil{e.memoryBarrier(scope:.buffers)}else{e.endEncoding()}
+ if sharedEncoder != nil || automatic != nil{e.memoryBarrier(scope:.buffers)}else{e.endEncoding()}
 }
 func copyStatus(_ cb:MTLCommandBuffer,_ status:MTLBuffer,_ flags:MTLBuffer){
  let b=cb.makeBlitCommandEncoder()!;b.copy(from:meta,sourceOffset:0,to:status,destinationOffset:0,size:36);b.copy(from:rows,sourceOffset:(program["index_counter_offset"] as! Int)*8,to:status,destinationOffset:36,size:8);b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:16);b.copy(from:rows,sourceOffset:(program["query_dirty_offset"] as! Int)*8,to:status,destinationOffset:44,size:8);b.copy(from:rows,sourceOffset:((program["index_counter_offset"] as! Int)-(program["hash_capacity"] as! Int)-1)*8,to:status,destinationOffset:52,size:8);b.copy(from:rebuildControl,sourceOffset:44,to:status,destinationOffset:60,size:4);b.copy(from:noopFlags,sourceOffset:matchCapacity*4,to:status,destinationOffset:64,size:4);b.endEncoding()
@@ -137,6 +144,7 @@ func finishRebuild(_ arg:UInt32,_ status:MTLBuffer,_ flags:MTLBuffer)throws->Dou
   let needed=controlWords[0] != 0
   while controlWords[0] != 0 && controlWords[3] == 0 {
    let cb=queue.makeCommandBuffer()!
+   if rebuildBatch<=1{beginRunEncoder(cb)}
    if rebuildBatch>1 {
     let mode=controlWords[0]
     let encoder=cb.makeComputeCommandEncoder()!
@@ -164,6 +172,7 @@ func finishRebuild(_ arg:UInt32,_ status:MTLBuffer,_ flags:MTLBuffer)throws->Dou
     let widths=[1,program["hash_capacity"] as! Int,capacity,capacity,((capacity+255)/256)*256,1,capacity,1]
     for i in 0..<8{encode(cb,rebuildPipelines[i],widths[i],arg)}
    }
+   endRunEncoder()
    let b=cb.makeBlitCommandEncoder()!;b.copy(from:rebuildControl,sourceOffset:0,to:flags,destinationOffset:0,size:64);b.endEncoding();cb.commit();cb.waitUntilCompleted();rebuildWaits+=1
    try need(cb.status == .completed,"parallel rebuild failed: \(String(describing:cb.error))")
    rebuildSeconds+=cb.gpuEndTime-cb.gpuStartTime
@@ -173,7 +182,9 @@ func finishRebuild(_ arg:UInt32,_ status:MTLBuffer,_ flags:MTLBuffer)throws->Dou
   if needed {
    let cb=queue.makeCommandBuffer()!
    try need(rebuildPipelines[8].maxTotalThreadsPerThreadgroup>=256,"compaction requires 256 threads per group")
+   beginRunEncoder(cb)
    for (i,width) in [((capacity+255)/256)*256,1,capacity,capacity*stride].enumerated(){encode(cb,rebuildPipelines[8+i],width,arg)}
+   endRunEncoder()
    copyStatus(cb,status,flags);cb.commit();cb.waitUntilCompleted();try need(cb.status == .completed,"rebuild finish failed")
    rebuildSeconds+=cb.gpuEndTime-cb.gpuStartTime
   }
@@ -346,7 +357,7 @@ func comparisonSaturate(_ set:UInt32,localOnly:Bool=false,sourceLists:MTLBuffer?
 try output.write(contentsOf:Data("DVB7".utf8))
 while true{
  let d=try read(8),words=d.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let op=words[0],arg=words[1]
- if op==0{try scWriteReport();try FileHandle.standardError.write(contentsOf:Data("comparison_sat calls=\(cuCalls) local_iterations=\(cuIterations) unions=\(cuUnions) retained_scratch=\(cuBuffers.values.map{$0.length}.reduce(0,+))\n".utf8));try FileHandle.standardError.write(contentsOf:Data("matrix_sat calls=\(msCalls) logical_runs=\(msLogicalRuns) rows=\(msPublished) scratch_peak=\(msPeakBytes)\n".utf8));try FileHandle.standardError.write(contentsOf:Data("batch_rhs proposals=\(batchTotals[0]) new_rows=\(batchTotals[1]) fallback_segments=\(batchTotals[2]) parallel_segments=\(batchTotals[3])\n".utf8));try FileHandle.standardError.write(contentsOf:Data("device index_refresh full=\(fullIndexPhases) patch=\(patchIndexPhases)\nrebuild iterations=\(rebuildIterations) waits=\(rebuildWaits)\ncontexts emitted=\(contextCount) fallback_runs=\(contextFallbacks)\n".utf8));break}
+ if op==0{if sharedRunEncoding{try FileHandle.standardError.write(contentsOf:Data("shared_run_encoding dispatches=\(sharedRunDispatches) encoders=\(sharedRunEncoders)\n".utf8))};try scWriteReport();try FileHandle.standardError.write(contentsOf:Data("comparison_sat calls=\(cuCalls) local_iterations=\(cuIterations) unions=\(cuUnions) retained_scratch=\(cuBuffers.values.map{$0.length}.reduce(0,+))\n".utf8));try FileHandle.standardError.write(contentsOf:Data("matrix_sat calls=\(msCalls) logical_runs=\(msLogicalRuns) rows=\(msPublished) scratch_peak=\(msPeakBytes)\n".utf8));try FileHandle.standardError.write(contentsOf:Data("batch_rhs proposals=\(batchTotals[0]) new_rows=\(batchTotals[1]) fallback_segments=\(batchTotals[2]) parallel_segments=\(batchTotals[3])\n".utf8));try FileHandle.standardError.write(contentsOf:Data("device index_refresh full=\(fullIndexPhases) patch=\(patchIndexPhases)\nrebuild iterations=\(rebuildIterations) waits=\(rebuildWaits)\ncontexts emitted=\(contextCount) fallback_runs=\(contextFallbacks)\n".utf8));break}
  if op==1{
   try need(Int(arg)<(program["sets"] as! [String]).count,"ruleset")
   if needsIndexReset || !(program["incremental_queries"] as! Bool){fullIndexPhases+=1}else if needsIndexPatch{patchIndexPhases+=1}
@@ -363,14 +374,15 @@ while true{
     let info=matchStatus.contents().bindMemory(to:UInt32.self,capacity:9)
     if info[4]==0 && info[5]>1 {
      var padded=256;while padded<Int(info[5]){padded*=2}
-     let sorted=queue.makeCommandBuffer()!;encode(sorted,matchSortPipelines[0],padded,arg)
+     let sorted=queue.makeCommandBuffer()!;beginRunEncoder(sorted);encode(sorted,matchSortPipelines[0],padded,arg)
      var k=512
      while k<=padded{var d=k/2;while d>=256{encode(sorted,matchSortPipelines[1],padded,arg,sortK:UInt32(k),sortD:UInt32(d));d/=2};encode(sorted,matchSortPipelines[2],padded,arg,sortK:UInt32(k));k*=2}
-     sorted.commit();orderCommand=sorted
+     endRunEncoder();sorted.commit();orderCommand=sorted
      if ProcessInfo.processInfo.environment["EGG_DEVICE_PHASE_LOG"]=="1"{sorted.waitUntilCompleted();try FileHandle.standardError.write(contentsOf:Data("device sorting complete count=\(info[5]) status=\(sorted.status.rawValue)\n".utf8))}
     }
    }
    let cb=queue.makeCommandBuffer()!
+   if stage==0{beginRunEncoder(cb)}
    if stage==2 && parallelMatch && ((program["noop_preflight"] as! Bool)||(program["effect_dedup"] as! Bool)) {
     let info=matchStatus.contents().bindMemory(to:UInt32.self,capacity:9)
     if info[4]==0 && info[5]>0{
@@ -432,6 +444,7 @@ while true{
     }else{encode(cb,prepareClearPipeline,1,arg,indirect:true)}
     encode(cb,prepareBuildPipeline,1,arg)
    }
+   if stage==0{endRunEncoder()}
    if stage==1 && parallelMatch{let b=cb.makeBlitCommandEncoder()!;b.copy(from:meta,sourceOffset:0,to:matchStatus,destinationOffset:0,size:36);b.endEncoding()}
    if stage==2{copyStatus(cb,status,flags)}
    cb.commit();commands.append(cb)

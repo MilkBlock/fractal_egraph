@@ -333,3 +333,20 @@ kernel void jp_context_extend(JP_ARGS,device uint*counts[[buffer(5)]],device uin
  if(!i){jp_add(r,107,1);jp_add(r,108,cfg.y-cfg.x);}uint at=cfg.x+i;
  if(at<cfg.y){counts[at]=0;stamps[at]=0;ranges[2*at]=0;ranges[2*at+1]=0;}if(at>cfg.x&&at<=cfg.y)offsets[at]=offsets[cfg.x];
 }
+
+// Task cardinality stays on device between projection and recipe evaluation.
+// On overflow all subsequent recipe kernels already observe m.error.
+kernel void jp_job_dispatch(JP_ARGS,device uint*dispatch[[buffer(5)]],uint i[[thread_position_in_grid]]){
+ if(i)return;uint jobs=m.error?0:jp_count(r,9);
+ if(jobs>MATCHCAP){m.error=2;jobs=0;}
+ dispatch[0]=(jobs+255)/256;dispatch[1]=1;dispatch[2]=1;
+ dispatch[3]=(jobs+7)/8;dispatch[4]=1;dispatch[5]=1;
+}
+
+// Finish one bitonic merge inside a 256-lane tile after all cross-tile
+// distances have completed. Same witness comparator and ordering as before.
+kernel void jp_sort_finish(JP_ARGS,device long*matches[[buffer(5)]],device const uint*witnesses[[buffer(6)]],device uint*order[[buffer(7)]],constant uint&k[[buffer(8)]],uint lane[[thread_position_in_grid]],uint tid[[thread_index_in_threadgroup]]){
+ threadgroup uint data[256];data[tid]=order[lane];threadgroup_barrier(mem_flags::mem_threadgroup);
+ for(uint d=128;d;d/=2){uint j=tid^d,a=data[tid],b=data[j];bool low=((lane&k)==0)==(tid<j),before=jp_before(a,b,matches,witnesses);threadgroup_barrier(mem_flags::mem_threadgroup);data[tid]=low?(before?a:b):(before?b:a);threadgroup_barrier(mem_flags::mem_threadgroup);}
+ order[lane]=data[tid];
+}

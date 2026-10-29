@@ -29,7 +29,7 @@ def summarize(folder,reference=None):
         clean_timing=r['clean_timing'],timings=r['timings_seconds'],rows=len(state['rows']),
         source_sha256=r['source_sha256'],program_sha256=r['program_sha256'],
         worker_sha256=r['build']['worker_sha256'],frontend_sha256=r['build']['frontend_sha256'],
-        marker_program=p['marker_program'],multi_stage_cell=execution_summary(r),
+        marker_program=p['marker_program'],multi_stage_cell=execution_summary(r),joint_execution=r.get('joint_execution'),
         passes=[{k:v for k,v in x.items() if k in ['name','cached','original_seconds']} for x in receipts['passes']],
         verification_failure=failed)
     refs={x['name']:Path(x['directory'])/'result/native-state.json' for x in receipts['passes'] if x['name'] in ['sk_native','marked_native']}

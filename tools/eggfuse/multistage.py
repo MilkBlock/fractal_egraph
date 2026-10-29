@@ -27,8 +27,12 @@ def execution_summary(report):
     if not report['complete_schedule'] or not accepted or not stages.get('patches'):
         raise ValueError('requested multi-stage Cell did not execute a complete schedule with stage patches')
     total=lambda group,key:sum(c.get(group,{}).get(key,0) for c in accepted)
+    service=[sum(c['statistics'][80+i] for c in accepted) for i in range(8)]
+    phase_runs=[sum(sum(p[0]==i for p in c['phase_history']) for c in accepted) for i in range(3)]
     return dict(scope='certified terms / terms-helpers / terms-helpers-helpers; other stages retain their original execution',
-        accepted_scopes=len(accepted),rejected_scopes=len(calls)-len(accepted),stage_patches=stages['patches'],
+        accepted_scopes=len(accepted),stage_run_counts=dict(zip(['terms','terms-helpers','terms-helpers-helpers'],phase_runs)),
+        context_service_histogram=service,context_visits=sum(service),serviced_context_visits=sum(service[1:]),
+        context_count_scope='visits across joint invocations; service means a successful binding or changed comparison class, not distinct Cell families or committed mutations',rejected_scopes=len(calls)-len(accepted),stage_patches=stages['patches'],
         private_phases=sum(c['private_phases'] for c in accepted),
         boundary_recipe_actions=total('spine_program','actions'),boundary_fallback_actions=total('spine_program','fallback_actions'),
         update_recipe_actions=total('cell_updates','actions'),existing_result_updates=total('cell_updates','existing_result_actions'),
