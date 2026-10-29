@@ -16,6 +16,7 @@ def execution_summary(report):
         cached_spine_reuses=stats[2],spine_builds=stats[3],correlated_rows_built=stats[4],
         correlated_rows_consumed=stats[5],prefix_table_reads=stats[6],invalidated_spines=stats[7],
         cache_compactions=stats[8],witness_validated_tuple_reuses=stats[11],stage_runs=sum(len(s['history']) for s in instances),
+        row_index_rebuilds=sum(s['row_index_rebuilds'] for s in instances) if all('row_index_rebuilds' in s for s in instances) else None,
         cache_growths=sum(a.get('region_cache_growths',0) for p in report['programs'] for a in p['attempts']),
         exact_residual_queries=True,invalidation_granularity='table mutation versions',
         identities='shared hashcons/union; local recipe slots receive actual constructor results',
@@ -66,6 +67,7 @@ def verify_repeat(first,second):
         if x['history']!=y['history']:raise ValueError('GPU round history or state fingerprints are not reproducible')
         for field in ('rows','parents','fact_parents','sets','watermarks','meta','state','batch_statistics','region_statistics'):
             if x[field]!=y[field]:raise ValueError('GPU final '+field+' is not reproducible')
+        if x.get('row_index_rebuilds')!=y.get('row_index_rebuilds'):raise ValueError('GPU index maintenance is not reproducible')
         stats=x.get('batch_statistics') or []
         if stats and stats[14]!=1:raise ValueError('numeric effect audit was not enabled')
         if len(stats)<23 or stats[22]!=len(x['history']):raise ValueError('missing GPU round fingerprints')

@@ -182,10 +182,16 @@ __attribute__((noinline)) void rebuild(device long*r,device uint*p,device uint*f
    long a=canon(r,p,t,WIDTH[t]-1,r[oi]),b=canon(r,p,t,WIDTH[t]-1,r[oj]);
    if(POLICY[t]==4&&a!=b){m.error=7;return;}
    r[oi]=mergevalue(t,a,b,r,p,fp,m);
+   // Keep a valid index when it already points at a surviving representative.
+   // UF changes invalidate it by generation; value writes do not change keys.
+   // The conservative old path rebuilt the entire index before virtually every
+   // constructor-producing merge callback in a large duplicate group.
+   if(RC_ENABLED&&r[INDEX_OFFSET]==long(m.unions)+1){
+    long key[COLS]={0};for(uint c=0;c<WIDTH[t]-1;c++)key[c]=r[j*STRIDE+4+c];
+    if(row_lookup(r,p,m,t,key)==j)r[INDEX_OFFSET]=0;
+   }else if(!RC_ENABLED)r[INDEX_OFFSET]=0;
    r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;rc_dirty(r,t,m.epoch);
    fp[root(fp,uint(r[j*STRIDE+3]))]=root(fp,uint(r[i*STRIDE+3]));m.changed=1;
-   // Writes performed by a later merge must not find a just-retired row.
-   r[INDEX_OFFSET]=0;
   }
   again=before!=m.unions||count!=m.count;
  }

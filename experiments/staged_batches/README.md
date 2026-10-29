@@ -165,3 +165,20 @@ is device error 36, not a silent correction.
 Layout version 3 rejects older artifacts that predate this return contract;
 recompile those artifacts. Worker transport remains ABI 7. Numeric audit and
 actual constructor-return audit are both diagnostics on the same execution path.
+
+
+### Index maintenance is not Cell credit
+
+The resident merger now preserves an index that already refers to a surviving
+key representative. It invalidates when the indexed row itself is retired;
+UF changes still invalidate through the existing generation. In the 64-key
+constructive-merge regression, complete states and all rounds are identical,
+while whole-key-index rebuilds decrease from 66 to 3. This is a physical engine
+improvement, not additional Cell proof coverage or an end-to-end speedup claim.
+
+`python3 experiments/staged_batches/check_retirement.py --build BUILD --output NEW`
+reproduces the source-matched ablation and the full-state check. Run reports now
+include `row_index_rebuilds`; missing historical measurements remain null.
+Partial RHS function reads are kept on the original exact schedule: a missing
+RHS input cannot be speculatively turned into an early runtime failure. Pass 3's
+typed rules contain no such RHS reads; their function inputs are LHS atoms.
