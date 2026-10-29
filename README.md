@@ -1,10 +1,26 @@
-# fractal_egraph
+# eggfuse
 
-**从规则执行历史中学习局部闭包，把重复的推理编译成可复用的 Cell 和边界转移。**
+**从执行历史发现局部推理，把可复用的 Cell、spine 和边界转移编译为 CPU/GPU 执行计划。**
 
-这是基于 [egglog](egglog/) 的分析与编译研究原型，Rust 包和命令行仍叫 `egg_layout`。
-项目希望复用一整段推理已经得到的知识，减少重复匹配、重复构造和中间状态转换。
-当前可执行主线是 **RipSatCell → canonical spine → 生成 `.egg`**；压缩率和速度需要分别实测。
+项目由 **analyzer、compiler、engine、validation** 四个组件组成，基于本地 [egglog](egglog/)
+前端和原生参照实现。`fractal_egraph` 是旧项目名；现有 Rust 包／命令行 `egg_layout` 暂作兼容入口。
+
+当前统一编译流程是：
+
+```text
+source.egg → source_sk.egg → Analyze/Bake
+           → source_sk_mk.egg + marker / recipe 契约
+           → eggfuse device artifacts → GPU engine → 完整结果核对
+```
+
+入口为 `python3 -m tools.eggfuse`，使用说明见[统一编译器](tools/eggfuse/README.md)。
+[组件审计与目录迁移方案](docs/architecture/eggfuse.md)说明当前能力、缺口和接口边界。
+
+**当前边界：** 通用 Cell 程序能在 GPU 上执行，但还会做局部查询；高效联合配方主要覆盖
+三个 `terms` ruleset。完整 Raytrace Pass 3 已跑通 GPU 调度，仍保留原生/GPU 整图差异。
+[实测报告](experiments/unified_compiler/PASS3.md)不能被解读为任意规则集已获得正确且高效的 Cell 加速。
+
+下面保留 Cell 研究方法和既有 spine 存储实验的说明；它们并非当前 GPU engine 的全部默认行为。
 
 ## 方法总览
 
@@ -72,7 +88,7 @@ Rust 维护历史与 binding，原生 Cell egraph 登记构造并利用已认证
 同一 Cell e-class 的两种端口排列，也不能在没有 binding 对应的情况下互换。
 见 [左右 graft 与 union 回归](experiments/cell_spine/graft_diamond/README.md)。
 
-### 4. Bake：把闭包知识变成紧凑的运行时表示
+### 4. Bake 与既有 canonical spine 存储实验
 
 一个 Cell 可以有多种等价生成骨架。我们选择一个 **canonical spine**：保留多个小节点，
 在选定位置放置携带必要字段的 **Summary / marker**，表示这个 Cell 实例处于可用状态。
@@ -127,7 +143,7 @@ Rust 维护历史与 binding，原生 Cell egraph 登记构造并利用已认证
 
 当前系统提供 weak-dominate 查询、非平凡再入观察、结构分组及有限转移描述学习。
 **一次再入、超时增长或重复 rule 名称，都不是无限递归或归纳等价的证明。**
-任意规模 FractalComb、自动推导 FlashAttention、GPU 矩阵化推理属于研究方向，尚非已交付能力。
+任意规模 FractalComb、自动推导 FlashAttention、把任意规则集自动编译为高吞吐 GPU 矩阵程序，仍属于研究方向。已有的有限 GPU 执行与联合配方能力见上面的工程入口。
 
 ## 已验证到什么程度
 
@@ -141,7 +157,7 @@ Rust 维护历史与 binding，原生 Cell egraph 登记构造并利用已认证
 | [Spine 存储表示](experiments/cell_spine/representation/README.md) | 某些场景减少实际存储行；不代表所有程序都省内存或更快 |
 | [共享接口](experiments/cell_spine/shared_interfaces/README.md) | 减少重复解码与 effect；新增维护规则也有成本 |
 
-原生分析的支持面比 Cell 编译更广。当前自动 spine 编译要求自包含、单规则集饱和 schedule、
+原生分析、统一编译器和存储压缩实验的支持面不同。这里的既有自动 spine 存储编译要求自包含、单规则集饱和 schedule、
 受支持的 constructor／等价操作及完成的闭包证书；函数更新、primitive 条件、隐藏行等仍有分层支持边界。
 这是**已 Bake 转移的白名单执行**，不保证覆盖未来输入中每个隐藏 fact 的所有新匹配。
 匹配 binding、精确判等和布局求解仍可能很昂贵，有限局部图也不意味着组合数很小。
