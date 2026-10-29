@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     from eggfuse.ir.recipe import digest
@@ -69,6 +69,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
                    ('qheads', p['query_head_words']), ('qlinks', p['query_link_words']),
                    ('qprev', p['query_prev_words']), ('control', 40),
                    ('match_order', 2*match_capacity if batch else 1), ('noop', 1), ('context_info', 16)]
+    if batch and parallel_indexes:p['workspace_words']=max(p['workspace_words'],2*p['query_sort_words'])
     long_fields = [('matches', p['workspace_words']),
                    ('registers', p['register_count']), ('contexts', 1)]
     layout = {}; offsets = []
@@ -83,6 +84,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     # Control frames: kind, count, body, end, iteration, changed, any_changed, spare.
     layout['state_words'] = 8 + max(1, tape['stack_depth']) * 8
     defines = f'#define GC_MATCH_ORDER {layout["match_order"]}\n#define GC_MATCHES {layout["matches"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
+    defines+=f'\n#define GC_CONTROL {layout["control"]}\n#define GC_QHEADS {layout["qheads"]}\n#define GC_QUERY_ALTERNATE {p["query_sort_words"]}\n'
     calls = [];cache_calls=[];parallel_calls=[]
     if batch:
         from eggfuse.ir.recipe import build
@@ -126,6 +128,18 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         p['batch_sort']=dict(schema='eggfuse-resident-sort/v1',enabled=parallel_sort,tile=256,local_capacity=1024,
             contract='same total binding order; local bitonic tiles and parallel rank merges; GPU-sized indirect dispatch')
         defines+=f'\n#define BC_PARALLEL_SORT {int(parallel_sort)}\n#define BC_SORT_TILE 256\n#define BC_SMALL_SORT 1024\n'
+        sort_passes=0;span=256
+        while span<match_capacity:sort_passes+=1;span*=2
+        index_base=3+(1+sort_passes if parallel_sort else 0)
+        p['resident_indexes']=dict(schema='eggfuse-resident-indexes/v1',enabled=parallel_indexes,
+            dispatch_base=index_base,radix_passes=p['query_radix_passes'],
+            scratch='reuse match arena before matching; no persistent per-row/per-plan allocation')
+        defines+=f'#define BC_PARALLEL_INDEXES {int(parallel_indexes)}\n'
+        for i,name in enumerate(['ROWS','PAIRS','CLEAR','GATE','HASH_ROWS','HASH_BUCKETS']):defines+=f'#define BC_INDEX_{name} {3*(index_base+i)}\n'
+        if parallel_indexes:
+            from .resident_indexes import lower as lower_indexes
+            if p['query_radix_digit_bits']!=4:raise ValueError('resident query indexes require four-bit radix kernels')
+            text+='\n'+lower_indexes((HERE/'query_parallel.metal').read_text())
         calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls)).replace('// CACHE_PREPARE', ''.join(cache_calls)).replace('// PARALLEL_QUERIES', ''.join(parallel_calls))
     p['shader'] += '\n' + defines + '\n' + text

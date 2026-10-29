@@ -106,7 +106,9 @@ python3 -m eggfuse run --artifact out/new-batch-pipeline/eggfuse_related_files \
 
 Shared-prefix preparation and stable publication remain serial within a shared
 arena. [Deterministic binding ordering is now parallel](ORDERING.md), with a
-threadgroup path for small batches. Exact seed/residual matching and context
+threadgroup path for small batches. [Global query/key index reconstruction is
+also parallel](PARALLEL_PREPARE.md), with the original incremental append/update
+path retained. Exact seed/residual matching and context
 evaluation now scale across threadgroups. The sorted source query/variant/anchor
 order, rather than atomic arrival order, determines effect publication. Ambiguous symbolic compositions and recursive backedges still use complete
 residual queries; correlated alternatives are not merged or sampled. Fully

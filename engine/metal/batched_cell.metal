@@ -1,9 +1,44 @@
 // Three device stages share one resident context/effect matrix. The host queues
 // a fixed quantum without reading matches or deciding logical stage transitions.
 #define BC_ARGS device long*all_rows[[buffer(0)]],device uint*all_uint[[buffer(1)]],device long*all_long[[buffer(2)]],device Meta*all_meta[[buffer(3)]],device uint*all_state[[buffer(4)]],device long*code[[buffer(5)]],device const uint*tape[[buffer(6)]],device uint*all_history[[buffer(7)]],device long*all_markers[[buffer(8)]],constant uint4&cfg[[buffer(9)]],device long*all_batch[[buffer(10)]],constant uint4&batchCfg[[buffer(11)]],device atomic_uint*dispatch[[buffer(12)]],device ulong*hashes[[buffer(13)]]
+#define BC_INPUTS device long*all_rows,device uint*all_uint,device long*all_long,device Meta*all_meta,device uint*all_state,device long*code,device const uint*tape,device uint*all_history,device long*all_markers,constant uint4&cfg,device long*all_batch,constant uint4&batchCfg,device atomic_uint*dispatch,device ulong*hashes
+#define BC_VALUES all_rows,all_uint,all_long,all_meta,all_state,code,tape,all_history,all_markers,cfg,all_batch,batchCfg,dispatch,hashes
 uint bc_order_offset(uint count,bool parallel){
  if(!BC_PARALLEL_SORT||!parallel||count<=BC_SMALL_SORT)return 0;
  uint at=0;for(uint span=BC_SORT_TILE;span<count;span*=2)at=MATCHCAP-at;return at;
+}
+__attribute__((noinline)) void bc_prepare_queries(BC_INPUTS,uint instance,bool reset,bool indexed){
+ device Meta&m=all_meta[instance];device uint*s=all_state+instance*GC_STATE_WORDS;
+ device long*r=all_rows+instance*GC_ROW_WORDS;device long*old=r;
+ // LOCAL_POINTERS
+ device uint*p=parent;device float*context_results=(device float*)contexts;
+ device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));context_info=(device uint*)stats;
+ if(indexed)qheads[2*QBUCKETS]=m.count;
+ else build_query_index(old,reset?0:qheads[2*QBUCKETS],m.count,reset,qheads,qlinks,qprev);
+ if(!reset&&r[QUERY_DIRTY]==2)patch_query_index(old,qheads,qlinks,qprev);
+ for(uint j=0;j<uint(r[QUERY_LOG]);j++)r[QUERY_OLD_TIME+uint(r[QUERY_CHANGED+j])]=0;
+ if(reset)s[5]++;else s[6]++;r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;r[QUERY_DIRTY]=0;ensure_row_index(r,p,m);
+ if(m.rounds==1)for(uint row=0;row<m.count;row++)r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;
+ rc_compact(contexts,r);bc_reindex_certificates(stats,m.unions,ulong(r[RC_VISIBILITY]));s[7]=1;
+ uint set=tape[4*s[0]+1];
+ if(QUERY_PARALLEL[set]){
+  switch(set){// CACHE_PREPARE
+   default:m.error=20;return;
+  }
+  if(m.error)return;stats[10]=3;
+  atomic_fetch_max_explicit(dispatch+6,max(1u,(m.count+127)/128),memory_order_relaxed);return;
+ }
+ switch(set){// LOCAL_QUERIES
+  default:m.error=20;return;
+ }
+ if(m.error)return;stats[10]=4;
+}
+kernel void batched_cell_prepare_finish(BC_ARGS,uint instance[[thread_position_in_grid]]){
+ if(instance>=cfg.x)return;device Meta&m=all_meta[instance];
+ device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
+ if(m.error||stats[10]!=5)return;
+ device uint*control=all_uint+instance*GC_UINT_WORDS+GC_CONTROL;
+ bc_prepare_queries(BC_VALUES,instance,bool(control[19]),bool(control[0]));
 }
 kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]]){
  if(instance>=cfg.x)return;
@@ -29,25 +64,26 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
   if(!s[7]&&m.epoch==0xffffffff){m.error=6;return;}
   uint set=arg;stats[13]=m.unions;if(!s[7]){m.epoch++;m.rounds++;m.changed=0;}m.matched=0;r[ROW_WORDS+1]=m.epoch;
   bool reset=m.rounds==1||r[QUERY_DIRTY]==1;
-  build_query_index(old,reset?0:qheads[2*QBUCKETS],m.count,reset,qheads,qlinks,qprev);
-  if(!reset&&r[QUERY_DIRTY]==2)patch_query_index(old,qheads,qlinks,qprev);
-  // Old values/timestamps are a per-Run journal, not permanent row state.
-  // Clear even after reset/compaction; the next update must log afresh.
-  for(uint j=0;j<uint(r[QUERY_LOG]);j++)r[QUERY_OLD_TIME+uint(r[QUERY_CHANGED+j])]=0;
-  if(reset)s[5]++;else s[6]++;r[QUERY_LOG]=0;r[QUERY_LOG+1]=m.count;r[QUERY_DIRTY]=0;ensure_row_index(r,p,m);
-  if(m.rounds==1)for(uint row=0;row<m.count;row++)r[RC_FACT_ROW+uint(r[row*STRIDE+3])]=row+1;
-  rc_compact(contexts,r);bc_reindex_certificates(stats,m.unions,ulong(r[RC_VISIBILITY]));s[7]=1;
-  if(QUERY_PARALLEL[set]){
-   switch(set){// CACHE_PREPARE
-    default:m.error=20;return;
+  if(BC_PARALLEL_INDEXES){
+   stats[10]=5;control[19]=reset;control[0]=reset&&m.count>256;
+   if(control[0]){
+    control[20]=r[INDEX_OFFSET]!=long(m.unions)+1;
+    if(control[20]){
+     atomic_fetch_max_explicit(dispatch+BC_INDEX_HASH_ROWS,(m.count+255)/256,memory_order_relaxed);
+     atomic_fetch_max_explicit(dispatch+BC_INDEX_HASH_BUCKETS,(HASH_CAP+255)/256,memory_order_relaxed);
+    }
+    control[17]=qheads[Q_TOUCH]+1;
+    // The radix histogram reuses heads. Preserve/restore its epoch outside that
+    // scratch and invalidate all tags if a very wide layout overlaps them.
+    control[18]=control[17]==0||((m.count*QSTRIDE+255)/256+1)*16>=Q_TOUCH;
+    if(!control[17])control[17]=1;
+    atomic_fetch_max_explicit(dispatch+BC_INDEX_ROWS,(m.count+255)/256,memory_order_relaxed);
+    atomic_fetch_max_explicit(dispatch+BC_INDEX_GATE,1u,memory_order_relaxed);
+    atomic_fetch_max_explicit(dispatch+BC_INDEX_CLEAR,(max(uint(TABLE_COUNT),control[18]?uint(QBUCKETS):1u)+255)/256,memory_order_relaxed);
    }
-   if(m.error)return;stats[10]=3;
-   atomic_fetch_max_explicit(dispatch+6,max(1u,(m.count+127)/128),memory_order_relaxed);return;
+   return;
   }
-  switch(set){// LOCAL_QUERIES
-   default:m.error=20;return;
-  }
-  if(m.error)return;stats[10]=4;return;
+  bc_prepare_queries(BC_VALUES,instance,reset,false);return;
  }
 }
 kernel void batched_cell_match(BC_ARGS,uint2 group[[threadgroup_position_in_grid]],uint tid[[thread_index_in_threadgroup]]){
@@ -151,7 +187,7 @@ kernel void batched_cell_pack(BC_ARGS,constant uint&packStep[[buffer(14)]],uint 
 kernel void batched_cell_evaluate(BC_ARGS,uint2 group[[threadgroup_position_in_grid]],uint tid[[thread_index_in_threadgroup]]){
  uint instance=group.y,tile=group.x;if(instance>=cfg.x)return;
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
- if(!stats[10]||tile>=uint(stats[11]))return;
+ if((stats[10]!=1&&stats[10]!=2)||tile>=uint(stats[11]))return;
  device long*meta=stats+BC_STATS;uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);if(plan<0)return;
  device long*data=meta+3*batchCfg.x+start*BC_STRIDE;
  device long*matches=all_long+instance*GC_LONG_WORDS+GC_MATCHES;

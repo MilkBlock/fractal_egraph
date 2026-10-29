@@ -79,6 +79,14 @@ var sortSpans=[Int](),sortSpan=256
 while sortSpan<(program["match_capacity"] as! Int){sortSpans.append(sortSpan);sortSpan*=2}
 let sortLocal:MTLComputePipelineState?=parallelSort ? try loadPipeline("batched_cell_sort_local"):nil
 let sortMerge:MTLComputePipelineState?=parallelSort ? try loadPipeline("batched_cell_sort_merge"):nil
+let indexSpec=program["resident_indexes"] as? [String:Any]
+let parallelIndexes=transportVersion==7 && indexSpec?["enabled"] as? Bool == true
+let indexBase=indexSpec?["dispatch_base"] as? Int ?? 0
+let indexNames=["query_row_scan","query_row_offsets","query_pairs","query_radix_scan","query_radix_offsets","query_radix_scatter","query_clear","query_link_sorted","query_table_time"]
+let indexPipelines: [MTLComputePipelineState]=parallelIndexes ? try indexNames.map{try loadPipeline("resident_"+$0)}:[]
+let hashIndexNames=["row_index_context","row_index_clear","row_index_parallel","row_index_ready"]
+let hashIndexPipelines: [MTLComputePipelineState]=parallelIndexes ? try hashIndexNames.map{try loadPipeline("resident_"+$0)}:[]
+let prepareFinish:MTLComputePipelineState?=parallelIndexes ? try loadPipeline("batched_cell_prepare_finish"):nil
 let hashPipeline:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint"):nil
 let hashFinish:MTLComputePipelineState?=transportVersion==7 ? try loadPipeline("batched_cell_fingerprint_finish"):nil
 var cacheWriteSeconds=0.0
@@ -119,7 +127,7 @@ let batchStride=batchLayout?["stride"] as? Int ?? 1
 var batchCapacity=128,batchWords=transportVersion==7 ? batchHeader+128*(9+batchStride):1
 var batchData=zeros(n*batchWords*8),batchGrowths=0
 if transportVersion==7 && program["batch_audit_numeric"] as? Bool == true {for i in 0..<n {copy([Int64(1)],batchData,(i*batchWords+14)*8)}}
-let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)
+let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)+(parallelIndexes ? 6:0)
 let batchDispatch=zeros(dispatchGroups*12)
 for i in 0..<dispatchGroups {copy([UInt32(0),UInt32(n),UInt32(1)],batchDispatch,i*12)}
 let hashChunks=(capacity*stride+2*ids+(program["set_words"] as! Int)+1023)/1024
@@ -262,6 +270,29 @@ while true {
    }
    phase(pipeline,"batched_cell_prepare");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
+   if parallelIndexes {
+    for (index,field) in [3,5,4,3].enumerated(){
+     phase(hashIndexPipelines[index],"resident_"+hashIndexNames[index])
+     e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(indexBase+field),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))
+     e.memoryBarrier(scope:.buffers)
+    }
+    func indexPhase(_ index:Int,_ field:Int,_ bit:UInt32=0){
+     phase(indexPipelines[index],"resident_"+indexNames[index])
+     // phase() may open a fresh encoder during capture. Bind its radix pass
+     // afterwards so capture and ordinary execution use identical parameters.
+     var radixBit=bit;e.setBytes(&radixBit,length:4,index:14)
+     e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(indexBase+field),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))
+     e.memoryBarrier(scope:.buffers)
+    }
+    indexPhase(0,0);indexPhase(1,3);indexPhase(2,0)
+    for bit in 0..<(indexSpec!["radix_passes"] as! Int){
+     indexPhase(3,1,UInt32(bit));indexPhase(4,3,UInt32(bit));indexPhase(5,1,UInt32(bit))
+    }
+    indexPhase(6,2);indexPhase(7,1);indexPhase(8,0)
+    phase(prepareFinish!,"batched_cell_prepare_finish")
+    e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,prepareFinish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
+    e.memoryBarrier(scope:.buffers)
+   }
    phase(batchMatch!,"batched_cell_match");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:24,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
    if parallelSort {

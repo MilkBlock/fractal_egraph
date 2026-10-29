@@ -105,6 +105,12 @@ def check(build_dir,out,only=None,real_dir=None):
 (Edge (N 0) (N 1)) (run-schedule (saturate (run observe) (run edit)))'''
     }
     cases['independent-unions']=cases['constructor-resume'].replace('(Seed (N 0) (N 2)) (Edge (N 0))', ''.join(f'(Seed (N {3*i}) (N {3*i+2})) (Edge (N {3*i}))' for i in range(129)))
+    cases['set-key-merge']='''(sort E) (constructor N (i64) E)
+(sort S (Set E)) (constructor Box (S) E)
+(relation Link (E E)) (relation Seen (E)) (ruleset a) (ruleset b)
+(rule ((Link x y)) ((union x y)) :ruleset a)
+(rule ((= w (Box s))) ((Seen w)) :ruleset b)
+'''+''.join(f'(Link (N {2*i}) (N {2*i+1})) (Box (set-insert (set-insert (set-empty) (N {2*i})) (N {2*i+1}))) (Box (set-insert (set-empty) (N {2*i})))\n' for i in range(129))+'(run-schedule (saturate (run a) (run b)))'
     if real_dir:
         for name in ['finite','late-union','context-to-terms','renamed']:
             cases['real-'+name]=(real_dir/(name+'.egg')).read_text()
@@ -177,6 +183,9 @@ def check(build_dir,out,only=None,real_dir=None):
             assert len(rows(runs[0],folder,'Choice'))==3
             assert summary['custom_merge_requests']>=4
             assert len(rows(runs[0],folder,'Done'))==3 # every correlated callback, not just a winner
+        if name=='set-key-merge':
+            assert len(rows(runs[0],folder,'Box'))==129
+            assert len(rows(runs[0],folder,'Seen'))==129
         results[name]=dict(verification=verified,execution=summary,templates=len(plan['batch_program']['templates']))
         (out/'results.json').write_text(json.dumps(results,indent=2)+'\n');print(name,summary,flush=True)
     return results
@@ -272,8 +281,46 @@ def check_pipeline_cache(build_dir,out,program):
     (out/'cache-results.json').write_text(json.dumps(results,indent=2)+'\n');return results
 
 
+def check_indexes(build_dir,out):
+    import run_generic_cells as runtime
+    out.mkdir(parents=True,exist_ok=False);source=out/'indexed-unions.egg'
+    source.write_text('''(datatype E (N i64)) (relation Link (i64 E E))
+(relation Noise (E E i64)) (relation Tick (i64)) (relation Seen (E i64))
+(ruleset a) (ruleset b)
+(rule ((Tick n) (Link n x y)) ((union x y) (Tick (+ n 1))) :ruleset a)
+(rule ((Noise x x n)) ((Seen x n)) :ruleset b)
+(Tick 0)
+'''+''.join(f'(Link {i} (N {2*i}) (N {2*i+1}))\n' for i in range(32))+
+        ''.join(f'(Noise (N {2*i}) (N {2*i+1}) {i})\n' for i in range(4096))+
+        '(run-schedule (saturate (run a) (run b)))')
+    core=core_for(source,build_dir);plan=from_core(core);initial=core.pop('initial')
+    lib=dict(schema='analyzer-device-cells/v1',programs=[core],instances=[dict(unit=0,program=0,initial=initial)])
+    original=runtime.lower;reports={}
+    for mode in ['serial','parallel','wrapped-generation']:
+        def lower(*args,**kwargs):
+            p=original(*args,**kwargs,parallel_indexes=mode!='serial')
+            if mode=='wrapped-generation':
+                target='bool reset=m.rounds==1||r[QUERY_DIRTY]==1;';assert p['shader'].count(target)==1
+                p['shader']=p['shader'].replace(target,'if(m.rounds==1)qheads[Q_TOUCH]=0xffffffff;'+target)
+            return p
+        runtime.lower=lower
+        try:reports[mode]=runtime.run_library(lib,build_dir,out/mode,16384,1024,region_program=plan,audit_numeric=True)
+        finally:runtime.lower=original
+        assert reports[mode]['complete']
+    verify_repeat(reports['serial'],reports['parallel']);verify_repeat(reports['serial'],reports['wrapped-generation'])
+    seen=rows(reports['parallel'],out/'parallel','Seen')
+    assert len(seen)==32 and {r[1] for r in seen}==set(range(32))
+    result=dict(initial_rows=len(initial),unions=32,
+        contract='actual resident runtime; same complete state, per-Run fingerprints and observable consumer effects',
+        correctness='union enables a repeated-variable match; stable radix links and wrapped-generation tags checked',
+        timing_scope='one checked diagnostic per variant; not full Pass-3 speedup',
+        seconds={k:dict(gpu=v['programs'][0]['gpu_seconds'],inference=v['programs'][0]['inference_seconds']) for k,v in reports.items()})
+    (out/'index-results.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2));return result
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--case',action='append');p.add_argument('--real-dir',type=Path);p.add_argument('--sort-comparison',action='store_true');p.add_argument('--pipeline-cache-program',type=Path);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--case',action='append');p.add_argument('--real-dir',type=Path);p.add_argument('--sort-comparison',action='store_true');p.add_argument('--pipeline-cache-program',type=Path);p.add_argument('--index-comparison',action='store_true');a=p.parse_args()
     if a.pipeline_cache_program:check_pipeline_cache(a.build.resolve(),a.output.resolve(),a.pipeline_cache_program.resolve())
+    elif a.index_comparison:check_indexes(a.build.resolve(),a.output.resolve())
     elif a.sort_comparison:check_sort(a.build.resolve(),a.output.resolve())
     else:check(a.build.resolve(),a.output.resolve(),a.case,a.real_dir)
