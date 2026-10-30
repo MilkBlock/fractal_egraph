@@ -88,7 +88,7 @@ kernel void rebuild_merge(KERNEL_ARGS){
   // lookup made by this typed callback program. The index is used only by
   // these callbacks until final compaction invalidates it for ordinary queries.
   if(MERGE_TARGET_INDEX&&MERGE_INDEX[t]&&r[INDEX_OFFSET]&&r[INDEX_MERGE_VERSION]==p[MERGE_GENERATION])r[INDEX_OFFSET]=long(m.unions)+1;
-  if(PARALLEL_MERGE_INDEX&&a!=b&&MERGE_INDEX[t]&&r[INDEX_OFFSET]!=long(m.unions)+1){control[4]=n;control[0]=2;return;}
+  if(PARALLEL_MERGE_INDEX&&MERGE_INDEX[t]&&r[INDEX_OFFSET]!=long(m.unions)+1){control[4]=n;control[0]=2;return;}
   if(POLICY[t]==4&&a!=b){m.error=7;break;}
   r[oi]=mergevalue(t,a,b,r,p,fp,m);
   r[i*STRIDE+1]=max(r[i*STRIDE+1],r[j*STRIDE+1]);r[i*STRIDE+2]=m.epoch;r[j*STRIDE+1]=2;

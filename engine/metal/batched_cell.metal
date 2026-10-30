@@ -64,7 +64,7 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
  // Checkpoint diagnostic: stop only between complete logical Runs. A pending
  // block continuation finishes before the gate can close.
  if(batchCfg.y && s[3]>=batchCfg.y && stats[10]!=2){stats[10]=0;return;}
- if(stats[10]==6||stats[10]==8||stats[10]==9||stats[10]==10||stats[10]==11||stats[10]==12)return;
+ if(stats[10]==6||stats[10]==8||stats[10]==9||stats[10]==10||stats[10]==11||stats[10]==12||stats[10]==13)return;
  if(stats[10]==2){if(grew)bc_reindex_certificates(stats,r,m.count,m.unions,ulong(r[RC_VISIBILITY]));atomic_fetch_max_explicit(dispatch,uint(stats[11]),memory_order_relaxed);return;}stats[10]=0;
  context_info=(device uint*)stats;
  while(!m.error&&!s[2]){
@@ -165,7 +165,8 @@ kernel void batched_cell_pack(BC_ARGS,constant uint&packStep[[buffer(14)]],uint 
  // LOCAL_POINTERS
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
  if(m.error||(stats[10]!=3&&stats[10]!=4))return;
- if(m.matched>batchCfg.x){if(!tid)m.error=34;return;}
+ bool ordinary=BC_DIRECT_ORDINARY&&bc_ordinary(tape[4*s[0]+1],s+8,s[1]);
+ if(!ordinary&&m.matched>batchCfg.x){if(!tid)m.error=34;return;}
  if(BC_PARALLEL_SORT&&packStep==0&&m.matched>BC_SMALL_SORT){
   if(tid)return;
   atomic_fetch_max_explicit(dispatch+9,(m.matched+BC_SORT_TILE-1)/BC_SORT_TILE,memory_order_relaxed);
@@ -205,6 +206,10 @@ kernel void batched_cell_pack(BC_ARGS,constant uint&packStep[[buffer(14)]],uint 
  }
  }
   if(m.error)return;
+  if(ordinary){
+   stats[11]=0;stats[10]=13;stats[59]++;s[7]=0;
+   atomic_fetch_max_explicit(dispatch,(m.matched+127)/128,memory_order_relaxed);return;
+  }
   uint tiles=0,start=0,certificates=uint(stats[15]);device long*meta=stats+BC_STATS;
   while(start<m.matched){uint rule=uint(matches[match_order[start]*MSTRIDE]),count=0;
    while(start+count<m.matched&&count<BC_TILE&&uint(matches[match_order[start+count]*MSTRIDE])==rule)count++;
@@ -219,6 +224,17 @@ kernel void batched_cell_pack(BC_ARGS,constant uint&packStep[[buffer(14)]],uint 
 kernel void batched_cell_evaluate(BC_ARGS,uint2 group[[threadgroup_position_in_grid]],uint tid[[thread_index_in_threadgroup]]){
  uint instance=group.y,tile=group.x;if(instance>=cfg.x)return;
  device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
+ if(stats[10]==13){
+  uint ordinal=tile*128+tid;device Meta&m=all_meta[instance];if(m.error||ordinal>=m.matched)return;
+  device uint*s=all_state+instance*GC_STATE_WORDS;
+  device uint*order=all_uint+instance*GC_UINT_WORDS+GC_MATCH_ORDER;
+  order+=bc_order_offset(m.matched,bc_requires_sort(tape[4*s[0]+1]));uint binding=order[ordinal];
+  device long*matches=all_long+instance*GC_LONG_WORDS+GC_MATCHES;
+  device long*r=all_rows+instance*GC_ROW_WORDS;uint rule=uint(matches[binding*MSTRIDE]);
+  device uint*noop=all_uint+instance*GC_UINT_WORDS+GC_NOOP;
+  noop[binding]=NOOP_PREFLIGHT&&NOOP_RULE[rule]&&actions_stably_empty(rule,binding,code,matches,r);
+  if(NOOP_PREFLIGHT&&NOOP_RULE[rule])rc_count(stats,29);return;
+ }
  if((stats[10]!=1&&stats[10]!=2)||tile>=uint(stats[11]))return;
  device long*meta=stats+BC_STATS;uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);
  device long*data=meta+3*batchCfg.x+start*BC_STRIDE;
@@ -274,11 +290,28 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  device uint*stack=s+8;device long*r=all_rows+instance*GC_ROW_WORDS;device long*old=r;
  // LOCAL_POINTERS
  device uint*p=parent;device long*stats=all_batch+instance*(BC_STATS+batchCfg.x*(9+BC_STRIDE));
- if(m.error||(stats[10]!=1&&stats[10]!=2&&stats[10]!=10))return;device long*meta=stats+BC_STATS;device long*data=meta+3*batchCfg.x;
+ if(m.error||(stats[10]!=1&&stats[10]!=2&&stats[10]!=10&&stats[10]!=13))return;device long*meta=stats+BC_STATS;device long*data=meta+3*batchCfg.x;
  match_order+=bc_order_offset(m.matched,bc_requires_sort(tape[4*s[0]+1]));
  uint pc=s[0],set=tape[4*pc+1];bool resumedPublisher=stats[10]==10;
+ if(!resumedPublisher)control[36]=stats[10]==13;
  if(!resumedPublisher){control[26]=stats[10]==2;control[27]=0;ulong progress=ulong(stats[1]+stats[2]);control[28]=uint(progress);control[29]=uint(progress>>32);p[IDCAP]=1;p[IDCAP+1]=0;if(control[26])stats[16]++;stats[21]=0;}
  bool resuming=control[26];long progressed=long(ulong(control[28])|(ulong(control[29])<<32));
+ if(control[36]){
+  // Ordinary Runs use the original compiled action stream. Existing independent
+  // constructor segments remain parallel, without allocating Cell frames.
+  uint ordinal=control[27];
+  while(ordinal<m.matched&&!m.error){
+   uint binding=match_order[ordinal],rule=uint(matches[binding*MSTRIDE]);
+   if(BC_PARALLEL_CONSTRUCTORS&&BATCH_RULE[rule]){
+    uint end=ordinal+1;while(end<m.matched&&BATCH_RULE[uint(matches[match_order[end]*MSTRIDE])])end++;
+    if(end-ordinal>=256){ensure_row_index(r,p,m);control[23]=ordinal;control[24]=end;stats[10]=9;return;}
+   }
+   if(NOOP_PREFLIGHT&&noop[binding])stats[28]++;
+   else execute_actions(rule,binding,code,registers,matches,r,p,fp,m);
+   ordinal++;stats[5]++;stats[58]++;
+  }
+  control[27]=ordinal;
+ }
  for(uint tile=0;tile<uint(stats[11])&&!m.error;tile++){
   uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);
   if(start+count<=control[27])continue;

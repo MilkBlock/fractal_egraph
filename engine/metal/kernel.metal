@@ -56,7 +56,8 @@ __attribute__((noinline)) long ensure_constructor(device long*r,device uint*p,de
  r[i*STRIDE+4+WIDTH[t]-1]=value;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];r[CONSTRUCTOR_PRED+i]=0;sc_dirty(r,i,m.epoch);row_index_insert(r,p,i);m.changed=1;return value;
 }
 long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,device Meta&m){
- if(a==b)return a;
+ // Custom merges need not be idempotent: (+ old new) must still run for 1,1.
+ if(a==b&&POLICY[t]!=6)return a;
  if(POLICY[t]==3){unite(p,a,b,m);return root(p,uint(a));}
  if(POLICY[t]==4)return a;
  if(POLICY[t]==5)return b;

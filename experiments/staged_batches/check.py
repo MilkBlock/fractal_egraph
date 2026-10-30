@@ -181,7 +181,7 @@ def check(build_dir,out,only=None,real_dir=None):
             assert summary['validated_successor_invocations']>0 and summary['union_merge_blocks']>0
         if name=='custom-merge':
             assert len(rows(runs[0],folder,'Choice'))==3
-            assert summary['custom_merge_requests']>=4 or summary['direct_single_step_invocations']>=2
+            assert summary['custom_merge_requests']>=4 or summary['direct_single_step_invocations']>=2 or summary['ordinary_rhs_bindings']>=2
             assert len(rows(runs[0],folder,'Done'))==3 # every correlated callback, not just a winner
         if name=='set-key-merge':
             assert len(rows(runs[0],folder,'Box'))==129

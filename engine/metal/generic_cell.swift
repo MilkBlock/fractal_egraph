@@ -105,6 +105,9 @@ let parallelRebuild=transportVersion==7 && rebuildSpec?["enabled"] as? Bool == t
 let rebuildBase=rebuildSpec?["dispatch_base"] as? Int ?? 0
 let rebuildNames=["rebuild_gate","rebuild_start","rebuild_canonical","rebuild_insert","rebuild_assign","merge_scan","merge_offsets","merge_scatter","rebuild_merge","compact_gate","compact_scan","compact_offsets","compact_copy","compact_store","rebuild_finish"]
 let rebuildPipelines:[MTLComputePipelineState]=parallelRebuild ? try rebuildNames.map{try loadPipeline("resident_"+$0)}:[]
+let resumeMergeIndex=parallelRebuild && rebuildSpec?["resume_merge_index"] as? Bool == true
+let mergeIndexNames=["merge_index_gate","merge_row_index_context","merge_row_index_clear","merge_row_index_parallel","merge_row_index_ready","rebuild_resume"]
+let mergeIndexPipelines:[MTLComputePipelineState]=resumeMergeIndex ? try mergeIndexNames.map{try loadPipeline("resident_"+$0)}:[]
 let writesSpec=program["resident_writes"] as? [String:Any]
 let parallelWrites=transportVersion==7 && writesSpec?["enabled"] as? Bool == true
 let writesBase=writesSpec?["dispatch_base"] as? Int ?? 0
@@ -405,7 +408,9 @@ while true {
     e.memoryBarrier(scope:.buffers)
     phase(sortLocal!,"batched_cell_sort_local");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:36,threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))
     e.memoryBarrier(scope:.buffers)
-    for (pass,span) in sortSpans.enumerated() where span<batchCapacity {
+    // Ordinary Runs do not grow the Cell frame buffer. Sorting is sized by
+    // the independent match arena; its GPU dispatch already gates unused passes.
+    for (pass,span) in sortSpans.enumerated() {
      phase(sortMerge!,"batched_cell_sort_merge")
      let cap=UInt32(program["match_capacity"] as! Int)
      var sortCfg=SIMD4<UInt32>(UInt32(span),pass%2==0 ? 0:cap,pass%2==0 ? cap:0,0)
@@ -457,6 +462,14 @@ while true {
     }
     rebuildPhase(0);rebuildPhase(1,2);rebuildPhase(2,0);rebuildPhase(3,1);rebuildPhase(4,1)
     rebuildPhase(5,1);rebuildPhase(6,2);rebuildPhase(7,1);rebuildPhase(8,2)
+    if resumeMergeIndex {
+     for (i,field) in [2,2,0,1,2,2].enumerated(){
+      phase(mergeIndexPipelines[i],"resident_"+mergeIndexNames[i])
+      if i==0 {e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:1,height:1,depth:1))}
+      else {e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(rebuildBase+field),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
+      e.memoryBarrier(scope:.buffers)
+     }
+    }
     rebuildPhase(9);rebuildPhase(10,3);rebuildPhase(11,4);rebuildPhase(12,3);rebuildPhase(13,3);rebuildPhase(14,4)
    }
    phase(hashPipeline!,"batched_cell_fingerprint");e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))

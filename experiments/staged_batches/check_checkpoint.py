@@ -30,7 +30,7 @@ def check(build, out):
 (rule ((Mid r n)) ((Done r (+ n 2))) :ruleset b)
 (relation Tick (i64)) (Tick 0)
 (rule ((Tick n) (< n 20)) ((Tick (+ n 1))) :ruleset a)
-''' + ''.join(f'(Seed (N {i}) {i})\n' for i in range(257)) + '(run-schedule (repeat 10 (run a) (run b)))',
+''' + ''.join(f'(Seed (N {i}) {i})\n' for i in range(257)) + '(run-schedule (saturate (run a) (run b)) (repeat 10 (run a) (run b)))',
         'block-continuation': '''(datatype E (N i64) (Edge E)) (relation Seed (E E))
 (relation Seen (E)) (relation Done (E)) (ruleset a) (ruleset b) (ruleset c)
 (rule ((Seed x y)) ((union (Edge x) y)) :ruleset a)

@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True,parallel_cell_waves=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True,parallel_cell_waves=True,resume_merge_index=True,typed_seed_dispatch=True,direct_ordinary_rhs=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     compact_seeds=bool(compact_seeds and batch and not spine_cache)
@@ -97,7 +97,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
                    ('fp', p['id_capacity']), ('watermarks', max(1, p['rules'])),
                    ('qheads', p['query_head_words']), ('qlinks', p['query_link_words']),
                    ('qprev', p['query_prev_words']), ('radix_sums',max(16,((p['query_sort_words']+65535)//65536)*16) if parallel_indexes and hierarchical_indexes else 1), ('seed_rows',2*capacity+(capacity+255)//256+2*len(p['tables']) if compact_seeds else 1), ('control', 40),
-                   ('match_order', 2*match_capacity if batch else 1), ('noop', 1), ('context_info', 16)]
+                   ('match_order', 2*match_capacity if batch else 1), ('noop', match_capacity if batch and direct_ordinary_rhs else 1), ('context_info', 16)]
     if batch and parallel_indexes:p['workspace_words']=max(p['workspace_words'],2*p['query_sort_words'])
     long_fields = [('matches', p['workspace_words']),
                    ('registers', p['register_count']), ('contexts', 1)]
@@ -114,7 +114,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     layout['state_words'] = 8 + max(1, tape['stack_depth']) * 8
     defines = f'#define GC_MATCH_ORDER {layout["match_order"]}\n#define GC_MATCHES {layout["matches"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
     defines+=f'\n#define GC_CONTROL {layout["control"]}\n#define GC_QHEADS {layout["qheads"]}\n#define GC_QUERY_ALTERNATE {p["query_sort_words"]}\n'
-    defines+=f'\n#define GC_FP {layout["fp"]}\n#define GC_QLINKS {layout["qlinks"]}\n'
+    defines+=f'\n#define GC_FP {layout["fp"]}\n#define GC_QLINKS {layout["qlinks"]}\n#define GC_NOOP {layout["noop"]}\n'
     calls = [];cache_calls=[];parallel_calls=[];quiescent_cases=[]
     if batch:
         from eggfuse.ir.recipe import build
@@ -157,15 +157,40 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
                         tests.append(f'(lane<m.count&&old[lane*STRIDE]=={tid}&&old[lane*STRIDE+1]==0)')
                 guard='||'.join(tests) or 'lane==0'
                 pcalls.append(f'if({guard}){{query_{rid}('+args.replace(',0',',lane')+f',{rank});if(m.error)return;}}')
+            if typed_seed_dispatch and not spine_cache:
+                def invoke(rid,rank):return f'query_{rid}('+args.replace(',0',',lane')+f',{rank});if(m.error)return;'
+                grounded=[(rank,rid) for rank,rid in enumerate(rules) if not p['query_seed_tables'][rid] or None in p['query_seed_tables'][rid]]
+                zero='0xffffffff' if compact_seeds else '0'
+                body=f'if(lane=={zero}){{'+''.join(invoke(rid,rank) for rank,rid in grounded)+'}'
+                body+='if(lane>=m.count||old[lane*STRIDE+1]!=0)break;switch(uint(old[lane*STRIDE])){'
+                names=sorted({n for rid in rules for n in p['query_seed_tables'][rid] if n is not None})
+                for name in names:
+                    tid=next(i for i,t in enumerate(p['tables']) if t['name']==name)
+                    body+=f'case {tid}:{{'
+                    for rank,rid in enumerate(rules):
+                        if name not in p['query_seed_tables'][rid]:continue
+                        call=invoke(rid,rank)
+                        if not compact_seeds and (rank,rid) in grounded:call='if(lane!=0){'+call+'}'
+                        body+=call
+                    body+='break;}'
+                body+='default:break;}'
+                pcalls=[body]
             parallel_calls.append(f'case {si}:{{'+''.join(pcalls)+'break;}')
+    p['resident_seed_routing']=dict(enabled=bool(batch and typed_seed_dispatch and not spine_cache),requested=typed_seed_dispatch,contract='typed first-branch table; grounded queries once; all delta variants retained')
     text = (HERE / ('batched_cell.metal' if batch else 'generic_cell.metal')).read_text()
     if batch:
         from .batches import lower as lower_batches
-        batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])},reuse_constructor_witnesses,materialize_single_steps,local_cell_execution,parallel_cell_waves)
+        batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])},reuse_constructor_witnesses,materialize_single_steps,local_cell_execution,parallel_cell_waves and not direct_ordinary_rhs)
         if scheduled:
             from .resident_schedules import metal as scheduled_metal
             p['shader']+='\n'+scheduled_metal((HERE/'scheduled_matrix.metal').read_text())
         p['shader']+='\n'+batch_code+'\nbool bc_quiescent(uint set,device long*r,device uint*watermarks){switch(set){'+''.join(quiescent_cases)+'default:return false;}}'
+        ordinary_cases=[]
+        for si,rules in enumerate(p['set_rule_ids']):
+            ordinary_cases.append(f'case {si}:return '+('&&'.join(f'bc_select({rid},stack,depth)<0' for rid in rules) or 'true')+';')
+        p['shader']+='\nbool bc_ordinary(uint set,device uint*stack,uint depth){switch(set){'+''.join(ordinary_cases)+'default:return false;}}'
+        p['resident_ordinary_rhs']=dict(enabled=direct_ordinary_rhs,contract='complete compiled RHS in original binding order; no Cell frames for Runs without selected multi-step recipes')
+        defines+=f'#define BC_DIRECT_ORDINARY {int(direct_ordinary_rhs)}\n'
         p['batch_layout']=batch_layout
         p['batch_sort']=dict(schema='eggfuse-resident-sort/v1',enabled=parallel_sort,tile=256,local_capacity=1024,
             contract='same total binding order; local bitonic tiles and parallel rank merges; GPU-sized indirect dispatch')
@@ -188,13 +213,13 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
             if p['query_radix_digit_bits']!=4:raise ValueError('resident query indexes require four-bit radix kernels')
             text+='\n'+lower_indexes((HERE/'query_parallel.metal').read_text(),hierarchical_indexes)
         p['resident_rebuild']=dict(schema='eggfuse-resident-rebuild/v1',enabled=parallel_block_rebuild,
-            dispatch_base=index_base+(p['resident_indexes']['dispatch_fields'] if parallel_indexes else 0),
+            dispatch_base=index_base+(p['resident_indexes']['dispatch_fields'] if parallel_indexes else 0),resume_merge_index=resume_merge_index,
             contract='parallel canonicalization/grouping/compaction; original ordered merge callbacks; saved exact continuation')
-        defines+=f'#define BC_PARALLEL_REBUILD {int(parallel_block_rebuild)}\n'
+        defines+=f'#define BC_PARALLEL_REBUILD {int(parallel_block_rebuild)}\n#define BC_RESUME_MERGE_INDEX {int(parallel_block_rebuild and resume_merge_index)}\n'
         if parallel_block_rebuild:
             from .resident_rebuild import lower as lower_rebuild
             for i,name in enumerate(['HASH','ROWS','ONE','COMPACT','FINISH']):defines+=f'#define BC_RB_{name} {3*(p["resident_rebuild"]["dispatch_base"]+i)}\n'
-            text+='\n'+lower_rebuild((HERE/'rebuild_parallel.metal').read_text())
+            text+='\n'+lower_rebuild((HERE/'rebuild_parallel.metal').read_text(),(HERE/'query_parallel.metal').read_text() if resume_merge_index else None)
         p['resident_writes']=dict(schema='eggfuse-resident-writes/v1',enabled=parallel_constructors,
             dispatch_base=p['resident_rebuild']['dispatch_base']+(5 if parallel_block_rebuild else 0),
             eligible_rules=p['batch_rhs']['eligible_rules'],

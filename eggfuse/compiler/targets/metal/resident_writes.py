@@ -42,6 +42,8 @@ def lower(source):
             body=body.replace(before,'''if(atomic_compare_exchange_weak_explicit(index+2*h,&expected,i+1,memory_order_relaxed,memory_order_relaxed)){
  uint at=atomic_fetch_add_explicit((device atomic_uint*)(r+RC_INDEX_TOUCH),1u,memory_order_relaxed);r[RC_INDEX_TOUCH+1+at]=h;return;}''')
         if name=='batch_ordered':body=body.replace('(NOOP_PREFLIGHT||EFFECT_DEDUP)&&noop[binding]','NOOP_PREFLIGHT&&data[(bs[2]+i)*BC_STRIDE+BC_FAST]')
+        body=body.replace('data[(bs[2]+lane)*BC_STRIDE+BC_FAST]', '(control[36]?noop[match_order[bs[2]+lane]]:data[(bs[2]+lane)*BC_STRIDE+BC_FAST])')
+        body=body.replace('data[(bs[2]+i)*BC_STRIDE+BC_FAST]', '(control[36]?noop[match_order[bs[2]+i]]:data[(bs[2]+i)*BC_STRIDE+BC_FAST])')
         pre='''
  uint instance=point.y,lane=point.x,group=lane/256;if(instance>=cfg.x)return;
  device Meta&m=all_meta[instance];device long*r=all_rows+instance*GC_ROW_WORDS;
@@ -73,6 +75,7 @@ kernel void resident_write_finish(BC_ARGS,uint2 point[[thread_position_in_grid]]
  device uint*control=all_uint+instance*GC_UINT_WORDS+GC_CONTROL;
  device uint*bs=all_write_uint+instance*CB_WORDS;
  stats[5]+=bs[37];stats[28]+=bs[44];stats[30]+=bs[9];stats[31]+=bs[10];stats[32]++;stats[33]+=bs[11];
+ if(control[36])stats[58]+=bs[37];
  control[27]=control[24];stats[10]=10;
 }
 ''')

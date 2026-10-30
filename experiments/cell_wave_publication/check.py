@@ -18,7 +18,7 @@ BASE='''(datatype E (N i64) (Mid E i64) (End E i64))
 
 def timed(core,plan,build,folder,on,audit):
     lower=runtime.lower
-    with patch.object(runtime,'lower',lambda *args,**kw:lower(*args,**kw,parallel_cell_waves=on)):
+    with patch.object(runtime,'lower',lambda *args,**kw:lower(*args,**kw,parallel_cell_waves=on,direct_ordinary_rhs=False)):
         c=copy.deepcopy(core);seed=c.pop('initial')
         lib=dict(schema='analyzer-device-cells/v1',programs=[c],instances=[dict(unit=0,program=0,initial=seed)])
         r=runtime.run_library(lib,build,folder,capacity=max(8192,8*len(seed)),match_capacity=max(4096,2*len(seed)),region_program=plan,audit_numeric=audit)
@@ -41,7 +41,7 @@ def main():
             if old_core!=c:raise ValueError('historical control has different source/control')
             summary['False']={**previous['False'],'historical':str(a.reuse_off.resolve())}
         for on in ([True] if a.reuse_off else [False,True]):
-            with patch.object(runtime,'lower',lambda *args,**kw:lower(*args,**kw,parallel_cell_waves=on)):
+            with patch.object(runtime,'lower',lambda *args,**kw:lower(*args,**kw,parallel_cell_waves=on,direct_ordinary_rhs=False)):
                 x=copy.deepcopy(c);seed=x.pop('initial');lib=dict(schema='analyzer-device-cells/v1',programs=[x],instances=[dict(unit=0,program=0,initial=seed)])
                 folder=a.output/('pass3-on' if on else 'pass3-off');r=runtime.run_library(lib,a.build,folder,1048576,262144,region_program=plan)
             assert r['complete'],r['rejected']

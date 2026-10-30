@@ -30,8 +30,10 @@ unsupported numeric types retain ordered execution. A single context stays on
 the scalar path because there is no inter-context parallelism. No candidate,
 iteration or match budget is added.
 
-Single-step recipes that qualify now use the same wave path. Otherwise about
-2.4 million Pass-3 single-step invocations would still bypass the optimization.
+The original measurements below also routed qualifying single-step recipes
+through waves. The general runtime now defaults to complete ordinary RHSs for
+single-step programs; this experiment explicitly sets `direct_ordinary_rhs=False`
+to preserve its wave ablation. See `../resident_restoration/README.md`.
 Finite Run/Repeat outside an admitted saturation scope remains ordinary source
 execution. Within an admitted scope, commutative effects may reorder; native
 allocation order and intermediate physical history are not promised. Complete
