@@ -44,3 +44,11 @@ The remaining structural gap is bulk execution of effectful, dependent
 multi-stage recipes. Current fusion still validates and publishes these effects
 in an ordered scalar owner. More matcher microbench gains do not remove that
 serial path. No complete multi-stage coverage or 2x speedup is claimed.
+
+Complete endpoint verification against the preceding resident engine passed:
+**701,998 rows and 524,742 mapped equality classes**, with identical typed facts,
+function values, equivalence and visibility under an identity bijection. The new
+lowering avoids 2,432 temporary identities/unions; this is not evidence of Cell
+storage compression. The comparison performs no native repair or inference.
+See `localssa-graph-check.json`. Raw identity arrays are intentionally not claimed
+to be equal across these two lowerings.
