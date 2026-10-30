@@ -89,6 +89,7 @@ python3 experiments/rhs_packets/check.py \
 python3 experiments/rhs_packets/bench.py \
   --build out/rhs-packets-build --output out/rhs-packets-bench
 cargo profile
+python3 experiments/rhs_packets/report.py
 ```
 
 The build directory requires the existing typed `frontend`; the test runner
@@ -106,3 +107,5 @@ historical evidence. Profiled encoder times must not be treated as clean times.
 Counters 60–70 distinguish binding requests, fresh rows, dependency passes,
 ordered tails, fallback cohorts, fused Cell contexts/steps, and existing-key hits.
 Logical actions, requests, and fresh rows are intentionally separate metrics.
+`packet_reused_requests` counts ordinary hashcons/deduplication (requests that
+needed no fresh row); it is **not** a RipSatCell cache-hit or closure-reuse score.
