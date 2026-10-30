@@ -1,0 +1,70 @@
+{
+  "schema": "eggfuse-profile-suite/v1",
+  "cases": [
+    {
+      "name": "fact",
+      "default": true,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/fact.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "84615f276c5968cadaec53abf228a9acab66dd6c1597e902e9af1a8cab6ed149",
+      "origin": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-pass-audit/fact/pass-3-flat.egg",
+      "pass_number": 3,
+      "capacity": 65536,
+      "match_capacity": 16384
+    },
+    {
+      "name": "loopfact",
+      "default": true,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/loopfact.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "26c0d368e168673ed0925e10e42651c255cc7068fa33af96ee065371b88b2051",
+      "origin": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-pass-audit/loopfact/pass-3-flat.egg",
+      "pass_number": 3,
+      "capacity": 65536,
+      "match_capacity": 16384
+    },
+    {
+      "name": "sum-bits",
+      "default": true,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/sum-bits.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+      "origin": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/bootstrap/sum-bits/pass-3-flat.egg",
+      "pass_number": 3,
+      "capacity": 65536,
+      "match_capacity": 16384
+    },
+    {
+      "name": "raytrace",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/raytrace.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "origin": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/unified-pass3-multistage/source.egg",
+      "pass_number": 3,
+      "capacity": 1048576,
+      "match_capacity": 262144
+    }
+  ],
+  "bake": {
+    "parts": [
+      "inputs/common-prefix.egg",
+      "inputs/bake.eggpart"
+    ],
+    "sha256": "6c40aff2c010c4101afba9cb596275db97811b925748ac8bf1e96e56729ed1ed",
+    "origin": "out/unified-pass3-multistage/bake-source.egg",
+    "scope": "Frozen same-rule training input used by the existing Raytrace compiler experiment; not full-workload Bake coverage"
+  }
+}

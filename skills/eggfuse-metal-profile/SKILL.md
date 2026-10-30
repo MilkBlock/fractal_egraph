@@ -7,6 +7,19 @@ description: 用 Xcode xctrace、Metal GPU Counters 和 gpudebug 定位 eggfuse/
 
 先读已有结果。实现或输入没变时复用 trace、导出和嵌入的 GPU profile，不重跑原生 CPU 对照。需要新采集时使用本目录脚本，避免重新拼协议和 XML 统计器。
 
+## 日常一键入口
+
+在仓库根目录直接运行 **`cargo profile`**。默认只测 `fact`、`loopfact`、`sum-bits` 三个真实完整 Pass 3。用户已选定沿用 162.65 秒报告的 `resident-core` 配置：多阶段 Cell 开启，源代码 marker 关闭。自动完成产物编译、正常计时、encoder profiling、完整重放核对和报告。缓存命中时不重复运行；结果标记 `CACHED` 并保留测量时间。先用 `cargo profile --cached-only` 读取已有结果，只有用户要求刷新或代码变更导致缓存失效时才重新测。
+
+- `cargo profile --fresh`：重新计时，复用编译缓存。
+- `cargo profile --hardware`：自动选热点窗口，加硬件计数器与带宽。
+- `cargo profile --case raytrace`：显式运行大样例；默认绝不带上它。
+- `cargo profile --pipeline`：显式选择完整 source SK／marker 流水线，独立缓存；首次 Metal 编译可能非常慢，不作默认。
+- `cargo profile --list`：列出四个输入；`--plan` 不执行编译／GPU。
+- 报告：`out/profile-suite/latest.md`、`latest.json` 及链接的 HTML。
+
+这层调度与缓存由独立 Rust crate 实现，旧 Python 实现不变。固定 Bake 输入、缓存失效口径、原生工具版本和未来 Rust compiler 接口见 [suite 文档](../../experiments/profile_suite/README.md)。需要自选 workload 或详细 Apple replay 时再使用下面的底层脚本，不要为日常小样例重写采集脚本。
+
 ## 先选择正确的执行路径
 
 - **当前 resident ABI7 完整运行**：使用 `resident_full.py` 给保存的 `attempt-*/program.json + result.json` 做全程 encoder 时间戳。保留原 quantum 和私有多阶段执行；复用同输入、同 worker 的无插桩基线，逐字段核对完整状态、历史、私有区域及外层提交数。用 `resident_window.py` 在同一次完整执行里采多个硬件窗口，避免为每个窗口重放前缀。完整流程和字段口径见 [resident 精确测量](references/resident-measurement.md)。
