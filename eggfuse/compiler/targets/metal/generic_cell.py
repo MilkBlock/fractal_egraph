@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     compact_seeds=bool(compact_seeds and batch and not spine_cache)
@@ -59,7 +59,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     p = compile_program(core, capacity=capacity, match_capacity=match_capacity,
                         parallel_match=bool(batch), parallel_prepare=False,
                         parallel_rebuild=False, noop_preflight=bool(batch and parallel_noops),
-                        query_patch=bool(batch and patch_queries), batch_rhs=bool(batch and parallel_constructors), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts),spine_cache=spine_cache,local_certificates=local_certificates,ordered_query_patch=ordered_query_patch,witness_order=not ordered_query_patch,compact_seeds=compact_seeds)
+                        query_patch=bool(batch and patch_queries), batch_rhs=bool(batch and parallel_constructors), split_matches=False,marker_program=marker_program,region_program=region_program,resident_contexts=bool(batch),lazy_contexts=bool(batch and lazy_contexts),spine_cache=spine_cache,local_certificates=local_certificates,ordered_query_patch=ordered_query_patch,witness_order=not ordered_query_patch,compact_seeds=compact_seeds,spine_receipt_shortcuts=spine_receipt_shortcuts)
     scheduled=None
     if batch and scheduled_regions:
         from .resident_schedules import prepare as prepare_schedules

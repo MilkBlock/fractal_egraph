@@ -88,10 +88,11 @@ def canonical(pair,types):
     for first in range(len(pair)):
         facts=[pair[first]];pending=pair[:first]+pair[first+1:]
         available=set.union(*(vars_in(e) for e in facts[0]['args']))
-        # Match the existing fully-keyed Cell projection contract. The next
-        # constructor is a functional lookup, never a new reverse-fiber join.
+        # Prefer keyed continuations, but retain correlated reverse fibers.
+        # Their complete tuple is the marker key; no representative is picked.
         while pending:
             ready=[f for f in pending if set.union(set(),*(vars_in(e) for e in f['args'][1]['args']))<=available]
+            if not ready:ready=[f for f in pending if set.union(*(vars_in(e) for e in f['args'])) & available]
             if not ready:break
             f=min(ready,key=lambda f:text(f['args'][1]));pending.remove(f);facts.append(f)
             available|=set.union(*(vars_in(e) for e in f['args']))
@@ -192,7 +193,19 @@ def publications(rule,views,sig,allow_partial_keys=False):
                     found=keys.get(call['head'],{}).get(key)
                     selected_rows=[] if found is None else [found]
                 elif depth and not allow_partial_keys:
-                    raise ValueError('publisher requires a fully keyed continuation')
+                    # Do not enumerate a symbolic Cartesian product in the
+                    # producer RHS. Persist its known prefix; the exact table
+                    # continuation joins later arrivals and union-created fibers.
+                    def compatible(row):
+                        bound=dict(old)
+                        for pat,val in zip(call['args']+[root],row):
+                            if pat['kind']=='var':
+                                if pat['name'] in bound and not same(bound[pat['name']],val):return False
+                                bound[pat['name']]=val
+                            elif not same(pat,val):return False
+                        return True
+                    selected_rows=[row for row in selected_rows if compatible(row)]
+                    if len(selected_rows)!=1:continue
                 for row in selected_rows:
                     b=dict(old);ok=True
                     for pat,val in zip(call['args']+[root],row):
@@ -214,7 +227,7 @@ def publications(rule,views,sig,allow_partial_keys=False):
 
 def schedule(s,consumers):
     k=s['kind']
-    if k=='run':return f'(seq (run {REPAIR}) {s["text"]})' if s['ruleset'] in consumers else s['text']
+    if k=='run':return f'(seq (saturate (run {REPAIR})) {s["text"]})' if s['ruleset'] in consumers else s['text']
     if k=='seq':return '(seq '+' '.join(schedule(x,consumers) for x in s['children'])+')'
     if k=='repeat':return f'(repeat {s["count"]} {schedule(s["child"],consumers)})'
     return f'(saturate {schedule(s["child"],consumers)})'
@@ -227,7 +240,7 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
         compiler.run([ast_binary,source,out/'source-ast.json'])
         data=json.loads((out/'source-ast.json').read_text())
     sig=data['signatures']
-    if any(PREFIX in c['text'] or REPAIR in c['text'] or SHADOW in c['text'] or SLOT in c['text'] for c in data['commands']):raise ValueError('reserved marker namespace')
+    if any(PREFIX in c['text'] or 'CellSpineApplied' in c['text'] or REPAIR in c['text'] or SHADOW in c['text'] or SLOT in c['text'] for c in data['commands']):raise ValueError('reserved marker namespace')
     if data['rewrites']:raise ValueError('this adapter expects native expanded Rule commands; rewrites must be desugared first')
     if any(c['text'].startswith('(include ') for c in data['commands']):raise ValueError('expand includes before marker compilation')
     if any(c['text'].startswith(('(push','(pop')) for c in data['commands']):raise ValueError('push/pop scopes are not supported by this flat-program adapter')
@@ -267,11 +280,15 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
             key,body,args,sorts=normalized
             g=groups.setdefault(key,dict(body=body,sorts=sorts,parameters=[f'{SLOT}{i}' for i in range(len(sorts))],occurrences=[],key=hashlib.sha256(key.encode()).hexdigest()))
             g['occurrences'].append(dict(rule=rid,atoms=list(indices),args=args))
-    eligible=[]
+    eligible=[];unshared=0;witnessed=0
     for g in groups.values():
-        if len({o['rule'] for o in g['occurrences']})<2:continue
+        if len({o['rule'] for o in g['occurrences']})<2:unshared+=1
         g['cells']=witnesses(g['body'],{f'{SLOT}{i}':s for i,s in enumerate(g['sorts'])},cells)
-        if g['cells']:eligible.append(g)
+        witnessed+=bool(g['cells'])
+        # Bake guides selection, not the validity of an exact positive view.
+        # A small training input must not veto a source-proved structural view.
+        g['evidence']='analyze-and-source' if g['cells'] else 'exact-source-view'
+        eligible.append(g)
     # Exact non-overlapping schema cover. This score selects shared fragments;
     # measured Pass-3 work remains the acceptance test, not a fabricated model.
     if profile is not None:
@@ -287,7 +304,7 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
             for n,o in enumerate(g['occurrences']):
                 u=model.addVar(vtype=solver.BINARY,name=f'use_{i}_{n}');model.addConstr(u<=v);os.append(u)
                 for a in o['atoms']:uses[o['rule'],a].append(u)
-            model.addConstr(solver.quicksum(os)>=2*v);chosen.append(os)
+            model.addConstr(solver.quicksum(os)>=min(2,len({o['rule'] for o in g['occurrences']}))*v);chosen.append(os)
         for xs in uses.values():model.addConstr(solver.quicksum(xs)<=1)
         coverage=solver.quicksum(u for xs in chosen for u in xs)
         if profile is None:
@@ -318,7 +335,10 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
             view['occurrences']=[o for o,u in zip(g['occurrences'],chosen[i]) if model.value(u)>.5]
             for o in view['occurrences']:by_rule[o['rule']].append((view,o))
         model.write(out/'selection.lp');model.write(out/'selection.sol')
+    from .spine_state import prefix_states, applied_states
+    views=prefix_states(views)
     original={r['ordinal']:r for r in data['rules']};variants={}
+    applied=applied_states(original,flats,by_rule,sig,changed)
     consumers={original[rid]['ruleset'] for rid in by_rule}
     while True:
         parents={name for name,children in data.get('combined_rulesets',{}).items() if any(c in consumers for c in children)}
@@ -335,6 +355,7 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
                 body += [dict(kind='fact',expr=t.call(v['name'],o['args'])) for v,o in selected]
             pubs=publications(r,views,sig) if mode=='published' and rule['ruleset'] in active else []
             pub_count+=len(pubs);head+=pubs
+            if rid in applied:head.append(applied[rid]['action'])
             if selected or pubs:
                 # Keep the original rule name and original actions/naive flag.
                 late_globals={a['action']['name'] for a in data['actions'] if a['action']['kind']=='let'
@@ -345,7 +366,8 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
         # A Unit-valued view does not allocate a new equality sort/identity for
         # every tuple (this fork lowers `relation` to a constructor).
         declarations=[f'(ruleset {REPAIR})']+[f'(function {v["name"]} ({" ".join(v["sorts"])}) Unit :merge old)' for v in views]
-        repair=[f'(rule ({" ".join(t.fact_text(f) for f in v["body"])}) ((set ({v["name"]} {" ".join(f"{SLOT}{i}" for i in range(len(v["sorts"])))} ) ())) :ruleset {REPAIR} :name "complete-{v["name"]}")' for v in views]
+        declarations += [f'(function {s["table"]} ({" ".join(s["sorts"])}) Unit :merge old)' for s in applied.values()]
+        repair=[f'(rule ({" ".join(t.fact_text(f) for f in v["completion_body"])}) ((set ({v["name"]} {" ".join(f"{SLOT}{i}" for i in range(len(v["sorts"])))} ) ())) :ruleset {REPAIR} :name "complete-{v["name"]}")' for v in views]
         # Preserve original declaration/compilation order. Installing auxiliary
         # tables amid original declarations changes native table/rule identities.
         # Compile replaced rules in unscheduled private sets at their old sites;
@@ -368,6 +390,8 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
     report=dict(schema='pass3-source-markers/v1',source=str(source),source_sha256=compiler.digest(source),analysis=str(analysis),
         analysis_sha256={str(p.relative_to(analysis)):compiler.digest(p) for p in library_files},
         cells=[name for name,_ in cells],markers=views,variants=variants,modified_consumers=len(by_rule),
+        spine_states=[{k:v for k,v in s.items() if k!='action'} for s in applied.values()],
+        selection_diagnostics=dict(normalized_fragments=len(groups),unshared_fragments=unshared,offered_fragments=len(eligible),analyze_witnessed_fragments=witnessed,source_only_fragments=len(eligible)-witnessed),
         scheduled_rulesets=sorted(active),maintenance_before=sorted(consumers),
         structural_objective=primary,cost_model='profile-supplied lifecycle nanoseconds' if profile else 'structural baseline; not a runtime performance estimate',tie_break='maximum shared occurrences at the same objective',
         profile_provenance=None if profile is None else profile.get('provenance'),
@@ -376,7 +400,7 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
         guarantee='exact positive constructor views completed before each marker-consuming original Run; original mutable reads/guards/RHS retained; no Cell closed-world assumption',
         candidate_evidence='Analyze observed/certified constructor structure selects fragments; complete source views, not the observations, justify rewriting',
         boundary='auxiliary writes and changed enumeration may affect nonconfluent saturation; full native graph and extraction checks are required before adoption',
-        selection_scope='non-overlapping fully-keyed shared pairs and contiguous constructor spines of arbitrary length, witnessed in Analyze; not all graph subsets')
+        selection_scope='non-overlapping connected shared constructor fragments; Analyze evidence is a hint, exact source completion is the proof; prefixes persist as tables')
     (out/'markers.json').write_text(json.dumps(report,indent=2)+'\n');return report
 
 

@@ -70,3 +70,13 @@ effects through a stable block merger. Initial seed search and publication are
 still serial per arena. `--check` validates runtime witnesses/numeric effects
 and fresh-process GPU round reproducibility, rather than requiring CPU endpoint
 equality. See [implementation and tests](../experiments/staged_batches/README.md).
+
+## Persistent Spine state tables
+
+The source marker pass now emits reusable structural prefixes and successful
+application receipts as ordinary egraph tables. Marker IR v2 preserves live
+port queries and original Stage/Repeat activation. The resident backend consumes
+these tables with its legacy Spine cache disabled; only proved immutable effects
+can use persistent receipt shortcuts. Source-only views are exact materialized
+queries, not RipSat closure certificates. See
+[table-state verification](../experiments/spine_table_state/README.md).

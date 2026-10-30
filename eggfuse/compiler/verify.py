@@ -1,7 +1,7 @@
 """Native-to-native full-state comparison after projecting only marker tables."""
 
 def compare_source(sk,mk,marker_ir):
-    names={m['name'] for m in marker_ir['markers']}
+    names={m['name'] for m in marker_ir['markers']}|{s['receipt_table'] for s in marker_ir.get('continuations',[])}
     lhs=sk['rows'];rhs=[r for r in mk['rows'] if r['table'] not in names]
     def value(v):
         if 'elements' in v:return (v['sort'],frozenset(value(e) for e in v['elements']))

@@ -71,7 +71,7 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         (folder/'request.json').write_text(json.dumps(request))
         command([solver_python,'-m','eggfuse.compiler.select_markers',folder/'request.json'],folder/'markers.log')
     marked=pm.run('markers',marker_inputs,{'selection':'profile' if profile else 'explicit structural baseline'},
-        base+[ROOT/'tools/cell_spine'/n for n in ['pass3_markers.py','solver.py','terms.py','takeover.py','representation.py','lhs_coverage.py']]+[ROOT/'eggfuse/compiler/select_markers.py'],
+        base+[ROOT/'tools/cell_spine'/n for n in ['pass3_markers.py','spine_state.py','solver.py','terms.py','takeover.py','representation.py','lhs_coverage.py']]+[ROOT/'eggfuse/compiler/select_markers.py'],
         ['result/published.egg','result/shared.egg','result/markers.json'],markers,lambda f:valid_json(f/'result','markers.json'),
         preserves=['original guards and effects','full correlated binding keys'])/'result'
     marked_source=pm.publish(marked/'published.egg','source_sk_mk.egg')

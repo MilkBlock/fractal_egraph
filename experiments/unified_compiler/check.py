@@ -13,12 +13,13 @@ def main():
         return compile_pipeline(ROOT/f'experiments/unified_compiler/{name}.egg',output or a.output/name,a.build,tools,a.solver_python.absolute(),profile,capacity=512,match_capacity=2048,backend=backend)
     first=compile('spine');folder=first.output
     report=json.loads((folder/'verification.json').read_text());ir=json.loads((folder/'marker-program.json').read_text());core=json.loads((folder/'eggfuse_related_files/core.json').read_text())
-    assert len(ir['markers'])==1 and len(ir['markers'][0]['guarantee'])==3
-    assert report['device_marker_contract']['publication_sites']==1 and report['device_marker_contract']['consumer_reads']==2
+    assert len(ir['markers'])==2 and len(ir['markers'][0]['guarantee'])==3
+    assert report['device_marker_contract']['publication_sites']>=2 and report['device_marker_contract']['consumer_reads']>=2
+    assert len(ir['continuations'])==2
     summary['spine']=report
     verified_dir=Path(next(r for r in first.receipts if r['name']=='verify')['directory'])
     gpu_report=json.loads((verified_dir/'gpu/report.json').read_text())
-    assert report['device_marker_contract']['functional_completion_shortcuts']==1
+    assert report['device_marker_contract']['receipt_shortcuts']>=2
     assert all(s['matched']==0 for s in gpu_report['steps'] if s['set']=='cell-spine-complete')
     summary['published_marker_avoids_recompletion']=True
     again=compile('spine');assert all(r['cached'] for r in again.receipts);summary['unchanged_passes_reused']=len(again.receipts)
@@ -51,7 +52,7 @@ def main():
         elif kind=='guard':other['rulesets'][0]['rules'][0]['seminaive']=not other['rulesets'][0]['rules'][0]['seminaive']
         else:
             def remove(s):
-                if 'sequence' in s:s['sequence']=[remove(x) for x in s['sequence'] if x.get('run')!='cell-spine-complete']
+                if 'sequence' in s:s['sequence']=[remove(x) for x in s['sequence'] if x.get('run')!='cell-spine-complete' and x.get('saturate',{}).get('run')!='cell-spine-complete']
                 elif 'body' in s:s['body']=remove(s['body'])
                 elif 'saturate' in s:s['saturate']=remove(s['saturate'])
                 return s
