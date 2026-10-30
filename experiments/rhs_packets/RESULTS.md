@@ -1,6 +1,6 @@
 # RHS publication results — 2026-10-30
 
-Implementation: `42883fc`. Actual resident GPU backend, source markers disabled, existing multi-stage Cell program enabled. Historical controls are reused; these small Pass 3 timings are not same-binary paired measurements. No Raytrace rerun.
+Implementation: `42883fc`. Actual resident GPU backend, source markers disabled, existing multi-stage Cell program enabled. Historical controls are reused; these small Pass 3 timings are not same-binary paired measurements. This initial validation did not rerun Raytrace; the subsequent full measurement is in [RAYTRACE.md](RAYTRACE.md).
 
 | Complete Pass 3 | Historical s | New s | Reduction | Final rows | Runs | Packet dispatch quanta |
 |---|---:|---:|---:|---:|---:|---:|

@@ -109,3 +109,7 @@ ordered tails, fallback cohorts, fused Cell contexts/steps, and existing-key hit
 Logical actions, requests, and fresh rows are intentionally separate metrics.
 `packet_reused_requests` counts ordinary hashcons/deduplication (requests that
 needed no fresh row); it is **not** a RipSatCell cache-hit or closure-reuse score.
+
+For the complete large workload, use `cargo profile --case raytrace` followed by
+`python3 experiments/rhs_packets/raytrace_report.py`. The measured result and
+remaining publisher bottleneck are documented in [RAYTRACE.md](RAYTRACE.md).
