@@ -154,6 +154,14 @@ impl EGraph {
     /// remain opaque; a device compiler must reject them before taking ownership.
     /// Populated values without an export codec still fail here.
     pub fn export_device_program(&self, sets: &[String]) -> Result<Json> {
+        let mut program = self.export_rule_program(sets)?;
+        program["initial"] = self.device_snapshot()?;
+        Ok(program)
+    }
+
+    /// Typed rules/schema without exporting values. Native CPU consumers need
+    /// no device codec for their initial facts or containers.
+    pub fn export_rule_program(&self, sets: &[String]) -> Result<Json> {
         let mut tables = vec![];
         for name in self.get_function_names() {
             let f = self.get_function(&name).unwrap();
@@ -209,7 +217,7 @@ impl EGraph {
             .map(|s| Ok(json!({"name":s,"rules":collect(self,s,&mut vec![])?})))
             .collect::<Result<Vec<_>>>()?;
         Ok(
-            json!({"schema":"egglog-device-core/v1","tables":tables,"rulesets":programs,"initial":self.device_snapshot()?}),
+            json!({"schema":"egglog-device-core/v1","tables":tables,"rulesets":programs,"initial":[]}),
         )
     }
     /// Original native tables, including visibility. Values retain explicit

@@ -4,6 +4,10 @@ Resident runs support exact Run-boundary checkpoint/resume through
 `python3 -m eggfuse replay`; see [usage and validation](../experiments/staged_batches/CHECKPOINT.md).
 
 The project entry is `python3 -m eggfuse`. Run it from the repository root.
+The opt-in native CPU multi-stage target is available through
+`python3 -m eggfuse cpu --source input.egg --output out/cpu --check`.
+It uses the same region/Recipe IR and the local native egglog tables, matcher and
+actions; see [CPU contract, commands and limitations](../engine/cpu/README.md).
 The old Python forwarding modules and runtime symlinks have been removed.
 Native `egg_layout` and the actual backend experiment harness remain available.
 Native Rust modules currently remain in `src/`; the crate split in

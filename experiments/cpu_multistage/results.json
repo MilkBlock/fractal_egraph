@@ -1,0 +1,216 @@
+{
+  "_provenance": {
+    "base_commit": "f2f41bb8710112258b692c9248f48eb8cd0882c8",
+    "kernel_worktree_diff_sha256": "464fdcc6b87aaa95257547f414ac8acaba9189f1c375b24b3c5ae9abd4ededba",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "native_threads": 1,
+    "control": "same binary, local native egglog; not pristine upstream",
+    "sampling": "one paired run per input; inference excludes setup and audit"
+  },
+  "chain": {
+    "source_sha256": "76d6c41571ff32ed9cf844de4eebc13ea143d0fd3a489788e3f4a1122c0217b0",
+    "binary_sha256": "da3507d277deeb53e360708bc96b58fc0c2f1394067d2503818798f6bf07b633",
+    "native_seconds": 0.003457583,
+    "cell_seconds": 0.002743292,
+    "ratio_native_over_cell": 1.2603773130968194,
+    "native_bootstrap_seconds": 0.007277792,
+    "cell_bootstrap_seconds": 0.007125458,
+    "cell_setup_seconds": 0.00563775,
+    "recipe_compile_seconds": 0.029206832998170285,
+    "verification": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 29696,
+      "eclasses": 29696
+    },
+    "compiled_scopes": 1,
+    "inline_successor_invocations": 27648,
+    "whole_rule_queries_skipped": 55,
+    "native_effect_receipts": 28,
+    "private_receipt_tables": 0,
+    "rejected_scopes": [],
+    "cell_credit": true
+  },
+  "fact-pass3": {
+    "source_sha256": "84615f276c5968cadaec53abf228a9acab66dd6c1597e902e9af1a8cab6ed149",
+    "binary_sha256": "da3507d277deeb53e360708bc96b58fc0c2f1394067d2503818798f6bf07b633",
+    "native_seconds": 0.013436084,
+    "cell_seconds": 0.012544958,
+    "ratio_native_over_cell": 1.0710345941373418,
+    "native_bootstrap_seconds": 0.058860459,
+    "cell_bootstrap_seconds": 0.055824541,
+    "cell_setup_seconds": 0.074113167,
+    "recipe_compile_seconds": 1.8294191659988428,
+    "verification": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 1076,
+      "eclasses": 809
+    },
+    "compiled_scopes": 0,
+    "inline_successor_invocations": 0,
+    "whole_rule_queries_skipped": 0,
+    "native_effect_receipts": 0,
+    "private_receipt_tables": 0,
+    "rejected_scopes": [
+      {
+        "reason": "order-sensitive function merge can observe native identity/enumeration changes; original native schedule",
+        "functions": [
+          "LoopNumItersGuess",
+          "DUMMYCTX",
+          "TypeList-length",
+          "ListExpr-length",
+          "tuple-length",
+          "ExtractedExpr",
+          "lo-bound",
+          "hi-bound",
+          "Length-List<i64+IntInterval>",
+          "Length-List<PtrPointees>",
+          "ExprSet-length",
+          "to-hoist",
+          "IVTNewInputsAnalysisImpl",
+          "IVTNewInputsAnalysis"
+        ]
+      }
+    ],
+    "cell_credit": false
+  },
+  "loopfact-pass3": {
+    "source_sha256": "26c0d368e168673ed0925e10e42651c255cc7068fa33af96ee065371b88b2051",
+    "binary_sha256": "da3507d277deeb53e360708bc96b58fc0c2f1394067d2503818798f6bf07b633",
+    "native_seconds": 0.01275575,
+    "cell_seconds": 0.01322675,
+    "ratio_native_over_cell": 0.9643903453229251,
+    "native_bootstrap_seconds": 0.056312542,
+    "cell_bootstrap_seconds": 0.057757834,
+    "cell_setup_seconds": 0.079230917,
+    "recipe_compile_seconds": 1.8138767079981335,
+    "verification": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 1019,
+      "eclasses": 765
+    },
+    "compiled_scopes": 0,
+    "inline_successor_invocations": 0,
+    "whole_rule_queries_skipped": 0,
+    "native_effect_receipts": 0,
+    "private_receipt_tables": 0,
+    "rejected_scopes": [
+      {
+        "reason": "order-sensitive function merge can observe native identity/enumeration changes; original native schedule",
+        "functions": [
+          "LoopNumItersGuess",
+          "DUMMYCTX",
+          "TypeList-length",
+          "ListExpr-length",
+          "tuple-length",
+          "ExtractedExpr",
+          "lo-bound",
+          "hi-bound",
+          "Length-List<i64+IntInterval>",
+          "Length-List<PtrPointees>",
+          "ExprSet-length",
+          "to-hoist",
+          "IVTNewInputsAnalysisImpl",
+          "IVTNewInputsAnalysis"
+        ]
+      }
+    ],
+    "cell_credit": false
+  },
+  "sum-bits-pass3": {
+    "source_sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+    "binary_sha256": "da3507d277deeb53e360708bc96b58fc0c2f1394067d2503818798f6bf07b633",
+    "native_seconds": 0.050788458,
+    "cell_seconds": 0.050784292,
+    "ratio_native_over_cell": 1.0000820332397269,
+    "native_bootstrap_seconds": 0.061300834,
+    "cell_bootstrap_seconds": 0.055408875,
+    "cell_setup_seconds": 0.073221042,
+    "recipe_compile_seconds": 1.8062355419970118,
+    "verification": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 3206,
+      "eclasses": 2193
+    },
+    "compiled_scopes": 0,
+    "inline_successor_invocations": 0,
+    "whole_rule_queries_skipped": 0,
+    "native_effect_receipts": 0,
+    "private_receipt_tables": 0,
+    "rejected_scopes": [
+      {
+        "reason": "order-sensitive function merge can observe native identity/enumeration changes; original native schedule",
+        "functions": [
+          "LoopNumItersGuess",
+          "DUMMYCTX",
+          "TypeList-length",
+          "ListExpr-length",
+          "tuple-length",
+          "ExtractedExpr",
+          "lo-bound",
+          "hi-bound",
+          "Length-List<i64+IntInterval>",
+          "Length-List<PtrPointees>",
+          "ExprSet-length",
+          "to-hoist",
+          "IVTNewInputsAnalysisImpl",
+          "IVTNewInputsAnalysis"
+        ]
+      }
+    ],
+    "cell_credit": false
+  },
+  "raytrace-pass3": {
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "binary_sha256": "da3507d277deeb53e360708bc96b58fc0c2f1394067d2503818798f6bf07b633",
+    "native_seconds": 21.856003458,
+    "cell_seconds": 21.855467749,
+    "ratio_native_over_cell": 1.0000245114406223,
+    "native_bootstrap_seconds": 0.155531916,
+    "cell_bootstrap_seconds": 0.156599208,
+    "cell_setup_seconds": 0.359205167,
+    "recipe_compile_seconds": 5.1138052079986664,
+    "verification": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 697922,
+      "eclasses": 524657
+    },
+    "compiled_scopes": 0,
+    "inline_successor_invocations": 0,
+    "whole_rule_queries_skipped": 0,
+    "native_effect_receipts": 0,
+    "private_receipt_tables": 0,
+    "rejected_scopes": [
+      {
+        "reason": "order-sensitive function merge can observe native identity/enumeration changes; original native schedule",
+        "functions": [
+          "LoopNumItersGuess",
+          "DUMMYCTX",
+          "TypeList-length",
+          "ListExpr-length",
+          "tuple-length",
+          "ExtractedExpr",
+          "lo-bound",
+          "hi-bound",
+          "Length-List<i64+IntInterval>",
+          "Length-List<PtrPointees>",
+          "ExprSet-length",
+          "to-hoist",
+          "IVTNewInputsAnalysisImpl",
+          "IVTNewInputsAnalysis"
+        ]
+      }
+    ],
+    "cell_credit": false
+  },
+  "_validation": {
+    "native_fixtures": 21,
+    "shared_ir_tests": 20,
+    "fresh_process_replay": "passed",
+    "saved_plan_new_input": "passed",
+    "forged_source": "rejected",
+    "malformed_mapping": "rejected template; exact native residual verified",
+    "complete_pass3_endpoints": "fact, loopfact, sum-bits, raytrace",
+    "output": "out/cpu-cell-release-bench",
+    "regressions": "out/cpu-cell-ready-verified"
+  }
+}

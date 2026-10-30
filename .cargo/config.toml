@@ -1,2 +1,3 @@
 [alias]
 profile = "run --offline --release --manifest-path tools/eggfuse-profile/Cargo.toml --"
+cpu = "run --offline --release --manifest-path engine/cpu/Cargo.toml --"
