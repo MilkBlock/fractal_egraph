@@ -34,6 +34,29 @@ class Coverage:
         return self.integral(hi) - self.integral(lo)
 
 
+def attribution_context(gpu_path,pid):
+    """Expose background overlap and missing target shader metadata explicitly."""
+    by_process=defaultdict(list)
+    for t in tables(gpu_path):
+        for r in t['rows']:
+            if r['state']['raw']!='Active' or int(r['event-depth']['raw'])!=0:continue
+            lo=int(r['start']['raw']);by_process[r['process']['fmt']].append((lo,lo+int(r['duration']['raw'])))
+    own=[span for name,spans in by_process.items() if name.endswith(f'({pid})') for span in spans]
+    coverage=Coverage(own);total=coverage.prefix[-1]
+    others={name:spans for name,spans in by_process.items() if not name.endswith(f'({pid})')}
+    merged=intervals_union([span for spans in others.values() for span in spans])
+    overlap=sum(coverage.overlap(a,b) for a,b in merged)
+    shader_rows=[r for t in tables(gpu_path.with_name('metal-shader-profiler-intervals.xml')) for r in t['rows'] if r['process']['fmt'].endswith(f'({pid})')]
+    registered=[r for t in tables(gpu_path.with_name('metal-shader-profiler-shader-list.xml')) for r in t['rows'] if r['process']['fmt'].endswith(f'({pid})')]
+    shader_spans=intervals_union([(int(r['start']['raw']),int(r['start']['raw'])+int(r['duration']['raw'])) for r in shader_rows])
+    shader_covered=sum(coverage.overlap(a,b) for a,b in shader_spans)
+    return dict(target_shader_sample_intervals=len(shader_rows),target_registered_shaders=len(registered),per_shader_attribution_available=bool(shader_rows),
+        target_shader_sample_covered_seconds=shader_covered/1e9,target_shader_sample_coverage_fraction=shader_covered/total if total else None,
+        other_process_overlap_seconds=overlap/1e9,other_process_overlap_fraction=overlap/total if total else None,
+        other_processes=[dict(process=name,overlap_seconds=sum(coverage.overlap(a,b) for a,b in intervals_union(spans))/1e9) for name,spans in others.items() if sum(coverage.overlap(a,b) for a,b in intervals_union(spans))],
+        interpretation='Device-wide measurements overlapping target work; not exclusive kernel occupancy/bandwidth. Missing target shader samples remain unavailable.')
+
+
 def summarize(path, gpu_path, pid, top=6):
     groups = defaultdict(list)
     devices = set()
@@ -105,7 +128,7 @@ def summarize(path, gpu_path, pid, top=6):
             node.remove(e)
     if not samples or not agg['all_target_active']:
         raise ValueError('hardware counters are empty or do not overlap target execution')
-    return {'device_wide_counters': True, 'rows': samples, 'unique_time_intervals': len(cache),
+    return {'device_wide_counters': True, 'attribution': attribution_context(gpu_path,pid), 'rows': samples, 'unique_time_intervals': len(cache),
             'scope': 'time-weighted samples overlapping target GPU intervals or sampled shader timeline; other processes may contribute',
             'counter_metadata': units,
             'groups': {g: {'active_seconds': coverage[g].prefix[-1]/1e9,

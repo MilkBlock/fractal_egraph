@@ -1,4 +1,4 @@
-import json
+import io,json
 from pathlib import Path
 import tempfile
 import unittest
@@ -109,6 +109,29 @@ class ProfileTests(unittest.TestCase):
             self.assertEqual(value['mean'],20)
             self.assertEqual(value['peak'],30)
             self.assertEqual(value['samples'],2)
+            # xctrace stdout is a stream, not a mandatory multi-GB XML file.
+            streamed=summarize_counters(io.BytesIO((p/'counter.xml').read_bytes()),p/'gpu.xml',42)
+            self.assertEqual(streamed,r)
+            self.assertFalse(r['attribution']['per_shader_attribution_available'])
+            self.assertEqual(r['attribution']['target_shader_sample_coverage_fraction'],0)
+
+    def test_shader_coverage_and_other_process_overlap_are_not_summed(self):
+        from counters import attribution_context
+        def export(path,cols,rows):
+            root=ET.Element('trace-query-result');node=ET.SubElement(root,'node');schema=ET.SubElement(node,'schema',name='fixture')
+            for col in cols:ET.SubElement(ET.SubElement(schema,'col'),'mnemonic').text=col
+            for values in rows:
+                row=ET.SubElement(node,'row')
+                for value in values:ET.SubElement(row,'v',fmt=str(value)).text=str(value)
+            ET.ElementTree(root).write(path)
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)
+            export(p/'gpu.xml',['start','duration','process','state','event-depth'],[
+                [0,100,'worker (42)','Active',0],[10,20,'other (43)','Active',0],[20,20,'third (44)','Active',0]])
+            export(p/'metal-shader-profiler-intervals.xml',['start','duration','process'],[[50,10,'worker (42)'],[55,20,'worker (42)'],[0,100,'other (43)']])
+            r=attribution_context(p/'gpu.xml',42)
+            self.assertEqual(r['other_process_overlap_fraction'],.3)
+            self.assertEqual(r['target_shader_sample_coverage_fraction'],.25)
 
 
 if __name__ == '__main__':unittest.main()

@@ -49,7 +49,10 @@ def invoke(args, commands, path, timeout=300):
                 subprocess.run(['xcrun','gpudebug','--terminate',own],capture_output=True)
         raise
     text = path.read_text()
-    if p.returncode or re.search(r'(^|> )error:', text, re.M):
+    # Xcode 27.1's `go` also attempts `info` on container-only nodes. It changes
+    # directory successfully, but prints this diagnostic. No other error is OK.
+    checked = re.sub(r"error: '[^']+' has no info\. Available actions: go\s*", '', text)
+    if p.returncode or re.search(r'(^|> )error:', checked, re.M):
         if '--gputrace' in args:
             for own in re.findall(r'^Session (\d+) created\.$', text, re.M):
                 subprocess.run(['xcrun','gpudebug','--terminate',own],capture_output=True)
@@ -62,22 +65,34 @@ def main():
     p.add_argument('--trace', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--reuse', action='store_true', help='load embedded profiling instead of collecting again')
+    p.add_argument('--execution', choices=['overlapping','serial'], default='overlapping', help='Apple replay mode; serial is a separate diagnostic, never a live benchmark')
+    p.add_argument('--profile-index', type=int, help='embedded profile index; default latest, use with --reuse')
+    p.add_argument('--inspect-dispatch', help='read only a discovered commands/cbN/ceN/dispN path; no GPU profiling, even when per-encoder counters are unavailable')
     p.add_argument('--top', type=int, default=3, help='inspect longest encoders, by duration (not Cost percent)')
     p.add_argument('--timeout-seconds', type=int, default=300, help='explicit Apple replay/compilation timeout; not an inference budget')
     a = p.parse_args()
     if a.timeout_seconds <= 0:p.error('--timeout-seconds must be positive')
+    if a.top <= 0:p.error('--top must be positive')
+    if a.profile_index is not None and (not a.reuse or a.profile_index<0):p.error('--profile-index needs --reuse and a nonnegative index')
+    if a.inspect_dispatch and not re.fullmatch(r'commands/cb\d+/ce\d+/disp\d+',a.inspect_dispatch):p.error('dispatch path must come from the capture command tree')
     a.output.mkdir(parents=True, exist_ok=False)
     session = None
     try:
+        if a.inspect_dispatch:
+            raw=invoke(['--gputrace',str(a.trace.resolve())],['go '+a.inspect_dispatch,'info --all','info pipeline','exit --terminate'],a.output/'dispatch.txt',a.timeout_seconds)
+            records=json_records(raw)
+            if not any(isinstance(r,dict) and 'threadsPerGrid' in r for r in records):raise RuntimeError('dispatch shape unavailable')
+            (a.output/'summary.json').write_text(json.dumps(dict(trace=str(a.trace.resolve()),structure_only=True,dispatch_path=a.inspect_dispatch,records=records,limits=['Captured launch shape, not occupancy or actual productive work. Indirect dispatch may require inspecting its argument buffer.']),indent=2)+'\n')
+            print(a.output/'summary.json');return
         # Xcode 27.1 leaves the collecting session's performance browser empty
         # even after `profile load` says "already loaded". Reopen the embedded
         # result in a fresh session, without repeating GPU collection.
         if not a.reuse:
             invoke(['--gputrace', str(a.trace.resolve())], [
-                'profile run --gpu-state default --exec overlapping',
+                'profile run --gpu-state default --exec '+a.execution,
                 'profile embed', 'exit --terminate'], a.output/'collection.txt', a.timeout_seconds)
-        initial = invoke(['--gputrace', str(a.trace.resolve())], ['profile load',
-            'go performance', 'go encoders', 'list --all',
+        initial = invoke(['--gputrace', str(a.trace.resolve())], ['profile list', 'profile load'+(' '+str(a.profile_index) if a.profile_index is not None else ''),
+            'go performance', 'info timeline', 'go encoders', 'list --all',
             'go ..', 'go shaders', 'list --all', 'exit'], a.output/'overview.txt', a.timeout_seconds)
         ids = re.findall(r'^Session (\d+) created\.$', initial, re.M)
         if not ids:
@@ -98,6 +113,11 @@ def main():
             return next((x for x in reversed(values) if x is not None), -1)
         selected = sorted(encoders, key=lambda e: -elapsed(e))[:a.top]
         if not selected or any(elapsed(x) < 0 for x in selected):
+            # A successful collection can still lack per-encoder data. Preserve
+            # aggregate and timeline evidence without treating Unknown/zero
+            # records, or whole-frame placeholder durations, as kernel timings.
+            partial=invoke(['--session',session],['go ..','go timeline','info --all','go encoders','list --all','exit'],a.output/'partial-timeline.txt',a.timeout_seconds)
+            (a.output/'partial.json').write_text(json.dumps(dict(diagnostic_replay_only=True,per_encoder_profile_available=False,overview=records,timeline=json_records(partial)),indent=2)+'\n')
             raise RuntimeError('encoder duration data missing; cannot rank hotspots')
         commands = ['go ..', 'go encoders']
         functions = set()
@@ -114,6 +134,7 @@ def main():
         commands += ['exit --terminate']
         details = invoke(['--session', session], commands, a.output/'details.txt', a.timeout_seconds)
         result = {'diagnostic_replay_only': True, 'trace': str(a.trace.resolve()),
+                  'requested_collection_execution':a.execution if not a.reuse else None,'embedded_profile_index':a.profile_index,
                   'reused_embedded_profile': a.reuse, 'selected_encoders': selected,
                   'overview': records, 'details': json_records(details),
                   'limits': ['Cost percentage is not elapsed-time share.',
@@ -121,6 +142,9 @@ def main():
                              'Live timing, profiled replay duration and static shader properties are distinct.']}
         (a.output/'summary.json').write_text(json.dumps(result,indent=2)+'\n')
         print(a.output/'summary.json')
+    except BaseException as error:
+        (a.output/'failure.json').write_text(json.dumps(dict(error=str(error),diagnostic_replay_only=True,trace=str(a.trace.resolve())),indent=2)+'\n')
+        raise
     finally:
         if session:
             # Only the session this command created. Never terminate all sessions.

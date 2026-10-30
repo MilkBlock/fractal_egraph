@@ -104,7 +104,7 @@ var profileTotals=[String:Double](),profileCounts=[String:Int](),profileNames=[S
         if a[key]!=b[key]:raise ValueError('phase timing changed execution: '+key)
     result=dict(schema='eggfuse-resident-phase-timings/v1',scope='encoder-boundary GPU timestamps; same command buffers, separate encoders; diagnostic only' if encoder else 'actual GPU phase timestamps; separate command buffers perturb scheduling, not a benchmark',
         program=str(program),program_sha256=a['program_sha256'],checkpoint=str(checkpoint),start_after=first,end_run=first+runs,
-        base_worker_sha256=base_hash,instrumented_worker_sha256=sha(worker),instrumented_source_sha256=sha(instrumented),
+        base_worker_sha256=base_hash,diagnostic_quantum=1,checkpoint_private_schedule_execution=manifest.get('private_schedule_execution',False),instrumented_worker_sha256=sha(worker),instrumented_source_sha256=sha(instrumented),
         phase_seconds=a['profile_phase_seconds'],phase_calls=a['profile_phase_calls'],
         instrumented_gpu_seconds=a['gpu_seconds'],reference_gpu_seconds=b['gpu_seconds'],
         full_state_and_history_equal=True,shader_compile_seconds=a['shader_compile_seconds'],pipeline_cache=a['pipeline_cache'])
@@ -126,7 +126,7 @@ def record(repo, program, checkpoint, build, output, reference=None):
         result=replay(program,build,output/'captured',checkpoint,first+1,quantum=1,
                       capture=output/'run.gputrace')
         if reference is None:
-            replay(program,build,output/'reference',checkpoint,first+runs,quantum=1)
+            replay(program,build,output/'reference',checkpoint,first+1,quantum=1)
             reference=output/'reference/result.json'
         a=json.loads((output/'captured/result.json').read_text())
         b=json.loads(reference.read_text())
