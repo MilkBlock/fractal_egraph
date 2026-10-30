@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True,parallel_cell_waves=True,resume_merge_index=True,typed_seed_dispatch=True,direct_ordinary_rhs=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True,parallel_cell_waves=True,resume_merge_index=True,typed_seed_dispatch=True,direct_ordinary_rhs=True,parallel_rhs_packets=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     compact_seeds=bool(compact_seeds and batch and not spine_cache)
@@ -112,7 +112,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     layout['row_words'] = rows
     # Control frames: kind, count, body, end, iteration, changed, any_changed, spare.
     layout['state_words'] = 8 + max(1, tape['stack_depth']) * 8
-    defines = f'#define GC_MATCH_ORDER {layout["match_order"]}\n#define GC_MATCHES {layout["matches"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
+    defines = f'#define GC_MATCH_ORDER {layout["match_order"]}\n#define GC_MATCHES {layout["matches"]}\n#define GC_REGISTERS {layout["registers"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
     defines+=f'\n#define GC_CONTROL {layout["control"]}\n#define GC_QHEADS {layout["qheads"]}\n#define GC_QUERY_ALTERNATE {p["query_sort_words"]}\n'
     defines+=f'\n#define GC_FP {layout["fp"]}\n#define GC_QLINKS {layout["qlinks"]}\n#define GC_NOOP {layout["noop"]}\n'
     calls = [];cache_calls=[];parallel_calls=[];quiescent_cases=[]
@@ -192,6 +192,14 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         p['resident_ordinary_rhs']=dict(enabled=direct_ordinary_rhs,contract='complete compiled RHS in original binding order; no Cell frames for Runs without selected multi-step recipes')
         defines+=f'#define BC_DIRECT_ORDINARY {int(direct_ordinary_rhs)}\n'
         p['batch_layout']=batch_layout
+        packets_enabled=parallel_constructors and parallel_rhs_packets
+        defines+=f'#define BC_RHS_PACKETS {int(packets_enabled)}\n'
+        if packets_enabled:
+            from .rhs_packets import lower as lower_packets
+            packet_recipes,p['rhs_packets']=lower_packets(p,core,region_program,batch_layout)
+            packet_helpers,packet_kernels=(HERE/'rhs_packets.metal').read_text().split('#define RP_ARGS',1)
+            p['shader']+='\n'+packet_helpers.replace('// RHS_PACKET_RECIPES',packet_recipes)
+            text+='\n#define RP_ARGS'+packet_kernels
         p['batch_sort']=dict(schema='eggfuse-resident-sort/v1',enabled=parallel_sort,tile=256,local_capacity=1024,
             contract='same total binding order; local bitonic tiles and parallel rank merges; GPU-sized indirect dispatch')
         p['quiescent_runs']=dict(enabled=skip_quiescent,proof='every delta rule read-table version is at or below its watermark; source Run and control progress retained')
@@ -220,15 +228,15 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
             from .resident_rebuild import lower as lower_rebuild
             for i,name in enumerate(['HASH','ROWS','ONE','COMPACT','FINISH']):defines+=f'#define BC_RB_{name} {3*(p["resident_rebuild"]["dispatch_base"]+i)}\n'
             text+='\n'+lower_rebuild((HERE/'rebuild_parallel.metal').read_text(),(HERE/'query_parallel.metal').read_text() if resume_merge_index else None)
-        p['resident_writes']=dict(schema='eggfuse-resident-writes/v1',enabled=parallel_constructors,
+        p['resident_writes']=dict(schema='eggfuse-resident-writes/v2' if packets_enabled else 'eggfuse-resident-writes/v1',enabled=parallel_constructors,
             dispatch_base=p['resident_rebuild']['dispatch_base']+(5 if parallel_block_rebuild else 0),
-            eligible_rules=p['batch_rhs']['eligible_rules'],
-            contract='contiguous independent constructor segments; stable first-witness IDs; other effects retain exact order')
+            eligible_rules=[i for i,x in enumerate(p['rhs_packets']['rules']) if x] if packets_enabled else p['batch_rhs']['eligible_rules'],
+            contract=('same-rule constructor DAGs with local references, witnessed pure Cell cones, ordered disjoint residual effects' if packets_enabled else 'contiguous independent constructor segments; stable first-witness IDs; other effects retain exact order'))
         defines+=f'#define BC_PARALLEL_CONSTRUCTORS {int(parallel_constructors)}\n'
         if parallel_constructors:
             from .resident_writes import lower as lower_writes
             for i,name in enumerate(['BINDINGS','EFFECTS','HASH','ONE']):defines+=f'#define BC_WRITE_{name} {3*(p["resident_writes"]["dispatch_base"]+i)}\n'
-            text+='\n'+lower_writes((HERE/'batch_rhs.metal').read_text())
+            if not packets_enabled:text+='\n'+lower_writes((HERE/'batch_rhs.metal').read_text())
         p['resident_seeds']=dict(schema='eggfuse-resident-seeds/v1',enabled=compact_seeds,
             dispatch_base=p['resident_writes']['dispatch_base']+(4 if parallel_constructors else 0),
             contract='exact compiled per-consumer delta gates; no sampled candidates, budgets or removed Cell programs')

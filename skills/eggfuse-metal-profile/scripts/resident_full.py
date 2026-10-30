@@ -42,7 +42,7 @@ def category(name):
     if name=='batched_cell_evaluate':return 'evaluate'
     if name.startswith('cell_union_'):return 'union'
     if name.startswith('cell_wave_'):return 'effect_waves'
-    if name.startswith('resident_batch_') or name.startswith('resident_write_') or name=='batched_cell_publish':return 'rhs_publish'
+    if name.startswith('resident_batch_') or name.startswith('resident_write_') or name.startswith('resident_packet_') or name=='batched_cell_publish':return 'rhs_publish'
     if 'fingerprint' in name:return 'audit_gates'
     return 'unclassified'
 

@@ -30,7 +30,7 @@ def lower(core,regions,string_ids,reuse_witnesses=True,materialize_single_steps=
         if call['primitive']=='guard':return f'bool({args[0]})','0L'
         if call['primitive'] in ('<','>','<=','>=','!='):return f'({args[0]}{call["primitive"]}{args[1]})','0L'
         raise ValueError('unsupported batch primitive '+call['primitive'])
-    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 60\n']
+    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 72\n']
     result.append("""
 bool bc_check_return(uint table,thread long*key,long value,device long*r,device uint*p,device Meta&m){
  long row=row_lookup(r,p,m,table,key);if(row<0)return false;
@@ -268,7 +268,7 @@ void bc_matrix_{ti}(device long*data,uint count,uint tid,threadgroup float*as,th
     from .cell_waves import lower as lower_waves
     wave_code,wave_plan=lower_waves(unique,recipe,ts,string_ids)
     result.append(wave_code)
-    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v9',width=W,steps=S,stride=stride,tile=128,stats_words=60,words=60+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
+    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v10',width=W,steps=S,stride=stride,tile=128,stats_words=72,words=72+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
         soundness='seed snapshot witness and per-successor actual row/guard validation; ordered complete effects',
         reproducibility='fixed query order, seed binding ordinal, step ordinal, action ordinal',
         batch_program_sha256=batch['sha256'],reuse_constructor_witnesses=reuse_witnesses,materialize_single_steps=materialize_single_steps,local_execution=local_execution,parallel_single_steps=parallel_single_steps,wave_plan=wave_plan)

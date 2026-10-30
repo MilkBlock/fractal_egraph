@@ -111,7 +111,8 @@ let mergeIndexPipelines:[MTLComputePipelineState]=resumeMergeIndex ? try mergeIn
 let writesSpec=program["resident_writes"] as? [String:Any]
 let parallelWrites=transportVersion==7 && writesSpec?["enabled"] as? Bool == true
 let writesBase=writesSpec?["dispatch_base"] as? Int ?? 0
-let writesNames=["write_gate","batch_output_scan","batch_output_offsets","batch_clear","batch_propose","batch_group","batch_scan","batch_reserve","batch_publish","batch_index","batch_ordered","write_finish"]
+let packetWrites=writesSpec?["schema"] as? String == "eggfuse-resident-writes/v2"
+let writesNames=packetWrites ? ["packet_gate","packet_prepare","packet_keys","packet_group","packet_next","packet_scan","packet_reserve","packet_ids","packet_publish","packet_reply","packet_finish"] : ["write_gate","batch_output_scan","batch_output_offsets","batch_clear","batch_propose","batch_group","batch_scan","batch_reserve","batch_publish","batch_index","batch_ordered","write_finish"]
 let writesPipelines:[MTLComputePipelineState]=parallelWrites ? try writesNames.map{try loadPipeline("resident_"+$0)}:[]
 let waveSpec=program["cell_waves"] as? [String:Any]
 let cellWaves=transportVersion==7 && waveSpec?["enabled"] as? Bool == true
@@ -180,9 +181,10 @@ var markerCache=zeros(n*cacheWords*8),cacheGrowths=0
 if cacheHeader>0 {for i in 0..<n {copy([Int64(cacheHeader),Int64(cacheWords)],markerCache,i*cacheWords*8)}}
 var compactCapacity=parallelRebuild ? 128:1,compactGrowths=0
 var compactScratch=zeros(parallelRebuild ? n*compactCapacity*stride*8:8)
-func writeWords(_ cap:Int)->Int {64+(cap+255)/256+5*cap}
-let proposalStride=stride-2
+func writeWords(_ cap:Int)->Int {64+(cap+255)/256+(packetWrites ? 6:5)*cap}
+let proposalStride=stride-(packetWrites ? 1:2)
 var writeCapacity=128,writeGrowths=0
+var packetControlPolls=0,packetQuanta=0
 var writeUInts=zeros(parallelWrites ? n*writeWords(writeCapacity)*4:8),writeLongs=zeros(parallelWrites ? n*writeCapacity*proposalStride*8:8)
 func waveWords(_ cap:Int)->Int {128+8*cap+3*((cap+255)/256)}
 let waveStride=waveSpec?["packet_stride"] as? Int ?? 1
@@ -322,6 +324,9 @@ while true {
  if needWriteGrowth {
   let required=(0..<n).map{Int(u32(writeUInts,$0*writeWords(writeCapacity)+43,1)[0])}.max() ?? 1
   while writeCapacity<required {writeCapacity*=2;writeGrowths+=1}
+  // A packet arena waiting for growth has published no rows. Other pending
+  // packet arenas also contain only private preparation and can restart;
+  // completed arenas have already advanced control[27].
   writeUInts=zeros(n*writeWords(writeCapacity)*4);writeLongs=zeros(n*writeCapacity*proposalStride*8)
   for i in 0..<n {if u32(metas,i*9+4,1)[0]==40 {copy([UInt32(0)],metas,(i*9+4)*4)}}
  }
@@ -330,6 +335,11 @@ while true {
   for i in 0..<n {memcpy(next.contents().advanced(by:i*historyCapacity*2*historyWidth*4),history.contents().advanced(by:i*historyCapacity*historyWidth*4),historyCapacity*historyWidth*4);copy([UInt32(0)],states,(i*stateWords+4)*4)}
   history=next;historyCapacity*=2
  }
+ // Packet readiness is a GPU control state, read at the existing completed
+ // command-buffer boundary. A newly discovered cohort remains at state 9 and
+ // is serviced next quantum. No fact/binding readback or extra fence is needed.
+ let issuePackets = !packetWrites || (0..<n).contains { i64(batchData,$0*batchWords+10,1)[0]==9 }
+ if packetWrites {packetControlPolls+=1;if issuePackets {packetQuanta+=1}}
  let cb=queue.makeCommandBuffer()!
  cb.label=transportVersion==7 ? "resident run=\(u32(states,3,1)[0]+1) pc=\(u32(states,0,1)[0])":"generic Cell local schedule"
  func bind(_ e:MTLComputeCommandEncoder){
@@ -442,15 +452,21 @@ while true {
      e.memoryBarrier(scope:.buffers)
     }
    }
-   if parallelWrites {
+   if parallelWrites && issuePackets {
     func writesPhase(_ index:Int,_ field:Int?=nil){
      phase(writesPipelines[index],"resident_"+writesNames[index])
      if let field=field {e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(writesBase+field),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
      else {e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:1,height:1,depth:1))}
      e.memoryBarrier(scope:.buffers)
     }
-    writesPhase(0);writesPhase(1,0);writesPhase(2,3);writesPhase(3,2);writesPhase(4,0)
-    writesPhase(5,1);writesPhase(6,1);writesPhase(7,3);writesPhase(8,1);writesPhase(9,1);writesPhase(10,3);writesPhase(11,3)
+    if packetWrites {
+     phase(writesPipelines[0],"resident_packet_gate")
+     e.dispatchThreadgroups(MTLSize(width:1,height:n,depth:1),threadsPerThreadgroup:MTLSize(width:1,height:1,depth:1));e.memoryBarrier(scope:.buffers)
+     for (i,field) in [2,1,1,3,1,3,1,1,0,3].enumerated(){writesPhase(i+1,field)}
+    }else{
+     writesPhase(0);writesPhase(1,0);writesPhase(2,3);writesPhase(3,2);writesPhase(4,0)
+     writesPhase(5,1);writesPhase(6,1);writesPhase(7,3);writesPhase(8,1);writesPhase(9,1);writesPhase(10,3);writesPhase(11,3)
+    }
    }
    if parallelRebuild {
     func rebuildPhase(_ index:Int,_ field:Int?=nil){
@@ -524,5 +540,5 @@ let report:[String:Any]=["instances":results,"inference_seconds":seconds,"gpu_se
  "paused":results.contains{!($0["completed"] as! Bool)} && stopAt != nil,"restored_runs":restoredRounds,"checkpoint_seconds":checkpointSeconds,"program_sha256":programDigest,"worker_sha256":workerDigest,
  "profile_capture":capturing,
  "dispatches":dispatches,"storage_bytes":[rows,uints,longs,metas,states,code,tape,history,markerCache,batchData,hashData,compactScratch,writeUInts,writeLongs].reduce(0){$0+$1.length},
- "stage_decisions_on_cpu":0,"private_schedule_execution":privateScheduleExecution,"private_schedule_regions":smCalls,"private_schedule_runs":smRuns,"private_schedule_binding_outputs":smBindingTotal,"private_schedule_rows":smRows,"private_schedule_forwarded_reads":smForwardedTotal,"private_schedule_peak_bytes":msPeakBytes,"batch_context_growths":batchGrowths,"batch_capacity":batchCapacity,"region_cache_growths":cacheGrowths,"compact_capacity":compactCapacity,"compact_growths":compactGrowths,"write_capacity":writeCapacity,"write_growths":writeGrowths,"scope":spec["contract"]!]
+ "stage_decisions_on_cpu":0,"private_schedule_execution":privateScheduleExecution,"private_schedule_regions":smCalls,"private_schedule_runs":smRuns,"private_schedule_binding_outputs":smBindingTotal,"private_schedule_rows":smRows,"private_schedule_forwarded_reads":smForwardedTotal,"private_schedule_peak_bytes":msPeakBytes,"batch_context_growths":batchGrowths,"batch_capacity":batchCapacity,"region_cache_growths":cacheGrowths,"compact_capacity":compactCapacity,"compact_growths":compactGrowths,"write_capacity":writeCapacity,"write_growths":writeGrowths,"packet_readiness_polls":packetControlPolls,"packet_dispatch_quanta":packetQuanta,"scope":spec["contract"]!]
 try JSONSerialization.data(withJSONObject:report,options:[.sortedKeys]).write(to:output,options:.atomic)

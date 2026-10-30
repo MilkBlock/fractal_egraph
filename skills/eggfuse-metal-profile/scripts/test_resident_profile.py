@@ -45,12 +45,13 @@ class ResidentProfilingTests(unittest.TestCase):
 
     def test_accounting_does_not_add_cpu_wait_or_claim_barrier_time(self):
         a=state();b=state();a['inference_seconds']=12;a['dispatches']=b['dispatches']=1
-        a['full_encoder_profile']=dict(pending_commands=0,phases={'resident_merge_row_index_parallel':dict(seconds=2,issued_encoders=3),'private_sm_mma':dict(seconds=1,issued_encoders=2)},commands=[dict(gpu_seconds=5,encoder_interval_union_seconds=3)],cpu_wait_calls=2,cpu_wait_wall_seconds=6,cpu_command_encoding_wall_seconds=1,counter_resolution_wall_seconds=.1)
+        a['full_encoder_profile']=dict(pending_commands=0,phases={'resident_merge_row_index_parallel':dict(seconds=2,issued_encoders=3),'private_sm_mma':dict(seconds=1,issued_encoders=2),'resident_packet_publish':dict(seconds=1,issued_encoders=2)},commands=[dict(gpu_seconds=5,encoder_interval_union_seconds=4)],cpu_wait_calls=2,cpu_wait_wall_seconds=6,cpu_command_encoding_wall_seconds=1,counter_resolution_wall_seconds=.1)
         r=summarize(a,b)
         self.assertEqual(r['all_command_gpu_seconds'],5)
-        self.assertEqual(r['unattributed_command_seconds'],2)
+        self.assertEqual(r['unattributed_command_seconds'],1)
         self.assertEqual(r['groups']['merge_index_refresh']['seconds'],2)
         self.assertEqual(r['groups']['private_schedule']['seconds'],1)
+        self.assertEqual(r['groups']['rhs_publish']['seconds'],1)
         a['full_encoder_profile']['commands'][0]['encoder_interval_union_seconds']=50
         with self.assertRaisesRegex(ValueError,'interval union|timestamp'):summarize(a,b)
 

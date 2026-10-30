@@ -299,13 +299,20 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  if(control[36]){
   // Ordinary Runs use the original compiled action stream. Existing independent
   // constructor segments remain parallel, without allocating Cell frames.
-  uint ordinal=control[27];
+  uint ordinal=control[27],packetEnd=ordinal;
   while(ordinal<m.matched&&!m.error){
    uint binding=match_order[ordinal],rule=uint(matches[binding*MSTRIDE]);
+   #if BC_RHS_PACKETS
+   if(RP_RULE[rule]&&ordinal>=packetEnd){
+    uint end=ordinal+1;while(end<m.matched&&uint(matches[match_order[end]*MSTRIDE])==rule)end++;packetEnd=end;
+    if(end-ordinal>=256){ensure_row_index(r,p,m);control[23]=ordinal;control[24]=end;control[37]=0;stats[10]=9;return;}
+   }
+   #else
    if(BC_PARALLEL_CONSTRUCTORS&&BATCH_RULE[rule]){
     uint end=ordinal+1;while(end<m.matched&&BATCH_RULE[uint(matches[match_order[end]*MSTRIDE])])end++;
     if(end-ordinal>=256){ensure_row_index(r,p,m);control[23]=ordinal;control[24]=end;stats[10]=9;return;}
    }
+   #endif
    if(NOOP_PREFLIGHT&&noop[binding])stats[28]++;
    else execute_actions(rule,binding,code,registers,matches,r,p,fp,m);
    ordinal++;stats[5]++;stats[58]++;
@@ -315,6 +322,13 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  for(uint tile=0;tile<uint(stats[11])&&!m.error;tile++){
   uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);
   if(start+count<=control[27])continue;
+  #if BC_RHS_PACKETS && BC_CELL_WAVES
+  if(rp_cell_writes(plan)>0){
+   uint last=tile+1;while(last<uint(stats[11])&&int(meta[3*last+2])==plan)last++;
+   uint end=uint(meta[3*(last-1)]+meta[3*(last-1)+1]);
+   if(end-start>=256){ensure_row_index(r,p,m);control[23]=start;control[24]=end;control[31]=tile;control[32]=last;control[37]=1;stats[10]=9;return;}
+  }
+  #endif
   #if BC_CELL_WAVES
   if(cw_eligible(plan)){
    uint last=tile+1;while(last<uint(stats[11])&&cw_eligible(int(meta[3*last+2])))last++;
@@ -322,6 +336,15 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
    if(end-start>1){ensure_row_index(r,p,m);control[23]=start;control[24]=end;control[31]=tile;control[32]=last;stats[10]=11;return;}
   }
   #endif
+  #if BC_RHS_PACKETS
+  if(!resuming&&plan<0){
+   uint rule=uint(matches[match_order[start]*MSTRIDE]);
+   if(RP_RULE[rule]){
+    uint end=start;for(uint t=tile;t<uint(stats[11]);t++){uint next=uint(meta[3*t]);if(meta[3*t+2]>=0||uint(matches[match_order[next]*MSTRIDE])!=rule)break;end=next+uint(meta[3*t+1]);}
+    if(end-start>=256){ensure_row_index(r,p,m);control[23]=start;control[24]=end;control[37]=0;stats[10]=9;return;}
+   }
+  }
+  #else
   if(BC_PARALLEL_CONSTRUCTORS&&!resuming&&plan<0&&BATCH_RULE[uint(matches[match_order[start]*MSTRIDE])]){
    uint end=start;
    for(uint t=tile;t<uint(stats[11]);t++){
@@ -330,6 +353,7 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
    }
    if(end-start>=256){ensure_row_index(r,p,m);control[23]=start;control[24]=end;stats[10]=9;return;}
   }
+  #endif
   for(uint j=0;j<count&&!m.error;j++){
    uint binding=match_order[start+j];device long*o=data+(start+j)*BC_STRIDE;
    if(plan>=0){stats[7]+=o[BC_FAST]>0;bc_publish(plan,binding,matches,o,r,p,fp,m,stats);stats[21]+=bc_waiting(plan,o);}
