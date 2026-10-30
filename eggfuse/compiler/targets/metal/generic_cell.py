@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True,parallel_cell_waves=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     compact_seeds=bool(compact_seeds and batch and not spine_cache)
@@ -114,6 +114,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     layout['state_words'] = 8 + max(1, tape['stack_depth']) * 8
     defines = f'#define GC_MATCH_ORDER {layout["match_order"]}\n#define GC_MATCHES {layout["matches"]}\n'+'\n'.join(f'#define GC_{k.upper()} {v}' for k, v in layout.items() if k.endswith('_words'))
     defines+=f'\n#define GC_CONTROL {layout["control"]}\n#define GC_QHEADS {layout["qheads"]}\n#define GC_QUERY_ALTERNATE {p["query_sort_words"]}\n'
+    defines+=f'\n#define GC_FP {layout["fp"]}\n#define GC_QLINKS {layout["qlinks"]}\n'
     calls = [];cache_calls=[];parallel_calls=[];quiescent_cases=[]
     if batch:
         from eggfuse.ir.recipe import build
@@ -160,7 +161,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     text = (HERE / ('batched_cell.metal' if batch else 'generic_cell.metal')).read_text()
     if batch:
         from .batches import lower as lower_batches
-        batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])},reuse_constructor_witnesses,materialize_single_steps,local_cell_execution)
+        batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])},reuse_constructor_witnesses,materialize_single_steps,local_cell_execution,parallel_cell_waves)
         if scheduled:
             from .resident_schedules import metal as scheduled_metal
             p['shader']+='\n'+scheduled_metal((HERE/'scheduled_matrix.metal').read_text())
@@ -211,12 +212,18 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
             from .resident_seeds import lower as lower_seeds
             for i,name in enumerate(['SCAN','ONE']):defines+=f'#define BC_SEED_{name} {3*(p["resident_seeds"]["dispatch_base"]+i)}\n'
             text+='\n'+lower_seeds(p)
+        wave_enabled=parallel_cell_waves and bool(batch_layout['wave_plan']['eligible_templates'])
+        p['cell_waves']=dict(enabled=wave_enabled,requested=parallel_cell_waves,dispatch_base=p['resident_seeds']['dispatch_base']+(2 if compact_seeds else 0),packet_stride=p['stride']-4+12,**batch_layout['wave_plan'])
+        defines+=f'\n#define BC_CELL_WAVES {int(wave_enabled)}\n'
+        if wave_enabled:
+            for i,name in enumerate(['ROWS','HASH','ONE','CERT','UNIONS','IDS']):defines+=f'#define BC_WAVE_{name} {3*(p["cell_waves"]["dispatch_base"]+i)}\n'
+            text+='\n'+(HERE/'cell_waves.metal').read_text()
         calls=[c.replace('if(m.error)return;','if(m.error)break;') for c in calls]
     text = text.replace('// LOCAL_POINTERS', '\n'.join(offsets)).replace('// LOCAL_QUERIES', ''.join(calls)).replace('// CACHE_PREPARE', ''.join(cache_calls)).replace('// PARALLEL_QUERIES', ''.join(parallel_calls))
     p['shader'] += '\n' + defines + '\n' + text
     p['generic_cell'] = dict(schema='generic-cell-program/v1', transport_version=7 if batch else 2, checkpoint_version=1 if batch else 0, history_width=12 if batch else 8, kernel='batched_cell_prepare' if batch else 'generic_cell_advance', layout=layout, control=tape,
         program_sha256=hashlib.sha256(json.dumps(core, sort_keys=True).encode()).hexdigest(),
-        contract='shared GPU contexts, witnessed saturation-local batches and deterministic block publication' if batch else 'shared global identity domain, original schedule, correlated event-versioned Spines' if region_program is not None else 'isolated exact local execution; not an authorization to skip global matches',
+        contract=('shared GPU contexts, keyed parallel effect waves and ordered noncommuting fallback' if wave_enabled else 'shared GPU contexts, witnessed saturation-local batches and deterministic block publication') if batch else 'shared global identity domain, original schedule, correlated event-versioned Spines' if region_program is not None else 'isolated exact local execution; not an authorization to skip global matches',
         queries='compiled exact residual queries plus witnessed saturation-local successors; history match counts exclude inline invocations')
     if region_program is not None:
         p['region_cache']=dict(header_words=16+4*len(region_program['nodes']),initial_words=16+4*len(region_program['nodes'])+1024,

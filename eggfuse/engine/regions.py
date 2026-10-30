@@ -12,7 +12,7 @@ def execution_summary(report):
     stats=[sum(s.get('region_statistics',[0]*16)[i] for s in instances) for i in range(16)]
     matched=sum(h[2] for s in instances for h in s['history'])
     private=sum(a.get('private_schedule_binding_outputs',0) for p in report['programs'] for a in p['attempts'])
-    return dict(direct_single_step_invocations=sum(s['batch_statistics'][43] for s in instances if len(s.get('batch_statistics') or [])>43),
+    return dict(**{name:sum(s['batch_statistics'][i] for s in instances if len(s.get('batch_statistics') or [])>i) for i,name in enumerate(['wave_validated_steps','wave_effect_requests','wave_fresh_rows','wave_key_groups','wave_duplicate_keys','cell_waves','parallel_union_batches','wave_guard_reads','wave_union_pairs','parallel_union_pairs','wave_noop_effects','wave_certificates'],44)},direct_single_step_invocations=sum(s['batch_statistics'][43] for s in instances if len(s.get('batch_statistics') or [])>43),
         witnessed_constructor_reads=sum(s['batch_statistics'][40] for s in instances if len(s.get('batch_statistics') or [])>41),
         witnessed_constructor_sets=sum(s['batch_statistics'][41] for s in instances if len(s.get('batch_statistics') or [])>41),
         seed_rows_examined=sum(s['batch_statistics'][36] for s in instances if len(s.get('batch_statistics') or [])>38),
@@ -35,7 +35,7 @@ def execution_summary(report):
         cache_growths=sum(a.get('region_cache_growths',0) for p in report['programs'] for a in p['attempts']),
         exact_residual_queries=True,invalidation_granularity='table mutation versions',
         identities='shared hashcons/union; local recipe slots receive actual constructor results',
-        execution='GPU control, parallel matching over prepared shared contexts, multi-threadgroup matrix evaluation, stable ordered block publication')
+        execution='GPU control, parallel keyed Cell waves where admitted, ordered publication for noncommuting callbacks')
 
 
 def run_artifact(artifact,build,output,check):

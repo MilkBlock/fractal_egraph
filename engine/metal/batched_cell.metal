@@ -64,7 +64,7 @@ kernel void batched_cell_prepare(BC_ARGS,uint instance[[thread_position_in_grid]
  // Checkpoint diagnostic: stop only between complete logical Runs. A pending
  // block continuation finishes before the gate can close.
  if(batchCfg.y && s[3]>=batchCfg.y && stats[10]!=2){stats[10]=0;return;}
- if(stats[10]==6||stats[10]==8||stats[10]==9||stats[10]==10)return;
+ if(stats[10]==6||stats[10]==8||stats[10]==9||stats[10]==10||stats[10]==11||stats[10]==12)return;
  if(stats[10]==2){if(grew)bc_reindex_certificates(stats,r,m.count,m.unions,ulong(r[RC_VISIBILITY]));atomic_fetch_max_explicit(dispatch,uint(stats[11]),memory_order_relaxed);return;}stats[10]=0;
  context_info=(device uint*)stats;
  while(!m.error&&!s[2]){
@@ -282,6 +282,13 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  for(uint tile=0;tile<uint(stats[11])&&!m.error;tile++){
   uint start=uint(meta[3*tile]),count=uint(meta[3*tile+1]);int plan=int(meta[3*tile+2]);
   if(start+count<=control[27])continue;
+  #if BC_CELL_WAVES
+  if(cw_eligible(plan)){
+   uint last=tile+1;while(last<uint(stats[11])&&cw_eligible(int(meta[3*last+2])))last++;
+   uint end=uint(meta[3*(last-1)]+meta[3*(last-1)+1]);
+   if(end-start>1){ensure_row_index(r,p,m);control[23]=start;control[24]=end;control[31]=tile;control[32]=last;stats[10]=11;return;}
+  }
+  #endif
   if(BC_PARALLEL_CONSTRUCTORS&&!resuming&&plan<0&&BATCH_RULE[uint(matches[match_order[start]*MSTRIDE])]){
    uint end=start;
    for(uint t=tile;t<uint(stats[11]);t++){
@@ -298,6 +305,9 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
  }
  if(m.error)return;
  bool pending=p[IDCAP+1]!=0;uint unionsBefore=m.unions;
+ #if BC_CELL_WAVES
+ if(p[IDCAP+1]){p[IDCAP]=0;control[34]=m.unions;control[35]=pending&&stats[21]&&stats[1]+stats[2]>progressed;stats[10]=12;return;}
+ #endif
  p[IDCAP]=0;for(uint j=0;j<p[IDCAP+1];j++)unite_now(p,p[IDCAP+2+2*j],p[IDCAP+3+2*j],m);
  p[IDCAP+1]=0;if(m.unions!=unionsBefore){
   stats[17]++;

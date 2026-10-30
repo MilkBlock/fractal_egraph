@@ -110,6 +110,13 @@ let parallelWrites=transportVersion==7 && writesSpec?["enabled"] as? Bool == tru
 let writesBase=writesSpec?["dispatch_base"] as? Int ?? 0
 let writesNames=["write_gate","batch_output_scan","batch_output_offsets","batch_clear","batch_propose","batch_group","batch_scan","batch_reserve","batch_publish","batch_index","batch_ordered","write_finish"]
 let writesPipelines:[MTLComputePipelineState]=parallelWrites ? try writesNames.map{try loadPipeline("resident_"+$0)}:[]
+let waveSpec=program["cell_waves"] as? [String:Any]
+let cellWaves=transportVersion==7 && waveSpec?["enabled"] as? Bool == true
+let waveBase=waveSpec?["dispatch_base"] as? Int ?? 0
+let waveNames=["gate","clear","propose","group","link","scan","reserve","publish","index","resolve","cert_offsets","cert_write","cert_hash","finish"]
+let wavePipelines:[MTLComputePipelineState]=cellWaves ? try waveNames.map{try loadPipeline("cell_wave_"+$0)}:[]
+let unionNames=["gate","apply","flatten","finish"]
+let unionPipelines:[MTLComputePipelineState]=cellWaves ? try unionNames.map{try loadPipeline("cell_union_"+$0)}:[]
 let seedsSpec=program["resident_seeds"] as? [String:Any]
 let compactSeeds=transportVersion==7 && seedsSpec?["enabled"] as? Bool == true
 let seedsBase=seedsSpec?["dispatch_base"] as? Int ?? 0
@@ -156,7 +163,7 @@ let batchStride=batchLayout?["stride"] as? Int ?? 1
 var batchCapacity=128,batchWords=transportVersion==7 ? batchHeader+128*(9+batchStride):1
 var batchData=zeros(n*batchWords*8),batchGrowths=0
 if transportVersion==7 && program["batch_audit_numeric"] as? Bool == true {for i in 0..<n {copy([Int64(1)],batchData,(i*batchWords+14)*8)}}
-let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)+(parallelIndexes ? indexFields:0)+(parallelRebuild ? 5:0)+(parallelWrites ? 4:0)+(compactSeeds ? 2:0)
+let dispatchGroups=3+(parallelSort ? 1+sortSpans.count:0)+(parallelIndexes ? indexFields:0)+(parallelRebuild ? 5:0)+(parallelWrites ? 4:0)+(compactSeeds ? 2:0)+(cellWaves ? 6:0)
 let batchDispatch=zeros(dispatchGroups*12)
 for i in 0..<dispatchGroups {copy([UInt32(0),UInt32(n),UInt32(1)],batchDispatch,i*12)}
 let hashChunks=(capacity*stride+2*ids+(program["set_words"] as! Int)+1023)/1024
@@ -174,6 +181,9 @@ func writeWords(_ cap:Int)->Int {64+(cap+255)/256+5*cap}
 let proposalStride=stride-2
 var writeCapacity=128,writeGrowths=0
 var writeUInts=zeros(parallelWrites ? n*writeWords(writeCapacity)*4:8),writeLongs=zeros(parallelWrites ? n*writeCapacity*proposalStride*8:8)
+func waveWords(_ cap:Int)->Int {128+8*cap+3*((cap+255)/256)}
+let waveStride=waveSpec?["packet_stride"] as? Int ?? 1
+var waveUInts=zeros(cellWaves ? n*waveWords(batchCapacity)*4:8),wavePackets=zeros(cellWaves ? n*batchCapacity*waveStride*8:8)
 func buffers()->[(String,MTLBuffer)] {[("rows",rows),("uints",uints),("longs",longs),("metas",metas),("states",states),("history",history),("marker-cache",markerCache),("batch-data",batchData),("dispatch",batchDispatch),("hashes",hashData)]+(parallelRebuild ? [("compact-scratch",compactScratch)]:[])+(parallelWrites ? [("write-uints",writeUInts),("write-longs",writeLongs)]:[])}
 let chunkBytes=8*1024*1024
 func writeBuffer(_ b:MTLBuffer,_ url:URL)throws->String {
@@ -219,6 +229,7 @@ func atBoundary(_ i:Int)->Bool {
 }
 for i in 0..<n {if arguments["--resume"] != nil {try require(atBoundary(i),"checkpoint is not a completed Run boundary")}}
 if let stop=stopAt {try require(restoredRounds.allSatisfy{$0<=stop},"stop-after-runs precedes checkpoint")}
+if cellWaves {waveUInts=zeros(n*waveWords(batchCapacity)*4);wavePackets=zeros(n*batchCapacity*waveStride*8)}
 let capturing=arguments["--capture"] != nil
 if let path=arguments["--capture"] {
  try require(n==1 && stopAt != nil && Int(stopAt!)==Int(restoredRounds[0])+1,"capture must execute exactly one Run from the loaded state")
@@ -297,6 +308,7 @@ while true {
    if u32(metas,i*9+4,1)[0]==34 {copy([UInt32(0)],metas,(i*9+4)*4)}
   }
   batchData=next;batchWords=newWords;batchCapacity=newCapacity;batchGrowths+=1
+  if cellWaves {waveUInts=zeros(n*waveWords(batchCapacity)*4);wavePackets=zeros(n*batchCapacity*waveStride*8)}
  }
  if needCompactGrowth {
   let required=(0..<n).map{Int(u32(metas,$0*9,1)[0])}.max() ?? 1
@@ -329,6 +341,7 @@ while true {
    if parallelRebuild {e.setBuffer(compactScratch,offset:0,index:15)}
    var writeCfg=SIMD4<UInt32>(UInt32(writeCapacity),0,0,0);e.setBytes(&writeCfg,length:16,index:16)
    e.setBuffer(writeUInts,offset:0,index:17);e.setBuffer(writeLongs,offset:0,index:18)
+   if cellWaves {e.setBuffer(waveUInts,offset:0,index:19);e.setBuffer(wavePackets,offset:0,index:20)}
    var packStep=UInt32(0);e.setBytes(&packStep,length:4,index:14)
   }
  }
@@ -408,6 +421,22 @@ while true {
    e.memoryBarrier(scope:.buffers)
    phase(batchPublish!,"batched_cell_publish");e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(32,batchPublish!.maxTotalThreadsPerThreadgroup),height:1,depth:1))
    e.memoryBarrier(scope:.buffers)
+   if cellWaves {
+    for (i,field) in [2,1,0,0,0,0,2,0,0,0,2,3,3,2].enumerated(){
+     phase(wavePipelines[i],"cell_wave_"+waveNames[i])
+     if i==0 {e.dispatchThreadgroups(MTLSize(width:1,height:n,depth:1),threadsPerThreadgroup:MTLSize(width:1,height:1,depth:1))}
+     else {e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(waveBase+field),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
+     e.memoryBarrier(scope:.buffers)
+    }
+   }
+   if cellWaves {
+    for (i,field) in [2,4,5,2].enumerated(){
+     phase(unionPipelines[i],"cell_union_"+unionNames[i])
+     if i==0 {e.dispatchThreadgroups(MTLSize(width:1,height:n,depth:1),threadsPerThreadgroup:MTLSize(width:1,height:1,depth:1))}
+     else {e.dispatchThreadgroups(indirectBuffer:batchDispatch,indirectBufferOffset:12*(waveBase+field),threadsPerThreadgroup:MTLSize(width:256,height:1,depth:1))}
+     e.memoryBarrier(scope:.buffers)
+    }
+   }
    if parallelWrites {
     func writesPhase(_ index:Int,_ field:Int?=nil){
      phase(writesPipelines[index],"resident_"+writesNames[index])

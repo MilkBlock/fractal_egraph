@@ -11,7 +11,7 @@ BOUND=256
 EXACT_BOUND=1<<22
 
 
-def lower(core,regions,string_ids,reuse_witnesses=True,materialize_single_steps=False,local_execution=True):
+def lower(core,regions,string_ids,reuse_witnesses=True,materialize_single_steps=False,local_execution=True,parallel_single_steps=False):
     from .compiler import integer_op,boolean_expr
     recipe=build({k:v for k,v in core.items() if k!='cell_input_constants'},regions['scope'])
     batch=regions['batch_program'];validate_batch(batch,recipe,regions)
@@ -30,7 +30,7 @@ def lower(core,regions,string_ids,reuse_witnesses=True,materialize_single_steps=
         if call['primitive']=='guard':return f'bool({args[0]})','0L'
         if call['primitive'] in ('<','>','<=','>=','!='):return f'({args[0]}{call["primitive"]}{args[1]})','0L'
         raise ValueError('unsupported batch primitive '+call['primitive'])
-    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 44\n']
+    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 56\n']
     result.append("""
 bool bc_check_return(uint table,thread long*key,long value,device long*r,device uint*p,device Meta&m){
  long row=row_lookup(r,p,m,table,key);if(row<0)return false;
@@ -80,7 +80,8 @@ void bc_reindex_certificates(device long*c,device long*r,uint rows,uint unions,u
         signature=digest({k:v for k,v in t.items() if k!='scope'})
         if signature not in intern:intern[signature]=len(unique);unique.append(t)
         ti=intern[signature];aliases.append(ti)
-        selected=ti if materialize_single_steps or len(t["steps"])>1 else -2
+        from .cell_waves import eligible as wave_eligible
+        selected=ti if materialize_single_steps or len(t['steps'])>1 or (parallel_single_steps and wave_eligible(t,recipe)) else -2
         select.append(f'if(rule=={t["seed"]}&&bc_scope({t["scope"]+1},stack,depth))return {selected};')
     for ti,t in enumerate(unique):
         numeric=[i for i,s in enumerate(t['slots'][:t['input_width']]) if s['sort']['kind']=='i64']
@@ -264,7 +265,10 @@ void bc_matrix_{ti}(device long*data,uint count,uint tid,threadgroup float*as,th
     result.append('void bc_evaluate(int plan,device long*o){if(o[BC_FAST]<0)return;switch(plan){'+''.join(eval_cases)+'default:break;}}')
     result.append('void bc_publish(int plan,uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){if(o[BC_FAST]<0){if(o[2*BC_WIDTH]!=1){o[2*BC_WIDTH]=1;stats[1]++;stats[28]++;stats[34]++;}return;}switch(plan){'+''.join(commit_cases)+'default:m.error=32;}}')
     result.append('void bc_matrix(int plan,device long*data,uint count,uint tid,threadgroup float*as,threadgroup float*bs,threadgroup float*cs){switch(plan){'+''.join(mma_cases)+'default:break;}}')
-    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v7',width=W,steps=S,stride=stride,tile=128,stats_words=44,words=44+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
+    from .cell_waves import lower as lower_waves
+    wave_code,wave_plan=lower_waves(unique,recipe,ts,string_ids)
+    result.append(wave_code)
+    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v8',width=W,steps=S,stride=stride,tile=128,stats_words=56,words=56+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
         soundness='seed snapshot witness and per-successor actual row/guard validation; ordered complete effects',
         reproducibility='fixed query order, seed binding ordinal, step ordinal, action ordinal',
-        batch_program_sha256=batch['sha256'],reuse_constructor_witnesses=reuse_witnesses,materialize_single_steps=materialize_single_steps,local_execution=local_execution)
+        batch_program_sha256=batch['sha256'],reuse_constructor_witnesses=reuse_witnesses,materialize_single_steps=materialize_single_steps,local_execution=local_execution,parallel_single_steps=parallel_single_steps,wave_plan=wave_plan)
