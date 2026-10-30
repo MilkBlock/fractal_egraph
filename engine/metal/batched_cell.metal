@@ -293,7 +293,7 @@ kernel void batched_cell_publish(BC_ARGS,uint instance[[thread_position_in_grid]
   for(uint j=0;j<count&&!m.error;j++){
    uint binding=match_order[start+j];device long*o=data+(start+j)*BC_STRIDE;
    if(plan>=0){stats[7]+=o[BC_FAST]>0;bc_publish(plan,binding,matches,o,r,p,fp,m,stats);stats[21]+=bc_waiting(plan,o);}
-   else if(!resuming){if(NOOP_PREFLIGHT&&o[BC_FAST])stats[28]++;else execute_actions(uint(matches[binding*MSTRIDE]),binding,code,registers,matches,r,p,fp,m);stats[5]++;}
+   else if(!resuming){if(plan==-2)stats[43]++;if(NOOP_PREFLIGHT&&o[BC_FAST])stats[28]++;else execute_actions(uint(matches[binding*MSTRIDE]),binding,code,registers,matches,r,p,fp,m);stats[5]++;}
   }
  }
  if(m.error)return;

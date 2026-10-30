@@ -20,7 +20,7 @@ def check(build,out,n,hierarchical=False):
     lib=dict(schema='analyzer-device-cells/v1',programs=[c],instances=[dict(unit=0,program=0,initial=initial)])
     original=runtime.lower;reports={}
     for enabled in [False,True]:
-        runtime.lower=(lambda *a,**kw:original(*a,**kw,hierarchical_indexes=enabled,cell_noops=True)) if hierarchical else (lambda *a,**kw:original(*a,**kw,cell_noops=enabled))
+        runtime.lower=(lambda *a,**kw:original(*a,**kw,hierarchical_indexes=enabled,cell_noops=True,materialize_single_steps=True)) if hierarchical else (lambda *a,**kw:original(*a,**kw,cell_noops=enabled,materialize_single_steps=True))
         try:reports[enabled]=runtime.run_library(lib,build,out/str(enabled),max(4096,8*n),max(1024,2*n),region_program=plan,audit_numeric=True)
         finally:runtime.lower=original
         assert reports[enabled]['complete']

@@ -12,7 +12,10 @@ def execution_summary(report):
     stats=[sum(s.get('region_statistics',[0]*16)[i] for s in instances) for i in range(16)]
     matched=sum(h[2] for s in instances for h in s['history'])
     private=sum(a.get('private_schedule_binding_outputs',0) for p in report['programs'] for a in p['attempts'])
-    return dict(seed_rows_examined=sum(s['batch_statistics'][36] for s in instances if len(s.get('batch_statistics') or [])>38),
+    return dict(direct_single_step_invocations=sum(s['batch_statistics'][43] for s in instances if len(s.get('batch_statistics') or [])>43),
+        witnessed_constructor_reads=sum(s['batch_statistics'][40] for s in instances if len(s.get('batch_statistics') or [])>41),
+        witnessed_constructor_sets=sum(s['batch_statistics'][41] for s in instances if len(s.get('batch_statistics') or [])>41),
+        seed_rows_examined=sum(s['batch_statistics'][36] for s in instances if len(s.get('batch_statistics') or [])>38),
         active_seed_rows=sum(s['batch_statistics'][37] for s in instances if len(s.get('batch_statistics') or [])>38),
         grounded_seed_jobs=sum(s['batch_statistics'][38] for s in instances if len(s.get('batch_statistics') or [])>38),
         proved_empty_cell_seeds=sum(s['batch_statistics'][34] for s in instances if len(s.get('batch_statistics') or [])>35),

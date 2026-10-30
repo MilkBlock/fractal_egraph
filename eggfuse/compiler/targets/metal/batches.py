@@ -11,7 +11,7 @@ BOUND=256
 EXACT_BOUND=1<<22
 
 
-def lower(core,regions,string_ids):
+def lower(core,regions,string_ids,reuse_witnesses=True,materialize_single_steps=False,local_execution=True):
     from .compiler import integer_op,boolean_expr
     recipe=build({k:v for k,v in core.items() if k!='cell_input_constants'},regions['scope'])
     batch=regions['batch_program'];validate_batch(batch,recipe,regions)
@@ -30,7 +30,7 @@ def lower(core,regions,string_ids):
         if call['primitive']=='guard':return f'bool({args[0]})','0L'
         if call['primitive'] in ('<','>','<=','>=','!='):return f'({args[0]}{call["primitive"]}{args[1]})','0L'
         raise ValueError('unsupported batch primitive '+call['primitive'])
-    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 40\n']
+    result=[f'#define BC_WIDTH {W}\n#define BC_STEPS {S}\n#define BC_STRIDE {stride}\n#define BC_TILE 128\n#define BC_FAST {2*W+S}\n#define BC_STATS 44\n']
     result.append("""
 bool bc_check_return(uint table,thread long*key,long value,device long*r,device uint*p,device Meta&m){
  long row=row_lookup(r,p,m,table,key);if(row<0)return false;
@@ -80,7 +80,8 @@ void bc_reindex_certificates(device long*c,device long*r,uint rows,uint unions,u
         signature=digest({k:v for k,v in t.items() if k!='scope'})
         if signature not in intern:intern[signature]=len(unique);unique.append(t)
         ti=intern[signature];aliases.append(ti)
-        select.append(f'if(rule=={t["seed"]}&&bc_scope({t["scope"]+1},stack,depth))return {ti};')
+        selected=ti if materialize_single_steps or len(t["steps"])>1 else -2
+        select.append(f'if(rule=={t["seed"]}&&bc_scope({t["scope"]+1},stack,depth))return {selected};')
     for ti,t in enumerate(unique):
         numeric=[i for i,s in enumerate(t['slots'][:t['input_width']]) if s['sort']['kind']=='i64']
         forms={slot:([int(j==i) for j in range(len(numeric))]+[0]) for i,slot in enumerate(numeric)}
@@ -134,7 +135,7 @@ void bc_reindex_certificates(device long*c,device long*r,uint rows,uint unions,u
             if dest in outputs:body='if(!o[BC_FAST]){'+body+'}'
             evaluate.append(body)
         eval_cases.append(f'case {ti}:{{'+''.join(evaluate)+'break;}')
-        commits=['device long*v=o;']
+        commits=['thread long*v=o;' if local_execution else 'device long*v=o;']
         certified=0
         def ready(values):return '&&'.join(f'o[BC_WIDTH+{x["slot"]}]' for x in values if 'slot' in x) or 'true'
         def assign(dest,expr):return f'{op(dest)}={expr};o[BC_WIDTH+{dest["slot"]}]=1;'
@@ -168,9 +169,26 @@ void bc_reindex_certificates(device long*c,device long*r,uint rows,uint unions,u
                         else:commits.append(f'if(pass&&({value})!={values[-1]})pass=false;')
                 commits.append('if(!pass){if(o[2*BC_WIDTH+'+str(si)+']!=2)stats[3]++;o[2*BC_WIDTH+'+str(si)+']=2;break;}')
             receipts={x['effect']:x for x in step.get('receipts',[])}
+            from eggfuse.compiler.recipes.constructor_witnesses import constructor_witnesses
+            witnesses=constructor_witnesses(rule,recipe['tables']) if reuse_witnesses else {}
+            descriptors[-1].setdefault('constructor_witness_reuses',[]).extend(dict(step=si,effect=i,**proof) for i,proof in witnesses.items())
             for ei,e in enumerate(rule['effects']):
                 kind=e['kind'];args=[mapped(step,x) for x in e.get('args',[])];values=[op(x) for x in args]
-                if kind=='copy':commits.append(assign(mapped(step,{'slot':e['dst']}),op(mapped(step,e['arg']))))
+                if ei in witnesses:
+                    tid=ts[e['call']['table']];value=op(mapped(step,witnesses[ei]['value']))
+                    before=f'long(root(p,uint({value})))'
+                    commits.append('{long known='+before+';')
+                    if kind=='construct':
+                        commits.append(assign(mapped(step,{'slot':e['dst']}),'known')+'stats[40]++;')
+                    else:
+                        receipt=receipts[ei]
+                        commits.append(assign(receipt['before'],'known')+assign(receipt['actual'],'known'))
+                        commits.append(f'unite(p,known,{op(mapped(step,e["value"]))},m);stats[18]++;stats[20]++;stats[41]++;')
+                    # Audited runs independently check the actual keyed fact.
+                    # Normal execution consumes the existing LHS certificate.
+                    commits.append('if(m.error)return;if(stats[14]){long key[COLS]={'+(','.join(values) or '0')+'};'+f'stats[23]++;if(!bc_check_return({tid},key,known,r,p,m)){{m.error=36;return;}}'+'}')
+                    commits.append('stats[4]++;}')
+                elif kind=='copy':commits.append(assign(mapped(step,{'slot':e['dst']}),op(mapped(step,e['arg']))))
                 elif kind=='compute':
                     dst=mapped(step,{'slot':e['dst']})['slot'];condition,expected=primitive(e['call'],values)
                     # Receipts/late inputs were not known during the first GEMM.
@@ -204,7 +222,15 @@ void bc_reindex_certificates(device long*c,device long*r,uint rows,uint unions,u
             if can_certify:commits.append(f'if(!p[IDCAP+1]&&(!BC_LOCAL_CERTIFICATES||(witnessRevision!=0xffffffff&&witnessRevision==uint(r[RC_FACT_REV+witness]))))bc_certify(stats,{step["rule"]},witness,witnessRevision,m.unions,ulong(r[RC_VISIBILITY]));')
             commits.append(f'o[2*BC_WIDTH+{si}]=1;stats[{2 if si else 1}]++;'+'}while(false);')
         descriptors[-1]['max_certificates']=certified
-        result.append(f'__attribute__((noinline)) void bc_commit_{ti}(uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){{'+''.join(commits)+'}')
+        if local_execution:
+            used=list(range(len(t['slots'])))+[W+i for i in range(len(t['slots']))]+[2*W+i for i in range(len(t['steps']))]+[stride-1]
+            params='uint binding,device long*matches,thread long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats'
+            result.append(f'__attribute__((always_inline)) inline void bc_local_{ti}({params}){{'+''.join(commits)+'}')
+            load=''.join(f'local[{i}]=o[{i}];' for i in used)
+            save=''.join(f'o[{i}]=local[{i}];' for i in used)
+            result.append(f'__attribute__((noinline)) void bc_commit_{ti}(uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){{long local[BC_STRIDE];'+load+f'bc_local_{ti}(binding,matches,local,r,p,fp,m,stats);'+save+'}')
+        else:
+            result.append(f'__attribute__((noinline)) void bc_commit_{ti}(uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){{'+''.join(commits)+'}')
         commit_cases.append(f'case {ti}:bc_commit_{ti}(binding,matches,o,r,p,fp,m,stats);break;')
         if P:
             coef=','.join(str(affine[d][k])+'.0f' for k in range(K) for d in outputs)
@@ -238,7 +264,7 @@ void bc_matrix_{ti}(device long*data,uint count,uint tid,threadgroup float*as,th
     result.append('void bc_evaluate(int plan,device long*o){if(o[BC_FAST]<0)return;switch(plan){'+''.join(eval_cases)+'default:break;}}')
     result.append('void bc_publish(int plan,uint binding,device long*matches,device long*o,device long*r,device uint*p,device uint*fp,device Meta&m,device long*stats){if(o[BC_FAST]<0){if(o[2*BC_WIDTH]!=1){o[2*BC_WIDTH]=1;stats[1]++;stats[28]++;stats[34]++;}return;}switch(plan){'+''.join(commit_cases)+'default:m.error=32;}}')
     result.append('void bc_matrix(int plan,device long*data,uint count,uint tid,threadgroup float*as,threadgroup float*bs,threadgroup float*cs){switch(plan){'+''.join(mma_cases)+'default:break;}}')
-    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v6',width=W,steps=S,stride=stride,tile=128,stats_words=40,words=40+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
+    return '\n'.join(result),dict(schema='eggfuse-batch-layout/v7',width=W,steps=S,stride=stride,tile=128,stats_words=44,words=44+128*(stride+9),templates=descriptors,source_template_layouts=aliases,
         soundness='seed snapshot witness and per-successor actual row/guard validation; ordered complete effects',
         reproducibility='fixed query order, seed binding ordinal, step ordinal, action ordinal',
-        batch_program_sha256=batch['sha256'])
+        batch_program_sha256=batch['sha256'],reuse_constructor_witnesses=reuse_witnesses,materialize_single_steps=materialize_single_steps,local_execution=local_execution)

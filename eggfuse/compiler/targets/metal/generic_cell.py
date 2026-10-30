@@ -12,7 +12,7 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
     compact_seeds=bool(compact_seeds and batch and not spine_cache)
@@ -160,7 +160,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     text = (HERE / ('batched_cell.metal' if batch else 'generic_cell.metal')).read_text()
     if batch:
         from .batches import lower as lower_batches
-        batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])})
+        batch_code,batch_layout=lower_batches(core,region_program,{s:i for i,s in enumerate(p['strings'])},reuse_constructor_witnesses,materialize_single_steps,local_cell_execution)
         if scheduled:
             from .resident_schedules import metal as scheduled_metal
             p['shader']+='\n'+scheduled_metal((HERE/'scheduled_matrix.metal').read_text())
