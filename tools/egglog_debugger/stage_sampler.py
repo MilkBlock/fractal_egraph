@@ -12,6 +12,7 @@ import sys
 import threading
 import time
 import uuid
+import stage_filters
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNS = ROOT / 'out/stage-sampler'
@@ -121,13 +122,14 @@ def status(path):
         core=json.loads((folder/'archive/manifest.json').read_text())['core']
         info['sorts']=sorted({s['name'] for t in core['tables'] for s in t['schema'] if s['kind']=='eq'})
         info['rulesets']=[s['name'] for s in core['rulesets']]
-    else:info.update(sorts=[],rulesets=[])
+        info['tables']=sorted(t['name'] for t in core['tables'])
+    else:info.update(sorts=[],rulesets=[],tables=[])
     return info
 
 
 class Archive:
     def __init__(self,folder):
-        self.folder=folder;self.core=json.loads((folder/'manifest.json').read_text())['core'];self.lock=threading.RLock();self.reset()
+        self.folder=folder;self.core=json.loads((folder/'manifest.json').read_text())['core'];self.lock=threading.RLock();self.pair_cache=None;self.filter_cache={};self.reset()
     def reset(self):
         self.values=[];self.rows={};self.aliases={};self.frame=-1;self.offset=0
     def seek(self,target):
@@ -148,7 +150,10 @@ class Archive:
         return {'rows':dict(self.rows),'aliases':dict(self.aliases),'values':self.values,'frame':self.frame}
     def pair(self,stage):
         with self.lock:
+            key=(stage['before'],stage['after'])
+            if self.pair_cache and self.pair_cache[0]==key:return self.pair_cache[1]
             before=self.seek(stage['before']);after=self.seek(stage['after'])
+            self.pair_cache=(key,(before,after))
             return before,after
 
 
@@ -177,7 +182,7 @@ def row_id(row):
 def q(text):return json.dumps(str(text),ensure_ascii=False)
 
 
-def build_sample(core,before,after,stage,request):
+def build_sample(core,before,after,stage,request,filter_cache=None):
     side=request.get('side','after')
     if side not in ('before','after'):raise ValueError('请选择阶段入口或出口')
     snap=before if side=='before' else after;values=snap['values'];tables=core['tables']
@@ -233,45 +238,80 @@ def build_sample(core,before,after,stage,request):
     auto_sort=values[root]['sort'] if root is not None and 0<=root<len(values) else 'Expr' if 'Expr' in counts else 'Math' if 'Math' in counts else max(counts,key=lambda s:(not s.startswith('_'),counts[s],s),default='')
     sort=request.get('sort') or auto_sort
     choices=sorted(v for v in choices if not sort or values[v]['sort']==sort)
-    if root is not None and side=='after':root=canonical(root,after_alias)
-    if root is not None and (root not in eqs or (sort and values[root]['sort']!=sort)):
-        return {'empty':True,'message':'固定的根在这一时刻不存在。它可能尚未生成、已删除，或需要切换到阶段出口。','available_roots':len(choices),'stage':stage,'side':side,'seed':seed,'rules':rules}
-    if root is None and choices:root=rng.choice(choices)
-    if root is None:
-        return {'empty':True,'message':'该筛选下没有可采样的位置。可切换为「全图」或其他 sort。','available_roots':len(choices),'stage':stage,'side':side,'seed':seed,'rules':rules}
+    filters=stage_filters.normalize(request.get('filters'))
+    checks=stage_filters.conditions(filters)
+    changes={r:change(r) for r in visible}
+    union_classes=set(merged) if side=='after' else set(merged)|{v for group in merged.values() for v in group}
+    ids={r:row_id(r) for r in visible}
+    # Sort each adjacency list once; candidate screening never invokes Graphviz.
+    row_key=lambda r:(0 if r[0] in read_ids else 1,ids[r])
+    for rows in members.values():rows.sort(key=row_key)
+    for rows in incoming.values():rows.sort(key=row_key)
+    enode_counts={v:sum(tables[r[0]]['kind']=='constructor' for r in rows) for v,rows in members.items()}
+    root_types={v:sorted({tables[r[0]]['name'] for r in rows}) for v,rows in members.items()}
     forced={int(x) for x in request.get('expanded',[])}
     blocked={int(x) for x in request.get('collapsed',[])}
     if len(forced)>160 or len(blocked)>160:raise ValueError('展开位置过多，请重置切片')
     if side=='after':
         forced={canonical(x,after_alias) for x in forced};blocked={canonical(x,after_alias) for x in blocked}
-    blocked.discard(root)
-    expanded=set();selected={};frontier=set();more={};queue=[(root,0)];visited=set()
-    while queue and len(selected)<budget:
-        queue.sort(key=lambda x:(0 if x[0] in forced else 1,x[1],x[0]));v,d=queue.pop(0)
-        if v in visited:continue
-        visited.add(v)
-        if v in blocked or (d>=depth and v!=root and v not in forced):frontier.add(v);continue
-        rows=sorted(members[v],key=lambda r:(0 if r[0] in read_ids else 1,row_id(r)))
-        # Show a bounded number of equivalent enodes, never pick one as the class.
-        limits=request.get('class_limits',{})
-        limit=max(alternatives,min(budget,int(limits.get(str(v),alternatives*(2 if v in forced else 1)))))
-        kept=rows[:limit];more[v]=max(0,len(rows)-len(kept))
-        if context and v==root:
-            extra=sorted(incoming[v],key=lambda r:(0 if r[0] in read_ids else 1,row_id(r)))
-            kept+=extra[:alternatives]
-        if not kept:frontier.add(v);continue
-        expanded.add(v)
-        for row in kept:
-            if row[1][-1] in blocked:continue
-            rid=row_id(row)
-            if len(selected)>=budget:break
-            selected[rid]=row
-            for child in row[1]:
-                if 'eq' in values[child] and child!=v:queue.append((child,d+1))
-    used_eq={v for r in selected.values() for v in r[1] if 'eq' in values[v]}|{root}
-    expanded={r[1][-1] for r in selected.values() if 'eq' in values[r[1][-1]]}
+    limits=request.get('class_limits',{})
+    def slice_at(candidate, manual=False):
+        selected={};queue=[(candidate,0)];visited=set()
+        force=forced if manual else set();block=blocked-{candidate} if manual else set()
+        while queue and len(selected)<budget:
+            queue.sort(key=lambda x:(0 if x[0] in force else 1,x[1],x[0]));v,d=queue.pop(0)
+            if v in visited:continue
+            visited.add(v)
+            if v in block or (d>=depth and v!=candidate and v not in force):continue
+            limit=max(alternatives,min(budget,int(limits.get(str(v),alternatives*(2 if v in force else 1))))) if manual else alternatives
+            kept=members.get(v,[])[:limit]
+            if context and v==candidate:kept=kept+incoming.get(v,[])[:alternatives]
+            for row in kept:
+                if row[1][-1] in block:continue
+                if len(selected)>=budget:break
+                selected[ids[row]]=row
+                for child in row[1]:
+                    if 'eq' in values[child] and child!=v:queue.append((child,d+1))
+        used={v for r in selected.values() for v in r[1] if 'eq' in values[v]}|{candidate}
+        expanded={r[1][-1] for r in selected.values() if 'eq' in values[r[1][-1]]}
+        return selected,used,expanded,used-expanded
+    def describe(candidate,cut):
+        selected,_,expanded,frontier=cut
+        return stage_filters.describe(candidate,selected,expanded,frontier,tables,values,enode_counts,root_types,changes,union_classes)
+    cache_key=json.dumps([before['frame'],after['frame'],stage['ordinal'],side,sort,focus,hidden,depth,budget,alternatives,context,filters],sort_keys=True)
+    cached=filter_cache is not None and filter_cache.get('key')==cache_key
+    if cached:
+        eligible=filter_cache['eligible'];steps=filter_cache['steps']
+    else:
+        steps=[{'key':k,'label':label,'remaining':0} for k,label,_ in checks]
+        eligible=[]
+        if not checks:eligible=choices
+        else:
+            for candidate in choices:
+                metrics=describe(candidate,slice_at(candidate))
+                for i,(_,_,predicate) in enumerate(checks):
+                    if not predicate(metrics):break
+                    steps[i]['remaining']+=1
+                else:eligible.append(candidate)
+        if filter_cache is not None:
+            filter_cache.clear();filter_cache.update(key=cache_key,eligible=eligible,steps=steps)
+    report={'base_roots':len(choices),'eligible_roots':len(eligible),'steps':steps,'cached':cached,'filters':filters,
+            'scope':'候选按当前深度／数量裁剪后检查；手动展开不改变抽样池。原图分支数仅统计已展开类的可见 constructor。'}
+    base={'stage':stage,'side':side,'seed':seed,'rules':rules,'available_roots':len(eligible),'filter_report':report}
+    if root is not None and (root not in eqs or (sort and values[root]['sort']!=sort)):
+        return {**base,'empty':True,'message':'固定的根在这一时刻不存在。它可能尚未生成、已删除，或需要切换到阶段出口。'}
+    if root is None and eligible:root=rng.choice(eligible)
+    if root is None:
+        stopped=next((s for s in steps if not s['remaining']),None)
+        reason='依次筛选后，「'+stopped['label']+'」将候选排空。' if stopped and choices else '当前 Stage、sort 和采样位置下没有候选。'
+        return {**base,'empty':True,'message':reason+' 可调整条件或裁剪深度；折叠部分不参与包含／排除检查。'}
+    selected,used_eq,expanded,frontier=slice_at(root,manual=True)
+    metrics=describe(root,(selected,used_eq,expanded,frontier))
+    report['selected']=metrics
+    report['selected_eligible']=root in eligible
+    report['selected_failures']=[label for _,label,predicate in checks if not predicate(metrics)]
+    report['manual_view']=bool(forced or blocked or limits)
     more={v:max(0,len(members[v])-sum(r[1][-1]==v for r in selected.values())) for v in expanded}
-    frontier=used_eq-expanded
     colors={'existing':('#f8fafc','#94a3b8'),'added':('#dcfce7','#16a34a'),'updated':('#f3e8ff','#9333ea'),'removed':('#fee2e2','#dc2626')}
     dot=['digraph sample {','graph [rankdir=TB, compound=true, bgcolor="transparent", pad="0.20", nodesep="0.16", ranksep="0.45", fontname="Helvetica"];','node [fontname="Helvetica", fontsize=11]; edge [fontname="Helvetica", fontsize=9, color="#64748b"];']
     items={};ports=[]
@@ -326,7 +366,7 @@ def build_sample(core,before,after,stage,request):
     # Only this bounded graph is rendered/sent to the browser.
     source='\n'.join(dot);render=subprocess.run(['dot','-Tsvg'],input=source,capture_output=True,text=True,timeout=20)
     if render.returncode:raise ValueError('局部 DOT 渲染失败：'+render.stderr[-1000:])
-    return {'empty':False,'stage':stage,'side':side,'seed':seed,'sort':values[root]['sort'],'root':root,'available_roots':len(choices),'svg':render.stdout,'dot':source,'items':items,'ports':ports,'rules':rules,'stats':{'visible_facts':len(selected),'visible_eclasses':len(expanded),'ripen_inputs':len(frontier),'snapshot_facts':len(snap['rows']),'stage_before_facts':len(before['rows']),'stage_after_facts':len(after['rows']),'changed_in_view':sum(change(r)!='existing' for r in selected.values()),'truncated':bool(frontier or any(more.values()))},'guarantee':'真实 stage 状态的局部切片；RipenInput 只折叠显示，不修改 egraph，也不构成饱和闭包证书。'}
+    return {'empty':False,'stage':stage,'side':side,'seed':seed,'sort':values[root]['sort'],'root':root,'available_roots':len(eligible),'filter_report':report,'svg':render.stdout,'dot':source,'items':items,'ports':ports,'rules':rules,'stats':{'visible_facts':len(selected),'visible_eclasses':len(expanded),'ripen_inputs':len(frontier),'snapshot_facts':len(snap['rows']),'stage_before_facts':len(before['rows']),'stage_after_facts':len(after['rows']),'changed_in_view':sum(change(r)!='existing' for r in selected.values()),'truncated':bool(frontier or any(more.values()))},'guarantee':'真实 stage 状态的局部切片；RipenInput 只折叠显示，不修改 egraph，也不构成饱和闭包证书。'}
 
 
 def rule_code(rule):
@@ -355,5 +395,7 @@ def sample(data):
     path=data['path'];folder=safe_folder(path);stages=lines(folder/'archive/stages.ndjson')
     ordinal=int(data.get('stage',0));stage=next((s for s in stages if s['ordinal']==ordinal),None)
     if stage is None:raise ValueError('这个 stage 尚未记录完成')
-    reader=archive(path);before,after=reader.pair(stage)
-    return build_sample(reader.core,before,after,stage,data)
+    reader=archive(path)
+    with reader.lock:
+        before,after=reader.pair(stage)
+        return build_sample(reader.core,before,after,stage,data,reader.filter_cache)
