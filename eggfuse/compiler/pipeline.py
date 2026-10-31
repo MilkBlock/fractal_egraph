@@ -95,6 +95,9 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         base+[ROOT/'eggfuse/ir/recipe.py'],['recipe-program.json'],recipe_ir,check_recipe,preserves=['typed query/effect/control and binding correlation'])
     recipe_file=pm.publish(recipe/'recipe-program.json','recipe-program.json')
     if stop_after=='recipe':return pm
+    if backend=='cell-cpu':
+        from .targets.cell_cpu import compile_target
+        return compile_target(pm,ir/'core.json',recipe_file,marker_file,marked_source,stop_after,run_gpu)
     region_file=None
     execution=dict(stage_contexts=False,joint_polyspine=False,block_merge=False,matrix_saturate=False)
     if multi_stage_cell:
@@ -199,8 +202,8 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
     pm.publish(verification/'verification.json','verification.json');return pm
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,required=True)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,default=ROOT/'out/device-build')
     p.add_argument('--tools',type=Path,default=ROOT/'target/debug/examples');p.add_argument('--solver-python',type=Path,default=Path(sys.executable));p.add_argument('--profile',type=Path)
-    p.add_argument('--bake-source',type=Path,help='Optional small training input; typed declarations/rules must match the execution environment');p.add_argument('--multi-stage-cell',action='store_true',help='Compile witnessed multi-stage batches; GPU context matrices, deterministic block publication and soundness/L1 checks');p.add_argument('--stop-after',choices=['sk','analyze','markers','recipe','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
+    p.add_argument('--bake-source',type=Path,help='Optional small training input; typed declarations/rules must match the execution environment');p.add_argument('--multi-stage-cell',action='store_true',help='Compile witnessed multi-stage batches; GPU context matrices, deterministic block publication and soundness/L1 checks');p.add_argument('--stop-after',choices=['sk','analyze','markers','recipe','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local','cell-cpu'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
     pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend,a.multi_stage_cell,a.bake_source)
-    print(json.dumps(dict(output=str(pm.output),passes=[dict(name=r['name'],cached=r['cached']) for r in pm.receipts],complete=a.stop_after=='verify',gpu_checked=a.stop_after=='verify' and not a.cpu_only),indent=2))
+    print(json.dumps(dict(output=str(pm.output),passes=[dict(name=r['name'],cached=r['cached']) for r in pm.receipts],complete=a.stop_after=='verify',backend=a.backend,gpu_checked=a.backend!='cell-cpu' and a.stop_after=='verify' and not a.cpu_only),indent=2))

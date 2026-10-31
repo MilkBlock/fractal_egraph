@@ -1,0 +1,489 @@
+use crate::value::{Value, literal};
+use serde::{Deserialize, Serialize};
+use serde_json::Value as J;
+use std::collections::BTreeMap;
+pub type Result<T> = std::result::Result<T, String>;
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Arg {
+    Slot(usize),
+    Literal(Value),
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Call {
+    Table(usize),
+    Primitive(String, String),
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Atom {
+    pub call: Call,
+    pub args: Vec<Arg>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Op {
+    Copy(usize, Arg),
+    Let(usize, Call, Vec<Arg>),
+    Set(usize, Vec<Arg>, Arg),
+    Union(Arg, Arg),
+    Hide(usize, Vec<Arg>, bool),
+    Panic,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Table {
+    pub name: String,
+    pub schema: Vec<J>,
+    pub constructor: bool,
+    pub virtual_fact: bool,
+    pub merge: J,
+    pub internal: bool,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Template {
+    pub name: String,
+    pub sorts: Vec<J>,
+    pub defs: BTreeMap<usize, usize>,
+    pub ops: Vec<Op>,
+    pub parent_columns: BTreeMap<usize, usize>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Rule {
+    pub template: usize,
+    pub query: Vec<Atom>,
+    pub inputs: Vec<usize>,
+    pub seminaive: bool,
+    pub direct: Option<usize>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Program {
+    pub tables: Vec<Table>,
+    pub templates: Vec<Template>,
+    pub rules: Vec<Rule>,
+    pub sets: BTreeMap<String, Vec<usize>>,
+    pub control: Vec<J>,
+    pub initial: Vec<J>,
+    pub table_templates: Vec<usize>,
+    pub artifact: J,
+}
+pub fn array(j: &J) -> Result<&Vec<J>> {
+    j.as_array().ok_or_else(|| "expected array".into())
+}
+pub fn string(j: &J) -> Result<&str> {
+    j.as_str().ok_or_else(|| "expected string".into())
+}
+pub fn arg(j: &J) -> Result<Arg> {
+    if let Some(i) = j["slot"].as_u64() {
+        Ok(Arg::Slot(i as usize))
+    } else {
+        Ok(Arg::Literal(literal(j)?))
+    }
+}
+fn args(j: &J) -> Result<Vec<Arg>> {
+    array(j)?.iter().map(arg).collect()
+}
+pub fn call(j: &J, names: &BTreeMap<String, usize>) -> Result<Call> {
+    if let Some(t) = j["table"].as_str() {
+        Ok(Call::Table(*names.get(t).ok_or("unknown operator")?))
+    } else {
+        Ok(Call::Primitive(
+            string(&j["primitive"])?.into(),
+            string(&j["output"])?.into(),
+        ))
+    }
+}
+impl Program {
+    pub fn parse(j: J) -> Result<Self> {
+        if j["schema"] != "eggfuse-cell-runtime/v1" {
+            return Err("unsupported Cell runtime artifact".into());
+        }
+        let ir = &j["recipe"];
+        if ir["schema"] != "eggfuse-recipe/v1" || ir["scope"] != "original_program" {
+            return Err("expected original-program Recipe IR".into());
+        }
+        verify_source(&j)?;
+        let mut tables = vec![];
+        let mut names = BTreeMap::new();
+        for t in array(&ir["tables"])? {
+            let schema = array(&t["schema"])?.clone();
+            if schema.is_empty() {
+                return Err("empty schema".into());
+            }
+            for s in &schema {
+                if !matches!(
+                    s["kind"].as_str(),
+                    Some("eq" | "i64" | "bool" | "Unit" | "String" | "set" | "f64")
+                ) {
+                    return Err(format!("unsupported sort {s}"));
+                }
+            }
+            let name = string(&t["name"])?.to_owned();
+            if names.insert(name.clone(), tables.len()).is_some() {
+                return Err("duplicate operator".into());
+            }
+            let constructor = t["kind"] == "constructor";
+            let virtual_fact = constructor
+                || (schema.last().unwrap()["kind"] == "Unit" && t["merge_expr"].is_null());
+            tables.push(Table {
+                name,
+                schema,
+                constructor,
+                virtual_fact,
+                merge: t["merge_expr"].clone(),
+                internal: t["internal"].as_bool().unwrap_or(false),
+            });
+        }
+        let mut templates = vec![];
+        let mut rules = vec![];
+        for r in array(&ir["rules"])? {
+            let slots = array(&r["slots"])?;
+            let sorts = slots.iter().map(|s| s["sort"].clone()).collect::<Vec<_>>();
+            let inputs = slots
+                .iter()
+                .enumerate()
+                .filter(|(_, s)| s["definition"] == "query")
+                .map(|(i, _)| i)
+                .collect();
+            let mut query = vec![];
+            let mut ops = vec![];
+            let mut defs = BTreeMap::new();
+            for a in array(&r["query"])? {
+                query.push(Atom {
+                    call: call(&a["call"], &names)?,
+                    args: args(&a["args"])?,
+                });
+            }
+            for e in array(&r["effects"])? {
+                let dst = e["dst"].as_u64().unwrap_or(0) as usize;
+                let op = match string(&e["op"])? {
+                    "copy" => Op::Copy(dst, arg(&e["arg"])?),
+                    "let" => Op::Let(dst, call(&e["call"], &names)?, args(&e["args"])?),
+                    "set" => Op::Set(
+                        *names
+                            .get(string(&e["call"]["table"])?)
+                            .ok_or("set operator")?,
+                        args(&e["args"])?,
+                        arg(&e["value"])?,
+                    ),
+                    "union" => {
+                        let a = args(&e["args"])?;
+                        if a.len() != 2 {
+                            return Err("union arity".into());
+                        }
+                        Op::Union(a[0].clone(), a[1].clone())
+                    }
+                    "subsume" | "delete" => Op::Hide(
+                        *names
+                            .get(string(&e["call"]["table"])?)
+                            .ok_or("visibility operator")?,
+                        args(&e["args"])?,
+                        e["op"] == "delete",
+                    ),
+                    "panic" => Op::Panic,
+                    _ => return Err("unsupported effect".into()),
+                };
+                if matches!(op, Op::Copy(..) | Op::Let(..)) {
+                    if dst >= sorts.len() || defs.insert(dst, ops.len()).is_some() {
+                        return Err("invalid SSA definition".into());
+                    }
+                }
+                ops.push(op);
+            }
+            let table_atoms = query
+                .iter()
+                .filter(|a| matches!(a.call, Call::Table(_)))
+                .count();
+            let direct = if table_atoms == 1 {
+                query.iter().position(|a| matches!(a.call, Call::Table(_)))
+            } else {
+                None
+            };
+            let mut parent_columns = BTreeMap::new();
+            if let Some(i) = direct {
+                if let Call::Table(t) = query[i].call {
+                    if tables[t].virtual_fact {
+                        for (col, a) in query[i].args.iter().enumerate() {
+                            if let Arg::Slot(slot) = a {
+                                parent_columns.entry(*slot).or_insert(col);
+                            }
+                        }
+                    }
+                }
+            }
+            rules.push(Rule {
+                template: templates.len(),
+                query,
+                inputs,
+                seminaive: r["metadata"]["seminaive"].as_bool().unwrap_or(true),
+                direct,
+            });
+            templates.push(Template {
+                name: r["metadata"]["name"].as_str().unwrap_or("rule").into(),
+                sorts,
+                defs,
+                ops,
+                parent_columns,
+            });
+        }
+        let mut table_templates = vec![];
+        for (tid, t) in tables.iter().enumerate() {
+            let dst = t.schema.len() - 1;
+            let op = Op::Let(dst, Call::Table(tid), (0..dst).map(Arg::Slot).collect());
+            table_templates.push(templates.len());
+            templates.push(Template {
+                name: format!("import/{}", t.name),
+                sorts: t.schema.clone(),
+                defs: BTreeMap::from([(dst, 0)]),
+                ops: vec![op],
+                parent_columns: BTreeMap::new(),
+            });
+        }
+        let mut sets = BTreeMap::new();
+        for s in array(&ir["rulesets"])? {
+            let ids = array(&s["rule_ids"])?
+                .iter()
+                .map(|i| {
+                    i.as_u64()
+                        .map(|x| x as usize)
+                        .ok_or_else(|| "invalid rule ID".into())
+                })
+                .collect::<Result<Vec<_>>>()?;
+            if ids.iter().any(|i| *i >= rules.len()) {
+                return Err("rule ID out of bounds".into());
+            }
+            sets.insert(string(&s["name"])?.into(), ids);
+        }
+        let p = Self {
+            tables,
+            templates,
+            rules,
+            sets,
+            control: array(&ir["control"])?.clone(),
+            initial: array(&j["initial"])?.clone(),
+            table_templates,
+            artifact: j,
+        };
+        p.validate()?;
+        Ok(p)
+    }
+    fn validate(&self) -> Result<()> {
+        for rule in &self.rules {
+            let t = &self.templates[rule.template];
+            let mut defined = rule
+                .inputs
+                .iter()
+                .copied()
+                .collect::<std::collections::BTreeSet<_>>();
+            let check = |a: &Arg, defined: &std::collections::BTreeSet<usize>| -> Result<()> {
+                if let Arg::Slot(i) = a {
+                    if *i >= t.sorts.len() || !defined.contains(i) {
+                        return Err("undefined slot".into());
+                    }
+                }
+                Ok(())
+            };
+            for a in &rule.query {
+                for v in &a.args {
+                    check(v, &defined)?;
+                }
+                if let Call::Table(i) = a.call {
+                    if a.args.len() != self.tables[i].schema.len() {
+                        return Err("query arity".into());
+                    }
+                    for (v, s) in a.args.iter().zip(&self.tables[i].schema) {
+                        if let Arg::Slot(i) = v {
+                            if t.sorts[*i] != *s {
+                                return Err("query type mismatch".into());
+                            }
+                        }
+                    }
+                }
+            }
+            for op in &t.ops {
+                match op {
+                    Op::Copy(dst, a) => {
+                        check(a, &defined)?;
+                        defined.insert(*dst);
+                    }
+                    Op::Let(dst, c, aa) => {
+                        for a in aa {
+                            check(a, &defined)?;
+                        }
+                        if let Call::Table(i) = c {
+                            if aa.len() + 1 != self.tables[*i].schema.len()
+                                || t.sorts[*dst] != *self.tables[*i].schema.last().unwrap()
+                            {
+                                return Err("construct/read type or arity".into());
+                            }
+                        }
+                        defined.insert(*dst);
+                    }
+                    Op::Set(i, aa, v) => {
+                        for a in aa {
+                            check(a, &defined)?;
+                        }
+                        check(v, &defined)?;
+                        if aa.len() + 1 != self.tables[*i].schema.len() {
+                            return Err("set arity".into());
+                        }
+                    }
+                    Op::Union(a, b) => {
+                        check(a, &defined)?;
+                        check(b, &defined)?;
+                        let (Arg::Slot(a), Arg::Slot(b)) = (a, b) else {
+                            return Err("union literals unsupported".into());
+                        };
+                        if t.sorts[*a] != t.sorts[*b] || t.sorts[*a]["kind"] != "eq" {
+                            return Err("invalid union type".into());
+                        }
+                    }
+                    Op::Hide(i, aa, _) => {
+                        for a in aa {
+                            check(a, &defined)?;
+                        }
+                        if aa.len() + 1 != self.tables[*i].schema.len() {
+                            return Err("visibility arity".into());
+                        }
+                    }
+                    Op::Panic => {}
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+// Independently check decoded recipe wiring against the embedded native typed
+// source, including stage control and initial facts. Python checks the checksummed
+// manifest too; the Rust executable never trusts an entry-plan annotation.
+fn verify_source(j: &J) -> Result<()> {
+    let ir = &j["recipe"];
+    let core = &j["source_core"];
+    let mut unsupported = std::collections::BTreeSet::new();
+    fn inspect(j: &J, bad: &mut std::collections::BTreeSet<String>) {
+        match j {
+            J::Array(xs) => {
+                for x in xs {
+                    inspect(x, bad)
+                }
+            }
+            J::Object(xs) => {
+                if let Some(name) = j["primitive"].as_str() {
+                    let base = name.strip_prefix("bool-").unwrap_or(name);
+                    let inputs = j["inputs"].as_array().cloned().unwrap_or_default();
+                    let output = j["output"].as_str().unwrap_or("");
+                    let supported = match base {
+                        "+" | "-" | "*" | "/" | "%" | "min" | "max" => {
+                            inputs == [J::from("i64"), J::from("i64")] && output == "i64"
+                        }
+                        "<" | "<=" | ">" | ">=" => {
+                            inputs == [J::from("i64"), J::from("i64")]
+                                && matches!(output, "Unit" | "bool")
+                        }
+                        "=" | "!=" => {
+                            inputs.len() == 2
+                                && inputs[0] == inputs[1]
+                                && matches!(output, "Unit" | "bool")
+                        }
+                        "not" => inputs == [J::from("bool")] && output == "bool",
+                        "and" | "or" | "xor" | "implies" => {
+                            inputs == [J::from("bool"), J::from("bool")] && output == "bool"
+                        }
+                        "set-of" | "set-empty" | "set-insert" | "set-remove" | "set-union"
+                        | "set-intersect" | "set-diff" | "set-contains" | "set-not-contains"
+                        | "set-length" => true,
+                        _ => false,
+                    };
+                    if !supported {
+                        bad.insert(format!("{name} {inputs:?} -> {output}"));
+                    }
+                }
+                for v in xs.values() {
+                    inspect(v, bad)
+                }
+            }
+            _ => {}
+        }
+    }
+    inspect(core, &mut unsupported);
+    if !unsupported.is_empty() {
+        return Err(format!(
+            "unsupported primitive capabilities before execution: {}",
+            unsupported.into_iter().collect::<Vec<_>>().join("; ")
+        ));
+    }
+    if ir["tables"] != core["tables"]
+        || ir["control"] != core["schedule"]
+        || j["initial"] != core["initial"]
+    {
+        return Err("source schema, schedule or initial facts differ".into());
+    }
+    fn decode(v: &J, slots: &[J]) -> Result<J> {
+        if let Some(i) = v["slot"].as_u64() {
+            let s = slots.get(i as usize).ok_or("invalid source slot")?;
+            Ok(serde_json::json!({"var":s["name"],"sort":s["sort"]}))
+        } else {
+            Ok(v.clone())
+        }
+    }
+    let rules = array(&ir["rules"])?;
+    let mut decoded = vec![];
+    for r in rules {
+        let slots = array(&r["slots"])?;
+        let mut body = vec![];
+        let mut head = vec![];
+        for atom in array(&r["query"])? {
+            let mut a = atom.clone();
+            a["args"] = array(&atom["args"])?
+                .iter()
+                .map(|v| decode(v, slots))
+                .collect::<Result<Vec<_>>>()?
+                .into();
+            body.push(a);
+        }
+        for effect in array(&r["effects"])? {
+            let mut a = effect.clone();
+            a.as_object_mut().ok_or("effect object")?.remove("kind");
+            if let Some(aa) = effect["args"].as_array() {
+                a["args"] = aa
+                    .iter()
+                    .map(|v| decode(v, slots))
+                    .collect::<Result<Vec<_>>>()?
+                    .into();
+            }
+            for k in ["value", "arg"] {
+                if !effect[k].is_null() {
+                    a[k] = decode(&effect[k], slots)?;
+                }
+            }
+            if let Some(dst) = effect["dst"].as_u64() {
+                a["dst"] = slots.get(dst as usize).ok_or("definition slot")?["name"].clone();
+            }
+            head.push(a);
+        }
+        let mut out = r["metadata"].clone();
+        out["body"] = body.into();
+        out["head"] = head.into();
+        decoded.push(out);
+    }
+    let sets = array(&ir["rulesets"])?;
+    let source_sets = array(&core["rulesets"])?;
+    if sets.len() != source_sets.len() {
+        return Err("rulesets differ".into());
+    }
+    for (set, expected) in sets.iter().zip(source_sets) {
+        let mut s = set.clone();
+        s.as_object_mut().unwrap().remove("rule_ids");
+        s["rules"] = array(&set["rule_ids"])?
+            .iter()
+            .map(|id| {
+                decoded
+                    .get(id.as_u64().ok_or("rule ID")? as usize)
+                    .cloned()
+                    .ok_or("rule missing".into())
+            })
+            .collect::<Result<Vec<_>>>()?
+            .into();
+        if s != *expected {
+            return Err("recipe query/effect differs from source".into());
+        }
+    }
+    Ok(())
+}

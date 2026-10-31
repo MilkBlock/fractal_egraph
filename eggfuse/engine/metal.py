@@ -7,6 +7,9 @@ BACKEND=ROOT/'experiments/device_backend'
 def run_artifact(artifact,build,output,check=False):
     artifact=Path(artifact).resolve();build=Path(build).resolve();output=Path(output).resolve()
     manifest=json.loads((artifact/'manifest.json').read_text())
+    if manifest.get('backend')=='cell-cpu':
+        from .cell_runtime import run_artifact as run_cell
+        return run_cell(artifact,output,check)
     if manifest.get('schema')!='eggfuse-device-artifact/v1' or manifest.get('backend') not in ('gpu','regions'):raise ValueError('run --artifact requires a GPU or generic-region artifact')
     for name,sha in manifest['files'].items():
         if Path(name).name!=name:raise ValueError('invalid artifact path')
@@ -32,7 +35,7 @@ def run_artifact(artifact,build,output,check=False):
 
 def main(args,library=False):
     if not library and ('--artifact' in args or args in (['--help'],['-h'])):
-        p=argparse.ArgumentParser(prog='eggfuse run');p.add_argument('--artifact',type=Path,required=True);p.add_argument('--build',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--check',action='store_true');a=p.parse_args(args)
+        p=argparse.ArgumentParser(prog='eggfuse run');p.add_argument('--artifact',type=Path,required=True);p.add_argument('--build',type=Path,default=ROOT/'out/device-build');p.add_argument('--output',type=Path,required=True);p.add_argument('--check',action='store_true');a=p.parse_args(args)
         r=run_artifact(a.artifact,a.build,a.output,a.check)
         print(json.dumps({k:r[k] for k in ['complete_schedule','inference_seconds','checked']},indent=2));return 0
     if not library and any(a.split('=',1)[0] in ('--joint-polyspine','--cell-program','--stage-contexts') for a in args):
