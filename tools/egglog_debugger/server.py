@@ -131,7 +131,7 @@ class Handler(SimpleHTTPRequestHandler):
         return self.reply(204, b'')
 
     def translate_path(self, path):
-        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js', '/ripen-coverage.mjs', '/cell-egraph-panel.mjs', '/cell-discovery.mjs', '/cell-viewer.html', '/cell-viewer.mjs', '/stage-sampler.html', '/stage-sampler.mjs', '/stage-sampler.css', '/stage-filter-panel.mjs'):
+        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js', '/ripen-coverage.mjs', '/cell-egraph-panel.mjs', '/cell-discovery.mjs', '/cell-viewer.html', '/cell-viewer.mjs', '/stage-sampler.html', '/stage-sampler.mjs', '/stage-sampler.css', '/stage-filter-panel.mjs', '/stage-view-history.mjs'):
             return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
         # The browser bundle is a build artifact (see browser/build.mjs); the local
         # page imports it to generate a fractal lane's `.egg`, so serve it when it

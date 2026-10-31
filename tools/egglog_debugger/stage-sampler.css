@@ -10,3 +10,5 @@
 #filter-report>summary.filter-warning{color:#9a4b08}
 
 @media(min-width:701px){body{overflow:hidden}.workspace>main{min-height:0}.workspace>.controls,.workspace>.inspector{min-height:0}#canvas{min-height:180px}#filter-report-body{max-height:170px}}
+
+.graph-actions{flex-wrap:wrap}.history-status{font-size:11px;color:var(--accent);padding:0 22px 6px;background:#fff}.history-status:empty{display:none}@media(max-width:700px){.history-status{padding:0 12px 5px}.graph-actions{margin-left:0}}

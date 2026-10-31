@@ -41,6 +41,14 @@ python3 tools/egglog_debugger/server.py --port 8080 --sampler-only
 
 筛选先共享一份表／邻接索引，再对每个候选生成受显示上限约束的局部结构，只为最终样本运行一次 Graphviz。不使用随机试探次数上限，因此候选计数是精确的。服务端为同一 Stage、筛选和基础裁剪保留最近一次候选列表；换种子复用它。初次筛选仍随候选数量增长，不是常数时间，且不会把全部候选的小图留在内存中。
 
+## 撤销与重做
+
+图上方有「撤销／重做」按钮，也支持 `Ctrl+Z` / `⌘Z` 撤销，`Ctrl+Shift+Z` / `⌘Shift+Z`（或 `Ctrl+Y`）重做。可恢复展开、折叠、显示更多等价节点、换根、随机样本、已应用的筛选、裁剪参数、Stage／入口出口、ruleset 和已记录运行的切换。
+
+每一步保存具体观察根、种子、条件和展开位置等小型描述，不保存整张 SVG 或 egraph。重做使用当时的种子及已选根，不再生成一个新随机数。也恢复操作前的缩放／平移位置；单独的平移缩放和查看详情不占一个撤销步骤。新操作清除重做分支，无变化的点击不新增步骤。正在加载时也可撤销，过期请求不得覆盖恢复后的图。
+
+输入框和可编辑文本保留浏览器的文字撤销。未应用的筛选草稿不进入图历史；恢复筛选时还原当时已应用的条件。历史属于当前页面会话，刷新后从当前 URL 开始一份新历史。撤销只恢复查看状态，不撤销、取消或重新发起后端 Stage 采集任务。
+
 ## 观察语义
 
 - 入口是该次 Run 真正开始前的已提交状态；出口是原生执行及 rebuild 完成后的状态。跳过的 `until` Run 不计为一次实际执行。
@@ -63,6 +71,7 @@ python3 tools/egglog_debugger/server.py --port 8080 --sampler-only
 ```sh
 python3 -m unittest discover -s tools/egglog_debugger -p 'test_stage_sampler.py'
 python3 -m unittest discover -s tools/egglog_debugger -p 'test_stream_errors.py'
+node --test tools/egglog_debugger/test_stage_view_history.mjs
 cargo build --offline --release --manifest-path engine/cpu/Cargo.toml
 python3 tools/egglog_debugger/verify_stage_archive.py --output out/stage-sampler-check
 ```
@@ -80,3 +89,5 @@ python3 tools/egglog_debugger/verify_stage_archive.py --output out/stage-sampler
 另完成真实 `fact` Pass 3 采集，archive 为 1,554,878 字节。这些是观察器正确性验证及产物大小，不是推理加速比。
 
 浏览器验收覆盖：实际采集、阶段选择、固定根前后对比、RipenInput 展开、手工折叠、规则源码、桌面及窄屏布局。Math distribute 阶段固定同一根，入口显示 5 条事实，出口显示 8 条；折叠嵌套 Add 后入口降至 3 条，展开恢复。浏览器无控制台错误。
+
+撤销功能另有 5 项状态历史测试，覆盖精确重做、分支截断、过期响应、快照隔离和文字输入快捷键。浏览器验证了 `9 → 收起到 8 → Ctrl+Z 恢复 9 → 重做回到 8`，随机种子和根的恢复，空结果筛选撤销，以及 Stage／运行切换中的快速撤销；`⌘Z` 在输入框中只撤销文字，不改变当前图。
