@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import time
+import os
 
 from eggfuse.ir.cell_runtime import build, validate
 ROOT=Path(__file__).resolve().parents[2]
@@ -24,7 +25,7 @@ def prepare(source, frontend=None):
     if p.returncode:raise ValueError('Native frontend rejected the source: '+p.stderr[-4000:])
     return json.loads(p.stdout)
 
-def execute(program,out,engine=None,audit=False,checkpoint_after=None,resume=None,extract=None,save_checkpoint=False):
+def execute(program,out,engine=None,audit=False,checkpoint_after=None,resume=None,extract=None,save_checkpoint=False,environment=None):
     validate(program)
     out.mkdir(parents=True,exist_ok=False)
     path=out/'cell-runtime-program.json';path.write_text(json.dumps(program))
@@ -34,7 +35,7 @@ def execute(program,out,engine=None,audit=False,checkpoint_after=None,resume=Non
     if checkpoint_after is not None:cmd+=['--checkpoint-after',str(checkpoint_after)]
     if resume is not None:cmd+=['--resume',str(resume.resolve())]
     if extract is not None:cmd+=['--extract-unit-cost',extract]
-    with (out/'runtime.log').open('w') as f:subprocess.run(cmd,stdout=f,stderr=subprocess.STDOUT,check=True)
+    with (out/'runtime.log').open('w') as f:subprocess.run(cmd,stdout=f,stderr=subprocess.STDOUT,check=True,env={**os.environ,**(environment or {})})
     return json.loads((out/'runtime/report.json').read_text())
 
 def run_artifact(artifact,output,check=False,engine=None):
@@ -47,6 +48,8 @@ def run_artifact(artifact,output,check=False,engine=None):
     for name,checksum in manifest['files'].items():
         if Path(name).name!=name or hashlib.sha256((artifact/name).read_bytes()).hexdigest()!=checksum:raise ValueError('Cell artifact checksum mismatch: '+name)
     program=json.loads((artifact/'program.json').read_text());core=validate(program)
+    if 'multi_stage' in program:
+        if 'multi-stage-program.json' not in manifest['files'] or json.loads((artifact/'multi-stage-program.json').read_text())!=program['multi_stage']:raise ValueError('multi-stage artifact differs')
     if core!=json.loads((artifact/'core.json').read_text()) or program['recipe']!=json.loads((artifact/'recipe-program.json').read_text()):raise ValueError('Cell artifact program/source mismatch')
     validate_markers(json.loads((artifact/'marker-program.json').read_text()),core)
     source_sha=hashlib.sha256((artifact/'source_sk_mk.egg').read_bytes()).hexdigest()

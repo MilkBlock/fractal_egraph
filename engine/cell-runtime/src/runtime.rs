@@ -15,6 +15,33 @@ struct Binding {
     values: BTreeMap<usize, Value>,
     epoch: u64,
     parent: Option<FactRef>,
+    continuation: Option<(usize, u32, bool)>,
+    compiled: bool,
+}
+#[derive(Default, serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+struct ContinuationStats {
+    point_reads: u64,
+    inverse_reads: u64,
+    inverse_ambiguous: u64,
+    point_primitives: u64,
+    compiled_bindings: u64,
+    entered: u64,
+    projected_atoms: u64,
+    local_effect_reads: u64,
+    keyed_reads: u64,
+    ambiguous_reads: u64,
+    unavailable_sources: u64,
+    complete_bindings: u64,
+    residual_bindings: u64,
+    published_facts: u64,
+    function_updates: u64,
+    max_depth: u32,
+}
+/// All bindings belong to this exact source Run occurrence. The patch is sealed
+/// before publication, so no sibling rule can observe its future effects.
+struct StagePatch {
+    bindings: Vec<(usize, Binding)>,
 }
 pub struct Executor {
     pub graph: Graph,
@@ -35,6 +62,11 @@ pub struct Executor {
     profile_queries: bool,
     query_profile: Vec<(u64, f64, u64)>,
     progress: bool,
+    multistage_enabled: bool,
+    point_programs: bool,
+    local_projections: bool,
+    continuation_stats: ContinuationStats,
+    handoffs: BTreeSet<(usize, usize)>,
 }
 /// Run-local binding workspace. Only successful matches become stored bindings;
 /// failed join branches undo slot assignments instead of cloning tree maps.
@@ -70,7 +102,9 @@ fn operand(a: &Arg, env: &QueryEnv, g: &Graph) -> Option<Value> {
 }
 fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     // The graph is immutable throughout matching, so assigned values stay canonical.
-    let v = canon(v, &g.parents);
+    // All callers provide a canonical row, local slot, or primitive output.
+    // No writes are visible during this immutable matching snapshot.
+    let v = v.clone();
     match a {
         Arg::Literal(l) => canon(l, &g.parents) == v,
         Arg::Slot(i) => {
@@ -116,6 +150,11 @@ impl Executor {
             profile_queries: std::env::var_os("CELL_CPU_PROFILE").is_some(),
             query_profile: vec![(0, 0.0, 0); n],
             progress: std::env::var_os("CELL_CPU_PROGRESS").is_some(),
+            multistage_enabled: std::env::var("CELL_CPU_MULTISTAGE").as_deref() != Ok("0"),
+            point_programs: std::env::var("CELL_CPU_ENTRY_PROGRAMS").as_deref() != Ok("0"),
+            local_projections: std::env::var("CELL_CPU_LOCAL_PROJECTIONS").as_deref() != Ok("0"),
+            continuation_stats: ContinuationStats::default(),
+            handoffs: BTreeSet::new(),
             indexed_queries: std::env::var("CELL_CPU_QUERY_MODE").as_deref() != Ok("scan"),
             delta_queries: !matches!(
                 std::env::var("CELL_CPU_QUERY_MODE").as_deref(),
@@ -145,13 +184,15 @@ impl Executor {
         env: &mut QueryEnv,
         epoch: u64,
         out: &mut Vec<Binding>,
-        delta: Option<(usize, u64)>,
+        delta: Option<(usize, u64, Dependency)>,
     ) -> Result<()> {
         if !remaining.iter().any(|pending| *pending) {
             out.push(Binding {
                 values: env.binding(),
                 epoch,
                 parent: None,
+                continuation: None,
+                compiled: false,
             });
             return Ok(());
         }
@@ -231,11 +272,13 @@ impl Executor {
                     let Some(r) = self.graph.row(w)? else {
                         continue;
                     };
-                    // Disjoint delta expansion: the pivot is the first changed
-                    // table atom in source order. Earlier atoms must be old.
+                    // Disjoint partition by latest committed witness, then atom.
+                    // Within one RHS, later recipe positions (outer constructors)
+                    // own the match instead of their earlier constituent leaves.
                     if r.hidden
-                        || delta.is_some_and(|(pivot, watermark)| {
-                            chosen < pivot && r.epoch >= watermark
+                        || delta.is_some_and(|(pivot, epoch, witness)| {
+                            (r.epoch, r.witness) > (epoch, witness)
+                                || ((r.epoch, r.witness) == (epoch, witness) && chosen < pivot)
                         })
                     {
                         continue;
@@ -255,6 +298,228 @@ impl Executor {
         }
         remaining[chosen] = true;
         Ok(())
+    }
+    fn points(
+        &mut self,
+        query: &[Atom],
+        order: &[usize],
+        env: &mut QueryEnv,
+        remaining: &mut [bool],
+        epoch: &mut u64,
+        delta: Option<(usize, u64, Dependency)>,
+        allow_inverse: bool,
+    ) -> Result<bool> {
+        for &i in order {
+            if !remaining[i] {
+                continue;
+            }
+            let atom = &query[i];
+            let args = atom.args[..atom.args.len() - 1]
+                .iter()
+                .map(|a| operand(a, env, &self.graph))
+                .collect::<Option<Vec<_>>>();
+            match &atom.call {
+                Call::Primitive(name, output) => {
+                    let Some(args) = args else { continue };
+                    self.continuation_stats.point_primitives += 1;
+                    let Some(value) = value::primitive(name, &args, output)? else {
+                        return Ok(false);
+                    };
+                    if !bind(atom.args.last().unwrap(), &value, env, &self.graph) {
+                        return Ok(false);
+                    }
+                }
+                Call::Table(t) => {
+                    let row = if let Some(args) = args {
+                        self.continuation_stats.point_reads += 1;
+                        self.graph.lookup(*t, &args)?
+                    } else if allow_inverse
+                        && matches!(
+                            operand(atom.args.last().unwrap(), env, &self.graph),
+                            Some(Value::Eq(_))
+                        )
+                    {
+                        let bound = atom
+                            .args
+                            .iter()
+                            .map(|a| operand(a, env, &self.graph))
+                            .collect::<Vec<_>>();
+                        match self.query_indexes.domain(&self.graph, *t, &bound)? {
+                            crate::query::Domain::Empty => return Ok(false),
+                            crate::query::Domain::Many => {
+                                self.continuation_stats.inverse_ambiguous += 1;
+                                continue;
+                            }
+                            crate::query::Domain::One(w) => {
+                                self.continuation_stats.inverse_reads += 1;
+                                self.graph.row(w)?
+                            }
+                        }
+                    } else {
+                        continue;
+                    };
+                    let Some(row) = row else { return Ok(false) };
+                    self.graph.stats.decoded_rows += 1;
+                    if row.hidden
+                        || delta.is_some_and(|(pivot, stamp, w)| {
+                            (row.epoch, row.witness) > (stamp, w)
+                                || ((row.epoch, row.witness) == (stamp, w) && i < pivot)
+                        })
+                    {
+                        return Ok(false);
+                    }
+                    if !atom
+                        .args
+                        .iter()
+                        .zip(&row.values)
+                        .all(|(a, v)| bind(a, v, env, &self.graph))
+                    {
+                        return Ok(false);
+                    }
+                    *epoch = (*epoch).max(row.epoch);
+                }
+            }
+            remaining[i] = false;
+        }
+        Ok(true)
+    }
+    fn continue_local(
+        &mut self,
+        rid: usize,
+        pivot: usize,
+        seed: &Row,
+        env: &mut QueryEnv,
+        remaining: &mut [bool],
+        mut epoch: u64,
+        _watermark: u64,
+    ) -> Result<(bool, u64, Option<(usize, u32)>)> {
+        if !self.multistage_enabled || !self.local_projections {
+            return Ok((true, epoch, None));
+        }
+        let Some(anchor) = self.graph.origin(seed.witness) else {
+            return Ok((true, epoch, None));
+        };
+        let source = &self.graph.cells[&anchor.cell];
+        let Some(route) = self
+            .graph
+            .program
+            .multi_stage
+            .routes
+            .get(&(source.template, anchor.op as usize, rid, pivot))
+            .cloned()
+        else {
+            return Ok((true, epoch, None));
+        };
+        let depth = source
+            .recipe_depth
+            .checked_add(1)
+            .ok_or("recipe depth exhausted")?;
+        self.continuation_stats.entered += 1;
+        let query = self.graph.program.rules[rid].query.clone();
+        for read in &route.reads {
+            if !remaining[read.atom] {
+                continue;
+            }
+            let atom = &query[read.atom];
+            let bound = atom
+                .args
+                .iter()
+                .map(|a| operand(a, env, &self.graph))
+                .collect::<Vec<_>>();
+            let full_key = bound[..bound.len() - 1]
+                .iter()
+                .cloned()
+                .collect::<Option<Vec<_>>>();
+            let expected = if full_key.is_none() {
+                match self.query_indexes.domain(&self.graph, read.table, &bound)? {
+                    crate::query::Domain::Empty => return Ok((false, epoch, None)),
+                    crate::query::Domain::Many => {
+                        self.continuation_stats.ambiguous_reads += 1;
+                        continue;
+                    }
+                    crate::query::Domain::One(w) => Some(w),
+                }
+            } else {
+                None
+            };
+            // A live recipe slot can supply the fields directly, without creating
+            // an intermediate Row or rediscovering its constructor in a table.
+            let mut local = None;
+            if let Some(op) = read.effect {
+                let f = FactRef {
+                    cell: anchor.cell,
+                    op: op as u32,
+                };
+                if expected.is_none_or(|w| w == Dependency::Fact(f)) {
+                    if let Some(state) = self.graph.cells[&anchor.cell]
+                        .facts
+                        .get(&f.op)
+                        .filter(|s| !s.hidden)
+                    {
+                        let stamp = state.epoch;
+                        let values = self.graph.arguments(anchor.cell, &read.columns)?;
+                        if full_key
+                            .as_ref()
+                            .is_none_or(|key| values[..key.len()] == *key)
+                        {
+                            self.continuation_stats.local_effect_reads += 1;
+                            local = Some((values, stamp, Dependency::Fact(f)));
+                        }
+                    }
+                }
+            }
+            if local.is_none() {
+                let key = if let Some(key) = full_key {
+                    key
+                } else {
+                    let Ok(key) = self
+                        .graph
+                        .arguments(anchor.cell, &read.columns[..read.columns.len() - 1])
+                    else {
+                        self.continuation_stats.unavailable_sources += 1;
+                        continue;
+                    };
+                    key
+                };
+                self.continuation_stats.keyed_reads += 1;
+                let row = self.graph.lookup(read.table, &key)?;
+                let Some(row) = row else {
+                    if expected.is_none() {
+                        return Ok((false, epoch, None));
+                    }
+                    self.continuation_stats.unavailable_sources += 1;
+                    continue;
+                };
+                if expected.is_some_and(|w| w != row.witness) {
+                    self.continuation_stats.unavailable_sources += 1;
+                    continue;
+                }
+                if row.hidden {
+                    return Ok((false, epoch, None));
+                }
+                local = Some((row.values, row.epoch, row.witness));
+            }
+            let (values, stamp, witness) = local.unwrap();
+            if (stamp, witness) > (seed.epoch, seed.witness)
+                || (read.atom < pivot && (stamp, witness) == (seed.epoch, seed.witness))
+            {
+                return Ok((false, epoch, None));
+            }
+            let mark = env.trail.len();
+            if !atom
+                .args
+                .iter()
+                .zip(&values)
+                .all(|(a, v)| bind(a, v, env, &self.graph))
+            {
+                env.rollback(mark);
+                return Ok((false, epoch, None));
+            }
+            remaining[read.atom] = false;
+            epoch = epoch.max(stamp);
+            self.continuation_stats.projected_atoms += 1;
+        }
+        Ok((true, epoch, Some((route.producer, depth))))
     }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
@@ -302,19 +567,73 @@ impl Executor {
                     .all(|(a, v)| bind(a, v, &mut env, &self.graph))
                 {
                     let n = found.len();
-                    self.solve(
-                        &rule.query,
-                        &mut (0..rule.query.len())
-                            .map(|i| i != anchor)
-                            .collect::<Vec<_>>(),
-                        &mut env,
-                        row.epoch,
-                        &mut found,
-                        None,
-                    )?;
-                    if let Dependency::Fact(f) = row.witness {
+                    let mut remaining = (0..rule.query.len())
+                        .map(|i| i != anchor)
+                        .collect::<Vec<_>>();
+                    let mut epoch = row.epoch;
+                    if self.multistage_enabled && self.point_programs {
+                        if let Some(order) = self
+                            .graph
+                            .program
+                            .multi_stage
+                            .entries
+                            .get(&(rid, anchor))
+                            .cloned()
+                        {
+                            if !self.points(
+                                &rule.query,
+                                &order,
+                                &mut env,
+                                &mut remaining,
+                                &mut epoch,
+                                None,
+                                false,
+                            )? {
+                                continue;
+                            }
+                        }
+                    }
+                    if self.multistage_enabled && !remaining.iter().any(|v| *v) {
+                        found.push(Binding {
+                            values: env.binding(),
+                            epoch,
+                            parent: None,
+                            continuation: None,
+                            compiled: true,
+                        });
+                    } else {
+                        self.solve(
+                            &rule.query,
+                            &mut remaining,
+                            &mut env,
+                            epoch,
+                            &mut found,
+                            None,
+                        )?;
+                    }
+                    if let Some(f) = self.graph.origin(row.witness) {
                         for b in &mut found[n..] {
-                            b.parent = Some(f)
+                            if matches!(row.witness, Dependency::Fact(_)) {
+                                b.parent = Some(f);
+                            }
+                            let source = &self.graph.cells[&f.cell];
+                            if self.multistage_enabled {
+                                if let Some(route) = self.graph.program.multi_stage.routes.get(&(
+                                    source.template,
+                                    f.op as usize,
+                                    rid,
+                                    anchor,
+                                )) {
+                                    b.continuation = Some((
+                                        route.producer,
+                                        source
+                                            .recipe_depth
+                                            .checked_add(1)
+                                            .ok_or("recipe depth exhausted")?,
+                                        false,
+                                    ));
+                                }
+                            }
                         }
                     }
                     self.graph.stats.direct_bindings += (found.len() - n) as u64;
@@ -349,16 +668,115 @@ impl Executor {
                         .zip(&row.values)
                         .all(|(a, v)| bind(a, v, &mut env, &self.graph))
                     {
-                        self.solve(
-                            &rule.query,
-                            &mut (0..rule.query.len())
-                                .map(|i| i != pivot)
-                                .collect::<Vec<_>>(),
+                        let mut remaining = (0..rule.query.len())
+                            .map(|i| i != pivot)
+                            .collect::<Vec<_>>();
+                        let mut epoch = row.epoch;
+                        let delta = Some((pivot, row.epoch, row.witness));
+                        if self.multistage_enabled && self.point_programs {
+                            if let Some(order) = self
+                                .graph
+                                .program
+                                .multi_stage
+                                .entries
+                                .get(&(rid, pivot))
+                                .cloned()
+                            {
+                                if !self.points(
+                                    &rule.query,
+                                    &order,
+                                    &mut env,
+                                    &mut remaining,
+                                    &mut epoch,
+                                    delta,
+                                    false,
+                                )? {
+                                    continue;
+                                }
+                            }
+                        }
+                        let (live, mut epoch, origin) = self.continue_local(
+                            rid,
+                            pivot,
+                            row,
                             &mut env,
-                            row.epoch,
-                            &mut found,
-                            Some((pivot, watermark)),
+                            &mut remaining,
+                            epoch,
+                            watermark,
                         )?;
+                        if !live {
+                            continue;
+                        }
+                        // Prefer certified producer-local slots. Only unresolved
+                        // reads use conditional singleton projections of the current
+                        // public interface (including data-loader-origin nodes).
+                        if self.multistage_enabled && self.point_programs {
+                            if let Some(order) = self
+                                .graph
+                                .program
+                                .multi_stage
+                                .entries
+                                .get(&(rid, pivot))
+                                .cloned()
+                            {
+                                if !self.points(
+                                    &rule.query,
+                                    &order,
+                                    &mut env,
+                                    &mut remaining,
+                                    &mut epoch,
+                                    delta,
+                                    true,
+                                )? {
+                                    continue;
+                                }
+                            }
+                        }
+                        let residual = remaining
+                            .iter()
+                            .enumerate()
+                            .any(|(i, p)| *p && matches!(rule.query[i].call, Call::Table(_)));
+                        let before = found.len();
+                        if self.multistage_enabled && self.point_programs && !residual {
+                            if let Some(order) =
+                                self.graph.program.multi_stage.finishes.get(rid).cloned()
+                            {
+                                if !self.points(
+                                    &rule.query,
+                                    &order,
+                                    &mut env,
+                                    &mut remaining,
+                                    &mut epoch,
+                                    delta,
+                                    false,
+                                )? {
+                                    continue;
+                                }
+                            }
+                        }
+                        if self.multistage_enabled && !remaining.iter().any(|v| *v) {
+                            found.push(Binding {
+                                values: env.binding(),
+                                epoch,
+                                parent: None,
+                                continuation: None,
+                                compiled: true,
+                            });
+                        } else {
+                            self.solve(
+                                &rule.query,
+                                &mut remaining,
+                                &mut env,
+                                epoch,
+                                &mut found,
+                                delta,
+                            )?;
+                        }
+                        if origin.is_some() {
+                            for binding in &mut found[before..] {
+                                binding.continuation = origin.map(|(p, d)| (p, d, residual));
+                            }
+                        }
                     }
                 }
             }
@@ -387,7 +805,23 @@ impl Executor {
     }
     fn apply(&mut self, rid: usize, b: Binding) -> Result<()> {
         let template = self.graph.program.rules[rid].template;
+        let origin = b.continuation;
+        if b.compiled {
+            self.continuation_stats.compiled_bindings += 1;
+        }
+        let facts = self.graph.stats.logical_facts_created;
+        let updates = self.graph.stats.function_updates;
         let cell = self.graph.linked_frame(template, b.values, b.parent)?;
+        if let Some((producer, depth, residual)) = origin {
+            self.graph.cells.get_mut(&cell).unwrap().recipe_depth = depth;
+            self.handoffs.insert((producer, rid));
+            if residual {
+                self.continuation_stats.residual_bindings += 1;
+            } else {
+                self.continuation_stats.complete_bindings += 1;
+            }
+            self.continuation_stats.max_depth = self.continuation_stats.max_depth.max(depth);
+        }
         let ops = self.graph.program.templates[template].ops.clone();
         for (i, op) in ops.iter().enumerate() {
             match op {
@@ -436,6 +870,11 @@ impl Executor {
                 }
                 Op::Panic => return Err("source panic".into()),
             }
+        }
+        if origin.is_some() {
+            self.continuation_stats.published_facts +=
+                self.graph.stats.logical_facts_created - facts;
+            self.continuation_stats.function_updates += self.graph.stats.function_updates - updates;
         }
         self.graph.release_empty(cell);
         Ok(())
@@ -490,13 +929,14 @@ impl Executor {
         if std::env::var("CELL_CPU_QUERY_INDEX_SCOPE").as_deref() == Ok("run") {
             self.query_indexes.clear();
         }
-        let matches = work.len();
+        let patch = StagePatch { bindings: work };
+        let matches = patch.bindings.len();
         let search_seconds = start.elapsed().as_secs_f64();
         if self.audit {
-            self.binding_audit.push(json!({"ruleset":set,"bindings":work.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
+            self.binding_audit.push(json!({"ruleset":set,"bindings":patch.bindings.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
         }
         let phase = Instant::now();
-        for (rid, b) in work {
+        for (rid, b) in patch.bindings {
             self.apply(rid, b)?;
         }
         let rhs_seconds = phase.elapsed().as_secs_f64();
@@ -655,7 +1095,7 @@ impl Executor {
         Ok(())
     }
     pub fn checkpoint(&self) -> J {
-        let mut c = json!({"schema":"eggfuse-cell-checkpoint/v1","program":self.graph.program.artifact,"graph":self.graph.image(),"tasks":self.tasks,"watermarks":self.watermarks,"steps":self.steps});
+        let mut c = json!({"schema":"eggfuse-cell-checkpoint/v1","program":self.graph.program.artifact,"graph":self.graph.image(),"tasks":self.tasks,"watermarks":self.watermarks,"steps":self.steps,"continuation_stats":self.continuation_stats,"handoffs":self.handoffs});
         c["sha256"] = crate::checksum::digest(&c).into();
         c
     }
@@ -679,6 +1119,14 @@ impl Executor {
         e.watermarks =
             serde_json::from_value(checkpoint["watermarks"].clone()).map_err(|x| x.to_string())?;
         e.steps = serde_json::from_value(checkpoint["steps"].clone()).map_err(|x| x.to_string())?;
+        if !checkpoint["continuation_stats"].is_null() {
+            e.continuation_stats = serde_json::from_value(checkpoint["continuation_stats"].clone())
+                .map_err(|x| x.to_string())?;
+        }
+        if !checkpoint["handoffs"].is_null() {
+            e.handoffs = serde_json::from_value(checkpoint["handoffs"].clone())
+                .map_err(|x| x.to_string())?;
+        }
         if e.watermarks.len() != e.graph.program.rules.len()
             || e.watermarks.iter().any(|v| *v > e.graph.epoch)
             || e.steps.len() as u64 != e.graph.epoch
@@ -697,6 +1145,6 @@ impl Executor {
         Ok(e)
     }
     pub fn report(&self) -> J {
-        json!({"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

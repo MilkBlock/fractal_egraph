@@ -4,7 +4,7 @@ use serde_json::Value as J;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 pub type Result<T> = std::result::Result<T, String>;
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Arg {
     Slot(usize),
     Literal(Value),
@@ -55,6 +55,7 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    pub multi_stage: crate::multistage::MultiStage,
     pub tables: Vec<Table>,
     pub templates: Vec<Template>,
     pub rules: Vec<Rule>,
@@ -251,7 +252,8 @@ impl Program {
             }
             sets.insert(string(&s["name"])?.into(), ids);
         }
-        let p = Self {
+        let mut p = Self {
+            multi_stage: crate::multistage::MultiStage::default(),
             tables,
             templates,
             rules,
@@ -262,6 +264,7 @@ impl Program {
             artifact: j,
         };
         p.validate()?;
+        p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
         Ok(p)
     }
     fn validate(&self) -> Result<()> {

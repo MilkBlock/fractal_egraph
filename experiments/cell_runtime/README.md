@@ -94,9 +94,10 @@ from this changed output policy; its RSS reduction is not Cell storage compressi
 
 ## Boundaries
 
-This is not the complete Cell-resident roadmap. Templates currently share source
-RHS recipes; they do not automatically replace an arbitrary multi-rule RipSat
-closure. GPU execution and production eggcc/Tiger extraction are not implemented
+Cross-rule recipes, conditional local continuation, and source-stage publication
+are implemented; see [MULTISTAGE.md](MULTISTAGE.md) for contracts and measurements.
+Ambiguous boundaries still use residual matching. This is not the complete
+Cell-resident roadmap. GPU execution and production eggcc/Tiger extraction are not implemented
 here. Unit-cost extraction is diagnostic. The frontend rejects unsupported
 post-initialization commands; floating point arithmetic and some custom merge
 function reads are not supported.

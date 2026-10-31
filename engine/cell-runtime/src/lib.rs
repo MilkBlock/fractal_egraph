@@ -3,6 +3,7 @@ pub mod checksum;
 pub mod executor;
 pub mod extract;
 pub mod graph;
+pub mod multistage;
 pub mod program;
 pub mod query;
 pub mod schedule;

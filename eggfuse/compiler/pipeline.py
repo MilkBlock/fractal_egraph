@@ -18,8 +18,8 @@ def native_core(frontend,source,folder):
 
 def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu',multi_stage_cell=False,bake_source=None):
     source=Path(source).resolve();build=Path(build).resolve();tools=Path(tools).resolve()
-    if multi_stage_cell and backend!='gpu':raise ValueError('multi-stage Cell selects the regions runtime; do not combine it with --backend local')
-    if multi_stage_cell:backend='regions'
+    if multi_stage_cell and backend not in ('gpu','cell-cpu'):raise ValueError('multi-stage Cell requires the GPU regions or cell-cpu backend')
+    if multi_stage_cell and backend=='gpu':backend='regions'
     pm=PassManager(output,stop_after);source_file=pm.publish(source,'source.egg')
     base=[Path(__file__),ROOT/'eggfuse/compiler/passes.py']
     ast_binary=tools/'lhs_ast';key_binary=tools/'structural_key_source';frontend=tools/'eggfuse_frontend';analyzer=tools.parent/'egg_layout'

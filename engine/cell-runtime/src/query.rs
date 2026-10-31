@@ -92,6 +92,11 @@ pub struct QueryIndexes {
     pub updated_facts: u64,
     pub builds: u64,
 }
+pub enum Domain {
+    Empty,
+    One(Dependency),
+    Many,
+}
 impl Default for QueryIndexes {
     fn default() -> Self {
         Self {
@@ -109,6 +114,28 @@ impl Default for QueryIndexes {
     }
 }
 impl QueryIndexes {
+    pub fn domain(
+        &mut self,
+        graph: &Graph,
+        table: usize,
+        bound: &[Option<Value>],
+    ) -> Result<Domain> {
+        self.ensure(graph, table)?;
+        let index = &self.tables[&table];
+        if let Some((col, key, count)) = index.best(bound, self.bits) {
+            Ok(match count {
+                0 => Domain::Empty,
+                1 => Domain::One(*index.values[col][&key].facts.first().unwrap()),
+                _ => Domain::Many,
+            })
+        } else {
+            Ok(match index.keys.len() {
+                0 => Domain::Empty,
+                1 => Domain::One(*index.keys.keys().next().unwrap()),
+                _ => Domain::Many,
+            })
+        }
+    }
     pub fn clear(&mut self) {
         self.tables.clear();
         self.references = 0;

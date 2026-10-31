@@ -24,6 +24,8 @@ pub struct Cell {
     pub parent: Option<FactRef>,
     pub values: BTreeMap<usize, Value>,
     pub facts: BTreeMap<u32, FactState>,
+    #[serde(default)]
+    pub recipe_depth: u32,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Function {
@@ -32,6 +34,8 @@ pub struct Function {
     pub value: Value,
     pub epoch: u64,
     pub live: bool,
+    #[serde(default)]
+    pub origin: Option<FactRef>,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Dependency {
@@ -156,6 +160,17 @@ impl Graph {
         }
         for i in 0..g.functions.len() {
             if let Some(row) = g.function(i) {
+                if let Some(origin) = g.functions[i].origin {
+                    let cell = g
+                        .cells
+                        .get(&origin.cell)
+                        .ok_or("expired function producer")?;
+                    if !matches!(g.program.templates[cell.template].ops.get(origin.op as usize),Some(Op::Set(t,_,_)) if *t==row.table)
+                    {
+                        return Err("invalid function producer recipe".into());
+                    }
+                    *g.parent_users.entry(origin.cell).or_default() += 1;
+                }
                 g.function_operators[row.table].insert(i);
                 let key = (row.table, row.values[..row.values.len() - 1].to_vec());
                 if g.function_keys.insert(key, i).is_some() {
@@ -278,6 +293,7 @@ impl Graph {
                 parent: None,
                 values,
                 facts: BTreeMap::new(),
+                recipe_depth: 0,
             },
         );
         self.stats.cells_created += 1;
@@ -410,6 +426,32 @@ impl Graph {
             Dependency::Fact(f) => self.fact(f),
             Dependency::Function(i) => Ok(self.function(i)),
         }
+    }
+    pub fn origin(&self, w: Dependency) -> Option<FactRef> {
+        match w {
+            Dependency::Fact(f) => Some(f),
+            Dependency::Function(i) => self
+                .functions
+                .get(i)
+                .filter(|f| f.live)
+                .and_then(|f| f.origin),
+        }
+    }
+    fn function_origin(&mut self, index: usize, origin: Option<FactRef>) {
+        if self.functions[index].origin == origin {
+            return;
+        }
+        if let Some(old) = self.functions[index].origin.take() {
+            *self
+                .parent_users
+                .get_mut(&old.cell)
+                .expect("function producer reference") -= 1;
+            self.garbage.insert(old.cell);
+        }
+        if let Some(new) = origin {
+            *self.parent_users.entry(new.cell).or_default() += 1;
+        }
+        self.functions[index].origin = origin;
     }
     fn dependency_table(&self, w: Dependency) -> Option<usize> {
         match w {
@@ -660,7 +702,19 @@ impl Graph {
         let key = self.arguments(cell, aa)?;
         let value = self.argument(cell, v)?;
         if !self.program.tables[t].virtual_fact {
-            return self.set_function(t, key, value);
+            let before = self.stats.function_updates;
+            self.set_function(t, key.clone(), value)?;
+            if self.stats.function_updates != before {
+                let index = self.function_keys[&(t, key)];
+                self.function_origin(
+                    index,
+                    Some(FactRef {
+                        cell,
+                        op: op as u32,
+                    }),
+                );
+            }
+            return Ok(());
         }
         if let Some(old) = self.lookup(t, &key)? {
             if self.program.tables[t].constructor {
@@ -764,6 +818,7 @@ impl Graph {
                 value,
                 epoch: self.epoch,
                 live: true,
+                origin: None,
             });
             self.function_operators[t].insert(i);
             self.function_keys.insert((t, key), i);
@@ -837,6 +892,7 @@ impl Graph {
                     return Err("function subsume unsupported".into());
                 }
                 self.functions[i].live = false;
+                self.function_origin(i, None);
                 self.query_versions[t] += 1;
                 self.query_changes.insert(row.witness, t);
                 self.function_operators[t].remove(&i);
@@ -941,6 +997,7 @@ impl Graph {
                             self.functions[j].value = next;
                             self.functions[j].epoch = self.epoch;
                             self.functions[i].live = false;
+                            self.function_origin(i, None);
                             self.function_operators[row.table].remove(&i);
                             self.subscribe(d, &[]);
                             let target = self.function(j).unwrap();

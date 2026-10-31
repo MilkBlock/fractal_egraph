@@ -92,6 +92,70 @@ CASES={
 chain='(datatype E (N i64) (P E)) (ruleset build)\n(rule ((= x (N n))) (\n'
 for i in range(100):chain+=f'(let p{i} (P '+('x' if i==0 else f'p{i-1}')+'))\n'
 CASES['hundred-node-cell']=chain+ ') :ruleset build)\n(N 0) (run build 1)\n'
+CASES.update({
+ 'multistage-local-chain':'''(datatype E (Seed i64) (Leaf i64) (Pair E E) (Mid E i64) (Done E i64))
+(ruleset make) (ruleset middle) (ruleset finish)
+(rule ((Seed n)) ((Pair (Leaf n) (Leaf (+ n 1)))) :ruleset make)
+(rule ((= p (Pair (Leaf a) (Leaf b))) (< a b)) ((Mid p (+ a b))) :ruleset middle)
+(rule ((= m (Mid (Pair (Leaf a) (Leaf b)) sum))) ((Done m (+ sum (+ a b)))) :ruleset finish)
+(Seed 3) (run-schedule (seq (run make) (run middle) (run finish)))
+(check (Done (Mid (Pair (Leaf 3) (Leaf 4)) 7) 14))''',
+ 'multistage-finite-visibility':'''(datatype E (Seed i64) (Leaf i64) (Pair E E) (Mid E i64) (Done E i64)) (ruleset all)
+(rule ((Seed n)) ((Pair (Leaf n) (Leaf (+ n 1)))) :ruleset all)
+(rule ((= p (Pair (Leaf a) (Leaf b)))) ((Mid p (+ a b))) :ruleset all)
+(rule ((= m (Mid (Pair (Leaf a) (Leaf b)) sum))) ((Done m sum)) :ruleset all)
+(Seed 3) (run-schedule (repeat 2 (run all))) (check (Mid (Pair (Leaf 3) (Leaf 4)) 7))''',
+ 'multistage-alias-alternatives':'''(datatype E (Seed i64) (Leaf i64) (Pair E E) (Seen i64 i64))
+(ruleset make) (ruleset alias) (ruleset read)
+(rule ((Seed n)) ((Pair (Leaf n) (Leaf (+ n 1)))) :ruleset make)
+(rule ((= a (Leaf 0)) (= b (Leaf 1))) ((union a b)) :ruleset alias)
+(rule ((Pair (Leaf a) (Leaf b))) ((Seen a b)) :ruleset read)
+(Seed 0) (run-schedule (seq (run make) (run alias) (run read)))
+(check (Seen 0 0) (Seen 0 1) (Seen 1 0) (Seen 1 1))''',
+ 'multistage-updated-reply':'''(datatype E (Seed i64) (Leaf i64) (Pair E E) (Seen E i64))
+(function Best (E) i64 :merge (min old new)) (ruleset make) (ruleset update) (ruleset read)
+(rule ((Seed n)) ((let a (Leaf n)) (Pair a a) (set (Best a) n)) :ruleset make)
+(rule ((= a (Leaf n))) ((set (Best a) 1)) :ruleset update)
+(rule ((= p (Pair a a)) (= a (Leaf n)) (= cost (Best a))) ((Seen p cost)) :ruleset read)
+(Seed 7) (run-schedule (seq (run make) (run update) (run read))) (check (Seen (Pair (Leaf 7) (Leaf 7)) 1))''',
+ 'multistage-hidden-source':'''(datatype E (Seed i64) (Leaf i64) (Pair E E) (Seen i64)) (ruleset make) (ruleset hide) (ruleset read)
+(rule ((Seed n)) ((Pair (Leaf n) (Leaf (+ n 1)))) :ruleset make)
+(rule ((= a (Leaf n))) ((subsume (Leaf n))) :ruleset hide)
+(rule ((Pair (Leaf a) (Leaf b))) ((Seen (+ a b))) :ruleset read)
+(Seed 0) (run-schedule (seq (run make) (run hide) (run read)))''',
+ 'multistage-late-boundary':'''(datatype E (Seed i64) (Leaf i64) (Pair E E) (Seen i64 i64)) (relation Port (E i64))
+(ruleset make) (ruleset late) (ruleset read)
+(rule ((Seed n)) ((Pair (Leaf n) (Leaf (+ n 1)))) :ruleset make)
+(rule ((= x (Leaf n))) ((Port x n)) :ruleset late)
+(rule ((Pair (Leaf a) right) (Port right b)) ((Seen a b)) :ruleset read)
+(Seed 2) (run-schedule (seq (run make) (run read) (run late) (run read))) (check (Seen 2 3))''',
+ 'multistage-function-chain':'''(datatype E (Seed i64) (Leaf i64) (Pair E E) (Done E i64))
+(function Selected (E) E :merge old) (function Cost (E) i64 :merge (min old new))
+(ruleset make) (ruleset calculate) (ruleset finish)
+(rule ((= s (Seed n))) ((set (Selected s) (Pair (Leaf n) (Leaf (+ n 1))))) :ruleset make)
+(rule ((= (Pair (Leaf a) (Leaf b)) (Selected s))) ((set (Cost s) (+ a b))) :ruleset calculate)
+(rule ((= p (Selected s)) (= c (Cost s))) ((Done p c)) :ruleset finish)
+(Seed 4) (run-schedule (seq (run make) (run calculate) (run finish))) (check (Done (Pair (Leaf 4) (Leaf 5)) 9))''',
+ 'multistage-reentrant-repeat':'''(datatype E (Seed) (Leaf i64) (Step E)) (ruleset init) (ruleset advance)
+(rule ((Seed)) ((Step (Leaf 0))) :ruleset init)
+(rule ((Step (Leaf n)) (< n 5)) ((Step (Leaf (+ n 1)))) :ruleset advance)
+(Seed) (run-schedule (seq (run init) (repeat 2 (run advance)))) (check (Step (Leaf 2)))''',
+ 'multistage-reentrant-saturate':'''(datatype E (Seed) (Leaf i64) (Step E)) (ruleset init) (ruleset advance)
+(rule ((Seed)) ((Step (Leaf 0))) :ruleset init)
+(rule ((Step (Leaf n)) (< n 5)) ((Step (Leaf (+ n 1)))) :ruleset advance)
+(Seed) (run-schedule (seq (run init) (saturate (run advance)))) (check (Step (Leaf 5)))''',
+})
+chain28='(datatype E (Seed i64) (Leaf i64) '+ ' '.join(f'(S{i} E E)' for i in range(28))+')\n(ruleset init)\n'
+chain28+='(rule ((Seed n)) ((S0 (Leaf n) (Leaf (+ n 1)))) :ruleset init)\n'
+for i in range(27):
+ chain28+=f'(ruleset stage{i})\n(rule ((S{i} (Leaf a) (Leaf b))) ((S{i+1} (Leaf (+ a 1)) (Leaf (+ b 1)))) :ruleset stage{i})\n'
+chain28+='(Seed 0) (Seed 2) (Seed 4)\n(run-schedule (seq (run init) '+' '.join(f'(run stage{i})' for i in range(27))+'))\n(check (S27 (Leaf 27) (Leaf 28)))'
+CASES['multistage-28-stages']=chain28
+CASES['multistage-nonroot']=CASES['multistage-local-chain'].replace('(Seed i64)', '(Wrap E) (Seed i64)').replace('((Pair (Leaf n) (Leaf (+ n 1)))) :ruleset make)', '((Wrap (Pair (Leaf n) (Leaf (+ n 1))))) :ruleset make)')
+CASES['multistage-future-error']='''(datatype E (Seed i64) (Leaf i64) (Pair E E) (Bad i64)) (ruleset make) (ruleset bad)
+(rule ((Seed n)) ((Pair (Leaf n) (Leaf (+ n 1)))) :ruleset make)
+(rule ((Pair (Leaf a) (Leaf b))) ((Bad (/ 1 0))) :ruleset bad)
+(Seed 0) (run-schedule (seq (run make) (run bad :until (Pair (Leaf 0) (Leaf 1)))))'''
 for name,source in list(CASES.items()):
  for stage in ('a','b','c'):
   source=source.replace(f'(ruleset {stage})',f'(ruleset stage-{stage})').replace(f':ruleset {stage})',f':ruleset stage-{stage})').replace(f'(run {stage})',f'(run stage-{stage})').replace(f'(run {stage} ',f'(run stage-{stage} ')
@@ -113,12 +177,31 @@ def main():
   execute(program,d/'replay',engine,True)
   assert json.loads((d/'cell/runtime/state.json').read_text())==json.loads((d/'replay/runtime/state.json').read_text())
   assert json.loads((d/'cell/runtime/stages.json').read_text())==json.loads((d/'replay/runtime/stages.json').read_text())
-  if name in ('math','ordered-merge','non-idempotent','finite'):
-   stopped=execute(program,d/'paused',engine,True,checkpoint_after=1)
+  if name.startswith('multistage-'):
+   execute(program,d/'without-multistage',engine,True,environment={'CELL_CPU_MULTISTAGE':'0'})
+   for file in ('state.json','stages.json','binding-audit.json'):
+    assert json.loads((d/'cell/runtime'/file).read_text())==json.loads((d/'without-multistage/runtime'/file).read_text()),(name,file)
+   if name in ('multistage-local-chain','multistage-function-chain'):
+    assert report['multi_stage']['stats']['projected_atoms']>0 and report['multi_stage']['stats']['max_depth']>=2,report['multi_stage']
+   if name=='multistage-finite-visibility':assert all(row['table']!='Done' for row in actual['rows'])
+   if name=='multistage-28-stages':assert report['multi_stage']['stats']['max_depth']>=27,report['multi_stage']
+   if name=='multistage-local-chain':
+    # Bypass Python validation to exercise the independent Rust verifier.
+    for kind in ('control','projection','point'):
+     bad=json.loads(json.dumps(program))
+     if kind=='control':bad['multi_stage']['control']=[]
+     elif kind=='projection':next(r for r in bad['multi_stage']['routes'] if r['steps'])['steps'][0]['source_index']=999999
+     else:bad['multi_stage']['entries'][0]['atoms']=[999999]
+     path=d/(kind+'-forged.json');path.write_text(json.dumps(bad))
+     rejected=subprocess.run([str(engine),'--program',str(path),'--output',str(d/(kind+'-forged-output'))],capture_output=True,text=True)
+     assert rejected.returncode!=0,(kind,rejected.stdout)
+  if name in ('math','ordered-merge','non-idempotent','finite','multistage-function-chain','multistage-local-chain','multistage-reentrant-repeat'):
+   stopped=execute(program,d/'paused',engine,True,checkpoint_after=2 if name=='multistage-function-chain' else 1)
    assert stopped['status']=='checkpointed'
    resumed=execute(program,d/'resumed',engine,True,resume=d/'paused/runtime/checkpoint.json',extract='Add' if name=='math' else None)
    assert resumed['status']=='complete' and resumed['stats']['bindings']==report['stats']['bindings']
    assert json.loads((d/'resumed/runtime/state.json').read_text())==json.loads((d/'cell/runtime/state.json').read_text())
+   if name.startswith('multistage-'):assert resumed['multi_stage']['stats']==report['multi_stage']['stats']
    if name=='math':
     extracted=json.loads((d/'resumed/runtime/extraction.json').read_text())
     assert extracted['roots'] and all(r['node'] is not None for r in extracted['roots'])
@@ -126,7 +209,7 @@ def main():
     (d/'damaged-checkpoint.json').write_text(json.dumps(damaged))
     attempt=subprocess.run([str(engine),'--program',str(d/'cell/cell-runtime-program.json'),'--resume',str(d/'damaged-checkpoint.json'),'--output',str(d/'damaged-resume')],capture_output=True,text=True)
     assert attempt.returncode!=0 and 'checksum' in attempt.stderr
-  summary[name]={'verification':proof,'binding_audit':audited,'replay_exact':True,'checkpoint_checked':name in ('math','ordered-merge','non-idempotent','finite'),'stats':report['stats'],'live_cells':report['live_cells'],'stored_binding_values':report['stored_binding_values'],'virtual_constructor_facts':report['virtual_constructor_facts']}
+  summary[name]={'verification':proof,'binding_audit':audited,'replay_exact':True,'checkpoint_checked':name in ('math','ordered-merge','non-idempotent','finite','multistage-function-chain','multistage-local-chain','multistage-reentrant-repeat'),'stats':report['stats'],'multi_stage':report.get('multi_stage'),'live_cells':report['live_cells'],'stored_binding_values':report['stored_binding_values'],'virtual_constructor_facts':report['virtual_constructor_facts']}
   print(name,proof,flush=True)
  (a.output/'results.json').write_text(json.dumps(summary,indent=2)+'\n')
 if __name__=='__main__':main()
