@@ -1,6 +1,7 @@
 //! Native CPU multi-stage Cells. Source matching and all storage operations stay
 //! in egglog. Only positive saturation cones may add witnessed successor actions.
 //! Finite/probed/effectful scopes execute the original native schedule.
+pub mod staged;
 use super::*;
 use crate::core::{GenericAtomTerm as T, GenericCoreAction as A, ResolvedCoreRule};
 use egglog_bridge::{DefaultVal, FunctionConfig, FunctionId, MergeFn, RuleId};

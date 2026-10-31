@@ -4,6 +4,12 @@ This is an execution target on the repository's **native egglog CPU engine**.
 It does not run Metal, interpret GPU instructions, replay terminal snapshots, or
 maintain a second fact store. The current target is intentionally opt-in.
 
+The newer `--execution staged` path adds local references, ordered merge
+expressions, actual function replies and source-stage-gated publication. It
+supports finite repeat without early publication. It still uses complete native
+queries to authorize patches; see [the staged execution contract](STAGED.md).
+The eager saturation implementation described below remains the default/reference.
+
 From the repository root:
 
 ```sh

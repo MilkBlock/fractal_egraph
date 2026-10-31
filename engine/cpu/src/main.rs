@@ -1,7 +1,7 @@
 use egglog::{
     CommandOutput, EGraph,
     ast::{Command, Schedule},
-    cpu_cells::{CpuCells, schedule_json},
+    cpu_cells::{CpuCells, schedule_json, staged::StagedCpuCells},
 };
 use serde_json::json;
 use std::{path::PathBuf, time::Instant};
@@ -10,14 +10,14 @@ fn main() -> Result<()> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     if args.is_empty() || args.iter().any(|s| s == "--help") {
         println!(
-            "eggfuse-cpu --source SOURCE.egg [--prepare CORE.json | --plan PLAN.json] [--output DIR] [--mode native|cell]"
+            "eggfuse-cpu --source SOURCE.egg [--prepare CORE.json | --plan PLAN.json] [--output DIR] [--mode native|cell|staged] [--stage-audit]"
         );
         return Ok(());
     }
     let option = |k: &str| args.windows(2).find(|v| v[0] == k).map(|v| v[1].clone());
     let mode = option("--mode").unwrap_or_else(|| "cell".into());
-    if mode != "native" && mode != "cell" {
-        return Err("mode must be native or cell".into());
+    if mode != "native" && mode != "cell" && mode != "staged" {
+        return Err("mode must be native, cell or staged".into());
     }
     let src = option("--source").ok_or("--source required")?;
     let source = std::fs::read_to_string(&src)?;
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
         .collect::<Vec<_>>();
     let bootstrap_seconds = boot.elapsed().as_secs_f64();
     let mut core = None;
-    if mode == "cell" || option("--prepare").is_some() {
+    if mode != "native" || option("--prepare").is_some() {
         // Compilation fixes the rule environment. Ordinary input facts/checks
         // between schedules are supported; schema changes require recompile.
         if commands[at..].iter().any(|c| {
@@ -112,6 +112,17 @@ fn main() -> Result<()> {
     } else {
         None
     };
+    let mut staged = if mode == "staged" {
+        let plan = option("--plan").ok_or("--plan required in staged mode")?;
+        Some(StagedCpuCells::compile(
+            &mut eg,
+            core.as_ref().unwrap(),
+            &serde_json::from_slice(&std::fs::read(plan)?)?,
+            args.iter().any(|s| s == "--stage-audit"),
+        )?)
+    } else {
+        None
+    };
     let setup_seconds = setup.elapsed().as_secs_f64();
     let start = Instant::now();
     let mut inference_seconds = 0.0;
@@ -119,9 +130,14 @@ fn main() -> Result<()> {
     let mut native_report = eg.get_overall_run_report().clone();
     for c in &commands[at..] {
         let t = Instant::now();
-        if let (Some(cells), Command::RunSchedule(s)) = (&mut cells, c) {
+        if let (Some(staged), Command::RunSchedule(s)) = (&mut staged, c) {
+            native_report.union(staged.run(&mut eg, s)?);
+        } else if let (Some(cells), Command::RunSchedule(s)) = (&mut cells, c) {
             native_report.union(cells.run(&mut eg, s)?);
         } else {
+            if let Some(staged) = &mut staged {
+                staged.invalidate();
+            }
             for o in eg.run_program(vec![c.clone()])? {
                 if let CommandOutput::RunSchedule(r) = o {
                     native_report.union(r)
@@ -136,6 +152,9 @@ fn main() -> Result<()> {
             other_command_seconds += t.elapsed().as_secs_f64()
         }
     }
+    if let Some(staged) = &mut staged {
+        staged.invalidate();
+    }
     let execution_seconds = start.elapsed().as_secs_f64();
     let snapshot = match anchors {
         Ok(a) => eg.device_checkpoint(&a),
@@ -146,7 +165,7 @@ fn main() -> Result<()> {
     if let Ok(s) = snapshot {
         std::fs::write(out.join("state.json"), serde_json::to_vec(&s)?)?;
     }
-    let report = json!({"mode":mode,"inference_seconds":inference_seconds,"execution_seconds":execution_seconds,"other_command_seconds":other_command_seconds,"bootstrap_seconds":bootstrap_seconds,"setup_seconds":setup_seconds,"full_typed_snapshot":full_snapshot,"snapshot_error":snapshot_error,"source_rows":eg.num_tuples(),"source_outputs":outputs,"native_report":native_report,"cells":cells.as_ref().map(CpuCells::report),"scope":"actual local egglog runtime; native tables, hashcons, merge, union, rebuild and extraction; inference includes Cell receipt maintenance"});
+    let report = json!({"mode":mode,"inference_seconds":inference_seconds,"execution_seconds":execution_seconds,"other_command_seconds":other_command_seconds,"bootstrap_seconds":bootstrap_seconds,"setup_seconds":setup_seconds,"full_typed_snapshot":full_snapshot,"snapshot_error":snapshot_error,"source_rows":eg.num_tuples(),"source_outputs":outputs,"native_report":native_report,"cells":cells.as_ref().map(CpuCells::report),"staged":staged.as_ref().map(StagedCpuCells::report),"scope":"actual local egglog runtime; native tables, hashcons, merge, union, rebuild and extraction; inference includes Cell receipt maintenance"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     println!("{report}");
     Ok(())

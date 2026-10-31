@@ -8,6 +8,9 @@ The opt-in native CPU multi-stage target is available through
 `python3 -m eggfuse cpu --source input.egg --output out/cpu --check`.
 It uses the same region/Recipe IR and the local native egglog tables, matcher and
 actions; see [CPU contract, commands and limitations](../engine/cpu/README.md).
+`cpu --execution staged --stage-audit --check` selects the experimental local
+reference/merge-reply path with publication gated by actual source Stages.
+See [staged CPU semantics and current costs](../engine/cpu/STAGED.md).
 The old Python forwarding modules and runtime symlinks have been removed.
 Native `egg_layout` and the actual backend experiment harness remain available.
 Native Rust modules currently remain in `src/`; the crate split in

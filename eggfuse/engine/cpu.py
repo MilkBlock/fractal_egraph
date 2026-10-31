@@ -37,7 +37,7 @@ def compare_native(core,candidate,reference):
         r=[tids[row['table']],int(row['subsumed']),0,len(rows)+1,*map(value,row['values'])];r += [0]*(stride-len(r));rows.append(r)
     return compare(dict(tables=tables,strings=strings,anchors=anchors,stride=stride),rows,parents,reference,arena)
 
-def execute(source,output,engine,check=False,plan_path=None):
+def execute(source,output,engine,check=False,plan_path=None,mode="cell",stage_audit=False):
     started=time.perf_counter()
     output.mkdir(parents=True,exist_ok=False);source=source.resolve()
     core_file=output/'core.json'
@@ -45,7 +45,7 @@ def execute(source,output,engine,check=False,plan_path=None):
     core=json.loads(core_file.read_text());prepare_seconds=time.perf_counter()-started;compile_started=time.perf_counter()
     if plan_path is None:
         from eggfuse.compiler.targets.cpu import lower
-        plan=lower(core);plan_path=output/'cpu-program.json';plan_path.write_text(json.dumps(plan))
+        plan=lower(core,staged=(mode=='staged'));plan_path=output/'cpu-program.json';plan_path.write_text(json.dumps(plan))
     else:
         plan_path=plan_path.resolve();plan=json.loads(plan_path.read_text())
         from eggfuse.ir.recipe import validate
@@ -55,20 +55,21 @@ def execute(source,output,engine,check=False,plan_path=None):
     recipe_compile_seconds=time.perf_counter()-compile_started
     def run(mode):
         folder=output/mode;cmd=[str(engine),'--source',str(source),'--output',str(folder),'--mode',mode]
-        if mode=='cell':cmd+=['--plan',str(plan_path)]
+        if mode!='native':cmd+=['--plan',str(plan_path)]
+        if mode=='staged' and stage_audit:cmd+=['--stage-audit']
         with (output/(mode+'.log')).open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
         return json.loads((folder/'report.json').read_text())
-    candidate=run('cell');report=dict(schema='eggfuse-cpu-comparison/v1',source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),binary_sha256=hashlib.sha256(engine.read_bytes()).hexdigest(),candidate=candidate,scope='actual native egglog CPU execution; no GPU, no isolated-egraph replay',verification=None)
+    candidate=run(mode);report=dict(schema='eggfuse-cpu-comparison/v1',source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),binary_sha256=hashlib.sha256(engine.read_bytes()).hexdigest(),candidate=candidate,scope='actual native egglog CPU execution; no GPU, no isolated-egraph replay',verification=None)
     if check:
         native=run('native');report['native']=native
         if not native['full_typed_snapshot'] or not candidate['full_typed_snapshot']:raise ValueError('full typed endpoint export unavailable; cannot claim equivalence')
-        report['verification']=compare_native(core,json.loads((output/'cell/state.json').read_text()),json.loads((output/'native/state.json').read_text()))
+        report['verification']=compare_native(core,json.loads((output/mode/'state.json').read_text()),json.loads((output/'native/state.json').read_text()))
         report['speedup']=native['inference_seconds']/candidate['inference_seconds']
     report.update(prepare_seconds=prepare_seconds,recipe_compile_seconds=recipe_compile_seconds,driver_wall_seconds=time.perf_counter()-started)
     (output/'report.json').write_text(json.dumps(report,indent=2)+'\n');return report
 
 def main(args):
-    p=argparse.ArgumentParser(prog='eggfuse cpu');p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--plan',type=Path);p.add_argument('--cpu-bin',type=Path);p.add_argument('--check',action='store_true');a=p.parse_args(args)
+    p=argparse.ArgumentParser(prog='eggfuse cpu');p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--plan',type=Path);p.add_argument('--cpu-bin',type=Path);p.add_argument('--check',action='store_true');p.add_argument('--execution',choices=['eager','staged'],default='eager');p.add_argument('--stage-audit',action='store_true');a=p.parse_args(args)
     engine=a.cpu_bin.resolve() if a.cpu_bin else binary()
-    r=execute(a.source,a.output.resolve(),engine,a.check,a.plan)
-    print(json.dumps(dict(inference_seconds=r['candidate']['inference_seconds'],cells=r['candidate']['cells'],verification=r['verification'],speedup=r.get('speedup')),indent=2));return 0
+    r=execute(a.source,a.output.resolve(),engine,a.check,a.plan,'staged' if a.execution=='staged' else 'cell',a.stage_audit)
+    print(json.dumps(dict(inference_seconds=r['candidate']['inference_seconds'],cells=r['candidate']['cells'],staged=r['candidate'].get('staged'),verification=r['verification'],speedup=r.get('speedup')),indent=2));return 0

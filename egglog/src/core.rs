@@ -63,6 +63,12 @@ impl SpecializedPrimitive {
         &self.input
     }
 
+    /// Whether this specialization has an implementation for the requested
+    /// capability context. Speculative preparation must require Pure support.
+    pub(crate) fn supports_context(&self, ctx: crate::Context) -> bool {
+        self.prim_with_id.context_ids[ctx].is_some()
+    }
+
     /// Get the external function ID of this primitive
     pub(crate) fn external_id(&self, ctx: crate::Context) -> ExternalFunctionId {
         self.prim_with_id.context_ids[ctx].unwrap_or_else(|| {
