@@ -147,6 +147,7 @@ pub struct StagedCpuCells {
     variants: BTreeMap<RuleId, RuleId>,
     rulesets: BTreeMap<String, Vec<RuleId>>,
     executions: usize,
+    archive: Option<super::archive::StageArchive>,
 }
 
 fn column(eg: &EGraph, s: &J) -> Result<ColumnTy> {
@@ -1089,6 +1090,7 @@ impl StagedCpuCells {
             variants,
             rulesets,
             executions: 0,
+            archive: None,
         })
     }
     fn begin(&mut self, eg: &EGraph, set: &str, path: &[usize], iterations: &[usize]) {
@@ -1202,6 +1204,11 @@ impl StagedCpuCells {
         rt.overlay = Overlay::default();
         Ok(())
     }
+    /// Opt-in diagnostic recording. Never enabled by normal inference/bench.
+    pub fn archive(&mut self, eg: &EGraph, path: &std::path::Path, core: &J) -> Result<()> {
+        self.archive = Some(super::archive::StageArchive::new(eg, path, core)?);
+        Ok(())
+    }
     pub fn invalidate(&mut self) {
         let mut rt = self.runtime.lock().unwrap();
         rt.counters.retired_frames += rt.frames.iter().flatten().count();
@@ -1236,6 +1243,14 @@ impl StagedCpuCells {
                     }
                 }
                 self.begin(eg, &r.ruleset, path, iterations);
+                let stage = if self.archive.is_some() {
+                    Some(self.runtime.lock().unwrap().current.clone())
+                } else {
+                    None
+                };
+                if let Some(archive) = &mut self.archive {
+                    archive.begin(eg, stage.as_ref().unwrap())?;
+                }
                 let pairs = self.rulesets[&r.ruleset]
                     .iter()
                     .map(|id| (*id, *self.variants.get(id).unwrap_or(id)))
@@ -1248,6 +1263,9 @@ impl StagedCpuCells {
                     self.invalidate();
                 }
                 let iteration = result?;
+                if let Some(archive) = &mut self.archive {
+                    archive.finish(eg, stage.as_ref().unwrap(), &iteration)?;
+                }
                 self.finish(eg)?;
                 let report = RunReport::singleton(&r.ruleset, iteration);
                 eg.overall_run_report.union(report.clone());

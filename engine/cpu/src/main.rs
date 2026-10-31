@@ -10,7 +10,7 @@ fn main() -> Result<()> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     if args.is_empty() || args.iter().any(|s| s == "--help") {
         println!(
-            "eggfuse-cpu --source SOURCE.egg [--prepare CORE.json | --plan PLAN.json] [--output DIR] [--mode native|cell|staged] [--stage-audit]"
+            "eggfuse-cpu --source SOURCE.egg [--prepare CORE.json | --plan PLAN.json] [--output DIR] [--mode native|cell|staged] [--stage-audit] [--stage-archive DIR] [--no-state-export] [--brief-report]"
         );
         return Ok(());
     }
@@ -100,7 +100,12 @@ fn main() -> Result<()> {
     }
     let out = PathBuf::from(option("--output").ok_or("--output required")?);
     std::fs::create_dir(&out)?;
-    let anchors = eg.capture_device_anchors();
+    let export_state = !args.iter().any(|s| s == "--no-state-export");
+    let anchors = if export_state {
+        eg.capture_device_anchors()
+    } else {
+        Err("snapshot export disabled".into())
+    };
     let setup = Instant::now();
     let mut cells = if mode == "cell" {
         let plan = option("--plan").ok_or("--plan required in cell mode")?;
@@ -123,6 +128,12 @@ fn main() -> Result<()> {
     } else {
         None
     };
+    if let Some(path) = option("--stage-archive") {
+        staged
+            .as_mut()
+            .ok_or("--stage-archive requires --mode staged")?
+            .archive(&eg, std::path::Path::new(&path), core.as_ref().unwrap())?;
+    }
     let setup_seconds = setup.elapsed().as_secs_f64();
     let start = Instant::now();
     let mut inference_seconds = 0.0;
@@ -165,7 +176,7 @@ fn main() -> Result<()> {
     if let Ok(s) = snapshot {
         std::fs::write(out.join("state.json"), serde_json::to_vec(&s)?)?;
     }
-    let report = json!({"mode":mode,"inference_seconds":inference_seconds,"execution_seconds":execution_seconds,"other_command_seconds":other_command_seconds,"bootstrap_seconds":bootstrap_seconds,"setup_seconds":setup_seconds,"full_typed_snapshot":full_snapshot,"snapshot_error":snapshot_error,"source_rows":eg.num_tuples(),"source_outputs":outputs,"native_report":native_report,"cells":cells.as_ref().map(CpuCells::report),"staged":staged.as_ref().map(StagedCpuCells::report),"scope":"actual local egglog runtime; native tables, hashcons, merge, union, rebuild and extraction; inference includes Cell receipt maintenance"});
+    let report = json!({"mode":mode,"inference_seconds":inference_seconds,"execution_seconds":execution_seconds,"other_command_seconds":other_command_seconds,"bootstrap_seconds":bootstrap_seconds,"setup_seconds":setup_seconds,"full_typed_snapshot":full_snapshot,"snapshot_error":snapshot_error,"source_rows":eg.num_tuples(),"source_outputs":outputs,"native_report":if args.iter().any(|s|s=="--brief-report"){serde_json::Value::Null}else{json!(native_report)},"cells":cells.as_ref().map(CpuCells::report),"staged":staged.as_ref().map(StagedCpuCells::report),"scope":"actual local egglog runtime; native tables, hashcons, merge, union, rebuild and extraction; inference includes Cell receipt maintenance"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     println!("{report}");
     Ok(())

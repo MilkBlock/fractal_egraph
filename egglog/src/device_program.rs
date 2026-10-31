@@ -263,7 +263,7 @@ impl EGraph {
         Ok(json!({"identities":identities,"rows":self.device_snapshot()?,"rules_executed":0,"rebuilds_executed":0}))
     }
 
-    fn device_value(&self,v:Value,s:&ArcSort)->Result<Json>{
+    pub(crate) fn device_value(&self,v:Value,s:&ArcSort)->Result<Json>{
         let desc=sort(s)?;
         if s.is_eq_sort(){return Ok(json!({"eq":format!("{:?}",self.get_canonical_value(v,s)),"sort":s.name()}));}
         if desc["kind"]=="set" {

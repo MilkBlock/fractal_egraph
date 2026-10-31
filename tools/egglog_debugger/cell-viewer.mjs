@@ -10,6 +10,7 @@ function mountSvg(markup,host){
 const view=installCellPanel(document.querySelector('#viewer'),{post,mountSvg,previewRow:async req=>(await post('preview',req)).json(),standalone:true});
 const error=e=>{const text=e.message||String(e);document.querySelector('#viewer-error').textContent=text;view.panel.querySelector('[data-role=error]').textContent=text;};
 const toolbar=view.panel.querySelector('[data-role=toolbar]');
+const sampler=document.createElement('a');sampler.href='/stage-sampler.html';sampler.textContent='Stage 局部采样 ↗';sampler.target='_blank';sampler.rel='noopener';toolbar.append(sampler);
 const directory=document.createElement('select');directory.id='viewer-directory';directory.setAttribute('aria-label','分析目录');
 const refresh=document.createElement('button');refresh.textContent='刷新';toolbar.prepend(directory,refresh);
 async function load(path,round){if(!path)return;document.querySelector('#viewer-error').textContent='';view.panel.hidden=false;await view.load(path,round);const u=new URL(location.href);u.searchParams.set('layer_run',path);history.replaceState(null,'',u);}

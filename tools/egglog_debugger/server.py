@@ -21,6 +21,7 @@ import tempfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from plugin_renderer import PluginRenderer, default_plugin_root
 import cell_egraph
+import stage_sampler
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DEMO = ROOT.parent / 'egglog-demo'
@@ -110,6 +111,8 @@ def merged_examples(demo: Path, supported_only: bool = True):
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
+        if getattr(self.server,'sampler_only',False) and urlsplit(self.path).path=='/':
+            self.send_response(302);self.send_header('Location','/stage-sampler.html');self.end_headers();return
         match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|reuse\.dot|use_fractals\.dot|saturated_rule_composition\.dot|json)|manifest\.json)', urlsplit(self.path).path)
         if match:
             file = ROOT / 'out' / 'debugger' / match[1] / 'rounds' / match[2]
@@ -128,7 +131,7 @@ class Handler(SimpleHTTPRequestHandler):
         return self.reply(204, b'')
 
     def translate_path(self, path):
-        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js', '/ripen-coverage.mjs', '/cell-egraph-panel.mjs', '/cell-discovery.mjs', '/cell-viewer.html', '/cell-viewer.mjs'):
+        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js', '/ripen-coverage.mjs', '/cell-egraph-panel.mjs', '/cell-discovery.mjs', '/cell-viewer.html', '/cell-viewer.mjs', '/stage-sampler.html', '/stage-sampler.mjs', '/stage-sampler.css'):
             return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
         # The browser bundle is a build artifact (see browser/build.mjs); the local
         # page imports it to generate a fractal lane's `.egg`, so serve it when it
@@ -180,6 +183,16 @@ class Handler(SimpleHTTPRequestHandler):
             if not 0 < length <= 2_000_000:
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
+            if self.path == '/api/stage-sampler/catalog':
+                return self.reply(200, {**stage_sampler.catalog(), 'legacy_available':not getattr(self.server,'sampler_only',False)})
+            if self.path == '/api/stage-sampler/start':
+                return self.reply(200, stage_sampler.start(data))
+            if self.path == '/api/stage-sampler/status':
+                return self.reply(200, stage_sampler.status(data['path']))
+            if self.path == '/api/stage-sampler/cancel':
+                return self.reply(200, stage_sampler.cancel(data['path']))
+            if self.path == '/api/stage-sampler/sample':
+                return self.reply(200, stage_sampler.sample(data))
             if self.path == '/api/analysis-directories':
                 return self.reply(200, cell_egraph.directories(ROOT, data.get('source', '')))
             if self.path == '/api/cell-egraph':
@@ -412,6 +425,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--demo', type=Path, default=DEFAULT_DEMO)
     parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--sampler-only', action='store_true', help='Serve the stage sampler without building the legacy debugger/plugin')
     parser.add_argument('--binary', type=Path)
     parser.add_argument('--plugin', type=Path, default=default_plugin_root(ROOT))
     parser.add_argument('--extractor', type=Path, help='Use the same extractor override as VS Code')
@@ -419,24 +433,26 @@ def main():
                         help='Extra Origin allowed to call this bridge (repeatable); the static UI '
                              'deployment uses it to reach a bridge running on your machine')
     args = parser.parse_args()
-    if args.binary is None:
+    if not args.sampler_only and args.binary is None:
         subprocess.run(['cargo', 'build', '--release', '--bin', 'egg_layout'], cwd=ROOT, check=True)
         metadata = json.loads(subprocess.check_output(['cargo', 'metadata', '--no-deps', '--format-version=1'], cwd=ROOT))
         args.binary = Path(metadata['target_directory']) / 'release/egg_layout'
-    if not args.binary.is_file() or not os.access(args.binary, os.X_OK):
+    if not args.sampler_only and (not args.binary.is_file() or not os.access(args.binary, os.X_OK)):
         parser.error(f'Runtime binary is missing or not executable: {args.binary}; omit --binary to build automatically')
-    for tool in ('typst', 'dot'):
+    for tool in (('dot',) if args.sampler_only else ('typst', 'dot')):
         if not shutil.which(tool):
             parser.error(f'{tool} must be installed to render previews')
     server = ThreadingHTTPServer(('127.0.0.1', args.port), functools.partial(Handler, directory=str(args.demo.resolve() / 'dist')))
-    server.renderer = PluginRenderer(args.plugin, args.extractor)
+    server.sampler_only = args.sampler_only
     server.demo = args.demo.resolve()
-    spec = importlib.util.spec_from_file_location('demo_preview_annotations', server.demo / 'preview_annotations.py')
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    server.annotations = module
-    server.binary = args.binary.resolve()
+    if not args.sampler_only:
+        server.renderer = PluginRenderer(args.plugin, args.extractor)
+        spec = importlib.util.spec_from_file_location('demo_preview_annotations', server.demo / 'preview_annotations.py')
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        server.annotations = module
+        server.binary = args.binary.resolve()
     server.allowed_origins = set(args.allow_origin or []) | {'https://milkblock.github.io'}
     print(f'Native egglog debugger: http://127.0.0.1:{args.port}', flush=True)
     server.serve_forever()
