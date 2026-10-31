@@ -1,0 +1,822 @@
+{
+  "late-union": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 6,
+      "eclasses": 5,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "44b2df16ebd03009f4389bff2132482f177ea6f486b3a8d35393798aefb09dd5",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "44b2df16ebd03009f4389bff2132482f177ea6f486b3a8d35393798aefb09dd5",
+    "shader_sha256": "d6266f7b5c312bc008d47a8b4513550cbcaa35cc5e7e1e3e8065d8dcdf6d1125",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 5,
+    "runs": 6,
+    "seconds": {
+      "off": {
+        "inference": 0.00938403606414795,
+        "gpu": 0.00450204166554613
+      },
+      "on": {
+        "inference": 0.011484026908874512,
+        "gpu": 0.0034421249984006863
+      },
+      "collision": {
+        "inference": 0.011076092720031738,
+        "gpu": 0.0031380000000353903
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 1,
+          "rows_changed": 3,
+          "rows_visited": 5,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 1,
+          "rows_changed": 3,
+          "rows_visited": 5,
+          "summary_refreshes": 1
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 1,
+          "rows_changed": 3,
+          "rows_visited": 5,
+          "summary_refreshes": 1
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "output-only": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 9,
+      "eclasses": 4,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "6835e46ee802c7ca6b756e8e3c62b3fea2f17267a9344b271155537e198941f1",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "6835e46ee802c7ca6b756e8e3c62b3fea2f17267a9344b271155537e198941f1",
+    "shader_sha256": "09a7f7c037df2291d7a095b1454fcdc4af95be0c535581384c012cf1afac5260",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 9,
+    "runs": 5,
+    "seconds": {
+      "off": {
+        "inference": 0.01155400276184082,
+        "gpu": 0.006141999998362735
+      },
+      "on": {
+        "inference": 0.014220952987670898,
+        "gpu": 0.006018500000209315
+      },
+      "collision": {
+        "inference": 0.013236045837402344,
+        "gpu": 0.005301583332766313
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 4,
+          "rows_changed": 4,
+          "rows_visited": 36,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 4,
+          "rows_changed": 4,
+          "rows_visited": 36,
+          "summary_refreshes": 4
+        },
+        "duplicate_group_rows_skipped": 27,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 4,
+          "rows_changed": 4,
+          "rows_visited": 36,
+          "summary_refreshes": 4
+        },
+        "duplicate_group_rows_skipped": 27,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "recursive": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 17,
+      "eclasses": 13,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "d78beb1970f43724e8dcbbec0982b9f532b26b8cb3eb436e06b7fb409a9e989c",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "d78beb1970f43724e8dcbbec0982b9f532b26b8cb3eb436e06b7fb409a9e989c",
+    "shader_sha256": "e0edc4470fc59ae0d80276ec28da136508d43aa928182121649802822b033041",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 4,
+    "runs": 8,
+    "seconds": {
+      "off": {
+        "inference": 0.018422961235046387,
+        "gpu": 0.011831374999019317
+      },
+      "on": {
+        "inference": 0.019155025482177734,
+        "gpu": 0.010530374998779735
+      },
+      "collision": {
+        "inference": 0.01931607723236084,
+        "gpu": 0.00939266666318872
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 3,
+          "rows_changed": 3,
+          "rows_visited": 38,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 3,
+          "rows_changed": 3,
+          "rows_visited": 38,
+          "summary_refreshes": 3
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 3,
+          "rows_changed": 3,
+          "rows_visited": 38,
+          "summary_refreshes": 3
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "visibility": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 2,
+      "eclasses": 2,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "861fe8e61e72ef0522967878b3a383363681ddc70990e10b7ba5c3fdb96debd3",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "861fe8e61e72ef0522967878b3a383363681ddc70990e10b7ba5c3fdb96debd3",
+    "shader_sha256": "1e93e19ab79aa33e4efad353943c1c1f92a40fb82575fac2fa5a7be5d4bfe783",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 1,
+    "runs": 2,
+    "seconds": {
+      "off": {
+        "inference": 0.024119019508361816,
+        "gpu": 0.00827574999857461
+      },
+      "on": {
+        "inference": 0.02489495277404785,
+        "gpu": 0.007182874989666743
+      },
+      "collision": {
+        "inference": 0.022101998329162598,
+        "gpu": 0.008048083331232192
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 0,
+          "rows_changed": 0,
+          "rows_visited": 0,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 0,
+          "rows_changed": 0,
+          "rows_visited": 0,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 0,
+          "rows_changed": 0,
+          "rows_visited": 0,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "function-update": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 8,
+      "eclasses": 6,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "c6881178669f3d6e9af432206565faa8a8979dd5007f5b81c2d24a3f2d994d66",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "c6881178669f3d6e9af432206565faa8a8979dd5007f5b81c2d24a3f2d994d66",
+    "shader_sha256": "9ff269712fdf3ea3b3334a8787f0cf41c0f46934dc448215bc1c4dc824824766",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 6,
+    "runs": 4,
+    "seconds": {
+      "off": {
+        "inference": 0.011242032051086426,
+        "gpu": 0.00630079166876385
+      },
+      "on": {
+        "inference": 0.011721014976501465,
+        "gpu": 0.0034662499965634197
+      },
+      "collision": {
+        "inference": 0.012694001197814941,
+        "gpu": 0.004230833335896023
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 1,
+          "rows_changed": 1,
+          "rows_visited": 7,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 1,
+          "rows_changed": 1,
+          "rows_visited": 7,
+          "summary_refreshes": 1
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 1,
+          "rows_changed": 1,
+          "rows_visited": 7,
+          "summary_refreshes": 1
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "merge-cascade": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 10,
+      "eclasses": 7,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "afdc032f6614568e1e0d775b50526ce1c5cbc6fcc815dddc156b84dba59da0fe",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "afdc032f6614568e1e0d775b50526ce1c5cbc6fcc815dddc156b84dba59da0fe",
+    "shader_sha256": "31ae2f0f789604e40ba804fb6a1a82d279fed0f3de9622a4d9f8ee5696c5ed07",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 11,
+    "runs": 4,
+    "seconds": {
+      "off": {
+        "inference": 0.011313080787658691,
+        "gpu": 0.005772708333097398
+      },
+      "on": {
+        "inference": 0.012599945068359375,
+        "gpu": 0.004741583332361188
+      },
+      "collision": {
+        "inference": 0.014248013496398926,
+        "gpu": 0.005416125000920147
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 4,
+          "rows_changed": 8,
+          "rows_visited": 44,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 4,
+          "rows_changed": 8,
+          "rows_visited": 44,
+          "summary_refreshes": 5
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 4,
+          "rows_changed": 8,
+          "rows_visited": 44,
+          "summary_refreshes": 5
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "hidden-and-compaction": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 7,
+      "eclasses": 6,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "f7a9a9cfecf08d270f0bc15e0589c0c07ca94efee8bc936feb10083ea0b06f7f",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "f7a9a9cfecf08d270f0bc15e0589c0c07ca94efee8bc936feb10083ea0b06f7f",
+    "shader_sha256": "a2a30e1db543f15532a2f84a0855d310e9094ec2944770e2e783d06c1652673a",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 7,
+    "runs": 3,
+    "seconds": {
+      "off": {
+        "inference": 0.008063912391662598,
+        "gpu": 0.002815125000779517
+      },
+      "on": {
+        "inference": 0.011896014213562012,
+        "gpu": 0.003996749997895677
+      },
+      "collision": {
+        "inference": 0.010885000228881836,
+        "gpu": 0.003044625002075918
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 3,
+          "rows_changed": 4,
+          "rows_visited": 27,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 3,
+          "rows_changed": 4,
+          "rows_visited": 27,
+          "summary_refreshes": 4
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 3,
+          "rows_changed": 4,
+          "rows_visited": 27,
+          "summary_refreshes": 4
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "container": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 6,
+      "eclasses": 5,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "8f5b8994f0876c9a2e22112eaeb0131a91035a9288acd40fb794a543237375c8",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "8f5b8994f0876c9a2e22112eaeb0131a91035a9288acd40fb794a543237375c8",
+    "shader_sha256": "1725c3fc7d181139077876b99471778cdb75417ae4d2ff77ec2541f435ff7e9a",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 5,
+    "runs": 3,
+    "seconds": {
+      "off": {
+        "inference": 0.010609984397888184,
+        "gpu": 0.005635249995975755
+      },
+      "on": {
+        "inference": 0.013755083084106445,
+        "gpu": 0.005451916666061152
+      },
+      "collision": {
+        "inference": 0.01631307601928711,
+        "gpu": 0.008047249997616746
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 2,
+          "rows_changed": 5,
+          "rows_visited": 14,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 2,
+          "rows_changed": 5,
+          "rows_visited": 14,
+          "summary_refreshes": 3
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 2,
+          "rows_changed": 5,
+          "rows_visited": 14,
+          "summary_refreshes": 3
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "compact-regrow": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 1804,
+      "eclasses": 1802,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "6b7288e5c231e4e907f4cc55abfe9f7330ab8315942b83407884b2897f209083",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "6b7288e5c231e4e907f4cc55abfe9f7330ab8315942b83407884b2897f209083",
+    "shader_sha256": "e29ec756ec0c239bc93c53c919d4af9f58e96f0a80eb60627072e16e8897eec8",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 1204,
+    "runs": 4,
+    "seconds": {
+      "off": {
+        "inference": 0.025316953659057617,
+        "gpu": 0.014430833332880866
+      },
+      "on": {
+        "inference": 0.02172398567199707,
+        "gpu": 0.011528624992934056
+      },
+      "collision": {
+        "inference": 0.025599002838134766,
+        "gpu": 0.014890375008690171
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 15,
+          "rows_changed": 1202,
+          "rows_visited": 3612,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 1,
+          "blocks_tested": 15,
+          "rows_changed": 1202,
+          "rows_visited": 3356,
+          "summary_refreshes": 17
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 15,
+          "rows_changed": 1202,
+          "rows_visited": 3612,
+          "summary_refreshes": 18
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  },
+  "sparse": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 1041,
+      "eclasses": 1033,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "85ba5a21b83e82862311f175b526087f14ab55563d43bba8e61dcaf57256b089",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "source_sha256": "85ba5a21b83e82862311f175b526087f14ab55563d43bba8e61dcaf57256b089",
+    "shader_sha256": "73e963dfb6625f8af063922d728afeab5b84599483b7f4a11853334f5c6d24af",
+    "pass3": false,
+    "warmup_excluded": false,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 1033,
+    "runs": 9,
+    "seconds": {
+      "off": {
+        "inference": 0.022248029708862305,
+        "gpu": 0.012868583333329298
+      },
+      "on": {
+        "inference": 0.027001023292541504,
+        "gpu": 0.01734079167363234
+      },
+      "collision": {
+        "inference": 0.025647997856140137,
+        "gpu": 0.01583937500254251
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 40,
+          "rows_changed": 16,
+          "rows_visited": 8300,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 5540
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 18,
+          "blocks_tested": 40,
+          "rows_changed": 16,
+          "rows_visited": 3692,
+          "summary_refreshes": 22
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      },
+      "collision": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 40,
+          "rows_changed": 16,
+          "rows_visited": 8300,
+          "summary_refreshes": 40
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": true,
+        "summary_bytes": 5540
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": true
+  }
+}

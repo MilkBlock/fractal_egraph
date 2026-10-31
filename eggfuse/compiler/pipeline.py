@@ -16,10 +16,11 @@ def native_core(frontend,source,folder):
         proc=subprocess.run([str(frontend),str(source)],input='',text=True,stdout=subprocess.PIPE,stderr=error,check=True)
     return json.loads(proc.stdout.splitlines()[0])
 
-def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu',multi_stage_cell=False,bake_source=None):
+def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu',multi_stage_cell=False,bake_source=None,incremental_rebuild=False):
     source=Path(source).resolve();build=Path(build).resolve();tools=Path(tools).resolve()
     if multi_stage_cell and backend not in ('gpu','cell-cpu'):raise ValueError('multi-stage Cell requires the GPU regions or cell-cpu backend')
     if multi_stage_cell and backend=='gpu':backend='regions'
+    if incremental_rebuild and backend!='regions':raise ValueError('incremental rebuild requires --backend gpu --multi-stage-cell')
     pm=PassManager(output,stop_after);source_file=pm.publish(source,'source.egg')
     base=[Path(__file__),ROOT/'eggfuse/compiler/passes.py']
     ast_binary=tools/'lhs_ast';key_binary=tools/'structural_key_source';frontend=tools/'eggfuse_frontend';analyzer=tools.parent/'egg_layout'
@@ -121,7 +122,7 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         core=instantiate(recipe_value,original['initial'],'original_program');m=json.loads(marker_file.read_text())
         if backend in ('local','regions'):
             from .targets.metal.generic_cell import lower as local_lower
-            program=local_lower(core,capacity,match_capacity,marker_program=m,region_program=json.loads(region_file.read_text()) if region_file else None)
+            program=local_lower(core,capacity,match_capacity,marker_program=m,region_program=json.loads(region_file.read_text()) if region_file else None,incremental_rebuild=True if incremental_rebuild else None)
         else:
             program=compile_program(core,capacity=capacity,match_capacity=match_capacity,marker_program=m,
                                     **execution)
@@ -136,8 +137,8 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         shutil.copyfile(ir/'core.json',folder/'core.json')
         (folder/'manifest.json').write_text(json.dumps(dict(schema='eggfuse-device-artifact/v1',backend=backend,execution=execution,source_sha256=digest(marked_source),marker_sha256=m['sha256'],
             files={n:digest(folder/n) for n in ['core.json','program.json','kernel.metal','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else [])}),indent=2))
-    lowering_files=[ROOT/'eggfuse/compiler/targets/metal'/(name+'.py') for name in ['compiler','batch_rhs','matrix_sat','matrix_comparison','joint_polyspine','query_contexts','context_ridge','stage_cell','cell_program','cell_updates','cell_spines','scheduled_matrix','generic_cell','regions','batches','cell_waves','resident_indexes','resident_rebuild','resident_schedules','resident_writes','resident_seeds']]
-    device=pm.run('device',{'core':ir/'core.json','marker_ir':marker_file,'recipe_ir':recipe_file,**({'regions':region_file} if region_file else {})},dict(backend=backend,capacity=capacity,match_capacity=match_capacity,**execution),
+    lowering_files=[ROOT/'eggfuse/compiler/targets/metal'/(name+'.py') for name in ['compiler','batch_rhs','matrix_sat','matrix_comparison','joint_polyspine','query_contexts','context_ridge','stage_cell','cell_program','cell_updates','cell_spines','scheduled_matrix','generic_cell','regions','batches','cell_waves','resident_indexes','resident_rebuild','incremental_rebuild','resident_schedules','resident_writes','resident_seeds']]
+    device=pm.run('device',{'core':ir/'core.json','marker_ir':marker_file,'recipe_ir':recipe_file,**({'regions':region_file} if region_file else {})},dict(backend=backend,capacity=capacity,match_capacity=match_capacity,incremental_rebuild=incremental_rebuild,**execution),
         base+lowering_files+list((ROOT/'engine/metal').glob('*.metal'))+list((ROOT/'eggfuse/compiler/recipes').glob('*.py'))+[ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/interface.py',ROOT/'eggfuse/compiler/capabilities.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/batches.py'],['program.json','kernel.metal','core.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else []),lower,
         lambda f:valid_json(f,'program.json'),preserves=['marked program semantics'])
     for filename in ['program.json','kernel.metal','core.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else []):pm.publish(device/filename,'eggfuse_related_files/'+filename)
@@ -204,6 +205,6 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,default=ROOT/'out/device-build')
     p.add_argument('--tools',type=Path,default=ROOT/'target/debug/examples');p.add_argument('--solver-python',type=Path,default=Path(sys.executable));p.add_argument('--profile',type=Path)
-    p.add_argument('--bake-source',type=Path,help='Optional small training input; typed declarations/rules must match the execution environment');p.add_argument('--multi-stage-cell',action='store_true',help='Compile witnessed multi-stage batches; GPU context matrices, deterministic block publication and soundness/L1 checks');p.add_argument('--stop-after',choices=['sk','analyze','markers','recipe','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local','cell-cpu'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
-    pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend,a.multi_stage_cell,a.bake_source)
+    p.add_argument('--bake-source',type=Path,help='Optional small training input; typed declarations/rules must match the execution environment');p.add_argument('--multi-stage-cell',action='store_true',help='Compile witnessed multi-stage batches; GPU context matrices, deterministic block publication and soundness/L1 checks');p.add_argument('--incremental-rebuild',action='store_true',help='Use conservative GPU block summaries to avoid unaffected union repair; requires --multi-stage-cell');p.add_argument('--stop-after',choices=['sk','analyze','markers','recipe','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local','cell-cpu'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
+    pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend,a.multi_stage_cell,a.bake_source,a.incremental_rebuild)
     print(json.dumps(dict(output=str(pm.output),passes=[dict(name=r['name'],cached=r['cached']) for r in pm.receipts],complete=a.stop_after=='verify',backend=a.backend,gpu_checked=a.backend!='cell-cpu' and a.stop_after=='verify' and not a.cpu_only),indent=2))

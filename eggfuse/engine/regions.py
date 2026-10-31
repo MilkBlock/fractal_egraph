@@ -13,7 +13,12 @@ def execution_summary(report):
     matched=sum(h[2] for s in instances for h in s['history'])
     private=sum(a.get('private_schedule_binding_outputs',0) for p in report['programs'] for a in p['attempts'])
     packets={name:sum(s['batch_statistics'][i] for s in instances if len(s.get('batch_statistics') or [])>i) for i,name in enumerate(['packet_bindings','packet_requests','packet_fresh_rows','packet_depth_passes','packet_ordered_tails','packet_fallbacks','packet_cells','packet_cell_steps','packet_reserved','packet_existing_hits','packet_reused_requests'],60)}
-    return dict(**packets,**{name:sum(s['batch_statistics'][i] for s in instances if len(s.get('batch_statistics') or [])>i) for i,name in enumerate(['wave_validated_steps','wave_effect_requests','wave_fresh_rows','wave_key_groups','wave_duplicate_keys','cell_waves','parallel_union_batches','wave_guard_reads','wave_union_pairs','parallel_union_pairs','wave_noop_effects','wave_certificates','merge_index_refreshes','merge_index_rows','ordinary_rhs_bindings','ordinary_rhs_runs'],44)},direct_single_step_invocations=sum(s['batch_statistics'][43] for s in instances if len(s.get('batch_statistics') or [])>43),
+    repairs=[s.get('incremental_rebuild',{}) for s in instances]
+    repair_summary=dict(enabled_instances=sum(bool(r.get('enabled')) for r in repairs),
+        counters={name:sum(r.get('counters',{}).get(name,0) for r in repairs) for name in ['blocks_tested','blocks_skipped','rows_visited','rows_changed','summary_refreshes']},
+        duplicate_group_rows_skipped=sum(r.get('duplicate_group_rows_skipped',0) for r in repairs),
+        summary_bytes=sum(r.get('summary_bytes',0) for r in repairs))
+    return dict(incremental_rebuild=repair_summary,**packets,**{name:sum(s['batch_statistics'][i] for s in instances if len(s.get('batch_statistics') or [])>i) for i,name in enumerate(['wave_validated_steps','wave_effect_requests','wave_fresh_rows','wave_key_groups','wave_duplicate_keys','cell_waves','parallel_union_batches','wave_guard_reads','wave_union_pairs','parallel_union_pairs','wave_noop_effects','wave_certificates','merge_index_refreshes','merge_index_rows','ordinary_rhs_bindings','ordinary_rhs_runs'],44)},direct_single_step_invocations=sum(s['batch_statistics'][43] for s in instances if len(s.get('batch_statistics') or [])>43),
         witnessed_constructor_reads=sum(s['batch_statistics'][40] for s in instances if len(s.get('batch_statistics') or [])>41),
         witnessed_constructor_sets=sum(s['batch_statistics'][41] for s in instances if len(s.get('batch_statistics') or [])>41),
         seed_rows_examined=sum(s['batch_statistics'][36] for s in instances if len(s.get('batch_statistics') or [])>38),

@@ -185,3 +185,9 @@ include `row_index_rebuilds`; missing historical measurements remain null.
 Partial RHS function reads are kept on the original exact schedule: a missing
 RHS input cannot be speculatively turned into an early runtime failure. Pass 3's
 typed rules contain no such RHS reads; their function inputs are LHS atoms.
+
+The optional [`--incremental-rebuild` path](INCREMENTAL_REBUILD.md) uses complete
+GPU block ID summaries to avoid unaffected canonicalization and skips redundant
+duplicate grouping when keys are unchanged. It retains original identities,
+merge order and stage visibility. The current small Pass-3 comparison does not
+show net acceleration, so it is not enabled by default.

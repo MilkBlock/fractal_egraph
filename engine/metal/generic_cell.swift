@@ -146,12 +146,18 @@ func u32(_ b:MTLBuffer,_ offset:Int,_ count:Int)->[UInt32]{Array(UnsafeBufferPoi
 func i64(_ b:MTLBuffer,_ offset:Int,_ count:Int)->[Int64]{Array(UnsafeBufferPointer(start:b.contents().advanced(by:offset*8).bindMemory(to:Int64.self,capacity:count),count:count))}
 let rowWords=layout["row_words"]!,uintWords=layout["uint_words"]!,longWords=layout["long_words"]!,stateWords=layout["state_words"]!
 let rows=zeros(n*rowWords*8),uints=zeros(n*uintWords*4),longs=zeros(n*longWords*8),metas=zeros(n*36),states=zeros(n*stateWords*4)
+let incrementalSpec=program["incremental_rebuild"] as? [String:Any]
+let incrementalEnabled=incrementalSpec?["enabled"] as? Bool == true
 let ids=program["id_capacity"] as! Int,capacity=program["capacity"] as! Int,stride=program["stride"] as! Int
 let unionCap=max(capacity,(program["match_capacity"] as! Int)*2)
 for (i,frame) in instances.enumerated(){
  copy((frame["initial_rows"] as! [NSNumber]).map{$0.int64Value},rows,i*rowWords*8)
  copy((frame["initial_sets"] as! [NSNumber]).map{$0.int64Value},rows,(i*rowWords+capacity*stride)*8)
  copy((frame["meta"] as! [NSNumber]).map{$0.uint32Value},metas,i*36)
+ if let ir=incrementalSpec {
+  copy([Int64(incrementalEnabled ? 1:0)],rows,(i*rowWords+(ir["row_offset"] as! Int))*8)
+  copy([UInt32((incrementalEnabled ? 1:0) | (ir["force_collisions"] as? Bool == true ? 2:0))],uints,(i*uintWords+layout["parent"]!+(ir["parent_offset"] as! Int)+64)*4)
+ }
  for name in ["parent","fp"]{copy((0..<ids).map{UInt32($0)},uints,(i*uintWords+layout[name]!)*4)}
  // Conservative flags cost only local index rebuilds, never miss a merge key.
  copy([UInt32](repeating:1,count:ids),uints,(i*uintWords+layout["parent"]!+ids+3+2*unionCap)*4)
@@ -529,7 +535,14 @@ for i in 0..<n {
  let m=u32(metas,i*9,9),s=u32(states,i*stateWords,8)
  let raw=i64(rows,i*rowWords,Int(m[0])*stride),arena=i64(rows,i*rowWords+capacity*stride,program["set_words"] as! Int)
  let h=u32(history,i*historyCapacity*historyWidth,Int(s[3])*historyWidth)
- results.append(["row_index_rebuilds":i64(rows,i*rowWords+(program["index_counter_offset"] as! Int),1)[0],"meta":m,"state":s,"rows":Swift.stride(from:0,to:raw.count,by:stride).map{Array(raw[$0..<$0+stride])},
+ var incrementalStatistics:[String:Any]=["enabled":false]
+ if let ir=incrementalSpec {
+  let base=i*rowWords+(ir["row_offset"] as! Int)+(ir["header_words"] as! Int),blockStride=ir["block_stride"] as! Int
+  var sums=[Int64](repeating:0,count:5)
+  for block in 0..<(ir["blocks"] as! Int){let a=i64(rows,base+block*blockStride+4,5);for k in 0..<5{sums[k]+=a[k]}}
+  incrementalStatistics=["enabled":incrementalEnabled,"counters":Dictionary(uniqueKeysWithValues:zip(ir["counters"] as! [String],sums)),"duplicate_group_rows_skipped":i64(rows,i*rowWords+(ir["row_offset"] as! Int)+3,1)[0],"summary_bytes":((ir["header_words"] as! Int)+(ir["blocks"] as! Int)*blockStride)*8+65*4]
+ }
+ results.append(["incremental_rebuild":incrementalStatistics,"row_index_rebuilds":i64(rows,i*rowWords+(program["index_counter_offset"] as! Int),1)[0],"meta":m,"state":s,"rows":Swift.stride(from:0,to:raw.count,by:stride).map{Array(raw[$0..<$0+stride])},
   "parents":u32(uints,i*uintWords+layout["parent"]!,Int(m[1])),"fact_parents":u32(uints,i*uintWords+layout["fp"]!,Int(m[8])),
   "batch_statistics":transportVersion==7 ? i64(batchData,i*batchWords,batchHeader):[],"region_statistics":cacheHeader>0 ? i64(markerCache,i*cacheWords,16):[],"watermarks":u32(uints,i*uintWords+layout["watermarks"]!,program["rules"] as! Int),"sets":Array(arena.prefix(Int(arena[0]))),
   "history":Swift.stride(from:0,to:h.count,by:historyWidth).map{Array(h[$0..<$0+historyWidth])},"completed":m[4]==0 && s[2]==1])

@@ -108,5 +108,10 @@ def check(build, out):
 
 
 if __name__=='__main__':
-    p = argparse.ArgumentParser(); p.add_argument('--build', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
-    a = p.parse_args(); check(a.build.resolve(), a.output.resolve())
+    p = argparse.ArgumentParser(); p.add_argument('--build', type=Path, required=True); p.add_argument('--output', type=Path, required=True);p.add_argument('--incremental-rebuild',action='store_true')
+    a = p.parse_args()
+    if a.incremental_rebuild:
+        import run_generic_cells as runtime
+        original=runtime.lower
+        runtime.lower=lambda *args,**kwargs:original(*args,**kwargs,incremental_rebuild=True)
+    check(a.build.resolve(), a.output.resolve())

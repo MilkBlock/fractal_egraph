@@ -12,9 +12,11 @@ from .scheduled_matrix import control
 HERE = Path(__file__).resolve().parents[4]/'engine/metal'
 
 
-def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True,parallel_cell_waves=True,resume_merge_index=True,typed_seed_dispatch=True,direct_ordinary_rhs=True,parallel_rhs_packets=True):
+def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_program=None, patch_queries=True, parallel_sort=True, parallel_indexes=True,lazy_contexts=True,parallel_block_rebuild=True,skip_quiescent=True,scheduled_regions=True,spine_cache=False,local_certificates=True,parallel_noops=True,parallel_constructors=True,ordered_query_patch=True,cell_noops=True,compact_seeds=True,hierarchical_indexes=True,reuse_constructor_witnesses=True,materialize_single_steps=False,local_cell_execution=True,spine_receipt_shortcuts=True,parallel_cell_waves=True,resume_merge_index=True,typed_seed_dispatch=True,direct_ordinary_rhs=True,parallel_rhs_packets=True,incremental_rebuild=None):
     # Until probes are a future extension. Reject before allocating/mutating.
     batch=region_program.get('batch_program') if region_program else None
+    if incremental_rebuild is not None and not (batch and parallel_block_rebuild):
+        raise ValueError('incremental rebuild requires resident batches and parallel block rebuild')
     compact_seeds=bool(compact_seeds and batch and not spine_cache)
     from eggfuse.ir.recipe import digest
     scope_ids={digest(s['control']):i+1 for i,s in enumerate(batch['scopes'])} if batch else {}
@@ -92,6 +94,9 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     # Lexicographic Value(10) < Value(2) can spuriously refresh a seminaive row.
     anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
     p.update(anchors=anchors,initial_rows=flat,initial_sets=arena)
+    if batch and parallel_block_rebuild and incremental_rebuild is not None:
+        from .incremental_rebuild import reserve
+        reserve(p, incremental_rebuild)
     rows = capacity * p['stride'] + p['set_words'] + p['index_words']
     uint_fields = [('parent', p['id_capacity'] + p['union_words']),
                    ('fp', p['id_capacity']), ('watermarks', max(1, p['rules'])),
@@ -261,6 +266,9 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
     if region_program is not None:
         p['region_cache']=dict(header_words=16+4*len(region_program['nodes']),initial_words=16+4*len(region_program['nodes'])+1024,
                                growth='double capacity and resume untouched Run; no prior effects replayed')
+    if 'incremental_rebuild' in p:
+        from .incremental_rebuild import lower as lower_incremental
+        lower_incremental(p)
     return p
 
 

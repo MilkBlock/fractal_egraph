@@ -1,0 +1,6 @@
+{
+  "baseline_commit": "9d66e57",
+  "default_program_and_shader_identical": true,
+  "scope": "complete lowered dictionary on a real late-union fixture; no GPU timing claim",
+  "shader_sha256": "839599acf3c4ffe2cbb6662d852036a7a10f099756d75868ccc20b055f415ec7"
+}
