@@ -34,6 +34,16 @@ def benchmark(args):
   control=args.baseline/name;program=control/'program.json'
   before=json.loads((control/'runtime/measurement.json').read_text())
   assert before['program_sha256']==fingerprint(program) and before['machine']==platform.node() and before['audit'] is False
+  if args.audit_baseline_engine:
+   assert fingerprint(args.audit_baseline_engine)==before['binary_sha256']
+   data=json.loads(program.read_text());d=args.output/name;d.mkdir()
+   execute(data,d/'control',args.audit_baseline_engine,audit=True)
+   execute(data,d/'candidate',engine,audit=True)
+   for file in ('state.json','stages.json','binding-audit.json'):
+    assert json.loads((d/'control/runtime'/file).read_text())==json.loads((d/'candidate/runtime'/file).read_text()),(name,file)
+   summary[name]={'all_stage_states_and_bindings_exact':True,'independent_lhs_audit':audit_bindings(data,d/'candidate/runtime'),'scope':'correctness with audit overhead; NOT a timing run'}
+   (args.output/'results.json').write_text(json.dumps(summary,indent=2)+'\n');print(name,summary[name],flush=True)
+   continue
   measured,report=timed(program,engine,args.output/name)
   old=json.loads((control/'runtime/report.json').read_text())
   assert json.loads((control/'runtime/state.json').read_text())==json.loads((args.output/name/'state.json').read_text()),name+' full state differs'
@@ -58,7 +68,8 @@ def freeze(args):
   measured,_=timed(program,engine,d/'runtime');print(name,measured,flush=True)
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--controls',type=Path,default=ROOT/'out/cell-runtime-native-controls');p.add_argument('--cases',nargs='+',default=['fact','loopfact','sum-bits']);mode=p.add_mutually_exclusive_group();mode.add_argument('--baseline',type=Path,help='Clean benchmark against frozen controls, without full audit');mode.add_argument('--freeze',action='store_true',help='Save clean controls for the current standalone CPU binary');p.add_argument('--engine',type=Path);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--controls',type=Path,default=ROOT/'out/cell-runtime-native-controls');p.add_argument('--cases',nargs='+',default=['fact','loopfact','sum-bits']);mode=p.add_mutually_exclusive_group();mode.add_argument('--baseline',type=Path,help='Clean benchmark against frozen controls, without full audit');mode.add_argument('--freeze',action='store_true',help='Save clean controls for the current standalone CPU binary');p.add_argument('--engine',type=Path);p.add_argument('--audit-baseline-engine',type=Path,help='Separate full per-stage audit against this frozen binary, no timing');a=p.parse_args()
+ if a.audit_baseline_engine and not a.baseline:p.error('--audit-baseline-engine requires --baseline')
  if a.freeze:return freeze(a)
  if a.baseline:return benchmark(a)
  a.output.mkdir(parents=True,exist_ok=False);a.controls.mkdir(parents=True,exist_ok=True)

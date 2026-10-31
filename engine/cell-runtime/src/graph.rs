@@ -33,7 +33,7 @@ pub struct Function {
     pub epoch: u64,
     pub live: bool,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Dependency {
     Fact(FactRef),
     Function(usize),
@@ -77,13 +77,17 @@ pub struct Graph {
     pub events: Vec<Dependency>,
     pub anchors: Vec<(String, String, u64)>,
     pub next_cell: u32,
+    pub query_versions: Vec<u64>,
+    pub query_changes: HashMap<Dependency, usize>,
     operators: Vec<BTreeSet<FactRef>>,
+    function_operators: Vec<BTreeSet<usize>>,
     intern: HashMap<u64, BTreeSet<FactRef>>,
     function_keys: BTreeMap<(usize, Vec<Value>), usize>,
     uses: BTreeMap<u64, BTreeSet<Dependency>>,
     dependencies: BTreeMap<Dependency, BTreeSet<u64>>,
     dirty: BTreeSet<Dependency>,
-    parent_users: BTreeMap<u32,usize>,
+    dirty_facts: Vec<BTreeSet<FactRef>>,
+    parent_users: BTreeMap<u32, usize>,
     garbage: BTreeSet<u32>,
 }
 fn hashkey(table: usize, key: &[Value]) -> u64 {
@@ -105,7 +109,11 @@ impl Graph {
         let mut g = Self::new(empty)?;
         g.program = program;
         g.cells = decode(&image["cells"])?;
-        for c in g.cells.values(){if let Some(p)=c.parent{*g.parent_users.entry(p.cell).or_default()+=1;}}
+        for c in g.cells.values() {
+            if let Some(p) = c.parent {
+                *g.parent_users.entry(p.cell).or_default() += 1;
+            }
+        }
         g.functions = decode(&image["functions"])?;
         g.parents = decode(&image["parents"])?;
         g.epoch = decode(&image["epoch"])?;
@@ -148,6 +156,7 @@ impl Graph {
         }
         for i in 0..g.functions.len() {
             if let Some(row) = g.function(i) {
+                g.function_operators[row.table].insert(i);
                 let key = (row.table, row.values[..row.values.len() - 1].to_vec());
                 if g.function_keys.insert(key, i).is_some() {
                     return Err("checkpoint duplicate function key".into());
@@ -173,12 +182,16 @@ impl Graph {
             events: vec![],
             anchors: vec![],
             next_cell: 1,
+            query_versions: vec![0; n],
+            query_changes: HashMap::new(),
             operators: vec![BTreeSet::new(); n],
+            function_operators: vec![BTreeSet::new(); n],
             intern: HashMap::new(),
             function_keys: BTreeMap::new(),
             uses: BTreeMap::new(),
             dependencies: BTreeMap::new(),
             dirty: BTreeSet::new(),
+            dirty_facts: vec![BTreeSet::new(); n],
             parent_users: BTreeMap::new(),
             garbage: BTreeSet::new(),
         };
@@ -283,7 +296,9 @@ impl Graph {
         }
         let id = self.frame(template, values)?;
         self.cells.get_mut(&id).unwrap().parent = parent;
-        if let Some(p)=parent{*self.parent_users.entry(p.cell).or_default()+=1;}
+        if let Some(p) = parent {
+            *self.parent_users.entry(p.cell).or_default() += 1;
+        }
         Ok(id)
     }
     pub fn argument(&self, cell: u32, a: &Arg) -> Result<Value> {
@@ -396,6 +411,18 @@ impl Graph {
             Dependency::Function(i) => Ok(self.function(i)),
         }
     }
+    fn dependency_table(&self, w: Dependency) -> Option<usize> {
+        match w {
+            Dependency::Function(i) => self.functions.get(i).map(|f| f.table),
+            Dependency::Fact(f) => {
+                let c = self.cells.get(&f.cell)?;
+                match &self.program.templates[c.template].ops[f.op as usize] {
+                    Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => Some(*t),
+                    _ => None,
+                }
+            }
+        }
+    }
     pub fn witnesses(&self, table: usize) -> Vec<Dependency> {
         if self.program.tables[table].virtual_fact {
             self.operators[table]
@@ -404,13 +431,64 @@ impl Graph {
                 .map(Dependency::Fact)
                 .collect()
         } else {
-            self.functions
+            self.function_operators[table]
                 .iter()
-                .enumerate()
-                .filter(|(_, f)| f.table == table && f.live)
-                .map(|(i, _)| Dependency::Function(i))
+                .copied()
+                .map(Dependency::Function)
                 .collect()
         }
+    }
+    /// A query index contains references, never copies of virtual constructor rows.
+    /// `uses` already follows unions for rebuild; a bound identity can also narrow
+    /// a query. It is a superset (any column, including container members), so the
+    /// matcher must still check all columns and visibility on the decoded row.
+    pub fn witness_count(&self, table: usize) -> usize {
+        if self.program.tables[table].virtual_fact {
+            self.operators[table].len()
+        } else {
+            self.function_operators[table].len()
+        }
+    }
+    fn bound_uses(&self, bound: &[Option<Value>]) -> Option<&BTreeSet<Dependency>> {
+        static EMPTY: BTreeSet<Dependency> = BTreeSet::new();
+        bound
+            .iter()
+            .filter_map(|v| match v {
+                Some(Value::Eq(id)) => {
+                    Some(self.uses.get(&root(&self.parents, *id)).unwrap_or(&EMPTY))
+                }
+                _ => None,
+            })
+            .min_by_key(|uses| uses.len())
+    }
+    pub fn candidate_count(&self, table: usize, bound: &[Option<Value>]) -> usize {
+        let all = self.witness_count(table);
+        self.bound_uses(bound)
+            .map_or(all, |uses| all.min(uses.len()))
+    }
+    pub fn candidates(&self, table: usize, bound: &[Option<Value>]) -> Vec<Dependency> {
+        if let Some(uses) = self.bound_uses(bound) {
+            if uses.len() < self.witness_count(table) {
+                return uses
+                    .iter()
+                    .copied()
+                    .filter(|w| match w {
+                        Dependency::Fact(f) => {
+                            self.cells.get(&f.cell).is_some_and(|c| {
+                                match &self.program.templates[c.template].ops[f.op as usize] {
+                                    Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => *t == table,
+                                    _ => false,
+                                }
+                            })
+                        }
+                        Dependency::Function(i) => {
+                            self.functions[*i].live && self.functions[*i].table == table
+                        }
+                    })
+                    .collect();
+            }
+        }
+        self.witnesses(table)
     }
     pub fn lookup(&self, table: usize, key: &[Value]) -> Result<Option<Row>> {
         let key = key
@@ -427,11 +505,7 @@ impl Graph {
         let mut refs = self.intern.get(&h).cloned().unwrap_or_default();
         // A merge callback may request a constructor whose old key is dirty. Include
         // only affected references until repair catches up, not all graph rows.
-        for d in &self.dirty {
-            if let Dependency::Fact(f) = d {
-                refs.insert(*f);
-            }
-        }
+        refs.extend(self.dirty_facts[table].iter().copied());
         for f in refs {
             if let Some(r) = self.fact(f)? {
                 if r.table == table && r.values[..key.len()] == key {
@@ -455,6 +529,10 @@ impl Graph {
         }
     }
     fn subscribe(&mut self, d: Dependency, values: &[Value]) {
+        if let Some(table) = self.dependency_table(d) {
+            self.query_versions[table] += 1;
+            self.query_changes.insert(d, table);
+        }
         if let Some(old) = self.dependencies.remove(&d) {
             for id in old {
                 if let Some(uses) = self.uses.get_mut(&root(&self.parents, id)) {
@@ -567,6 +645,13 @@ impl Graph {
         let mut affected = self.uses.remove(&hi).unwrap_or_default();
         affected.extend(self.uses.get(&lo).into_iter().flatten().copied());
         self.dirty.extend(affected.iter().copied());
+        for d in &affected {
+            if let Dependency::Fact(f) = d {
+                if let Some(table) = self.dependency_table(*d) {
+                    self.dirty_facts[table].insert(*f);
+                }
+            }
+        }
         self.uses.insert(lo, affected);
         self.stats.unions += 1;
         self.changed = true;
@@ -680,6 +765,7 @@ impl Graph {
                 epoch: self.epoch,
                 live: true,
             });
+            self.function_operators[t].insert(i);
             self.function_keys.insert((t, key), i);
             self.changed = true;
             self.stats.function_updates += 1;
@@ -691,6 +777,8 @@ impl Graph {
     }
     fn retire(&mut self, f: FactRef) -> Result<()> {
         if let Some(r) = self.fact(f)? {
+            self.query_versions[r.table] += 1;
+            self.query_changes.insert(Dependency::Fact(f), r.table);
             let s = self
                 .cells
                 .get_mut(&f.cell)
@@ -734,6 +822,8 @@ impl Graph {
                         .get_mut(&f.op)
                         .unwrap();
                     if !s.hidden {
+                        self.query_versions[t] += 1;
+                        self.query_changes.insert(row.witness, t);
                         s.hidden = true;
                         s.epoch = self.epoch;
                         self.changed = true;
@@ -747,6 +837,9 @@ impl Graph {
                     return Err("function subsume unsupported".into());
                 }
                 self.functions[i].live = false;
+                self.query_versions[t] += 1;
+                self.query_changes.insert(row.witness, t);
+                self.function_operators[t].remove(&i);
                 self.function_keys.remove(&(t, key.to_vec()));
                 self.subscribe(row.witness, &[]);
                 self.changed = true;
@@ -766,6 +859,11 @@ impl Graph {
             let Some(d) = self.dirty.pop_first() else {
                 break;
             };
+            if let Dependency::Fact(f) = d {
+                if let Some(table) = self.dependency_table(d) {
+                    self.dirty_facts[table].remove(&f);
+                }
+            }
             self.stats.repaired_dependencies += 1;
             match d {
                 Dependency::Fact(f) => {
@@ -794,6 +892,8 @@ impl Graph {
                             )?;
                         }
                         if let Dependency::Fact(keep) = other.witness {
+                            self.query_versions[r.table] += 1;
+                            self.query_changes.insert(other.witness, r.table);
                             let target = self
                                 .cells
                                 .get_mut(&keep.cell)
@@ -841,6 +941,7 @@ impl Graph {
                             self.functions[j].value = next;
                             self.functions[j].epoch = self.epoch;
                             self.functions[i].live = false;
+                            self.function_operators[row.table].remove(&i);
                             self.subscribe(d, &[]);
                             let target = self.function(j).unwrap();
                             self.subscribe(target.witness, &target.values);
@@ -864,17 +965,26 @@ impl Graph {
         // until the Run boundary: later bindings in this Run may still use them.
         self.retire_empty(cell);
     }
-    fn retire_empty(&mut self,cell:u32){
-        if self.parent_users.get(&cell).copied().unwrap_or(0)==0&&self.cells.get(&cell).is_some_and(|c|c.facts.is_empty()){
-            if let Some(c)=self.cells.remove(&cell){if let Some(p)=c.parent{
-                if let Some(users)=self.parent_users.get_mut(&p.cell){*users-=1;}
-                self.garbage.insert(p.cell);
-            }}
-            self.parent_users.remove(&cell);self.stats.empty_frames_released+=1;
+    fn retire_empty(&mut self, cell: u32) {
+        if self.parent_users.get(&cell).copied().unwrap_or(0) == 0
+            && self.cells.get(&cell).is_some_and(|c| c.facts.is_empty())
+        {
+            if let Some(c) = self.cells.remove(&cell) {
+                if let Some(p) = c.parent {
+                    if let Some(users) = self.parent_users.get_mut(&p.cell) {
+                        *users -= 1;
+                    }
+                    self.garbage.insert(p.cell);
+                }
+            }
+            self.parent_users.remove(&cell);
+            self.stats.empty_frames_released += 1;
         }
     }
-    pub fn collect_garbage(&mut self){
-        while let Some(cell)=self.garbage.pop_first(){self.retire_empty(cell);}
+    pub fn collect_garbage(&mut self) {
+        while let Some(cell) = self.garbage.pop_first() {
+            self.retire_empty(cell);
+        }
     }
     pub fn export(&self) -> Result<J> {
         let mut rows = vec![];
@@ -887,5 +997,41 @@ impl Graph {
         }
         let anchors=self.anchors.iter().map(|(sort,old,id)|json!({"sort":sort,"old":old,"now":format!("Cell({})",root(&self.parents,*id))})).collect::<Vec<_>>();
         Ok(json!({"rows":rows,"anchors":anchors}))
+    }
+    /// Stream diagnostics without allocating a second complete row graph.
+    pub fn write_export(&self, writer: impl std::io::Write) -> Result<()> {
+        use serde::ser::{SerializeSeq, SerializeStruct};
+        struct Rows<'a>(&'a Graph);
+        impl Serialize for Rows<'_> {
+            fn serialize<S: serde::Serializer>(
+                &self,
+                serializer: S,
+            ) -> std::result::Result<S::Ok, S::Error> {
+                let mut seq = serializer.serialize_seq(None)?;
+                for table in 0..self.0.program.tables.len() {
+                    for witness in self.0.witnesses(table) {
+                        if let Some(row) = self.0.row(witness).map_err(serde::ser::Error::custom)? {
+                            let table = &self.0.program.tables[row.table];
+                            seq.serialize_element(&json!({"table":table.name,"values":row.values.iter().zip(&table.schema).map(|(v,s)|exported(v,s)).collect::<Vec<_>>(),"subsumed":row.hidden}))?;
+                        }
+                    }
+                }
+                seq.end()
+            }
+        }
+        struct Export<'a>(&'a Graph);
+        impl Serialize for Export<'_> {
+            fn serialize<S: serde::Serializer>(
+                &self,
+                serializer: S,
+            ) -> std::result::Result<S::Ok, S::Error> {
+                let mut result = serializer.serialize_struct("Graph", 2)?;
+                result.serialize_field("rows", &Rows(self.0))?;
+                let anchors=self.0.anchors.iter().map(|(sort,old,id)|json!({"sort":sort,"old":old,"now":format!("Cell({})",root(&self.0.parents,*id))})).collect::<Vec<_>>();
+                result.serialize_field("anchors", &anchors)?;
+                result.end()
+            }
+        }
+        serde_json::to_writer(writer, &Export(self)).map_err(|e| e.to_string())
     }
 }

@@ -24,12 +24,13 @@ def prepare(source, frontend=None):
     if p.returncode:raise ValueError('Native frontend rejected the source: '+p.stderr[-4000:])
     return json.loads(p.stdout)
 
-def execute(program,out,engine=None,audit=False,checkpoint_after=None,resume=None,extract=None):
+def execute(program,out,engine=None,audit=False,checkpoint_after=None,resume=None,extract=None,save_checkpoint=False):
     validate(program)
     out.mkdir(parents=True,exist_ok=False)
     path=out/'cell-runtime-program.json';path.write_text(json.dumps(program))
     cmd=[str(engine or binary()),'--program',str(path),'--output',str(out/'runtime')]
     if audit:cmd.append('--audit-stages')
+    if save_checkpoint:cmd.append('--save-checkpoint')
     if checkpoint_after is not None:cmd+=['--checkpoint-after',str(checkpoint_after)]
     if resume is not None:cmd+=['--resume',str(resume.resolve())]
     if extract is not None:cmd+=['--extract-unit-cost',extract]
@@ -66,11 +67,11 @@ def main(args):
     p=argparse.ArgumentParser(prog='eggfuse cell')
     source=p.add_mutually_exclusive_group(required=True);source.add_argument('--source',type=Path);source.add_argument('--program',type=Path)
     p.add_argument('--output',type=Path,required=True);p.add_argument('--frontend',type=Path);p.add_argument('--cell-bin',type=Path);p.add_argument('--audit-stages',action='store_true');p.add_argument('--check',action='store_true')
-    p.add_argument('--checkpoint-after',type=int);p.add_argument('--resume',type=Path);p.add_argument('--extract-unit-cost')
+    p.add_argument('--checkpoint-after',type=int);p.add_argument('--resume',type=Path);p.add_argument('--extract-unit-cost');p.add_argument('--save-checkpoint',action='store_true')
     a=p.parse_args(args);start=time.perf_counter()
     program=json.loads(a.program.read_text()) if a.program else build(prepare(a.source,a.frontend))
     if a.check and a.checkpoint_after is not None:raise ValueError('full native endpoint comparison requires completed execution')
-    report=execute(program,a.output,a.cell_bin,a.audit_stages,a.checkpoint_after,a.resume,a.extract_unit_cost)
+    report=execute(program,a.output,a.cell_bin,a.audit_stages,a.checkpoint_after,a.resume,a.extract_unit_cost,a.save_checkpoint)
     if a.source:
         (a.output/'source.egg').write_bytes(a.source.read_bytes())
         report['source_sha256']=hashlib.sha256(a.source.read_bytes()).hexdigest()

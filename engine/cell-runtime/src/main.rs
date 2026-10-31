@@ -5,7 +5,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opt = |k: &str| args.windows(2).find(|w| w[0] == k).map(|w| w[1].clone());
     if args.iter().any(|x| x == "--help") || args.is_empty() {
         println!(
-            "eggfuse-cell-runtime --program FILE --output DIR [--audit-stages] [--checkpoint-after RUNS] [--resume FILE] [--extract-unit-cost OPERATOR]"
+            "eggfuse-cell-runtime --program FILE --output DIR [--audit-stages] [--checkpoint-after RUNS] [--save-checkpoint] [--resume FILE] [--extract-unit-cost OPERATOR]"
         );
         return Ok(());
     }
@@ -42,14 +42,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut report = runtime.report();
     report["inference_seconds"] = seconds.into();
     report["setup_seconds"] = setup.into();
-    std::fs::write(
-        out.join("state.json"),
-        serde_json::to_vec(&runtime.graph.export()?)?,
-    )?;
-    std::fs::write(
-        out.join("checkpoint.json"),
-        serde_json::to_vec(&runtime.checkpoint())?,
-    )?;
+    let export_start = Instant::now();
+    let mut writer = std::io::BufWriter::new(std::fs::File::create(out.join("state.json"))?);
+    runtime.graph.write_export(&mut writer)?;
+    std::io::Write::flush(&mut writer)?;
+    report["export_seconds"] = export_start.elapsed().as_secs_f64().into();
+    let checkpoint = stop.is_some() || args.iter().any(|x| x == "--save-checkpoint");
+    report["checkpoint_written"] = checkpoint.into();
+    if checkpoint {
+        std::fs::write(
+            out.join("checkpoint.json"),
+            serde_json::to_vec(&runtime.checkpoint())?,
+        )?;
+    }
     if let Some(op) = opt("--extract-unit-cost") {
         std::fs::write(
             out.join("extraction.json"),
@@ -61,7 +66,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             out.join("stages.json"),
             serde_json::to_vec(&runtime.snapshots)?,
         )?;
-        std::fs::write(out.join("binding-audit.json"),serde_json::to_vec(&serde_json::json!({"initial":runtime.initial_audit,"runs":runtime.binding_audit}))?)?;
+        std::fs::write(
+            out.join("binding-audit.json"),
+            serde_json::to_vec(
+                &serde_json::json!({"initial":runtime.initial_audit,"runs":runtime.binding_audit}),
+            )?,
+        )?;
     }
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     println!(

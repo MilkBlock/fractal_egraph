@@ -2,6 +2,7 @@ use crate::value::{Value, literal};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as J;
 use std::collections::BTreeMap;
+use std::rc::Rc;
 pub type Result<T> = std::result::Result<T, String>;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Arg {
@@ -41,14 +42,14 @@ pub struct Template {
     pub name: String,
     pub sorts: Vec<J>,
     pub defs: BTreeMap<usize, usize>,
-    pub ops: Vec<Op>,
+    pub ops: Rc<Vec<Op>>,
     pub parent_columns: BTreeMap<usize, usize>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Rule {
     pub template: usize,
-    pub query: Vec<Atom>,
-    pub inputs: Vec<usize>,
+    pub query: Rc<Vec<Atom>>,
+    pub inputs: Rc<Vec<usize>>,
     pub seminaive: bool,
     pub direct: Option<usize>,
 }
@@ -135,7 +136,7 @@ impl Program {
         for r in array(&ir["rules"])? {
             let slots = array(&r["slots"])?;
             let sorts = slots.iter().map(|s| s["sort"].clone()).collect::<Vec<_>>();
-            let inputs = slots
+            let inputs: Vec<usize> = slots
                 .iter()
                 .enumerate()
                 .filter(|(_, s)| s["definition"] == "query")
@@ -209,8 +210,8 @@ impl Program {
             }
             rules.push(Rule {
                 template: templates.len(),
-                query,
-                inputs,
+                query: Rc::new(query),
+                inputs: Rc::new(inputs),
                 seminaive: r["metadata"]["seminaive"].as_bool().unwrap_or(true),
                 direct,
             });
@@ -218,7 +219,7 @@ impl Program {
                 name: r["metadata"]["name"].as_str().unwrap_or("rule").into(),
                 sorts,
                 defs,
-                ops,
+                ops: Rc::new(ops),
                 parent_columns,
             });
         }
@@ -231,7 +232,7 @@ impl Program {
                 name: format!("import/{}", t.name),
                 sorts: t.schema.clone(),
                 defs: BTreeMap::from([(dst, 0)]),
-                ops: vec![op],
+                ops: Rc::new(vec![op]),
                 parent_columns: BTreeMap::new(),
             });
         }
@@ -279,7 +280,7 @@ impl Program {
                 }
                 Ok(())
             };
-            for a in &rule.query {
+            for a in rule.query.iter() {
                 for v in &a.args {
                     check(v, &defined)?;
                 }
@@ -296,7 +297,7 @@ impl Program {
                     }
                 }
             }
-            for op in &t.ops {
+            for op in t.ops.iter() {
                 match op {
                     Op::Copy(dst, a) => {
                         check(a, &defined)?;

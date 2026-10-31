@@ -1,0 +1,83 @@
+{
+  "scope": "standalone CPU Cell runtime, not the egglog-backed CPU worker or GPU",
+  "measurement": {
+    "program_sha256": "7acc3533b2be7f5da674867947ee49a4ea7141b46eda6e048ef4021d576da116",
+    "binary_sha256": "0a44c8d67d42415f4354ca9a62637c1a61105014223b83eed6449cd3c168f562",
+    "machine": "MineralSteinsdeMacBook-Pro.local",
+    "wall_seconds": 81.53287979200104,
+    "peak_rss_bytes": 2532900864,
+    "inference_seconds": 79.223775,
+    "setup_seconds": 0.000505,
+    "audit": false,
+    "configuration": {}
+  },
+  "rows": 702159,
+  "virtual_facts": 661151,
+  "function_ports": 41008,
+  "runs": 11057,
+  "stats": {
+    "bindings": 4084636,
+    "cells_created": 4163266,
+    "constructor_requests": 3027894,
+    "constructor_reused": 2288410,
+    "decoded_rows": 68857970,
+    "direct_bindings": 387181,
+    "empty_frames_released": 3676416,
+    "function_updates": 1241499,
+    "logical_facts_created": 808873,
+    "merge_calls": 2169392,
+    "native_free_join_calls": 0,
+    "native_table_reads": 0,
+    "native_table_writes": 0,
+    "repaired_dependencies": 2643491,
+    "residual_candidates": 68378127,
+    "unions": 214981
+  },
+  "query_indexes": {
+    "builds": 65,
+    "decoded_facts": 107705,
+    "peak_fact_references": 2081290,
+    "scope": "versioned virtual-fact indexes; references only",
+    "updated_facts": 2916095
+  },
+  "phase_seconds": {
+    "delivery_gc": 10.018239702999706,
+    "query_update": 3.461131597999972,
+    "repair": 6.172162188999625,
+    "rhs": 8.923238261999908,
+    "search": 50.61078626799997
+  },
+  "baseline_commit": "74e6c50",
+  "native_equivalence": "not claimed; native Pass-3 differences remain",
+  "validation": "full final state and every Run control/match count identical to pre-incremental diagnostic",
+  "control": {
+    "program_sha256": "7acc3533b2be7f5da674867947ee49a4ea7141b46eda6e048ef4021d576da116",
+    "binary_sha256": "0a44c8d67d42415f4354ca9a62637c1a61105014223b83eed6449cd3c168f562",
+    "machine": "MineralSteinsdeMacBook-Pro.local",
+    "wall_seconds": 209.04383666599824,
+    "peak_rss_bytes": 2302525440,
+    "inference_seconds": 206.784242917,
+    "setup_seconds": 0.000484875,
+    "audit": false,
+    "configuration": {
+      "CELL_CPU_QUERY_INDEX_SCOPE": "table"
+    }
+  },
+  "control_phase_seconds": {
+    "delivery_gc": 10.13012678299962,
+    "query_update": 15.538137150999534,
+    "repair": 6.019155407999739,
+    "rhs": 8.769079850999884,
+    "search": 166.27389278900017
+  },
+  "control_query_indexes": {
+    "builds": 9630,
+    "decoded_facts": 145991649,
+    "peak_fact_references": 1493946,
+    "scope": "versioned virtual-fact indexes; references only",
+    "updated_facts": 0
+  },
+  "speedup": 2.6101286251128526,
+  "exact_state_and_schedule": true,
+  "comparison": "same binary and IR; table invalidation versus reference-level incremental index updates; no profiler, one run each"
+}

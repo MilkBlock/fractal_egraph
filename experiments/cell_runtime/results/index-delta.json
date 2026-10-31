@@ -1,0 +1,110 @@
+{
+  "fact": {
+    "baseline": {
+      "program_sha256": "f8ee7c363fe7309218bee25b659fed68bb3c7f39c053283a4e09d8ba4c1c1149",
+      "binary_sha256": "7cb85114b4f497cb4d5fe76b13418fcac43a1bbbfc9f8233ae5572163cac95cc",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.7,
+      "peak_rss_bytes": 160038912,
+      "inference_seconds": 0.127547459,
+      "setup_seconds": 0.000576416,
+      "audit": false
+    },
+    "optimized": {
+      "program_sha256": "f8ee7c363fe7309218bee25b659fed68bb3c7f39c053283a4e09d8ba4c1c1149",
+      "binary_sha256": "eecefc79fa27a61407e545d3eec347b746f3c65ad1be3c43439226548511da0c",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.25726387499889825,
+      "peak_rss_bytes": 168919040,
+      "inference_seconds": 0.063400958,
+      "setup_seconds": 0.000502792,
+      "audit": false,
+      "variant": "index-delta"
+    },
+    "speedup": 2.011759175626337,
+    "runs": 427,
+    "logical_matches": 2187,
+    "baseline_candidates": 410500,
+    "optimized_candidates": 101231,
+    "phase_seconds": {
+      "delivery_gc": 0.002857460000000006,
+      "repair": 0.0011341740000000043,
+      "rhs": 0.003046249000000007,
+      "search": 0.055351885000000045
+    },
+    "exact_state_and_schedule": true,
+    "native_equivalence": "not asserted; separate native survey retains known discrepancies"
+  },
+  "loopfact": {
+    "baseline": {
+      "program_sha256": "23cdf97d5172101ce628a746e9b425ca7f5efbb2cc3dc0f86d55c6e53d6b6a84",
+      "binary_sha256": "7cb85114b4f497cb4d5fe76b13418fcac43a1bbbfc9f8233ae5572163cac95cc",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.2,
+      "peak_rss_bytes": 159105024,
+      "inference_seconds": 0.111009625,
+      "setup_seconds": 0.000490125,
+      "audit": false
+    },
+    "optimized": {
+      "program_sha256": "23cdf97d5172101ce628a746e9b425ca7f5efbb2cc3dc0f86d55c6e53d6b6a84",
+      "binary_sha256": "eecefc79fa27a61407e545d3eec347b746f3c65ad1be3c43439226548511da0c",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.15663116599898785,
+      "peak_rss_bytes": 166805504,
+      "inference_seconds": 0.05299775,
+      "setup_seconds": 0.000504459,
+      "audit": false,
+      "variant": "index-delta"
+    },
+    "speedup": 2.094610148544042,
+    "runs": 415,
+    "logical_matches": 1902,
+    "baseline_candidates": 336444,
+    "optimized_candidates": 89058,
+    "phase_seconds": {
+      "delivery_gc": 0.0024089990000000032,
+      "repair": 0.0010940370000000058,
+      "rhs": 0.002706964000000003,
+      "search": 0.045803794000000016
+    },
+    "exact_state_and_schedule": true,
+    "native_equivalence": "not asserted; separate native survey retains known discrepancies"
+  },
+  "sum-bits": {
+    "baseline": {
+      "program_sha256": "6e386e96c67b75c156ffb02472eefb8b95e6d3023aeed5e883fc8d1d883c9e71",
+      "binary_sha256": "7cb85114b4f497cb4d5fe76b13418fcac43a1bbbfc9f8233ae5572163cac95cc",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 7.59,
+      "peak_rss_bytes": 193576960,
+      "inference_seconds": 7.471996459,
+      "setup_seconds": 0.000543208,
+      "audit": false
+    },
+    "optimized": {
+      "program_sha256": "6e386e96c67b75c156ffb02472eefb8b95e6d3023aeed5e883fc8d1d883c9e71",
+      "binary_sha256": "eecefc79fa27a61407e545d3eec347b746f3c65ad1be3c43439226548511da0c",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.5789442090026569,
+      "peak_rss_bytes": 194478080,
+      "inference_seconds": 0.45638325,
+      "setup_seconds": 0.000466417,
+      "audit": false,
+      "variant": "index-delta"
+    },
+    "speedup": 16.372196961654485,
+    "runs": 933,
+    "logical_matches": 14534,
+    "baseline_candidates": 21981402,
+    "optimized_candidates": 768774,
+    "phase_seconds": {
+      "delivery_gc": 0.021775239999999908,
+      "repair": 0.014208255999999959,
+      "rhs": 0.021842837999999896,
+      "search": 0.3963082390000001
+    },
+    "exact_state_and_schedule": true,
+    "native_equivalence": "not asserted; separate native survey retains known discrepancies"
+  }
+}
