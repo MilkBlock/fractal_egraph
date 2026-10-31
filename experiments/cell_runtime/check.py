@@ -1,5 +1,5 @@
 """Independent native comparison for the standalone Cell CPU executor."""
-import argparse,json,subprocess,sys
+import argparse,json,subprocess,sys,os
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT))
 from eggfuse.engine.cell_runtime import prepare,binary,execute
@@ -89,6 +89,62 @@ CASES={
 (rule ((P x)) ((Out (/ 1 0))) :ruleset bad)
 (N 0) (run init 1) (run-schedule (run bad :until (P (N 0)))) (check (P (N 0)))''',
 }
+CASES.update({
+ 'join-sieve-late':'''(datatype E (N i64) (Seen i64)) (relation P (i64 i64)) (relation Q (i64 i64)) (relation T (i64))
+(ruleset a) (ruleset b) (ruleset add)
+(rule ((P x y) (Q y z) (T z)) ((Seen x)) :ruleset a)
+(rule ((P x y) (Q y z) (T z)) ((N x)) :ruleset b)
+(rule ((N 99)) ((T 8)) :ruleset add)
+(P 1 11) (P 2 22) (Q 11 7) (Q 22 8) (T 7) (N 99)
+(run-schedule (seq (run a) (run b) (run add) (run a) (run b))) (check (Seen 1) (Seen 2) (N 2))''',
+ 'join-sieve-union':'''(datatype E (N i64) (Seen i64)) (relation P (i64 E)) (relation Q (E E)) (relation T (E))
+(ruleset a) (ruleset alias)
+(rule ((P n x) (Q x y) (T y)) ((Seen n)) :ruleset a)
+(rule ((= a (N 7)) (= b (N 8))) ((union a b)) :ruleset alias)
+(P 1 (N 1)) (P 2 (N 2)) (Q (N 1) (N 7)) (Q (N 2) (N 8)) (T (N 7))
+(run-schedule (seq (run a) (run alias) (run a))) (check (Seen 1) (Seen 2))''',
+ 'join-sieve-correlated':'''(datatype E (N i64) (Seen i64)) (relation P (E i64)) (relation Q (E i64 i64)) (relation T (i64))
+(ruleset a) (ruleset alias) (ruleset remove)
+(rule ((P x n) (Q x n z) (T z)) ((Seen n)) :ruleset a)
+(rule ((= a (N 1)) (= b (N 2))) ((union a b)) :ruleset alias)
+(rule ((T 99)) ((delete (Q (N 1) 3 99))) :ruleset remove)
+(P (N 1) 3) (P (N 1) 7) (Q (N 2) 7 99) (Q (N 1) 3 99) (T 99)
+(run-schedule (seq (run remove) (run a) (run alias) (run a))) (check (Seen 7))''',
+ 'join-sieve-multiple-guards':'''(datatype E (N i64) (Seen i64)) (relation P (i64)) (relation Q (i64 i64 i64)) (relation T (i64)) (relation U (i64))
+(ruleset a) (ruleset add)
+(rule ((P x) (Q x y z) (T y) (U z)) ((Seen x)) :ruleset a)
+(rule ((N 99)) ((U 8)) :ruleset add)
+(P 1) (P 2) (Q 1 7 7) (Q 2 7 8) (T 7) (U 7) (N 99)
+(run-schedule (seq (run a) (run add) (run a))) (check (Seen 1) (Seen 2))''',
+ 'join-visible-delete':'''(datatype E (N i64) (Seen i64 i64)) (relation P (i64 i64)) (relation Q (i64 i64)) (relation T (i64))
+(ruleset a) (ruleset b) (ruleset remove)
+(rule ((P x y) (Q y z) (T z)) ((Seen 1 x)) :ruleset a)
+(rule ((P x y) (Q y z) (T z)) ((Seen 2 x)) :ruleset b)
+(rule ((N 99)) ((delete (T 7))) :ruleset remove)
+(P 1 11) (Q 11 7) (T 7) (T 123) (N 99)
+(run-schedule (seq (run a) (run remove) (run b))) (check (Seen 1 1))''',
+ 'join-refinement-shared':'''(datatype E (N i64) (Seen i64 i64)) (relation P (E i64)) (relation Q (E i64 i64))
+(ruleset a) (ruleset b) (ruleset c) (ruleset remove)
+(rule ((P x n) (Q x n z)) ((Seen 1 z)) :ruleset a)
+(rule ((P x n) (Q x n z)) ((Seen 2 z)) :ruleset b)
+(rule ((P x n) (Q x n z)) ((Seen 3 z)) :ruleset c)
+(rule ((N 99)) ((delete (Q (N 1) 7 1))) :ruleset remove)
+(P (N 1) 7) (Q (N 1) 7 1) (Q (N 1) 8 2) (Q (N 2) 7 4) (N 99)
+(run-schedule (seq (run a) (run b) (run remove) (run c))) (check (Seen 1 1) (Seen 2 1))''',
+ 'join-sieve-cycle':'''(datatype E (N i64) (Seen i64 i64 i64)) (relation P (i64 i64)) (relation Q (i64 i64)) (relation R (i64 i64)) (relation T (i64))
+(ruleset a) (ruleset add)
+(rule ((P x y) (Q y z) (R z x) (T z)) ((Seen x y z)) :ruleset a)
+(rule ((N 99)) ((R 8 2)) :ruleset add)
+(P 1 11) (P 2 22) (Q 11 7) (Q 22 8) (R 7 1) (R 8 3) (T 7) (T 8) (N 99)
+(run-schedule (seq (run a) (run add) (run a))) (check (Seen 1 11 7) (Seen 2 22 8))''',
+ 'join-refinement-invalidation':'''(datatype E (N i64) (Seen i64)) (relation P (E i64)) (relation Q (E i64 i64))
+(ruleset a) (ruleset add) (ruleset alias)
+(rule ((P x n) (Q x n z)) ((Seen z)) :ruleset a)
+(rule ((N 99)) ((Q (N 1) 7 3)) :ruleset add)
+(rule ((= a (N 1)) (= b (N 2))) ((union a b)) :ruleset alias)
+(P (N 1) 7) (Q (N 1) 7 1) (Q (N 1) 8 2) (Q (N 2) 7 4) (N 99)
+(run-schedule (seq (run a) (run add) (run a) (run alias) (run a))) (check (Seen 1) (Seen 3) (Seen 4))''',
+})
 chain='(datatype E (N i64) (P E)) (ruleset build)\n(rule ((= x (N n))) (\n'
 for i in range(100):chain+=f'(let p{i} (P '+('x' if i==0 else f'p{i-1}')+'))\n'
 CASES['hundred-node-cell']=chain+ ') :ruleset build)\n(N 0) (run build 1)\n'
@@ -162,9 +218,10 @@ for name,source in list(CASES.items()):
  CASES[name]=source
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--engine',type=Path);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False)
+ p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--engine',type=Path);p.add_argument('--cases',nargs='+',choices=sorted(CASES));a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False)
  engine=a.engine or binary();native_engine=native_binary();summary={}
  for name,source in CASES.items():
+  if a.cases and name not in a.cases:continue
   d=a.output/name;d.mkdir();src=d/'source.egg';src.write_text(source);core=prepare(src);program=build(core)
   report=execute(program,d/'cell',engine,True)
   audited=audit_bindings(program,d/'cell/runtime')
@@ -177,6 +234,16 @@ def main():
   execute(program,d/'replay',engine,True)
   assert json.loads((d/'cell/runtime/state.json').read_text())==json.loads((d/'replay/runtime/state.json').read_text())
   assert json.loads((d/'cell/runtime/stages.json').read_text())==json.loads((d/'replay/runtime/stages.json').read_text())
+  if name=='join-sieve-late' and report['sieve']['enabled'] and not os.environ.get('CELL_CPU_QUERY_INDEX_SCOPE'):
+   # Identical fragments in two rulesets share four summaries, not eight.
+   assert report['sieve']['stats']['builds']==4, report['sieve']
+  if name=='join-refinement-shared' and os.environ.get('CELL_CPU_JOIN_INTERSECTION')=='1' and os.environ.get('CELL_CPU_HASH_BITS')!='0' and not os.environ.get('CELL_CPU_QUERY_INDEX_SCOPE'):
+   assert report['join_refinements']['stats']['hits']>0
+   assert report['join_refinements']['live_entries_and_references']==[0,0] # deletion invalidated the shared refinement
+  if name.startswith('join-'):
+   execute(program,d/'without-join',engine,True,environment={'CELL_CPU_JOIN_INTERSECTION':'0','CELL_CPU_SIEVE':'0'})
+   for file in ('state.json','stages.json','binding-audit.json'):
+    assert json.loads((d/'cell/runtime'/file).read_text())==json.loads((d/'without-join/runtime'/file).read_text()),(name,file)
   if name.startswith('multistage-'):
    execute(program,d/'without-multistage',engine,True,environment={'CELL_CPU_MULTISTAGE':'0'})
    for file in ('state.json','stages.json','binding-audit.json'):
@@ -209,7 +276,7 @@ def main():
     (d/'damaged-checkpoint.json').write_text(json.dumps(damaged))
     attempt=subprocess.run([str(engine),'--program',str(d/'cell/cell-runtime-program.json'),'--resume',str(d/'damaged-checkpoint.json'),'--output',str(d/'damaged-resume')],capture_output=True,text=True)
     assert attempt.returncode!=0 and 'checksum' in attempt.stderr
-  summary[name]={'verification':proof,'binding_audit':audited,'replay_exact':True,'checkpoint_checked':name in ('math','ordered-merge','non-idempotent','finite','multistage-function-chain','multistage-local-chain','multistage-reentrant-repeat'),'stats':report['stats'],'multi_stage':report.get('multi_stage'),'live_cells':report['live_cells'],'stored_binding_values':report['stored_binding_values'],'virtual_constructor_facts':report['virtual_constructor_facts']}
+  summary[name]={'verification':proof,'binding_audit':audited,'replay_exact':True,'checkpoint_checked':name in ('math','ordered-merge','non-idempotent','finite','multistage-function-chain','multistage-local-chain','multistage-reentrant-repeat'),'stats':report['stats'],'multi_stage':report.get('multi_stage'),'sieve':report.get('sieve'),'join_refinements':report.get('join_refinements'),'live_cells':report['live_cells'],'stored_binding_values':report['stored_binding_values'],'virtual_constructor_facts':report['virtual_constructor_facts']}
   print(name,proof,flush=True)
  (a.output/'results.json').write_text(json.dumps(summary,indent=2)+'\n')
 if __name__=='__main__':main()

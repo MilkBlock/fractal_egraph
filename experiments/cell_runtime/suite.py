@@ -37,7 +37,7 @@ def benchmark(args):
   if args.audit_baseline_engine:
    assert fingerprint(args.audit_baseline_engine)==before['binary_sha256']
    data=json.loads(program.read_text());d=args.output/name;d.mkdir()
-   execute(data,d/'control',args.audit_baseline_engine,audit=True)
+   execute(data,d/'control',args.audit_baseline_engine,audit=True,environment=before.get('configuration',{}))
    execute(data,d/'candidate',engine,audit=True)
    for file in ('state.json','stages.json','binding-audit.json'):
     assert json.loads((d/'control/runtime'/file).read_text())==json.loads((d/'candidate/runtime'/file).read_text()),(name,file)
@@ -53,7 +53,7 @@ def benchmark(args):
    assert old['stats'][key]==report['stats'][key],(name,key)
   phases=collections.Counter()
   for s in report['steps']:phases.update(s.get('phases',{}))
-  summary[name]={'baseline':before,'optimized':measured,'speedup':before['inference_seconds']/measured['inference_seconds'],'runs':len(report['steps']),'logical_matches':report['stats']['bindings'],'baseline_candidates':old['stats']['residual_candidates'],'optimized_candidates':report['stats']['residual_candidates'],'phase_seconds':dict(phases),'exact_state_and_schedule':True,'native_equivalence':'not asserted; separate native survey retains known discrepancies'}
+  summary[name]={'baseline':before,'optimized':measured,'speedup':before['inference_seconds']/measured['inference_seconds'],'runs':len(report['steps']),'logical_matches':report['stats']['bindings'],'baseline_candidates':old['stats']['residual_candidates'],'optimized_candidates':report['stats']['residual_candidates'],'sieve':report.get('sieve'),'join_refinements':report.get('join_refinements'),'baseline_decoded_rows':old['stats']['decoded_rows'],'optimized_decoded_rows':report['stats']['decoded_rows'],'phase_seconds':dict(phases),'exact_state_and_schedule':True,'native_equivalence':'not asserted; separate native survey retains known discrepancies'}
   print(name,summary[name]['speedup'],measured['inference_seconds'],dict(phases),flush=True)
   (args.output/'results.json').write_text(json.dumps(summary,indent=2)+'\n')
 

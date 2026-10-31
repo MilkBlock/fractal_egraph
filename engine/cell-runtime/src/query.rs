@@ -16,6 +16,7 @@ use std::{
 struct Bucket {
     facts: BTreeSet<Dependency>,
     view: Option<Rc<Vec<Dependency>>>,
+    refinements: HashMap<Vec<(usize, u64)>, Rc<Vec<Dependency>>>,
 }
 struct Columns {
     values: Vec<HashMap<u64, Bucket>>,
@@ -31,6 +32,7 @@ impl Columns {
             let bucket = self.values[col].get_mut(key).unwrap();
             bucket.facts.remove(&fact);
             bucket.view = None;
+            bucket.refinements.clear();
             if bucket.facts.is_empty() {
                 self.values[col].remove(key);
             }
@@ -55,6 +57,7 @@ impl Columns {
             let bucket = self.values[col].entry(*key).or_default();
             bucket.facts.insert(row.witness);
             bucket.view = None;
+            bucket.refinements.clear();
         }
         self.keys.insert(row.witness, keys);
         (removed, added)
@@ -83,10 +86,21 @@ fn fingerprint(value: &Value, bits: u32) -> u64 {
         hash & ((1u64 << bits) - 1)
     }
 }
+#[derive(Default, serde::Serialize)]
+pub struct RefinementStats {
+    pub requests: u64,
+    pub hits: u64,
+    pub examined: u64,
+    pub avoided: u64,
+}
 pub struct QueryIndexes {
     tables: HashMap<usize, Columns>,
     references: usize,
     bits: u32,
+    intersection: bool,
+    pub refinements: RefinementStats,
+    pub changes: Vec<(Dependency, usize)>,
+    pub track_changes: bool,
     pub peak_references: usize,
     pub decoded_facts: u64,
     pub updated_facts: u64,
@@ -102,6 +116,10 @@ impl Default for QueryIndexes {
         Self {
             tables: HashMap::new(),
             references: 0,
+            intersection: std::env::var("CELL_CPU_JOIN_INTERSECTION").as_deref() == Ok("1"),
+            refinements: RefinementStats::default(),
+            changes: vec![],
+            track_changes: false,
             bits: std::env::var("CELL_CPU_HASH_BITS")
                 .ok()
                 .map(|v| v.parse::<u32>().expect("hash bits").min(64))
@@ -160,6 +178,9 @@ impl QueryIndexes {
                 } else {
                     (index.remove(fact), 0)
                 };
+                if self.track_changes && added > 0 {
+                    self.changes.push((fact, table));
+                }
                 self.references = self.references - removed + added;
             }
         }
@@ -169,7 +190,7 @@ impl QueryIndexes {
         self.peak_references = self.peak_references.max(self.references);
         Ok(())
     }
-    fn ensure(&mut self, graph: &Graph, table: usize) -> Result<()> {
+    pub(crate) fn ensure(&mut self, graph: &Graph, table: usize) -> Result<()> {
         if self
             .tables
             .get(&table)
@@ -222,9 +243,86 @@ impl QueryIndexes {
             return Ok(Rc::new(vec![]));
         }
         let bucket = index.values[col].get_mut(&key).unwrap();
-        Ok(bucket
+        let view = bucket
             .view
             .get_or_insert_with(|| Rc::new(bucket.facts.iter().copied().collect()))
-            .clone())
+            .clone();
+        if !self.intersection {
+            return Ok(view);
+        }
+        let selectors = bound
+            .iter()
+            .enumerate()
+            .filter_map(|(c, v)| {
+                if c == col {
+                    None
+                } else {
+                    v.as_ref().map(|v| (c, fingerprint(v, self.bits)))
+                }
+            })
+            .collect::<Vec<_>>();
+        if selectors.is_empty() {
+            return Ok(view);
+        }
+        self.refinements.requests += 1;
+        if let Some(hit) = bucket.refinements.get(&selectors) {
+            self.refinements.hits += 1;
+            self.refinements.avoided += (view.len() - hit.len()) as u64;
+            return Ok(hit.clone());
+        }
+        self.refinements.examined += view.len() as u64;
+        let result = Rc::new(
+            view.iter()
+                .copied()
+                .filter(|w| selectors.iter().all(|(c, k)| index.keys[w][*c] == *k))
+                .collect::<Vec<_>>(),
+        );
+        self.refinements.avoided += (view.len() - result.len()) as u64;
+        // Cache only nonempty proper partitions, not a history of missing keys.
+        // Any changed tuple removes/reinserts its witness in ALL its buckets.
+        if !result.is_empty() && result.len() < view.len() {
+            bucket.refinements.insert(selectors, result.clone());
+        }
+        Ok(result)
+    }
+    pub fn refinement_storage(&self) -> (usize, usize) {
+        self.tables
+            .values()
+            .flat_map(|t| t.values.iter())
+            .flat_map(|v| v.values())
+            .flat_map(|b| b.refinements.values())
+            .fold((0, 0), |(n, r), v| (n + 1, r + v.len()))
+    }
+    pub(crate) fn hashes(&self, table: usize, w: Dependency) -> Option<&[u64]> {
+        self.tables.get(&table)?.keys.get(&w).map(Vec::as_slice)
+    }
+    pub(crate) fn indexed_witnesses(&self, table: usize) -> Vec<Dependency> {
+        let mut out = self.tables[&table].keys.keys().copied().collect::<Vec<_>>();
+        out.sort();
+        out
+    }
+    pub(crate) fn hash_candidates(
+        &self,
+        table: usize,
+        cols: &[usize],
+        keys: &[u64],
+    ) -> Vec<Dependency> {
+        let index = &self.tables[&table];
+        let Some((c, k)) = cols
+            .iter()
+            .zip(keys)
+            .min_by_key(|(c, k)| index.values[**c].get(k).map_or(0, |b| b.facts.len()))
+        else {
+            return vec![];
+        };
+        let Some(bucket) = index.values[*c].get(k) else {
+            return vec![];
+        };
+        bucket
+            .facts
+            .iter()
+            .copied()
+            .filter(|w| cols.iter().zip(keys).all(|(c, k)| index.keys[w][*c] == *k))
+            .collect()
     }
 }

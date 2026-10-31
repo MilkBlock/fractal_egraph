@@ -59,6 +59,7 @@ pub struct Executor {
     delta_queries: bool,
     column_queries: bool,
     query_indexes: QueryIndexes,
+    sieve: crate::sieve::Sieve,
     profile_queries: bool,
     query_profile: Vec<(u64, f64, u64)>,
     progress: bool,
@@ -133,6 +134,9 @@ impl Executor {
         let n = graph.program.rules.len();
         let tasks = schedule::initial(&graph.program.control);
         let initial_audit = if audit { graph.export().ok() } else { None };
+        let sieve = crate::sieve::Sieve::new(&graph.program);
+        let mut query_indexes = QueryIndexes::default();
+        query_indexes.track_changes = sieve.enabled;
         let mut e = Self {
             graph,
             steps: vec![],
@@ -146,7 +150,8 @@ impl Executor {
             initial_audit,
             tasks,
             column_queries: std::env::var("CELL_CPU_QUERY_MODE").as_deref() != Ok("reverse"),
-            query_indexes: QueryIndexes::default(),
+            query_indexes,
+            sieve,
             profile_queries: std::env::var_os("CELL_CPU_PROFILE").is_some(),
             query_profile: vec![(0, 0.0, 0); n],
             progress: std::env::var_os("CELL_CPU_PROGRESS").is_some(),
@@ -180,6 +185,7 @@ impl Executor {
     fn solve(
         &mut self,
         query: &[Atom],
+        rid: usize,
         remaining: &mut [bool],
         env: &mut QueryEnv,
         epoch: u64,
@@ -234,7 +240,7 @@ impl Executor {
                 if let Some(v) = value::primitive(name, &vals, output)? {
                     let mark = env.trail.len();
                     if bind(atom.args.last().unwrap(), &v, env, &self.graph) {
-                        self.solve(query, remaining, env, epoch, out, delta)?;
+                        self.solve(query, rid, remaining, env, epoch, out, delta)?;
                     }
                     env.rollback(mark);
                 }
@@ -267,6 +273,9 @@ impl Executor {
                     }
                 };
                 for w in witnesses.iter().copied() {
+                    if !self.sieve.allow(rid, chosen, *t, w, &self.query_indexes) {
+                        continue;
+                    }
                     self.graph.stats.residual_candidates += 1;
                     self.graph.stats.decoded_rows += 1;
                     let Some(r) = self.graph.row(w)? else {
@@ -290,7 +299,7 @@ impl Executor {
                         .zip(&r.values)
                         .all(|(a, v)| bind(a, v, env, &self.graph))
                     {
-                        self.solve(query, remaining, env, epoch.max(r.epoch), out, delta)?;
+                        self.solve(query, rid, remaining, env, epoch.max(r.epoch), out, delta)?;
                     }
                     env.rollback(mark);
                 }
@@ -539,6 +548,8 @@ impl Executor {
             }
             return Ok(vec![]);
         }
+        self.sieve
+            .prepare(rid, &self.graph, &mut self.query_indexes)?;
         let mut found = vec![];
         if let Some(anchor) = rule.direct {
             let atom = &rule.query[anchor];
@@ -604,6 +615,7 @@ impl Executor {
                     } else {
                         self.solve(
                             &rule.query,
+                            rid,
                             &mut remaining,
                             &mut env,
                             epoch,
@@ -658,6 +670,12 @@ impl Executor {
                     continue;
                 };
                 for row in changed.iter().filter(|r| r.table == table) {
+                    if !self
+                        .sieve
+                        .allow(rid, pivot, table, row.witness, &self.query_indexes)
+                    {
+                        continue;
+                    }
                     self.graph.stats.residual_candidates += 1;
                     self.graph.stats.decoded_rows += 1;
                     let mut env =
@@ -765,6 +783,7 @@ impl Executor {
                         } else {
                             self.solve(
                                 &rule.query,
+                                rid,
                                 &mut remaining,
                                 &mut env,
                                 epoch,
@@ -783,6 +802,7 @@ impl Executor {
         } else {
             self.solve(
                 &rule.query,
+                rid,
                 &mut vec![true; rule.query.len()],
                 &mut QueryEnv::new(self.graph.program.templates[rule.template].sorts.len()),
                 0,
@@ -928,6 +948,7 @@ impl Executor {
         }
         if std::env::var("CELL_CPU_QUERY_INDEX_SCOPE").as_deref() == Ok("run") {
             self.query_indexes.clear();
+            self.sieve.invalidate();
         }
         let patch = StagePatch { bindings: work };
         let matches = patch.bindings.len();
@@ -947,9 +968,11 @@ impl Executor {
         let phase = Instant::now();
         if std::env::var("CELL_CPU_QUERY_INDEX_SCOPE").as_deref() == Ok("table") {
             self.query_indexes.invalidate(&self.graph);
+            self.sieve.invalidate();
             self.graph.query_changes.clear();
         } else {
             self.query_indexes.update(&mut self.graph)?;
+            self.sieve.publish(&mut self.query_indexes);
         }
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
@@ -1145,6 +1168,6 @@ impl Executor {
         Ok(e)
     }
     pub fn report(&self) -> J {
-        json!({"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

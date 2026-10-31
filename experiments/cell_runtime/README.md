@@ -51,6 +51,10 @@ it does not claim equality to native egglog on every program.
 6. Reuse immutable compiled query/RHS programs instead of cloning their operations
    per binding. Merge lookups inspect dirty facts only in the requested operator.
 
+Cross-stage joined-key summaries and candidate refinements are documented in
+[SIEVE_JOIN.md](SIEVE_JOIN.md). They are opt-in and separately measured;
+ordinary table-index reuse is already present without them.
+
 `CELL_CPU_QUERY_MODE=scan|indexed|reverse|delta` supports diagnostic ablations.
 `scan` disables query indexes/delta seeding; `indexed` disables delta seeding;
 `reverse` uses only the alias-reference index; default `delta` enables all.
