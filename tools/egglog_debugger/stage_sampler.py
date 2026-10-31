@@ -273,7 +273,7 @@ def build_sample(core,before,after,stage,request):
     more={v:max(0,len(members[v])-sum(r[1][-1]==v for r in selected.values())) for v in expanded}
     frontier=used_eq-expanded
     colors={'existing':('#f8fafc','#94a3b8'),'added':('#dcfce7','#16a34a'),'updated':('#f3e8ff','#9333ea'),'removed':('#fee2e2','#dc2626')}
-    dot=['digraph sample {','graph [rankdir=TB, bgcolor="transparent", pad="0.25", nodesep="0.28", ranksep="0.55", fontname="Helvetica"];','node [fontname="Helvetica", fontsize=11]; edge [fontname="Helvetica", fontsize=9, color="#64748b"];']
+    dot=['digraph sample {','graph [rankdir=TB, compound=true, bgcolor="transparent", pad="0.20", nodesep="0.16", ranksep="0.45", fontname="Helvetica"];','node [fontname="Helvetica", fontsize=11]; edge [fontname="Helvetica", fontsize=9, color="#64748b"];']
     items={};ports=[]
     def value_text(v):
         x=values[v]
@@ -286,10 +286,21 @@ def build_sample(core,before,after,stage,request):
     for v in sorted(used_eq):
         x=values[v];port=v in frontier;label=(f"RipenInput[{v}]\n{x['sort']}" if port else f"{x['sort']} · e{v}")
         border='#d97706' if port else '#0891b2' if v in merged and side=='after' else '#2563eb';fill='#fffbeb' if port else '#ecfeff' if v in merged and side=='after' else '#eff6ff'
-        dot.append(f'c{v} [id="c{v}", URL="#class-{v}", label={q(label)}, shape={"box" if port else "ellipse"}, style="rounded,filled", fillcolor="{fill}", color="{border}", penwidth={2.5 if v==root else 1.2}];')
+        if port:
+            dot.append(f'c{v} [id="c{v}", URL="#class-{v}", label={q(label)}, shape=box, style="rounded,filled", fillcolor="{fill}", color="{border}"];')
+        else:
+            # Enclose equivalent enodes directly, rather than adding a separate
+            # eclass rank and membership edges. The invisible anchor routes
+            # incoming argument edges to the class boundary, not a chosen enode.
+            grouped=[rid for rid,r in selected.items() if r[1][-1]==v]
+            dot.append(f'subgraph cluster_c{v} {{ graph [id="c{v}", URL="#class-{v}", label={q(label)}, fontsize=11, style="rounded,filled", fillcolor="{fill}", color="{border}", penwidth={2.5 if v==root else 1.2}, margin=10];')
+            dot.append(f'c{v} [shape=point, width=0, height=0, style=invis, label=""];')
+            if more.get(v):
+                dot.append(f'm{v} [id="m{v}",URL="#class-{v}",label={q("+"+str(more[v])+" 个等价节点")},shape=plaintext,fontcolor="#2563eb"];')
+                grouped.append(f'm{v}')
+            dot.append('{rank=same; '+f'c{v}; '+'; '.join(grouped)+';} }')
         items[f'c{v}']={'kind':'port' if port else 'class','value_id':v,'sort':x['sort'],'identity':x['eq'],'members':len(members[v]),'hidden_alternatives':more.get(v,0),'root':v==root,'merged_from':merged.get(v,[]) if side=='after' else []}
         if port:ports.append(items[f'c{v}'])
-        elif more.get(v):dot.append(f'm{v} [id="m{v}",URL="#class-{v}",label={q("+"+str(more[v])+" 个等价节点")},shape=plaintext,fontcolor="#2563eb"]; c{v} -> m{v} [style=dashed,arrowhead=none];')
     by_identity={(v.get('sort'),v.get('eq')):i for i,v in enumerate(values) if 'eq' in v}
     def field(v):
         x=dict(values[v])
@@ -307,8 +318,9 @@ def build_sample(core,before,after,stage,request):
         if literals:label+='\n'+'\n'.join(s[:100] for s in literals[:8])
         dot.append(f'{rid} [id="{rid}",URL="#{rid}",label={q(label)},shape=box,style="rounded,filled{",dashed" if h else ""}",fillcolor="{fill}",color="{border}"];')
         for i,v in enumerate(vs[:-1]):
-            if v in used_eq:dot.append(f'{rid} -> c{v} [label="{i}"];')
-        if vs[-1] in used_eq:dot.append(f'c{vs[-1]} -> {rid} [arrowhead=none,style=dashed,label={q("enode" if table["kind"]=="constructor" else "function value")}];')
+            if v in used_eq:
+                cluster=f', lhead="cluster_c{v}"' if v in expanded and v!=vs[-1] else ''
+                dot.append(f'{rid} -> c{v} [label="{i}"{cluster}];')
         items[rid]={'kind':'row','table':table['name'],'table_kind':table['kind'],'change':ch,'subsumed':h,'fields':[{'position':i,'role':'output' if i==len(vs)-1 else 'input',**field(v),'value_id':v} for i,v in enumerate(vs)]}
     dot.append('}')
     # Only this bounded graph is rendered/sent to the browser.
