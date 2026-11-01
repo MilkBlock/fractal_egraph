@@ -27,7 +27,7 @@ pub struct MultiStage {
     pub entries: HashMap<(usize, usize), Rc<Vec<usize>>>,
     pub finishes: Vec<Rc<Vec<usize>>>,
 }
-fn normalize(template: &Template, arg: &Arg) -> Arg {
+pub(crate) fn normalize(template: &Template, arg: &Arg) -> Arg {
     if let Arg::Slot(slot) = arg {
         if let Some(op) = template.defs.get(slot) {
             if let Op::Copy(_, source) = &template.ops[*op] {
@@ -37,7 +37,7 @@ fn normalize(template: &Template, arg: &Arg) -> Arg {
     }
     arg.clone()
 }
-fn source(
+pub(crate) fn source(
     program: &Program,
     producer: usize,
     kind: &str,
@@ -77,7 +77,7 @@ fn source(
         columns.iter().map(|a| normalize(template, a)).collect(),
     ))
 }
-fn extend(
+pub(crate) fn extend(
     atom: &Atom,
     table: usize,
     columns: &[Arg],

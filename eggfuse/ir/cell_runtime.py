@@ -22,7 +22,7 @@ def requirements(core):
                 effects=sorted(effects),control=sorted(control),
                 sorts=sorted({s['name'] for t in core['tables'] for s in t['schema']}))
 
-def build(core, marker=None, reference_tables=()):
+def build(core, marker=None, reference_tables=(), compositions=None):
     validate_core(core)
     if marker is not None:
         from eggfuse.compiler.marker_ir import validate as validate_marker
@@ -46,6 +46,9 @@ def build(core, marker=None, reference_tables=()):
         source_core=copy.deepcopy(core))
     from eggfuse.analyzer.reference_views import build as views_build
     payload['reference_views']=views_build(recipe,[m['name'] for m in marker['markers']] if marker else reference_tables)
+    if compositions is not None:
+        from eggfuse.analyzer.compositions import validate as check_compositions
+        payload['compositions']=check_compositions(compositions,recipe,payload['reference_views']['marker_tables'])
     if marker is not None:payload['marker_program_sha256']=marker['sha256']
     return {**payload,'sha256':digest(payload)}
 
@@ -54,7 +57,7 @@ def validate(program):
     require(program.get('sha256')==digest({k:v for k,v in program.items() if k!='sha256'}),'Cell artifact checksum differs')
     core=program['source_core']
     recipe_validate(program['recipe'],core,scope='original_program')
-    expected=build(core,reference_tables=program.get('reference_views',{}).get('marker_tables',[]))
+    expected=build(core,reference_tables=program.get('reference_views',{}).get('marker_tables',[]),compositions=program.get('compositions'))
     if 'marker_program_sha256' in program:
         checksum=program['marker_program_sha256']
         require(isinstance(checksum,str) and len(checksum)==64 and all(c in '0123456789abcdef' for c in checksum),'marker checksum')

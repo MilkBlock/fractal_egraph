@@ -16,7 +16,7 @@ def native_core(frontend,source,folder):
         proc=subprocess.run([str(frontend),str(source)],input='',text=True,stdout=subprocess.PIPE,stderr=error,check=True)
     return json.loads(proc.stdout.splitlines()[0])
 
-def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu',multi_stage_cell=False,bake_source=None,incremental_rebuild=False):
+def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu',multi_stage_cell=False,bake_source=None,incremental_rebuild=False,composition_evidence=None):
     source=Path(source).resolve();build=Path(build).resolve();tools=Path(tools).resolve()
     if multi_stage_cell and backend not in ('gpu','cell-cpu'):raise ValueError('multi-stage Cell requires the GPU regions or cell-cpu backend')
     if multi_stage_cell and backend=='gpu':backend='regions'
@@ -96,9 +96,14 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         base+[ROOT/'eggfuse/ir/recipe.py'],['recipe-program.json'],recipe_ir,check_recipe,preserves=['typed query/effect/control and binding correlation'])
     recipe_file=pm.publish(recipe/'recipe-program.json','recipe-program.json')
     if stop_after=='recipe':return pm
+    composition_file=None
+    if composition_evidence:
+        from .compositions import compile_compositions
+        composition_file=compile_compositions(pm,recipe_file,marker_file,Path(composition_evidence).resolve())
+        if backend!='cell-cpu':raise ValueError('multi-rule recipes are not yet lowered to this backend')
     if backend=='cell-cpu':
         from .targets.cell_cpu import compile_target
-        return compile_target(pm,ir/'core.json',recipe_file,marker_file,marked_source,stop_after,run_gpu)
+        return compile_target(pm,ir/'core.json',recipe_file,marker_file,marked_source,stop_after,run_gpu,composition_file)
     region_file=None
     execution=dict(stage_contexts=False,joint_polyspine=False,block_merge=False,matrix_saturate=False)
     if multi_stage_cell:
@@ -206,6 +211,7 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,default=ROOT/'out/device-build')
     p.add_argument('--tools',type=Path,default=ROOT/'target/debug/examples');p.add_argument('--solver-python',type=Path,default=Path(sys.executable));p.add_argument('--profile',type=Path)
+    p.add_argument('--composition-evidence',type=Path,help='Typed-recipe-bound observed handoffs for shared multi-rule recipes (Cell CPU)')
     p.add_argument('--bake-source',type=Path,help='Optional small training input; typed declarations/rules must match the execution environment');p.add_argument('--multi-stage-cell',action='store_true',help='Compile witnessed multi-stage batches; GPU context matrices, deterministic block publication and soundness/L1 checks');p.add_argument('--incremental-rebuild',action='store_true',help='Use conservative GPU block summaries to avoid unaffected union repair; requires --multi-stage-cell');p.add_argument('--stop-after',choices=['sk','analyze','markers','recipe','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local','cell-cpu'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
-    pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend,a.multi_stage_cell,a.bake_source,a.incremental_rebuild)
+    pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend,a.multi_stage_cell,a.bake_source,a.incremental_rebuild,a.composition_evidence)
     print(json.dumps(dict(output=str(pm.output),passes=[dict(name=r['name'],cached=r['cached']) for r in pm.receipts],complete=a.stop_after=='verify',backend=a.backend,gpu_checked=a.backend!='cell-cpu' and a.stop_after=='verify' and not a.cpu_only),indent=2))

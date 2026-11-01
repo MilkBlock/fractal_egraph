@@ -12,9 +12,9 @@ from eggfuse.compiler.targets.cell_cpu import compile_target
 from experiments.cell_runtime.suite import timed,fingerprint
 
 
-def reemit(source,dest):
-    _,_,provenance=load_pipeline_artifact(source)
-    original=json.loads((source/'pipeline.json').read_text());names=[s['name'] for s in original['passes'] if s['name'] not in ('device','verify')]
+def reemit(source,dest,composition_evidence=None):
+    _,old_program,provenance=load_pipeline_artifact(source)
+    original=json.loads((source/'pipeline.json').read_text());names=[s['name'] for s in original['passes'] if s['name'] not in ('device','verify','compositions')]
     records=verified_receipts(source,names);pm=PassManager(dest)
     for step in original['passes']:
         if step['name'] not in records:continue
@@ -24,7 +24,13 @@ def reemit(source,dest):
         pm.publish(source/name,name)
     pm.save()
     core=next(Path(s['directory'])/'core.json' for s in pm.receipts if s['name']=='marker_ir')
-    compile_target(pm,core,dest/'recipe-program.json',dest/'marker-program.json',dest/'source_sk_mk.egg','device',False)
+    if composition_evidence is None and 'compositions' in old_program:
+        composition_evidence=dest/'composition-evidence.json';composition_evidence.write_text(json.dumps(old_program['compositions']['evidence']))
+    composition_file=None
+    if composition_evidence:
+        from eggfuse.compiler.compositions import compile_compositions
+        composition_file=compile_compositions(pm,dest/'recipe-program.json',dest/'marker-program.json',composition_evidence)
+    compile_target(pm,core,dest/'recipe-program.json',dest/'marker-program.json',dest/'source_sk_mk.egg','device',False,composition_file)
     path,program,new=load_pipeline_artifact(dest)
     assert new['source_sk_mk_sha256']==provenance['source_sk_mk_sha256']
     return path,program,new

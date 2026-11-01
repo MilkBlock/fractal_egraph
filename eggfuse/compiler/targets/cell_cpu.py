@@ -7,9 +7,9 @@ from eggfuse.compiler.passes import digest
 
 ROOT=Path(__file__).resolve().parents[3]
 
-def emit(folder,core,recipe,marker,source):
+def emit(folder,core,recipe,marker,source,compositions=None):
     validate_recipe(json.loads(recipe.read_text()),json.loads(core.read_text()),'original_program')
-    program=build(json.loads(core.read_text()),json.loads(marker.read_text()));validate(program)
+    program=build(json.loads(core.read_text()),json.loads(marker.read_text()),compositions=json.loads(compositions.read_text()) if compositions else None);validate(program)
     (folder/'program.json').write_text(json.dumps(program))
     (folder/'reference-views.json').write_text(json.dumps(program['reference_views'],indent=2))
     (folder/'multi-stage-program.json').write_text(json.dumps(program['multi_stage'],indent=2))
@@ -24,14 +24,20 @@ def emit(folder,core,recipe,marker,source):
           'limits':['no GPU execution','unproven inverse reads retain residual matching','diagnostic unit-cost extraction only','source frontend restricts post-initialization commands']}
     (folder/'capabilities.json').write_text(json.dumps(caps,indent=2))
     files=['program.json','reference-views.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
+    if compositions:
+        shutil.copyfile(compositions,folder/'composition-program.json');files.append('composition-program.json')
+        caps['compositions']={'programs':len(program['compositions']['programs']),'edges':len(program['compositions']['edges']),'enable':'CELL_CPU_COMPOSITIONS=1','default':False}
+        (folder/'capabilities.json').write_text(json.dumps(caps,indent=2))
     (folder/'manifest.json').write_text(json.dumps({'schema':'eggfuse-device-artifact/v1','backend':'cell-cpu','source_sha256':digest(source),'execution':{'native_runtime':False},'files':{n:digest(folder/n) for n in files}},indent=2))
 
-def compile_target(pm,core,recipe,marker,source,stop_after,execute_runtime):
+def compile_target(pm,core,recipe,marker,source,stop_after,execute_runtime,compositions=None):
     implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py',ROOT/'eggfuse/analyzer/congruence.py',ROOT/'eggfuse/analyzer/reference_views.py',ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/ir/structural_key.py',ROOT/'engine/structural-key/abi.json']
     outputs=['program.json','reference-views.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
+    if compositions:
+        outputs.append('composition-program.json');implementations.append(ROOT/'eggfuse/analyzer/compositions.py')
     def check(folder):validate(json.loads((folder/'program.json').read_text()))
-    device=pm.run('device',{'core':core,'recipe':recipe,'marker':marker,'source':source},{'backend':'cell-cpu'},implementations,outputs,
-        lambda f:emit(f,core,recipe,marker,source),check,preserves=['typed marked program and source control'])
+    device=pm.run('device',{'core':core,'recipe':recipe,'marker':marker,'source':source,**({'compositions':compositions} if compositions else {})},{'backend':'cell-cpu'},implementations,outputs,
+        lambda f:emit(f,core,recipe,marker,source,compositions),check,preserves=['typed marked program and source control'])
     for name in outputs:pm.publish(device/name,'eggfuse_related_files/'+name)
     if stop_after=='device':return pm
     from eggfuse.engine.cell_runtime import run_artifact,binary

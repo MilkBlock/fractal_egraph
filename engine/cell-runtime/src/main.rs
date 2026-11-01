@@ -20,12 +20,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         return Ok(());
     }
-    if args.iter().any(|x| x == "--verify-reference-views") {
+    let verify_compositions = args.iter().any(|x| x == "--verify-compositions");
+    if args.iter().any(|x| x == "--verify-reference-views") || verify_compositions {
         let mut control = Executor::new(
-            Graph::new_with_reference_views(program.clone(), false)?,
+            if verify_compositions {
+                Graph::new(program.clone())?
+            } else {
+                Graph::new_with_reference_views(program.clone(), false)?
+            },
             true,
         );
-        let mut candidate = Executor::new(Graph::new_with_reference_views(program, true)?, true);
+        let mut candidate = Executor::new(
+            if verify_compositions {
+                Graph::new(program)?
+            } else {
+                Graph::new_with_reference_views(program, true)?
+            },
+            true,
+        );
+        if verify_compositions {
+            control.compositions_enabled = false;
+            candidate.compositions_enabled = true;
+        }
         fn state(j: serde_json::Value) -> serde_json::Value {
             let mut j = j;
             let rows = j["rows"].as_array_mut().unwrap();
@@ -69,7 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         println!(
             "{}",
-            serde_json::json!({"all_stage_graphs_and_bindings_equal":true,"runs":n,"reference_views":candidate.graph.reference_report(),"control_live_cells":control.graph.cells.len(),"candidate_live_cells":candidate.graph.cells.len(),"scope":"streaming same-binary storage ablation; standalone Cell CPU, not native egglog"})
+            serde_json::json!({"all_stage_graphs_and_bindings_equal":true,"runs":n,"reference_views":candidate.graph.reference_report(),"compositions":candidate.report()["compositions"],"control_live_cells":control.graph.cells.len(),"candidate_live_cells":candidate.graph.cells.len(),"scope":if verify_compositions{"same-binary multi-rule ablation; standalone Cell CPU, not native egglog"}else{"streaming same-binary storage ablation; standalone Cell CPU, not native egglog"}})
         );
         return Ok(());
     }

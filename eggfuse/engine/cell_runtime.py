@@ -50,6 +50,8 @@ def load_artifact(artifact):
     program=json.loads((artifact/'program.json').read_text());core=validate(program)
     if 'reference_views' in program:
         if 'reference-views.json' not in manifest['files'] or json.loads((artifact/'reference-views.json').read_text())!=program['reference_views']:raise ValueError('reference views differ')
+    if 'compositions' in program:
+        if 'composition-program.json' not in manifest['files'] or json.loads((artifact/'composition-program.json').read_text())!=program['compositions']:raise ValueError('composition recipes differ')
     if 'merge_contracts' in program:
         if 'merge-contracts.json' not in manifest['files'] or json.loads((artifact/'merge-contracts.json').read_text())!=program['merge_contracts']:raise ValueError('merge contracts differ')
     if 'multi_stage' in program:
@@ -76,6 +78,8 @@ def load_pipeline_artifact(output):
     if (root/'pipeline.json').is_file() and any(s['name']=='bake_environment' for s in json.loads((root/'pipeline.json').read_text()).get('passes',[])):
         required.append('bake_environment')
     records=verified_receipts(root,required)
+    has_compositions=(artifact/'composition-program.json').is_file()
+    if has_compositions:records.update(verified_receipts(root,['compositions']))
     device,receipt=records['device']
     if receipt['contract']['options'].get('backend')!='cell-cpu':raise ValueError('compiler output is not cell-cpu')
     for rel,checksum in receipt['artifacts'].items():
@@ -91,6 +95,9 @@ def load_pipeline_artifact(output):
            ('markers','result/published.egg','device','source'))
     for producer,rel,consumer,input_name in links:
         if records[producer][1]['artifacts'][rel]!=records[consumer][1]['contract']['inputs'][input_name]['sha256']:raise ValueError('compiler pass wiring differs: '+producer+' -> '+consumer)
+    if has_compositions:
+        for producer,rel,consumer,key in [('recipe_ir','recipe-program.json','compositions','recipe'),('marker_ir','marker-program.json','compositions','marker'),('compositions','composition-program.json','device','compositions')]:
+            if records[producer][1]['artifacts'][rel]!=records[consumer][1]['contract']['inputs'][key]['sha256']:raise ValueError('composition pass wiring differs')
     analyzed=records['analyze'][1]['contract']['inputs']['source_sk']['sha256']
     if analyzed!=records['structural_keys'][1]['artifacts']['result/source_sk.egg']:
         environment=records.get('bake_environment')

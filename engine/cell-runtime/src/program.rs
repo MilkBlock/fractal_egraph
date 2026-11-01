@@ -59,6 +59,7 @@ pub struct Program {
     pub views: crate::views::Views,
     pub congruence: crate::congruence::Congruence,
     pub multi_stage: crate::multistage::MultiStage,
+    pub compositions: crate::compositions::Compositions,
     pub tables: Vec<Table>,
     pub templates: Vec<Template>,
     pub rules: Vec<Rule>,
@@ -267,6 +268,7 @@ impl Program {
             views: crate::views::Views::default(),
             congruence: crate::congruence::Congruence::default(),
             multi_stage: crate::multistage::MultiStage::default(),
+            compositions: crate::compositions::Compositions::default(),
             tables,
             templates,
             rules,
@@ -377,6 +379,7 @@ impl Program {
         p.views = crate::views::Views::parse(&p, &p.artifact["reference_views"])?;
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
         p.congruence = crate::congruence::Congruence::parse(&p, &p.artifact["congruence"])?;
+        p.compositions = crate::compositions::Compositions::parse(&p, &p.artifact["compositions"])?;
         Ok(p)
     }
     fn validate(&self) -> Result<()> {

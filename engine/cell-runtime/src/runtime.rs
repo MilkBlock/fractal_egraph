@@ -12,12 +12,38 @@ use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct Binding {
+    composition: Option<(Rc<crate::compositions::Edge>, crate::views::Context)>,
     witnesses: MatchedFacts,
     values: BTreeMap<usize, Value>,
     epoch: u64,
     parent: Option<FactRef>,
     continuation: Option<(usize, u32, bool)>,
     compiled: bool,
+}
+#[derive(Default, serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+struct CompositionStats {
+    match_seconds: f64,
+    entry_seconds: f64,
+    attempts: u64,
+    bindings: u64,
+    rejected: u64,
+    unavailable: u64,
+    known_atoms: u64,
+    port_reads: u64,
+    guard_checks: u64,
+    constructor_reuses: u64,
+    reuse_fallbacks: u64,
+    root_steps: u64,
+    continued_steps: u64,
+    marker_continued_steps: u64,
+    max_steps: u32,
+    source_rules: BTreeSet<usize>,
+}
+enum ComposedMatch {
+    Fallback,
+    Rejected,
+    Matched(Binding),
 }
 #[derive(Default, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
@@ -45,6 +71,8 @@ struct StagePatch {
     bindings: Vec<(usize, Binding)>,
 }
 pub struct Executor {
+    pub compositions_enabled: bool,
+    composition_stats: CompositionStats,
     pub graph: Graph,
     pub steps: Vec<J>,
     watermarks: Vec<u64>,
@@ -144,6 +172,8 @@ impl Executor {
         let mut query_indexes = QueryIndexes::default();
         query_indexes.track_changes = sieve.enabled;
         let mut e = Self {
+            compositions_enabled: std::env::var("CELL_CPU_COMPOSITIONS").as_deref() == Ok("1"),
+            composition_stats: CompositionStats::default(),
             graph,
             steps: vec![],
             watermarks: vec![0; n],
@@ -207,6 +237,7 @@ impl Executor {
     ) -> Result<()> {
         if !remaining.iter().any(|pending| *pending) {
             out.push(Binding {
+                composition: None,
                 witnesses: env.witnesses.clone(),
                 values: env.binding(),
                 epoch,
@@ -426,6 +457,148 @@ impl Executor {
         }
         Ok(true)
     }
+    fn composed_match(
+        &mut self,
+        rid: usize,
+        anchor: usize,
+        seed: &Row,
+        env: &mut QueryEnv,
+    ) -> Result<ComposedMatch> {
+        if !self.compositions_enabled {
+            return Ok(ComposedMatch::Fallback);
+        }
+        let start = Instant::now();
+        let result = self.composed_match_inner(rid, anchor, seed, env);
+        self.composition_stats.match_seconds += start.elapsed().as_secs_f64();
+        result
+    }
+    fn composed_match_inner(
+        &mut self,
+        rid: usize,
+        anchor: usize,
+        seed: &Row,
+        env: &mut QueryEnv,
+    ) -> Result<ComposedMatch> {
+        if !self.compositions_enabled || matches!(env.witnesses, MatchedFacts::Rows(_)) {
+            return Ok(ComposedMatch::Fallback);
+        }
+        let Some(context) = self.graph.continuation_context(seed.witness) else {
+            return Ok(ComposedMatch::Fallback);
+        };
+        if !context.completed {
+            return Ok(ComposedMatch::Fallback);
+        }
+        let Some(edge) = self
+            .graph
+            .program
+            .compositions
+            .edges
+            .get(&(context.template, context.op, rid, anchor))
+            .cloned()
+        else {
+            return Ok(ComposedMatch::Fallback);
+        };
+        self.composition_stats.attempts += 1;
+        let query = self.graph.program.rules[rid].query.clone();
+        let mark = env.trail.len();
+        let mut epoch = seed.epoch;
+        for instruction in &edge.instructions {
+            let atom = &query[instruction.atom];
+            if let Some(columns) = &instruction.columns {
+                let values = match self.graph.context_arguments(context, columns) {
+                    Ok(v) => v,
+                    Err(_) => {
+                        env.rollback(mark);
+                        for i in &edge.instructions {
+                            env.record(i.atom, None);
+                        }
+                        self.composition_stats.unavailable += 1;
+                        return Ok(ComposedMatch::Fallback);
+                    }
+                };
+                self.composition_stats.known_atoms += 1;
+                if !atom
+                    .args
+                    .iter()
+                    .zip(&values)
+                    .all(|(a, v)| bind(a, v, env, &self.graph))
+                {
+                    self.composition_stats.rejected += 1;
+                    return Ok(ComposedMatch::Rejected);
+                }
+            } else {
+                let key = atom.args[..atom.args.len() - 1]
+                    .iter()
+                    .map(|a| {
+                        operand(a, env, &self.graph)
+                            .ok_or_else(|| "unbound compiled port".to_owned())
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                let value = match &atom.call {
+                    Call::Table(t) => {
+                        self.composition_stats.port_reads += 1;
+                        let Some(row) = self.graph.lookup(*t, &key)? else {
+                            self.composition_stats.rejected += 1;
+                            return Ok(ComposedMatch::Rejected);
+                        };
+                        if row.hidden {
+                            self.composition_stats.rejected += 1;
+                            return Ok(ComposedMatch::Rejected);
+                        }
+                        epoch = epoch.max(row.epoch);
+                        env.record(instruction.atom, Some(row.witness));
+                        row.values.last().unwrap().clone()
+                    }
+                    Call::Primitive(name, output) => {
+                        self.composition_stats.guard_checks += 1;
+                        let Some(v) = value::primitive(
+                            name,
+                            &key,
+                            output,
+                            &self.graph.program.artifact["source_core"]["structural_key"]["nodes"],
+                        )?
+                        else {
+                            self.composition_stats.rejected += 1;
+                            return Ok(ComposedMatch::Rejected);
+                        };
+                        v
+                    }
+                };
+                if !bind(atom.args.last().unwrap(), &value, env, &self.graph) {
+                    self.composition_stats.rejected += 1;
+                    return Ok(ComposedMatch::Rejected);
+                }
+            }
+        }
+        // Every remaining key is a function of this complete anchor binding.
+        // Other delta pivots still run and the existing binding map deduplicates
+        // overlaps; no inverse alternative or late input is excluded.
+        self.composition_stats.bindings += 1;
+        let parent = if self.graph.program.rules[rid].direct.is_some() {
+            match seed.witness {
+                Dependency::Fact(f) => Some(f),
+                _ => None,
+            }
+        } else {
+            None
+        };
+        Ok(ComposedMatch::Matched(Binding {
+            composition: Some((edge.clone(), context)),
+            witnesses: env.witnesses.clone(),
+            values: env.binding(),
+            epoch,
+            parent,
+            continuation: Some((
+                edge.producer,
+                context
+                    .depth
+                    .checked_add(1)
+                    .ok_or("recipe depth exhausted")?,
+                false,
+            )),
+            compiled: true,
+        }))
+    }
     fn continue_local(
         &mut self,
         rid: usize,
@@ -638,6 +811,17 @@ impl Executor {
                     .all(|(a, v)| bind(a, v, &mut env, &self.graph))
                 {
                     env.record(anchor, Some(row.witness));
+                    if !probe {
+                        match self.composed_match(rid, anchor, &row, &mut env)? {
+                            ComposedMatch::Matched(b) => {
+                                self.graph.stats.direct_bindings += 1;
+                                found.push(b);
+                                continue;
+                            }
+                            ComposedMatch::Rejected => continue,
+                            ComposedMatch::Fallback => {}
+                        }
+                    }
                     let n = found.len();
                     let mut remaining = (0..rule.query.len())
                         .map(|i| i != anchor)
@@ -667,6 +851,7 @@ impl Executor {
                     }
                     if self.multistage_enabled && !remaining.iter().any(|v| *v) {
                         found.push(Binding {
+                            composition: None,
                             witnesses: env.witnesses.clone(),
                             values: env.binding(),
                             epoch,
@@ -759,6 +944,14 @@ impl Executor {
                             .collect::<Vec<_>>();
                         let mut epoch = row.epoch;
                         env.record(pivot, Some(row.witness));
+                        match self.composed_match(rid, pivot, row, &mut env)? {
+                            ComposedMatch::Matched(b) => {
+                                found.push(b);
+                                continue;
+                            }
+                            ComposedMatch::Rejected => continue,
+                            ComposedMatch::Fallback => {}
+                        }
                         let delta = Some((pivot, row.epoch, row.witness));
                         if self.multistage_enabled && self.point_programs {
                             if let Some(order) = self
@@ -843,6 +1036,7 @@ impl Executor {
                         }
                         if self.multistage_enabled && !remaining.iter().any(|v| *v) {
                             found.push(Binding {
+                                composition: None,
                                 witnesses: env.witnesses.clone(),
                                 values: env.binding(),
                                 epoch,
@@ -892,7 +1086,16 @@ impl Executor {
                     .iter()
                     .map(|i| b.values.get(i).cloned().ok_or("incomplete binding"))
                     .collect::<std::result::Result<Vec<_>, _>>()?;
-                unique.entry(key).or_insert(b);
+                match unique.entry(key) {
+                    std::collections::btree_map::Entry::Vacant(e) => {
+                        e.insert(b);
+                    }
+                    std::collections::btree_map::Entry::Occupied(mut e) => {
+                        if e.get().composition.is_none() && b.composition.is_some() {
+                            e.insert(b);
+                        }
+                    }
+                }
             }
         }
         Ok(unique.into_values().collect())
@@ -908,6 +1111,42 @@ impl Executor {
         let cell = self
             .graph
             .reference_frame(template, b.values, b.parent, &b.witnesses)?;
+        if self.compositions_enabled {
+            let started = Instant::now();
+            if let Some((edge, context)) = &b.composition {
+                let old = context.composition.filter(|c| c.program == edge.program);
+                let cursor = crate::compositions::Cursor {
+                    program: edge.program,
+                    entry: old.map_or(context.cell, |c| c.entry),
+                    steps: old
+                        .map_or(1, |c| c.steps)
+                        .checked_add(1)
+                        .ok_or("composition step overflow")?,
+                    marker_entry: old.is_some_and(|c| c.marker_entry),
+                };
+                self.graph.cells.get_mut(&cell).unwrap().composition = Some(cursor);
+                self.composition_stats.continued_steps += 1;
+                self.composition_stats.marker_continued_steps += u64::from(cursor.marker_entry);
+                self.composition_stats.max_steps =
+                    self.composition_stats.max_steps.max(cursor.steps);
+                self.composition_stats.source_rules.insert(rid);
+            } else if let Some(&program) = self.graph.program.compositions.rule_program.get(&rid) {
+                self.graph.cells.get_mut(&cell).unwrap().composition =
+                    Some(crate::compositions::Cursor {
+                        program,
+                        entry: cell,
+                        steps: 1,
+                        marker_entry: self
+                            .graph
+                            .program
+                            .compositions
+                            .marker_entries
+                            .contains(&rid),
+                    });
+                self.composition_stats.root_steps += 1;
+            }
+            self.composition_stats.entry_seconds += started.elapsed().as_secs_f64();
+        }
         if let Some((producer, depth, residual)) = origin {
             self.graph.cells.get_mut(&cell).unwrap().recipe_depth = depth;
             self.handoffs.insert((producer, rid));
@@ -919,11 +1158,30 @@ impl Executor {
             self.continuation_stats.max_depth = self.continuation_stats.max_depth.max(depth);
         }
         let ops = self.graph.program.templates[template].ops.clone();
+        let mut completed = true;
         for (i, op) in ops.iter().enumerate() {
             match op {
                 Op::Copy(..) => {}
                 Op::Let(dst, Call::Table(t), aa) => {
                     if self.graph.program.tables[*t].virtual_fact {
+                        if let Some((edge, context)) = &b.composition
+                            && let Some(columns) = edge.reuse.get(&i)
+                        {
+                            if let Ok(values) = self.graph.context_arguments(*context, columns) {
+                                let key = self.graph.arguments(cell, aa)?;
+                                if values[..values.len() - 1] == key {
+                                    self.graph
+                                        .cells
+                                        .get_mut(&cell)
+                                        .unwrap()
+                                        .values
+                                        .insert(*dst, values.last().unwrap().clone());
+                                    self.composition_stats.constructor_reuses += 1;
+                                    continue;
+                                }
+                            }
+                            self.composition_stats.reuse_fallbacks += 1;
+                        }
                         self.graph.construct(cell, i, *t, aa, *dst)?;
                     } else {
                         let key = self.graph.arguments(cell, &aa)?;
@@ -969,6 +1227,7 @@ impl Executor {
                 Op::Hide(t, aa, delete) => {
                     let key = self.graph.arguments(cell, &aa)?;
                     if !self.graph.hide(*t, &key, *delete)? {
+                        completed = false;
                         break;
                     }
                 }
@@ -980,6 +1239,7 @@ impl Executor {
                 self.graph.stats.logical_facts_created - facts;
             self.continuation_stats.function_updates += self.graph.stats.function_updates - updates;
         }
+        self.graph.cells.get_mut(&cell).unwrap().completed = completed;
         self.graph.queue_absorption(cell, &b.witnesses);
         self.graph.release_empty(cell);
         Ok(())
@@ -1230,6 +1490,8 @@ impl Executor {
     }
     pub fn checkpoint(&self) -> J {
         let mut c = json!({"schema":"eggfuse-cell-checkpoint/v1","program":self.graph.program.artifact,"graph":self.graph.image(),"tasks":self.tasks,"watermarks":self.watermarks,"steps":self.steps,"continuation_stats":self.continuation_stats,"handoffs":self.handoffs});
+        c["compositions_enabled"] = self.compositions_enabled.into();
+        c["composition_stats"] = json!(self.composition_stats);
         c["sha256"] = crate::checksum::digest(&c).into();
         c
     }
@@ -1249,6 +1511,17 @@ impl Executor {
         }
         let graph = Graph::restore(program, &checkpoint["graph"])?;
         let mut e = Self::new(graph, audit);
+        if checkpoint["compositions_enabled"]
+            .as_bool()
+            .unwrap_or(false)
+            != e.compositions_enabled
+        {
+            return Err("checkpoint composition mode differs".into());
+        }
+        if !checkpoint["composition_stats"].is_null() {
+            e.composition_stats = serde_json::from_value(checkpoint["composition_stats"].clone())
+                .map_err(|x| x.to_string())?;
+        }
         e.tasks = serde_json::from_value(checkpoint["tasks"].clone()).map_err(|x| x.to_string())?;
         e.watermarks =
             serde_json::from_value(checkpoint["watermarks"].clone()).map_err(|x| x.to_string())?;
@@ -1279,6 +1552,6 @@ impl Executor {
         Ok(e)
     }
     pub fn report(&self) -> J {
-        json!({"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

@@ -320,6 +320,8 @@ impl Graph {
             self.retired_contexts.insert(
                 source,
                 crate::views::RetiredContext {
+                    completed: c.completed,
+                    composition: c.composition,
                     template: c.template,
                     depth: c.recipe_depth,
                 },
@@ -346,6 +348,8 @@ impl Graph {
         };
         if let Some(c) = self.cells.get(&f.cell) {
             return Some(crate::views::Context {
+                completed: c.completed,
+                composition: c.composition,
                 cell: f.cell,
                 template: c.template,
                 depth: c.recipe_depth,
@@ -354,6 +358,8 @@ impl Graph {
         }
         let c = self.retired_contexts.get(&f.cell)?;
         Some(crate::views::Context {
+            completed: c.completed,
+            composition: c.composition,
             cell: f.cell,
             template: c.template,
             depth: c.depth,

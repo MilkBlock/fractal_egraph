@@ -69,6 +69,10 @@ pub struct MarkerRow {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Cell {
+    #[serde(default)]
+    pub completed: bool,
+    #[serde(default)]
+    pub composition: Option<crate::compositions::Cursor>,
     pub template: usize,
     pub parent: Option<FactRef>,
     pub values: BTreeMap<usize, Value>,
@@ -129,6 +133,12 @@ pub struct Stats {
     pub delivery_events: u64,
     #[serde(default)]
     pub distinct_delivery_events: u64,
+    #[serde(default)]
+    pub union_requests: u64,
+    #[serde(default)]
+    pub repair_key_hash_changes: u64,
+    #[serde(default)]
+    pub repair_collisions: u64,
 }
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct CongruenceStats {
@@ -140,6 +150,7 @@ pub struct CongruenceStats {
     pub coalesced_facts: u64,
 }
 pub struct Graph {
+    pub key_lookup_calls: std::cell::Cell<u64>,
     pub program: Program,
     pub views_enabled: bool,
     pub marker_fields_copied: bool,
@@ -184,7 +195,7 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
 }
 impl Graph {
     pub fn image(&self) -> J {
-        json!({"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"marker_fields_copied":self.marker_fields_copied,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
+        json!({"key_lookup_calls":self.key_lookup_calls.get(),"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"marker_fields_copied":self.marker_fields_copied,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
     }
     pub fn restore(program: Program, image: &J) -> Result<Self> {
         fn decode<T: serde::de::DeserializeOwned>(j: &J) -> Result<T> {
@@ -289,6 +300,8 @@ impl Graph {
         g.parents = decode(&image["parents"])?;
         g.epoch = decode(&image["epoch"])?;
         g.stats = decode(&image["stats"])?;
+        g.key_lookup_calls
+            .set(image["key_lookup_calls"].as_u64().unwrap_or(0));
         if !image["congruence_stats"].is_null() {
             g.congruence_stats = decode(&image["congruence_stats"])?;
         }
@@ -387,6 +400,7 @@ impl Graph {
         let congruence_enabled = std::env::var("CELL_CPU_CONGRUENCE").as_deref() == Ok("1")
             && program.congruence.reorder_safe;
         let mut g = Self {
+            key_lookup_calls: std::cell::Cell::new(0),
             views_enabled,
             marker_fields_copied,
             absorption_enabled: views_enabled
@@ -508,6 +522,8 @@ impl Graph {
         self.cells.insert(
             id,
             Cell {
+                completed: false,
+                composition: None,
                 template,
                 parent: None,
                 values,
@@ -843,6 +859,7 @@ impl Graph {
         self.witnesses(table)
     }
     pub fn lookup(&self, table: usize, key: &[Value]) -> Result<Option<Row>> {
+        self.key_lookup_calls.set(self.key_lookup_calls.get() + 1);
         let key = key
             .iter()
             .map(|v| canon(v, &self.parents))
@@ -1002,6 +1019,7 @@ impl Graph {
         )
     }
     pub fn enqueue_union(&mut self, a: Value, b: Value) -> Result<()> {
+        self.stats.union_requests += 1;
         let (Value::Eq(a), Value::Eq(b)) = (a, b) else {
             return Err("union requires equality values".into());
         };
@@ -1389,6 +1407,7 @@ impl Graph {
                     let key = &r.values[..r.values.len() - 1];
                     let h = hashkey(r.table, key);
                     let old = self.cells[&f.cell].facts[&f.op].hash;
+                    self.stats.repair_key_hash_changes += u64::from(h != old);
                     if let Some(bucket) = self.intern.get_mut(&old) {
                         bucket.remove(&f);
                     }
@@ -1403,6 +1422,7 @@ impl Graph {
                         }
                     }
                     if let Some(other) = found {
+                        self.stats.repair_collisions += 1;
                         if self.program.tables[r.table].constructor {
                             self.enqueue_union(
                                 r.values.last().unwrap().clone(),

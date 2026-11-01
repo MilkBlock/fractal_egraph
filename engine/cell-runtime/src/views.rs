@@ -214,11 +214,17 @@ pub fn resolve(map: &BTreeMap<FactRef, FactRef>, mut f: FactRef) -> FactRef {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct RetiredContext {
+    #[serde(default)]
+    pub completed: bool,
+    #[serde(default)]
+    pub composition: Option<crate::compositions::Cursor>,
     pub template: usize,
     pub depth: u32,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct Context {
+    pub completed: bool,
+    pub composition: Option<crate::compositions::Cursor>,
     pub cell: u32,
     pub template: usize,
     pub depth: u32,
