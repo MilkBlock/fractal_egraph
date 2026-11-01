@@ -91,6 +91,7 @@ pub struct CongruenceStats {
 pub struct Graph {
     pub program: Program,
     pub views_enabled: bool,
+    pub marker_fields_copied: bool,
     pub view_stats: crate::views::ViewStats,
     retired_contexts: BTreeMap<u32, crate::views::RetiredContext>,
     fact_forwards: BTreeMap<FactRef, FactRef>,
@@ -130,7 +131,7 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
 }
 impl Graph {
     pub fn image(&self) -> J {
-        json!({"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
+        json!({"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"marker_fields_copied":self.marker_fields_copied,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
     }
     pub fn restore(program: Program, image: &J) -> Result<Self> {
         fn decode<T: serde::de::DeserializeOwned>(j: &J) -> Result<T> {
@@ -144,6 +145,9 @@ impl Graph {
         g.next_cell = decode(&image["next_cell"])?;
         if image["reference_views_enabled"].as_bool().unwrap_or(false) != g.views_enabled {
             return Err("checkpoint reference storage mode differs".into());
+        }
+        if image["marker_fields_copied"].as_bool().unwrap_or(false) != g.marker_fields_copied {
+            return Err("checkpoint marker field storage mode differs".into());
         }
         if g.views_enabled {
             for t in &g.program.views.markers {
@@ -301,6 +305,12 @@ impl Graph {
     }
     pub fn new_with_reference_views(mut program: Program, enabled: bool) -> Result<Self> {
         let views_enabled = enabled && !program.views.layouts.is_empty();
+        let marker_fields_copied = views_enabled
+            && match std::env::var("CELL_CPU_MARKER_FIELDS").as_deref() {
+                Ok("copy") | Err(_) => true,
+                Ok("reference") => false,
+                Ok(_) => return Err("CELL_CPU_MARKER_FIELDS must be copy or reference".into()),
+            };
         if views_enabled {
             for t in &program.views.markers {
                 program.tables[*t].virtual_fact = true;
@@ -312,6 +322,7 @@ impl Graph {
             && program.congruence.reorder_safe;
         let mut g = Self {
             views_enabled,
+            marker_fields_copied,
             view_stats: Default::default(),
             retired_contexts: BTreeMap::new(),
             fact_forwards: BTreeMap::new(),

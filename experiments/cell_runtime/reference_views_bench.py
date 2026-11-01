@@ -3,7 +3,8 @@
 The comparison uses identical marked source, control, keys and merge contracts.
 No raw source_core benchmark path; no second Bake or solver invocation.
 """
-import argparse,json,shutil,os,subprocess
+import argparse,collections,json,shutil,os,subprocess
+from contextlib import contextmanager
 from pathlib import Path
 from eggfuse.engine.cell_runtime import load_pipeline_artifact,binary
 from eggfuse.compiler.passes import verified_receipts,PassManager
@@ -29,12 +30,60 @@ def reemit(source,dest):
     return path,program,new
 
 
+@contextmanager
+def storage_mode(fields,absorb,enabled=True):
+    settings={'CELL_CPU_REFERENCE_VIEWS':str(int(enabled)),
+              'CELL_CPU_MARKER_FIELDS':fields,'CELL_CPU_ABSORB':str(int(absorb))}
+    before={k:os.environ.get(k) for k in settings}
+    try:
+        os.environ.update(settings)
+        yield
+    finally:
+        for k,v in before.items():
+            if v is None:os.environ.pop(k,None)
+            else:os.environ[k]=v
+
+
+def marker_field_ablation(path,engine,out,provenance):
+    """Only field ownership and takeover vary; source markers stay enabled."""
+    lanes=[('control','copy',False,False),
+           ('reference-no-takeover','reference',False,True),
+           ('copy-no-takeover','copy',False,True),
+           ('reference-takeover','reference',True,True),
+           ('copy-takeover','copy',True,True)]
+    audits={}
+    for name,fields,absorb,enabled in lanes[1:]:
+        with storage_mode(fields,absorb,enabled):
+            r=subprocess.run([str(engine),'--program',str(path),'--verify-reference-views'],capture_output=True,text=True)
+        (out/(name+'.audit.log')).write_text(r.stdout+r.stderr)
+        if r.returncode:raise RuntimeError(r.stderr)
+        audits[name]=json.loads(r.stdout)
+        print(name,'audit passed',audits[name]['runs'],'Runs',flush=True)
+    measured={};expected=None
+    for name,fields,absorb,enabled in lanes:
+        with storage_mode(fields,absorb,enabled):
+            measurement,report=timed(path,engine,out/name)
+        state=json.loads((out/name/'state.json').read_text())
+        state['rows'].sort(key=lambda r:json.dumps(r,sort_keys=True))
+        if expected is None:expected=state
+        elif state!=expected:raise ValueError(name+' final graph differs')
+        phases=collections.Counter()
+        for step in report['steps']:phases.update(step['phases'])
+        measured[name]={'measurement':measurement,'phase_seconds':dict(phases),
+                        'report':{k:v for k,v in report.items() if k!='steps'}}
+        print(name,measurement['inference_seconds'],'seconds',flush=True)
+    result={'provenance':provenance,'verification':audits,'lanes':measured,
+            'scope':'same binary and marked source; standalone Cell CPU; not pristine egglog; repair includes takeover and event retargeting'}
+    (out/'results.json').write_text(json.dumps(result,indent=2)+'\n')
+
+
 def main():
-    p=argparse.ArgumentParser();source=p.add_mutually_exclusive_group(required=True);source.add_argument('--pipeline',type=Path);source.add_argument('--compiled',type=Path,help='reuse an already verified reference-view pipeline after engine-only changes');p.add_argument('--output',type=Path,required=True);p.add_argument('--engine',type=Path);a=p.parse_args()
+    p=argparse.ArgumentParser();source=p.add_mutually_exclusive_group(required=True);source.add_argument('--pipeline',type=Path);source.add_argument('--compiled',type=Path,help='reuse an already verified reference-view pipeline after engine-only changes');p.add_argument('--output',type=Path,required=True);p.add_argument('--engine',type=Path);p.add_argument('--marker-field-ablation',action='store_true',help='audit and time copied/referenced marker fields with takeover off/on plus a common source-marker control');a=p.parse_args()
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
     path,program,provenance=load_pipeline_artifact(a.compiled.resolve()) if a.compiled else reemit(a.pipeline.resolve(),out/'compile')
     if not program.get('reference_views',{}).get('marker_tables'):raise ValueError('compiled input has no reference marker contract; reemit the device pass')
     engine=a.engine or binary()
+    if a.marker_field_ablation:return marker_field_ablation(path,engine,out,provenance)
     audit=subprocess.run([str(engine),'--program',str(path),'--verify-reference-views'],capture_output=True,text=True)
     (out/'audit.log').write_text(audit.stdout+audit.stderr)
     if audit.returncode:raise RuntimeError(audit.stderr)

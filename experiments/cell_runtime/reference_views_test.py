@@ -90,7 +90,7 @@ class ReferenceTests(unittest.TestCase):
     x=subprocess.run([str(ENGINE),'--program',str(path),'--verify-reference-views'],capture_output=True,text=True)
     self.assertEqual(x.returncode,0,x.stderr)
  def test_marker_view_does_not_store_projected_tuple_fields(self):
-  p=self.program(MARKER,['View']);execute(p,self.root/'views',ENGINE,save_checkpoint=True,environment={'CELL_CPU_REFERENCE_VIEWS':'1','CELL_CPU_ABSORB':'0'})
+  p=self.program(MARKER,['View']);execute(p,self.root/'views',ENGINE,save_checkpoint=True,environment={'CELL_CPU_REFERENCE_VIEWS':'1','CELL_CPU_ABSORB':'0','CELL_CPU_MARKER_FIELDS':'reference'})
   checkpoint=json.loads((self.root/'views/runtime/checkpoint.json').read_text());graph=checkpoint['graph']
   count=0
   for cell in graph['cells'].values():
@@ -101,6 +101,34 @@ class ReferenceTests(unittest.TestCase):
    for slot in role['slots']:
     if str(slot['atom']) in cell['providers']:self.assertNotIn(str(slot['slot']),cell['values'])
   self.assertGreater(count,0)
+ def test_copied_marker_fields_survive_union_without_provider_pins(self):
+  p=self.program(MARKER,['View'])
+  env={'CELL_CPU_REFERENCE_VIEWS':'1','CELL_CPU_ABSORB':'0','CELL_CPU_MARKER_FIELDS':'copy'}
+  reports=[]
+  for mode in ('0','1'):
+   reports.append(execute(p,self.root/mode,ENGINE,audit=True,save_checkpoint=True,environment={**env,'CELL_CPU_REFERENCE_VIEWS':mode}))
+  self.assertEqual(audit(p,self.root/'0/runtime'),audit(p,self.root/'1/runtime'))
+  states=[json.loads((self.root/m/'runtime/stages.json').read_text()) for m in ('0','1')]
+  self.assertEqual(list(map(norm,states[0])),list(map(norm,states[1])))
+  self.assertGreater(reports[1]['stats']['unions'],0)
+  self.assertGreater(reports[1]['stats']['repaired_dependencies'],0)
+  self.assertEqual(reports[1]['reference_views']['provider_handles'],0)
+  graph=json.loads((self.root/'1/runtime/checkpoint.json').read_text())['graph']
+  self.assertTrue(graph['marker_fields_copied'])
+  count=0
+  for cell in graph['cells'].values():
+   if cell['template']>=len(p['reference_views']['rules']):continue
+   role=p['reference_views']['rules'][cell['template']]
+   if role['storage']!='reference-view':continue
+   count+=1;self.assertFalse(cell['providers']);self.assertIsNone(cell['parent'])
+   for slot in role['slots']:self.assertIn(str(slot['slot']),cell['values'])
+  self.assertGreater(count,0)
+  execute(p,self.root/'partial',ENGINE,checkpoint_after=1,environment=env)
+  execute(p,self.root/'resume',ENGINE,resume=self.root/'partial/runtime/checkpoint.json',environment=env)
+  self.assertEqual(norm(json.loads((self.root/'resume/runtime/state.json').read_text())),norm(states[1][-1]))
+  with self.assertRaises(subprocess.CalledProcessError):
+   execute(p,self.root/'wrong-mode',ENGINE,resume=self.root/'partial/runtime/checkpoint.json',environment={**env,'CELL_CPU_MARKER_FIELDS':'reference'})
+  self.assertIn('marker field storage mode differs',(self.root/'wrong-mode/runtime.log').read_text())
  def test_wrong_slot_certificate_rejected_in_rust(self):
   p=self.program(MARKER,['View']);rule=next(r for r in p['reference_views']['rules'] if r['slots']);rule['slots'][0]['column']+=1
   p['sha256']=digest({k:v for k,v in p.items() if k!='sha256'});path=self.root/'bad.json';path.write_text(json.dumps(p))

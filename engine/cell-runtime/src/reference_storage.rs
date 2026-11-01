@@ -49,6 +49,14 @@ impl Graph {
         {
             return self.linked_frame(template, values, parent);
         }
+        // Keep the matched, correlated input tuple locally. Fact identity still
+        // uses FactRef; only field storage changes. slot() canonicalizes copied
+        // equality IDs, and publishing the marker subscribes its full row to
+        // union/repair just like every other virtual fact. No provider pins are
+        // needed to keep a snapshot of immutable matched parameters alive.
+        if self.marker_fields_copied {
+            return self.frame(template, values);
+        }
         let id = self.frame(template, values)?;
         let Some(layout) = self.program.views.layouts.get(&template).cloned() else {
             return Ok(id);
@@ -367,6 +375,6 @@ impl Graph {
         })
     }
     pub fn reference_report(&self) -> J {
-        json!({"enabled":self.views_enabled,"stats":self.view_stats,"marker_tables":self.program.views.markers.len(),"live_marker_views":if self.views_enabled{self.program.views.markers.iter().map(|t|self.operators[*t].len()).sum::<usize>()}else{0},"provider_handles":self.cells.values().map(|c|c.providers.len()).sum::<usize>(),"forwarded_fact_handles":self.fact_forwards.len(),"retired_context_views":self.retired_contexts.len(),"absorption":"exact matched-carrier containment; mutable function owners retained"})
+        json!({"enabled":self.views_enabled,"marker_fields":if self.marker_fields_copied{"copy"}else{"reference"},"stats":self.view_stats,"marker_tables":self.program.views.markers.len(),"live_marker_views":if self.views_enabled{self.program.views.markers.iter().map(|t|self.operators[*t].len()).sum::<usize>()}else{0},"provider_handles":self.cells.values().map(|c|c.providers.len()).sum::<usize>(),"forwarded_fact_handles":self.fact_forwards.len(),"retired_context_views":self.retired_contexts.len(),"absorption":"exact matched-carrier containment; mutable function owners retained"})
     }
 }

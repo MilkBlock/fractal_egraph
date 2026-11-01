@@ -11,14 +11,15 @@ The contract describes:
 - Exact query-atom/column projections for input slots. Mutable function results are copied into the binding snapshot rather than referenced as changing inputs.
 - Carrier rows: already matched immutable rows that the target recipe can represent, including non-root positions.
 - Shared slot accessors for the original producer's continuation program, so an absorbed producer can still supply its entry points.
-- Storage roles. Ordinary rule instances own their parameters. Pure marker publishers use referenced providers; mixed publishers reuse the ordinary owner's parameters without a second function-key tuple.
+- Storage roles. Ordinary rule instances own their parameters. Pure marker publishers may use referenced providers or retain a local field copy; mixed publishers reuse the ordinary owner's parameters without a second function-key tuple.
 - Selected marker tables. Only inert Unit functions with `merge old`, no RHS reads/removals and no merge-callback readers can use the reference representation. The normal pipeline also validates its full marker IR.
 
 Rust independently reconstructs and validates the projections/accessors against the typed source recipe. A forged coordinate, carrier or storage role is rejected. The compiler supplies a **conditional containment certificate**, not a claim that every producer instance is covered: runtime must show that every current owned fact and retained parameter position fits the target carriers.
 
 ## Runtime representation
 
-A marker row is an ordinary query-visible virtual fact reference:
+A marker row is an ordinary query-visible virtual fact reference. With
+`CELL_CPU_MARKER_FIELDS=reference`, its fields are recovered from provider recipes:
 
 ```
 FactRef { cell, operation }
@@ -28,7 +29,33 @@ shared recipe + typed slot projection
 provider FactRefs, possibly from several Cells
 ```
 
-It no longer needs a separate explicit `Function.key` tuple. Pure views do not store their projected input values. Coordinates not proven shareable remain stored. Normal rules still see the same complete correlated binding; equality-class alternatives are not collapsed to one representative.
+It no longer needs a separate explicit `Function.key` tuple. In reference mode,
+pure views do not store their projected input values. Coordinates not proven
+shareable remain stored. Normal rules still see the same complete correlated
+binding; equality-class alternatives are not collapsed to one representative.
+
+The default within the opt-in storage path is now `CELL_CPU_MARKER_FIELDS=copy`:
+
+```
+FactRef { cell, operation }
+        ↓
+shared recipe + local matched field tuple
+        ↓
+canonicalize equality IDs through union-find
+```
+
+This keeps virtual fact identity and optional storage takeover, but removes the
+provider chain and its pins from pure marker frames. It does not expand a Cell
+into all its table rows, change the source marker schema, or turn markers back
+into explicit `Function.key` records. Copies contain immutable matched values,
+not frozen canonical identities: `slot()` still applies `canon`. `activate`
+subscribes the marker's complete row to equality dependencies; union marks the
+fact dirty, repair recalculates its canonical key, coalesces duplicate marker
+facts and notifies indexes. Mutable function inputs remain binding snapshots.
+
+Checkpoint images record the field-storage mode and reject a mode change during
+resume. Old reference-only checkpoints can resume with the explicit `reference`
+setting. Copies of fields are distinct from copies of a Cell's derived closure.
 
 This removes duplicate field storage, not the logical existence record or all indexes. It also does not compress a combinatorial set of distinct bindings into one record.
 
@@ -80,9 +107,9 @@ EGGFUSE_TEST_FRONTEND=/path/to/eggfuse_frontend \
   experiments.cell_runtime.test_congruence_bench -v
 ```
 
-25 tests pass, including streaming checks of the existing 52 regression programs. Dedicated cases cover multi-owner markers, alias-created matches, late inputs, finite Repeat, hidden/deleted/recreated facts after takeover, partial coverage, retained mutable function ownership, inherited compiled entries, checkpoint resume after takeover, and a forged slot certificate. A checkpoint test checks that referenced marker fields are actually absent from the view's owned parameter map.
+26 tests pass, including streaming checks of the existing 52 regression programs. Dedicated cases cover multi-owner markers, alias-created matches, late inputs, finite Repeat, hidden/deleted/recreated facts after takeover, partial coverage, retained mutable function ownership, inherited compiled entries, checkpoint resume after takeover, and a forged slot certificate. Checkpoint tests verify that reference mode omits projected fields, copy mode retains them without provider pins, union/repair still gives identical per-stage graphs/bindings, and resume cannot silently switch the storage mode.
 
-## Measured sum-bits Pass 3
+## Historical sum-bits Pass 3 (referenced fields)
 
 Final selected binary: `8f83693bcd5ca7e94c6069f3e896beb32249f50f32205c8f20f94c0010c17d0f`.
 Program: `7ba5d6732f535bf5aa5052b46506c7a8f8f3fc92fdf05b51f163c771a5fd0730`.
@@ -117,3 +144,64 @@ The current representation reduces persistent tuple duplication but increases re
 An attempted per-read batching decoder showed no net benefit (0.5451 → 1.6300 s); it was removed. The final binary hash matches the already verified selected measurement, so that measurement was reused rather than repeated. The earlier all-instance reference-chain version is likewise not the shipped layout: ordinary instances remain parameter owners.
 
 Remaining limits are explicit: no automatic absorption of mutable function owners; no retirement from weak domination or future-stage derivability alone; no global enumeration of every possible sub-Cell; lightweight forwarding/continuation metadata is retained; and no default enablement until actual workload benefits justify it.
+
+## Field-copy ablation (2026-11-01)
+
+The compiler artifact above is unchanged. All five lanes below were measured
+once using binary `30af72aa3c7963d331839e2e6bc93fc6615b0f28c824841dd2df8df073e45ddd`.
+Source markers and the original schedule are present in **every** lane. Control
+disables only reference-view storage and takeover; it is not a no-marker run.
+This is the standalone Cell CPU engine, not a pristine egglog benchmark.
+
+| Storage and takeover | Inference | Search | RHS | Repair bucket |
+|---|---:|---:|---:|---:|
+| Original marker storage, no takeover | 0.5535 s | 0.2907 s | 0.0788 s | 0.0802 s |
+| Referenced fields, no takeover | 1.1306 s | 0.6292 s | 0.1567 s | 0.1485 s |
+| **Copied fields, no takeover** | **0.8405 s** | **0.4530 s** | **0.0952 s** | **0.1290 s** |
+| Referenced fields, takeover | 1.5408 s | 0.6430 s | 0.1668 s | 0.5378 s |
+| **Copied fields, takeover** | **1.2327 s** | **0.4583 s** | **0.0984 s** | **0.5143 s** |
+
+Copying fields saves 0.2901 s (25.7%) without takeover and 0.3081 s (20.0%) with
+takeover. These are whole-mode differences, not an isolated timer for pointer
+chasing. Provider setup/validation, pin maintenance, field decoding and their
+downstream costs change together. The repair bucket still includes takeover
+and pending-event retargeting; it is not a measurement of rebuild alone.
+
+All four candidates independently pass **1,623 per-Run full-graph and complete
+binding-sequence comparisons** against control. All clean runs finish with
+10,339 logical records, 45,911 complete bindings and 1,089 unions. Corresponding
+reference/copy lanes have identical candidate visits, decoded-row counts and
+repaired-dependency counts. Both takeover lanes retire 946 bodies and relocate
+950 facts; the faster copy lane does not disable takeover to obtain its result.
+
+Without takeover, copying changes stored Cell parameter values from 20,269 to
+51,889, and provider handles from 12,098 to zero. With takeover, values change
+from 17,963 to 48,743 and provider handles from 11,858 to zero. Peak RSS spans
+221.1–224.1 MiB across these single runs; this is not evidence of a significant
+RSS improvement or regression.
+
+The old FactRef representation and the new provider representation are not the
+same read path. FactRef names a fact position. Referenced marker *fields* add a
+second level: slot projection, provider FactRef, provider recipe column, possibly
+another provider. Each step has map/recipe lookups and lifecycle bookkeeping.
+Copies keep the fact handle but terminate most marker field reads at local
+parameters. They still canonicalize equality IDs and subscribe to repair.
+
+The copied/no-takeover path remains 0.2870 s slower than control. The source
+confirms that general match-witness collection/cloning remains enabled, and
+virtual marker facts still use recipe decoding and a different key/repair path
+than explicit Unit function records. These remaining costs have **not** been
+separately timed. Takeover adds another net 0.3922 s in copy mode, mostly in the
+combined repair bucket. No claim is made that copies fix the entire regression.
+
+Reproduce without rebuilding Bake or solver output:
+
+```sh
+/opt/homebrew/bin/python3 -B -m experiments.cell_runtime.reference_views_bench \
+  --compiled out/reference-pass3-owned/compile \
+  --output out/new-marker-field-comparison --marker-field-ablation
+```
+
+The helper verifies official pipeline receipts, runs correctness audits separately,
+then measures each clean lane once. Provenance, configuration, work counts and
+phase times are retained in `reference-view-results/marker-field-copies.json`.
