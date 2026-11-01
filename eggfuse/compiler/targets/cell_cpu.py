@@ -1,5 +1,5 @@
 """The shared SK/Bake/marker pipeline's standalone Cell CPU target."""
-import json,shutil
+import json,shutil,os
 from pathlib import Path
 from eggfuse.ir.cell_runtime import build,validate
 from eggfuse.ir.recipe import validate as validate_recipe
@@ -12,18 +12,20 @@ def emit(folder,core,recipe,marker,source):
     program=build(json.loads(core.read_text()));validate(program)
     (folder/'program.json').write_text(json.dumps(program))
     (folder/'multi-stage-program.json').write_text(json.dumps(program['multi_stage'],indent=2))
+    (folder/'local-congruence-program.json').write_text(json.dumps(program['congruence'],indent=2))
     for name,path in [('core.json',core),('recipe-program.json',recipe),('marker-program.json',marker),('source_sk_mk.egg',source)]:shutil.copyfile(path,folder/name)
     caps={'backend':'cell-cpu','storage':'shared recipe and parent projections; virtual fact references; mutable function ports',
           'native_runtime_linked':False,'requirements':program['requirements'],
           'multi_stage':{'routes':len(program['multi_stage']['routes']),'publication':'original Run occurrences','local_results':'producer recipe slots with current exhaustive-domain checks','residual':'all ambiguous or unknown boundary alternatives retained'},
+          'local_congruence':{'templates':len(program['congruence']['templates']), 'enable':'CELL_CPU_CONGRUENCE=1', 'proof':'conditional constructor congruence checked against typed recipe', 'fallback':'global repair; shortcut disabled with non-lattice function merges'},
           'limits':['no GPU execution','unproven inverse reads retain residual matching','diagnostic unit-cost extraction only','source frontend restricts post-initialization commands']}
     (folder/'capabilities.json').write_text(json.dumps(caps,indent=2))
-    files=['program.json','multi-stage-program.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
+    files=['program.json','multi-stage-program.json','local-congruence-program.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
     (folder/'manifest.json').write_text(json.dumps({'schema':'eggfuse-device-artifact/v1','backend':'cell-cpu','source_sha256':digest(source),'execution':{'native_runtime':False},'files':{n:digest(folder/n) for n in files}},indent=2))
 
 def compile_target(pm,core,recipe,marker,source,stop_after,execute_runtime):
-    implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py']
-    outputs=['program.json','multi-stage-program.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
+    implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py',ROOT/'eggfuse/analyzer/congruence.py']
+    outputs=['program.json','multi-stage-program.json','local-congruence-program.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
     def check(folder):validate(json.loads((folder/'program.json').read_text()))
     device=pm.run('device',{'core':core,'recipe':recipe,'marker':marker,'source':source},{'backend':'cell-cpu'},implementations,outputs,
         lambda f:emit(f,core,recipe,marker,source),check,preserves=['typed marked program and source control'])
@@ -37,6 +39,7 @@ def compile_target(pm,core,recipe,marker,source,stop_after,execute_runtime):
     files=implementations+list((ROOT/'engine/cell-runtime/src').glob('*.rs'))+[ROOT/'eggfuse/engine/cell_runtime.py',ROOT/'experiments/cell_runtime/audit.py']
     inputs={'program':device/'program.json'}
     if engine:inputs['engine']=engine
-    result=pm.run('verify',inputs,{'backend':'cell-cpu','execute':execute_runtime},files,['verification.json'],verify,
+    runtime_options={k:v for k,v in os.environ.items() if k.startswith('CELL_CPU_')}
+    result=pm.run('verify',inputs,{'backend':'cell-cpu','execute':execute_runtime,'runtime_options':runtime_options},files,['verification.json'],verify,
         lambda f:json.loads((f/'verification.json').read_text()),preserves=['reported binding audit and fresh-process reproducibility'])
     pm.publish(result/'verification.json','verification.json');return pm

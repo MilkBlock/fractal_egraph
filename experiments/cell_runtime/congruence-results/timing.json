@@ -1,0 +1,507 @@
+{
+  "wide": {
+    "measurements": [
+      {
+        "program_sha256": "45dd491d4a8a354d8bcf08fb4bd359e63ca913720c3c142ed89c57c4a1855934",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.03715679199376609,
+        "peak_rss_bytes": 21774336,
+        "inference_seconds": 0.018684041,
+        "setup_seconds": 0.001351584,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "0"
+        }
+      },
+      {
+        "program_sha256": "45dd491d4a8a354d8bcf08fb4bd359e63ca913720c3c142ed89c57c4a1855934",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.03503316600108519,
+        "peak_rss_bytes": 21610496,
+        "inference_seconds": 0.017394958,
+        "setup_seconds": 0.001435416,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "1"
+        }
+      }
+    ],
+    "full_graph_and_schedule_equal": true,
+    "inference_speedup": 1.0741067037931336,
+    "local_congruence": {
+      "condition_groups": 1,
+      "enabled": true,
+      "proofs": 8,
+      "reorder_safe": true,
+      "scope": "conditional local constructor closure; residual global repair retained",
+      "stats": {
+        "coalesced_facts": 2048,
+        "guard_tests": 512,
+        "instance_visits": 512,
+        "proven_unions": 2048,
+        "unavailable_proofs": 2048
+      },
+      "templates": 1
+    },
+    "stats": [
+      {
+        "bindings": 2560,
+        "cells_created": 3328,
+        "constructor_requests": 6144,
+        "constructor_reused": 0,
+        "decoded_rows": 4608,
+        "direct_bindings": 2560,
+        "empty_frames_released": 256,
+        "function_updates": 0,
+        "logical_facts_created": 6912,
+        "merge_calls": 0,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 6912,
+        "residual_candidates": 0,
+        "unions": 2304
+      },
+      {
+        "bindings": 2560,
+        "cells_created": 3328,
+        "constructor_requests": 6144,
+        "constructor_reused": 0,
+        "decoded_rows": 4608,
+        "direct_bindings": 2560,
+        "empty_frames_released": 256,
+        "function_updates": 0,
+        "logical_facts_created": 6912,
+        "merge_calls": 0,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 2816,
+        "residual_candidates": 0,
+        "unions": 2304
+      }
+    ],
+    "phases": [
+      {
+        "delivery_gc": 0.00316825,
+        "query_update": 2.7707e-05,
+        "repair": 0.00807825,
+        "rhs": 0.005853541,
+        "search": 0.0015447500000000001
+      },
+      {
+        "delivery_gc": 0.0029624990000000004,
+        "query_update": 2.7708e-05,
+        "repair": 0.00694375,
+        "rhs": 0.005824876,
+        "search": 0.0016249580000000001
+      }
+    ]
+  },
+  "deep": {
+    "measurements": [
+      {
+        "program_sha256": "e79eac4739935a7a21c2ad088ca21227199c80a4081996aa473c3c943d06b72f",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.12238516699289903,
+        "peak_rss_bytes": 44957696,
+        "inference_seconds": 0.078543166,
+        "setup_seconds": 0.00145425,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "0"
+        }
+      },
+      {
+        "program_sha256": "e79eac4739935a7a21c2ad088ca21227199c80a4081996aa473c3c943d06b72f",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.10925391600176226,
+        "peak_rss_bytes": 44105728,
+        "inference_seconds": 0.068561375,
+        "setup_seconds": 0.001447792,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "1"
+        }
+      }
+    ],
+    "full_graph_and_schedule_equal": true,
+    "inference_speedup": 1.1455891309064326,
+    "local_congruence": {
+      "condition_groups": 1,
+      "enabled": true,
+      "proofs": 32,
+      "reorder_safe": true,
+      "scope": "conditional local constructor closure; residual global repair retained",
+      "stats": {
+        "coalesced_facts": 8192,
+        "guard_tests": 512,
+        "instance_visits": 512,
+        "proven_unions": 8192,
+        "unavailable_proofs": 8192
+      },
+      "templates": 1
+    },
+    "stats": [
+      {
+        "bindings": 8704,
+        "cells_created": 9472,
+        "constructor_requests": 24576,
+        "constructor_reused": 0,
+        "decoded_rows": 16896,
+        "direct_bindings": 8704,
+        "empty_frames_released": 256,
+        "function_updates": 0,
+        "logical_facts_created": 25344,
+        "merge_calls": 0,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 25344,
+        "residual_candidates": 0,
+        "unions": 8448
+      },
+      {
+        "bindings": 8704,
+        "cells_created": 9472,
+        "constructor_requests": 24576,
+        "constructor_reused": 0,
+        "decoded_rows": 16896,
+        "direct_bindings": 8704,
+        "empty_frames_released": 256,
+        "function_updates": 0,
+        "logical_facts_created": 25344,
+        "merge_calls": 0,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 8960,
+        "residual_candidates": 0,
+        "unions": 8448
+      }
+    ],
+    "phases": [
+      {
+        "delivery_gc": 0.012680167,
+        "query_update": 9.7374e-05,
+        "repair": 0.032642667,
+        "rhs": 0.026649459,
+        "search": 0.0064521249999999995
+      },
+      {
+        "delivery_gc": 0.011913709,
+        "query_update": 0.000100375,
+        "repair": 0.025915625,
+        "rhs": 0.024562458,
+        "search": 0.006052584
+      }
+    ]
+  },
+  "fact": {
+    "measurements": [
+      {
+        "program_sha256": "cf1aeb5f4b60a8c9d517d323a6a801c7ffeb07628b0fb21ab2bb500047bfe6a6",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.11169524998695124,
+        "peak_rss_bytes": 140230656,
+        "inference_seconds": 0.022767041,
+        "setup_seconds": 0.000552083,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "0"
+        }
+      },
+      {
+        "program_sha256": "cf1aeb5f4b60a8c9d517d323a6a801c7ffeb07628b0fb21ab2bb500047bfe6a6",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.11356500000692904,
+        "peak_rss_bytes": 141033472,
+        "inference_seconds": 0.02362,
+        "setup_seconds": 0.00064275,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "1"
+        }
+      }
+    ],
+    "full_graph_and_schedule_equal": true,
+    "inference_speedup": 0.9638882726502963,
+    "local_congruence": {
+      "condition_groups": 98,
+      "enabled": false,
+      "proofs": 176,
+      "reorder_safe": false,
+      "scope": "conditional local constructor closure; residual global repair retained",
+      "stats": {
+        "coalesced_facts": 0,
+        "guard_tests": 0,
+        "instance_visits": 0,
+        "proven_unions": 0,
+        "unavailable_proofs": 0
+      },
+      "templates": 67
+    },
+    "stats": [
+      {
+        "bindings": 2187,
+        "cells_created": 2347,
+        "constructor_requests": 2988,
+        "constructor_reused": 2155,
+        "decoded_rows": 26727,
+        "direct_bindings": 584,
+        "empty_frames_released": 1464,
+        "function_updates": 178,
+        "logical_facts_created": 1024,
+        "merge_calls": 210,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 1043,
+        "residual_candidates": 18284,
+        "unions": 152
+      },
+      {
+        "bindings": 2187,
+        "cells_created": 2347,
+        "constructor_requests": 2988,
+        "constructor_reused": 2155,
+        "decoded_rows": 26727,
+        "direct_bindings": 584,
+        "empty_frames_released": 1464,
+        "function_updates": 178,
+        "logical_facts_created": 1024,
+        "merge_calls": 210,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 1043,
+        "residual_candidates": 18284,
+        "unions": 152
+      }
+    ],
+    "phases": [
+      {
+        "delivery_gc": 0.0028536700000000035,
+        "query_update": 0.0007308690000000054,
+        "repair": 0.0013426690000000068,
+        "rhs": 0.002987922000000006,
+        "search": 0.01385837000000002
+      },
+      {
+        "delivery_gc": 0.0028882010000000034,
+        "query_update": 0.0007570540000000061,
+        "repair": 0.0013862820000000078,
+        "rhs": 0.0030130840000000074,
+        "search": 0.01453140900000002
+      }
+    ]
+  },
+  "loopfact": {
+    "measurements": [
+      {
+        "program_sha256": "7d27792f667e4c3b97384d3a042e31917793b28fff183085abeba62cb66dbb70",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.1106214169994928,
+        "peak_rss_bytes": 139182080,
+        "inference_seconds": 0.023342958,
+        "setup_seconds": 0.000574625,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "0"
+        }
+      },
+      {
+        "program_sha256": "7d27792f667e4c3b97384d3a042e31917793b28fff183085abeba62cb66dbb70",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.1189655829948606,
+        "peak_rss_bytes": 139182080,
+        "inference_seconds": 0.02473675,
+        "setup_seconds": 0.000612542,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "1"
+        }
+      }
+    ],
+    "full_graph_and_schedule_equal": true,
+    "inference_speedup": 0.9436550072260909,
+    "local_congruence": {
+      "condition_groups": 98,
+      "enabled": false,
+      "proofs": 140,
+      "reorder_safe": false,
+      "scope": "conditional local constructor closure; residual global repair retained",
+      "stats": {
+        "coalesced_facts": 0,
+        "guard_tests": 0,
+        "instance_visits": 0,
+        "proven_unions": 0,
+        "unavailable_proofs": 0
+      },
+      "templates": 67
+    },
+    "stats": [
+      {
+        "bindings": 1902,
+        "cells_created": 2076,
+        "constructor_requests": 2568,
+        "constructor_reused": 1790,
+        "decoded_rows": 29474,
+        "direct_bindings": 446,
+        "empty_frames_released": 1252,
+        "function_updates": 191,
+        "logical_facts_created": 954,
+        "merge_calls": 227,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 1017,
+        "residual_candidates": 19622,
+        "unions": 141
+      },
+      {
+        "bindings": 1902,
+        "cells_created": 2076,
+        "constructor_requests": 2568,
+        "constructor_reused": 1790,
+        "decoded_rows": 29474,
+        "direct_bindings": 446,
+        "empty_frames_released": 1252,
+        "function_updates": 191,
+        "logical_facts_created": 954,
+        "merge_calls": 227,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 1017,
+        "residual_candidates": 19622,
+        "unions": 141
+      }
+    ],
+    "phases": [
+      {
+        "delivery_gc": 0.002498339000000004,
+        "query_update": 0.0007505510000000047,
+        "repair": 0.0012842880000000052,
+        "rhs": 0.0027349600000000037,
+        "search": 0.015089830000000023
+      },
+      {
+        "delivery_gc": 0.0024949940000000043,
+        "query_update": 0.0007930060000000047,
+        "repair": 0.001371879000000006,
+        "rhs": 0.0029717870000000057,
+        "search": 0.016051011000000004
+      }
+    ]
+  },
+  "sum-bits": {
+    "measurements": [
+      {
+        "program_sha256": "256e31a4004b05c68565315f26032ff49789ba62681d0fa8ce2c7104de49263e",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.2639518750074785,
+        "peak_rss_bytes": 148684800,
+        "inference_seconds": 0.166843666,
+        "setup_seconds": 0.0005505,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "0"
+        }
+      },
+      {
+        "program_sha256": "256e31a4004b05c68565315f26032ff49789ba62681d0fa8ce2c7104de49263e",
+        "binary_sha256": "f868ac55c382152fe0143ec4eeac1bc7ac5a94e259d95258536cdd79021b962f",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.2621055420022458,
+        "peak_rss_bytes": 148848640,
+        "inference_seconds": 0.1678065,
+        "setup_seconds": 0.00053,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_CONGRUENCE": "1"
+        }
+      }
+    ],
+    "full_graph_and_schedule_equal": true,
+    "inference_speedup": 0.9942622365641379,
+    "local_congruence": {
+      "condition_groups": 98,
+      "enabled": false,
+      "proofs": 179,
+      "reorder_safe": false,
+      "scope": "conditional local constructor closure; residual global repair retained",
+      "stats": {
+        "coalesced_facts": 0,
+        "guard_tests": 0,
+        "instance_visits": 0,
+        "proven_unions": 0,
+        "unavailable_proofs": 0
+      },
+      "templates": 67
+    },
+    "stats": [
+      {
+        "bindings": 14534,
+        "cells_created": 14818,
+        "constructor_requests": 20515,
+        "constructor_reused": 17359,
+        "decoded_rows": 193373,
+        "direct_bindings": 2899,
+        "empty_frames_released": 12287,
+        "function_updates": 567,
+        "logical_facts_created": 3791,
+        "merge_calls": 1392,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 10238,
+        "residual_candidates": 135639,
+        "unions": 1091
+      },
+      {
+        "bindings": 14534,
+        "cells_created": 14818,
+        "constructor_requests": 20515,
+        "constructor_reused": 17359,
+        "decoded_rows": 193373,
+        "direct_bindings": 2899,
+        "empty_frames_released": 12287,
+        "function_updates": 567,
+        "logical_facts_created": 3791,
+        "merge_calls": 1392,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 10238,
+        "residual_candidates": 135639,
+        "unions": 1091
+      }
+    ],
+    "phases": [
+      {
+        "delivery_gc": 0.021095123999999882,
+        "query_update": 0.005524510000000003,
+        "repair": 0.016672616999999865,
+        "rhs": 0.0207634319999999,
+        "search": 0.10061378500000003
+      },
+      {
+        "delivery_gc": 0.021238196999999907,
+        "query_update": 0.005786875000000007,
+        "repair": 0.017237550999999858,
+        "rhs": 0.020816619999999918,
+        "search": 0.10055517099999996
+      }
+    ]
+  }
+}

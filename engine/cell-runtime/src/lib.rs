@@ -1,4 +1,5 @@
 pub mod checksum;
+pub mod congruence;
 #[path = "runtime.rs"]
 pub mod executor;
 pub mod extract;

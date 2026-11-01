@@ -69,6 +69,15 @@ pub struct Stats {
     pub native_table_writes: u64,
     pub native_free_join_calls: u64,
 }
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct CongruenceStats {
+    pub instance_visits: u64,
+    pub guard_tests: u64,
+    pub unavailable_proofs: u64,
+    pub proven_unions: u64,
+    #[serde(default)]
+    pub coalesced_facts: u64,
+}
 pub struct Graph {
     pub program: Program,
     pub cells: BTreeMap<u32, Cell>,
@@ -83,6 +92,9 @@ pub struct Graph {
     pub next_cell: u32,
     pub query_versions: Vec<u64>,
     pub query_changes: HashMap<Dependency, usize>,
+    pub congruence_enabled: bool,
+    pub congruence_stats: CongruenceStats,
+    congruence_dirty: BTreeSet<u32>,
     operators: Vec<BTreeSet<FactRef>>,
     function_operators: Vec<BTreeSet<usize>>,
     intern: HashMap<u64, BTreeSet<FactRef>>,
@@ -102,7 +114,7 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
 }
 impl Graph {
     pub fn image(&self) -> J {
-        json!({"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell})
+        json!({"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats})
     }
     pub fn restore(program: Program, image: &J) -> Result<Self> {
         fn decode<T: serde::de::DeserializeOwned>(j: &J) -> Result<T> {
@@ -122,6 +134,9 @@ impl Graph {
         g.parents = decode(&image["parents"])?;
         g.epoch = decode(&image["epoch"])?;
         g.stats = decode(&image["stats"])?;
+        if !image["congruence_stats"].is_null() {
+            g.congruence_stats = decode(&image["congruence_stats"])?;
+        }
         g.anchors = decode(&image["anchors"])?;
         g.next_cell = decode(&image["next_cell"])?;
         if g.parents.iter().any(|(a, b)| b >= a) || g.cells.keys().any(|i| *i >= g.next_cell) {
@@ -185,6 +200,8 @@ impl Graph {
     pub fn new(program: Program) -> Result<Self> {
         let n = program.tables.len();
         let initial = program.initial.clone();
+        let congruence_enabled = std::env::var("CELL_CPU_CONGRUENCE").as_deref() == Ok("1")
+            && program.congruence.reorder_safe;
         let mut g = Self {
             program,
             cells: BTreeMap::new(),
@@ -199,6 +216,9 @@ impl Graph {
             next_cell: 1,
             query_versions: vec![0; n],
             query_changes: HashMap::new(),
+            congruence_enabled,
+            congruence_stats: CongruenceStats::default(),
+            congruence_dirty: BTreeSet::new(),
             operators: vec![BTreeSet::new(); n],
             function_operators: vec![BTreeSet::new(); n],
             intern: HashMap::new(),
@@ -686,17 +706,49 @@ impl Graph {
         self.parents.insert(hi, lo);
         let mut affected = self.uses.remove(&hi).unwrap_or_default();
         affected.extend(self.uses.get(&lo).into_iter().flatten().copied());
+        self.mark_affected(&affected);
+        self.uses.insert(lo, affected);
+        self.stats.unions += 1;
+        self.changed = true;
+    }
+    fn mark_affected(&mut self, affected: &BTreeSet<Dependency>) {
         self.dirty.extend(affected.iter().copied());
-        for d in &affected {
+        for d in affected {
             if let Dependency::Fact(f) = d {
+                if self.congruence_enabled
+                    && self.cells.get(&f.cell).is_some_and(|c| {
+                        self.program.congruence.templates.contains_key(&c.template)
+                    })
+                {
+                    self.congruence_dirty.insert(f.cell);
+                }
                 if let Some(table) = self.dependency_table(*d) {
                     self.dirty_facts[table].insert(*f);
                 }
             }
         }
-        self.uses.insert(lo, affected);
-        self.stats.unions += 1;
-        self.changed = true;
+    }
+    fn union_local_batch(&mut self, pairs: &[(u64, u64)]) {
+        let mut affected = BTreeSet::new();
+        for &(a, b) in pairs {
+            let (a, b) = (root(&self.parents, a), root(&self.parents, b));
+            if a == b {
+                continue;
+            }
+            let (lo, hi) = (a.min(b), a.max(b));
+            self.parents.insert(hi, lo);
+            let from = self.uses.remove(&hi).unwrap_or_default();
+            let target = self.uses.entry(lo).or_default();
+            affected.extend(from.iter().copied());
+            affected.extend(target.iter().copied());
+            target.extend(from);
+            self.stats.unions += 1;
+            self.congruence_stats.proven_unions += 1;
+            self.changed = true;
+        }
+        // No callback or query runs within a proved union batch. Dependencies
+        // are notified once after all its internal equivalences are installed.
+        self.mark_affected(&affected);
     }
     pub fn set(&mut self, cell: u32, op: usize, t: usize, aa: &[Arg], v: &Arg) -> Result<()> {
         let key = self.arguments(cell, aa)?;
@@ -912,6 +964,10 @@ impl Graph {
                 }
                 continue;
             }
+            if let Some(cell) = self.congruence_dirty.pop_first() {
+                self.repair_local_congruence(cell)?;
+                continue;
+            }
             let Some(d) = self.dirty.pop_first() else {
                 break;
             };
@@ -1016,6 +1072,116 @@ impl Graph {
             }
         }
         Ok(())
+    }
+    fn repair_local_congruence(&mut self, cell: u32) -> Result<()> {
+        let Some(c) = self.cells.get(&cell) else {
+            return Ok(());
+        };
+        let Some(groups) = self.program.congruence.templates.get(&c.template).cloned() else {
+            return Ok(());
+        };
+        self.congruence_stats.instance_visits += 1;
+        let mut pairs = vec![];
+        let mut duplicates = BTreeMap::new();
+        for group in groups.iter() {
+            let mut equal = true;
+            for (a, b) in &group.guards {
+                self.congruence_stats.guard_tests += 1;
+                // A future/unready port never authorizes a shortcut.
+                match (self.argument(cell, a), self.argument(cell, b)) {
+                    (Ok(a), Ok(b)) if a == b => (),
+                    _ => {
+                        equal = false;
+                        break;
+                    }
+                }
+            }
+            if !equal {
+                continue;
+            }
+            // All depths of a repeated spine often have the same leaf guard.
+            // Check their common carrier once, rather than rescanning every
+            // prefix for every conclusion (quadratic on two long chains).
+            let all_ready = group
+                .requires
+                .iter()
+                .all(|op| self.cells[&cell].facts.get(op).is_some_and(|f| !f.hidden));
+            for proof in &group.merges {
+                let c = &self.cells[&cell];
+                if !all_ready
+                    && !proof
+                        .requires
+                        .iter()
+                        .all(|op| c.facts.get(op).is_some_and(|f| !f.hidden))
+                {
+                    self.congruence_stats.unavailable_proofs += 1;
+                    continue;
+                }
+                let t = &self.program.templates[c.template];
+                let (Op::Let(a, _, _), Op::Let(b, _, _)) =
+                    (&t.ops[proof.left], &t.ops[proof.right])
+                else {
+                    unreachable!()
+                };
+                let (Value::Eq(a), Value::Eq(b)) = (self.slot(cell, *a)?, self.slot(cell, *b)?)
+                else {
+                    unreachable!()
+                };
+                if a != b {
+                    pairs.push((a, b));
+                }
+                // This proves identical constructor keys, not merely equal
+                // result classes. Only the former permits retiring a fact.
+                let (a, b) = (
+                    root(&duplicates, proof.left as u64),
+                    root(&duplicates, proof.right as u64),
+                );
+                if a != b {
+                    duplicates.insert(a.max(b), a.min(b));
+                }
+            }
+        }
+        if !pairs.is_empty() {
+            self.union_local_batch(&pairs);
+        }
+        // Known local duplicates do not need another global signature probe.
+        // The surviving occurrence remains dirty and must still meet any
+        // duplicates in other instances through the exact global repairer.
+        for &op in duplicates.keys() {
+            let keep = FactRef {
+                cell,
+                op: root(&duplicates, op) as u32,
+            };
+            let old = FactRef {
+                cell,
+                op: op as u32,
+            };
+            let table = self
+                .dependency_table(Dependency::Fact(old))
+                .ok_or("missing proved constructor")?;
+            let target = self
+                .cells
+                .get_mut(&cell)
+                .unwrap()
+                .facts
+                .get_mut(&keep.op)
+                .ok_or("missing local survivor")?;
+            target.epoch = self.epoch;
+            self.events.push(Dependency::Fact(keep));
+            self.query_versions[table] += 1;
+            self.query_changes.insert(Dependency::Fact(keep), table);
+            self.retire(old)?;
+            self.dirty.remove(&Dependency::Fact(old));
+            self.dirty_facts[table].remove(&old);
+            self.congruence_stats.coalesced_facts += 1;
+        }
+        Ok(())
+    }
+    pub fn congruence_report(&self) -> J {
+        json!({"enabled":self.congruence_enabled,"reorder_safe":self.program.congruence.reorder_safe,
+            "templates":self.program.congruence.templates.len(),"condition_groups":self.program.congruence.templates.values().map(|gs|gs.len()).sum::<usize>(),
+            "proofs":self.program.congruence.templates.values().flat_map(|gs|gs.iter()).map(|g|g.merges.len()).sum::<usize>(),
+            "stats":self.congruence_stats,"scope":"conditional local constructor closure; residual global repair retained"})
     }
     pub fn release_empty(&mut self, cell: u32) {
         // Only the newly executed frame is retired here. Ancestors are kept

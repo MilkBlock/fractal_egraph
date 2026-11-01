@@ -50,6 +50,8 @@ def run_artifact(artifact,output,check=False,engine=None):
     program=json.loads((artifact/'program.json').read_text());core=validate(program)
     if 'multi_stage' in program:
         if 'multi-stage-program.json' not in manifest['files'] or json.loads((artifact/'multi-stage-program.json').read_text())!=program['multi_stage']:raise ValueError('multi-stage artifact differs')
+    if 'congruence' in program:
+        if 'local-congruence-program.json' not in manifest['files'] or json.loads((artifact/'local-congruence-program.json').read_text())!=program['congruence']:raise ValueError('congruence artifact differs')
     if core!=json.loads((artifact/'core.json').read_text()) or program['recipe']!=json.loads((artifact/'recipe-program.json').read_text()):raise ValueError('Cell artifact program/source mismatch')
     validate_markers(json.loads((artifact/'marker-program.json').read_text()),core)
     source_sha=hashlib.sha256((artifact/'source_sk_mk.egg').read_bytes()).hexdigest()

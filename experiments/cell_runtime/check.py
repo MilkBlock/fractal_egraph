@@ -6,6 +6,7 @@ from eggfuse.engine.cell_runtime import prepare,binary,execute
 from eggfuse.ir.cell_runtime import build
 from eggfuse.engine.cpu import binary as native_binary,compare_native
 from experiments.cell_runtime.audit import check as audit_bindings
+from experiments.cell_runtime.congruence_cases import CASES as CONGRUENCE_CASES
 
 CASES={
  'math':(ROOT/'tools/egglog_debugger/fixtures/stage-math.egg').read_text(),
@@ -212,6 +213,7 @@ CASES['multistage-future-error']='''(datatype E (Seed i64) (Leaf i64) (Pair E E)
 (rule ((Seed n)) ((Pair (Leaf n) (Leaf (+ n 1)))) :ruleset make)
 (rule ((Pair (Leaf a) (Leaf b))) ((Bad (/ 1 0))) :ruleset bad)
 (Seed 0) (run-schedule (seq (run make) (run bad :until (Pair (Leaf 0) (Leaf 1)))))'''
+CASES.update(CONGRUENCE_CASES)
 for name,source in list(CASES.items()):
  for stage in ('a','b','c'):
   source=source.replace(f'(ruleset {stage})',f'(ruleset stage-{stage})').replace(f':ruleset {stage})',f':ruleset stage-{stage})').replace(f'(run {stage})',f'(run stage-{stage})').replace(f'(run {stage} ',f'(run stage-{stage} ')
@@ -234,6 +236,28 @@ def main():
   execute(program,d/'replay',engine,True)
   assert json.loads((d/'cell/runtime/state.json').read_text())==json.loads((d/'replay/runtime/state.json').read_text())
   assert json.loads((d/'cell/runtime/stages.json').read_text())==json.loads((d/'replay/runtime/stages.json').read_text())
+  if name.startswith('congruence-'):
+   execute(program,d/'without-congruence',engine,True,environment={'CELL_CPU_CONGRUENCE':'0'})
+   for file in ('state.json','stages.json','binding-audit.json'):
+    assert json.loads((d/'cell/runtime'/file).read_text())==json.loads((d/'without-congruence/runtime'/file).read_text()),(name,file)
+   c=report['local_congruence']
+   if name in ('congruence-unready-stage','congruence-unseen-interior-alias'):assert c['stats']['proven_unions']==0,c
+   if name=='congruence-custom-merge':assert not c['enabled'] and not c['reorder_safe'],c
+   if os.environ.get('CELL_CPU_CONGRUENCE')=='1' and name in ('congruence-chain','congruence-shared-contexts','congruence-min-merge'):
+    assert c['enabled'] and c['stats']['proven_unions']>0,c
+   if name=='congruence-chain':
+    stopped=execute(program,d/'paused',engine,True,checkpoint_after=1)
+    resumed=execute(program,d/'resumed',engine,True,resume=d/'paused/runtime/checkpoint.json')
+    assert json.loads((d/'resumed/runtime/state.json').read_text())==json.loads((d/'cell/runtime/state.json').read_text())
+    assert resumed['local_congruence']['stats']==c['stats']
+    for kind in ('guard','requires','output'):
+     bad=json.loads(json.dumps(program));g=bad['congruence']['templates'][0]['groups'][0]
+     if kind=='guard':g['guards']=[]
+     elif kind=='requires':g['merges'][0]['requires']=[]
+     else:g['merges'][0]['right']=999999
+     path=d/(kind+'-forged.json');path.write_text(json.dumps(bad))
+     rejected=subprocess.run([str(engine),'--program',str(path),'--output',str(d/(kind+'-forged-output'))],capture_output=True,text=True)
+     assert rejected.returncode!=0,(kind,rejected.stdout)
   if name=='join-sieve-late' and report['sieve']['enabled'] and not os.environ.get('CELL_CPU_QUERY_INDEX_SCOPE'):
    # Identical fragments in two rulesets share four summaries, not eight.
    assert report['sieve']['stats']['builds']==4, report['sieve']
@@ -276,7 +300,7 @@ def main():
     (d/'damaged-checkpoint.json').write_text(json.dumps(damaged))
     attempt=subprocess.run([str(engine),'--program',str(d/'cell/cell-runtime-program.json'),'--resume',str(d/'damaged-checkpoint.json'),'--output',str(d/'damaged-resume')],capture_output=True,text=True)
     assert attempt.returncode!=0 and 'checksum' in attempt.stderr
-  summary[name]={'verification':proof,'binding_audit':audited,'replay_exact':True,'checkpoint_checked':name in ('math','ordered-merge','non-idempotent','finite','multistage-function-chain','multistage-local-chain','multistage-reentrant-repeat'),'stats':report['stats'],'multi_stage':report.get('multi_stage'),'sieve':report.get('sieve'),'join_refinements':report.get('join_refinements'),'live_cells':report['live_cells'],'stored_binding_values':report['stored_binding_values'],'virtual_constructor_facts':report['virtual_constructor_facts']}
+  summary[name]={'verification':proof,'binding_audit':audited,'replay_exact':True,'checkpoint_checked':name in ('math','ordered-merge','non-idempotent','finite','multistage-function-chain','multistage-local-chain','multistage-reentrant-repeat','congruence-chain'),'stats':report['stats'],'local_congruence':report.get('local_congruence'),'multi_stage':report.get('multi_stage'),'sieve':report.get('sieve'),'join_refinements':report.get('join_refinements'),'live_cells':report['live_cells'],'stored_binding_values':report['stored_binding_values'],'virtual_constructor_facts':report['virtual_constructor_facts']}
   print(name,proof,flush=True)
  (a.output/'results.json').write_text(json.dumps(summary,indent=2)+'\n')
 if __name__=='__main__':main()
