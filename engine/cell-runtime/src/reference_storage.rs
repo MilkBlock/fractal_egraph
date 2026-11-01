@@ -35,7 +35,7 @@ impl Graph {
         template: usize,
         values: BTreeMap<usize, Value>,
         parent: Option<FactRef>,
-        witnesses: &BTreeMap<usize, Dependency>,
+        witnesses: &MatchedFacts,
     ) -> Result<u32> {
         if !self.views_enabled {
             return self.linked_frame(template, values, parent);
@@ -62,10 +62,10 @@ impl Graph {
             return Ok(id);
         };
         for carrier in &layout.carriers {
-            let Some(Dependency::Fact(f)) = witnesses.get(&carrier.atom) else {
+            let Some(Dependency::Fact(f)) = witnesses.get(carrier.atom) else {
                 continue;
             };
-            let f = self.resolve_reference(*f);
+            let f = self.resolve_reference(f);
             // A match was gathered at this Run's snapshot. Parameters are immutable;
             // a later RHS may hide the row, but must not rewrite the captured binding.
             let expected = self.arguments(id, &carrier.columns)?;
@@ -97,8 +97,8 @@ impl Graph {
         }
         Ok(id)
     }
-    pub fn queue_absorption(&mut self, target: u32, witnesses: &BTreeMap<usize, Dependency>) {
-        if !self.views_enabled || std::env::var("CELL_CPU_ABSORB").as_deref() == Ok("0") {
+    pub fn queue_absorption(&mut self, target: u32, witnesses: &MatchedFacts) {
+        if !self.absorption_enabled {
             return;
         }
         let Some(c) = self.cells.get(&target) else {
@@ -107,12 +107,20 @@ impl Graph {
         if c.facts.is_empty() {
             return;
         }
+        if let MatchedFacts::Owners(owners) = witnesses {
+            for &source in owners {
+                if source > 0 && source < target {
+                    self.absorption_candidates.insert((target, source));
+                }
+            }
+            return;
+        }
         let Some(layout) = self.program.views.layouts.get(&c.template) else {
             return;
         };
         for carrier in &layout.carriers {
-            if let Some(Dependency::Fact(f)) = witnesses.get(&carrier.atom) {
-                let f = self.resolve_reference(*f);
+            if let Some(Dependency::Fact(f)) = witnesses.get(carrier.atom) {
+                let f = self.resolve_reference(f);
                 if f.cell < target {
                     self.absorption_candidates.insert((target, f.cell));
                 }
@@ -121,6 +129,9 @@ impl Graph {
     }
     fn detach_parameters(&mut self, target: u32) -> Result<()> {
         let c = &self.cells[&target];
+        if c.parent.is_none() && c.providers.is_empty() {
+            return Ok(());
+        }
         let template = c.template;
         let mut values = BTreeMap::new();
         if let Some(layout) = self.program.views.layouts.get(&template) {
@@ -146,6 +157,8 @@ impl Graph {
     /// indexes receive removals/additions, while logical timestamps stay unchanged.
     pub fn absorb_ready(&mut self) -> Result<BTreeMap<FactRef, FactRef>> {
         let mut moved = BTreeMap::new();
+        let mut cached_target = None;
+        let mut targets = BTreeMap::new();
         for (target, source) in std::mem::take(&mut self.absorption_candidates) {
             if target == source
                 || !self.cells.contains_key(&target)
@@ -177,17 +190,9 @@ impl Graph {
             }
             let template = self.cells[&target].template;
             let base = self.program.templates[template].ops.len();
-            let Some(layout) = self.program.views.layouts.get(&template).cloned() else {
+            let Some(layout) = self.program.views.layouts.get(&template) else {
                 continue;
             };
-            let mut targets = BTreeMap::new();
-            for (i, c) in layout.carriers.iter().enumerate() {
-                let vals = self.arguments(target, &c.columns)?;
-                targets.entry((c.table, vals)).or_insert(FactRef {
-                    cell: target,
-                    op: (base + i) as u32,
-                });
-            }
             let mut needed: BTreeSet<FactRef> = self.cells[&source]
                 .facts
                 .keys()
@@ -209,6 +214,30 @@ impl Graph {
                     )
                     .map(|(f, _)| *f),
             );
+            // Reject impossible table coverage before constructing any target
+            // tuples. This is exact, not a budget or a heuristic candidate cap.
+            if needed.iter().any(|old| {
+                self.dependency_table(Dependency::Fact(*old))
+                    .is_none_or(|t| !layout.carriers.iter().any(|c| c.table == t))
+            }) {
+                self.view_stats.type_rejections += 1;
+                self.view_stats.uncovered_sources += 1;
+                continue;
+            }
+            // Candidates are sorted by target. No logical mutation or union is
+            // performed here, so its canonical carrier tuples remain valid even
+            // while their physical owners are relocated.
+            if cached_target != Some(target) {
+                targets.clear();
+                for (i, c) in layout.carriers.iter().enumerate() {
+                    let vals = self.arguments(target, &c.columns)?;
+                    targets.entry((c.table, vals)).or_insert(FactRef {
+                        cell: target,
+                        op: (base + i) as u32,
+                    });
+                }
+                cached_target = Some(target);
+            }
             let mut map = BTreeMap::new();
             let mut valid = true;
             for old in needed {
@@ -216,10 +245,15 @@ impl Graph {
                     valid = false;
                     break;
                 };
-                let vals = (0..self.program.tables[table].schema.len())
-                    .map(|c| self.fact_column(old, c))
-                    .collect::<Result<Vec<_>>>()?;
-                let Some(&new) = targets.get(&(table, vals.clone())) else {
+                let vals = if let Some(row) = self.fact(old)? {
+                    row.values
+                } else {
+                    (0..self.program.tables[table].schema.len())
+                        .map(|c| self.fact_column(old, c))
+                        .collect::<Result<Vec<_>>>()?
+                };
+                let key = (table, vals);
+                let Some(&new) = targets.get(&key) else {
                     valid = false;
                     break;
                 };
@@ -227,7 +261,7 @@ impl Graph {
                 // still own its key; never resurrect a deleted/subsumed source.
                 if self.cells[&source].facts.contains_key(&old.op) {
                     if self
-                        .lookup(table, &vals[..vals.len() - 1])?
+                        .lookup(table, &key.1[..key.1.len() - 1])?
                         .is_none_or(|r| r.witness != Dependency::Fact(old))
                     {
                         valid = false;
@@ -375,6 +409,13 @@ impl Graph {
         })
     }
     pub fn reference_report(&self) -> J {
-        json!({"enabled":self.views_enabled,"marker_fields":if self.marker_fields_copied{"copy"}else{"reference"},"stats":self.view_stats,"marker_tables":self.program.views.markers.len(),"live_marker_views":if self.views_enabled{self.program.views.markers.iter().map(|t|self.operators[*t].len()).sum::<usize>()}else{0},"provider_handles":self.cells.values().map(|c|c.providers.len()).sum::<usize>(),"forwarded_fact_handles":self.fact_forwards.len(),"retired_context_views":self.retired_contexts.len(),"absorption":"exact matched-carrier containment; mutable function owners retained"})
+        let inline_marker_values = self
+            .cells
+            .values()
+            .flat_map(|c| c.facts.values())
+            .filter_map(|s| s.marker_row.as_ref())
+            .map(|m| m.values.len())
+            .sum::<usize>();
+        json!({"enabled":self.views_enabled,"marker_fields":if self.marker_fields_copied{"copy"}else{"reference"},"inline_marker_values":inline_marker_values,"stats":self.view_stats,"marker_tables":self.program.views.markers.len(),"live_marker_views":if self.views_enabled{self.program.views.markers.iter().map(|t|self.operators[*t].len()).sum::<usize>()}else{0},"provider_handles":self.cells.values().map(|c|c.providers.len()).sum::<usize>(),"forwarded_fact_handles":self.fact_forwards.len(),"retired_context_views":self.retired_contexts.len(),"absorption":"exact matched-carrier containment; mutable function owners retained"})
     }
 }

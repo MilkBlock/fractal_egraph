@@ -32,6 +32,7 @@ pub struct ViewStats {
     pub relocated_facts: u64,
     pub uncovered_sources: u64,
     pub retained_function_owners: u64,
+    pub type_rejections: u64,
 }
 impl Views {
     pub fn parse(p: &Program, j: &J) -> Result<Self> {

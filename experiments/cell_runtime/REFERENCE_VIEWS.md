@@ -1,6 +1,6 @@
 # Checked marker references and Cell storage takeover
 
-Implemented in the existing standalone CPU Cell executor and official CPU compiler target. The native egglog execution engine and Metal backend are not modified. The feature is **opt-in** (`CELL_CPU_REFERENCE_VIEWS=1`): the correctness path is complete for checked containment, but the measured implementation is slower on sum-bits. This is not a claim of a faster backend or of increased RipSat coverage.
+Implemented in the existing standalone CPU Cell executor and official CPU compiler target. The native egglog execution engine and Metal backend are not modified. The feature is **opt-in** (`CELL_CPU_REFERENCE_VIEWS=1`). The historical provider-chain implementation regressed on sum-bits; later field-copy and maintenance optimizations are recorded below. This is not a claim of increased RipSat coverage or native egglog acceleration.
 
 ## Compiler contract
 
@@ -107,7 +107,7 @@ EGGFUSE_TEST_FRONTEND=/path/to/eggfuse_frontend \
   experiments.cell_runtime.test_congruence_bench -v
 ```
 
-26 tests pass, including streaming checks of the existing 52 regression programs. Dedicated cases cover multi-owner markers, alias-created matches, late inputs, finite Repeat, hidden/deleted/recreated facts after takeover, partial coverage, retained mutable function ownership, inherited compiled entries, checkpoint resume after takeover, and a forged slot certificate. Checkpoint tests verify that reference mode omits projected fields, copy mode retains them without provider pins, union/repair still gives identical per-stage graphs/bindings, and resume cannot silently switch the storage mode.
+28 tests pass, including streaming checks of the existing 52 regression programs. Dedicated cases cover multi-owner markers, alias-created matches, late inputs, finite Repeat, hidden/deleted/recreated facts after takeover, partial coverage, retained mutable function ownership, inherited compiled entries, checkpoint resume after takeover, and a forged slot certificate. Checkpoint tests verify that reference mode omits projected fields, copy mode retains them without provider pins, union/repair still gives identical per-stage graphs/bindings, and resume cannot silently switch the storage mode.
 
 ## Historical sum-bits Pass 3 (referenced fields)
 
@@ -205,3 +205,96 @@ Reproduce without rebuilding Bake or solver output:
 The helper verifies official pipeline receipts, runs correctness audits separately,
 then measures each clean lane once. Provenance, configuration, work counts and
 phase times are retained in `reference-view-results/marker-field-copies.json`.
+
+## Removing the storage regression
+
+The optimized copy path retains the same logical marker schema, complete Run
+schedule, union semantics and exact containment checks. It also retains generic
+matched-carrier takeover; no successful takeover is disabled to improve timing.
+
+- **Packed marker fields.** Keep a contiguous, typed copy of the marker row at
+  its FactRef. It is additional storage alongside recipe parameters, explicitly
+  reported as `reference_views.inline_marker_values`. This caches marker rows,
+  not every derived constructor in a Cell.
+- **Canonical-state validity.** A packed row is read directly while canonical.
+  Reverse union dependencies invalidate it immediately. Dirty reads canonicalize
+  before use, and repair refreshes the packed row. Checkpoints omit this derived
+  cache and rebuild it from checked recipes on restore.
+- **Repair at the right point.** Only compiler-validated inert Unit markers with
+  pure `merge old`, no RHS read/removal and no merge readers use a separate dirty
+  queue. They are repaired after ordinary constructors/functions reach their
+  repair fixpoint, but before the same Run is published. These markers cannot
+  themselves create a union or change a merge callback result. This avoids
+  repeatedly repairing their keys during intermediate congruence merges. The
+  fallback and restrictions for other functions are unchanged.
+- **Minimal match provenance.** Copied-field takeover only records source Cell
+  IDs per query atom, using compact `u32` slots. Full FactRefs are retained when
+  provider-column projection needs them. With copies and takeover disabled,
+  matching records no storage provenance. Logical bindings are unchanged.
+- **Exact early rejection.** Check whether target carriers can represent every
+  required source table before expanding any target parameters. Build canonical
+  target carrier tuples once per target, reusing them for its source owners.
+  No budget, heuristic cutoff or weaker containment condition is introduced.
+- **Affected work only.** Fact relocation retargets pending handles only in
+  readers of that fact's table. Run-boundary delivery deduplicates repeated
+  notifications and reads liveness/table metadata without decoding full rows.
+  Matching still sees the original committed Run boundary.
+
+General reads also reuse the already-found Cell while decoding columns, avoid
+double canonicalization and avoid copying a hash bucket for a clean keyed read.
+These common improvements benefit both comparison lanes and are not Cell credit.
+
+For optimization iterations, the existing helper accepts `--copy-only
+--timing-only` for a fast final-graph check and clean timing. This is explicitly
+not per-Run correctness acceptance. After selecting an unchanged binary,
+`--copy-only --audit-only` performs the full graph/binding audit and records the
+program and binary fingerprints without rerunning already measured timings.
+
+### Verified sum-bits result, 2026-11-02
+
+Binary `31a3adfc88b105e8b75511e85917cdde19f873ecd1965c2dfafea31cc0c7ff96`,
+same `7ba5d673...` official compiler artifact and source markers as above:
+
+| Configuration | Inference | Search | Repair bucket | Peak RSS |
+|---|---:|---:|---:|---:|
+| Original marker storage (same binary) | 0.507630 s | 0.270926 s | 0.077943 s | 225.56 MiB |
+| Optimized copies, no takeover | 0.467340 s | 0.240056 s | 0.077039 s | 228.86 MiB |
+| **Optimized copies, takeover retained** | **0.500984 s** | **0.247346 s** | **0.097088 s** | **227.66 MiB** |
+
+The previous large regression is absent on this workload in the single paired
+measurement. The takeover lane is 1.3% below control; the difference is small and
+does not establish a substantial net speedup. Compared with the previous
+field-copy implementation's historical 1.232698 s, the retained-takeover path is
+now 0.500984 s. Common-engine improvements also speed up control, so that whole
+historical difference is not attributed solely to Cell storage.
+
+Both candidates independently pass all **1,623 Run-boundary full graphs and
+complete binding sequences** against control. All retain 10,339 final logical
+records, 45,911 complete bindings and 1,089 unions. Takeover still absorbs 946
+bodies, relocates 950 facts and preserves all 6,497 marker views. 17,452 of the
+19,888 containment attempts are rejected by exact table coverage before tuple
+expansion; the accepted/rejected totals are unchanged.
+
+In no-takeover mode, delaying inert marker repair reduces repaired-dependency
+visits from the earlier 50,934 to **38,291**, equal to control. With takeover the
+count is 38,283. Its 52,383 pending notifications are deduplicated to 45,972 final
+fact notifications at the same Run boundaries. These are maintenance counts,
+not skipped logical matches or additional closure proofs.
+
+The extra packed rows contain **40,097 Value slots** alongside 48,743 owned Cell
+parameter values in the takeover lane. Their cost is reported; they are not
+called free storage. The observed peak RSS increase over control is about
+2.1 MiB, from one process measurement per lane.
+
+All 28 tests pass, including the existing 52-program streaming suite. The
+additional checks cover reference-mode compatibility, cache reconstruction on
+checkpoint restore, repeated-notification coalescing and rejection of observable
+marker removal. The native frontend and native egglog runtime were not modified.
+
+Clean timing preceded the final full audit. During validation the worktree build
+directory disappeared; an offline rebuild reproduced the **identical binary
+hash**. The existing clean timings were therefore reused, not resampled. Inputs,
+binary hashes, phase times, work counts, RSS and full-audit results are recorded
+in `reference-view-results/marker-maintenance.json`. Earlier exploratory runs,
+including a candidate that still regressed by 7.5%, were not selected as the
+final implementation and remain under `out/reference-regression-*`.

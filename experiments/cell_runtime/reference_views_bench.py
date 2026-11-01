@@ -9,7 +9,7 @@ from pathlib import Path
 from eggfuse.engine.cell_runtime import load_pipeline_artifact,binary
 from eggfuse.compiler.passes import verified_receipts,PassManager
 from eggfuse.compiler.targets.cell_cpu import compile_target
-from experiments.cell_runtime.suite import timed
+from experiments.cell_runtime.suite import timed,fingerprint
 
 
 def reemit(source,dest):
@@ -44,21 +44,27 @@ def storage_mode(fields,absorb,enabled=True):
             else:os.environ[k]=v
 
 
-def marker_field_ablation(path,engine,out,provenance):
+def marker_field_ablation(path,engine,out,provenance,copy_only=False,timing_only=False,audit_only=False):
     """Only field ownership and takeover vary; source markers stay enabled."""
     lanes=[('control','copy',False,False),
            ('reference-no-takeover','reference',False,True),
            ('copy-no-takeover','copy',False,True),
            ('reference-takeover','reference',True,True),
            ('copy-takeover','copy',True,True)]
+    if copy_only:lanes=[lane for lane in lanes if not lane[0].startswith('reference-')]
     audits={}
-    for name,fields,absorb,enabled in lanes[1:]:
+    for name,fields,absorb,enabled in ([] if timing_only else lanes[1:]):
         with storage_mode(fields,absorb,enabled):
             r=subprocess.run([str(engine),'--program',str(path),'--verify-reference-views'],capture_output=True,text=True)
         (out/(name+'.audit.log')).write_text(r.stdout+r.stderr)
         if r.returncode:raise RuntimeError(r.stderr)
         audits[name]=json.loads(r.stdout)
         print(name,'audit passed',audits[name]['runs'],'Runs',flush=True)
+    if audit_only:
+        result={'provenance':provenance,'verification':audits,'program_sha256':fingerprint(path),
+                'binary_sha256':fingerprint(engine),'scope':'per-Run graph and binding verification only; no timing'}
+        (out/'results.json').write_text(json.dumps(result,indent=2)+'\n')
+        return
     measured={};expected=None
     for name,fields,absorb,enabled in lanes:
         with storage_mode(fields,absorb,enabled):
@@ -73,17 +79,19 @@ def marker_field_ablation(path,engine,out,provenance):
                         'report':{k:v for k,v in report.items() if k!='steps'}}
         print(name,measurement['inference_seconds'],'seconds',flush=True)
     result={'provenance':provenance,'verification':audits,'lanes':measured,
+            'per_run_audit_performed':not timing_only,
             'scope':'same binary and marked source; standalone Cell CPU; not pristine egglog; repair includes takeover and event retargeting'}
     (out/'results.json').write_text(json.dumps(result,indent=2)+'\n')
 
 
 def main():
-    p=argparse.ArgumentParser();source=p.add_mutually_exclusive_group(required=True);source.add_argument('--pipeline',type=Path);source.add_argument('--compiled',type=Path,help='reuse an already verified reference-view pipeline after engine-only changes');p.add_argument('--output',type=Path,required=True);p.add_argument('--engine',type=Path);p.add_argument('--marker-field-ablation',action='store_true',help='audit and time copied/referenced marker fields with takeover off/on plus a common source-marker control');a=p.parse_args()
+    p=argparse.ArgumentParser();source=p.add_mutually_exclusive_group(required=True);source.add_argument('--pipeline',type=Path);source.add_argument('--compiled',type=Path,help='reuse an already verified reference-view pipeline after engine-only changes');p.add_argument('--output',type=Path,required=True);p.add_argument('--engine',type=Path);p.add_argument('--marker-field-ablation',action='store_true',help='audit and time copied/referenced marker fields with takeover off/on plus a common source-marker control');p.add_argument('--copy-only',action='store_true',help='omit legacy referenced-field lanes');mode=p.add_mutually_exclusive_group();mode.add_argument('--timing-only',action='store_true',help='exploratory timing with final-graph check only; NOT per-Run correctness acceptance');mode.add_argument('--audit-only',action='store_true',help='verify an unchanged candidate without rerunning clean timing');a=p.parse_args()
+    if (a.copy_only or a.timing_only or a.audit_only) and not a.marker_field_ablation:p.error('copy-only/timing-only/audit-only require marker-field-ablation')
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
     path,program,provenance=load_pipeline_artifact(a.compiled.resolve()) if a.compiled else reemit(a.pipeline.resolve(),out/'compile')
     if not program.get('reference_views',{}).get('marker_tables'):raise ValueError('compiled input has no reference marker contract; reemit the device pass')
     engine=a.engine or binary()
-    if a.marker_field_ablation:return marker_field_ablation(path,engine,out,provenance)
+    if a.marker_field_ablation:return marker_field_ablation(path,engine,out,provenance,a.copy_only,a.timing_only,a.audit_only)
     audit=subprocess.run([str(engine),'--program',str(path),'--verify-reference-views'],capture_output=True,text=True)
     (out/'audit.log').write_text(audit.stdout+audit.stderr)
     if audit.returncode:raise RuntimeError(audit.stderr)

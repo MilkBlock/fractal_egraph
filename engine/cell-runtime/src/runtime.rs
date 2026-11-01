@@ -12,7 +12,7 @@ use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct Binding {
-    witnesses: BTreeMap<usize, Dependency>,
+    witnesses: MatchedFacts,
     values: BTreeMap<usize, Value>,
     epoch: u64,
     parent: Option<FactRef>,
@@ -73,17 +73,20 @@ pub struct Executor {
 /// Run-local binding workspace. Only successful matches become stored bindings;
 /// failed join branches undo slot assignments instead of cloning tree maps.
 struct QueryEnv {
-    witnesses: BTreeMap<usize, Dependency>,
+    witnesses: MatchedFacts,
     values: Vec<Option<Value>>,
     trail: Vec<usize>,
 }
 impl QueryEnv {
-    fn new(slots: usize) -> Self {
+    fn new(slots: usize, witness_slots: usize, full_witnesses: bool) -> Self {
         Self {
-            witnesses: BTreeMap::new(),
+            witnesses: MatchedFacts::new(witness_slots, full_witnesses),
             values: vec![None; slots],
             trail: vec![],
         }
+    }
+    fn record(&mut self, atom: usize, witness: Option<Dependency>) {
+        self.witnesses.record(atom, witness);
     }
     fn rollback(&mut self, mark: usize) {
         while self.trail.len() > mark {
@@ -174,9 +177,16 @@ impl Executor {
         e
     }
     fn deliver(&mut self) {
-        for event in std::mem::take(&mut self.graph.events) {
-            if let Ok(Some(row)) = self.graph.row(event) {
-                for &rid in &self.readers[row.table] {
+        // All events are delivered at one published Run boundary. Repeated
+        // repairs of one fact have the same final state and subscriber set.
+        let mut events = std::mem::take(&mut self.graph.events);
+        self.graph.stats.delivery_events += events.len() as u64;
+        events.sort_unstable();
+        events.dedup();
+        self.graph.stats.distinct_delivery_events += events.len() as u64;
+        for event in events {
+            if let Some(table) = self.graph.live_table(event) {
+                for &rid in &self.readers[table] {
                     self.dirty.insert(rid);
                     if self.graph.program.rules[rid].direct.is_some() || self.delta_queries {
                         self.pending[rid].insert(event);
@@ -311,11 +321,9 @@ impl Executor {
                         .zip(&r.values)
                         .all(|(a, v)| bind(a, v, env, &self.graph))
                     {
-                        if self.graph.views_enabled {
-                            env.witnesses.insert(chosen, r.witness);
-                        }
+                        env.record(chosen, Some(r.witness));
                         self.solve(query, rid, remaining, env, epoch.max(r.epoch), out, delta)?;
-                        env.witnesses.remove(&chosen);
+                        env.record(chosen, None);
                     }
                     env.rollback(mark);
                 }
@@ -410,9 +418,7 @@ impl Executor {
                     {
                         return Ok(false);
                     }
-                    if self.graph.views_enabled {
-                        env.witnesses.insert(i, row.witness);
-                    }
+                    env.record(i, Some(row.witness));
                     *epoch = (*epoch).max(row.epoch);
                 }
             }
@@ -547,9 +553,7 @@ impl Executor {
                 env.rollback(mark);
                 return Ok((false, epoch, None));
             }
-            if self.graph.views_enabled {
-                env.witnesses.insert(read.atom, witness);
-            }
+            env.record(read.atom, Some(witness));
             remaining[read.atom] = false;
             epoch = epoch.max(stamp);
             self.continuation_stats.projected_atoms += 1;
@@ -558,6 +562,33 @@ impl Executor {
     }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
+        let full_witnesses = !self.graph.marker_fields_copied
+            && self
+                .graph
+                .program
+                .views
+                .layouts
+                .get(&rule.template)
+                .is_some_and(|l| l.reference_only);
+        // Witnesses are storage provenance, not part of logical LHS matching.
+        // Copied markers without takeover do not consume them at all.
+        let witness_slots = if self.graph.views_enabled
+            && !probe
+            && self
+                .graph
+                .program
+                .views
+                .layouts
+                .get(&rule.template)
+                .is_some_and(|l| {
+                    !l.carriers.is_empty()
+                        && (self.graph.absorption_enabled
+                            || (l.reference_only && !self.graph.marker_fields_copied))
+                }) {
+            rule.query.len()
+        } else {
+            0
+        };
         if !probe && rule.seminaive && !self.dirty.remove(&rid) {
             return Ok(vec![]);
         }
@@ -595,17 +626,18 @@ impl Executor {
                 if row.hidden || (!probe && rule.seminaive && row.epoch < self.watermarks[rid]) {
                     continue;
                 }
-                let mut env =
-                    QueryEnv::new(self.graph.program.templates[rule.template].sorts.len());
+                let mut env = QueryEnv::new(
+                    self.graph.program.templates[rule.template].sorts.len(),
+                    witness_slots,
+                    full_witnesses,
+                );
                 if atom
                     .args
                     .iter()
                     .zip(&row.values)
                     .all(|(a, v)| bind(a, v, &mut env, &self.graph))
                 {
-                    if self.graph.views_enabled {
-                        env.witnesses.insert(anchor, row.witness);
-                    }
+                    env.record(anchor, Some(row.witness));
                     let n = found.len();
                     let mut remaining = (0..rule.query.len())
                         .map(|i| i != anchor)
@@ -711,8 +743,11 @@ impl Executor {
                     }
                     self.graph.stats.residual_candidates += 1;
                     self.graph.stats.decoded_rows += 1;
-                    let mut env =
-                        QueryEnv::new(self.graph.program.templates[rule.template].sorts.len());
+                    let mut env = QueryEnv::new(
+                        self.graph.program.templates[rule.template].sorts.len(),
+                        witness_slots,
+                        full_witnesses,
+                    );
                     if atom
                         .args
                         .iter()
@@ -723,9 +758,7 @@ impl Executor {
                             .map(|i| i != pivot)
                             .collect::<Vec<_>>();
                         let mut epoch = row.epoch;
-                        if self.graph.views_enabled {
-                            env.witnesses.insert(pivot, row.witness);
-                        }
+                        env.record(pivot, Some(row.witness));
                         let delta = Some((pivot, row.epoch, row.witness));
                         if self.multistage_enabled && self.point_programs {
                             if let Some(order) = self
@@ -841,7 +874,11 @@ impl Executor {
                 &rule.query,
                 rid,
                 &mut vec![true; rule.query.len()],
-                &mut QueryEnv::new(self.graph.program.templates[rule.template].sorts.len()),
+                &mut QueryEnv::new(
+                    self.graph.program.templates[rule.template].sorts.len(),
+                    witness_slots,
+                    full_witnesses,
+                ),
                 0,
                 &mut found,
                 None,
@@ -1014,14 +1051,19 @@ impl Executor {
         self.graph.repair()?;
         let moved = self.graph.absorb_ready()?;
         if !moved.is_empty() {
-            for pending in &mut self.pending {
-                *pending = std::mem::take(pending)
-                    .into_iter()
-                    .map(|d| match d {
-                        Dependency::Fact(f) => Dependency::Fact(self.graph.resolve_reference(f)),
-                        _ => d,
-                    })
-                    .collect();
+            // Only readers of the relocated fact's table can have that handle
+            // pending. Keep all unrelated rules and pending sets untouched.
+            for &old in moved.keys() {
+                let new = self.graph.resolve_reference(old);
+                let table = self
+                    .graph
+                    .dependency_table(Dependency::Fact(new))
+                    .ok_or("relocated fact has no table")?;
+                for &rid in &self.readers[table] {
+                    if self.pending[rid].remove(&Dependency::Fact(old)) {
+                        self.pending[rid].insert(Dependency::Fact(new));
+                    }
+                }
             }
             self.graph.events = self
                 .graph

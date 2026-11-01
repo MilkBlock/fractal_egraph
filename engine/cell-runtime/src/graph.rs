@@ -11,14 +11,61 @@ pub struct FactRef {
     pub cell: u32,
     pub op: u32,
 }
+/// Copied fields only need source-owner identities for containment candidates.
+/// Provider projection additionally needs atom/operation coordinates.
+#[derive(Clone, Debug)]
+pub enum MatchedFacts {
+    None,
+    Owners(Vec<u32>),
+    Rows(Vec<Option<Dependency>>),
+}
+impl MatchedFacts {
+    pub fn new(atoms: usize, full: bool) -> Self {
+        if atoms == 0 {
+            Self::None
+        } else if full {
+            Self::Rows(vec![None; atoms])
+        } else {
+            Self::Owners(vec![0; atoms])
+        }
+    }
+    pub fn record(&mut self, atom: usize, row: Option<Dependency>) {
+        match self {
+            Self::None => {}
+            Self::Rows(rows) => rows[atom] = row,
+            Self::Owners(owners) => {
+                owners[atom] = match row {
+                    Some(Dependency::Fact(f)) => f.cell,
+                    _ => 0,
+                }
+            }
+        }
+    }
+    pub fn get(&self, atom: usize) -> Option<Dependency> {
+        match self {
+            Self::Rows(rows) => rows.get(atom).copied().flatten(),
+            _ => None,
+        }
+    }
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FactState {
+    // Canonicalized on read, like an explicit Unit-function key. Reconstructed
+    // from the checked recipe on checkpoint restore; never trusted serialized data.
+    #[serde(skip)]
+    pub marker_row: Option<MarkerRow>,
     #[serde(default)]
     pub entry: Option<FactRef>,
     pub hidden: bool,
     pub epoch: u64,
     pub born: u64,
     pub hash: u64,
+}
+#[derive(Clone, Debug)]
+pub struct MarkerRow {
+    pub table: usize,
+    pub values: Vec<Value>,
+    pub canonical: bool,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Cell {
@@ -78,6 +125,10 @@ pub struct Stats {
     pub native_table_reads: u64,
     pub native_table_writes: u64,
     pub native_free_join_calls: u64,
+    #[serde(default)]
+    pub delivery_events: u64,
+    #[serde(default)]
+    pub distinct_delivery_events: u64,
 }
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct CongruenceStats {
@@ -92,6 +143,7 @@ pub struct Graph {
     pub program: Program,
     pub views_enabled: bool,
     pub marker_fields_copied: bool,
+    pub absorption_enabled: bool,
     pub view_stats: crate::views::ViewStats,
     retired_contexts: BTreeMap<u32, crate::views::RetiredContext>,
     fact_forwards: BTreeMap<FactRef, FactRef>,
@@ -119,6 +171,7 @@ pub struct Graph {
     uses: BTreeMap<u64, BTreeSet<Dependency>>,
     dependencies: BTreeMap<Dependency, BTreeSet<u64>>,
     dirty: BTreeSet<Dependency>,
+    dirty_markers: BTreeSet<FactRef>,
     dirty_facts: Vec<BTreeSet<FactRef>>,
     parent_users: BTreeMap<u32, usize>,
     garbage: BTreeSet<u32>,
@@ -262,6 +315,19 @@ impl Graph {
         }
         for f in facts {
             let row = g.fact(f)?.ok_or("checkpoint fact missing")?;
+            if g.marker_fields_copied && g.program.views.markers.contains(&row.table) {
+                g.cells
+                    .get_mut(&f.cell)
+                    .unwrap()
+                    .facts
+                    .get_mut(&f.op)
+                    .unwrap()
+                    .marker_row = Some(MarkerRow {
+                    table: row.table,
+                    values: row.values.clone(),
+                    canonical: true,
+                });
+            }
             let h = hashkey(row.table, &row.values[..row.values.len() - 1]);
             g.cells
                 .get_mut(&f.cell)
@@ -323,6 +389,8 @@ impl Graph {
         let mut g = Self {
             views_enabled,
             marker_fields_copied,
+            absorption_enabled: views_enabled
+                && std::env::var("CELL_CPU_ABSORB").as_deref() != Ok("0"),
             view_stats: Default::default(),
             retired_contexts: BTreeMap::new(),
             fact_forwards: BTreeMap::new(),
@@ -351,6 +419,7 @@ impl Graph {
             uses: BTreeMap::new(),
             dependencies: BTreeMap::new(),
             dirty: BTreeSet::new(),
+            dirty_markers: BTreeSet::new(),
             dirty_facts: vec![BTreeSet::new(); n],
             parent_users: BTreeMap::new(),
             garbage: BTreeSet::new(),
@@ -477,6 +546,15 @@ impl Graph {
     }
     pub fn slot(&self, cell: u32, i: usize) -> Result<Value> {
         let c = self.cells.get(&cell).ok_or("expired Cell reference")?;
+        self.slot_in(cell, c, i)
+    }
+    fn argument_in(&self, cell: u32, c: &Cell, a: &Arg) -> Result<Value> {
+        match a {
+            Arg::Literal(v) => Ok(canon(v, &self.parents)),
+            Arg::Slot(i) => self.slot_in(cell, c, *i),
+        }
+    }
+    fn slot_in(&self, cell: u32, c: &Cell, i: usize) -> Result<Value> {
         if let Some(v) = c.values.get(&i) {
             return Ok(canon(v, &self.parents));
         }
@@ -497,7 +575,7 @@ impl Graph {
         }
         let op = &t.ops[*t.defs.get(&i).ok_or("unready slot")?];
         match op {
-            Op::Copy(_, a) => self.argument(cell, a),
+            Op::Copy(_, a) => self.argument_in(cell, c, a),
             Op::Let(_, Call::Table(t), _) if self.program.tables[*t].virtual_fact => {
                 Ok(if self.program.tables[*t].constructor {
                     Value::Eq(root(&self.parents, ((cell as u64) << 32) | (i as u64 + 1)))
@@ -549,8 +627,34 @@ impl Graph {
         let Some(s) = c.facts.get(&f.op) else {
             return Ok(None);
         };
-        let (table, mut values) = if let Some(carrier) = self.carrier(f) {
-            (carrier.table, self.arguments(f.cell, &carrier.columns)?)
+        if let Some(marker) = &s.marker_row {
+            return Ok(Some(Row {
+                table: marker.table,
+                values: if marker.canonical {
+                    marker.values.clone()
+                } else {
+                    marker
+                        .values
+                        .iter()
+                        .map(|v| canon(v, &self.parents))
+                        .collect()
+                },
+                hidden: s.hidden,
+                epoch: s.epoch,
+                witness: Dependency::Fact(f),
+            }));
+        }
+        let arguments = |aa: &[Arg]| {
+            aa.iter()
+                .map(|a| self.argument_in(f.cell, c, a))
+                .collect::<Result<Vec<_>>>()
+        };
+        let (table, values) = if let Some(carrier) = self.program.views.carrier(
+            c.template,
+            f.op as usize,
+            self.program.templates[c.template].ops.len(),
+        ) {
+            (carrier.table, arguments(&carrier.columns)?)
         } else {
             match self.program.templates[c.template]
                 .ops
@@ -558,21 +662,20 @@ impl Graph {
                 .ok_or("invalid live fact position")?
             {
                 Op::Let(dst, Call::Table(t), aa) => {
-                    let mut vals = self.arguments(f.cell, aa)?;
-                    vals.push(self.slot(f.cell, *dst)?);
+                    let mut vals = arguments(aa)?;
+                    vals.push(self.slot_in(f.cell, c, *dst)?);
                     (*t, vals)
                 }
                 Op::Set(t, aa, v) => {
-                    let mut vals = self.arguments(f.cell, aa)?;
-                    vals.push(self.argument(f.cell, v)?);
+                    let mut vals = arguments(aa)?;
+                    vals.push(self.argument_in(f.cell, c, v)?);
                     (*t, vals)
                 }
                 _ => return Err("invalid fact recipe position".into()),
             }
         };
-        for v in &mut values {
-            *v = canon(v, &self.parents)
-        }
+        // Every argument/slot path already returns a canonical value, including
+        // recursive provider projections and literal/container arguments.
         Ok(Some(Row {
             table,
             values,
@@ -606,6 +709,30 @@ impl Graph {
             Dependency::Function(i) => Ok(self.function(i)),
         }
     }
+    /// Delivery only needs liveness and the table, not the decoded binding.
+    pub fn live_table(&self, w: Dependency) -> Option<usize> {
+        match w {
+            Dependency::Function(i) => self.functions.get(i).filter(|f| f.live).map(|f| f.table),
+            Dependency::Fact(f) => {
+                let c = self.cells.get(&f.cell)?;
+                let s = c.facts.get(&f.op)?;
+                if let Some(marker) = &s.marker_row {
+                    return Some(marker.table);
+                }
+                if let Some(carrier) = self.program.views.carrier(
+                    c.template,
+                    f.op as usize,
+                    self.program.templates[c.template].ops.len(),
+                ) {
+                    return Some(carrier.table);
+                }
+                match self.program.templates[c.template].ops.get(f.op as usize)? {
+                    Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => Some(*t),
+                    _ => None,
+                }
+            }
+        }
+    }
     pub fn origin(&self, w: Dependency) -> Option<FactRef> {
         match w {
             Dependency::Fact(f) => Some(f),
@@ -632,7 +759,7 @@ impl Graph {
         }
         self.functions[index].origin = origin;
     }
-    fn dependency_table(&self, w: Dependency) -> Option<usize> {
+    pub(crate) fn dependency_table(&self, w: Dependency) -> Option<usize> {
         match w {
             Dependency::Function(i) => self.functions.get(i).map(|f| f.table),
             Dependency::Fact(f) => {
@@ -727,6 +854,18 @@ impl Graph {
                 .and_then(|i| self.function(*i)));
         }
         let h = hashkey(table, &key);
+        if self.dirty_facts[table].is_empty() {
+            // Matching observes a repaired snapshot. Avoid allocating/copying
+            // a set on every keyed read; retain the original FactRef order.
+            for &f in self.intern.get(&h).into_iter().flatten() {
+                if let Some(r) = self.fact(f)? {
+                    if r.table == table && r.values[..key.len()] == key {
+                        return Ok(Some(r));
+                    }
+                }
+            }
+            return Ok(None);
+        }
         let mut refs = self.intern.get(&h).cloned().unwrap_or_default();
         // A merge callback may request a constructor whose old key is dirty. Include
         // only affected references until repair catches up, not all graph rows.
@@ -783,9 +922,17 @@ impl Graph {
         hidden: bool,
     ) -> Result<()> {
         let h = hashkey(t, key);
+        let mut vs = key.to_vec();
+        vs.push(v);
         self.cells.get_mut(&f.cell).unwrap().facts.insert(
             f.op,
             FactState {
+                marker_row: (self.marker_fields_copied && self.program.views.markers.contains(&t))
+                    .then(|| MarkerRow {
+                        table: t,
+                        values: vs.clone(),
+                        canonical: true,
+                    }),
                 entry: None,
                 hidden,
                 epoch: self.epoch,
@@ -795,8 +942,6 @@ impl Graph {
         );
         self.operators[t].insert(f);
         self.intern.entry(h).or_default().insert(f);
-        let mut vs = key.to_vec();
-        vs.push(v);
         self.subscribe(Dependency::Fact(f), &vs);
         self.events.push(Dependency::Fact(f));
         self.stats.logical_facts_created += 1;
@@ -879,9 +1024,28 @@ impl Graph {
         self.changed = true;
     }
     fn mark_affected(&mut self, affected: &BTreeSet<Dependency>) {
-        self.dirty.extend(affected.iter().copied());
         for d in affected {
+            let table = self.dependency_table(*d);
+            if let Dependency::Fact(f) = d
+                && self.views_enabled
+                && table.is_some_and(|t| self.program.views.markers.contains(&t))
+            {
+                // Certified inert Unit markers cannot generate unions or be
+                // observed by merge callbacks. Repair them after the ordinary
+                // congruence closure, but before publishing this Run.
+                self.dirty_markers.insert(*f);
+            } else {
+                self.dirty.insert(*d);
+            }
             if let Dependency::Fact(f) = d {
+                if let Some(marker) = self.marker_fields_copied.then(|| ()).and_then(|_| {
+                    self.cells
+                        .get_mut(&f.cell)
+                        .and_then(|c| c.facts.get_mut(&f.op))
+                        .and_then(|s| s.marker_row.as_mut())
+                }) {
+                    marker.canonical = false;
+                }
                 if self.congruence_enabled
                     && self.cells.get(&f.cell).is_some_and(|c| {
                         self.program.congruence.templates.contains_key(&c.template)
@@ -889,7 +1053,7 @@ impl Graph {
                 {
                     self.congruence_dirty.insert(f.cell);
                 }
-                if let Some(table) = self.dependency_table(*d) {
+                if let Some(table) = table {
                     self.dirty_facts[table].insert(*f);
                 }
             }
@@ -1206,7 +1370,11 @@ impl Graph {
                 self.repair_local_congruence(cell)?;
                 continue;
             }
-            let Some(d) = self.dirty.pop_first() else {
+            let Some(d) = self
+                .dirty
+                .pop_first()
+                .or_else(|| self.dirty_markers.pop_first().map(Dependency::Fact))
+            else {
                 break;
             };
             if let Dependency::Fact(f) = d {
@@ -1267,6 +1435,10 @@ impl Graph {
                             .unwrap();
                         s.hash = h;
                         s.epoch = self.epoch;
+                        if let Some(marker) = &mut s.marker_row {
+                            marker.values.clone_from(&r.values);
+                            marker.canonical = true;
+                        }
                         self.subscribe(d, &r.values);
                         self.events.push(d);
                     }
@@ -1410,6 +1582,7 @@ impl Graph {
             self.query_changes.insert(Dependency::Fact(keep), table);
             self.retire(old)?;
             self.dirty.remove(&Dependency::Fact(old));
+            self.dirty_markers.remove(&old);
             self.dirty_facts[table].remove(&old);
             self.congruence_stats.coalesced_facts += 1;
         }

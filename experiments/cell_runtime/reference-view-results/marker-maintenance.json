@@ -1,0 +1,341 @@
+{
+  "scope": "same binary and marked source; standalone Cell CPU; not pristine egglog; repair includes takeover and event retargeting",
+  "measured_on": "2026-11-02",
+  "timing_directory": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/reference-regression-07",
+  "audit_directory": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/reference-regression-verified-v2",
+  "timing_reused_after_identical_binary_rebuild": true,
+  "pipeline": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/reference-pass3-owned/compile",
+  "source_sha256": "a0014215ec09515311042eff1ccd3df54514e358f68a8d7a70aa54db137a4c12",
+  "source_sk_sha256": "fa9a0d7e23238b5e3ab50ab077f27c976b66b606956218c1f84fd7d49f5bd93a",
+  "source_sk_mk_sha256": "7e2e19c1e9cc23eaee8e68717b40f0d36ceede3a287d4efefd6f54588752aa90",
+  "marker_count": 48,
+  "verification": {
+    "copy-no-takeover": {
+      "all_stage_graphs_and_bindings_equal": true,
+      "candidate_live_cells": 9108,
+      "control_live_cells": 9108,
+      "reference_views": {
+        "absorption": "exact matched-carrier containment; mutable function owners retained",
+        "enabled": true,
+        "forwarded_fact_handles": 0,
+        "inline_marker_values": 40097,
+        "live_marker_views": 6497,
+        "marker_fields": "copy",
+        "marker_tables": 48,
+        "provider_handles": 0,
+        "retired_context_views": 0,
+        "stats": {
+          "absorbed_cells": 0,
+          "absorption_attempts": 0,
+          "marker_rows": 8948,
+          "projected_values": 0,
+          "recovered_continuations": 0,
+          "relocated_facts": 0,
+          "retained_function_owners": 0,
+          "type_rejections": 0,
+          "uncovered_sources": 0
+        }
+      },
+      "runs": 1623,
+      "scope": "streaming same-binary storage ablation; standalone Cell CPU, not native egglog"
+    },
+    "copy-takeover": {
+      "all_stage_graphs_and_bindings_equal": true,
+      "candidate_live_cells": 8430,
+      "control_live_cells": 9108,
+      "reference_views": {
+        "absorption": "exact matched-carrier containment; mutable function owners retained",
+        "enabled": true,
+        "forwarded_fact_handles": 950,
+        "inline_marker_values": 40097,
+        "live_marker_views": 6497,
+        "marker_fields": "copy",
+        "marker_tables": 48,
+        "provider_handles": 0,
+        "retired_context_views": 946,
+        "stats": {
+          "absorbed_cells": 946,
+          "absorption_attempts": 19888,
+          "marker_rows": 8948,
+          "projected_values": 0,
+          "recovered_continuations": 2990,
+          "relocated_facts": 950,
+          "retained_function_owners": 459,
+          "type_rejections": 17452,
+          "uncovered_sources": 18483
+        }
+      },
+      "runs": 1623,
+      "scope": "streaming same-binary storage ablation; standalone Cell CPU, not native egglog"
+    }
+  },
+  "lanes": {
+    "control": {
+      "measurement": {
+        "program_sha256": "7ba5d6732f535bf5aa5052b46506c7a8f8f3fc92fdf05b51f163c771a5fd0730",
+        "binary_sha256": "31a3adfc88b105e8b75511e85917cdde19f873ecd1965c2dfafea31cc0c7ff96",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.6656914170016535,
+        "peak_rss_bytes": 236519424,
+        "inference_seconds": 0.50763,
+        "setup_seconds": 0.000744625,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_REFERENCE_VIEWS": "0",
+          "CELL_CPU_MARKER_FIELDS": "copy",
+          "CELL_CPU_ABSORB": "0"
+        }
+      },
+      "phase_seconds": {
+        "delivery_gc": 0.052333690999999655,
+        "query_update": 0.022756304999999956,
+        "repair": 0.0779425420000014,
+        "rhs": 0.07476879200000044,
+        "search": 0.2709256520000002
+      },
+      "report": {
+        "status": "complete",
+        "live_cells": 9108,
+        "stored_binding_values": 51889,
+        "virtual_constructor_facts": 3077,
+        "function_ports": 7262,
+        "stats": {
+          "bindings": 45911,
+          "cells_created": 46195,
+          "constructor_requests": 33287,
+          "constructor_reused": 30002,
+          "decoded_rows": 794075,
+          "delivery_events": 52391,
+          "direct_bindings": 3276,
+          "distinct_delivery_events": 45969,
+          "empty_frames_released": 37087,
+          "function_updates": 10105,
+          "key_operations": 5115,
+          "logical_facts_created": 3920,
+          "merge_calls": 31634,
+          "merge_contract_calls": {
+            "key-min": 1713,
+            "lattice": 629,
+            "ordered": 29068,
+            "ranked-selection": 7,
+            "unique": 217
+          },
+          "merge_port_reads": 28,
+          "native_free_join_calls": 0,
+          "native_table_reads": 0,
+          "native_table_writes": 0,
+          "repaired_dependencies": 38291,
+          "residual_candidates": 686851,
+          "unions": 1089
+        },
+        "query_indexes": {
+          "builds": 70,
+          "decoded_facts": 2436,
+          "peak_fact_references": 47338,
+          "scope": "versioned virtual-fact indexes; references only",
+          "updated_facts": 35060
+        },
+        "reference_views": {
+          "absorption": "exact matched-carrier containment; mutable function owners retained",
+          "enabled": false,
+          "forwarded_fact_handles": 0,
+          "inline_marker_values": 0,
+          "live_marker_views": 0,
+          "marker_fields": "reference",
+          "marker_tables": 48,
+          "provider_handles": 0,
+          "retired_context_views": 0,
+          "stats": {
+            "absorbed_cells": 0,
+            "absorption_attempts": 0,
+            "marker_rows": 0,
+            "projected_values": 0,
+            "recovered_continuations": 0,
+            "relocated_facts": 0,
+            "retained_function_owners": 0,
+            "type_rejections": 0,
+            "uncovered_sources": 0
+          }
+        }
+      }
+    },
+    "copy-no-takeover": {
+      "measurement": {
+        "program_sha256": "7ba5d6732f535bf5aa5052b46506c7a8f8f3fc92fdf05b51f163c771a5fd0730",
+        "binary_sha256": "31a3adfc88b105e8b75511e85917cdde19f873ecd1965c2dfafea31cc0c7ff96",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.618977125006495,
+        "peak_rss_bytes": 239976448,
+        "inference_seconds": 0.467339917,
+        "setup_seconds": 0.000753917,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_REFERENCE_VIEWS": "1",
+          "CELL_CPU_MARKER_FIELDS": "copy",
+          "CELL_CPU_ABSORB": "0"
+        }
+      },
+      "phase_seconds": {
+        "delivery_gc": 0.05330428599999966,
+        "query_update": 0.021505109999999956,
+        "repair": 0.07703932900000131,
+        "rhs": 0.06665933900000029,
+        "search": 0.24005550500000067
+      },
+      "report": {
+        "status": "complete",
+        "live_cells": 9108,
+        "stored_binding_values": 51889,
+        "virtual_constructor_facts": 9574,
+        "function_ports": 765,
+        "stats": {
+          "bindings": 45911,
+          "cells_created": 46195,
+          "constructor_requests": 33287,
+          "constructor_reused": 30002,
+          "decoded_rows": 788404,
+          "delivery_events": 52391,
+          "direct_bindings": 3276,
+          "distinct_delivery_events": 45969,
+          "empty_frames_released": 37087,
+          "function_updates": 1157,
+          "key_operations": 5115,
+          "logical_facts_created": 12868,
+          "merge_calls": 3473,
+          "merge_contract_calls": {
+            "key-min": 1713,
+            "lattice": 629,
+            "ordered": 907,
+            "ranked-selection": 7,
+            "unique": 217
+          },
+          "merge_port_reads": 28,
+          "native_free_join_calls": 0,
+          "native_table_reads": 0,
+          "native_table_writes": 0,
+          "repaired_dependencies": 38291,
+          "residual_candidates": 686762,
+          "unions": 1089
+        },
+        "query_indexes": {
+          "builds": 70,
+          "decoded_facts": 2436,
+          "peak_fact_references": 47338,
+          "scope": "versioned virtual-fact indexes; references only",
+          "updated_facts": 35060
+        },
+        "reference_views": {
+          "absorption": "exact matched-carrier containment; mutable function owners retained",
+          "enabled": true,
+          "forwarded_fact_handles": 0,
+          "inline_marker_values": 40097,
+          "live_marker_views": 6497,
+          "marker_fields": "copy",
+          "marker_tables": 48,
+          "provider_handles": 0,
+          "retired_context_views": 0,
+          "stats": {
+            "absorbed_cells": 0,
+            "absorption_attempts": 0,
+            "marker_rows": 8948,
+            "projected_values": 0,
+            "recovered_continuations": 0,
+            "relocated_facts": 0,
+            "retained_function_owners": 0,
+            "type_rejections": 0,
+            "uncovered_sources": 0
+          }
+        }
+      }
+    },
+    "copy-takeover": {
+      "measurement": {
+        "program_sha256": "7ba5d6732f535bf5aa5052b46506c7a8f8f3fc92fdf05b51f163c771a5fd0730",
+        "binary_sha256": "31a3adfc88b105e8b75511e85917cdde19f873ecd1965c2dfafea31cc0c7ff96",
+        "machine": "MineralSteinsdeMacBook-Pro.local",
+        "wall_seconds": 0.6571926249889657,
+        "peak_rss_bytes": 238714880,
+        "inference_seconds": 0.500983916,
+        "setup_seconds": 0.000750625,
+        "audit": false,
+        "configuration": {
+          "CELL_CPU_REFERENCE_VIEWS": "1",
+          "CELL_CPU_MARKER_FIELDS": "copy",
+          "CELL_CPU_ABSORB": "1"
+        }
+      },
+      "phase_seconds": {
+        "delivery_gc": 0.05412953699999962,
+        "query_update": 0.023003515999999963,
+        "repair": 0.09708810700000109,
+        "rhs": 0.07054382900000022,
+        "search": 0.2473464619999999
+      },
+      "report": {
+        "status": "complete",
+        "live_cells": 8430,
+        "stored_binding_values": 48743,
+        "virtual_constructor_facts": 9574,
+        "function_ports": 765,
+        "stats": {
+          "bindings": 45911,
+          "cells_created": 46195,
+          "constructor_requests": 33287,
+          "constructor_reused": 30002,
+          "decoded_rows": 789216,
+          "delivery_events": 52383,
+          "direct_bindings": 3276,
+          "distinct_delivery_events": 45972,
+          "empty_frames_released": 37765,
+          "function_updates": 1157,
+          "key_operations": 5115,
+          "logical_facts_created": 12868,
+          "merge_calls": 3473,
+          "merge_contract_calls": {
+            "key-min": 1713,
+            "lattice": 629,
+            "ordered": 907,
+            "ranked-selection": 7,
+            "unique": 217
+          },
+          "merge_port_reads": 28,
+          "native_free_join_calls": 0,
+          "native_table_reads": 0,
+          "native_table_writes": 0,
+          "repaired_dependencies": 38283,
+          "residual_candidates": 686858,
+          "unions": 1089
+        },
+        "query_indexes": {
+          "builds": 70,
+          "decoded_facts": 2436,
+          "peak_fact_references": 47338,
+          "scope": "versioned virtual-fact indexes; references only",
+          "updated_facts": 35776
+        },
+        "reference_views": {
+          "absorption": "exact matched-carrier containment; mutable function owners retained",
+          "enabled": true,
+          "forwarded_fact_handles": 950,
+          "inline_marker_values": 40097,
+          "live_marker_views": 6497,
+          "marker_fields": "copy",
+          "marker_tables": 48,
+          "provider_handles": 0,
+          "retired_context_views": 946,
+          "stats": {
+            "absorbed_cells": 946,
+            "absorption_attempts": 19888,
+            "marker_rows": 8948,
+            "projected_values": 0,
+            "recovered_continuations": 2990,
+            "relocated_facts": 950,
+            "retained_function_owners": 459,
+            "type_rejections": 17452,
+            "uncovered_sources": 18483
+          }
+        }
+      }
+    }
+  }
+}

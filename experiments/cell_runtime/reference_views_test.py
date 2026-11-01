@@ -45,6 +45,15 @@ class ReferenceTests(unittest.TestCase):
   self.assertGreater(reports[1]['reference_views']['stats']['absorbed_cells'],0)
   self.assertLess(reports[1]['function_ports'],reports[0]['function_ports'])
   self.assertLess(reports[1]['live_cells'],reports[0]['live_cells'])
+  self.assertGreater(reports[1]['reference_views']['inline_marker_values'],0)
+  self.assertLess(reports[1]['stats']['distinct_delivery_events'],reports[1]['stats']['delivery_events'])
+ def test_reference_fields_still_support_union_and_takeover(self):
+  p=self.program(MARKER,['View']);path=self.root/'case.json';path.write_text(json.dumps(p))
+  x=subprocess.run([str(ENGINE),'--program',str(path),'--verify-reference-views'],capture_output=True,text=True,env={**os.environ,'CELL_CPU_MARKER_FIELDS':'reference','CELL_CPU_ABSORB':'1'})
+  self.assertEqual(x.returncode,0,x.stderr)
+  r=json.loads(x.stdout);self.assertTrue(r['all_stage_graphs_and_bindings_equal'])
+  self.assertGreater(r['reference_views']['stats']['absorbed_cells'],0)
+  self.assertEqual(r['reference_views']['inline_marker_values'],0)
  def test_finite_run_and_repeat(self):self.pair(self.program(CASES['multistage-finite-visibility']))
  def test_hidden_and_deleted_inputs(self):
   self.pair(self.program(CASES['multistage-hidden-source']))
@@ -115,6 +124,7 @@ class ReferenceTests(unittest.TestCase):
   self.assertEqual(reports[1]['reference_views']['provider_handles'],0)
   graph=json.loads((self.root/'1/runtime/checkpoint.json').read_text())['graph']
   self.assertTrue(graph['marker_fields_copied'])
+  self.assertTrue(all('marker_row' not in s for c in graph['cells'].values() for s in c['facts'].values()))
   count=0
   for cell in graph['cells'].values():
    if cell['template']>=len(p['reference_views']['rules']):continue
@@ -136,4 +146,12 @@ class ReferenceTests(unittest.TestCase):
  def test_mutable_port_cannot_be_marker(self):
   p=self.program(CASES['multistage-updated-reply'])
   with self.assertRaisesRegex(ValueError,'Unit'):build(p['source_core'],reference_tables=['Best'])
+ def test_observable_marker_cannot_use_deferred_repair(self):
+  source='''(datatype E (N i64))
+(function View (E) Unit :merge old)
+(ruleset r)
+(rule ((= x (N n))) ((delete (View x))) :ruleset r)
+(N 1) (set (View (N 1)) ()) (run r 1)'''
+  p=self.program(source)
+  with self.assertRaisesRegex(ValueError,'observable RHS read or removal'):build(p['source_core'],reference_tables=['View'])
 if __name__=='__main__':unittest.main()
