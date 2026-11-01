@@ -13,6 +13,8 @@ pub struct FactRef {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FactState {
+    #[serde(default)]
+    pub entry: Option<FactRef>,
     pub hidden: bool,
     pub epoch: u64,
     pub born: u64,
@@ -26,6 +28,8 @@ pub struct Cell {
     pub facts: BTreeMap<u32, FactState>,
     #[serde(default)]
     pub recipe_depth: u32,
+    #[serde(default)]
+    pub providers: BTreeMap<usize, FactRef>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Function {
@@ -86,6 +90,12 @@ pub struct CongruenceStats {
 }
 pub struct Graph {
     pub program: Program,
+    pub views_enabled: bool,
+    pub view_stats: crate::views::ViewStats,
+    retired_contexts: BTreeMap<u32, crate::views::RetiredContext>,
+    fact_forwards: BTreeMap<FactRef, FactRef>,
+    reference_users: BTreeMap<FactRef, usize>,
+    absorption_candidates: BTreeSet<(u32, u32)>,
     pub cells: BTreeMap<u32, Cell>,
     pub functions: Vec<Function>,
     pub parents: Parents,
@@ -120,7 +130,7 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
 }
 impl Graph {
     pub fn image(&self) -> J {
-        json!({"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats})
+        json!({"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
     }
     pub fn restore(program: Program, image: &J) -> Result<Self> {
         fn decode<T: serde::de::DeserializeOwned>(j: &J) -> Result<T> {
@@ -131,10 +141,92 @@ impl Graph {
         let mut g = Self::new(empty)?;
         g.program = program;
         g.cells = decode(&image["cells"])?;
-        for c in g.cells.values() {
-            if let Some(p) = c.parent {
-                *g.parent_users.entry(p.cell).or_default() += 1;
+        g.next_cell = decode(&image["next_cell"])?;
+        if image["reference_views_enabled"].as_bool().unwrap_or(false) != g.views_enabled {
+            return Err("checkpoint reference storage mode differs".into());
+        }
+        if g.views_enabled {
+            for t in &g.program.views.markers {
+                g.program.tables[*t].virtual_fact = true;
             }
+        }
+        if !image["view_stats"].is_null() {
+            g.view_stats = decode(&image["view_stats"])?;
+        }
+        if !image["retired_contexts"].is_null() {
+            g.retired_contexts = decode(&image["retired_contexts"])?;
+        }
+        if g.retired_contexts.iter().any(|(id, c)| {
+            *id >= g.next_cell
+                || c.template >= g.program.templates.len()
+                || g.cells.contains_key(id)
+        }) {
+            return Err("invalid retired context".into());
+        }
+        if !image["fact_forwards"].is_null() {
+            let pairs: Vec<(FactRef, FactRef)> = decode(&image["fact_forwards"])?;
+            for (old, new) in pairs {
+                if old.cell >= new.cell || g.fact_forwards.insert(old, new).is_some() {
+                    return Err("invalid forward reference".into());
+                }
+            }
+        }
+        for (&id, c) in &g.cells {
+            for atom in c.providers.keys() {
+                if !g
+                    .program
+                    .views
+                    .layouts
+                    .get(&c.template)
+                    .is_some_and(|l| l.carriers.iter().any(|r| r.atom == *atom))
+                {
+                    return Err("unknown checkpoint provider".into());
+                }
+            }
+            for f in c.parent.iter().chain(c.providers.values()) {
+                let f = g.resolve_reference(*f);
+                if f.cell == id
+                    || !g.cells.contains_key(&f.cell)
+                    || g.dependency_table(Dependency::Fact(f)).is_none()
+                {
+                    return Err("invalid live Cell reference".into());
+                }
+            }
+        }
+        let references = g
+            .cells
+            .values()
+            .flat_map(|c| c.parent.iter().chain(c.providers.values()))
+            .copied()
+            .collect::<Vec<_>>();
+        for f in references {
+            g.retain_reference(f);
+        }
+        // Forwarding may point to a newer owner. Check actual dependency cycles,
+        // rather than assuming that every parent has an older numeric ID.
+        fn visit(
+            g: &Graph,
+            id: u32,
+            active: &mut BTreeSet<u32>,
+            done: &mut BTreeSet<u32>,
+        ) -> Result<()> {
+            if done.contains(&id) {
+                return Ok(());
+            }
+            if !active.insert(id) {
+                return Err("cyclic Cell references".into());
+            }
+            let c = &g.cells[&id];
+            for f in c.parent.iter().chain(c.providers.values()) {
+                visit(g, g.resolve_reference(*f).cell, active, done)?;
+            }
+            active.remove(&id);
+            done.insert(id);
+            Ok(())
+        }
+        let mut done = BTreeSet::new();
+        for id in g.cells.keys() {
+            visit(&g, *id, &mut BTreeSet::new(), &mut done)?;
         }
         g.functions = decode(&image["functions"])?;
         g.parents = decode(&image["parents"])?;
@@ -152,14 +244,14 @@ impl Graph {
         for (&id, c) in &g.cells {
             if c.template >= g.program.templates.len()
                 || c.parent
-                    .is_some_and(|p| p.cell >= id || !g.cells.contains_key(&p.cell))
+                    .is_some_and(|p| !g.cells.contains_key(&g.resolve_reference(p).cell))
             {
                 return Err("invalid checkpoint Cell reference".into());
             }
-            if c.facts
-                .keys()
-                .any(|i| *i as usize >= g.program.templates[c.template].ops.len())
-            {
+            if c.facts.keys().any(|i| {
+                *i as usize >= g.program.templates[c.template].ops.len()
+                    && g.carrier(FactRef { cell: id, op: *i }).is_none()
+            }) {
                 return Err("invalid checkpoint fact position".into());
             }
             facts.extend(c.facts.keys().map(|op| FactRef { cell: id, op: *op }));
@@ -204,11 +296,27 @@ impl Graph {
         Ok(g)
     }
     pub fn new(program: Program) -> Result<Self> {
+        let enabled = std::env::var("CELL_CPU_REFERENCE_VIEWS").as_deref() == Ok("1");
+        Self::new_with_reference_views(program, enabled)
+    }
+    pub fn new_with_reference_views(mut program: Program, enabled: bool) -> Result<Self> {
+        let views_enabled = enabled && !program.views.layouts.is_empty();
+        if views_enabled {
+            for t in &program.views.markers {
+                program.tables[*t].virtual_fact = true;
+            }
+        }
         let n = program.tables.len();
         let initial = program.initial.clone();
         let congruence_enabled = std::env::var("CELL_CPU_CONGRUENCE").as_deref() == Ok("1")
             && program.congruence.reorder_safe;
         let mut g = Self {
+            views_enabled,
+            view_stats: Default::default(),
+            retired_contexts: BTreeMap::new(),
+            fact_forwards: BTreeMap::new(),
+            reference_users: BTreeMap::new(),
+            absorption_candidates: BTreeSet::new(),
             program,
             cells: BTreeMap::new(),
             functions: vec![],
@@ -325,6 +433,7 @@ impl Graph {
                 values,
                 facts: BTreeMap::new(),
                 recipe_depth: 0,
+                providers: BTreeMap::new(),
             },
         );
         self.stats.cells_created += 1;
@@ -336,6 +445,7 @@ impl Graph {
         mut values: BTreeMap<usize, Value>,
         parent: Option<FactRef>,
     ) -> Result<u32> {
+        let parent = parent.filter(|_| !self.program.templates[template].parent_columns.is_empty());
         if parent.is_some() {
             for slot in self.program.templates[template].parent_columns.keys() {
                 values.remove(slot);
@@ -344,7 +454,7 @@ impl Graph {
         let id = self.frame(template, values)?;
         self.cells.get_mut(&id).unwrap().parent = parent;
         if let Some(p) = parent {
-            *self.parent_users.entry(p.cell).or_default() += 1;
+            self.retain_reference(p);
         }
         Ok(id)
     }
@@ -358,6 +468,17 @@ impl Graph {
         let c = self.cells.get(&cell).ok_or("expired Cell reference")?;
         if let Some(v) = c.values.get(&i) {
             return Ok(canon(v, &self.parents));
+        }
+        if let Some(&(atom, col)) = self
+            .program
+            .views
+            .layouts
+            .get(&c.template)
+            .and_then(|l| l.slots.get(&i))
+        {
+            if let Some(f) = c.providers.get(&atom) {
+                return self.fact_column(*f, col);
+            }
         }
         let t = &self.program.templates[c.template];
         if let (Some(parent), Some(&col)) = (c.parent, t.parent_columns.get(&i)) {
@@ -377,10 +498,18 @@ impl Graph {
         }
     }
     fn fact_column(&self, f: FactRef, col: usize) -> Result<Value> {
+        let f = self.resolve_reference(f);
+        if let Some(c) = self.carrier(f) {
+            return self.argument(f.cell, c.columns.get(col).ok_or("carrier column")?);
+        }
         // Recipe parameters are immutable even after this fact is hidden/deleted.
         // Derived Cells can keep their binding without copying the parent's fields.
         let c = self.cells.get(&f.cell).ok_or("expired parent Cell")?;
-        match &self.program.templates[c.template].ops[f.op as usize] {
+        match self.program.templates[c.template]
+            .ops
+            .get(f.op as usize)
+            .ok_or("invalid retained fact position")?
+        {
             Op::Let(dst, Call::Table(_), args) => {
                 if col == args.len() {
                     self.slot(f.cell, *dst)
@@ -409,18 +538,26 @@ impl Graph {
         let Some(s) = c.facts.get(&f.op) else {
             return Ok(None);
         };
-        let (table, mut values) = match &self.program.templates[c.template].ops[f.op as usize] {
-            Op::Let(dst, Call::Table(t), aa) => {
-                let mut vals = self.arguments(f.cell, aa)?;
-                vals.push(self.slot(f.cell, *dst)?);
-                (*t, vals)
+        let (table, mut values) = if let Some(carrier) = self.carrier(f) {
+            (carrier.table, self.arguments(f.cell, &carrier.columns)?)
+        } else {
+            match self.program.templates[c.template]
+                .ops
+                .get(f.op as usize)
+                .ok_or("invalid live fact position")?
+            {
+                Op::Let(dst, Call::Table(t), aa) => {
+                    let mut vals = self.arguments(f.cell, aa)?;
+                    vals.push(self.slot(f.cell, *dst)?);
+                    (*t, vals)
+                }
+                Op::Set(t, aa, v) => {
+                    let mut vals = self.arguments(f.cell, aa)?;
+                    vals.push(self.argument(f.cell, v)?);
+                    (*t, vals)
+                }
+                _ => return Err("invalid fact recipe position".into()),
             }
-            Op::Set(t, aa, v) => {
-                let mut vals = self.arguments(f.cell, aa)?;
-                vals.push(self.argument(f.cell, v)?);
-                (*t, vals)
-            }
-            _ => return Err("invalid fact recipe position".into()),
         };
         for v in &mut values {
             *v = canon(v, &self.parents)
@@ -489,7 +626,10 @@ impl Graph {
             Dependency::Function(i) => self.functions.get(i).map(|f| f.table),
             Dependency::Fact(f) => {
                 let c = self.cells.get(&f.cell)?;
-                match &self.program.templates[c.template].ops[f.op as usize] {
+                if let Some(carrier) = self.carrier(f) {
+                    return Some(carrier.table);
+                }
+                match self.program.templates[c.template].ops.get(f.op as usize)? {
                     Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => Some(*t),
                     _ => None,
                 }
@@ -546,14 +686,15 @@ impl Graph {
                     .iter()
                     .copied()
                     .filter(|w| match w {
-                        Dependency::Fact(f) => {
-                            self.cells.get(&f.cell).is_some_and(|c| {
-                                match &self.program.templates[c.template].ops[f.op as usize] {
-                                    Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => *t == table,
-                                    _ => false,
-                                }
-                            })
-                        }
+                        Dependency::Fact(f) => self.cells.get(&f.cell).is_some_and(|c| {
+                            if let Some(carrier) = self.carrier(*f) {
+                                return carrier.table == table;
+                            }
+                            match &self.program.templates[c.template].ops[f.op as usize] {
+                                Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => *t == table,
+                                _ => false,
+                            }
+                        }),
                         Dependency::Function(i) => {
                             self.functions[*i].live && self.functions[*i].table == table
                         }
@@ -634,6 +775,7 @@ impl Graph {
         self.cells.get_mut(&f.cell).unwrap().facts.insert(
             f.op,
             FactState {
+                entry: None,
                 hidden,
                 epoch: self.epoch,
                 born: self.epoch,
@@ -647,6 +789,9 @@ impl Graph {
         self.subscribe(Dependency::Fact(f), &vs);
         self.events.push(Dependency::Fact(f));
         self.stats.logical_facts_created += 1;
+        if self.views_enabled && self.program.views.markers.contains(&t) {
+            self.view_stats.marker_rows += 1;
+        }
         self.changed = true;
         Ok(())
     }
@@ -1276,10 +1421,10 @@ impl Graph {
         {
             if let Some(c) = self.cells.remove(&cell) {
                 if let Some(p) = c.parent {
-                    if let Some(users) = self.parent_users.get_mut(&p.cell) {
-                        *users -= 1;
-                    }
-                    self.garbage.insert(p.cell);
+                    self.release_reference(p);
+                }
+                for f in c.providers.values() {
+                    self.release_reference(*f);
                 }
             }
             self.parent_users.remove(&cell);
@@ -1340,3 +1485,6 @@ impl Graph {
         serde_json::to_writer(writer, &Export(self)).map_err(|e| e.to_string())
     }
 }
+
+#[path = "reference_storage.rs"]
+mod reference_storage;

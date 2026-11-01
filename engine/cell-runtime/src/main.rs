@@ -5,7 +5,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opt = |k: &str| args.windows(2).find(|w| w[0] == k).map(|w| w[1].clone());
     if args.iter().any(|x| x == "--help") || args.is_empty() {
         println!(
-            "eggfuse-cell-runtime --program FILE [--inspect-program | --output DIR] [--audit-stages] [--checkpoint-after RUNS] [--save-checkpoint] [--resume FILE] [--extract-unit-cost OPERATOR]"
+            "eggfuse-cell-runtime --program FILE [--inspect-program | --verify-reference-views | --output DIR] [--audit-stages] [--checkpoint-after RUNS] [--save-checkpoint] [--resume FILE] [--extract-unit-cost OPERATOR]"
         );
         return Ok(());
     }
@@ -17,6 +17,59 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             serde_json::json!({"backend":"cell-cpu", "validated":true,
             "congruence_reorder_safe":program.congruence.reorder_safe,
             "congruence_templates":program.congruence.templates.len()})
+        );
+        return Ok(());
+    }
+    if args.iter().any(|x| x == "--verify-reference-views") {
+        let mut control = Executor::new(
+            Graph::new_with_reference_views(program.clone(), false)?,
+            true,
+        );
+        let mut candidate = Executor::new(Graph::new_with_reference_views(program, true)?, true);
+        fn state(j: serde_json::Value) -> serde_json::Value {
+            let mut j = j;
+            let rows = j["rows"].as_array_mut().unwrap();
+            rows.sort_by_cached_key(|r| serde_json::to_string(r).unwrap());
+            j
+        }
+        let mut n = 0;
+        if state(control.graph.export()?) != state(candidate.graph.export()?) {
+            return Err("initial reference-view state differs".into());
+        }
+        while !control.tasks.is_empty() || !candidate.tasks.is_empty() {
+            control.execute_until(Some(n + 1))?;
+            candidate.execute_until(Some(n + 1))?;
+            if control.steps.len() != candidate.steps.len() {
+                return Err(format!("Run count differs at {n}").into());
+            }
+            if control.steps.len() == n {
+                break;
+            }
+            n += 1;
+            for key in [
+                "ordinal",
+                "ruleset",
+                "path",
+                "iterations",
+                "epoch",
+                "logical_matches",
+                "changed",
+            ] {
+                if control.steps[n - 1][key] != candidate.steps[n - 1][key] {
+                    return Err(format!("Run {n} {key} differs").into());
+                }
+            }
+            if state(control.snapshots.pop().unwrap()) != state(candidate.snapshots.pop().unwrap())
+            {
+                return Err(format!("Run {n} full state differs").into());
+            }
+            if control.binding_audit.pop() != candidate.binding_audit.pop() {
+                return Err(format!("Run {n} bindings differ").into());
+            }
+        }
+        println!(
+            "{}",
+            serde_json::json!({"all_stage_graphs_and_bindings_equal":true,"runs":n,"reference_views":candidate.graph.reference_report(),"control_live_cells":control.graph.cells.len(),"candidate_live_cells":candidate.graph.cells.len(),"scope":"streaming same-binary storage ablation; standalone Cell CPU, not native egglog"})
         );
         return Ok(());
     }

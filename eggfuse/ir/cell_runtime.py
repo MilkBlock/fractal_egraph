@@ -22,8 +22,11 @@ def requirements(core):
                 effects=sorted(effects),control=sorted(control),
                 sorts=sorted({s['name'] for t in core['tables'] for s in t['schema']}))
 
-def build(core):
+def build(core, marker=None, reference_tables=()):
     validate_core(core)
+    if marker is not None:
+        from eggfuse.compiler.marker_ir import validate as validate_marker
+        validate_marker(marker,core)
     from eggfuse.analyzer.multistage import build as multi_stage_build
     from eggfuse.analyzer.congruence import build as congruence_build
     recipe = recipe_build(core)
@@ -41,6 +44,9 @@ def build(core):
                       native_runtime_dependency=False, native_free_join=False,
                       completeness='exact residual virtual-fact matching; no learned exclusion'),
         source_core=copy.deepcopy(core))
+    from eggfuse.analyzer.reference_views import build as views_build
+    payload['reference_views']=views_build(recipe,[m['name'] for m in marker['markers']] if marker else reference_tables)
+    if marker is not None:payload['marker_program_sha256']=marker['sha256']
     return {**payload,'sha256':digest(payload)}
 
 def validate(program):
@@ -48,7 +54,12 @@ def validate(program):
     require(program.get('sha256')==digest({k:v for k,v in program.items() if k!='sha256'}),'Cell artifact checksum differs')
     core=program['source_core']
     recipe_validate(program['recipe'],core,scope='original_program')
-    expected=build(core)
+    expected=build(core,reference_tables=program.get('reference_views',{}).get('marker_tables',[]))
+    if 'marker_program_sha256' in program:
+        checksum=program['marker_program_sha256']
+        require(isinstance(checksum,str) and len(checksum)==64 and all(c in '0123456789abcdef' for c in checksum),'marker checksum')
+        expected['marker_program_sha256']=checksum
+    if 'reference_views' not in program:expected.pop('reference_views')
     if 'multi_stage' not in program:  # Existing v1 controls remain valid, without optimization.
         expected.pop('multi_stage')
     if 'congruence' not in program: expected.pop('congruence')

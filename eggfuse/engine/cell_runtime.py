@@ -48,6 +48,8 @@ def load_artifact(artifact):
     for name,checksum in manifest['files'].items():
         if Path(name).name!=name or hashlib.sha256((artifact/name).read_bytes()).hexdigest()!=checksum:raise ValueError('Cell artifact checksum mismatch: '+name)
     program=json.loads((artifact/'program.json').read_text());core=validate(program)
+    if 'reference_views' in program:
+        if 'reference-views.json' not in manifest['files'] or json.loads((artifact/'reference-views.json').read_text())!=program['reference_views']:raise ValueError('reference views differ')
     if 'merge_contracts' in program:
         if 'merge-contracts.json' not in manifest['files'] or json.loads((artifact/'merge-contracts.json').read_text())!=program['merge_contracts']:raise ValueError('merge contracts differ')
     if 'multi_stage' in program:
@@ -55,7 +57,9 @@ def load_artifact(artifact):
     if 'congruence' in program:
         if 'local-congruence-program.json' not in manifest['files'] or json.loads((artifact/'local-congruence-program.json').read_text())!=program['congruence']:raise ValueError('congruence artifact differs')
     if core!=json.loads((artifact/'core.json').read_text()) or program['recipe']!=json.loads((artifact/'recipe-program.json').read_text()):raise ValueError('Cell artifact program/source mismatch')
-    validate_markers(json.loads((artifact/'marker-program.json').read_text()),core)
+    marker=json.loads((artifact/'marker-program.json').read_text());validate_markers(marker,core)
+    if 'marker_program_sha256' in program:
+        if program['marker_program_sha256']!=marker['sha256'] or program['reference_views']['marker_tables']!=sorted(m['name'] for m in marker['markers']):raise ValueError('reference marker contract differs')
     source_sha=hashlib.sha256((artifact/'source_sk_mk.egg').read_bytes()).hexdigest()
     if source_sha!=manifest['source_sha256']:raise ValueError('marked source differs')
     return program

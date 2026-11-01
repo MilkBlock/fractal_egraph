@@ -9,8 +9,9 @@ ROOT=Path(__file__).resolve().parents[3]
 
 def emit(folder,core,recipe,marker,source):
     validate_recipe(json.loads(recipe.read_text()),json.loads(core.read_text()),'original_program')
-    program=build(json.loads(core.read_text()));validate(program)
+    program=build(json.loads(core.read_text()),json.loads(marker.read_text()));validate(program)
     (folder/'program.json').write_text(json.dumps(program))
+    (folder/'reference-views.json').write_text(json.dumps(program['reference_views'],indent=2))
     (folder/'multi-stage-program.json').write_text(json.dumps(program['multi_stage'],indent=2))
     (folder/'merge-contracts.json').write_text(json.dumps(program['merge_contracts'],indent=2))
     (folder/'local-congruence-program.json').write_text(json.dumps(program['congruence'],indent=2))
@@ -18,15 +19,16 @@ def emit(folder,core,recipe,marker,source):
     caps={'backend':'cell-cpu','storage':'shared recipe and parent projections; virtual fact references; mutable function ports',
           'native_runtime_linked':False,'requirements':program['requirements'],
           'multi_stage':{'routes':len(program['multi_stage']['routes']),'publication':'original Run occurrences','local_results':'producer recipe slots with current exhaustive-domain checks','residual':'all ambiguous or unknown boundary alternatives retained'},
+          'reference_views':{'enable':'CELL_CPU_REFERENCE_VIEWS=1','marker_tables':len(program['reference_views']['marker_tables']),'layout':'shared typed slot projections; immutable FactRef providers','takeover':'exact whole-source containment at Run publication; mutable function owners retained'},
           'local_congruence':{'templates':len(program['congruence']['templates']), 'enable':'CELL_CPU_CONGRUENCE=1', 'proof':'conditional constructor congruence checked against typed recipe', 'fallback':'global repair; shortcut disabled with non-lattice function merges'},
           'limits':['no GPU execution','unproven inverse reads retain residual matching','diagnostic unit-cost extraction only','source frontend restricts post-initialization commands']}
     (folder/'capabilities.json').write_text(json.dumps(caps,indent=2))
-    files=['program.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
+    files=['program.json','reference-views.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
     (folder/'manifest.json').write_text(json.dumps({'schema':'eggfuse-device-artifact/v1','backend':'cell-cpu','source_sha256':digest(source),'execution':{'native_runtime':False},'files':{n:digest(folder/n) for n in files}},indent=2))
 
 def compile_target(pm,core,recipe,marker,source,stop_after,execute_runtime):
-    implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py',ROOT/'eggfuse/analyzer/congruence.py',ROOT/'eggfuse/ir/structural_key.py',ROOT/'engine/structural-key/abi.json']
-    outputs=['program.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
+    implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py',ROOT/'eggfuse/analyzer/congruence.py',ROOT/'eggfuse/analyzer/reference_views.py',ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/ir/structural_key.py',ROOT/'engine/structural-key/abi.json']
+    outputs=['program.json','reference-views.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
     def check(folder):validate(json.loads((folder/'program.json').read_text()))
     device=pm.run('device',{'core':core,'recipe':recipe,'marker':marker,'source':source},{'backend':'cell-cpu'},implementations,outputs,
         lambda f:emit(f,core,recipe,marker,source),check,preserves=['typed marked program and source control'])

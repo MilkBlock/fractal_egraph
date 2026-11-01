@@ -111,3 +111,7 @@ extra `Smaller` rows in fact/loopfact/sum-bits, plus equality differences in
 loopfact and a missing native `TermSingle` key in sum-bits. These are **unresolved**;
 do not hide them by dropping Smaller from acceptance. Before/after optimization
 equivalence is a narrower claim than replacing pristine egglog correctly.
+
+## Reference marker views and checked takeover
+
+The official CPU target can emit exact slot projections and conditional containment certificates. `CELL_CPU_REFERENCE_VIEWS=1` enables virtual marker records, reference redirection, inherited continuation entries and body retirement. This remains opt-in: sum-bits passes every Run/binding comparison but is slower. See [REFERENCE_VIEWS.md](REFERENCE_VIEWS.md) for the representation, controls, tests and measured limits.

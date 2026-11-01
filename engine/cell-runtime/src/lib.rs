@@ -11,3 +11,5 @@ pub mod schedule;
 pub mod value;
 
 pub mod sieve;
+
+pub mod views;

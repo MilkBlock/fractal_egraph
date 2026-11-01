@@ -55,6 +55,8 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[serde(default)]
+    pub views: crate::views::Views,
     pub congruence: crate::congruence::Congruence,
     pub multi_stage: crate::multistage::MultiStage,
     pub tables: Vec<Table>,
@@ -262,6 +264,7 @@ impl Program {
             sets.insert(string(&s["name"])?.into(), ids);
         }
         let mut p = Self {
+            views: crate::views::Views::default(),
             congruence: crate::congruence::Congruence::default(),
             multi_stage: crate::multistage::MultiStage::default(),
             tables,
@@ -371,6 +374,7 @@ impl Program {
                 }
             }
         }
+        p.views = crate::views::Views::parse(&p, &p.artifact["reference_views"])?;
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
         p.congruence = crate::congruence::Congruence::parse(&p, &p.artifact["congruence"])?;
         Ok(p)

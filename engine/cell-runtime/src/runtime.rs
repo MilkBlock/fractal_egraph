@@ -12,6 +12,7 @@ use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct Binding {
+    witnesses: BTreeMap<usize, Dependency>,
     values: BTreeMap<usize, Value>,
     epoch: u64,
     parent: Option<FactRef>,
@@ -72,12 +73,14 @@ pub struct Executor {
 /// Run-local binding workspace. Only successful matches become stored bindings;
 /// failed join branches undo slot assignments instead of cloning tree maps.
 struct QueryEnv {
+    witnesses: BTreeMap<usize, Dependency>,
     values: Vec<Option<Value>>,
     trail: Vec<usize>,
 }
 impl QueryEnv {
     fn new(slots: usize) -> Self {
         Self {
+            witnesses: BTreeMap::new(),
             values: vec![None; slots],
             trail: vec![],
         }
@@ -194,6 +197,7 @@ impl Executor {
     ) -> Result<()> {
         if !remaining.iter().any(|pending| *pending) {
             out.push(Binding {
+                witnesses: env.witnesses.clone(),
                 values: env.binding(),
                 epoch,
                 parent: None,
@@ -307,7 +311,11 @@ impl Executor {
                         .zip(&r.values)
                         .all(|(a, v)| bind(a, v, env, &self.graph))
                     {
+                        if self.graph.views_enabled {
+                            env.witnesses.insert(chosen, r.witness);
+                        }
                         self.solve(query, rid, remaining, env, epoch.max(r.epoch), out, delta)?;
+                        env.witnesses.remove(&chosen);
                     }
                     env.rollback(mark);
                 }
@@ -402,6 +410,9 @@ impl Executor {
                     {
                         return Ok(false);
                     }
+                    if self.graph.views_enabled {
+                        env.witnesses.insert(i, row.witness);
+                    }
                     *epoch = (*epoch).max(row.epoch);
                 }
             }
@@ -422,25 +433,27 @@ impl Executor {
         if !self.multistage_enabled || !self.local_projections {
             return Ok((true, epoch, None));
         }
-        let Some(anchor) = self.graph.origin(seed.witness) else {
+        let Some(context) = self.graph.continuation_context(seed.witness) else {
             return Ok((true, epoch, None));
         };
-        let source = &self.graph.cells[&anchor.cell];
         let Some(route) = self
             .graph
             .program
             .multi_stage
             .routes
-            .get(&(source.template, anchor.op as usize, rid, pivot))
+            .get(&(context.template, context.op, rid, pivot))
             .cloned()
         else {
             return Ok((true, epoch, None));
         };
-        let depth = source
-            .recipe_depth
+        let depth = context
+            .depth
             .checked_add(1)
             .ok_or("recipe depth exhausted")?;
         self.continuation_stats.entered += 1;
+        if !self.graph.cells.contains_key(&context.cell) {
+            self.graph.view_stats.recovered_continuations += 1;
+        }
         let query = self.graph.program.rules[rid].query.clone();
         for read in &route.reads {
             if !remaining[read.atom] {
@@ -472,24 +485,17 @@ impl Executor {
             // an intermediate Row or rediscovering its constructor in a table.
             let mut local = None;
             if let Some(op) = read.effect {
-                let f = FactRef {
-                    cell: anchor.cell,
-                    op: op as u32,
-                };
+                let f = self.graph.context_fact(context, op);
                 if expected.is_none_or(|w| w == Dependency::Fact(f)) {
-                    if let Some(state) = self.graph.cells[&anchor.cell]
-                        .facts
-                        .get(&f.op)
-                        .filter(|s| !s.hidden)
-                    {
-                        let stamp = state.epoch;
-                        let values = self.graph.arguments(anchor.cell, &read.columns)?;
-                        if full_key
-                            .as_ref()
-                            .is_none_or(|key| values[..key.len()] == *key)
+                    if let Some(row) = self.graph.fact(f)? {
+                        if !row.hidden
+                            && row.table == read.table
+                            && full_key
+                                .as_ref()
+                                .is_none_or(|key| row.values[..key.len()] == *key)
                         {
                             self.continuation_stats.local_effect_reads += 1;
-                            local = Some((values, stamp, Dependency::Fact(f)));
+                            local = Some((row.values, row.epoch, row.witness));
                         }
                     }
                 }
@@ -500,7 +506,7 @@ impl Executor {
                 } else {
                     let Ok(key) = self
                         .graph
-                        .arguments(anchor.cell, &read.columns[..read.columns.len() - 1])
+                        .context_arguments(context, &read.columns[..read.columns.len() - 1])
                     else {
                         self.continuation_stats.unavailable_sources += 1;
                         continue;
@@ -540,6 +546,9 @@ impl Executor {
             {
                 env.rollback(mark);
                 return Ok((false, epoch, None));
+            }
+            if self.graph.views_enabled {
+                env.witnesses.insert(read.atom, witness);
             }
             remaining[read.atom] = false;
             epoch = epoch.max(stamp);
@@ -594,6 +603,9 @@ impl Executor {
                     .zip(&row.values)
                     .all(|(a, v)| bind(a, v, &mut env, &self.graph))
                 {
+                    if self.graph.views_enabled {
+                        env.witnesses.insert(anchor, row.witness);
+                    }
                     let n = found.len();
                     let mut remaining = (0..rule.query.len())
                         .map(|i| i != anchor)
@@ -623,6 +635,7 @@ impl Executor {
                     }
                     if self.multistage_enabled && !remaining.iter().any(|v| *v) {
                         found.push(Binding {
+                            witnesses: env.witnesses.clone(),
                             values: env.binding(),
                             epoch,
                             parent: None,
@@ -645,18 +658,21 @@ impl Executor {
                             if matches!(row.witness, Dependency::Fact(_)) {
                                 b.parent = Some(f);
                             }
-                            let source = &self.graph.cells[&f.cell];
+                            let source = self
+                                .graph
+                                .continuation_context(row.witness)
+                                .ok_or("missing continuation context")?;
                             if self.multistage_enabled {
                                 if let Some(route) = self.graph.program.multi_stage.routes.get(&(
                                     source.template,
-                                    f.op as usize,
+                                    source.op,
                                     rid,
                                     anchor,
                                 )) {
                                     b.continuation = Some((
                                         route.producer,
                                         source
-                                            .recipe_depth
+                                            .depth
                                             .checked_add(1)
                                             .ok_or("recipe depth exhausted")?,
                                         false,
@@ -707,6 +723,9 @@ impl Executor {
                             .map(|i| i != pivot)
                             .collect::<Vec<_>>();
                         let mut epoch = row.epoch;
+                        if self.graph.views_enabled {
+                            env.witnesses.insert(pivot, row.witness);
+                        }
                         let delta = Some((pivot, row.epoch, row.witness));
                         if self.multistage_enabled && self.point_programs {
                             if let Some(order) = self
@@ -791,6 +810,7 @@ impl Executor {
                         }
                         if self.multistage_enabled && !remaining.iter().any(|v| *v) {
                             found.push(Binding {
+                                witnesses: env.witnesses.clone(),
                                 values: env.binding(),
                                 epoch,
                                 parent: None,
@@ -848,7 +868,9 @@ impl Executor {
         }
         let facts = self.graph.stats.logical_facts_created;
         let updates = self.graph.stats.function_updates;
-        let cell = self.graph.linked_frame(template, b.values, b.parent)?;
+        let cell = self
+            .graph
+            .reference_frame(template, b.values, b.parent, &b.witnesses)?;
         if let Some((producer, depth, residual)) = origin {
             self.graph.cells.get_mut(&cell).unwrap().recipe_depth = depth;
             self.handoffs.insert((producer, rid));
@@ -921,6 +943,7 @@ impl Executor {
                 self.graph.stats.logical_facts_created - facts;
             self.continuation_stats.function_updates += self.graph.stats.function_updates - updates;
         }
+        self.graph.queue_absorption(cell, &b.witnesses);
         self.graph.release_empty(cell);
         Ok(())
     }
@@ -989,6 +1012,27 @@ impl Executor {
         self.graph.stats.bindings += matches as u64;
         let phase = Instant::now();
         self.graph.repair()?;
+        let moved = self.graph.absorb_ready()?;
+        if !moved.is_empty() {
+            for pending in &mut self.pending {
+                *pending = std::mem::take(pending)
+                    .into_iter()
+                    .map(|d| match d {
+                        Dependency::Fact(f) => Dependency::Fact(self.graph.resolve_reference(f)),
+                        _ => d,
+                    })
+                    .collect();
+            }
+            self.graph.events = self
+                .graph
+                .events
+                .iter()
+                .map(|d| match *d {
+                    Dependency::Fact(f) => Dependency::Fact(self.graph.resolve_reference(f)),
+                    _ => *d,
+                })
+                .collect();
+        }
         let repair_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         if std::env::var("CELL_CPU_QUERY_INDEX_SCOPE").as_deref() == Ok("table") {
@@ -1193,6 +1237,6 @@ impl Executor {
         Ok(e)
     }
     pub fn report(&self) -> J {
-        json!({"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }
