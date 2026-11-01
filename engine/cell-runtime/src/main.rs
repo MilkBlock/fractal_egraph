@@ -5,12 +5,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opt = |k: &str| args.windows(2).find(|w| w[0] == k).map(|w| w[1].clone());
     if args.iter().any(|x| x == "--help") || args.is_empty() {
         println!(
-            "eggfuse-cell-runtime --program FILE --output DIR [--audit-stages] [--checkpoint-after RUNS] [--save-checkpoint] [--resume FILE] [--extract-unit-cost OPERATOR]"
+            "eggfuse-cell-runtime --program FILE [--inspect-program | --output DIR] [--audit-stages] [--checkpoint-after RUNS] [--save-checkpoint] [--resume FILE] [--extract-unit-cost OPERATOR]"
         );
         return Ok(());
     }
     let bytes = std::fs::read(opt("--program").ok_or("--program required")?)?;
     let program = Program::parse(serde_json::from_slice(&bytes)?)?;
+    if args.iter().any(|x| x == "--inspect-program") {
+        println!(
+            "{}",
+            serde_json::json!({"backend":"cell-cpu", "validated":true,
+            "congruence_reorder_safe":program.congruence.reorder_safe,
+            "congruence_templates":program.congruence.templates.len()})
+        );
+        return Ok(());
+    }
     let out = PathBuf::from(opt("--output").ok_or("--output required")?);
     std::fs::create_dir(&out)?;
     let start = Instant::now();

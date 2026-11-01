@@ -5,6 +5,38 @@ from pathlib import Path
 def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def fingerprint(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
+def verified_receipts(output, required):
+    """Read completed compiler passes without compiling or inventing a fallback.
+
+    Historical tool binaries need not remain installed. Data dependencies and
+    emitted artifacts must still match; original implementation hashes are kept
+    in the receipts as provenance, not mistaken for the current compiler.
+    """
+    root=Path(output).resolve()
+    if not (root/'pipeline.json').is_file():raise ValueError('expected an eggfuse compile output directory, not a frozen source_core/program')
+    pipeline=json.loads((root/'pipeline.json').read_text())
+    if pipeline.get('schema')!='eggfuse-passes/v1' or pipeline.get('failed'):raise ValueError('compiler pipeline is incomplete or failed')
+    records={}
+    for step in pipeline['passes']:
+        name=step['name']
+        if name in records:raise ValueError('duplicate compiler pass '+name)
+        if name not in required:continue
+        folder=Path(step['directory']).resolve()
+        if folder!=root/'passes'/name/step['key']:raise ValueError('compiler receipt directory differs')
+        receipt=json.loads((folder/'receipt.json').read_text())
+        contract=receipt['contract']
+        if not step.get('validated') or not receipt.get('validated') or contract['name']!=name or fingerprint(contract)!=step['key']:raise ValueError('unvalidated compiler receipt '+name)
+        for rel,checksum in receipt['artifacts'].items():
+            path=(folder/rel).resolve()
+            if not path.is_relative_to(folder) or not path.is_file() or digest(path)!=checksum:raise ValueError('compiler artifact differs: '+name+'/'+rel)
+        for item in contract['inputs'].values():
+            path=Path(item['path']).resolve()
+            if path.is_relative_to(root) and (not path.is_file() or digest(path)!=item['sha256']):raise ValueError('compiler data dependency differs: '+str(path))
+        records[name]=(folder,receipt)
+    missing=set(required)-records.keys()
+    if missing:raise ValueError('missing compiler passes: '+', '.join(sorted(missing)))
+    return records
+
 class PassManager:
     def __init__(self,output,stop_after=None):
         self.output=Path(output).resolve()

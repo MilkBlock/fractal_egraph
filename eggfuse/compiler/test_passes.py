@@ -1,8 +1,20 @@
 import copy,json,tempfile,unittest
 from pathlib import Path
-from .passes import PassManager
+from .passes import PassManager,verified_receipts
 
 class PassTests(unittest.TestCase):
+    def test_receipts_require_pipeline_and_unchanged_data(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            with self.assertRaisesRegex(ValueError,'compile output'):verified_receipts(root,['device'])
+            pm=PassManager(root);src=root/'source.egg';src.write_text('source')
+            out=pm.run('device',{'source':src},{},[],['program.json'],lambda f:(f/'program.json').write_text('{}'),lambda f:None)
+            self.assertEqual(list(verified_receipts(root,['device'])),['device'])
+            with self.assertRaisesRegex(ValueError,'missing compiler passes'):verified_receipts(root,['device','structural_keys'])
+            src.write_text('changed')
+            with self.assertRaisesRegex(ValueError,'data dependency'):verified_receipts(root,['device'])
+            src.write_text('source');(out/'program.json').write_text('{"changed":true}')
+            with self.assertRaisesRegex(ValueError,'artifact differs'):verified_receipts(root,['device'])
     def test_unowned_output_is_not_overwritten(self):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d);f=p/'source.egg';f.write_text('user data')

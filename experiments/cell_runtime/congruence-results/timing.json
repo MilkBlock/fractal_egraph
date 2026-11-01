@@ -98,7 +98,9 @@
         "rhs": 0.005824876,
         "search": 0.0016249580000000001
       }
-    ]
+    ],
+    "compiler_pipeline_evaluated": false,
+    "input_scope": "historical standalone raw-core experiment; bypassed structural-key and marker passes"
   },
   "deep": {
     "measurements": [
@@ -199,7 +201,9 @@
         "rhs": 0.024562458,
         "search": 0.006052584
       }
-    ]
+    ],
+    "compiler_pipeline_evaluated": false,
+    "input_scope": "historical standalone raw-core experiment; bypassed structural-key and marker passes"
   },
   "fact": {
     "measurements": [
@@ -300,7 +304,9 @@
         "rhs": 0.0030130840000000074,
         "search": 0.01453140900000002
       }
-    ]
+    ],
+    "compiler_pipeline_evaluated": false,
+    "input_scope": "historical standalone raw-core experiment; bypassed structural-key and marker passes"
   },
   "loopfact": {
     "measurements": [
@@ -401,7 +407,9 @@
         "rhs": 0.0029717870000000057,
         "search": 0.016051011000000004
       }
-    ]
+    ],
+    "compiler_pipeline_evaluated": false,
+    "input_scope": "historical standalone raw-core experiment; bypassed structural-key and marker passes"
   },
   "sum-bits": {
     "measurements": [
@@ -502,6 +510,8 @@
         "rhs": 0.020816619999999918,
         "search": 0.10055517099999996
       }
-    ]
+    ],
+    "compiler_pipeline_evaluated": false,
+    "input_scope": "historical standalone raw-core experiment; bypassed structural-key and marker passes"
   }
 }

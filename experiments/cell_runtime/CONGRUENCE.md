@@ -1,5 +1,24 @@
 # Baked local congruence on the standalone CPU engine
 
+## Correction: the original benchmark bypassed the compiler
+
+The measurements below used `build(prepare(source))` or rebuilt an old raw
+`source_core`. They did **not** execute `source -> source_sk -> source_sk_mk`.
+They only measure the standalone repair mechanism, and cannot establish the
+performance or coverage of the complete eggfuse compiler pipeline. In particular,
+the three Pass-3 fallback results do not evaluate structural-key-enabled input.
+
+The bypass has been removed from `congruence_bench.py`. It now accepts only
+`--pipeline NAME=COMPILE_DIR`, verifies the existing pass receipts and published
+device artifact, and runs the exact emitted `program.json`. It never reconstructs
+or substitutes a program. Empty SK selections, zero markers, unsupported backend
+primitives and disabled congruence contracts fail before either timed lane.
+The new provenance check does not fix missing SK support in the CPU engine; that
+remains an explicit integration gap, not permission to time a raw fallback.
+
+Low-level native correctness fixtures in `check.py` still intentionally use the
+original source as their independent reference. They are not full-pipeline bench.
+
 This executes the real **standalone, single-threaded Cell CPU runtime**, not a
 model of its final graph and not the native egglog kernel. Native egglog provides
 the frontend and independent fixture oracle. The optimization is opt-in:
@@ -9,8 +28,14 @@ CELL_CPU_CONGRUENCE=1 python3 experiments/cell_runtime/check.py \
   --output out/congruence-check
 python3 experiments/cell_runtime/congruence_bench.py \
   --output out/congruence-bench \
-  --real-controls out/cell-sieve-join/final-controls
+  --pipeline fact=out/compiled-fact-cell-cpu \
+  --pipeline loopfact=out/compiled-loopfact-cell-cpu \
+  --pipeline sum-bits=out/compiled-sum-bits-cell-cpu
 ```
+
+The pipeline directories must be actual successful `eggfuse compile --backend
+cell-cpu` outputs with active SK selections and markers. The example names above
+are destinations, not a claim that these artifacts already exist or are supported.
 
 `eggfuse compile --backend cell-cpu` also publishes
 `eggfuse_related_files/local-congruence-program.json`. The complete executable

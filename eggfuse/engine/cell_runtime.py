@@ -38,9 +38,9 @@ def execute(program,out,engine=None,audit=False,checkpoint_after=None,resume=Non
     with (out/'runtime.log').open('w') as f:subprocess.run(cmd,stdout=f,stderr=subprocess.STDOUT,check=True,env={**os.environ,**(environment or {})})
     return json.loads((out/'runtime/report.json').read_text())
 
-def run_artifact(artifact,output,check=False,engine=None):
+def load_artifact(artifact):
     from eggfuse.compiler.marker_ir import validate as validate_markers
-    artifact=Path(artifact);output=Path(output)
+    artifact=Path(artifact)
     manifest=json.loads((artifact/'manifest.json').read_text())
     if manifest.get('schema')!='eggfuse-device-artifact/v1' or manifest.get('backend')!='cell-cpu':raise ValueError('not a Cell CPU artifact')
     required={'program.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json'}
@@ -56,6 +56,52 @@ def run_artifact(artifact,output,check=False,engine=None):
     validate_markers(json.loads((artifact/'marker-program.json').read_text()),core)
     source_sha=hashlib.sha256((artifact/'source_sk_mk.egg').read_bytes()).hexdigest()
     if source_sha!=manifest['source_sha256']:raise ValueError('marked source differs')
+    return program
+
+def load_pipeline_artifact(output):
+    """Benchmark entry: source -> SK -> markers -> typed recipe -> CPU artifact.
+
+    A completed but empty SK/marker pass is reported as such, not as an enabled
+    optimization. Kernel fixtures may still use execute() for independent tests.
+    """
+    from eggfuse.compiler.passes import verified_receipts,digest
+    root=Path(output).resolve();artifact=root/'eggfuse_related_files'
+    required=['structural_keys','analyze','markers','marker_ir','recipe_ir','device']
+    if (root/'pipeline.json').is_file() and any(s['name']=='bake_environment' for s in json.loads((root/'pipeline.json').read_text()).get('passes',[])):
+        required.append('bake_environment')
+    records=verified_receipts(root,required)
+    device,receipt=records['device']
+    if receipt['contract']['options'].get('backend')!='cell-cpu':raise ValueError('compiler output is not cell-cpu')
+    for rel,checksum in receipt['artifacts'].items():
+        if digest(artifact/rel)!=checksum:raise ValueError('published CPU artifact differs from device pass: '+rel)
+    links=(('structural_keys','result/source_sk.egg','markers','source_sk'),
+           ('analyze','result/cell-recipes.json','markers','analysis'),
+           ('analyze','result/cell-recipes.json','marker_ir','analysis'),
+           ('markers','result/published.egg','marker_ir','marked_source'),
+           ('marker_ir','core.json','recipe_ir','core'),
+           ('marker_ir','core.json','device','core'),
+           ('marker_ir','marker-program.json','device','marker'),
+           ('recipe_ir','recipe-program.json','device','recipe'),
+           ('markers','result/published.egg','device','source'))
+    for producer,rel,consumer,input_name in links:
+        if records[producer][1]['artifacts'][rel]!=records[consumer][1]['contract']['inputs'][input_name]['sha256']:raise ValueError('compiler pass wiring differs: '+producer+' -> '+consumer)
+    analyzed=records['analyze'][1]['contract']['inputs']['source_sk']['sha256']
+    if analyzed!=records['structural_keys'][1]['artifacts']['result/source_sk.egg']:
+        environment=records.get('bake_environment')
+        if not environment or environment[1]['contract']['inputs']['bake_source']['sha256']!=analyzed or environment[1]['contract']['inputs']['source_sk']['sha256']!=records['structural_keys'][1]['artifacts']['result/source_sk.egg']:
+            raise ValueError('Bake input lacks a validated matching rule environment')
+    program=load_artifact(artifact)
+    sk=json.loads((records['structural_keys'][0]/'result/report.json').read_text())
+    marker=json.loads((artifact/'marker-program.json').read_text())
+    provenance={'pipeline':str(root),'passes':{n:r[1]['contract'] for n,r in records.items()},
+                'selected_choices':sk.get('selected_choices',[]),'marker_count':len(marker['markers']),
+                'source_sha256':records['structural_keys'][1]['contract']['inputs']['source']['sha256'],
+                'source_sk_sha256':records['structural_keys'][1]['artifacts']['result/source_sk.egg'],
+                'source_sk_mk_sha256':digest(artifact/'source_sk_mk.egg'),'program_sha256':digest(artifact/'program.json')}
+    return artifact/'program.json',program,provenance
+
+def run_artifact(artifact,output,check=False,engine=None):
+    output=Path(output);program=load_artifact(artifact)
     engine=engine or binary();report=execute(program,output,engine,audit=check)
     result={'backend':'cell-cpu','complete_schedule':report['status']=='complete','inference_seconds':report['inference_seconds'],'checked':check,'report':report}
     if check:
