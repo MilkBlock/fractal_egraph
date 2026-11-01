@@ -25,8 +25,10 @@ def compare_native(core,candidate,reference):
         elif v['sort']=='String':strings.add(v['value'])
     for row in candidate['rows']:
         for v in row['values']:scan(v)
-    strings=sorted(strings);string_ids={s:i for i,s in enumerate(strings)};arena=[2,0]
+    strings=sorted(strings);string_ids={s:i for i,s in enumerate(strings)};arena=[2,0];key_values=[]
     def value(v):
+        if 'key' in v:
+            i=len(key_values);key_values.append(v['key']);return i
         if 'eq' in v:return ids[(v['sort'],v['eq'])]
         if 'elements' in v:
             elems=sorted(value(x) for x in v['elements']);h=len(arena);arena.extend([len(elems),len(elems),0,0,*elems]);arena[0]=len(arena);return h
@@ -35,7 +37,7 @@ def compare_native(core,candidate,reference):
     tables=core['tables'];tids={t['name']:i for i,t in enumerate(tables)};stride=4+max(len(t['schema']) for t in tables);rows=[]
     for row in candidate['rows']:
         r=[tids[row['table']],int(row['subsumed']),0,len(rows)+1,*map(value,row['values'])];r += [0]*(stride-len(r));rows.append(r)
-    return compare(dict(tables=tables,strings=strings,anchors=anchors,stride=stride),rows,parents,reference,arena)
+    return compare(dict(tables=tables,strings=strings,anchors=anchors,stride=stride,key_values=key_values),rows,parents,reference,arena)
 
 def execute(source,output,engine,check=False,plan_path=None,mode="cell",stage_audit=False):
     started=time.perf_counter()

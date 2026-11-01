@@ -112,7 +112,15 @@ impl Program {
             for s in &schema {
                 if !matches!(
                     s["kind"].as_str(),
-                    Some("eq" | "i64" | "bool" | "Unit" | "String" | "set" | "f64")
+                    Some(
+                        "eq" | "i64"
+                            | "bool"
+                            | "Unit"
+                            | "String"
+                            | "set"
+                            | "f64"
+                            | "structural_key"
+                    )
                 ) {
                     return Err(format!("unsupported sort {s}"));
                 }
@@ -266,6 +274,103 @@ impl Program {
             artifact: j,
         };
         p.validate()?;
+        if p.tables
+            .iter()
+            .any(|t| t.schema.iter().any(|s| s["kind"] == "structural_key"))
+            && p.artifact["source_core"]["structural_key"]["abi"]
+                != serde_json::from_str::<J>(eggfuse_structural_key::ABI).unwrap()
+        {
+            return Err("structural-key ABI differs".into());
+        }
+        if p.artifact.get("merge_contracts").is_some()
+            && !p.artifact["merge_contracts"]["tables"].is_array()
+        {
+            return Err("merge contract schema".into());
+        }
+        if let Some(cs) = p.artifact["merge_contracts"]["tables"].as_array() {
+            if p.artifact["merge_contracts"]["schema"] != "eggfuse-merge-contracts/v1"
+                || cs.len() != p.tables.len()
+            {
+                return Err("merge contract schema".into());
+            }
+            for (t, c) in p.tables.iter().zip(cs) {
+                let e = &t.merge;
+                let op = e["call"]["primitive"].as_str();
+                let vars = e["args"].as_array().map(|xs| {
+                    let mut v = xs
+                        .iter()
+                        .map(|x| x["var"].as_str().unwrap_or(""))
+                        .collect::<Vec<_>>();
+                    v.sort();
+                    v
+                });
+                let kind = if t.constructor {
+                    "congruence"
+                } else if e.is_null() {
+                    "unique"
+                } else if matches!(op, Some("min" | "max" | "or" | "and" | "cell-key-min"))
+                    && vars == Some(vec!["new", "old"])
+                {
+                    if op == Some("cell-key-min") {
+                        "key-min"
+                    } else {
+                        "lattice"
+                    }
+                } else if op == Some("cell-key-select")
+                    && e["args"][0]["var"] == "old"
+                    && e["args"][1]["var"] == "new"
+                    && e["args"][2]["call"]["primitive"] == "cell-key-prefer-left"
+                {
+                    "ranked-selection"
+                } else {
+                    "ordered"
+                };
+                fn ports(
+                    e: &J,
+                    tables: &[Table],
+                    reads: &mut std::collections::BTreeSet<String>,
+                    constructs: &mut std::collections::BTreeSet<String>,
+                ) -> Result<()> {
+                    if let Some(name) = e["call"]["table"].as_str() {
+                        let t = tables
+                            .iter()
+                            .find(|t| t.name == name)
+                            .ok_or("unknown merge port")?;
+                        if t.constructor {
+                            constructs.insert(name.into());
+                        } else {
+                            reads.insert(name.into());
+                        }
+                    }
+                    if let Some(xs) = e["args"].as_array() {
+                        for x in xs {
+                            ports(x, tables, reads, constructs)?;
+                        }
+                    }
+                    Ok(())
+                }
+                let mut reads = std::collections::BTreeSet::new();
+                let mut constructs = std::collections::BTreeSet::new();
+                ports(e, &p.tables, &mut reads, &mut constructs)?;
+                if c["reads"] != serde_json::json!(reads)
+                    || c["constructs"] != serde_json::json!(constructs)
+                {
+                    return Err("merge contract footprint differs".into());
+                }
+                if c["table"] != t.name
+                    || c["expression"] != *e
+                    || c["kind"] != kind
+                    || c["equal_inputs"]
+                        != if e["call"]["table"].is_string() {
+                            "return_old"
+                        } else {
+                            "evaluate"
+                        }
+                {
+                    return Err("merge contract differs from source".into());
+                }
+            }
+        }
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
         p.congruence = crate::congruence::Congruence::parse(&p, &p.artifact["congruence"])?;
         Ok(p)
@@ -364,19 +469,25 @@ fn verify_source(j: &J) -> Result<()> {
     let ir = &j["recipe"];
     let core = &j["source_core"];
     let mut unsupported = std::collections::BTreeSet::new();
-    fn inspect(j: &J, bad: &mut std::collections::BTreeSet<String>) {
+    fn inspect(j: &J, spec: &J, bad: &mut std::collections::BTreeSet<String>) {
         match j {
             J::Array(xs) => {
                 for x in xs {
-                    inspect(x, bad)
+                    inspect(x, spec, bad)
                 }
             }
             J::Object(xs) => {
-                if let Some(name) = j["primitive"].as_str() {
+                if let Some(name) = j["primitive"]
+                    .as_str()
+                    .filter(|_| j["inputs"].is_array() && j["output"].is_string())
+                {
                     let base = name.strip_prefix("bool-").unwrap_or(name);
                     let inputs = j["inputs"].as_array().cloned().unwrap_or_default();
                     let output = j["output"].as_str().unwrap_or("");
                     let supported = match base {
+                        x if x.starts_with("cell-key-") => {
+                            eggfuse_structural_key::signature(j, spec)
+                        }
                         "+" | "-" | "*" | "/" | "%" | "min" | "max" => {
                             inputs == [J::from("i64"), J::from("i64")] && output == "i64"
                         }
@@ -403,13 +514,13 @@ fn verify_source(j: &J) -> Result<()> {
                     }
                 }
                 for v in xs.values() {
-                    inspect(v, bad)
+                    inspect(v, spec, bad)
                 }
             }
             _ => {}
         }
     }
-    inspect(core, &mut unsupported);
+    inspect(core, &core["structural_key"], &mut unsupported);
     if !unsupported.is_empty() {
         return Err(format!(
             "unsupported primitive capabilities before execution: {}",

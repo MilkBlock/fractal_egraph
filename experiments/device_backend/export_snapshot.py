@@ -11,6 +11,12 @@ def gpu_rows(program,state):
     if h!=arena[0] or h>len(arena):raise ValueError('invalid set arena')
     set_names=sorted({s['name'] for t in program['tables'] for s in t['schema'] if s['kind']=='set'})
     def value(s,x):
+        if s['kind']=='structural_key':
+            from eggfuse.ir.structural_key import arena_key
+            key_arena=state.get('structural_keys')
+            if key_arena is None:
+                offset=program['structural_key']['offset_words'];key_arena=arena[offset:offset+arena[offset]]
+            return {'sort':s['name'],'key':arena_key(key_arena,x)}
         if s['kind']=='eq':
             if not 0<x<len(parents) or parents[x]!=x:raise ValueError('noncanonical equality value')
             if sorts.setdefault(x,s['name'])!=s['name']:raise ValueError('cross-sort equality')
@@ -34,6 +40,9 @@ def gpu_rows(program,state):
 def verify_import(rows,imported):
     mapping={(x['sort'],x['old']):x['now'] for x in imported['identities']}
     def v(x,remap):
+        if 'key' in x:
+            from eggfuse.ir.structural_key import key_token
+            return (x['sort'],'key',key_token(x['key']))
         if 'eq' in x:return (x['sort'],'eq',mapping[(x['sort'],x['eq'])] if remap else x['eq'])
         if 'elements' in x:return (x['sort'],'set',frozenset(v(e,remap) for e in x['elements']))
         return (x['sort'],'value',x['value'])

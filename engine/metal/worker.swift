@@ -501,12 +501,15 @@ while true{
   // Explicit checkpoint only. No table contents are read by the control loop.
   let cb=queue.makeCommandBuffer()!,b=cb.makeBlitCommandEncoder()!
   let setHeader=device.makeBuffer(length:8,options:.storageModeShared)!
+  let keyHeader=device.makeBuffer(length:8,options:.storageModeShared)!
+  if let sk=program["structural_key"] as? [String:Any] {b.copy(from:rows,sourceOffset:(capacity*stride+(sk["offset_words"] as! Int))*8,to:keyHeader,destinationOffset:0,size:8)}
   b.copy(from:rows,sourceOffset:capacity*stride*8,to:setHeader,destinationOffset:0,size:8)
   let bytes=Int(hostMeta[0])*stride*8,psize=Int(hostMeta[1])*4,fsize=Int(hostMeta[8])*4
   let r=device.makeBuffer(length:max(8,bytes),options:.storageModeShared)!,p=device.makeBuffer(length:max(8,psize),options:.storageModeShared)!,f=device.makeBuffer(length:max(8,fsize),options:.storageModeShared)!
   if bytes>0{b.copy(from:rows,sourceOffset:0,to:r,destinationOffset:0,size:bytes)}
   b.copy(from:parent,sourceOffset:0,to:p,destinationOffset:0,size:psize);b.copy(from:factParent,sourceOffset:0,to:f,destinationOffset:0,size:fsize);b.endEncoding();cb.commit();cb.waitUntilCompleted();try need(cb.status == .completed,"snapshot failed")
-  let liveSets=Int(setHeader.contents().load(as:Int64.self));try need(liveSets>=2 && liveSets<=setWords,"invalid set arena length")
+  var liveSets=Int(setHeader.contents().load(as:Int64.self));try need(liveSets>=2 && liveSets<=setWords,"invalid set arena length")
+  if let sk=program["structural_key"] as? [String:Any] {let used=Int(keyHeader.contents().load(as:Int64.self));try need(used>=8 && used<=(sk["storage_words"] as! Int),"invalid structural key arena");liveSets=max(liveSets,(sk["offset_words"] as! Int)+used)}
   let setSnapshot=device.makeBuffer(length:liveSets*8,options:.storageModeShared)!,scb=queue.makeCommandBuffer()!,sb=scb.makeBlitCommandEncoder()!
   sb.copy(from:rows,sourceOffset:capacity*stride*8,to:setSnapshot,destinationOffset:0,size:liveSets*8);sb.endEncoding();scb.commit();scb.waitUntilCompleted();try need(scb.status == .completed,"set snapshot failed")
   try send(hostMeta);try output.write(contentsOf:Data(bytes:r.contents(),count:bytes));try output.write(contentsOf:Data(bytes:p.contents(),count:psize));try output.write(contentsOf:Data(bytes:f.contents(),count:fsize));try send([UInt32(liveSets)]);try output.write(contentsOf:Data(bytes:setSnapshot.contents(),count:liveSets*8))

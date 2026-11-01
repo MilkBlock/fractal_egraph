@@ -88,6 +88,7 @@ def verify_repeat(first,second):
         if x['history']!=y['history']:raise ValueError('GPU round history or state fingerprints are not reproducible')
         for field in ('rows','parents','fact_parents','sets','watermarks','meta','state','batch_statistics','region_statistics'):
             if x[field]!=y[field]:raise ValueError('GPU final '+field+' is not reproducible')
+        if x.get('structural_keys',[])!=y.get('structural_keys',[]):raise ValueError('GPU structural key DAG is not reproducible')
         if x.get('row_index_rebuilds')!=y.get('row_index_rebuilds'):raise ValueError('GPU index maintenance is not reproducible')
         stats=x.get('batch_statistics') or []
         if stats and stats[14]!=1:raise ValueError('numeric effect audit was not enabled')

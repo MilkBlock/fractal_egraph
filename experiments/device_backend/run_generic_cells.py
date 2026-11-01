@@ -63,7 +63,7 @@ def run_library(library, build, output, capacity=256, match_capacity=1024, quant
                     validate_recipe_artifact(folder_art,manifest,p,artifact_core)
                 frames=[]
                 for instance,core in todo:
-                    anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
+                    anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True,key_layout=p.get("structural_key"))
                     if len(core['initial'])>p['capacity'] or len(anchors)>=p['id_capacity'] or len(arena)>p['set_words']:
                         raise ValueError('initial instance exceeds shared arena; increase capacity')
                     frames.append(dict(initial_rows=flat,initial_sets=arena,anchors=anchors,

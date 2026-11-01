@@ -68,6 +68,7 @@ func loadPipeline(_ name:String)throws->MTLComputePipelineState {
  if let saved=archive {
   descriptor.binaryArchives=[saved]
   if let state=try? device.makeComputePipelineState(descriptor:descriptor,options:.failOnBinaryArchiveMiss,reflection:nil){cacheHits+=1;return state}
+  if ProcessInfo.processInfo.environment["EGGFUSE_METAL_CACHE_ONLY"]=="1" {try require(false,"Metal pipeline cache miss: "+name)}
   cacheMisses+=1
   FileHandle.standardError.write(Data("[metal] compiling pipeline \(name)\n".utf8))
   do {
@@ -75,6 +76,7 @@ func loadPipeline(_ name:String)throws->MTLComputePipelineState {
    return try device.makeComputePipelineState(descriptor:descriptor,options:.failOnBinaryArchiveMiss,reflection:nil)
   }catch{cacheWarnings.append("archive population \(name): \(error)")}
  }else{cacheMisses+=1}
+ if ProcessInfo.processInfo.environment["EGGFUSE_METAL_CACHE_ONLY"]=="1" {try require(false,"Metal pipeline cache unavailable: "+name)}
  // Cache failure never substitutes a different shader or a guessed result.
  descriptor.binaryArchives=[]
  return try device.makeComputePipelineState(descriptor:descriptor,options:[],reflection:nil)
@@ -545,6 +547,10 @@ for i in 0..<n {
  results.append(["incremental_rebuild":incrementalStatistics,"row_index_rebuilds":i64(rows,i*rowWords+(program["index_counter_offset"] as! Int),1)[0],"meta":m,"state":s,"rows":Swift.stride(from:0,to:raw.count,by:stride).map{Array(raw[$0..<$0+stride])},
   "parents":u32(uints,i*uintWords+layout["parent"]!,Int(m[1])),"fact_parents":u32(uints,i*uintWords+layout["fp"]!,Int(m[8])),
   "batch_statistics":transportVersion==7 ? i64(batchData,i*batchWords,batchHeader):[],"region_statistics":cacheHeader>0 ? i64(markerCache,i*cacheWords,16):[],"watermarks":u32(uints,i*uintWords+layout["watermarks"]!,program["rules"] as! Int),"sets":Array(arena.prefix(Int(arena[0]))),
+  "structural_keys": (program["structural_key"] as? [String:Any]).map { sk -> [Int64] in
+   let offset=sk["offset_words"] as! Int
+   return Array(arena[offset..<offset+Int(arena[offset])])
+  } ?? [],
   "history":Swift.stride(from:0,to:h.count,by:historyWidth).map{Array(h[$0..<$0+historyWidth])},"completed":m[4]==0 && s[2]==1])
 }
 let report:[String:Any]=["instances":results,"inference_seconds":seconds,"gpu_seconds":gpuSeconds,"shader_compile_seconds":compileSeconds,

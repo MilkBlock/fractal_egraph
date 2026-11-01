@@ -30,7 +30,10 @@ def preserve_verified(source,target):
  temporary=target.with_name(target.name+'.pending')
  temporary.unlink(missing_ok=True);os.link(source,temporary);temporary.replace(target)
 
-def compare(p,rows,parents,checkpoint,arena=None):
+def compare(p,rows,parents,checkpoint,arena=None,key_arena=None):
+ from eggfuse.ir.structural_key import key_token,arena_key
+ if key_arena is None and p.get("structural_key"):
+  offset=p["structural_key"]["offset_words"];key_arena=arena[offset:offset+arena[offset]]
  def find(x):
   assert 0<=x<len(parents),'invalid device identity'
   seen=set()
@@ -45,6 +48,7 @@ def compare(p,rows,parents,checkpoint,arena=None):
  anchors={(a['sort'],a['old']):a['now'] for a in checkpoint['anchors']}
  for i,key in enumerate(p['anchors']):pair((key[0],find(i+1)),(key[0],anchors[tuple(key)]))
  def native_value(x):
+  if 'key' in x:return (x['sort'],key_token(x['key']))
   if 'elements' in x:return (x['sort'],frozenset(native_value(e) for e in x['elements']))
   return (x['sort'],x['eq'] if 'eq' in x else x['value'])
  native={}
@@ -64,6 +68,7 @@ def compare(p,rows,parents,checkpoint,arena=None):
     es=arena[x+4:x+4+arena[x+1]]
     assert list(es)==sorted(set(es)) and all(find(e)==e for e in es),'noncanonical set'
     vals.append((s['name'],frozenset((s['element']['name'],e) for e in es)))
+   elif s['kind']=='structural_key':vals.append((s['name'],key_token(p['key_values'][x] if 'key_values' in p else arena_key(key_arena,x))))
    else:vals.append((s['name'],p['strings'][x] if s['kind']=='String' else x))
   key=(t['name'],tuple(vals[:-1]));assert key not in keys,'GPU left duplicate canonical keys';keys.add(key)
   pending.append((t,vals,bool(r[1])))
@@ -100,6 +105,7 @@ def load_resume(folder,original,p,require_native=True):
  state=json.loads((folder/('verified-gpu-state.json' if certified else 'gpu-state.json')).read_text())
  if len(state['meta'])!=9 or len(state['parents'])!=state['meta'][1] or len(state['fact_parents'])!=state['meta'][8]:raise ValueError('invalid checkpoint lengths')
  old=json.loads((folder/'program.json').read_text())
+ if (old.get("structural_key") or {}).get("offset_words")!=(p.get("structural_key") or {}).get("offset_words"):raise ValueError("resume structural key arena layout differs")
  if p['tables']!=old['tables'] or p['strings']!=old['strings'] or [list(a) for a in p['anchors']]!=old['anchors']:raise ValueError('resume identities differ')
  if require_native:
   native=json.loads((folder/('verified-native-state.json' if certified else 'native-state.json')).read_text());compare(p,state['rows'],state['parents'],native,state['sets'])

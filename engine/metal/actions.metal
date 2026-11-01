@@ -10,6 +10,9 @@ __attribute__((noinline)) void execute_bytecode(uint rule,uint mi,device long*co
  long args[COLS]={0};
  for(uint pc=ACTION_START[rule];pc<ACTION_START[rule+1]&&!m.error;pc+=5){
   uint op=uint(code[pc]),dst=uint(code[pc+1]),sub=uint(code[pc+2]);
+#if SK_ENABLED
+  if(op==10){v[dst]=sk_op(r,m,sub,uint(code[pc+3]),args,uint(code[pc+4]));continue;}
+#endif
   long value=code[pc+3]==2?matches[mi*MSTRIDE+1+code[pc+4]]:(code[pc+3]?v[code[pc+4]]:code[pc+4]);
   switch(op){
    case 0:args[dst]=value;break;

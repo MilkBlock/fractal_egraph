@@ -237,7 +237,15 @@ impl Executor {
                     .iter()
                     .map(|a| operand(a, &env, &self.graph).ok_or("unbound primitive input"))
                     .collect::<std::result::Result<Vec<_>, _>>()?;
-                if let Some(v) = value::primitive(name, &vals, output)? {
+                if name.starts_with("cell-key-") {
+                    self.graph.stats.key_operations += 1;
+                }
+                if let Some(v) = value::primitive(
+                    name,
+                    &vals,
+                    output,
+                    &self.graph.program.artifact["source_core"]["structural_key"]["nodes"],
+                )? {
                     let mark = env.trail.len();
                     if bind(atom.args.last().unwrap(), &v, env, &self.graph) {
                         self.solve(query, rid, remaining, env, epoch, out, delta)?;
@@ -331,7 +339,16 @@ impl Executor {
                 Call::Primitive(name, output) => {
                     let Some(args) = args else { continue };
                     self.continuation_stats.point_primitives += 1;
-                    let Some(value) = value::primitive(name, &args, output)? else {
+                    if name.starts_with("cell-key-") {
+                        self.graph.stats.key_operations += 1;
+                    }
+                    let Some(value) = value::primitive(
+                        name,
+                        &args,
+                        output,
+                        &self.graph.program.artifact["source_core"]["structural_key"]["nodes"],
+                    )?
+                    else {
                         return Ok(false);
                     };
                     if !bind(atom.args.last().unwrap(), &value, env, &self.graph) {
@@ -867,8 +884,16 @@ impl Executor {
                 }
                 Op::Let(dst, Call::Primitive(name, output), aa) => {
                     let args = self.graph.arguments(cell, &aa)?;
-                    let v = value::primitive(&name, &args, &output)?
-                        .ok_or_else(|| format!("RHS primitive failed: {name}"))?;
+                    if name.starts_with("cell-key-") {
+                        self.graph.stats.key_operations += 1;
+                    }
+                    let v = value::primitive(
+                        &name,
+                        &args,
+                        &output,
+                        &self.graph.program.artifact["source_core"]["structural_key"]["nodes"],
+                    )?
+                    .ok_or_else(|| format!("RHS primitive failed: {name}"))?;
                     self.graph
                         .cells
                         .get_mut(&cell)

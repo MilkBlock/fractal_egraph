@@ -92,7 +92,7 @@ def lower(core, capacity=256, match_capacity=1024, marker_program=None, region_p
         tape=private_encode(schedule)
     # Preserve native min-ID representative preference *within each sort*.
     # Lexicographic Value(10) < Value(2) can spuriously refresh a seminaive row.
-    anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True)
+    anchors,arena,flat=encode_initial(core,p['stride']-4,{s:i for i,s in enumerate(p['strings'])},native_order=True,key_layout=p.get("structural_key"))
     p.update(anchors=anchors,initial_rows=flat,initial_sets=arena)
     if batch and parallel_block_rebuild and incremental_rebuild is not None:
         from .incremental_rebuild import reserve

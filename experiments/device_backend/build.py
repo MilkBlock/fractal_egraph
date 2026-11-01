@@ -23,6 +23,7 @@ def runtime_sources():
         sources.extend(p for p in (ROOT / directory).rglob('*.py')
                        if not p.name.startswith('test_'))
     sources.extend(p for p in METAL.iterdir() if p.suffix in ('.metal', '.swift'))
+    sources.append(ROOT / 'engine/structural-key/abi.json')
     return sorted(set(sources))
 
 
@@ -81,7 +82,8 @@ def main():
     (o / 'Cargo.toml').write_text(
         '[package]\nname="egglog-device-frontend"\nversion="0.1.0"\nedition="2024"\n'
         '[dependencies]\negglog={path=' + json.dumps(str(ROOT / 'egglog')) +
-        ',default-features=false,features=["serde"]}\nserde_json="1"\n'
+        ',default-features=false,features=["serde"]}\n'
+        'eggfuse-structural-key={path=' + json.dumps(str(ROOT / 'engine/structural-key')) + '}\nserde_json="1"\n'
         '[profile.dev]\ndebug=0\nincremental=false\n')
     for name in ('main.rs', 'compact_observer.rs'):
         dest = o / 'src' / name
@@ -98,6 +100,9 @@ def main():
                'egglog/egglog-bridge/src/device_import.rs', 'egglog/src/lib.rs',
                'egglog/egglog-bridge/src/rule.rs')]
     sources.extend(HERE / n for n in ('frontend.rs', 'compact_observer.rs'))
+    sources.extend((ROOT / 'src/structural_key').glob('*.rs'))
+    sources.extend((ROOT / 'engine/structural-key/src').glob('*.rs'))
+    sources.extend(ROOT / 'engine/structural-key' / n for n in ('Cargo.toml', 'Cargo.lock'))
     sources.extend(runtime_sources())
     tracked = subprocess.check_output(['git', 'ls-files', '-z', 'egglog'], cwd=ROOT).decode().split('\0')
     kernel = sorted(set([n for n in tracked if n.endswith(('.rs', '.toml', '.lock'))]

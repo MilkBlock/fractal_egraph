@@ -149,6 +149,20 @@ pub fn execute(install: impl Fn(&mut EGraph, &str) -> Result<()>) -> Result<()> 
     let mut anchors = eg.capture_device_anchors().map_err(io::Error::other)?;
     p["schedule"] = json!(schedules);
     p["assertion_tables"] = json!(assertions);
+    if let Some(spec)=source.lines().find_map(|l|l.strip_prefix("; cell-structural-key-runtime/v1 ")) {
+        p["structural_key"]=serde_json::from_str(spec)?;
+        p["structural_key"]["abi"]=serde_json::from_str(eggfuse_structural_key::ABI)?;
+        // Metal uses these exact native literal labels, including Rust's string
+        // escaping. Only values already in the typed program can be String inputs.
+        fn strings(j:&Value,out:&mut BTreeSet<String>){
+            if j["sort"]=="String" {if let Some(s)=j["value"].as_str(){out.insert(s.to_owned());}}
+            if j["sort"]["name"]=="String" {if let Some(s)=j["literal"].as_str(){out.insert(s.to_owned());}}
+            if let Some(xs)=j.as_array(){for x in xs{strings(x,out);}}
+            if let Some(xs)=j.as_object(){for x in xs.values(){strings(x,out);}}
+        }
+        let mut ss=BTreeSet::new();strings(&p,&mut ss);
+        p["structural_key"]["string_labels"]=json!(ss.into_iter().map(|s|{let k=eggfuse_structural_key::Key::base_string(&s);json!({"value":s,"label":k.0.label.as_ref()})}).collect::<Vec<_>>());
+    }
     println!("{}", p);
     io::stdout().flush()?;
     let mut observer:Option<compact_observer::Observer>=None;

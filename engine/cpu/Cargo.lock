@@ -273,11 +273,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "eggfuse-structural-key"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "egglog"
 version = "2.0.0"
 dependencies = [
  "csv",
  "dyn-clone",
+ "eggfuse-structural-key",
  "egglog-add-primitive",
  "egglog-ast",
  "egglog-bridge",

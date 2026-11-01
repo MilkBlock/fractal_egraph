@@ -57,6 +57,12 @@ pub struct Stats {
     pub logical_facts_created: u64,
     pub function_updates: u64,
     pub merge_calls: u64,
+    #[serde(default)]
+    pub key_operations: u64,
+    #[serde(default)]
+    pub merge_port_reads: u64,
+    #[serde(default)]
+    pub merge_contract_calls: BTreeMap<String, u64>,
     pub unions: u64,
     pub repaired_dependencies: u64,
     pub decoded_rows: u64,
@@ -270,6 +276,11 @@ impl Graph {
         Ok(g)
     }
     fn import(j: &J, ids: &mut BTreeMap<(String, String), u64>) -> Result<Value> {
+        if j.get("key").is_some() {
+            return Ok(Value::Key(eggfuse_structural_key::Key::from_wire(
+                serde_json::from_value(j["key"].clone()).map_err(|e| e.to_string())?,
+            )?));
+        }
         if let Some(eq) = j["eq"].as_str() {
             let next = ids.len() as u64 + 1;
             if next >= 1u64 << 32 {
@@ -791,9 +802,6 @@ impl Graph {
     fn merge_expression(&mut self, e: &J, old: &Value, new: &Value) -> Result<Value> {
         // Native ResolvedMergeFn::Function returns old on identical arguments.
         // Primitive merges do NOT have this shortcut: (+ old new) must execute.
-        if e["call"]["table"].is_string() && old == new {
-            return Ok(old.clone());
-        }
         if let Some(v) = e["var"].as_str() {
             return match v {
                 "old" => Ok(old.clone()),
@@ -816,21 +824,46 @@ impl Graph {
                 .position(|t| t.name == name)
                 .ok_or("merge operator")?;
             if !self.program.tables[t].virtual_fact {
-                return Err("merge callback function reads not yet admitted".into());
+                self.stats.merge_port_reads += 1;
+                return self.read_merge_port(t, &aa);
             }
             self.dynamic_construct(t, aa)
         } else {
+            if e["call"]["primitive"]
+                .as_str()
+                .is_some_and(|n| n.starts_with("cell-key-"))
+            {
+                self.stats.key_operations += 1;
+            }
             value::primitive(
                 string(&e["call"]["primitive"])?,
                 &aa,
                 string(&e["call"]["output"])?,
+                &self.program.artifact["source_core"]["structural_key"]["nodes"],
             )?
             .ok_or("merge arithmetic failed".into())
         }
     }
     fn merge_value(&mut self, t: usize, old: Value, new: Value) -> Result<Value> {
         self.stats.merge_calls += 1;
+        if let Some(kind) = self.program.artifact["merge_contracts"]["tables"][t]["kind"].as_str() {
+            *self
+                .stats
+                .merge_contract_calls
+                .entry(kind.into())
+                .or_default() += 1;
+        }
         let expr = self.program.tables[t].merge.clone();
+        if old == new
+            && if self.program.artifact["merge_contracts"].is_null() {
+                expr["call"]["table"].is_string()
+            } else {
+                self.program.artifact["merge_contracts"]["tables"][t]["equal_inputs"]
+                    == "return_old"
+            }
+        {
+            return Ok(old);
+        }
         if expr.is_null() {
             return if old == new {
                 Ok(old)
@@ -842,6 +875,55 @@ impl Graph {
             };
         }
         self.merge_expression(&expr, &old, &new)
+    }
+    fn read_merge_port(&mut self, t: usize, args: &[Value]) -> Result<Value> {
+        let key = args
+            .iter()
+            .map(|v| canon(v, &self.parents))
+            .collect::<Vec<_>>();
+        let mut result: Option<Value> = None;
+        // During repair the ordinary key directory may still contain displaced
+        // keys. Resolve the complete canonical port, including pending pure
+        // lattice collisions; never pick an arbitrary stale entry.
+        for i in self.function_operators[t].iter().copied() {
+            let Some(row) = self.function(i) else {
+                continue;
+            };
+            if row.values[..key.len()] != key {
+                continue;
+            }
+            let value = row.values.last().unwrap().clone();
+            if let Some(old) = result.as_ref() {
+                if *old == value {
+                    continue;
+                }
+                let e = &self.program.tables[t].merge;
+                let Some(op) = e["call"]["primitive"]
+                    .as_str()
+                    .filter(|op| matches!(*op, "min" | "max" | "or" | "and" | "cell-key-min"))
+                else {
+                    return Err("ambiguous non-lattice merge read".into());
+                };
+                let a = e["args"].as_array().ok_or("invalid lattice merge")?;
+                if a.len() != 2
+                    || !((a[0]["var"] == "old" && a[1]["var"] == "new")
+                        || (a[0]["var"] == "new" && a[1]["var"] == "old"))
+                {
+                    return Err("ambiguous merge port requires a pure lattice contract".into());
+                }
+                result = value::primitive(
+                    op,
+                    &[old.clone(), value],
+                    self.program.tables[t].schema.last().unwrap()["name"]
+                        .as_str()
+                        .unwrap(),
+                    &self.program.artifact["source_core"]["structural_key"]["nodes"],
+                )?;
+            } else {
+                result = Some(value);
+            }
+        }
+        result.ok_or_else(|| format!("unready merge port {}", self.program.tables[t].name))
     }
     pub fn set_function(&mut self, t: usize, key: Vec<Value>, value: Value) -> Result<()> {
         let key = key

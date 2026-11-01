@@ -133,21 +133,22 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         if region_file:shutil.copyfile(region_file,folder/'region-program.json')
         from .capabilities import report as capability_report
         (folder/'capabilities.json').write_text(json.dumps(capability_report(recipe_value,program,backend),indent=2))
+        (folder/'merge-contracts.json').write_text(json.dumps(program['merge_contracts'],indent=2))
         (folder/'program.json').write_text(json.dumps(program));(folder/'kernel.metal').write_text(program['shader'])
         shutil.copyfile(ir/'core.json',folder/'core.json')
         (folder/'manifest.json').write_text(json.dumps(dict(schema='eggfuse-device-artifact/v1',backend=backend,execution=execution,source_sha256=digest(marked_source),marker_sha256=m['sha256'],
-            files={n:digest(folder/n) for n in ['core.json','program.json','kernel.metal','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else [])}),indent=2))
-    lowering_files=[ROOT/'eggfuse/compiler/targets/metal'/(name+'.py') for name in ['compiler','batch_rhs','matrix_sat','matrix_comparison','joint_polyspine','query_contexts','context_ridge','stage_cell','cell_program','cell_updates','cell_spines','scheduled_matrix','generic_cell','regions','batches','cell_waves','resident_indexes','resident_rebuild','incremental_rebuild','resident_schedules','resident_writes','resident_seeds']]
+            files={n:digest(folder/n) for n in ['core.json','program.json','kernel.metal','merge-contracts.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else [])}),indent=2))
+    lowering_files=[ROOT/'eggfuse/compiler/targets/metal'/(name+'.py') for name in ['compiler','batch_rhs','matrix_sat','matrix_comparison','joint_polyspine','query_contexts','context_ridge','stage_cell','cell_program','cell_updates','cell_spines','scheduled_matrix','generic_cell','regions','batches','cell_waves','resident_indexes','resident_rebuild','incremental_rebuild','resident_schedules','resident_writes','resident_seeds','structural_keys']]
     device=pm.run('device',{'core':ir/'core.json','marker_ir':marker_file,'recipe_ir':recipe_file,**({'regions':region_file} if region_file else {})},dict(backend=backend,capacity=capacity,match_capacity=match_capacity,incremental_rebuild=incremental_rebuild,**execution),
-        base+lowering_files+list((ROOT/'engine/metal').glob('*.metal'))+list((ROOT/'eggfuse/compiler/recipes').glob('*.py'))+[ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/interface.py',ROOT/'eggfuse/compiler/capabilities.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/batches.py'],['program.json','kernel.metal','core.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else []),lower,
+        base+lowering_files+list((ROOT/'engine/metal').glob('*.metal'))+list((ROOT/'eggfuse/compiler/recipes').glob('*.py'))+[ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/compiler/multistage.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/ir/interface.py',ROOT/'eggfuse/compiler/capabilities.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/batches.py',ROOT/'eggfuse/ir/structural_key.py',ROOT/'engine/structural-key/abi.json'],['program.json','kernel.metal','core.json','merge-contracts.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else []),lower,
         lambda f:valid_json(f,'program.json'),preserves=['marked program semantics'])
-    for filename in ['program.json','kernel.metal','core.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else []):pm.publish(device/filename,'eggfuse_related_files/'+filename)
+    for filename in ['program.json','kernel.metal','core.json','merge-contracts.json','manifest.json','recipe-program.json','capabilities.json','marker-program.json','source_sk_mk.egg']+(['region-program.json'] if region_file else []):pm.publish(device/filename,'eggfuse_related_files/'+filename)
     if stop_after=='device':return pm
     if backend=='regions':
         def verify_regions_runtime(folder):
             from eggfuse.engine.regions import run_artifact
             runtime=folder/'runtime';runtime.mkdir();os.symlink(frontend,runtime/'frontend')
-            spec=json.loads((build/'build.json').read_text());spec.update(frontend=str(frontend),frontend_sha256=digest(frontend));(runtime/'build.json').write_text(json.dumps(spec))
+            spec=dict(schema='eggfuse-resident-build/v1',frontend=str(frontend),frontend_sha256=digest(frontend));(runtime/'build.json').write_text(json.dumps(spec))
             if run_gpu:
                 result=run_artifact(device,runtime,folder/'gpu',check=True)
                 checked=dict(backend=backend,verification=result['verification'],multi_stage_cell=result['region_execution'],gpu_inference_seconds=result['inference_seconds'])
@@ -170,7 +171,7 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         result=compare_source(json.loads((references[0]/'native-state.json').read_text()),json.loads((references[1]/'native-state.json').read_text()),json.loads(marker_file.read_text()))
         if run_gpu:
             runtime=folder/'runtime';runtime.mkdir();os.symlink(frontend,runtime/'frontend');os.symlink(build/'worker',runtime/'worker')
-            spec=json.loads((build/'build.json').read_text());spec.update(frontend=str(frontend),frontend_sha256=digest(frontend));(runtime/'build.json').write_text(json.dumps(spec))
+            spec=dict(schema='eggfuse-resident-build/v1',frontend=str(frontend),frontend_sha256=digest(frontend));(runtime/'build.json').write_text(json.dumps(spec))
             if backend in ('local','regions'):
                 from run_generic_cells import run_library
                 c=json.loads((ir/'core.json').read_text());initial=c.pop('initial')

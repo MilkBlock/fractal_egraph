@@ -88,9 +88,13 @@ def main():
     opaque_dir=a.output/'opaque-key-ir';opaque_dir.mkdir()
     opaque=native_core(tools/'eggfuse_frontend',key.output/'source_sk.egg',opaque_dir)
     from eggfuse.compiler.targets.metal.compiler import compile_program
+    keys=compile_program(opaque)
+    assert keys['structural_key'] is not None
+    summary['gpu_key_type_lowered']=True
+    opaque=copy.deepcopy(opaque);opaque['tables'][0]['schema'][0]={'name':'UnknownOpaque','kind':'opaque'}
     try:compile_program(opaque)
     except ValueError as e:
-        assert 'physical lowering' in str(e);summary['unsupported_gpu_key_type_rejected']=str(e)
+        assert 'physical lowering' in str(e);summary['unknown_opaque_type_rejected']=str(e)
     else:raise AssertionError('opaque structural keys were silently lowered')
     (a.output/'checks.json').write_text(json.dumps(summary,indent=2)+'\n');print(json.dumps({k:v for k,v in summary.items() if not isinstance(v,dict)},indent=2))
 

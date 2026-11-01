@@ -7,6 +7,9 @@ import json
 from pathlib import Path
 
 def freeze(v):
+ if 'key' in v:
+  from eggfuse.ir.structural_key import key_token
+  return v['sort'],key_token(v['key'])
  if 'eq' in v:return v['sort'],v['eq']
  if 'elements' in v:return v['sort'],tuple(sorted({freeze(x) for x in v['elements']}))
  return v['sort'],v['value']

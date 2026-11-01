@@ -9,6 +9,7 @@ pub enum Value {
     Text(String),
     Float(i64),
     Set(Vec<Value>),
+    Key(eggfuse_structural_key::Key),
 }
 pub type Parents = BTreeMap<u64, u64>;
 pub fn root(parents: &Parents, mut x: u64) -> u64 {
@@ -39,7 +40,82 @@ pub fn integer(v: &Value) -> Result<i64, String> {
         Err("expected integer".into())
     }
 }
-pub fn primitive(name: &str, args: &[Value], output: &str) -> Result<Option<Value>, String> {
+pub fn primitive(
+    name: &str,
+    args: &[Value],
+    output: &str,
+    nodes: &J,
+) -> Result<Option<Value>, String> {
+    if name.starts_with("cell-key-") {
+        use eggfuse_structural_key::Key;
+        let key = |i: usize| -> Result<&Key, String> {
+            match args.get(i) {
+                Some(Value::Key(k)) => Ok(k),
+                _ => Err("expected structural key".into()),
+            }
+        };
+        let v = match name {
+            "cell-key-decode" => {
+                let Value::Text(x) = &args[0] else {
+                    return Err("key decode input".into());
+                };
+                return Ok(Key::decode_legacy(x).map(Value::Key));
+            }
+            "cell-key-min" => Value::Key(key(0)?.min(key(1)?).clone()),
+            "cell-key-anchor" => Value::Key(key(0)?.clone().anchor()),
+            "cell-key-cmp" => Value::Int(match key(0)?.cmp(key(1)?) {
+                std::cmp::Ordering::Less => -1,
+                std::cmp::Ordering::Equal => 0,
+                std::cmp::Ordering::Greater => 1,
+            }),
+            "cell-key-prefer-left" => Value::Int(i64::from(
+                integer(&args[0])? > integer(&args[1])?
+                    || (integer(&args[0])? == integer(&args[1])? && key(2)? <= key(3)?),
+            )),
+            "cell-key-select" => {
+                if integer(&args[2])? != 0 {
+                    args[0].clone()
+                } else {
+                    args[1].clone()
+                }
+            }
+            "cell-key-base-i64" => Value::Key(Key::base_i64(integer(&args[0])?)),
+            "cell-key-base-f64" => {
+                let Value::Float(x) = args[0] else {
+                    return Err("float key input".into());
+                };
+                Value::Key(Key::base_f64(x as u64))
+            }
+            "cell-key-base-String" => {
+                let Value::Text(x) = &args[0] else {
+                    return Err("string key input".into());
+                };
+                Value::Key(Key::base_string(x))
+            }
+            "cell-key-base-bool" => Value::Key(Key::new(
+                format!("bool:{}", integer(&args[0])? != 0),
+                vec![],
+            )),
+            "cell-key-base-Unit" => Value::Key(Key::new("Unit:()".into(), vec![])),
+            _ => {
+                let n = nodes
+                    .as_array()
+                    .and_then(|ns| ns.iter().find(|n| n["primitive"] == name))
+                    .ok_or("undeclared key node primitive")?;
+                if n["arity"].as_u64() != Some(args.len() as u64) {
+                    return Err("key node arity".into());
+                }
+                Value::Key(Key::new(
+                    n["label"].as_str().ok_or("key node label")?.into(),
+                    (0..args.len())
+                        .map(key)
+                        .map(|x| x.cloned())
+                        .collect::<Result<Vec<_>, _>>()?,
+                ))
+            }
+        };
+        return Ok(Some(v));
+    }
     let name = name.strip_prefix("bool-").unwrap_or(name);
     let value = match name {
         "=" | "!=" => {
@@ -159,5 +235,6 @@ pub fn exported(v: &Value, sort: &J) -> J {
         Value::Set(xs) => {
             json!({"sort":sort["name"],"elements":xs.iter().map(|v|exported(v,&sort["element"])).collect::<Vec<_>>()})
         }
+        Value::Key(k) => json!({"sort":sort["name"],"key":k.to_wire()}),
     }
 }

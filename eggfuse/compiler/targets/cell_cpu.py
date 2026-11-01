@@ -12,6 +12,7 @@ def emit(folder,core,recipe,marker,source):
     program=build(json.loads(core.read_text()));validate(program)
     (folder/'program.json').write_text(json.dumps(program))
     (folder/'multi-stage-program.json').write_text(json.dumps(program['multi_stage'],indent=2))
+    (folder/'merge-contracts.json').write_text(json.dumps(program['merge_contracts'],indent=2))
     (folder/'local-congruence-program.json').write_text(json.dumps(program['congruence'],indent=2))
     for name,path in [('core.json',core),('recipe-program.json',recipe),('marker-program.json',marker),('source_sk_mk.egg',source)]:shutil.copyfile(path,folder/name)
     caps={'backend':'cell-cpu','storage':'shared recipe and parent projections; virtual fact references; mutable function ports',
@@ -20,12 +21,12 @@ def emit(folder,core,recipe,marker,source):
           'local_congruence':{'templates':len(program['congruence']['templates']), 'enable':'CELL_CPU_CONGRUENCE=1', 'proof':'conditional constructor congruence checked against typed recipe', 'fallback':'global repair; shortcut disabled with non-lattice function merges'},
           'limits':['no GPU execution','unproven inverse reads retain residual matching','diagnostic unit-cost extraction only','source frontend restricts post-initialization commands']}
     (folder/'capabilities.json').write_text(json.dumps(caps,indent=2))
-    files=['program.json','multi-stage-program.json','local-congruence-program.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
+    files=['program.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
     (folder/'manifest.json').write_text(json.dumps({'schema':'eggfuse-device-artifact/v1','backend':'cell-cpu','source_sha256':digest(source),'execution':{'native_runtime':False},'files':{n:digest(folder/n) for n in files}},indent=2))
 
 def compile_target(pm,core,recipe,marker,source,stop_after,execute_runtime):
-    implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py',ROOT/'eggfuse/analyzer/congruence.py']
-    outputs=['program.json','multi-stage-program.json','local-congruence-program.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
+    implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py',ROOT/'eggfuse/analyzer/congruence.py',ROOT/'eggfuse/ir/structural_key.py',ROOT/'engine/structural-key/abi.json']
+    outputs=['program.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
     def check(folder):validate(json.loads((folder/'program.json').read_text()))
     device=pm.run('device',{'core':core,'recipe':recipe,'marker':marker,'source':source},{'backend':'cell-cpu'},implementations,outputs,
         lambda f:emit(f,core,recipe,marker,source),check,preserves=['typed marked program and source control'])

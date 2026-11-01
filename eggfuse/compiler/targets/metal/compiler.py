@@ -1,5 +1,6 @@
 """Lower native typed core rules once; no textual .egg parsing or CPU matching."""
 from pathlib import Path
+from . import structural_keys as sk
 import json,re
 from .batch_rhs import lower as lower_batch_rhs
 from .matrix_sat import lower as lower_matrix_sat
@@ -23,7 +24,7 @@ INTEGER_OPS={'+':0,'-':1,'*':2,'/':3,'%':4,'min':5,'max':6,'bool-=':7,'bool-<':8
 def integer_op(c):
  return INTEGER_OPS.get(c['primitive']) if c['inputs']==['i64','i64'] else None
 
-def encode_initial(p,cols,string_ids,native_order=False):
+def encode_initial(p,cols,string_ids,native_order=False,key_layout=None):
  """Typed instance data only; does not recompile rules for another binding."""
  ts=p['tables'];ids={t['name']:i for i,t in enumerate(ts)}
  set_ids={name:i for i,name in enumerate(sorted({s['name'] for t in ts for s in t['schema'] if s['kind']=='set'}))}
@@ -39,7 +40,11 @@ def encode_initial(p,cols,string_ids,native_order=False):
   return (k[0],int(m[1]))
  anchors=sorted(keys,key=order);identity={k:i+1 for i,k in enumerate(anchors)}
  arena=[2,1];intern={}
+ key_arena,key_encode=sk.encode_keys(p,key_layout) if key_layout is not None else (None,None)
  def encode(x):
+  if 'key' in x:
+   if key_encode is None:raise ValueError('missing key arena layout')
+   return key_encode(x['key'])
   if 'eq' in x:return identity[(x['sort'],x['eq'])]
   if 'elements' in x:
    es=tuple(sorted({encode(e) for e in x['elements']}));key=(x['sort'],es)
@@ -51,11 +56,18 @@ def encode_initial(p,cols,string_ids,native_order=False):
  for i,row in enumerate(p['initial']):
   vs=[encode(x) for x in row['values']]
   flat += [ids[row['table']],int(row['subsumed']),1,i+1,*vs,*([0]*(cols-len(vs)))]
+ if key_layout is not None:
+  offset=max(len(arena),key_layout["set_storage_words"]);key_layout["offset_words"]=offset
+  if len(key_arena)>key_layout["storage_words"]:raise ValueError("initial key arena capacity")
+  arena.extend([0]*(offset-len(arena)));arena.extend(key_arena)
  return anchors,arena,flat
 
 def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incremental_queries=True,delta_queries=True,parallel_rebuild=True,parallel_prepare=True,parallel_match=True,indexed_subsume=True,parallel_merge_index=True,all_index_columns=False,radix_digit_bits=4,seed_dispatch=True,noop_preflight=True,direct_actions=True,query_patch=True,effect_dedup=False,early_seed_guards=False,lhs_context_reuse=True,rebuild_batch=1,parallel_rhs=False,split_matches=False,context_model=None,context_training=False,merge_target_index=False,batch_rhs=False,matrix_saturate=False,joint_polyspine=False,polyspine_model=None,polyspine_training=False,polyspine_full_refresh=False,polyspine_refresh_audit=False,stage_contexts=False,block_merge=False,block_merge_audit=False,cell_program=None,scheduled_matrix=False,marker_program=None,region_program=None,resident_contexts=False,lazy_contexts=False,spine_cache=True,local_certificates=True,ordered_query_patch=True,witness_order=False,compact_seeds=False,spine_receipt_shortcuts=True):
  if witness_order and split_matches:raise ValueError("witness ordering is not part of the legacy split-match ABI")
  if not ordered_query_patch and not witness_order:raise ValueError("unordered patches require explicit binding witness order")
+ from eggfuse.ir.structural_key import validate_core,merge_contracts
+ validate_core(p)
+ contracts=merge_contracts(p)
  marker_names=set()
  marker_shortcuts={}
  spine_receipts={}
@@ -99,7 +111,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  if p['schema']!='egglog-device-core/v1':raise ValueError('program schema')
  for table in p['tables']:
   for sort in table['schema']:
-   if sort['kind'] not in ('eq','i64','Unit','String','bool','f64','set'):
+   if sort['kind'] not in ('eq','i64','Unit','String','bool','f64','set','structural_key'):
     raise ValueError('GPU has no physical lowering for sort '+sort['name']+' in '+table['name'])
  strings=set()
  def collect(x):
@@ -110,6 +122,8 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
   elif isinstance(x,list):
    for v in x:collect(v)
  collect(p);strings=sorted(strings);string_ids={s:i for i,s in enumerate(strings)}
+ key_info=sk.layout(p,capacity,strings)
+ if key_info is not None:key_info["set_storage_words"]=capacity*16 if any(s["kind"]=="set" for t in p["tables"] for s in t["schema"]) else 2
  # Temporary action arguments can be wider than every physical table.
  def scratch_arity(x):
   if isinstance(x,dict):return max([len(x.get('args',[]))]+[scratch_arity(v) for v in x.values()])
@@ -130,8 +144,8 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    else:raise ValueError('unsupported custom merge '+merge)
   policy.append(pol)
  set_sorts=sorted({s['name'] for t in ts for s in t['schema'] if s['kind']=='set'});set_ids={name:i for i,name in enumerate(set_sorts)}
- anchors,arena,flat=encode_initial(p,cols,string_ids)
- arena_words=max(len(arena),capacity*16) if set_sorts else 2
+ anchors,arena,flat=encode_initial(p,cols,string_ids,key_layout=key_info)
+ arena_words=(key_info["offset_words"]+key_info["storage_words"]+key_info["scratch_words"]) if key_info is not None else (max(len(arena),capacity*16) if set_sorts else 2)
  if capacity<1 or capacity<len(p['initial']) or match_capacity<1:raise ValueError('invalid initial capacity')
  idcap=max(capacity*2+1,len(anchors)+capacity+1)
  rules=[];keys={};sets=[]
@@ -267,6 +281,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
 
     else:
      op=c['primitive'];args=a['args']
+     if op.startswith('cell-key-'):raise ValueError('key primitives in query bodies are not admitted to parallel matching; publish their result in the RHS')
      be=f'r[ROW_WORDS+{operand(args[0])}+1]' if op=='set-length' else set_expr(c,[operand(x) for x in args[:-1]]) or boolean_expr(c,[operand(x) for x in args[:-1]])
      if be is not None:
       lines+=bind(args[-1],be,known);continue
@@ -368,8 +383,9 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
     for i,x in enumerate(a['args']):load(i,x)
     if 'primitive' in c:
      if op!='let':raise ValueError('unsupported RHS primitive action')
-     dst=var(a['dst'],a['sort']['name']);code=integer_op(c)
-     if code is not None:instruction(6,dst,code)
+     dst=var(a['dst'],a['sort']['name']);code=integer_op(c);keyop=sk.operation(c,key_info)
+     if keyop is not None:instruction(10,dst,keyop[0],keyop[1],len(a['args']))
+     elif code is not None:instruction(6,dst,code)
      elif boolean_expr(c,['x']*len(a['args'])) is not None:
       instruction(7,dst,{'not':0,'and':1,'xor':2,'=>':3,'or':4}[c['primitive']],0,len(a['args']))
      elif set_expr(c,['x']*len(a['args'])) is not None:
@@ -419,7 +435,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  prefix+=f'#define INCREMENTAL_QUERY {int(incremental_queries)}\n#define QUERY_DIRTY (INDEX_OFFSET+HASH_CAP+2)\n#define QBUCKETS (HASH_CAP+TABLE_COUNT)\n'
  prefix+=f'#define QSTRIDE {cols+2}\n#define TIME_COLUMN {cols+1}\n#define TABLE_COUNT {len(ts)}\n'
  prefix+=f'#define HASH_CAP {hash_cap}\n#define INDEX_OFFSET {capacity*(cols+4)+arena_words}\n'
- prefix+=f'#define ROW_WORDS {capacity*(cols+4)}\n#define SET_WORDS {arena_words}\n'
+ prefix+=f'#define ROW_WORDS {capacity*(cols+4)}\n#define SET_WORDS {key_info["set_storage_words"] if key_info else arena_words}\n#define SK_ENABLED {int(key_info is not None)}\n'
  prefix+=f'#define BC_LOCAL_CERTIFICATES {int(local_certificates)}\n'
  prefix+=f'#define RC_ENABLED {int(region_program is not None)}\n#define RC_LAZY_COMPACTION {int(lazy_contexts)}\n#define RC_VERSION (INDEX_MERGE_VERSION+1)\n#define RC_FACT_ROW (RC_VERSION+TABLE_COUNT)\n#define RC_FACT_REV (RC_FACT_ROW+IDCAP)\n#define RC_VISIBILITY (RC_FACT_REV+IDCAP)\n#define RC_INDEX_TOUCH (RC_VISIBILITY+1)\n#define Q_TOUCH (2*QBUCKETS+1+TABLE_COUNT)\n'
  prefix+=f'#define SC_ENABLED {int(stage_contexts)}\n#define JP_BLOCK_EFFECTS {int(block_merge and joint_enabled)}\n#define JP_BLOCK_AUDIT {int(block_merge and block_merge_audit)}\n#define JP_SET_LOG (JP_DIRTY+{(capacity*(cols+4)+127)//128 if stage_contexts else 0})\n'
@@ -450,6 +466,8 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  if all_index_columns:index_columns=[set(range(width[i]))|{cols,cols+1} for i in range(len(ts))]
  masks=[int(c in index_columns[t]) for t in range(len(ts)) for c in range(cols+2)]
  counts=[len(s) for s in index_columns]
+ key_merges=[({'cell-key-min':1,'or':2,'and':3}.get(t['merge_expr'].get('call',{}).get('primitive'),0) if sorted(a.get('var','') for a in t['merge_expr'].get('args',[]))==['new','old'] else 0) if isinstance(t.get('merge_expr'),dict) else 0 for t in ts]
+ prefix+='constant uint PORT_REDUCE[]={'+','.join(map(str,key_merges))+'};\n'
  for name,data in [('INDEX_COLUMN',masks),('INDEX_COUNT',counts),('WIDTH',width),('EQ',eq),('KIND',kind),('POLICY',policy),('MERGE_INDEX',merge_reads),('ACTION_START',action_starts),('QUERY_WIDTH',query_widths),('DEFER_UNIONS',deferred),('QUERY_PARALLEL',parallel_sets),('SET_START',set_start),('SET_RULES',set_rules)]:prefix+='constant uint '+name+'[]={'+','.join(map(str,data or [0]))+'};\n'
  noop_rules=[]
  for rid,(lo,hi) in enumerate(zip(action_starts,action_starts[1:])):
@@ -458,7 +476,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
   safe=bool(rules[rid]['body']) or not rules[rid]['seminaive']
   for pc in range(lo,hi,5):
    op,_,sub,_,_=action_code[pc:pc+5]
-   if op in (8,9) or (op==3 and kind[sub]!=0) or (op==4 and policy[sub] not in (0,1,2,3)):safe=False
+   if op in (8,9,10) or (op==3 and kind[sub]!=0) or (op==4 and policy[sub] not in (0,1,2,3)):safe=False
   noop_rules.append(int(safe))
  batch_code,batch_info=lower_batch_rhs(action_code,action_starts,query_widths,allvars,ts,sets,parallel_sets,deferred,batch_rhs)
  batch_hash=1
@@ -515,6 +533,8 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
     lines.append(f'v{dst}=({expr});')
    elif op==8 and not proof:lines.append(f'v{dst}=set_apply(r,p,m,{sub},uint({value}),arg0,arg1);')
    elif op==9 and not proof:lines.append('m.error=8;return;')
+   elif op==10 and not proof:
+    lines.append(f'long ska{pc}[COLS]={{'+(','.join(f'arg{i}' for i in range(literal)) or '0')+'};'+f'v{dst}=sk_op(r,m,{sub},{k},ska{pc},{literal});if(m.error)return;')
    else:raise ValueError('unclassified action opcode')
    if not proof and not union_only and op in (2,3,4,5,8):lines.append('if(m.error)return;')
   if proof:lines.append('return true;')
@@ -557,17 +577,19 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
    args=[lower(x) for x in e['args']];c=e['call'];n=counter[0];counter[0]+=1;name=f'mv{n}'
    if 'table' in c:
     target=ids[c['table']]
-    if kind[target]!=0:raise ValueError('merge function reads unsupported')
     lines.append(f'long ma{n}[COLS]={{'+','.join(args or ['0'])+'};')
-    expr=f'ensure_constructor(r,p,fp,m,{target},ma{n})'
+    expr=f'ensure_constructor(r,p,fp,m,{target},ma{n})' if kind[target]==0 else f'read_merge_port(r,p,m,{target},ma{n})'
    else:
-    code=integer_op(c);expr=boolean_expr(c,args)
+    code=integer_op(c);expr=boolean_expr(c,args);keyop=sk.operation(c,key_info)
+    if keyop is not None:
+     lines.append(f'long ska{n}[COLS]={{'+','.join(args or ['0'])+'};')
+     expr=f'sk_op(r,m,{keyop[0]},{keyop[1]},ska{n},{len(args)})'
     if code is not None:
      lines.append(f'if(!integer_valid({code},{args[0]},{args[1]})){{m.error=5;return a;}}')
      expr=f'integer_eval({code},{args[0]},{args[1]})'
     if expr is None:raise ValueError('unsupported merge primitive '+c['primitive'])
    lines.append(f'long {name}={expr};if(m.error)return a;');return name
-  value=lower(t['merge_expr']);merge_cases.append(f'case {tid}:{{'+''.join(lines)+f'return {value};'+'}')
+  value=lower(t['merge_expr']);same='if(a==b)return a;' if contracts['tables'][tid]['equal_inputs']=='return_old' else '';merge_cases.append(f'case {tid}:{{'+same+''.join(lines)+f'return {value};'+'}')
  matrix_code,matrix_info=lower_matrix_sat(p,sets,ids,string_ids,matrix_saturate)
  comparison_code,comparison_info=lower_matrix_comparison(p,(matrix_saturate or joint_enabled) and parallel_rebuild)
  from .cell_program import lower as lower_cell_program
@@ -584,7 +606,7 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  prefix+=f'#define UP_ENABLED {int(update_info is not None)}\n'
  prefix+=f'#define SD_ENABLED {int(spine_info["enabled"])}\n#define SD_ALL {int(spine_info["all_recipes"])}\n#define SD_WIDTH {spine_info["width"]}\n'
  prefix+=f'#define CP_ENABLED {int(cell_info["enabled"])}\n#define CP_WIDTH {cell_info["width"]}\n'
- source=(HERE/'kernel.metal').read_text().replace('// CONTEXT_RIDGE',ridge_code).replace('// MATRIX_SAT_KERNELS',(HERE/'matrix_sat.metal').read_text().replace('// MATRIX_SAT_PROGRAM',matrix_code)).replace('// JOINT_KERNELS',(HERE/'joint_polyspine.metal').read_text().replace('// JOINT_PROGRAM',joint_code).replace('// JOINT_REFRESH',(HERE/'joint_refresh.metal').read_text()).replace('// STAGE_KERNELS',(HERE/'stage_contexts.metal').read_text() if stage_contexts else '')+(HERE/'cell_program.metal').read_text().replace('// CELL_INSTRUCTIONS',cell_code)+(HERE/'cell_updates.metal').read_text().replace('// UPDATE_INSTRUCTIONS',update_code)+(HERE/'cell_spines.metal').read_text().replace('// SPINE_INSTRUCTIONS',spine_code) if joint_enabled else 'int jp_numeric_slot(uint rule,uint slot){return -1;}').replace('// COMPARISON_KERNELS',(HERE/'matrix_comparison.metal').read_text().replace('// COMPARISON_PROGRAM',comparison_code)).replace('// BATCH_KERNELS',(HERE/'batch_rhs.metal').read_text().replace('// BATCH_RECIPES',batch_code)).replace('// CONTEXT_KERNELS',(HERE/'contexts.metal').read_text()).replace('// MATCH_SORT',(HERE/'match_sort.metal').read_text()).replace('// PARALLEL_QUERY',(HERE/'query_parallel.metal').read_text()).replace('// PARALLEL_REBUILD',(HERE/'rebuild_parallel.metal').read_text()).replace('// QUERY_INDEX',(HERE/'query_index.metal').read_text()).replace('// ROW_INDEX',(HERE/'row_index.metal').read_text()).replace('// DEVICE_ACTIONS',(HERE/'actions.metal').read_text()).replace('// EMPTY_EFFECT_PROOFS',empty_proofs).replace('// DIRECT_ACTIONS',action_functions).replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
+ source=(HERE/'kernel.metal').read_text().replace('// CONTEXT_RIDGE',ridge_code).replace('// MATRIX_SAT_KERNELS',(HERE/'matrix_sat.metal').read_text().replace('// MATRIX_SAT_PROGRAM',matrix_code)).replace('// JOINT_KERNELS',(HERE/'joint_polyspine.metal').read_text().replace('// JOINT_PROGRAM',joint_code).replace('// JOINT_REFRESH',(HERE/'joint_refresh.metal').read_text()).replace('// STAGE_KERNELS',(HERE/'stage_contexts.metal').read_text() if stage_contexts else '')+(HERE/'cell_program.metal').read_text().replace('// CELL_INSTRUCTIONS',cell_code)+(HERE/'cell_updates.metal').read_text().replace('// UPDATE_INSTRUCTIONS',update_code)+(HERE/'cell_spines.metal').read_text().replace('// SPINE_INSTRUCTIONS',spine_code) if joint_enabled else 'int jp_numeric_slot(uint rule,uint slot){return -1;}').replace('// COMPARISON_KERNELS',(HERE/'matrix_comparison.metal').read_text().replace('// COMPARISON_PROGRAM',comparison_code)).replace('// BATCH_KERNELS',(HERE/'batch_rhs.metal').read_text().replace('// BATCH_RECIPES',batch_code)).replace('// CONTEXT_KERNELS',(HERE/'contexts.metal').read_text()).replace('// MATCH_SORT',(HERE/'match_sort.metal').read_text()).replace('// PARALLEL_QUERY',(HERE/'query_parallel.metal').read_text()).replace('// PARALLEL_REBUILD',(HERE/'rebuild_parallel.metal').read_text()).replace('// QUERY_INDEX',(HERE/'query_index.metal').read_text()).replace('// ROW_INDEX',(HERE/'row_index.metal').read_text()).replace('// DEVICE_ACTIONS',(HERE/'actions.metal').read_text()).replace('// EMPTY_EFFECT_PROOFS',empty_proofs).replace('// DIRECT_ACTIONS',action_functions).replace('// STRUCTURAL_KEYS',sk.shader(key_info,key_info['offset_words']) if key_info else '').replace('// SET_BODY',(HERE/'sets.metal').read_text()).replace('// MERGE_BODY',''.join(merge_cases)).replace('// Generated schema/limits are inserted before this code.',prefix)
  kernel_start=source.index('// Correctness-first reference executor.')
  common,template=source[:kernel_start],source[kernel_start:]
  signature=common.split('#define KERNEL_ARGS ',1)[1].splitlines()[0]
@@ -634,4 +656,5 @@ def compile_program(p,capacity=4096,match_capacity=16384,defer_unions=True,incre
  if batch_enabled:region_source+='\nbool bc_completed(device long*c,uint rule,uint fid,uint revision,uint unions,ulong visibility);\n'
  source=common+region_source+query_functions+prefix_functions+suffix_functions+context_kernel+'\n'.join(kernels)
  source=source.replace('// PARALLEL_UNION_ACTIONS',union_actions)
- return {'action_layout':{'starts':action_starts,'query_widths':query_widths,'variable_counts':[len(v) for v in allvars]},'query_seed_routes':query_seed_routes,'query_binding_order':dict(witness_words=order_words,ordered_patch=ordered_query_patch,contract='source rule, delta variant, anchor and exact loop-row coordinates before ordinal tie-break'), 'region_program':region_program,'marker_program':None if marker_program is None else {'sha256':marker_program['sha256'],'source_sha256':marker_program['source_sha256'],'tables':sorted(marker_names),'consumer_reads':sum(len(m['consumers']) for m in marker_program['markers']),'publication_sites':sum(len(m['publishers']) for m in marker_program['markers']),'functional_completion_shortcuts':len(marker_shortcuts),'persistent_spine_states':len(marker_program.get('continuations',[])),'receipt_shortcuts':len(spine_receipts),'execution':'source-defined Unit views; original stage completion; marker-preferred exact queries'},'scheduled_matrix':scheduled_info,'schema':'egglog-device-storage/v1','cell_program':cell_info,'block_merge':bool(block_merge and joint_enabled),'block_merge_audit':bool(block_merge and block_merge_audit),'joint_polyspine':joint_info,'stage_cell':baked_stages,'polyspine_training':polyspine_training,'polyspine_full_refresh':polyspine_full_refresh,'polyspine_refresh_audit':polyspine_refresh_audit,'batch_rhs':batch_info,'matrix_saturate':matrix_info,'comparison_saturate':comparison_info,'rebuild_batch':rebuild_batch,'merge_target_index':merge_target_index,'merge_target_tables':[ts[i]['name'] for i in sorted(merge_targets)],'context_training':context_training,'context_ridge':ridge_info,'split_matches':split_matches,'query_contexts':contexts,'context_capacity':match_capacity if contexts else 0,'context_stride':context_stride,'prefix_kernel_names':prefix_names,'fallback_kernel_names':fallback_names,'parallel_rhs_sets':parallel_rhs_sets,'parallel_rhs_rules':union_rules,'seed_dispatch':seed_dispatch,'noop_preflight':noop_preflight,'direct_actions':direct_actions,'query_patch':query_patch,'effect_dedup':effect_dedup,'early_seed_guards':early_seed_guards,'lhs_context_reuse':lhs_context_reuse,'rhs_context_reuses':context_reuses,'effect_input_slots':[effect_slots[effect_start[i]:effect_start[i+1]] for i in range(len(rules))],'query_prev_words':2*capacity,'compiled_action_rules':compiled_actions,'noop_eligible_rules':noop_rules,'query_seed_tables':[[ts[t]['name'] if t is not None else None for t in sorted(seeds,key=lambda x:-1 if x is None else x)] for seeds in query_seeds],'parallel_rebuild':parallel_rebuild,'parallel_match_sets':parallel_sets,'indexed_subsume':indexed_subsume,'parallel_merge_index':parallel_merge_index,'index_columns':{t['name']:sorted(index_columns[i]) for i,t in enumerate(ts)},'match_order_capacity':max(256,1<<(match_capacity-1).bit_length()),'parallel_prepare':parallel_prepare,'query_radix_bits':radix_bits,'query_radix_passes':radix_passes,'query_radix_digit_bits':radix_digit_bits,'query_sort_words':capacity*(cols+2),'hash_capacity':hash_cap,'shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+6+4*capacity+(len(ts)+2*idcap+hash_cap+2 if region_program is not None else 0)+(128+hash_cap+idcap+capacity+((capacity*(cols+4)+127)//128 if stage_contexts else 0)+(3*match_capacity if block_merge else 0) if joint_enabled else 0),'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':3+union_cap*2+idcap,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':query_head_words,'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'workspace_words':max(match_capacity*match_stride,capacity*(cols+4)),'id_capacity':idcap,'stride':cols+4,'match_stride':match_stride,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}
+ from eggfuse.ir.structural_key import merge_contracts
+ return {'merge_contracts':contracts,'structural_key':key_info,'action_layout':{'starts':action_starts,'query_widths':query_widths,'variable_counts':[len(v) for v in allvars]},'query_seed_routes':query_seed_routes,'query_binding_order':dict(witness_words=order_words,ordered_patch=ordered_query_patch,contract='source rule, delta variant, anchor and exact loop-row coordinates before ordinal tie-break'), 'region_program':region_program,'marker_program':None if marker_program is None else {'sha256':marker_program['sha256'],'source_sha256':marker_program['source_sha256'],'tables':sorted(marker_names),'consumer_reads':sum(len(m['consumers']) for m in marker_program['markers']),'publication_sites':sum(len(m['publishers']) for m in marker_program['markers']),'functional_completion_shortcuts':len(marker_shortcuts),'persistent_spine_states':len(marker_program.get('continuations',[])),'receipt_shortcuts':len(spine_receipts),'execution':'source-defined Unit views; original stage completion; marker-preferred exact queries'},'scheduled_matrix':scheduled_info,'schema':'egglog-device-storage/v1','cell_program':cell_info,'block_merge':bool(block_merge and joint_enabled),'block_merge_audit':bool(block_merge and block_merge_audit),'joint_polyspine':joint_info,'stage_cell':baked_stages,'polyspine_training':polyspine_training,'polyspine_full_refresh':polyspine_full_refresh,'polyspine_refresh_audit':polyspine_refresh_audit,'batch_rhs':batch_info,'matrix_saturate':matrix_info,'comparison_saturate':comparison_info,'rebuild_batch':rebuild_batch,'merge_target_index':merge_target_index,'merge_target_tables':[ts[i]['name'] for i in sorted(merge_targets)],'context_training':context_training,'context_ridge':ridge_info,'split_matches':split_matches,'query_contexts':contexts,'context_capacity':match_capacity if contexts else 0,'context_stride':context_stride,'prefix_kernel_names':prefix_names,'fallback_kernel_names':fallback_names,'parallel_rhs_sets':parallel_rhs_sets,'parallel_rhs_rules':union_rules,'seed_dispatch':seed_dispatch,'noop_preflight':noop_preflight,'direct_actions':direct_actions,'query_patch':query_patch,'effect_dedup':effect_dedup,'early_seed_guards':early_seed_guards,'lhs_context_reuse':lhs_context_reuse,'rhs_context_reuses':context_reuses,'effect_input_slots':[effect_slots[effect_start[i]:effect_start[i+1]] for i in range(len(rules))],'query_prev_words':2*capacity,'compiled_action_rules':compiled_actions,'noop_eligible_rules':noop_rules,'query_seed_tables':[[ts[t]['name'] if t is not None else None for t in sorted(seeds,key=lambda x:-1 if x is None else x)] for seeds in query_seeds],'parallel_rebuild':parallel_rebuild,'parallel_match_sets':parallel_sets,'indexed_subsume':indexed_subsume,'parallel_merge_index':parallel_merge_index,'index_columns':{t['name']:sorted(index_columns[i]) for i,t in enumerate(ts)},'match_order_capacity':max(256,1<<(match_capacity-1).bit_length()),'parallel_prepare':parallel_prepare,'query_radix_bits':radix_bits,'query_radix_passes':radix_passes,'query_radix_digit_bits':radix_digit_bits,'query_sort_words':capacity*(cols+2),'hash_capacity':hash_cap,'shader':source,'kernel_names':kernel_names,'action_code':action_code,'register_count':max([len(x) for x in allvars]+[1]),'set_rule_ids':sets,'query_dirty_offset':capacity*(cols+4)+arena_words+hash_cap+2,'tables':ts,'strings':strings,'initial_rows':flat,'initial_sets':arena,'set_words':arena_words,'index_words':hash_cap+6+4*capacity+(len(ts)+2*idcap+hash_cap+2 if region_program is not None else 0)+(128+hash_cap+idcap+capacity+((capacity*(cols+4)+127)//128 if stage_contexts else 0)+(3*match_capacity if block_merge else 0) if joint_enabled else 0),'incremental_queries':incremental_queries,'delta_queries':delta_queries,'index_counter_offset':capacity*(cols+4)+arena_words+hash_cap+1,'union_words':3+union_cap*2+idcap,'deferred_rulesets':[s['name'] for i,s in enumerate(p['rulesets']) if deferred[i]],'query_head_words':query_head_words,'query_link_words':capacity*(cols+2),'anchors':anchors,'sets':[s['name'] for s in p['rulesets']],'schedule':p['schedule'],'assertion_tables':p.get('assertion_tables',[]),'capacity':capacity,'match_capacity':match_capacity,'workspace_words':max(match_capacity*match_stride,capacity*(cols+4)),'id_capacity':idcap,'stride':cols+4,'match_stride':match_stride,'rules':len(rules),'meta':[len(p['initial']),len(anchors)+1,1,0,0,0,0,0,len(p['initial'])+1]}

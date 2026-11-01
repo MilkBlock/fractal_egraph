@@ -9,6 +9,7 @@ struct SCRows {
 };
 #define sv SCRows{svdata,svmap}
 struct Meta {uint count,next_id,epoch,changed,error,matched,rounds,unions,next_fact;};
+// STRUCTURAL_KEYS
 void rc_dirty(device long*r,uint table,uint epoch){if(RC_ENABLED)r[RC_VERSION+table]=epoch;}
 bool jp_active(device long*r){return JP_ENABLED&&r[JP_STATE]!=0;}
 // Per-page publication journal. No logical match is treated as a mutation.
@@ -55,7 +56,27 @@ __attribute__((noinline)) long ensure_constructor(device long*r,device uint*p,de
  for(uint c=0;c<WIDTH[t]-1;c++)r[i*STRIDE+4+c]=canon(r,p,t,c,args[c]);
  r[i*STRIDE+4+WIDTH[t]-1]=value;if(jp_active(r))r[JP_ROW_TAG+i]=r[JP_STATE+1];r[CONSTRUCTOR_PRED+i]=0;sc_dirty(r,i,m.epoch);row_index_insert(r,p,i);m.changed=1;return value;
 }
+long read_merge_port(device long*r,device uint*p,device Meta&m,uint t,thread long*key){
+#if SK_ENABLED
+ r[SK_BASE+2]++;
+#endif
+ bool found=false;long result=0;
+ for(uint i=0;i<m.count;i++)if(keyeq(r,i,t,key,p)){
+  long v=canon(r,p,t,WIDTH[t]-1,r[i*STRIDE+4+WIDTH[t]-1]);
+  if(!found){result=v;found=true;continue;}if(result==v)continue;
+  if(POLICY[t]==1)result=min(result,v);else if(POLICY[t]==2)result=max(result,v);
+#if SK_ENABLED
+  else if(PORT_REDUCE[t]==1)result=sk_cmp(r,m,result,v)<=0?result:v;
+#endif
+  else if(PORT_REDUCE[t]==2)result=result||v;else if(PORT_REDUCE[t]==3)result=result&&v;
+  else{m.error=16;return 0;}
+ }
+ if(!found)m.error=3;return result;
+}
 long mergevalue(uint t,long a,long b,device long*r,device uint*p,device uint*fp,device Meta&m){
+#if SK_ENABLED
+ if(PORT_REDUCE[t]||POLICY[t]==6)r[SK_BASE+3]++;
+#endif
  // Custom merges need not be idempotent: (+ old new) must still run for 1,1.
  if(a==b&&POLICY[t]!=6)return a;
  if(POLICY[t]==3){unite(p,a,b,m);return root(p,uint(a));}

@@ -17,6 +17,8 @@ fn sort(s: &ArcSort) -> Result<Json> {
         let inner=s.inner_sorts();
         if inner.len()!=1 || !inner[0].is_eq_sort() {return Err("device Set currently requires equality-sort elements".into());}
         Ok(json!({"name":s.name(),"kind":"set","element":sort(&inner[0])?}))
+    } else if s.name()==eggfuse_structural_key::SORT {
+        Ok(json!({"name":s.name(),"kind":"structural_key"}))
     } else if matches!(s.name(), "i64" | "Unit" | "String" | "bool" | "f64") {
         Ok(json!({"name":s.name(),"kind":s.name()}))
     } else {
@@ -245,6 +247,7 @@ impl EGraph {
                 "String"=>eg.base_to_value(crate::sort::S::new(x["value"].as_str().ok_or("invalid string")?.to_owned())),
                 "bool"=>eg.base_to_value(match x["value"].as_i64(){Some(0)=>false,Some(1)=>true,_=>return Err("invalid bool".into())}),
                 "Unit"=>{if x["value"]!=0{return Err("invalid Unit".into());}eg.base_to_value(())},
+                "CellStructuralKey"=>eg.base_to_value(crate::sort::Boxed::new(eggfuse_structural_key::Key::from_wire(serde_json::from_value(x["key"].clone()).map_err(|e|e.to_string())?)?)),
                 _=>return Err("unsupported snapshot value".into()),
             })
         }
@@ -265,6 +268,9 @@ impl EGraph {
 
     pub(crate) fn device_value(&self,v:Value,s:&ArcSort)->Result<Json>{
         let desc=sort(s)?;
+        if s.name()==eggfuse_structural_key::SORT {
+            return Ok(json!({"sort":s.name(),"key":self.value_to_base::<crate::sort::Boxed<eggfuse_structural_key::Key>>(v).to_wire()}));
+        }
         if s.is_eq_sort(){return Ok(json!({"eq":format!("{:?}",self.get_canonical_value(v,s)),"sort":s.name()}));}
         if desc["kind"]=="set" {
             let values=s.inner_values(self.backend.container_values(),v).into_iter().map(|(s,v)|self.device_value(v,&s)).collect::<Result<Vec<_>>>()?;

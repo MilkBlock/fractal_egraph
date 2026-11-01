@@ -93,18 +93,21 @@ impl Congruence {
         // Moving constructor equalities ahead of ordered/effectful callbacks can
         // change the callback's observable inputs. Only pure lattice reductions
         // are admitted; arbitrary merge programs retain the existing repair order.
-        out.reorder_safe = p.tables.iter().all(|t| {
+        out.reorder_safe = p.tables.iter().enumerate().all(|(i, t)| {
             if t.virtual_fact {
                 return true;
             }
+            let c = &p.artifact["merge_contracts"]["tables"][i];
+            if !c.is_null() {
+                return c["kind"] == "lattice" || c["kind"] == "key-min";
+            }
             let m = &t.merge;
-            let args = m["args"].as_array();
             t.schema.last().is_some_and(|s| s["kind"] == "i64")
                 && matches!(m["call"]["primitive"].as_str(), Some("min" | "max"))
-                && args.is_some_and(|a| {
+                && m["args"].as_array().is_some_and(|a| {
                     a.len() == 2
                         && ((a[0]["var"] == "old" && a[1]["var"] == "new")
-                            || (a[1]["var"] == "old" && a[0]["var"] == "new"))
+                            || (a[0]["var"] == "new" && a[1]["var"] == "old"))
                 })
         });
         for entry in array(&raw["templates"])? {

@@ -3,6 +3,11 @@ import json
 from eggfuse.ir.recipe import validate,require
 
 def validate_recipe_artifact(folder,manifest,program,core):
+    from eggfuse.ir.structural_key import merge_contracts,validate_core
+    validate_core(core)
+    if 'merge_contracts' in program:
+        require('merge-contracts.json' in manifest['files'],'missing merge contracts')
+        require(program['merge_contracts']==merge_contracts(core)==json.loads((folder/'merge-contracts.json').read_text()),'merge contract differs from source')
     descriptor=program.get('recipe_ir')
     if 'recipe-program.json' not in manifest['files']:
         require(descriptor is None,'compiled recipe descriptor has no artifact')
@@ -19,7 +24,7 @@ def validate_recipe_artifact(folder,manifest,program,core):
         if program.get('resident_schedules') is not None:
             from eggfuse.compiler.targets.metal.resident_schedules import description
             expected,_,_=description(core,program,regions)
-            require(program['resident_schedules']==expected,'private schedule certificate differs from typed source')
+            require(program['resident_schedules']==json.loads(json.dumps(expected)),'private schedule certificate differs from typed source')
         if regions.get('batch_program') is not None:
             batch=regions['batch_program'];layout=program.get('batch_layout',{})
             width=max([len(t['slots']) for t in batch['templates']]+[1]);steps=max([len(t['steps']) for t in batch['templates']]+[1])

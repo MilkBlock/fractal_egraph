@@ -285,6 +285,7 @@ checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 name = "egg_layout"
 version = "0.1.0"
 dependencies = [
+ "eggfuse-structural-key",
  "egglog",
  "getrandom 0.3.4",
  "rayon",
@@ -295,11 +296,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "eggfuse-structural-key"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "egglog"
 version = "2.0.0"
 dependencies = [
  "csv",
  "dyn-clone",
+ "eggfuse-structural-key",
  "egglog-add-primitive",
  "egglog-ast",
  "egglog-bridge",

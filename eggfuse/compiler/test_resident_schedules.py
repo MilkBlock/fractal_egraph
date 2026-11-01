@@ -24,6 +24,9 @@ class ResidentScheduleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             d=Path(d);(d/'recipe-program.json').write_text(json.dumps(recipe));(d/'region-program.json').write_text(json.dumps(region))
             manifest=dict(files={'recipe-program.json':'','region-program.json':''})
+            (d/'merge-contracts.json').write_text(json.dumps(p['merge_contracts']))
+            manifest['files']['merge-contracts.json']=''
+            p=json.loads(json.dumps(p))  # Exercise the actual saved-artifact ABI.
             validate_recipe_artifact(d,manifest,p,core)
             p['resident_schedules']['programs'][0]['control']['instructions'][0][1]=100
             with self.assertRaisesRegex(ValueError,'private schedule certificate'):validate_recipe_artifact(d,manifest,p,core)

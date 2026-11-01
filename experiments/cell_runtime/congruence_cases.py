@@ -30,6 +30,9 @@ CASES = {
     'congruence-custom-merge': BASE.replace('(ruleset make)', '''(function Chosen (E) E :merge new)
 (set (Chosen (N 0)) (N 2)) (set (Chosen (N 1)) (N 3))
 (ruleset make)'''),
+    'congruence-bool-merge': BASE.replace('(ruleset make)', '''(function Flag (E) bool :merge (or old new))
+(set (Flag (N 0)) false) (set (Flag (N 1)) true)
+(ruleset make)'''),
     'congruence-min-merge': BASE.replace('(ruleset make)', '''(function Cost (E) i64 :merge (min old new))
 (set (Cost (N 0)) 9) (set (Cost (N 1)) 3)
 (ruleset make)'''),

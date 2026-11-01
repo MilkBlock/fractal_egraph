@@ -79,6 +79,12 @@ CASES={
 (rule ((B x n)) ((set (Sum x) n)) :ruleset b)
 (set (Sum (N 0)) 0) (A (N 0) 1) (B (N 0) 1)
 (run-schedule (repeat 2 (run a) (run b))) (check (= (Sum (N 0)) 2))''',
+ 'nested-function-merge':'''(datatype E (Seed))
+(function Lookup (i64) i64 :merge new)
+(function Total () i64 :merge (+ (Lookup old) new)) (ruleset update)
+(rule ((Seed)) ((set (Total) 1)) :ruleset update)
+(set (Lookup 1) 10) (set (Total) 1) (Seed) (run update 1)
+(check (= (Total) 11))''',
  'same-value-constructor-merge':'''(datatype E (N i64)) (datatype C (Pair i64) (Smaller C C))
 (function Best (E) C :merge (Smaller old new)) (ruleset offer)
 (rule ((= x (N n))) ((set (Best x) (Pair 1))) :ruleset offer)
@@ -243,7 +249,7 @@ def main():
    c=report['local_congruence']
    if name in ('congruence-unready-stage','congruence-unseen-interior-alias'):assert c['stats']['proven_unions']==0,c
    if name=='congruence-custom-merge':assert not c['enabled'] and not c['reorder_safe'],c
-   if os.environ.get('CELL_CPU_CONGRUENCE')=='1' and name in ('congruence-chain','congruence-shared-contexts','congruence-min-merge'):
+   if os.environ.get('CELL_CPU_CONGRUENCE')=='1' and name in ('congruence-chain','congruence-shared-contexts','congruence-min-merge','congruence-bool-merge'):
     assert c['enabled'] and c['stats']['proven_unions']>0,c
    if name=='congruence-chain':
     stopped=execute(program,d/'paused',engine,True,checkpoint_after=1)

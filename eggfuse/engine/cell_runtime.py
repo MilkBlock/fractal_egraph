@@ -48,6 +48,8 @@ def load_artifact(artifact):
     for name,checksum in manifest['files'].items():
         if Path(name).name!=name or hashlib.sha256((artifact/name).read_bytes()).hexdigest()!=checksum:raise ValueError('Cell artifact checksum mismatch: '+name)
     program=json.loads((artifact/'program.json').read_text());core=validate(program)
+    if 'merge_contracts' in program:
+        if 'merge-contracts.json' not in manifest['files'] or json.loads((artifact/'merge-contracts.json').read_text())!=program['merge_contracts']:raise ValueError('merge contracts differ')
     if 'multi_stage' in program:
         if 'multi-stage-program.json' not in manifest['files'] or json.loads((artifact/'multi-stage-program.json').read_text())!=program['multi_stage']:raise ValueError('multi-stage artifact differs')
     if 'congruence' in program:

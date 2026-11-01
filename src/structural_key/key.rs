@@ -7,94 +7,11 @@ use egglog::{
     prelude::{BaseSort, add_base_sort},
     sort::{BaseValues, Boxed, F, S},
 };
-use serde_json::Value as Json;
 use std::{
     cmp::Ordering,
-    hash::{Hash, Hasher},
     sync::Arc,
 };
-pub(super) const SORT: &str = "CellStructuralKey";
-#[derive(Clone)]
-pub(super) struct Key(pub(super) Arc<Node>);
-// Native graph export prints base values through Debug, not reconstruct_termdag.
-// Recursively printing an Arc DAG unfolds repeated children exponentially.
-// This is a diagnostic label only; exact equality/order and KeyGraph snapshots
-// still inspect the complete shared structure.
-impl std::fmt::Debug for Key {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"CellStructuralKey(anchor={}, height={}, hash={:016x})",self.0.anchor,self.0.height,self.0.hash)
-    }
-}
-#[derive(Debug)]
-pub(super) struct Node {
-    pub(super) anchor: bool,
-    pub(super) height: usize,
-    pub(super) label: Arc<str>,
-    pub(super) children: Vec<Key>,
-    pub(super) hash: u64,
-}
-impl Key {
-    pub(super) fn new(label: String, children: Vec<Key>) -> Self {
-        Self::with_label(label.into(), children)
-    }
-    pub(super) fn with_label(label: Arc<str>, children: Vec<Key>) -> Self {
-        let height = children.iter().map(|k| k.0.height + 1).max().unwrap_or(0);
-        let mut hash = 0xcbf29ce484222325u64;
-        for byte in label
-            .as_bytes()
-            .iter()
-            .copied()
-            .chain(children.iter().flat_map(|k| k.0.hash.to_le_bytes()))
-        {
-            hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3);
-        }
-        Self(Arc::new(Node {
-            anchor: false,
-            height,
-            label,
-            children,
-            hash,
-        }))
-    }
-    pub(super) fn anchor(self) -> Self {
-        if self.0.anchor {
-            return self;
-        }
-        let mut key = Self::new("\0input-anchor".into(), vec![self]);
-        let node = Arc::get_mut(&mut key.0).unwrap();
-        node.anchor = true;
-        node.height = 0;
-        key
-    }
-}
-impl Hash for Key {
-    fn hash<H: Hasher>(&self, s: &mut H) {
-        self.0.hash.hash(s)
-    }
-}
-impl PartialEq for Key {
-    fn eq(&self, b: &Self) -> bool {
-        Arc::ptr_eq(&self.0, &b.0) || (self.0.hash == b.0.hash && self.cmp(b) == Ordering::Equal)
-    }
-}
-impl Eq for Key {}
-impl Ord for Key {
-    fn cmp(&self, b: &Self) -> Ordering {
-        if Arc::ptr_eq(&self.0, &b.0) {
-            return Ordering::Equal;
-        }
-        b.0.anchor
-            .cmp(&self.0.anchor)
-            .then_with(|| self.0.height.cmp(&b.0.height))
-            .then_with(|| self.0.label.cmp(&b.0.label))
-            .then_with(|| self.0.children.cmp(&b.0.children))
-    }
-}
-impl PartialOrd for Key {
-    fn partial_cmp(&self, b: &Self) -> Option<Ordering> {
-        Some(self.cmp(b))
-    }
-}
+pub(super) use eggfuse_structural_key::{Key, SORT};
 pub(super) type Stored = Boxed<Key>;
 #[derive(Debug)]
 pub(super) struct KeySort;
@@ -195,32 +112,7 @@ impl PurePrim for Prim {
         }
     }
 }
-pub(super) fn decode_key(text: &str) -> Option<Key> {
-    fn decode(j: &Json) -> Option<Key> {
-        let xs = j.as_array()?;
-        if xs.len() != 3 {
-            return None;
-        }
-        let anchor = xs[0].as_bool()?;
-        let label = xs[1].as_str()?.to_owned();
-        let children = xs[2]
-            .as_array()?
-            .iter()
-            .map(decode)
-            .collect::<Option<Vec<_>>>()?;
-        if anchor && (label != "\0input-anchor" || children.len() != 1) {
-            return None;
-        }
-        let mut key = Key::new(label, children);
-        if anchor {
-            let n = Arc::get_mut(&mut key.0)?;
-            n.anchor = true;
-            n.height = 0;
-        }
-        Some(key)
-    }
-    decode(&serde_json::from_str::<Json>(text).ok()?)
-}
+pub(super) fn decode_key(text: &str) -> Option<Key> { Key::decode_legacy(text) }
 pub(super) fn install_base(eg: &mut EGraph) -> Result<()> {
     add_base_sort(eg, KeySort, Span::Panic)?;
     let key = eg.get_sort_by_name(SORT).unwrap().clone();
