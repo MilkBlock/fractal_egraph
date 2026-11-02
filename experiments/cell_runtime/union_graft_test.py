@@ -41,7 +41,9 @@ class UnionGraftTests(unittest.TestCase):
 (check (Next (N 1) (N 2)))''')
         self.assertTrue(p['multi_stage']['union_entries'])
         self.assertGreater(b['union_graft']['stats']['bindings'],0)
-        self.assertLess(b['multi_stage']['stats']['inverse_reads'],a['multi_stage']['stats']['inverse_reads'])
+        # Displaced-only repair can eliminate the old redundant inverse reads
+        # in BOTH modes; the exact graft must not add them back.
+        self.assertLessEqual(b['multi_stage']['stats']['inverse_reads'],a['multi_stage']['stats']['inverse_reads'])
         stages=json.loads((self.root/'1/runtime/stages.json').read_text())
         self.assertFalse(any(r['table']=='Next' for r in stages[2]['rows']))
         self.assertTrue(any(e['depth']==0 and 'Apply' in e['cause'] for e in b['union_lineage']['events']))

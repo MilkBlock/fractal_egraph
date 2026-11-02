@@ -54,6 +54,8 @@ def load_artifact(artifact):
         if 'composition-program.json' not in manifest['files'] or json.loads((artifact/'composition-program.json').read_text())!=program['compositions']:raise ValueError('composition recipes differ')
     if 'merge_contracts' in program:
         if 'merge-contracts.json' not in manifest['files'] or json.loads((artifact/'merge-contracts.json').read_text())!=program['merge_contracts']:raise ValueError('merge contracts differ')
+    if 'merge_programs' in program:
+        if 'merge-programs.json' not in manifest['files'] or json.loads((artifact/'merge-programs.json').read_text())!=program['merge_programs']:raise ValueError('merge programs differ')
     if 'multi_stage' in program:
         if 'multi-stage-program.json' not in manifest['files'] or json.loads((artifact/'multi-stage-program.json').read_text())!=program['multi_stage']:raise ValueError('multi-stage artifact differs')
     if 'congruence' in program:

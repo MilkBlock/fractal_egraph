@@ -107,6 +107,12 @@ pub struct Row {
 }
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
+    #[serde(default)]
+    pub merge_program_calls: u64,
+    #[serde(default)]
+    pub merge_program_operations: u64,
+    #[serde(default)]
+    pub merge_program_constructs: u64,
     pub constructor_requests: u64,
     pub constructor_reused: u64,
     pub logical_facts_created: u64,
@@ -150,6 +156,7 @@ pub struct CongruenceStats {
     pub coalesced_facts: u64,
 }
 pub struct Graph {
+    pub merge_programs_enabled: bool,
     pub key_lookup_calls: std::cell::Cell<u64>,
     pub program: Program,
     pub views_enabled: bool,
@@ -428,6 +435,7 @@ impl Graph {
             epoch: 0,
             changed: false,
             stats: Stats::default(),
+            merge_programs_enabled: std::env::var("CELL_CPU_MERGE_PROGRAMS").as_deref()==Ok("1"),
             pending_unions: vec![],
             union_lineage_enabled: std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
                 || std::env::var("CELL_CPU_UNION_TRACE").as_deref() == Ok("1")
@@ -1097,8 +1105,11 @@ impl Graph {
         }
         self.parents.insert(hi, lo);
         let mut affected = self.uses.remove(&hi).unwrap_or_default();
-        affected.extend(self.uses.get(&lo).into_iter().flatten().copied());
+        // Only displaced identities change row fields. Re-stamping the already
+        // canonical side can re-run an unchanged LHS and create extra custom
+        // merge nodes (e.g. a repeated default ExtractedExpr write).
         self.mark_affected(&affected);
+        affected.extend(self.uses.get(&lo).into_iter().flatten().copied());
         self.uses.insert(lo, affected);
         self.stats.unions += 1;
         self.changed = true;
@@ -1290,7 +1301,7 @@ impl Graph {
                 .entry(kind.into())
                 .or_default() += 1;
         }
-        let expr = self.program.tables[t].merge.clone();
+        let expr = &self.program.tables[t].merge;
         if old == new
             && if self.program.artifact["merge_contracts"].is_null() {
                 expr["call"]["table"].is_string()
@@ -1311,7 +1322,30 @@ impl Graph {
                 ))
             };
         }
-        self.merge_expression(&expr, &old, &new)
+        if self.merge_programs_enabled {
+            let m=self.program.merge_programs.merges.get(&t).cloned().ok_or("missing compiled merge")?;
+            self.stats.merge_program_calls+=1;
+            if m.operations.is_empty(){return Ok(match &m.result{Arg::Slot(0)=>old,Arg::Slot(1)=>new,Arg::Literal(v)=>v.clone(),_=>return Err("merge result slot".into())})}
+            let mut values=Vec::with_capacity(2+m.operations.len());values.extend([old,new]);
+            let operand=|a:&Arg,values:&Vec<Value>|match a {Arg::Slot(s)=>values[*s].clone(),Arg::Literal(v)=>v.clone()};
+            for op in &m.operations {
+                let Op::Let(dst,call,args)=op else {return Err("invalid merge instruction".into())};
+                let args=args.iter().map(|a|operand(a,&values)).collect::<Vec<_>>();
+                let value=match call {
+                    Call::Table(t) if self.program.tables[*t].virtual_fact=>{
+                        self.stats.merge_program_constructs+=1;self.dynamic_construct(*t,args)?
+                    },
+                    Call::Table(t)=>{self.stats.merge_port_reads+=1;self.read_merge_port(*t,&args)?},
+                    Call::Primitive(name,sort)=>{
+                        if name.starts_with("cell-key-"){self.stats.key_operations+=1;}
+                        value::primitive(name,&args,sort,&self.program.artifact["source_core"]["structural_key"]["nodes"])? .ok_or("merge arithmetic failed")?
+                    }
+                };
+                if *dst!=values.len(){return Err("merge SSA order".into())}
+                values.push(value);self.stats.merge_program_operations+=1;
+            }
+            Ok(operand(&m.result,&values))
+        }else{let expr=expr.clone();self.merge_expression(&expr, &old, &new)}
     }
     fn read_merge_port(&mut self, t: usize, args: &[Value]) -> Result<Value> {
         let key = args

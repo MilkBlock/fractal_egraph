@@ -56,6 +56,8 @@ pub struct Rule {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
     #[serde(default)]
+    pub merge_programs: crate::merge_programs::Programs,
+    #[serde(default)]
     pub views: crate::views::Views,
     pub congruence: crate::congruence::Congruence,
     pub multi_stage: crate::multistage::MultiStage,
@@ -273,6 +275,7 @@ impl Program {
             sets.insert(string(&s["name"])?.into(), ids);
         }
         let mut p = Self {
+            merge_programs: Default::default(),
             views: crate::views::Views::default(),
             congruence: crate::congruence::Congruence::default(),
             multi_stage: crate::multistage::MultiStage::default(),
@@ -385,6 +388,10 @@ impl Program {
             }
         }
         p.views = crate::views::Views::parse(&p, &p.artifact["reference_views"])?;
+        if std::env::var("CELL_CPU_MERGE_PROGRAMS").as_deref()==Ok("1") && p.artifact["merge_programs"].is_null() {
+            return Err("merge programs require re-emitting the CPU artifact".into());
+        }
+        p.merge_programs=crate::merge_programs::Programs::parse(&p,&p.artifact["merge_programs"])?;
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
         p.congruence = crate::congruence::Congruence::parse(&p, &p.artifact["congruence"])?;
         p.compositions = crate::compositions::Compositions::parse(&p, &p.artifact["compositions"])?;

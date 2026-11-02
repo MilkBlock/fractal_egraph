@@ -29,6 +29,7 @@ def build(core, marker=None, reference_tables=(), compositions=None):
         validate_marker(marker,core)
     from eggfuse.analyzer.multistage import build as multi_stage_build
     from eggfuse.analyzer.congruence import build as congruence_build
+    from eggfuse.analyzer.merge_programs import build as merge_programs_build
     recipe = recipe_build(core)
     recipe_validate(recipe, core)
     templates = []
@@ -39,6 +40,7 @@ def build(core, marker=None, reference_tables=(), compositions=None):
             direct_entry=len(reads)==1, entry_table=reads[0]['call']['table'] if len(reads)==1 else None,
             primitive_guards=[i for i,a in enumerate(rule['query']) if 'primitive' in a['call']]))
     payload = dict(schema=SCHEMA, merge_contracts=merge_contracts(core), recipe=recipe, multi_stage=multi_stage_build(recipe), congruence=congruence_build(recipe), templates=templates,requirements=requirements(core),
+        merge_programs=merge_programs_build(recipe),
         initial=copy.deepcopy(core.get('initial',[])),
         contract=dict(storage='shared effect recipes plus instance slots and fact-position masks',
                       native_runtime_dependency=False, native_free_join=False,
@@ -69,6 +71,7 @@ def validate(program):
         expected['multi_stage'].pop('union_entries',None)  # Old artifact; new union-graft mode requires re-emission.
     if 'congruence' not in program: expected.pop('congruence')
     if 'merge_contracts' not in program: expected.pop('merge_contracts')
+    if 'merge_programs' not in program: expected.pop('merge_programs')
     expected['sha256']=digest({k:v for k,v in expected.items() if k!='sha256'})
     require(expected==program,'Cell wiring, entry, initial state or contract differs from typed source')
     return core

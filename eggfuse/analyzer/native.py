@@ -8,9 +8,19 @@ ROOT=Path(__file__).resolve().parents[2]
 def publish_recipes(directory):
     directory=Path(directory)
     source=directory/'cell-device-recipes.json'
-    recipe=adapt(json.loads(source.read_text()))
+    raw=json.loads(source.read_text())
+    from eggfuse.ir.structural_key import validate_core
+    for p in raw['programs']:validate_core(p)
+    if raw.get('source_program',{}).get('status')=='ready':validate_core(raw['source_program']['core'])
+    recipe=adapt(raw)
     target=directory/'recipe-library.json';target.write_text(json.dumps(recipe,indent=2)+'\n')
     source_program=recipe.get('source_program',{})
+    from .merge_programs import build as merge_programs
+    merge_library={'schema':'eggfuse-merge-recipe-library/v1',
+        'source':merge_programs(source_program['recipe']) if source_program.get('status')=='ready' else None,
+        'programs':[merge_programs(p) for p in recipe['programs']],
+        'terminal_cell_substitution_authorized':False}
+    (directory/'parameterized-merge-programs.json').write_text(json.dumps(merge_library,indent=2)+'\n')
     if source_program.get('status')=='ready':
         from .regions import analyze
         (directory/'region-program.json').write_text(json.dumps(analyze(source_program['recipe']),indent=2)+'\n')

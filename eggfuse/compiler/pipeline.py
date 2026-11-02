@@ -54,8 +54,8 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         command([analyzer,'analyze','--source',evidence_source,'--output',folder/'result'],folder/'analyze.log')
         from eggfuse.analyzer.native import publish_recipes
         publish_recipes(folder/'result')
-    analysis=pm.run('analyze',{'source_sk':evidence_source,'analyzer':analyzer},{'graphs':False},base+[ROOT/'eggfuse/analyzer/native.py',ROOT/'eggfuse/analyzer/recipes.py',ROOT/'eggfuse/analyzer/regions.py',ROOT/'eggfuse/analyzer/batches.py',ROOT/'eggfuse/ir/batches.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/ir/recipe.py'],
-        ['result/recipe-library.json','result/cell-recipes.json','result/cell-device-recipes.json','result/analysis.json','result/catalog/*.json','result/catalog/states/*.json','result/saturated-rule-composition/cells/*/observed-saturated-state.json'],
+    analysis=pm.run('analyze',{'source_sk':evidence_source,'analyzer':analyzer},{'graphs':False},base+[ROOT/'eggfuse/analyzer/native.py',ROOT/'eggfuse/analyzer/recipes.py',ROOT/'eggfuse/analyzer/merge_programs.py',ROOT/'eggfuse/analyzer/regions.py',ROOT/'eggfuse/analyzer/batches.py',ROOT/'eggfuse/ir/batches.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/ir/recipe.py'],
+        ['result/recipe-library.json','result/parameterized-merge-programs.json','result/cell-recipes.json','result/cell-device-recipes.json','result/analysis.json','result/catalog/*.json','result/catalog/states/*.json','result/saturated-rule-composition/cells/*/observed-saturated-state.json'],
         analyze,
         lambda f:valid_json(f/'result','cell-recipes.json'),preserves=['source semantics'])/'result'
     # The catalogue is an explicit dependency: changing Bake invalidates only

@@ -48,6 +48,12 @@ enum ComposedMatch {
 #[derive(Default, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 struct ContinuationStats {
+    merge_context_entries: u64,
+    merge_port_reads: u64,
+    merge_candidate_rows: u64,
+    merge_guard_checks: u64,
+    merge_bindings: u64,
+    merge_bindings_by_rule: BTreeMap<usize,u64>,
     point_reads: u64,
     inverse_reads: u64,
     inverse_ambiguous: u64,
@@ -1041,6 +1047,59 @@ impl Executor {
         }
         Ok(true)
     }
+    // Fixed constructor-port wiring from the checked merge program. All alias
+    // alternatives remain explicit and use the original latest-witness split.
+    // No effects run here: complete bindings enter the normal sealed StagePatch.
+    fn merge_points(&mut self,query:&[Atom],order:&[usize],env:&mut QueryEnv,epoch:u64,
+        delta:(usize,u64,Dependency),out:&mut Vec<Binding>)->Result<()> {
+        let Some((&i,tail))=order.split_first() else {
+            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
+            return Ok(())
+        };
+        let a=&query[i];let mark=env.trail.len();
+        match &a.call {
+            Call::Primitive(name,sort)=>{
+                self.continuation_stats.merge_guard_checks+=1;
+                let args=a.args[..a.args.len()-1].iter().map(|a|operand(a,env,&self.graph).ok_or_else(||"merge guard input".to_string())).collect::<Result<Vec<_>>>()?;
+                if name.starts_with("cell-key-"){self.graph.stats.key_operations+=1;}
+                if let Some(v)=value::primitive(name,&args,sort,&self.graph.program.artifact["source_core"]["structural_key"]["nodes"])? {
+                    if bind(a.args.last().unwrap(),&v,env,&self.graph){self.merge_points(query,tail,env,epoch,delta,out)?;}
+                }
+            },
+            Call::Table(t)=>{
+                self.continuation_stats.merge_port_reads+=1;
+                let key=a.args[..a.args.len()-1].iter().map(|a|operand(a,env,&self.graph)).collect::<Option<Vec<_>>>();
+                let rows=if let Some(key)=key {self.graph.lookup(*t,&key)?.into_iter().collect::<Vec<_>>()}else{
+                    let Some(Value::Eq(id))=operand(a.args.last().unwrap(),env,&self.graph) else {return Err("merge port has no fixed key or output".into())};
+                    // Reuse the exact versioned constructor result-column index.
+                    // Do not traverse all incoming uses of this eclass for each
+                    // comparison, nor build a second untracked context cache.
+                    let mut bound=vec![None;a.args.len()];*bound.last_mut().unwrap()=Some(Value::Eq(id));
+                    let refs=self.query_indexes.candidates(&self.graph,*t,&bound)?;
+                    refs.iter().map(|w|self.graph.row(*w)).collect::<Result<Vec<_>>>()?.into_iter().flatten().collect()
+                };
+                for row in rows {
+                    self.continuation_stats.merge_candidate_rows+=1;self.graph.stats.decoded_rows+=1;
+                    if row.hidden || (row.epoch,row.witness)>(delta.1,delta.2) || ((row.epoch,row.witness)==(delta.1,delta.2) && i<delta.0){continue}
+                    if a.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,env,&self.graph)) {
+                        env.record(i,Some(row.witness));self.merge_points(query,tail,env,epoch.max(row.epoch),delta,out)?;env.record(i,None);
+                    }
+                    env.rollback(mark);
+                }
+            }
+        }
+        env.rollback(mark);Ok(())
+    }
+    fn match_merge_program(&mut self,rid:usize,pivot:usize,row:&Row,env:&mut QueryEnv,out:&mut Vec<Binding>)->Result<bool>{
+        if !self.graph.merge_programs_enabled{return Ok(false)}
+        let Some(order)=self.graph.program.merge_programs.entries.get(&(rid,pivot)).cloned() else {return Ok(false)};
+        self.continuation_stats.merge_context_entries+=1;
+        let before=out.len();let query=self.graph.program.rules[rid].query.clone();
+        self.merge_points(&query,&order,env,row.epoch,(pivot,row.epoch,row.witness),out)?;
+        let n=(out.len()-before) as u64;self.continuation_stats.merge_bindings+=n;
+        *self.continuation_stats.merge_bindings_by_rule.entry(rid).or_default()+=n;
+        Ok(true)
+    }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
         let full_witnesses = !self.graph.marker_fields_copied
@@ -1256,6 +1315,7 @@ impl Executor {
                             .collect::<Vec<_>>();
                         let mut epoch = row.epoch;
                         env.record(pivot, Some(row.witness));
+                        if self.match_merge_program(rid,pivot,row,&mut env,&mut found)? {continue;}
                         if self.match_union_graft(rid, pivot, row, &mut env, &mut found)? {
                             continue;
                         }

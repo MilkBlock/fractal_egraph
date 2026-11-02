@@ -14,6 +14,7 @@ def emit(folder,core,recipe,marker,source,compositions=None):
     (folder/'reference-views.json').write_text(json.dumps(program['reference_views'],indent=2))
     (folder/'multi-stage-program.json').write_text(json.dumps(program['multi_stage'],indent=2))
     (folder/'merge-contracts.json').write_text(json.dumps(program['merge_contracts'],indent=2))
+    (folder/'merge-programs.json').write_text(json.dumps(program['merge_programs'],indent=2))
     (folder/'local-congruence-program.json').write_text(json.dumps(program['congruence'],indent=2))
     for name,path in [('core.json',core),('recipe-program.json',recipe),('marker-program.json',marker),('source_sk_mk.egg',source)]:shutil.copyfile(path,folder/name)
     caps={'backend':'cell-cpu','storage':'shared recipe and parent projections; virtual fact references; mutable function ports',
@@ -24,6 +25,9 @@ def emit(folder,core,recipe,marker,source,compositions=None):
           'limits':['no GPU execution','unproven inverse reads retain residual matching','diagnostic unit-cost extraction only','source frontend restricts post-initialization commands']}
     (folder/'capabilities.json').write_text(json.dumps(caps,indent=2))
     files=['program.json','reference-views.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
+    files.append('merge-programs.json')
+    caps['merge_programs']={'programs':len(program['merge_programs']['programs']),'scheduled_entries':len(program['merge_programs']['entries']),'enable':'CELL_CPU_MERGE_PROGRAMS=1','terminal_cell_substitution':False}
+    (folder/'capabilities.json').write_text(json.dumps(caps,indent=2))
     if compositions:
         shutil.copyfile(compositions,folder/'composition-program.json');files.append('composition-program.json')
         caps['compositions']={'programs':len(program['compositions']['programs']),'edges':len(program['compositions']['edges']),'enable':'CELL_CPU_COMPOSITIONS=1','default':False}
@@ -33,6 +37,7 @@ def emit(folder,core,recipe,marker,source,compositions=None):
 def compile_target(pm,core,recipe,marker,source,stop_after,execute_runtime,compositions=None):
     implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py',ROOT/'eggfuse/analyzer/congruence.py',ROOT/'eggfuse/analyzer/reference_views.py',ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/ir/structural_key.py',ROOT/'engine/structural-key/abi.json']
     outputs=['program.json','reference-views.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
+    outputs.append('merge-programs.json');implementations.append(ROOT/'eggfuse/analyzer/merge_programs.py')
     if compositions:
         outputs.append('composition-program.json');implementations.append(ROOT/'eggfuse/analyzer/compositions.py')
     def check(folder):validate(json.loads((folder/'program.json').read_text()))
