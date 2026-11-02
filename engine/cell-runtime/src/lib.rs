@@ -19,3 +19,5 @@ pub mod union_impact;
 pub mod sieve;
 
 pub mod views;
+
+pub mod search_context;

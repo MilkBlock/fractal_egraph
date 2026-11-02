@@ -22,6 +22,7 @@ struct Columns {
     values: Vec<HashMap<u64, Bucket>>,
     keys: HashMap<Dependency, Vec<u64>>,
     version: u64,
+    leased_reads: bool,
 }
 impl Columns {
     fn remove(&mut self, fact: Dependency) -> usize {
@@ -168,6 +169,9 @@ impl QueryIndexes {
     ) -> Result<ReadStamp> {
         self.ensure(graph, table)?;
         let index = self.tables.get_mut(&table).unwrap();
+        // This table supplies exact read evidence. Do not impose its lease
+        // invalidation work on unrelated indexes used only for ordinary joins.
+        index.leased_reads = true;
         if let Some((column, hash, _)) = index.best(bound, self.bits) {
             let view = index.values[column].get_mut(&hash).map(|bucket| {
                 bucket
@@ -258,7 +262,7 @@ impl QueryIndexes {
             if let Some(index) = self.tables.get_mut(&table) {
                 let (removed, added) = if let Some(row) = graph.row(fact)? {
                     self.updated_facts += 1;
-                    index.put(row, self.bits, self.watch_reads)
+                    index.put(row, self.bits, self.watch_reads || index.leased_reads)
                 } else {
                     (index.remove(fact), 0)
                 };
@@ -290,6 +294,7 @@ impl QueryIndexes {
                     .collect(),
                 keys: HashMap::new(),
                 version: graph.query_versions[table],
+                leased_reads: false,
             };
             for fact in graph.witnesses(table) {
                 self.decoded_facts += 1;
