@@ -110,4 +110,30 @@ class RefutationTests(unittest.TestCase):
         execute(p,self.root/'resume',ENGINE,resume=self.root/'partial/runtime/checkpoint.json',environment=env)
         self.assertEqual(json.loads((self.root/'resume/runtime/state.json').read_text()),json.loads((self.root/'1/runtime/state.json').read_text()))
 
+    def test_multistage_recipe_shares_negative_without_marker_rows(self):
+        _,b=self.pair(MULTISTAGE, {'CELL_CPU_REFUTATION_SCOPE':'multistage'})
+        stats=b['marker_refutation']['stats']
+        self.assertGreater(stats['continuation_entries'],0)
+        self.assertGreater(stats['later_epoch_hits'],0)
+        self.assertGreater(stats['other_ruleset_hits'],0)
+        self.assertGreaterEqual(stats['max_continuation_depth'],1)
+        self.assertFalse(any(r['table']=='View' for r in json.loads((self.root/'1/runtime/state.json').read_text())['rows']))
+
+    def test_multistage_late_input_reopens_the_future_query(self):
+        source=MULTISTAGE.replace('(run growB)', '(run change) (run growB)')+'\n(check (Seen (N 0) 2))'
+        _,b=self.pair(source, {'CELL_CPU_REFUTATION_SCOPE':'multistage'})
+        self.assertGreater(b['marker_refutation']['stats']['invalidated'],0)
+
+MULTISTAGE='''(datatype E (N i64) (Seed E) (A E) (B E) (P E E) (R E E) (Seen E i64))
+(function View (E i64) Unit :merge old)
+(ruleset growA) (ruleset readA) (ruleset growB) (ruleset readB) (ruleset change)
+(rule ((Seed x)) ((A x)) :ruleset growA)
+(rule ((A x) (Seed x) (P x y) (R y z)) ((Seen x 1)) :ruleset readA)
+(rule ((A x)) ((B x)) :ruleset growB)
+(rule ((B x) (A x) (P x y) (R y z)) ((Seen x 2)) :ruleset readB)
+(rule () ((R (N 1) (N 4))) :ruleset change)
+(Seed (N 0)) (P (N 0) (N 1)) (P (N 0) (N 2))
+(R (N 3) (N 4)) (R (N 4) (N 3))
+(run-schedule (seq (run growA) (run readA) (run growB) (run readB)))'''
+
 if __name__=='__main__': unittest.main()

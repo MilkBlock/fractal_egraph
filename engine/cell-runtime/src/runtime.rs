@@ -102,6 +102,7 @@ pub struct Executor {
 /// Run-local binding workspace. Only successful matches become stored bindings;
 /// failed join branches undo slot assignments instead of cloning tree maps.
 struct QueryEnv {
+    recipe_context: Option<(usize, u32)>,
     witnesses: MatchedFacts,
     values: Vec<Option<Value>>,
     trail: Vec<usize>,
@@ -109,6 +110,7 @@ struct QueryEnv {
 impl QueryEnv {
     fn new(slots: usize, witness_slots: usize, full_witnesses: bool) -> Self {
         Self {
+            recipe_context: None,
             witnesses: MatchedFacts::new(witness_slots, full_witnesses),
             values: vec![None; slots],
             trail: vec![],
@@ -242,37 +244,78 @@ impl Executor {
         out: &mut Vec<Binding>,
         delta: Option<(usize, u64, Dependency)>,
     ) -> Result<()> {
-        if !self.refutation.enabled {
-            return self.solve_inner(query, rid, remaining, env, epoch, out, delta, None);
-        }
-        let markers = if self.refutation.enabled {
-            query
-                .iter()
-                .enumerate()
-                .filter_map(|(i, a)| match a.call {
-                    Call::Table(t)
-                        if !remaining[i] && self.graph.program.views.markers.contains(&t) =>
-                    {
-                        Some((i, t))
-                    }
-                    _ => None,
-                })
-                .collect::<Vec<_>>()
+        self.solve_recorded(query, rid, remaining, env, epoch, out, delta, None)
+    }
+    fn recurse(
+        &mut self,
+        query: &[Atom],
+        rid: usize,
+        remaining: &mut [bool],
+        env: &mut QueryEnv,
+        epoch: u64,
+        out: &mut Vec<Binding>,
+        delta: Option<(usize, u64, Dependency)>,
+        evidence: Option<&mut crate::refutation::Evidence>,
+    ) -> Result<()> {
+        if self.refutation.enabled && self.refutation.multistage {
+            self.solve_recorded(query, rid, remaining, env, epoch, out, delta, evidence)
         } else {
-            vec![]
-        };
-        // Scope: suppress a residual JOIN, not claim credit for one empty lookup.
-        let tables = query
-            .iter()
-            .enumerate()
-            .filter(|(i, a)| remaining[*i] && matches!(a.call, Call::Table(_)))
-            .count();
-        if markers.is_empty() || tables < 2 {
-            return self.solve_inner(query, rid, remaining, env, epoch, out, delta, None);
+            self.solve_inner(query, rid, remaining, env, epoch, out, delta, evidence)
         }
+    }
+    fn attach_recipe_context(&mut self, rid: usize, anchor: usize, row: &Row, env: &mut QueryEnv) {
+        if !self.refutation.enabled || !self.refutation.multistage || !self.multistage_enabled {
+            return;
+        }
+        if let Some(c) = self.graph.continuation_context(row.witness) {
+            if c.completed
+                && self
+                    .graph
+                    .program
+                    .multi_stage
+                    .routes
+                    .contains_key(&(c.template, c.op, rid, anchor))
+            {
+                env.recipe_context = Some((c.template, c.depth));
+                self.refutation.stats.continuation_entries += 1;
+                self.refutation.stats.max_continuation_depth =
+                    self.refutation.stats.max_continuation_depth.max(c.depth);
+            }
+        }
+    }
+    fn reject_entry(
+        &mut self,
+        rid: usize,
+        query: &[Atom],
+        remaining: &[bool],
+        env: &QueryEnv,
+    ) -> bool {
+        if !self.refutation.enabled || !self.refutation.multistage {
+            return false;
+        }
+        let marker = query.iter().enumerate().any(|(i, a)| {
+            !remaining[i]
+                && matches!(a.call,Call::Table(t) if self.graph.program.views.markers.contains(&t))
+        });
+        if !marker && env.recipe_context.is_none() {
+            return false;
+        }
+        // Already-read atoms remain requirements too. A failed subprogram may
+        // span those atoms and an as-yet unresolved suffix in a later Stage.
+        let key = self.refutation_key(query, &vec![true; query.len()], env);
+        self.refutation
+            .reject(rid, &key, &self.query_indexes, &self.graph)
+            .is_some()
+    }
+    fn refutation_key(
+        &self,
+        query: &[Atom],
+        remaining: &[bool],
+        env: &QueryEnv,
+    ) -> crate::refutation::Key {
         use crate::refutation::{Operand, Operator};
         let mut variables = BTreeMap::new();
-        let key = crate::refutation::Key {
+        crate::refutation::Key {
             atoms: query
                 .iter()
                 .enumerate()
@@ -298,14 +341,65 @@ impl Executor {
                     (op, args)
                 })
                 .collect(),
+        }
+    }
+    fn solve_recorded(
+        &mut self,
+        query: &[Atom],
+        rid: usize,
+        remaining: &mut [bool],
+        env: &mut QueryEnv,
+        epoch: u64,
+        out: &mut Vec<Binding>,
+        delta: Option<(usize, u64, Dependency)>,
+        parent: Option<&mut crate::refutation::Evidence>,
+    ) -> Result<()> {
+        if !self.refutation.enabled {
+            return self.solve_inner(query, rid, remaining, env, epoch, out, delta, parent);
+        }
+        let markers = if self.refutation.enabled {
+            query
+                .iter()
+                .enumerate()
+                .filter_map(|(i, a)| match a.call {
+                    Call::Table(t)
+                        if !remaining[i] && self.graph.program.views.markers.contains(&t) =>
+                    {
+                        Some((i, t))
+                    }
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+        } else {
+            vec![]
         };
-        if self
+        // Scope: suppress a residual JOIN, not claim credit for one empty lookup.
+        let tables = query
+            .iter()
+            .enumerate()
+            .filter(|(i, a)| remaining[*i] && matches!(a.call, Call::Table(_)))
+            .count();
+        if (markers.is_empty() && !(self.refutation.multistage && env.recipe_context.is_some()))
+            || tables < 2
+        {
+            return self.solve_inner(query, rid, remaining, env, epoch, out, delta, parent);
+        }
+        let key = self.refutation_key(query, remaining, env);
+        if let Some(proof) = self
             .refutation
             .reject(rid, &key, &self.query_indexes, &self.graph)
         {
+            if let Some(parent) = parent {
+                parent.query_reads += proof.query_reads;
+                parent.reads.extend(proof.reads);
+            }
             return Ok(());
         }
-        let mut proof = crate::refutation::Evidence::default();
+        let mut own = crate::refutation::Evidence::default();
+        let proof = parent.unwrap_or(&mut own);
+        let first_read = proof.reads.len();
+        let first_restriction = proof.delta_restrictions;
+        let first_query_read = proof.query_reads;
         for (i, t) in markers {
             let bound = query[i]
                 .args
@@ -318,19 +412,16 @@ impl Executor {
         }
         let before = out.len();
         let candidates = self.graph.stats.residual_candidates;
-        self.solve_inner(
-            query,
-            rid,
-            remaining,
-            env,
-            epoch,
-            out,
-            delta,
-            Some(&mut proof),
-        )?;
+        self.solve_inner(query, rid, remaining, env, epoch, out, delta, Some(proof))?;
         self.refutation.finish(
+            rid,
+            self.graph.epoch,
             key,
-            proof,
+            crate::refutation::Evidence {
+                reads: proof.reads[first_read..].to_vec(),
+                delta_restrictions: proof.delta_restrictions - first_restriction,
+                query_reads: proof.query_reads - first_query_read,
+            },
             self.graph.stats.residual_candidates - candidates,
             out.len() != before,
         );
@@ -405,7 +496,7 @@ impl Executor {
                 )? {
                     let mark = env.trail.len();
                     if bind(atom.args.last().unwrap(), &v, env, &self.graph) {
-                        self.solve_inner(
+                        self.recurse(
                             query,
                             rid,
                             remaining,
@@ -421,6 +512,7 @@ impl Executor {
             }
             Call::Table(t) => {
                 if let Some(proof) = evidence.as_deref_mut() {
+                    proof.query_reads += 1;
                     let bound = atom
                         .args
                         .iter()
@@ -476,7 +568,7 @@ impl Executor {
                             || ((r.epoch, r.witness) == (epoch, witness) && chosen < pivot)
                     }) {
                         if let Some(proof) = evidence.as_deref_mut() {
-                            proof.delta_restricted = true;
+                            proof.delta_restrictions += 1;
                         }
                         continue;
                     }
@@ -494,7 +586,7 @@ impl Executor {
                         {
                             self.solve(query, rid, remaining, env, epoch.max(r.epoch), out, delta)?;
                         } else {
-                            self.solve_inner(
+                            self.recurse(
                                 query,
                                 rid,
                                 remaining,
@@ -962,6 +1054,7 @@ impl Executor {
                     .all(|(a, v)| bind(a, v, &mut env, &self.graph))
                 {
                     env.record(anchor, Some(row.witness));
+                    self.attach_recipe_context(rid, anchor, &row, &mut env);
                     if !probe {
                         match self.composed_match(rid, anchor, &row, &mut env)? {
                             ComposedMatch::Matched(b) => {
@@ -978,6 +1071,9 @@ impl Executor {
                         .map(|i| i != anchor)
                         .collect::<Vec<_>>();
                     let mut epoch = row.epoch;
+                    if self.reject_entry(rid, &rule.query, &remaining, &env) {
+                        continue;
+                    }
                     if self.multistage_enabled && self.point_programs {
                         if let Some(order) = self
                             .graph
@@ -1095,6 +1191,10 @@ impl Executor {
                             .collect::<Vec<_>>();
                         let mut epoch = row.epoch;
                         env.record(pivot, Some(row.witness));
+                        self.attach_recipe_context(rid, pivot, row, &mut env);
+                        if self.reject_entry(rid, &rule.query, &remaining, &env) {
+                            continue;
+                        }
                         match self.composed_match(rid, pivot, row, &mut env)? {
                             ComposedMatch::Matched(b) => {
                                 found.push(b);
@@ -1167,6 +1267,9 @@ impl Executor {
                             .iter()
                             .enumerate()
                             .any(|(i, p)| *p && matches!(rule.query[i].call, Call::Table(_)));
+                        if self.reject_entry(rid, &rule.query, &remaining, &env) {
+                            continue;
+                        }
                         let before = found.len();
                         if self.multistage_enabled && self.point_programs && !residual {
                             if let Some(order) =

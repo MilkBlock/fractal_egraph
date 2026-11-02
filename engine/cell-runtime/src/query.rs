@@ -104,6 +104,7 @@ pub struct RefinementStats {
 }
 pub struct QueryIndexes {
     pub watch_reads: bool,
+    pub revision: u64,
     tables: HashMap<usize, Columns>,
     references: usize,
     bits: u32,
@@ -123,6 +124,7 @@ pub enum Domain {
 }
 /// A lease on a complete candidate superset. Empty buckets need no tombstones:
 /// they stay valid exactly while the current index still has no such bucket.
+#[derive(Clone)]
 pub enum ReadStamp {
     Bucket {
         table: usize,
@@ -139,6 +141,7 @@ impl Default for QueryIndexes {
     fn default() -> Self {
         Self {
             watch_reads: false,
+            revision: 0,
             tables: HashMap::new(),
             references: 0,
             intersection: std::env::var("CELL_CPU_JOIN_INTERSECTION").as_deref() == Ok("1"),
@@ -231,10 +234,12 @@ impl QueryIndexes {
         }
     }
     pub fn clear(&mut self) {
+        self.revision += 1;
         self.tables.clear();
         self.references = 0;
     }
     pub fn invalidate(&mut self, graph: &Graph) {
+        self.revision += 1;
         self.tables.retain(|table, index| {
             if index.version != graph.query_versions[*table] {
                 self.references -= index.keys.len() * index.values.len();
@@ -245,6 +250,9 @@ impl QueryIndexes {
         });
     }
     pub fn update(&mut self, graph: &mut Graph) -> Result<()> {
+        if !graph.query_changes.is_empty() {
+            self.revision += 1;
+        }
         // Collapse all writes/union repairs within a Run to the final visible row.
         for (fact, table) in std::mem::take(&mut graph.query_changes) {
             if let Some(index) = self.tables.get_mut(&table) {
