@@ -78,6 +78,9 @@ impl Program {
         let mut core = eg
             .export_device_program(&sets.into_iter().collect::<Vec<_>>())
             .map_err(|e| format!("Cell {unit} device export: {e}"))?;
+        if let Some(runtime)=cell["native_runtime"].as_str() {
+            crate::structural_key::source::attach_device_runtime(&mut core,runtime)?;
+        }
         core["schedule"] = json!([control]);
         core["assertion_tables"] = json!([]);
         Ok(core)

@@ -30,6 +30,23 @@ pub fn inherit_runtime(source: &str, generated: &str) -> Result<String> {
     }
 }
 
+/// Native registrations are not part of export_device_program's rule AST.
+/// Carry the exact source-declared runtime into a reloadable typed program.
+pub fn attach_device_runtime(core: &mut Json, source: &str) -> Result<()> {
+    let Some(header)=declaration(source)? else {return Ok(())};
+    core["structural_key"]=serde_json::from_str(&header[HEADER.len()..])?;
+    core["structural_key"]["abi"]=serde_json::from_str(eggfuse_structural_key::ABI)?;
+    fn strings(j:&Json,out:&mut BTreeSet<String>){
+        if j["sort"]=="String" {if let Some(s)=j["value"].as_str(){out.insert(s.to_owned());}}
+        if j["sort"]["name"]=="String" {if let Some(s)=j["literal"].as_str(){out.insert(s.to_owned());}}
+        if let Some(xs)=j.as_array(){for x in xs{strings(x,out);}}
+        if let Some(xs)=j.as_object(){for x in xs.values(){strings(x,out);}}
+    }
+    let mut ss=BTreeSet::new();strings(core,&mut ss);
+    core["structural_key"]["string_labels"]=json!(ss.into_iter().map(|s|{let k=eggfuse_structural_key::Key::base_string(&s);json!({"value":s,"label":k.0.label.as_ref()})}).collect::<Vec<_>>());
+    Ok(())
+}
+
 /// Exact, compact DAG payload. Diagnostic height/hash labels cannot be replayed.
 pub fn value_literal(eg: &EGraph, value: Value) -> Result<String> {
     let key = eg.value_to_base::<Stored>(value);

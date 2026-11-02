@@ -172,6 +172,9 @@ impl Library {
             let mut core = eg
                 .export_device_program(rulesets)
                 .map_err(|e| format!("{e}"))?;
+            if let Some(runtime)=self.cells.get(&unit).and_then(|c|c["native_runtime"].as_str()) {
+                crate::structural_key::source::attach_device_runtime(&mut core,runtime)?;
+            }
             let initial = core.as_object_mut().unwrap().remove("initial").unwrap();
             core["schedule"] = json!([{"saturate":{"sequence":rulesets.iter().map(|name|json!({"run":name})).collect::<Vec<_>>()}}]);
             core["assertion_tables"] = json!([]);

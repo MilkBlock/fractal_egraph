@@ -1091,6 +1091,7 @@ mod tests {
         "#;
         let c = captured(source);
         assert_eq!(c.records.len(), 1);
+        assert_eq!(c.device_source.as_ref().unwrap()["core"]["structural_key"]["abi"],serde_json::from_str::<Json>(eggfuse_structural_key::ABI).unwrap());
         let mut cache = PreparationCache::default();
         let (text, validation, origin) = cache.prepare(&c, &[0]).unwrap();
         let header = crate::structural_key::source::declaration(source).unwrap();
@@ -1117,10 +1118,14 @@ mod tests {
         std::fs::write(&entry, &text).unwrap();
         let mut library = crate::cell_recipe::Library::default();
         library.register(0, &[], &origin, &text, &validation).unwrap();
+        library.register_device(0,&eg,&["work".into()]);
         library.register(1, &[], &origin, &text.replace("E:V", "Other:V"), &validation.replace("E:V", "Other:V")).unwrap();
         let library_path = dir.join("cell-recipes.json");
         library.save(&library_path).unwrap();
         let loaded = crate::cell_recipe::Program::load(&library_path).unwrap();
+        let device=loaded.device_program(0).unwrap();
+        assert_eq!(device["structural_key"]["abi"],serde_json::from_str::<Json>(eggfuse_structural_key::ABI).unwrap());
+        assert_eq!(device["structural_key"]["nodes"][0]["label"],"E:V");
         assert_ne!(loaded.cell(0).unwrap()["environment"], loaded.cell(1).unwrap()["environment"]);
         for validate in [false, true] {
             let decoded = loaded.execute(0, validate, false).unwrap();

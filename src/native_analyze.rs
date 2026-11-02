@@ -348,7 +348,10 @@ fn capture_text_with_planner(
         if let Command::RunSchedule(s) = &command {
             if c.device_source.is_none() {
                 c.device_source=Some(match crate::cell_schedule::device_entry(&mut eg,&commands[command_index..]) {
-                    Ok(core)=>json!({"status":"ready","core":core}),
+                    Ok(mut core)=>{
+                        crate::structural_key::source::attach_device_runtime(&mut core,&c.preview_source)?;
+                        json!({"status":"ready","core":core})
+                    },
                     Err(e)=>json!({"status":"unsupported","reason":e.to_string()}),
                 });
             }
