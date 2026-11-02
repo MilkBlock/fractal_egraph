@@ -130,10 +130,10 @@ fn outside(r: &Record, p: &Port, members: &BTreeSet<usize>) -> bool {
 
 pub(super) struct Environment {
     pub base: EGraph,
-    pub export_error: Option<String>,
     pub rules: Vec<RuleInfo>,
     pub code: String,
     pub runtime: Option<String>,
+    pub query_environment: Arc<super::local_scope::QueryEnvironment>,
     source: String,
     hole: String,
     holes: BTreeMap<String, String>,
@@ -234,8 +234,8 @@ impl Environment {
         let mut base = super::engine_for(&c.preview_source)?;
         base.run_program(entry.clone())?;
         Ok(Self {
-            export_error: super::export_schema(c, true).err().map(|e| e.to_string()),
             base,
+            query_environment: Arc::new(super::local_scope::QueryEnvironment::new(&c.preview_source,&datatypes,&local_rules)?),
             rules: local_rules,
             code,
             runtime: crate::structural_key::source::declaration(&c.preview_source)?.map(str::to_owned),

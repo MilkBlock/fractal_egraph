@@ -15,6 +15,33 @@ pub struct Change {
     pub unions: Vec<(usize, usize)>,
     pub reset: bool,
 }
+
+/// Preconditions of one isolated, completed closure. `empty_frontier` retains
+/// absent premises, including rules that did not match during Bake.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LocalDependencies {
+    pub tables: BTreeSet<String>,
+    pub empty_frontier: BTreeSet<String>,
+    pub rulesets: BTreeSet<String>,
+}
+impl LocalDependencies {
+    /// All equality identities of the concrete instance must be supplied,
+    /// including internal/non-root identities, not only its public inputs.
+    /// Reset the scope on a rule/merge/native-runtime/schedule-policy change.
+    pub fn resources(
+        &self,
+        instance_tokens: impl IntoIterator<Item = usize>,
+    ) -> BTreeSet<Resource> {
+        self.tables
+            .iter()
+            .chain(&self.empty_frontier)
+            .cloned()
+            .map(Resource::Table)
+            .chain(instance_tokens.into_iter().map(Resource::Token))
+            .chain(std::iter::once(Resource::Scope))
+            .collect()
+    }
+}
 #[derive(Default)]
 pub struct Registry {
     versions: BTreeMap<Resource, u64>,
@@ -27,6 +54,14 @@ pub struct Registry {
     pub wakes: usize,
 }
 impl Registry {
+    pub fn watch_local(
+        &mut self,
+        id: usize,
+        dependencies: &LocalDependencies,
+        instance_tokens: impl IntoIterator<Item = usize>,
+    ) {
+        self.watch(id, dependencies.resources(instance_tokens));
+    }
     fn root(&self, mut v: usize) -> usize {
         while let Some(p) = self.parents.get(&v) {
             if *p == v {

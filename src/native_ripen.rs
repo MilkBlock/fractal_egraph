@@ -4,6 +4,8 @@ use super::*;
 mod entry;
 #[path = "native_ripen_graft.rs"]
 mod graft;
+#[path = "native_ripen_scope.rs"]
+mod local_scope;
 pub(super) use graft::Plan as GraftPlan;
 pub(super) fn graft_plan(cache: &PreparationCache, parent: &str, po: &Json, child: &str, co: &Json) -> Result<GraftPlan> {
     if crate::structural_key::source::declaration(parent)? != crate::structural_key::source::declaration(child)? {
@@ -52,6 +54,7 @@ pub(super) struct Session {
     setup: Vec<Command>,
     checks: Vec<Command>,
     c: Captured,
+    query_environment: Arc<local_scope::QueryEnvironment>,
     ports: Vec<(String, egglog::ArcSort, Value)>,
     trace: TraceSession,
     producers: BTreeMap<u64, Producer>,
@@ -81,6 +84,9 @@ impl serde::Serialize for Report<'_> {
     }
 }
 impl Session {
+    pub(super) fn compatible_pattern_scope(&self, pattern:&crate::saturated_rule_composition::SaturatedRuleComposition) -> Result<bool> {
+        local_scope::compatible_query(&self.eg,&self.query_environment,pattern)
+    }
     pub(super) fn write_report(&self) -> Result<()> {
         crate::pipeline::write_json(&self.out.join("ripen.json"), &Report(self))
     }
@@ -90,15 +96,6 @@ impl Session {
     pub(super) fn new_cached(source: &Path, out: &Path, cache: &PreparationCache) -> Result<Self> {
         if std::fs::read_to_string(source)?.starts_with("; ripsat-symbolic-size/v1") {
             return Self::new_impl(source, out, None, Some(&cache.prepared_commands), None);
-        }
-        if let Some(reason) = cache
-            .environment
-            .as_ref()
-            .and_then(|e| e.export_error.as_ref())
-        {
-            return Err(
-                format!("automatic ripen cannot export its trigger state: {reason}").into(),
-            );
         }
         Self::new_impl(
             source,
@@ -301,6 +298,11 @@ impl Session {
             .collect();
         let initial_facts = table_counts(&eg, &table_names).values().sum();
         let before = eg.fork_shared();
+        let query_environment=if let Some(environment)=environment {
+            environment.query_environment.clone()
+        } else {
+            Arc::new(local_scope::QueryEnvironment::new(&text,&setup,&c.rules)?)
+        };
         Ok(Self {
             eg,
             before,
@@ -321,6 +323,7 @@ impl Session {
             setup: replay.unwrap_or(setup),
             checks,
             c,
+            query_environment,
             ports: port_values,
             trace,
             producers: BTreeMap::new(),
@@ -595,7 +598,7 @@ struct ExportSchema {
     constructors: Vec<(String, egglog::ast::Variant)>,
     tables: Vec<(String, Vec<String>, String)>,
 }
-fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
+fn export_schema(c: &Captured, observation_only: bool, scope: &local_scope::Scope, mut declarations: Vec<Command>) -> Result<ExportSchema> {
     let names = &c.datatype_names;
     fn constructor_expr(e: &Expr, ops: &BTreeSet<&str>) -> bool {
         match e {
@@ -605,16 +608,21 @@ fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
             _ => true,
         }
     }
-    let mut parser = measured_engine();
-    let declarations = parser.parse_program(None, &c.datatype)?;
-    let constructors = sorts::constructors(&declarations);
+    let constructors: Vec<_> = sorts::constructors(&declarations).into_iter()
+        .filter(|(_,v)|scope.dependencies.tables.contains(&v.name)).collect();
+    declarations.retain(|d|match d {
+        Command::Function{name,..}|Command::Relation{name,..}|Command::Constructor{name,..} => scope.dependencies.tables.contains(name),
+        Command::Datatype{name,..}|Command::Sort{name,..} => scope.types.contains(name),
+        _=>true,
+    });
     let allowed =
         |ty: &str| names.contains(ty) || matches!(ty, "i64" | "String" | "bool" | "f64" | "Unit");
-    if !observation_only && constructors
-        .iter()
-        .any(|(_, v)| v.types.iter().any(|t| !allowed(t)))
-    {
-        return Err("unsupported container/table field sort in state export".into());
+    if !observation_only {
+        for (_,v) in &constructors {
+            if let Some(t)=v.types.iter().find(|t|!allowed(t)) {
+                return Err(format!("local dependency {} uses unsupported field sort {t}",v.name).into());
+            }
+        }
     }
 
     let mut tables = vec![];
@@ -630,7 +638,7 @@ fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
                 ..
             } => {
                 if !observation_only && merge.as_ref().is_some_and(|e| !matches!(e,Expr::Call(_,op,args) if matches!(op.as_str(),"max"|"min") && args.len()==2 && matches!((&args[0],&args[1]),(Expr::Var(_,a),Expr::Var(_,b)) if (a=="old"&&b=="new")||(a=="new"&&b=="old")))) {
-                    return Err("SaturatedRuleComposition sharing supports only min/max lattice merges; other merges remain uncertified".into());
+                    return Err(format!("local dependency {op}: sharing supports only min/max lattice merges; other merges remain uncertified").into());
                 }
                 tables.push((op.clone(), schema.input.clone(), schema.output.clone()));
             }
@@ -649,7 +657,8 @@ fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
         .map(|(_, v)| v.name.as_str())
         .chain(tables.iter().map(|t| t.0.as_str()))
         .collect();
-    for r in &c.rules {
+    for (i,r) in c.rules.iter().enumerate() {
+        if !scope.rules.contains(&i) {continue;}
         let body = r.rule.body.iter().all(|f| match f {
             Fact::Eq(_, a, b) => constructor_expr(a, &ops) && constructor_expr(b, &ops),
             Fact::Fact(e) => constructor_expr(e, &ops),
@@ -668,7 +677,7 @@ fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
             _ => false,
         });
         if !observation_only && (!body || !head) {
-            return Err("SaturatedRuleComposition sharing currently certifies positive constructor/equality rules only; primitive guards/actions require an explicit semantics contract".into());
+            return Err(format!("local rule {}: primitive guards/actions require an explicit semantics contract",r.rule.name).into());
         }
     }
     Ok(ExportSchema {
@@ -687,13 +696,18 @@ fn export_state(
     observation_only: bool,
 ) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
     use crate::saturated_rule_composition::{Row, SaturatedRuleComposition};
-    let names = &c.datatype_names;
+    let mut parser = measured_engine();
+    let declarations=parser.parse_program(None,&c.datatype)?;
+    let local=local_scope::Scope::discover(eg,c,&declarations,ports)?;
+    // Preserve the declared-datatype inventory. Native relation result sorts
+    // remain typed vertices and contract dependencies, not user datatypes.
+    let names: BTreeSet<_>=local.types.intersection(&c.datatype_names).cloned().collect();
     let name = names.iter().next().map(String::as_str).unwrap_or("Unit");
     let ExportSchema {
         declarations,
         constructors,
         tables,
-    } = export_schema(c, observation_only)?;
+    } = export_schema(c, observation_only, &local, declarations)?;
     if crate::graph_render::graphs_enabled() {
         write_native_graph(eg, out, "native-egraph")?;
     }
@@ -772,7 +786,9 @@ fn export_state(
     let mut rules: Vec<_> = c
         .rules
         .iter()
-        .map(|r| {
+        .enumerate()
+        .filter(|(i,_)|local.rules.contains(i))
+        .map(|(_,r)| {
             let mut r = r.rule.clone();
             r.name.clear();
             r.ruleset.clear();
@@ -795,6 +811,7 @@ fn export_state(
         rows: rows.into_iter().collect(),
         ports: named,
     };
+    state.scope["dependency_contract"] = local.contract();
     if names.len() > 1 {
         state.scope["datatypes"] = json!(names);
     }
@@ -808,7 +825,7 @@ fn export_state(
         );
         state.scope["semantics"] = json!("positive-constructor-table-equality/v1");
     }
-    if c.rules.iter().any(|r| {
+    if c.rules.iter().enumerate().filter(|(i,_)|local.rules.contains(i)).any(|(_,r)| {
         r.rule
             .head
             .0
@@ -823,7 +840,7 @@ fn export_state(
     {
         state.scope["merge_contract"] = if observation_only { json!("observed rows only; no merge congruence certified") } else { json!("min/max lattice; exact retained table rows") };
     }
-    if c.rules.iter().any(|r| {
+    if c.rules.iter().enumerate().filter(|(i,_)|local.rules.contains(i)).any(|(_,r)| {
         r.rule
             .head
             .0
@@ -832,7 +849,7 @@ fn export_state(
     }) {
         // Visibility and mutable tables make scheduling observable. Do not use
         // the order-insensitive theory normalization of the pure fragment.
-        state.scope["operational_schedule"] = json!({"registered_rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),"sweep":"sorted ruleset names, native rule order"});
+        state.scope["operational_schedule"] = json!({"registered_rules":c.rules.iter().enumerate().filter(|(i,_)|local.rules.contains(i)).map(|(_,r)|r.rule.to_string()).collect::<Vec<_>>(),"sweep":"sorted ruleset names, native rule order"});
     }
     if let Some(header) = crate::structural_key::source::declaration(&c.preview_source)? {
         state.scope["native_runtime"] = serde_json::from_str(
@@ -873,7 +890,10 @@ mod export_tests {
                 });
             }
         }
-        assert!(export_schema(&c, true).is_ok());
+        let mut parser=measured_engine();
+        let declarations=parser.parse_program(None,&c.datatype).unwrap();
+        let scope=local_scope::Scope::discover(&eg,&c,&declarations,&[]).unwrap();
+        assert!(export_schema(&c, true, &scope, declarations).is_ok());
         rows.extend(vertices.container_rows);
         crate::saturated_rule_composition::SaturatedRuleComposition {
             version:2, scope:json!({"test":"sets"}), local_ids:vec![],

@@ -27,7 +27,7 @@ pub(super) fn observe(
     }) else {
         return Ok(json!({"status":"unsupported_source"}));
     };
-    if source.scope != pattern.scope {
+    if source.scope != pattern.scope && !task.compatible_pattern_scope(pattern)? {
         return Ok(json!({"status":"incompatible_environment"}));
     }
     if !pattern.subsumed_rows.is_empty() {
