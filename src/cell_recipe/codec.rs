@@ -325,6 +325,9 @@ impl Program {
         }
         let commands = self.commands(&es, &needed)?;
         let mut eg = EGraph::default();
+        if !cell["native_runtime"].is_null() {
+            crate::structural_key::source::install(&mut eg, text(&cell["native_runtime"])?)?;
+        }
         let select = |list: &J| -> Result<Vec<Command>> {
             arr(list)?
                 .iter()

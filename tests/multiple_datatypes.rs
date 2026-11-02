@@ -44,6 +44,11 @@ fn native_ripen_exports_typed_cross_sort_rows() {
         serde_json::json!(["Expr", "Type"])
     );
     let vertices = state["values"].as_array().unwrap();
+    // Relations currently lower to a fresh result sort, not necessarily Unit.
+    // Compare against the native schema rather than the historical lowering.
+    let mut native = egglog::EGraph::default();
+    native.parse_and_run_program(None, "(sort Expr) (sort Type) (relation Seen (Expr Type))").unwrap();
+    let seen_sort = native.get_function("Seen").unwrap().schema().output.name();
     for row in state["rows"].as_array().unwrap() {
         let result = &vertices[row["result"].as_u64().unwrap() as usize];
         match row["op"].as_str().unwrap() {
@@ -53,7 +58,7 @@ fn native_ripen_exports_typed_cross_sort_rows() {
                 assert_eq!(result["sort"], "f64");
                 assert_eq!(result["literal"], "1.5");
             }
-            "Seen" => assert_eq!(result["sort"], "Unit"),
+            "Seen" => assert_eq!(result["sort"], seen_sort),
             op => panic!("unexpected row {op}"),
         }
     }

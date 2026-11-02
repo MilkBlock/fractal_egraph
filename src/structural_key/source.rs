@@ -9,6 +9,36 @@ use std::{collections::BTreeSet, sync::Arc};
 
 pub const HEADER: &str = "; cell-structural-key-runtime/v1 ";
 
+/// Native sort/primitive registrations are not AST commands. Keep their
+/// declaration when extracting or serializing a local replay program.
+pub fn declaration(text: &str) -> Result<Option<&str>> {
+    let mut headers = text.lines().filter(|l| l.starts_with(HEADER));
+    let header = headers.next();
+    if headers.next().is_some() {
+        return Err("duplicate structural-key runtime declaration".into());
+    }
+    Ok(header)
+}
+
+pub fn inherit_runtime(source: &str, generated: &str) -> Result<String> {
+    let header = declaration(source)?;
+    match (header, declaration(generated)?) {
+        (Some(a), Some(b)) if a != b => Err("structural-key replay environment differs".into()),
+        // Append so symbolic-size replay keeps its own first-line dispatch tag.
+        (Some(header), None) => Ok(format!("{generated}\n{header}\n")),
+        _ => Ok(generated.to_owned()),
+    }
+}
+
+/// Exact, compact DAG payload. Diagnostic height/hash labels cannot be replayed.
+pub fn value_literal(eg: &EGraph, value: Value) -> Result<String> {
+    let key = eg.value_to_base::<Stored>(value);
+    // AST Display does not preserve JSON string escapes. An ASCII payload also
+    // survives command serialization, history replay and symbolic lowering.
+    let payload = serde_json::to_vec(&*key)?;
+    let hex: String = payload.iter().map(|b| format!("{b:02x}")).collect();
+    Ok(format!("(cell-key-decode \"dag-v1:{hex}\")"))
+}
 // A typed conditional avoids constructing a Map for every merge, and supports
 // any result sort without registering one application-specific primitive each.
 #[derive(Clone)]
@@ -58,17 +88,10 @@ impl egglog::PurePrim for Select {
 }
 
 pub fn install(eg: &mut EGraph, text: &str) -> Result<Option<Json>> {
-    let headers = text
-        .lines()
-        .filter_map(|l| l.strip_prefix(HEADER))
-        .collect::<Vec<_>>();
-    if headers.is_empty() {
+    let Some(header) = declaration(text)? else {
         return Ok(None);
-    }
-    if headers.len() != 1 {
-        return Err("duplicate structural-key runtime declaration".into());
-    }
-    let spec: Json = serde_json::from_str(headers[0])?;
+    };
+    let spec: Json = serde_json::from_str(&header[HEADER.len()..])?;
     let nodes = spec["nodes"]
         .as_array()
         .ok_or("key runtime declaration needs nodes")?;
@@ -186,6 +209,61 @@ impl KeyGraph {
 mod tests {
     use super::*;
     const SPEC: &str = r#"; cell-structural-key-runtime/v1 {"nodes":[{"primitive":"cell-key-node-leaf","label":"E:leaf","arity":0}],"bases":[]}"#;
+    #[test]
+    fn replay_runtime_keeps_dispatch_tag_and_rejects_different_environment() {
+        let body = "; ripsat-symbolic-size/v1\n(datatype E (V))\n";
+        let replay = inherit_runtime(SPEC, body).unwrap();
+        assert!(replay.starts_with("; ripsat-symbolic-size/v1"));
+        assert_eq!(declaration(&replay).unwrap(), Some(SPEC));
+        assert_eq!(inherit_runtime(SPEC, &replay).unwrap(), replay);
+        assert!(inherit_runtime(&SPEC.replace("E:leaf", "Other:leaf"), &replay).is_err());
+        assert!(declaration(&format!("{SPEC}\n{SPEC}")).is_err());
+        assert_eq!(inherit_runtime("", body).unwrap(), body);
+    }
+    #[test]
+    fn replay_key_payload_is_exact_and_does_not_expand_shared_dag() {
+        let mut key = Key::new("leaf".into(), vec![]);
+        for _ in 0..40 {
+            key = Key::new("pair".into(), vec![key.clone(), key]);
+        }
+        key = key.anchor();
+        let payload = serde_json::to_string(&key).unwrap();
+        assert!(payload.len() < 10_000);
+        assert_eq!(Key::decode_legacy(&payload).unwrap(), key);
+        assert!(Key::decode_legacy("key:40:1234").is_none());
+        for bad in ["dag-v1:0", "dag-v1:gg", "dag-v1:7b7d"] {
+            assert!(Key::decode_legacy(bad).is_none());
+        }
+        let mut eg = EGraph::default();
+        install(&mut eg, SPEC).unwrap();
+        eg.parse_and_run_program(
+            None,
+            &format!(
+                "(let k (cell-key-decode {}))",
+                serde_json::to_string(&payload).unwrap()
+            ),
+        )
+        .unwrap();
+        let (_, v) = eg
+            .eval_expr(&egglog::ast::Expr::Var(
+                egglog::ast::Span::Panic,
+                "k".into(),
+            ))
+            .unwrap();
+        let literal = value_literal(&eg, v).unwrap();
+        let mut fresh = EGraph::default();
+        install(&mut fresh, SPEC).unwrap();
+        fresh
+            .parse_and_run_program(None, &format!("(let k {literal})"))
+            .unwrap();
+        let (_, v) = fresh
+            .eval_expr(&egglog::ast::Expr::Var(
+                egglog::ast::Span::Panic,
+                "k".into(),
+            ))
+            .unwrap();
+        assert_eq!(&*fresh.value_to_base::<Stored>(v), &key);
+    }
     #[test]
     fn select_has_one_sort_for_both_values_and_result() {
         let mut eg = EGraph::default();

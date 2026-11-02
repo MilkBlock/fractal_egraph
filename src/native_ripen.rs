@@ -6,12 +6,20 @@ mod entry;
 mod graft;
 pub(super) use graft::Plan as GraftPlan;
 pub(super) fn graft_plan(cache: &PreparationCache, parent: &str, po: &Json, child: &str, co: &Json) -> Result<GraftPlan> {
+    if crate::structural_key::source::declaration(parent)? != crate::structural_key::source::declaration(child)? {
+        return Err("parent/child native runtime environment differs".into());
+    }
     if parent.starts_with("; ripsat-symbolic-size/v1") || child.starts_with("; ripsat-symbolic-size/v1") {return Err("symbolic-size environments require their own initialization".into());}
     graft::plan(cache.prepared_commands.get(parent).ok_or("missing parent preparation")?,po,cache.prepared_commands.get(child).ok_or("missing child preparation")?,co)
 }
 pub(super) use entry::PreparationCache;
 pub(super) fn measured_engine() -> EGraph {
     EGraph::default()
+}
+pub(super) fn engine_for(source: &str) -> Result<EGraph> {
+    let mut eg = measured_engine();
+    crate::structural_key::source::install(&mut eg, source)?;
+    Ok(eg)
 }
 fn supported_action(a: &Action) -> bool {
     matches!(
@@ -111,6 +119,10 @@ impl Session {
         if !parent.done || parent.final_state.is_none() {
             return Err("parent has no completed certified state".into());
         }
+        if crate::structural_key::source::declaration(&parent.text)?
+            != crate::structural_key::source::declaration(&std::fs::read_to_string(source)?)? {
+            return Err("parent/child native runtime environment differs".into());
+        }
         let started = std::time::Instant::now();
         let eg = parent.eg.fork_shared();
         let fork_seconds = started.elapsed().as_secs_f64();
@@ -138,8 +150,13 @@ impl Session {
         let (mut eg, delta, replay, initialization) = if let Some((eg,delta,replay,info))=fork {
             (eg,Some(delta),Some(replay),info)
         } else {
-            (environment.map(|e|e.base.clone()).unwrap_or_else(measured_engine),None,None,json!({"path":"rebuild"}))
+            (if let Some(e) = environment { e.base.clone() } else { engine_for(&text)? },None,None,json!({"path":"rebuild"}))
         };
+        if let Some(environment) = environment {
+            if crate::structural_key::source::declaration(&text)? != environment.runtime.as_deref() {
+                return Err("cached ripen native runtime environment mismatch".into());
+            }
+        }
         let commands = if let Some(commands) = prepared.and_then(|c| c.get(&text)) {
             commands.clone()
         } else {
@@ -474,6 +491,7 @@ impl Session {
                     .map(ToString::to_string)
                     .collect::<Vec<_>>()
                     .join("\n");
+            let replay = crate::structural_key::source::inherit_runtime(&self.text, &replay)?;
             std::fs::write(self.out.join("ripened.egg"), replay)?;
         }
         Ok(())
@@ -552,6 +570,7 @@ impl StateVertices {
                 "String" => serde_json::to_string(&eg.value_to_base::<egglog::sort::S>(v).to_string())?,
                 "bool" => eg.value_to_base::<bool>(v).to_string(),
                 "f64" => Expr::Lit(sp(), Literal::Float(eg.value_to_base::<egglog::sort::F>(v).0)).to_string(),
+                eggfuse_structural_key::SORT => crate::structural_key::source::value_literal(eg, v)?,
                 _ => return Err(format!("unsupported populated state sort {ty}").into()),
             })
         };
@@ -814,6 +833,11 @@ fn export_state(
         // Visibility and mutable tables make scheduling observable. Do not use
         // the order-insensitive theory normalization of the pure fragment.
         state.scope["operational_schedule"] = json!({"registered_rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),"sweep":"sorted ruleset names, native rule order"});
+    }
+    if let Some(header) = crate::structural_key::source::declaration(&c.preview_source)? {
+        state.scope["native_runtime"] = serde_json::from_str(
+            &header[crate::structural_key::source::HEADER.len()..],
+        )?;
     }
     if observation_only {
         state.scope["semantics"] = json!("observed-constructor-graph/v1");

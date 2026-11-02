@@ -1,11 +1,28 @@
 """Shared key transport and source-derived merge permissions."""
 import copy
+import json
 import unittest
 
-from .structural_key import ABI, arena_key, key_token, merge_contracts, validate_core
+from .structural_key import ABI, arena_key, decode_key_literal, key_token, merge_contracts, validate_core
 
 
 class StructuralKeyTests(unittest.TestCase):
+    def test_replay_literals_keep_the_same_metal_decode_program(self):
+        from eggfuse.compiler.targets.metal.structural_keys import layout
+        wire=dict(nodes=[dict(anchor=False,label='leaf',children=[]),
+                         dict(anchor=False,label='Pair',children=[0,0])],root=1)
+        raw=json.dumps(wire)
+        legacy=json.dumps([False,'Pair',[[False,'leaf',[]],[False,'leaf',[]]]])
+        encoded='dag-v1:'+raw.encode().hex()
+        strings=[encoded,raw,legacy,'not a key']
+        core=dict(tables=[dict(schema=[dict(kind='structural_key')])],
+                  structural_key=dict(nodes=[],string_labels=[dict(value=s,label=repr(s)) for s in strings]))
+        decoded=layout(core,1,strings)['decoded']
+        for value in decoded[:3]:self.assertEqual(key_token(value),key_token(wire))
+        self.assertIsNone(decoded[3])
+        for bad in ['dag-v1:0','dag-v1:gg','dag-v1:7b7d',json.dumps(dict(root=0,nodes=[dict(anchor=False,label='cycle',children=[0])]))]:
+            with self.assertRaises((ValueError,KeyError)):decode_key_literal(bad)
+
     def test_wire_sharing_does_not_change_identity(self):
         leaf = dict(anchor=False, label='i64:7', children=[])
         shared = dict(nodes=[leaf, dict(anchor=False, label='Pair', children=[0, 0])], root=1)

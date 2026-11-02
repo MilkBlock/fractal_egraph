@@ -229,6 +229,18 @@ impl<'de> Deserialize<'de> for Key {
 
 impl Key {
     pub fn decode_legacy(text: &str) -> Option<Self> {
+        // New replays carry the shared DAG wire format. Retain the historical
+        // tree format for saved programs; never decode a diagnostic hash label.
+        if let Some(hex) = text.strip_prefix("dag-v1:") {
+            if hex.len() % 2 != 0 { return None; }
+            let bytes = hex.as_bytes().chunks_exact(2).map(|pair| {
+                u8::from_str_radix(std::str::from_utf8(pair).ok()?, 16).ok()
+            }).collect::<Option<Vec<_>>>()?;
+            return serde_json::from_slice(&bytes).ok();
+        }
+        if text.trim_start().starts_with('{') {
+            return serde_json::from_str(text).ok();
+        }
         fn go(v: &serde_json::Value) -> Option<Key> {
             let a = v.as_array()?;
             if a.len() != 3 {

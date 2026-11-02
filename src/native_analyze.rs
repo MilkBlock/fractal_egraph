@@ -138,6 +138,7 @@ fn observed_value(
             &eg.value_to_base::<egglog::sort::S>(value).to_string(),
         )?),
         "bool" => Some(eg.value_to_base::<bool>(value).to_string()),
+        eggfuse_structural_key::SORT => Some(crate::structural_key::source::value_literal(eg, value)?),
         "f64" => Some(
             Expr::Lit(
                 sp(),
@@ -657,6 +658,7 @@ fn collect_with_planner(
                     &eg.value_to_base::<egglog::sort::S>(*v).to_string(),
                 )?),
                 "bool" => Some(eg.value_to_base::<bool>(*v).to_string()),
+                eggfuse_structural_key::SORT => Some(crate::structural_key::source::value_literal(eg, *v)?),
                 "f64" => Some(
                     Expr::Lit(
                         sp(),

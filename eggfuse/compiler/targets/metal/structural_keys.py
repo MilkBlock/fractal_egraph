@@ -5,6 +5,7 @@ executor. It never substitutes hash ordering or CPU-computed winners.
 """
 import json
 from pathlib import Path
+from eggfuse.ir.structural_key import decode_key_literal
 HEADER=8
 OPS={'cell-key-min':0,'cell-key-anchor':1,'cell-key-cmp':2,'cell-key-prefer-left':3,'cell-key-select':4,
      'cell-key-base-i64':5,'cell-key-base-bool':6,'cell-key-base-Unit':7,'cell-key-base-String':8,'cell-key-base-f64':9,'cell-key-decode':11}
@@ -24,13 +25,8 @@ def layout(core,capacity,strings):
     labels+=['\0input-anchor','i64:','bool:false','bool:true','Unit:()','f64:']+[string_labels[s] for s in strings]
     decoded=[]
     for text in strings:
-        ns=[]
-        def decode(x):
-            if not isinstance(x,list) or len(x)!=3 or type(x[0]) is not bool or not isinstance(x[1],str) or not isinstance(x[2],list):raise ValueError('invalid key literal')
-            if x[0] and (x[1]!='\0input-anchor' or len(x[2])!=1):raise ValueError('invalid key anchor')
-            children=[decode(c) for c in x[2]];i=len(ns);ns.append({'anchor':x[0],'label':x[1],'children':children});return i
-        try:root=decode(json.loads(text));decoded.append({'nodes':ns,'root':root})
-        except (ValueError,TypeError,RecursionError):decoded.append(None)
+        try:decoded.append(decode_key_literal(text))
+        except (ValueError,TypeError,KeyError,RecursionError):decoded.append(None)
     for w in decoded:
         if w:
             for n in w['nodes']:

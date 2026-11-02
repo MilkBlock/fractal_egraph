@@ -46,7 +46,7 @@ pub struct Library {
     commands: Vec<J>,
     command_ids: BTreeMap<String, usize>,
     environments: Vec<Vec<usize>>,
-    environment_ids: BTreeMap<Vec<usize>, usize>,
+    environment_ids: BTreeMap<(Vec<usize>, Option<String>), usize>,
     cells: BTreeMap<usize, J>,
     scopes: Vec<J>,
     scope_ids: BTreeMap<String, usize>,
@@ -229,6 +229,10 @@ impl Library {
         if self.cells.contains_key(&unit) {
             return Ok(());
         }
+        let runtime = crate::structural_key::source::declaration(source)?.map(str::to_owned);
+        if crate::structural_key::source::declaration(validation)? != runtime.as_deref() {
+            return Err("Cell source/validation native runtime differs".into());
+        }
         let mut eg = EGraph::default();
         let source = crate::visual_rule::surface_program(eg.parse_program(None, source)?);
         let validation = crate::visual_rule::surface_program(eg.parse_program(None, validation)?);
@@ -274,12 +278,12 @@ impl Library {
             .collect::<Result<Vec<_>>>()?;
         let inputs = e.inputs;
         let n = self.environments.len();
-        let environment = *self.environment_ids.entry(env.clone()).or_insert_with(|| {
+        let environment = *self.environment_ids.entry((env.clone(), runtime.clone())).or_insert_with(|| {
             self.environments.push(env);
             n
         });
         self.dirty = true;
-        self.cells.insert(unit,json!({"unit":unit,"parents":parents,"environment":environment,"inputs":inputs,"prepare":setup,"final_checks":checks,"validation":validation,
+        self.cells.insert(unit,json!({"unit":unit,"parents":parents,"environment":environment,"native_runtime":runtime,"inputs":inputs,"prepare":setup,"final_checks":checks,"validation":validation,
             "records":origin["members"],"stage_boundaries":origin["replay_plan"],"stage_boundary_kind":"application replay; original Run boundaries are in stage_events","external_injections":origin["staged_injections"],"relative_binding":origin["reuse_recipe"],"interface":origin["reuse_interface_terms"],"numeric_conditions":origin["analysis_program"],
             "closure":{"op":"saturate","body":{"op":"sequence","body":sets.into_iter().map(|s|json!({"op":"run","ruleset":s,"until":null})).collect::<Vec<_>>()}},
             "program_status":"ready","completion_status":"not_observed","scope":"isolated native ripen; not the tier0 schedule","live_substitution_authorized":false}));

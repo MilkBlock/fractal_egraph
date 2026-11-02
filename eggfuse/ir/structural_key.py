@@ -1,6 +1,30 @@
 import json
 from pathlib import Path
 ABI=json.loads((Path(__file__).resolve().parents[2]/'engine/structural-key/abi.json').read_text())
+
+def decode_key_literal(text):
+    """Same exact DAG/legacy payloads as the native cell-key-decode primitive."""
+    if text.startswith('dag-v1:'):
+        encoded=text[7:]
+        if len(encoded)%2 or any(c not in '0123456789abcdefABCDEF' for c in encoded):raise ValueError('invalid key encoding')
+        text=bytes.fromhex(encoded).decode('utf-8')
+    value=json.loads(text)
+    if isinstance(value,dict):
+        nodes=value['nodes'];root=value['root']
+        if not isinstance(nodes,list) or type(root) is not int or not 0<=root<len(nodes):raise ValueError('invalid key root')
+        for i,n in enumerate(nodes):
+            if type(n['anchor']) is not bool or not isinstance(n['label'],str) or not isinstance(n['children'],list):raise ValueError('invalid key node')
+            n['label'].encode('utf-8')
+            if any(type(c) is not int or not 0<=c<i for c in n['children']):raise ValueError('invalid key DAG ordering')
+            if n['anchor'] and (n['label']!='\0input-anchor' or len(n['children'])!=1):raise ValueError('invalid key anchor')
+        return value
+    nodes=[]
+    def legacy(v):
+        if not isinstance(v,list) or len(v)!=3 or type(v[0]) is not bool or not isinstance(v[1],str) or not isinstance(v[2],list):raise ValueError('invalid key literal')
+        if v[0] and (v[1]!='\0input-anchor' or len(v[2])!=1):raise ValueError('invalid key anchor')
+        children=[legacy(c) for c in v[2]];i=len(nodes)
+        nodes.append({'anchor':v[0],'label':v[1],'children':children});return i
+    return {'nodes':nodes,'root':legacy(value)}
 def validate_core(core):
     spec=core.get('structural_key',{})
     if any(s['kind']=='structural_key' for t in core['tables'] for s in t['schema']) and spec.get('abi')!=ABI:raise ValueError('structural-key ABI differs; recompile the source through the shared frontend')

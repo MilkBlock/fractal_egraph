@@ -79,9 +79,18 @@ fn literal(c: &Captured, id: usize) -> Result<Expr> {
         .ok_or("set witness needs a scalar literal or an existing symbolic binding")?;
     let mut eg = super::measured_engine();
     let commands = eg.parse_program(None, &format!("(let __old_value {text})"))?;
-    let [Command::Action(Action::Let(_, _, value @ Expr::Lit(..)))] = commands.as_slice() else {
+    let [Command::Action(Action::Let(_, _, value))] = commands.as_slice() else {
         return Err("invalid set witness literal".into());
     };
+    if !matches!(value, Expr::Lit(..)) {
+        let valid_key = c.pool.values[id].sort.as_ref() == eggfuse_structural_key::SORT
+            && matches!(value, Expr::Call(_, op, args)
+                if op == "cell-key-decode" && matches!(args.as_slice(), [Expr::Lit(_, Literal::String(s))]
+                    if eggfuse_structural_key::Key::decode_legacy(s).is_some()));
+        if !valid_key {
+            return Err("invalid recorded scalar payload".into());
+        }
+    }
     Ok(value.clone())
 }
 // An observed external function row has an output as well as its key.
@@ -124,6 +133,7 @@ pub(super) struct Environment {
     pub export_error: Option<String>,
     pub rules: Vec<RuleInfo>,
     pub code: String,
+    pub runtime: Option<String>,
     source: String,
     hole: String,
     holes: BTreeMap<String, String>,
@@ -221,13 +231,14 @@ impl Environment {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join("\n");
-        let mut base = super::measured_engine();
+        let mut base = super::engine_for(&c.preview_source)?;
         base.run_program(entry.clone())?;
         Ok(Self {
             export_error: super::export_schema(c, true).err().map(|e| e.to_string()),
             base,
             rules: local_rules,
             code,
+            runtime: crate::structural_key::source::declaration(&c.preview_source)?.map(str::to_owned),
             source: c.preview_source.clone(),
             hole,
             holes,
@@ -312,7 +323,6 @@ fn extract(
     let constructors = &environment.constructors;
     let mut entry = environment.commands.clone();
     let environment_len = entry.len();
-    let mut parser = super::measured_engine();
     let mut values = BTreeMap::new();
     let mut parameters = vec![];
     let mut stages = vec![];
@@ -342,15 +352,8 @@ fn extract(
                     if values.contains_key(v) {
                         continue;
                     }
-                    if let Some(literal) = c.pool.literals.get(v) {
-                        let commands = parser
-                            .parse_program(None, &format!("(let __recorded_literal {literal})"))?;
-                        let [Command::Action(Action::Let(_, _, term @ Expr::Lit(..)))] =
-                            commands.as_slice()
-                        else {
-                            return Err("invalid recorded scalar literal".into());
-                        };
-                        values.insert(*v, term.clone());
+                    if c.pool.literals.contains_key(v) {
+                        values.insert(*v, literal(c, *v)?);
                         continue;
                     }
                     if !c.datatype_names.contains(c.pool.values[*v].sort.as_ref()) {
@@ -812,6 +815,7 @@ fn extract(
             .collect::<Vec<_>>()
             .join("\n")
     );
+    let validation = crate::structural_key::source::inherit_runtime(&c.preview_source, &validation)?;
     // Canonical relative ports and aliases distinguish identical rule names
     // applied at different positions. Include the complete generated assumptions
     // and actions as a conservative final discriminator before any replay.
@@ -931,7 +935,7 @@ fn extract(
         tables
     };
     let output_tick = std::time::Instant::now();
-    let seed_text = encode(&entry);
+    let seed_text = crate::structural_key::source::inherit_runtime(&c.preview_source, &encode(&entry))?;
     let parameter_end = entry.len();
     let mut replay_stages = vec![];
     for (record, _, _, commands, _) in &stages {
@@ -950,6 +954,7 @@ fn extract(
         "; Extracted symbolic interface. Boundary constructors are opaque, not recovered original terms.\n{}\n",
         encode(&entry)
     );
+    let text = crate::structural_key::source::inherit_runtime(&c.preview_source, &text)?;
     cache
         .prepared_commands
         .entry(text.clone())
@@ -1010,6 +1015,7 @@ fn extract(
     {
         match symbolic_egg::compile(&entry, analysis) {
             Ok((symbolic_text, commands, lowering)) => {
+                let symbolic_text = crate::structural_key::source::inherit_runtime(&c.preview_source, &symbolic_text)?;
                 provenance["symbolic_lowering"] = lowering;
                 cache
                     .prepared_commands
@@ -1070,6 +1076,161 @@ mod tests {
         let mut c = capture_text_with_sink("staged.egg", source, None, None).unwrap();
         update_layers(&mut c).unwrap();
         c
+    }
+    #[test]
+    fn structural_key_runtime_survives_local_replay_history_and_ripen_reload() {
+        let source = r#"; cell-structural-key-runtime/v1 {"nodes":[{"primitive":"cell-key-node-V","label":"E:V","arity":1}],"bases":["i64"]}
+            (datatype E (V i64) (Out E))
+            (function K (E) CellStructuralKey :merge (cell-key-min old new))
+            (ruleset work)
+            (rule ((= e (V n)) (= k (K e)))
+                  ((set (K (Out e)) (cell-key-anchor k))) :ruleset work :name "grow")
+            (let e (V 7))
+            (set (K e) (cell-key-node-V (cell-key-base-i64 7)))
+            (run work 1)
+        "#;
+        let c = captured(source);
+        assert_eq!(c.records.len(), 1);
+        let mut cache = PreparationCache::default();
+        let (text, validation, origin) = cache.prepare(&c, &[0]).unwrap();
+        let header = crate::structural_key::source::declaration(source).unwrap();
+        assert_eq!(
+            crate::structural_key::source::declaration(&text).unwrap(),
+            header
+        );
+        assert_eq!(
+            crate::structural_key::source::declaration(origin["initial_source"].as_str().unwrap())
+                .unwrap(),
+            header
+        );
+        assert!(
+            text.contains("cell-key-decode"),
+            "external key must carry its full DAG"
+        );
+        let mut eg = super::super::engine_for(&text).unwrap();
+        eg.parse_and_run_program(None, &text).unwrap();
+        let mut validator = super::super::engine_for(&validation).unwrap();
+        validator.parse_and_run_program(None, &validation).unwrap();
+        let dir = std::env::temp_dir().join(format!("ripen-key-replay-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let entry = dir.join("entry.egg");
+        std::fs::write(&entry, &text).unwrap();
+        let mut library = crate::cell_recipe::Library::default();
+        library.register(0, &[], &origin, &text, &validation).unwrap();
+        library.register(1, &[], &origin, &text.replace("E:V", "Other:V"), &validation.replace("E:V", "Other:V")).unwrap();
+        let library_path = dir.join("cell-recipes.json");
+        library.save(&library_path).unwrap();
+        let loaded = crate::cell_recipe::Program::load(&library_path).unwrap();
+        assert_ne!(loaded.cell(0).unwrap()["environment"], loaded.cell(1).unwrap()["environment"]);
+        for validate in [false, true] {
+            let decoded = loaded.execute(0, validate, false).unwrap();
+            assert!(decoded.get_sort_by_name(eggfuse_structural_key::SORT).is_some());
+            assert_eq!(super::super::table_counts(&decoded, &["K".into()]), super::super::table_counts(&eg, &["K".into()]));
+        }
+        history::save(&dir.join("history.json"), &entry, &c).unwrap();
+        let mut restored = history::read(&dir.join("history.json")).unwrap();
+        update_layers(&mut restored).unwrap();
+        assert_eq!(
+            PreparationCache::default()
+                .prepare(&restored, &[0])
+                .unwrap()
+                .0,
+            text
+        );
+        for cached in [false, true] {
+            let out = dir.join(if cached { "cached" } else { "fresh" });
+            let mut session = if cached {
+                super::super::Session::new_cached(&entry, &out, &cache)
+            } else {
+                super::super::Session::new(&entry, &out)
+            }
+            .unwrap();
+            for _ in 0..8 {
+                if session.done {
+                    break;
+                }
+                session.advance().unwrap();
+            }
+            assert!(session.done, "finite key replay must finish");
+            // Custom key merges remain outside the positive-closure contract.
+            assert!(session.final_state.is_none());
+            assert!(out.join("observed-saturated-state.json").is_file());
+            let replay = std::fs::read_to_string(out.join("ripened.egg")).unwrap();
+            assert_eq!(
+                crate::structural_key::source::declaration(&replay).unwrap(),
+                header
+            );
+            let mut fresh = super::super::engine_for(&replay).unwrap();
+            fresh.parse_and_run_program(None, &replay).unwrap();
+            assert_eq!(
+                super::super::table_counts(&fresh, &["K".into()]),
+                super::super::table_counts(&session.eg, &["K".into()])
+            );
+        }
+        let bad = crate::structural_key::source::inherit_runtime(
+            &source.replace("E:V", "Other:V"),
+            "(datatype E (V i64) (Out E))",
+        )
+        .unwrap();
+        std::fs::write(&entry, bad).unwrap();
+        let error = super::super::Session::new_cached(&entry, &dir.join("wrong-env"), &cache)
+            .err()
+            .unwrap();
+        assert!(
+            error
+                .to_string()
+                .contains("native runtime environment mismatch")
+        );
+        let error = super::super::graft_plan(
+            &cache,
+            &text,
+            &json!({}),
+            &source.replace("E:V", "Other:V"),
+            &json!({}),
+        )
+        .err()
+        .unwrap();
+        assert!(
+            error
+                .to_string()
+                .contains("native runtime environment differs")
+        );
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+    #[test]
+    fn structural_key_runtime_is_kept_by_symbolic_size_lowering() {
+        let source = r#"; cell-structural-key-runtime/v1 {"nodes":[{"primitive":"cell-key-node-V","label":"E:V","arity":0}],"bases":[]}
+            (datatype E (V) (Out E))
+            (function K (E) CellStructuralKey :merge (cell-key-min old new))
+            (function Expr-size (E) i64 :merge (min old new))
+            (ruleset work)
+            (rule ((= e (V)) (= n (Expr-size e)) (> n 6))
+                  ((set (Expr-size (Out e)) (+ n 1))) :ruleset work :name "grow")
+            (set (K (V)) (cell-key-node-V))
+            (set (Expr-size (V)) 25)
+            (run work 1)
+        "#;
+        let c = captured(source);
+        let mut cache = PreparationCache::default();
+        let (text, _, _) = cache.prepare(&c, &[0]).unwrap();
+        assert!(text.starts_with("; ripsat-symbolic-size/v1"));
+        assert_eq!(
+            crate::structural_key::source::declaration(&text).unwrap(),
+            crate::structural_key::source::declaration(source).unwrap()
+        );
+        let dir = std::env::temp_dir().join(format!("ripen-key-symbolic-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let entry = dir.join("entry.egg");
+        std::fs::write(&entry, text).unwrap();
+        let session = super::super::Session::new_cached(&entry, &dir.join("cached"), &cache).unwrap();
+        assert!(
+            session
+                .eg
+                .get_sort_by_name(eggfuse_structural_key::SORT)
+                .is_some()
+        );
+        assert!(session.eg.get_sort_by_name("RipenSize").is_some());
+        std::fs::remove_dir_all(dir).unwrap();
     }
     #[test]
     #[ignore = "manual four-entry eggcc TLConcat dependency recapture comparison"]
