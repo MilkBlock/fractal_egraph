@@ -124,7 +124,12 @@ reports the actual compiled library's certification status, per-template impact,
 repair attribution, causal recurrence, and symbolic Bake work requests. It does
 not turn a repeated coarse signature into an executable Cell transition.
 
-Compiled ordered merges and their original-stage consumers are available with
-`CELL_CPU_MERGE_PROGRAMS=1`. See [PARAMETERIZED_MERGE.md](PARAMETERIZED_MERGE.md)
+Compiled ordered merges and their original-stage consumers are enabled by
+default; `CELL_CPU_MERGE_PROGRAMS=0` disables them. See [PARAMETERIZED_MERGE.md](PARAMETERIZED_MERGE.md)
 for parameter programs, marker relays, native Cell checks, the displaced-only
 union repair fix, and the remaining whole-Pass-3 difference.
+
+[CELL_KNOWLEDGE.md](CELL_KNOWLEDGE.md) records the metrics-first result-reuse
+experiments and union read-projection survey. These experiments remain opt-in:
+static elimination has only a small single-run benefit; the reference/copy
+variants did not establish net speedup.

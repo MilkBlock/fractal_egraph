@@ -30,6 +30,7 @@ def build(core, marker=None, reference_tables=(), compositions=None):
     from eggfuse.analyzer.multistage import build as multi_stage_build
     from eggfuse.analyzer.congruence import build as congruence_build
     from eggfuse.analyzer.merge_programs import build as merge_programs_build
+    from eggfuse.analyzer.known_results import build as known_results_build
     recipe = recipe_build(core)
     recipe_validate(recipe, core)
     templates = []
@@ -41,6 +42,7 @@ def build(core, marker=None, reference_tables=(), compositions=None):
             primitive_guards=[i for i,a in enumerate(rule['query']) if 'primitive' in a['call']]))
     payload = dict(schema=SCHEMA, merge_contracts=merge_contracts(core), recipe=recipe, multi_stage=multi_stage_build(recipe), congruence=congruence_build(recipe), templates=templates,requirements=requirements(core),
         merge_programs=merge_programs_build(recipe),
+        known_results=known_results_build(recipe),
         initial=copy.deepcopy(core.get('initial',[])),
         contract=dict(storage='shared effect recipes plus instance slots and fact-position masks',
                       native_runtime_dependency=False, native_free_join=False,
@@ -72,6 +74,8 @@ def validate(program):
     if 'congruence' not in program: expected.pop('congruence')
     if 'merge_contracts' not in program: expected.pop('merge_contracts')
     if 'merge_programs' not in program: expected.pop('merge_programs')
+    if 'known_results' not in program: expected.pop('known_results')
+    elif 'static_aliases' not in program['known_results']:expected['known_results'].pop('static_aliases',None)
     expected['sha256']=digest({k:v for k,v in expected.items() if k!='sha256'})
     require(expected==program,'Cell wiring, entry, initial state or contract differs from typed source')
     return core

@@ -12,6 +12,7 @@ use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct Binding {
+    known:Option<Vec<Option<FactRef>>>,
     composition: Option<(Rc<crate::compositions::Edge>, crate::views::Context)>,
     witnesses: MatchedFacts,
     values: BTreeMap<usize, Value>,
@@ -109,14 +110,16 @@ pub struct Executor {
 /// Run-local binding workspace. Only successful matches become stored bindings;
 /// failed join branches undo slot assignments instead of cloning tree maps.
 struct QueryEnv {
+    known:Option<Vec<Option<FactRef>>>,
     recipe_context: Option<(usize, u32)>,
     witnesses: MatchedFacts,
     values: Vec<Option<Value>>,
     trail: Vec<usize>,
 }
 impl QueryEnv {
-    fn new(slots: usize, witness_slots: usize, full_witnesses: bool) -> Self {
+    fn new(slots: usize, witness_slots: usize, full_witnesses: bool, knowledge_atoms:usize) -> Self {
         Self {
+            known:(knowledge_atoms>0).then(||vec![None;knowledge_atoms]),
             recipe_context: None,
             witnesses: MatchedFacts::new(witness_slots, full_witnesses),
             values: vec![None; slots],
@@ -125,6 +128,7 @@ impl QueryEnv {
     }
     fn record(&mut self, atom: usize, witness: Option<Dependency>) {
         self.witnesses.record(atom, witness);
+        if let Some(rows)=&mut self.known {rows[atom]=if let Some(Dependency::Fact(f))=witness{Some(f)}else{None};}
     }
     fn rollback(&mut self, mark: usize) {
         while self.trail.len() > mark {
@@ -454,6 +458,7 @@ impl Executor {
             out.push(Binding {
                 composition: None,
                 witnesses: env.witnesses.clone(),
+                known:env.known.clone(),
                 values: env.binding(),
                 epoch,
                 parent: None,
@@ -840,6 +845,7 @@ impl Executor {
         Ok(ComposedMatch::Matched(Binding {
             composition: Some((edge.clone(), context)),
             witnesses: env.witnesses.clone(),
+                known:env.known.clone(),
             values: env.binding(),
             epoch,
             parent,
@@ -1053,7 +1059,7 @@ impl Executor {
     fn merge_points(&mut self,query:&[Atom],order:&[usize],env:&mut QueryEnv,epoch:u64,
         delta:(usize,u64,Dependency),out:&mut Vec<Binding>)->Result<()> {
         let Some((&i,tail))=order.split_first() else {
-            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
+            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
             return Ok(())
         };
         let a=&query[i];let mark=env.trail.len();
@@ -1102,6 +1108,7 @@ impl Executor {
     }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
+        let know_query=matches!(self.graph.known_mode.as_str(),"observe"|"on") && self.graph.program.known_results.queries.contains(&rid);
         let full_witnesses = !self.graph.marker_fields_copied
             && self
                 .graph
@@ -1170,6 +1177,7 @@ impl Executor {
                     self.graph.program.templates[rule.template].sorts.len(),
                     witness_slots,
                     full_witnesses,
+                    if know_query {rule.query.len()}else{0},
                 );
                 if atom
                     .args
@@ -1224,6 +1232,7 @@ impl Executor {
                         found.push(Binding {
                             composition: None,
                             witnesses: env.witnesses.clone(),
+                known:env.known.clone(),
                             values: env.binding(),
                             epoch,
                             parent: None,
@@ -1303,6 +1312,7 @@ impl Executor {
                         self.graph.program.templates[rule.template].sorts.len(),
                         witness_slots,
                         full_witnesses,
+                    if know_query {rule.query.len()}else{0},
                     );
                     if atom
                         .args
@@ -1420,6 +1430,7 @@ impl Executor {
                             found.push(Binding {
                                 composition: None,
                                 witnesses: env.witnesses.clone(),
+                known:env.known.clone(),
                                 values: env.binding(),
                                 epoch,
                                 parent: None,
@@ -1454,6 +1465,7 @@ impl Executor {
                     self.graph.program.templates[rule.template].sorts.len(),
                     witness_slots,
                     full_witnesses,
+                    if know_query {rule.query.len()}else{0},
                 ),
                 0,
                 &mut found,
@@ -1493,6 +1505,15 @@ impl Executor {
         let cell = self
             .graph
             .reference_frame(template, b.values, b.parent, &b.witnesses)?;
+        if matches!(self.graph.known_mode.as_str(),"observe"|"on") {
+            if let Some(plans)=self.graph.program.known_results.rules.get(&rid){
+                for (op,source) in plans.iter().enumerate(){
+                    if let Some(crate::known_results::Source::Query(i))=source && let Some(f)=b.known.as_ref().and_then(|rows|rows[*i]){
+                        self.graph.cells.get_mut(&cell).unwrap().known_results.insert(op,f);
+                    }
+                }
+            }
+        }
         if self.compositions_enabled {
             let started = Instant::now();
             if let Some((edge, context)) = &b.composition {
@@ -1540,8 +1561,18 @@ impl Executor {
             self.continuation_stats.max_depth = self.continuation_stats.max_depth.max(depth);
         }
         let ops = self.graph.program.templates[template].ops.clone();
+        let known_values=if self.graph.known_mode=="value" {self.graph.program.known_results.values.get(&rid).cloned()}else{None};
+        let eliminate_static=self.graph.known_mode=="static";
+        let observe_static=self.graph.known_mode=="observe";
+        let static_skip=if eliminate_static || observe_static {self.graph.program.known_results.static_skip.get(rid).cloned()}else{None};
         let mut completed = true;
+        let mut completed_prefix=0;
         for (i, op) in ops.iter().enumerate() {
+            if eliminate_static && static_skip.as_ref().is_some_and(|s|s[i]){
+                self.graph.known_stats.static_eliminated+=1;
+                self.graph.known_stats.avoided_lookups+=1;
+                completed_prefix=i+1;continue;
+            }
             if self.graph.union_lineage_enabled {
                 self.graph.active_union_cause = Some(crate::union_graft::Cause::Apply {
                     rule: rid,
@@ -1553,6 +1584,12 @@ impl Executor {
                 Op::Copy(..) => {}
                 Op::Let(dst, Call::Table(t), aa) => {
                     if self.graph.program.tables[*t].virtual_fact {
+                        if let Some(arg)=known_values.as_ref().and_then(|v|v.get(i)).and_then(Option::as_ref) {
+                            if self.graph.reuse_result_slot(cell,*t,*dst,arg)? {
+                                completed_prefix=i+1;
+                                continue;
+                            }
+                        }
                         if let Some((edge, context)) = &b.composition
                             && let Some(columns) = edge.reuse.get(&i)
                         {
@@ -1566,12 +1603,17 @@ impl Executor {
                                         .values
                                         .insert(*dst, values.last().unwrap().clone());
                                     self.composition_stats.constructor_reuses += 1;
+                                    completed_prefix=i+1;
                                     continue;
                                 }
                             }
                             self.composition_stats.reuse_fallbacks += 1;
                         }
-                        self.graph.construct(cell, i, *t, aa, *dst)?;
+                        let actual=self.graph.construct(cell, i, *t, aa, *dst)?;
+                        if observe_static && static_skip.as_ref().is_some_and(|s|s[i]){
+                            let a=self.graph.program.known_results.static_slots[template][*dst].clone().unwrap();
+                            if self.graph.argument(cell,&a)?==actual{self.graph.known_stats.static_observed_equal+=1;}else{self.graph.known_stats.static_observed_other+=1;}
+                        }
                     } else {
                         let key = self.graph.arguments(cell, &aa)?;
                         let row = self.graph.lookup(*t, &key)?.ok_or_else(|| {
@@ -1616,12 +1658,14 @@ impl Executor {
                 Op::Hide(t, aa, delete) => {
                     let key = self.graph.arguments(cell, &aa)?;
                     if !self.graph.hide(*t, &key, *delete)? {
+                        completed_prefix=i+1;
                         completed = false;
                         break;
                     }
                 }
                 Op::Panic => return Err("source panic".into()),
             }
+            completed_prefix=i+1;
         }
         self.graph.active_union_cause = None;
         if origin.is_some() {
@@ -1629,7 +1673,7 @@ impl Executor {
                 self.graph.stats.logical_facts_created - facts;
             self.continuation_stats.function_updates += self.graph.stats.function_updates - updates;
         }
-        self.graph.cells.get_mut(&cell).unwrap().completed = completed;
+        let state=self.graph.cells.get_mut(&cell).unwrap();state.completed=completed;state.completed_prefix=completed_prefix;
         self.graph.queue_absorption(cell, &b.witnesses);
         self.graph.release_empty(cell);
         Ok(())
@@ -1952,6 +1996,6 @@ impl Executor {
         Ok(e)
     }
     pub fn report(&self) -> J {
-        json!({"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

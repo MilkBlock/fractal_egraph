@@ -29,6 +29,27 @@ def signature(r,numeric=False,stateful=True):
         r.get('input_operator_before') if stateful else None,r.get('stage_path') if stateful else None])
 def target(r):
     return code([r['after_input_partition'],r['after_output_partition'],r['new_input_output_aliases'],r['input_operator_refinements']])
+def deformation(rows):
+    classes=collections.Counter();flags=collections.Counter();reads=collections.Counter();work=collections.Counter();working=collections.Counter()
+    for r in rows:
+        added=any(d['added'] for d in r['port_deltas']);removed=any(d['removed'] for d in r['port_deltas'])
+        alias=r['before_input_partition']!=r['after_input_partition'] or r['before_output_partition']!=r['after_output_partition'] or bool(r['new_input_output_aliases'])
+        if added:flags['port_growth']+=1
+        if removed:flags['visible_port_loss']+=1
+        if alias:flags['slot_alias_change']+=1
+        structural_read_change=any(d['read_added'] or d['read_removed'] for d in r['port_deltas'])
+        function_change=any(d['changed_during_repair'] for d in r['read_deltas'])
+        stale_before=any(not d['snapshot_current_before'] for d in r['read_deltas'])
+        stale_after=any(not d['snapshot_current_after'] for d in r['read_deltas'])
+        reads['constructor_read_changes']+=structural_read_change
+        reads['function_port_changes']+=function_change
+        reads['function_snapshot_stale_before']+=stale_before
+        reads['function_snapshot_stale_after']+=stale_after
+        reads['unchanged_current_input_projection']+=not (structural_read_change or function_change or alias or stale_after)
+        state='stale_function_snapshot' if stale_after else 'changed_read_projection' if structural_read_change or function_change else 'slot_alias_change' if alias else 'unchanged_current_input_projection'
+        work[state]+=r['owned_fact_repair_visits'];working[state]+=bool(r['owned_fact_repair_visits'])
+        classes['new_constructor_rows' if added else 'lost_visible_rows' if removed else 'new_slot_equalities' if alias else 'observed_interface_unchanged']+=1
+    return dict(classes=dict(classes),overlapping_flags=dict(flags),recipe_read_projection=dict(reads),associated_repair_visits=dict(work),instances_with_repair_work=dict(working),scope='canonical input constructors and actual query-table projections/current function ports; not complete Cell behavior or effect validity; events without union excluded; attributed repair is not saved work')
 def recurrence(rows,numeric=False,stateful=True):
     prior={};known_frames=collections.defaultdict(set);result=collections.Counter()
     for _,batch in itertools.groupby(sorted(rows,key=lambda x:(x['epoch'],x['frame'])),key=lambda r:r['epoch']):
@@ -49,7 +70,7 @@ def recurrence(rows,numeric=False,stateful=True):
         observation_count=len(rows),scope='previous-epoch-only coarse-signature recurrence; no within-Run labels; NOT certified transition hits or predicted full egraphs')
 def summarize(report,program):
     survey=report['union_impact'];rows=survey['rows'];rules=program['recipe']['rules']
-    if survey.get('schema')!=2:raise ValueError('rerun survey: per-touch cause IDs and first-event input projection required')
+    if survey.get('schema')!=4:raise ValueError('rerun survey: causes, exact port deltas and current function-read projections required')
     events=report['union_lineage']['events'];first_derived={}
     for i,e in enumerate(events):
         if not isinstance(e['cause'],dict) or 'Apply' not in e['cause']:
@@ -114,6 +135,8 @@ def summarize(report,program):
         'initial_apply_leaf_kinds_frame_runs':dict(collections.Counter(k for r in causal for k in {t['kind'] for t in r['bake_input_touches'] if t['leaf']})),
         'initial_apply_kind_touches':dict(collections.Counter(t['kind'] for r in causal for t in r['bake_input_touches'])),
         'initial_apply_pattern_count':len(patterns),
+        'deformation_existing_original':deformation(existing),
+        'deformation_initial_apply':deformation(causal),
         'initial_apply_top_pattern_coverage':{str(k):sum(n for _,n in patterns.most_common(k))/sum(patterns.values()) if patterns else None for k in [1,3,5,10,20]},
         'causal_recurrence':recurrence(causal),'causal_recurrence_with_exact_scalars':recurrence(causal,True),'coarse_transition_key_recurrence':recurrence(causal,stateful=False),'templates':per_template,
         'certified_cell_upgrades':0,'note':'recipe frame != RipSat Cell; observed target is only alias/operator-count projection; repair counts are association, not measured savings'}
@@ -160,7 +183,7 @@ def baked_library(compiled):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--compiled',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--report-only',type=Path);p.add_argument('--audit',action='store_true');a=p.parse_args()
     a.output.mkdir(parents=True,exist_ok=False);path,program,provenance=load_pipeline_artifact(a.compiled.resolve())
-    settings={'CELL_CPU_UNION_IMPACT':'1','CELL_CPU_UNION_GRAFT':'0','CELL_CPU_UNION_TRACE':'0','CELL_CPU_MARKER_REFUTATION':'0','CELL_CPU_SIEVE':'0','CELL_CPU_CONGRUENCE':'0'}
+    settings={'CELL_CPU_MERGE_PROGRAMS':'1','CELL_CPU_KNOWN_RESULTS':'off','CELL_CPU_UNION_IMPACT':'1','CELL_CPU_UNION_GRAFT':'0','CELL_CPU_UNION_TRACE':'0','CELL_CPU_MARKER_REFUTATION':'0','CELL_CPU_SIEVE':'0','CELL_CPU_CONGRUENCE':'0'}
     with mode(False):
         if a.report_only:
             saved=a.report_only.parent.parent/'cell-runtime-program.json'

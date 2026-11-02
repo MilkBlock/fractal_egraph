@@ -70,6 +70,12 @@ pub struct MarkerRow {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Cell {
     #[serde(default)]
+    pub known_results:BTreeMap<usize,FactRef>,
+    #[serde(default)]
+    pub completed_prefix:usize,
+    #[serde(default)]
+    pub started_epoch:u64,
+    #[serde(default)]
     pub completed: bool,
     #[serde(default)]
     pub composition: Option<crate::compositions::Cursor>,
@@ -156,6 +162,8 @@ pub struct CongruenceStats {
     pub coalesced_facts: u64,
 }
 pub struct Graph {
+    pub known_mode:String,
+    pub known_stats:crate::known_results::Stats,
     pub merge_programs_enabled: bool,
     pub key_lookup_calls: std::cell::Cell<u64>,
     pub program: Program,
@@ -198,6 +206,7 @@ pub struct Graph {
     dirty: BTreeSet<Dependency>,
     dirty_markers: BTreeSet<FactRef>,
     dirty_facts: Vec<BTreeSet<FactRef>>,
+    deletion_epochs: Vec<u64>,
     parent_users: BTreeMap<u32, usize>,
     garbage: BTreeSet<u32>,
 }
@@ -208,8 +217,15 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
     h.finish()
 }
 impl Graph {
+    pub fn known_report(&self)->J {
+        json!({"mode":self.known_mode,"stats":self.known_stats,
+            "live_known_results":self.cells.values().map(|c|c.known_results.len()).sum::<usize>(),
+            "live_instances_with_knowledge":self.cells.values().filter(|c|!c.known_results.is_empty()).count(),
+            "completed_steps_in_live_instances":self.cells.values().map(|c|c.completed_prefix).sum::<usize>(),
+            "scope":"weak validated FactRefs in recipe instances; no owner pins, no terminal Cell certificate"})
+    }
     pub fn image(&self) -> J {
-        json!({"union_lineage":self.union_lineage,"key_lookup_calls":self.key_lookup_calls.get(),"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"marker_fields_copied":self.marker_fields_copied,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
+        json!({"known_mode":self.known_mode,"deletion_epochs":self.deletion_epochs,"known_stats":self.known_stats,"union_lineage":self.union_lineage,"key_lookup_calls":self.key_lookup_calls.get(),"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"marker_fields_copied":self.marker_fields_copied,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
     }
     pub fn restore(program: Program, image: &J) -> Result<Self> {
         fn decode<T: serde::de::DeserializeOwned>(j: &J) -> Result<T> {
@@ -219,6 +235,9 @@ impl Graph {
         empty.initial.clear();
         let mut g = Self::new(empty)?;
         g.program = program;
+        if (image["known_mode"]=="static")!=(g.known_mode=="static"){return Err("checkpoint static result representation differs".into())}
+        if !image["deletion_epochs"].is_null(){g.deletion_epochs=decode(&image["deletion_epochs"])?;if g.deletion_epochs.len()!=g.program.tables.len(){return Err("deletion epoch arity".into())}}
+        if !image["known_stats"].is_null(){g.known_stats=decode(&image["known_stats"])?;}
         g.cells = decode(&image["cells"])?;
         g.next_cell = decode(&image["next_cell"])?;
         if image["reference_views_enabled"].as_bool().unwrap_or(false) != g.views_enabled {
@@ -435,7 +454,9 @@ impl Graph {
             epoch: 0,
             changed: false,
             stats: Stats::default(),
-            merge_programs_enabled: std::env::var("CELL_CPU_MERGE_PROGRAMS").as_deref()==Ok("1"),
+            known_mode:match std::env::var("CELL_CPU_KNOWN_RESULTS").as_deref(){Ok("on"|"1")=>"on",Ok("observe")=>"observe",Ok("value")=>"value",Ok("static")=>"static",Ok("off"|"0")|Err(_)=>"off",_=>return Err("unknown CELL_CPU_KNOWN_RESULTS mode".into())}.into(),
+            known_stats:Default::default(),
+            merge_programs_enabled: std::env::var("CELL_CPU_MERGE_PROGRAMS").as_deref()!=Ok("0"),
             pending_unions: vec![],
             union_lineage_enabled: std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
                 || std::env::var("CELL_CPU_UNION_TRACE").as_deref() == Ok("1")
@@ -463,6 +484,7 @@ impl Graph {
             dirty: BTreeSet::new(),
             dirty_markers: BTreeSet::new(),
             dirty_facts: vec![BTreeSet::new(); n],
+            deletion_epochs:vec![0;n],
             parent_users: BTreeMap::new(),
             garbage: BTreeSet::new(),
         };
@@ -551,6 +573,7 @@ impl Graph {
         self.cells.insert(
             id,
             Cell {
+                known_results:BTreeMap::new(),completed_prefix:0,started_epoch:self.epoch,
                 completed: false,
                 composition: None,
                 template,
@@ -613,6 +636,9 @@ impl Graph {
             if let Some(f) = c.providers.get(&atom) {
                 return self.fact_column(*f, col);
             }
+        }
+        if self.known_mode=="static" && let Some(a)=self.program.known_results.static_slots.get(c.template).and_then(|slots|slots.get(i)).and_then(Option::as_ref){
+            return self.argument_in(cell,c,a);
         }
         let t = &self.program.templates[c.template];
         if let (Some(parent), Some(&col)) = (c.parent, t.parent_columns.get(&i)) {
@@ -1005,10 +1031,55 @@ impl Graph {
         aa: &[Arg],
         dst: usize,
     ) -> Result<Value> {
-        let key = self.arguments(cell, aa)?;
         self.stats.constructor_requests += 1;
-        if let Some(row) = self.lookup(t, &key)? {
+        let active=matches!(self.known_mode.as_str(),"observe"|"on");
+        if self.known_mode=="value" {self.known_stats.requests+=1;}
+        let template=self.cells[&cell].template;
+        let mut known_value=None;
+        if active && let Some(arg)=self.program.known_results.values.get(&template).and_then(|v|v.get(op)).cloned().flatten(){
+            let source=self.program.known_results.rules[&template][op].unwrap();
+            let complete=match source {
+                crate::known_results::Source::Query(_)=>true,
+                crate::known_results::Source::Effect(i)=>self.cells[&cell].facts.contains_key(&(i as u32)) || matches!(&self.program.templates[template].ops[i],Op::Let(dst,_,_) if self.cells[&cell].values.contains_key(dst)),
+            };
+            if self.deletion_epochs[t]>=self.cells[&cell].started_epoch {self.known_stats.deletion_guard_misses+=1;}
+            else if complete && self.dirty_facts[t].is_empty(){
+                known_value=Some(self.argument(cell,&arg)?);self.known_stats.value_eligible+=1;
+            }
+        }
+        let key = self.arguments(cell, aa)?;
+        let mut hint=None;
+        if active {
+            self.known_stats.requests+=1;
+            if let Some(source)=self.program.known_results.rules.get(&template).and_then(|p|p.get(op)).copied().flatten(){
+                self.known_stats.planned+=1;
+                let reference=match source {
+                    crate::known_results::Source::Query(_)=>{self.known_stats.query_sources+=1;self.cells[&cell].known_results.get(&op).copied()},
+                    crate::known_results::Source::Effect(i)=>{self.known_stats.effect_sources+=1;self.cells[&cell].known_results.get(&i).copied().or_else(||self.cells[&cell].facts.contains_key(&(i as u32)).then_some(FactRef{cell,op:i as u32}))},
+                };
+                if let Some(f)=reference {
+                    self.known_stats.available+=1;
+                    if !self.dirty_facts[t].is_empty(){self.known_stats.dirty+=1;}
+                    else if let Some(row)=self.fact(self.resolve_reference(f))? {
+                        if row.table==t && row.values[..key.len()]==key {self.known_stats.validated+=1;hint=Some(row);}
+                        else{self.known_stats.mismatched+=1;}
+                    }else{self.known_stats.expired+=1;}
+                }else{self.known_stats.unavailable+=1;}
+            }
+        }
+        let skip=self.known_mode=="on" && hint.is_some();
+        let row=if skip {self.known_stats.avoided_lookups+=1;hint.clone()}else{self.lookup(t,&key)?};
+        if self.known_mode=="observe" && let Some(value)=known_value {
+            if row.as_ref().and_then(|r|r.values.last())==Some(&value){self.known_stats.observed_same_value+=1;}else{self.known_stats.observed_other_value+=1;}
+        }
+        if self.known_mode=="observe" && let Some(hint)=hint {
+            if row.as_ref().is_some_and(|r|r.witness==hint.witness){self.known_stats.observed_same_witness+=1;}else{self.known_stats.observed_other_witness+=1;}
+            *self.known_stats.opportunities_by_table.entry(self.program.tables[t].name.clone()).or_default()+=1;
+        }
+        let remember=active && self.known_mode!="value" && (self.program.known_results.remember.get(&template).is_some_and(|s|s.contains(&op)) || self.program.known_results.rules.get(&template).and_then(|p|p.get(op)).is_some_and(Option::is_some));
+        if let Some(row) = row {
             self.stats.constructor_reused += 1;
+            if remember && let Dependency::Fact(f)=row.witness {self.cells.get_mut(&cell).unwrap().known_results.insert(op,f);self.known_stats.retained_result_writes+=1;}
             let value = row.values.last().unwrap().clone();
             self.cells
                 .get_mut(&cell)
@@ -1028,7 +1099,20 @@ impl Graph {
             value.clone(),
             false,
         )?;
+        if remember {self.cells.get_mut(&cell).unwrap().known_results.insert(op,FactRef{cell,op:op as u32});self.known_stats.retained_result_writes+=1;}
         Ok(value)
+    }
+    pub fn reuse_result_slot(&mut self,cell:u32,t:usize,dst:usize,arg:&Arg)->Result<bool>{
+        // Called only while executing the checked original RHS, in order.
+        // Its body witnesses were gathered at this Run's sealed entry; an
+        // effect source precedes this instruction by the checked projection.
+        if self.deletion_epochs[t]>=self.epoch {self.known_stats.deletion_guard_misses+=1;return Ok(false)}
+        if !self.dirty_facts[t].is_empty(){self.known_stats.dirty+=1;return Ok(false)}
+        let value=self.argument(cell,arg)?;
+        self.cells.get_mut(&cell).unwrap().values.insert(dst,value);
+        self.stats.constructor_requests+=1;self.stats.constructor_reused+=1;
+        self.known_stats.requests+=1;self.known_stats.planned+=1;self.known_stats.value_eligible+=1;
+        self.known_stats.value_reuses+=1;self.known_stats.avoided_lookups+=1;Ok(true)
     }
     pub fn dynamic_construct(&mut self, t: usize, args: Vec<Value>) -> Result<Value> {
         if let Some(row) = self.lookup(t, &args)? {
@@ -1456,6 +1540,7 @@ impl Graph {
         Ok(())
     }
     pub fn hide(&mut self, t: usize, key: &[Value], delete: bool) -> Result<bool> {
+        if delete {self.deletion_epochs[t]=self.epoch;}
         let row = self.lookup(t, key)?;
         let Some(row) = row else {
             return if delete {

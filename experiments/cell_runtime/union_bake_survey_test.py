@@ -19,7 +19,7 @@ def touch(event=0, slot=0):
 def observation(epoch=1, frame=1):
     return dict(epoch=epoch, frame=frame, template=0, kind='original_rule',
                 completed=True, born_this_run=False, active_ruleset='alias',
-                continuation_depth=1, owned_fact_repair_visits=1,
+                continuation_depth=1, owned_fact_repair_visits=1, port_deltas=[], read_deltas=[],
                 before_input_partition=[[0, 0]], after_input_partition=[[0, 0]],
                 before_output_partition=[], after_output_partition=[],
                 new_input_output_aliases=[], input_operator_refinements=[],
@@ -66,7 +66,7 @@ class CausalProjectionTests(unittest.TestCase):
     def test_initial_direct_prefix_excludes_later_apply_and_derived(self):
         rows=[observation(1, i+1) for i in range(3)]
         for i,r in enumerate(rows):r['touches']=[touch(i)]
-        report={'union_impact': {'schema':2, 'scope':'test', 'rows':rows,
+        report={'union_impact': {'schema':4, 'scope':'test', 'rows':rows,
                  'effective_unions':3, 'scanned_frames':3, 'unready_inputs':0},
                 'steps':[], 'union_lineage':{'events':[
                     {'epoch':1, 'cause':{'Apply':{'rule':2}}},
@@ -89,6 +89,20 @@ class CausalProjectionTests(unittest.TestCase):
 
 
 class ObserverTests(unittest.TestCase):
+    def test_read_projection_separates_irrelevant_growth_and_function_updates(self):
+        source='''(datatype E (N i64) (Hold E) (Out E) (Tag i64) (Link E E))
+(function Cost (E) i64 :merge (min old new)) (ruleset make) (ruleset alias)
+(rule ((Hold x)) ((Out x)) :ruleset make)
+(rule ((Hold x) (= n (Cost x))) ((Tag n)) :ruleset make)
+(rule ((Link a b)) ((union a b)) :ruleset alias)
+(Hold (N 1)) (Link (N 1) (N 2)) (set (Cost (N 1)) 9) (set (Cost (N 2)) 3)
+(run-schedule (seq (run make) (run alias)))'''
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);src=root/'source.egg';src.write_text(source);p=build(prepare(src,FRONTEND))
+            r=execute(p,root/'run',ENGINE,environment={'CELL_CPU_UNION_IMPACT':'1'})
+            rows=[x for x in r['union_impact']['rows'] if x['kind']=='original_rule' and x['active_ruleset']=='alias' and not x['born_this_run']]
+            self.assertTrue(any(x['port_deltas'] and not any(d['read_added'] or d['read_removed'] for d in x['port_deltas']) and not x['read_deltas'] for x in rows))
+            self.assertTrue(any(d['table']=='Cost' and d['changed_during_repair'] and d['snapshot_current_before'] and not d['snapshot_current_after'] for x in rows for d in x['read_deltas']))
     def test_real_union_chain_keeps_graph_and_bindings(self):
         source='''(datatype E (N i64) (F E) (G E) (H E) (Link E E) (Witness E E))
 (ruleset make) (ruleset observe) (ruleset alias)

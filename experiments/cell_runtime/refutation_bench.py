@@ -6,13 +6,13 @@ from experiments.cell_runtime.suite import timed, fingerprint
 from experiments.cell_runtime.compositions_bench import mode, metrics
 ROOT=Path(__file__).resolve().parents[2]
 
-def audit(path, program, output, streamer, feature='CELL_CPU_MARKER_REFUTATION'):
+def audit(path, program, output, streamer, feature='CELL_CPU_MARKER_REFUTATION', enabled='1'):
     output.mkdir(); tables=output/'tables.json'
     tables.write_text(json.dumps([t['name'] for t in program['source_core']['tables']]))
     logs=[(output/(m+'.log')).open('w') for m in ('off','on')]
     procs=[]; checked=0
     try:
-        for value,log in zip(('0','1'),logs):
+        for value,log in zip(('0',enabled),logs):
             procs.append(subprocess.Popen([str(streamer),str(path),str(tables),'--all-stages','--bindings'],
                 env={**os.environ,feature:value,'CELL_CPU_SIEVE':'0'},
                 stdout=subprocess.PIPE,stderr=log,text=True))

@@ -20,6 +20,8 @@ pub struct Hit {
     scalars: Vec<(usize, i64)>,
     touches: Vec<J>,
     before_ops: BTreeMap<usize, BTreeMap<String, usize>>,
+    before_facts: BTreeMap<usize, BTreeSet<(usize, Vec<Value>)>>,
+    reads: Vec<(usize, usize, Vec<Value>, Value, BTreeSet<Value>)>,
     owned_fact_affected: bool,
     born_this_run: bool,
 }
@@ -37,7 +39,7 @@ pub struct Survey {
     pub effective_unions: u64,
     pub run_start_cell: u32,
 }
-fn operator_counts(g: &Graph, id: u64) -> Result<BTreeMap<String, usize>> {
+fn port_facts(g: &Graph, id: u64) -> Result<BTreeSet<(usize, Vec<Value>)>> {
     let tables = g
         .program
         .tables
@@ -45,23 +47,40 @@ fn operator_counts(g: &Graph, id: u64) -> Result<BTreeMap<String, usize>> {
         .enumerate()
         .filter_map(|(i, t)| t.constructor.then_some(i))
         .collect();
-    let mut result = BTreeMap::new();
     let mut seen = BTreeSet::new();
     for row in g.equality_neighbors(id, &tables)? {
-        if row.values.last() == Some(&Value::Eq(root(&g.parents, id)))
-            && seen.insert((row.table, row.values[..row.values.len() - 1].to_vec()))
-        {
-            *result
-                .entry(g.program.tables[row.table].name.clone())
-                .or_default() += 1;
+        if row.values.last() == Some(&Value::Eq(root(&g.parents, id))) {
+            seen.insert((row.table, row.values[..row.values.len() - 1].to_vec()));
         }
     }
-    Ok(result)
+    Ok(seen)
+}
+fn operator_counts(g: &Graph, id: u64) -> Result<BTreeMap<String, usize>> {
+    Ok(counts(g, &port_facts(g, id)?))
+}
+fn counts(g: &Graph, facts: &BTreeSet<(usize, Vec<Value>)>) -> BTreeMap<String, usize> {
+    let mut out = BTreeMap::new();
+    for (t, _) in facts {
+        *out.entry(g.program.tables[*t].name.clone()).or_default() += 1;
+    }
+    out
+}
+fn read_values(g: &Graph, t: usize, key: &[Value]) -> Result<BTreeSet<Value>> {
+    let mut out = BTreeSet::new();
+    for w in g.witnesses(t) {
+        if let Some(row) = g.row(w)? {
+            if !row.hidden && row.values[..key.len()] == *key {
+                out.insert(row.values.last().unwrap().clone());
+            }
+        }
+    }
+    Ok(out)
 }
 pub fn collect(g: &Graph, a: u64, b: u64) -> Result<(Vec<Hit>, u64, u64)> {
     let owners = g.union_affected_owners(a, b);
     let ops = [operator_counts(g, a)?, operator_counts(g, b)?];
     let mut hits = vec![];
+    let mut port_cache: BTreeMap<(usize, Vec<Value>), BTreeSet<Value>> = BTreeMap::new();
     let mut unready = 0;
     for (&frame, c) in &g.cells {
         let template = &g.program.templates[c.template];
@@ -126,6 +145,23 @@ pub fn collect(g: &Graph, a: u64, b: u64) -> Result<(Vec<Hit>, u64, u64)> {
             continue;
         }
         let mut outputs = vec![];
+        let mut reads = vec![];
+        if let Some(rule) = g.program.rules.get(c.template) {
+            for (atom, a) in rule.query.iter().enumerate() {
+                if let Call::Table(t) = a.call
+                    && !g.program.tables[t].constructor
+                    && !g.program.views.markers.contains(&t)
+                {
+                    let key = g.arguments(frame, &a.args[..a.args.len() - 1])?;
+                    let expected = g.argument(frame, a.args.last().unwrap())?;
+                    let cache_key = (t, key.clone());
+                    if !port_cache.contains_key(&cache_key) {
+                        port_cache.insert(cache_key.clone(), read_values(g, t, &key)?);
+                    }
+                    reads.push((atom, t, key, expected, port_cache[&cache_key].clone()));
+                }
+            }
+        }
         for (&op, _) in &c.facts {
             if let Some(Op::Let(dst, Call::Table(t), _)) = template.ops.get(op as usize)
                 && g.program.tables[*t].constructor
@@ -159,8 +195,11 @@ pub fn collect(g: &Graph, a: u64, b: u64) -> Result<(Vec<Hit>, u64, u64)> {
         }
         // Capture the entire input projection at the FIRST relevant event.
         // Do not fill missing columns from later congruence-derived touches.
+        let mut before_facts = BTreeMap::new();
         for (s, v, _) in &inputs {
-            before_ops.insert(*s, operator_counts(g, *v)?);
+            let facts = port_facts(g, *v)?;
+            before_ops.insert(*s, counts(g, &facts));
+            before_facts.insert(*s, facts);
         }
         hits.push(Hit {
             frame,
@@ -173,6 +212,8 @@ pub fn collect(g: &Graph, a: u64, b: u64) -> Result<(Vec<Hit>, u64, u64)> {
             scalars,
             touches,
             before_ops,
+            before_facts,
+            reads,
             owned_fact_affected: owners.contains(&frame),
             born_this_run: frame >= g.union_impact.as_ref().unwrap().run_start_cell,
         });
@@ -239,6 +280,55 @@ impl Survey {
                 })
                 .collect::<Vec<_>>();
             let mut refinements = vec![];
+            let mut port_deltas = vec![];
+            let mut read_tables: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
+            if let Some(rule) = g.program.rules.get(h.template) {
+                for a in &*rule.query {
+                    if let Call::Table(t) = a.call
+                        && let Some(crate::program::Arg::Slot(s)) = a.args.last()
+                    {
+                        read_tables.entry(*s).or_default().insert(t);
+                    }
+                }
+            }
+            for (s, old) in &h.before_facts {
+                let id = h.inputs.iter().find(|(slot, _, _)| slot == s).unwrap().1;
+                let old = old
+                    .iter()
+                    .map(|(t, args)| {
+                        (
+                            *t,
+                            args.iter()
+                                .map(|v| crate::value::canon(v, &g.parents))
+                                .collect(),
+                        )
+                    })
+                    .collect::<BTreeSet<_>>();
+                let now = port_facts(g, id)?;
+                let added = now.difference(&old).cloned().collect::<BTreeSet<_>>();
+                let removed = old.difference(&now).cloned().collect::<BTreeSet<_>>();
+                if !added.is_empty() || !removed.is_empty() {
+                    port_deltas.push(json!({"slot":s,"added":added.len(),"removed":removed.len(),"read_added":added.iter().filter(|(t,_)|read_tables.get(s).is_some_and(|ts|ts.contains(t))).count(),"read_removed":removed.iter().filter(|(t,_)|read_tables.get(s).is_some_and(|ts|ts.contains(t))).count(),"added_operators":counts(g,&added),"removed_operators":counts(g,&removed)}));
+                }
+            }
+            let mut read_deltas = vec![];
+            for (atom, t, key, expected, old) in &h.reads {
+                let before_current = old.len() == 1 && old.contains(expected);
+                let key = key
+                    .iter()
+                    .map(|v| crate::value::canon(v, &g.parents))
+                    .collect::<Vec<_>>();
+                let old = old
+                    .iter()
+                    .map(|v| crate::value::canon(v, &g.parents))
+                    .collect::<BTreeSet<_>>();
+                let now = read_values(g, *t, &key)?;
+                let expected = crate::value::canon(expected, &g.parents);
+                let current = now.len() == 1 && now.contains(&expected);
+                if old != now || !before_current || !current {
+                    read_deltas.push(json!({"atom":atom,"table":g.program.tables[*t].name,"changed_during_repair":old!=now,"snapshot_current_before":before_current,"snapshot_current_after":current}));
+                }
+            }
             for (s, old) in &h.before_ops {
                 let id = h.inputs.iter().find(|(slot, _, _)| slot == s).unwrap().1;
                 let new = operator_counts(g, id)?;
@@ -258,13 +348,13 @@ impl Survey {
                 "touches":touches,"before_input_partition":before,"after_input_partition":after,
                 "before_output_partition":out_before,"after_output_partition":out_after,"new_input_output_aliases":input_output_aliases,
                 "input_operator_refinements":refinements,"owned_fact_repair_visits":b.repairs,
-                "input_operator_before":h.before_ops,
+                "input_operator_before":h.before_ops,"port_deltas":port_deltas,"read_deltas":read_deltas,
                 "owner_alive_after_repair":g.cells.contains_key(&h.frame),"certified_cell_upgrade":false}));
         }
         Ok(())
     }
     pub fn report(&self) -> J {
-        json!({"schema":2,"timing_eligible":false,"effective_unions":self.effective_unions,"scanned_frames":self.scanned_frames,"unready_inputs":self.unready_inputs,"rows":self.rows,
+        json!({"schema":4,"timing_eligible":false,"effective_unions":self.effective_unions,"scanned_frames":self.scanned_frames,"unready_inputs":self.unready_inputs,"rows":self.rows,
             "scope":"diagnostic live runtime recipe frames, not certified RipSat instances; (Run epoch, frame) deduplicated impacts; leaf means not defined by a query-table result"})
     }
 }

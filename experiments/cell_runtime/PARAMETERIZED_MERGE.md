@@ -2,7 +2,7 @@
 
 实现于 analyzer 的通用 Recipe IR 编译和 standalone Cell CPU。
 不按 ExtractedExpr/Smaller/TCPair/marker 名称特判，不修改 Metal。
-`CELL_CPU_MERGE_PROGRAMS=1` 启用，默认关闭。
+从 2026-11-03 起按用户要求默认启用；`CELL_CPU_MERGE_PROGRAMS=0` 显式关闭。
 
 ## 执行路径
 
@@ -77,7 +77,7 @@ Analyze 发布 `parameterized-merge-programs.json`；CPU device pass 发布
 | 原 merge 求值/匹配 | 142.161 ms |
 | 编译 merge＋marker 消费者 | 139.108 ms |
 
-减少 **2.15%**，只是单次小幅收益，保持显式选项。实际执行 2,140 次 merge、
+减少 **2.15%**，只是单次小幅收益；后续按用户要求改为默认启用，仍保留关闭对照。实际执行 2,140 次 merge、
 2,006 条内部指令；固定入口提供 413 个完整 binding，其中 marker 207、比较规则
 48/152/6。端口读取 829 次、候选行访问 825 次、primitive 检查 412 次，均非免费。
 

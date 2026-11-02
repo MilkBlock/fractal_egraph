@@ -7,6 +7,7 @@ pub mod extract;
 pub mod graph;
 pub mod multistage;
 pub mod merge_programs;
+pub mod known_results;
 pub mod program;
 pub mod query;
 pub mod refutation;

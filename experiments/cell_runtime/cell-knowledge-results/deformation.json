@@ -1,0 +1,241 @@
+{
+  "scope": "diagnostic live runtime recipe frames, not certified RipSat instances; (Run epoch, frame) deduplicated impacts; leaf means not defined by a query-table result",
+  "timing_eligible": false,
+  "effective_unions": 1037,
+  "scanned_frames": 1655440,
+  "unready_inputs": 0,
+  "by_kind": {
+    "auxiliary_rule": {
+      "frame_run_impacts": 261,
+      "distinct_frames": 132,
+      "input_touched": 261,
+      "born_this_run": 0,
+      "owned_repair_visits": 0
+    },
+    "constructor": {
+      "frame_run_impacts": 56,
+      "distinct_frames": 14,
+      "input_touched": 50,
+      "born_this_run": 0,
+      "owned_repair_visits": 4
+    },
+    "loader": {
+      "frame_run_impacts": 35,
+      "distinct_frames": 1,
+      "input_touched": 0,
+      "born_this_run": 0,
+      "owned_repair_visits": 17
+    },
+    "marker": {
+      "frame_run_impacts": 1527,
+      "distinct_frames": 492,
+      "input_touched": 1527,
+      "born_this_run": 0,
+      "owned_repair_visits": 441
+    },
+    "original_rule": {
+      "frame_run_impacts": 6654,
+      "distinct_frames": 2286,
+      "input_touched": 6045,
+      "born_this_run": 795,
+      "owned_repair_visits": 1916
+    }
+  },
+  "existing_completed_original_frames": 5859,
+  "existing_original_input_impacts": 5386,
+  "existing_original_leaf_impacts": 4114,
+  "existing_original_distinct_input_frames": 1806,
+  "template_count": 145,
+  "top_template_coverage": {
+    "1": 0.05365763089491274,
+    "3": 0.15113256591162272,
+    "5": 0.23022651318232454,
+    "10": 0.3551800965466023
+  },
+  "union_event_causes": {
+    "Apply": 525,
+    "Congruence": 512
+  },
+  "initial_apply_input_impacts": 3141,
+  "direct_apply_input_impacts": 3141,
+  "derived_only_input_impacts": 2245,
+  "initial_apply_leaf_impacts": 1943,
+  "initial_apply_distinct_frames": 1492,
+  "initial_apply_associated_repairs": 804,
+  "initial_apply_template_count": 135,
+  "initial_apply_top_template_coverage": {
+    "1": 0.061127029608404965,
+    "3": 0.16905444126074498,
+    "5": 0.21903852276345112,
+    "10": 0.335243553008596
+  },
+  "initial_apply_kinds_frame_runs": {
+    "input_external": 3056,
+    "input_input": 18,
+    "input_local_output": 159
+  },
+  "initial_apply_leaf_kinds_frame_runs": {
+    "input_external": 1859,
+    "input_input": 18,
+    "input_local_output": 69
+  },
+  "initial_apply_kind_touches": {
+    "input_external": 4501,
+    "input_input": 45,
+    "input_local_output": 167
+  },
+  "initial_apply_pattern_count": 831,
+  "deformation_existing_original": {
+    "classes": {
+      "new_constructor_rows": 5268,
+      "observed_interface_unchanged": 591
+    },
+    "overlapping_flags": {
+      "port_growth": 5268,
+      "slot_alias_change": 263
+    },
+    "recipe_read_projection": {
+      "constructor_read_changes": 731,
+      "function_port_changes": 22,
+      "function_snapshot_stale_before": 339,
+      "function_snapshot_stale_after": 313,
+      "unchanged_current_input_projection": 4584
+    },
+    "associated_repair_visits": {
+      "unchanged_current_input_projection": 518,
+      "changed_read_projection": 154,
+      "slot_alias_change": 482,
+      "stale_function_snapshot": 101
+    },
+    "instances_with_repair_work": {
+      "unchanged_current_input_projection": 355,
+      "changed_read_projection": 104,
+      "slot_alias_change": 235,
+      "stale_function_snapshot": 100
+    },
+    "scope": "canonical input constructors and actual query-table projections/current function ports; not complete Cell behavior or effect validity; events without union excluded; attributed repair is not saved work"
+  },
+  "deformation_initial_apply": {
+    "classes": {
+      "new_constructor_rows": 3141
+    },
+    "overlapping_flags": {
+      "port_growth": 3141,
+      "slot_alias_change": 190
+    },
+    "recipe_read_projection": {
+      "constructor_read_changes": 629,
+      "function_port_changes": 18,
+      "function_snapshot_stale_before": 254,
+      "function_snapshot_stale_after": 224,
+      "unchanged_current_input_projection": 2124
+    },
+    "associated_repair_visits": {
+      "unchanged_current_input_projection": 218,
+      "changed_read_projection": 131,
+      "slot_alias_change": 359,
+      "stale_function_snapshot": 96
+    },
+    "instances_with_repair_work": {
+      "unchanged_current_input_projection": 146,
+      "changed_read_projection": 91,
+      "slot_alias_change": 171,
+      "stale_function_snapshot": 95
+    },
+    "scope": "canonical input constructors and actual query-table projections/current function ports; not complete Cell behavior or effect validity; events without union excluded; attributed repair is not saved work"
+  },
+  "initial_apply_top_pattern_coverage": {
+    "1": 0.04625503925312964,
+    "3": 0.09251007850625928,
+    "5": 0.1279439847231063,
+    "10": 0.20347973689794185,
+    "20": 0.30044557606619987
+  },
+  "causal_recurrence": {
+    "unseen_before_epoch": 2933,
+    "same_observed_target": 198,
+    "different_frame_same_target": 198,
+    "new_target_for_known_key": 10,
+    "signatures": 2579,
+    "multiple_target_signatures": 39,
+    "observation_count": 3141,
+    "scope": "previous-epoch-only coarse-signature recurrence; no within-Run labels; NOT certified transition hits or predicted full egraphs"
+  },
+  "causal_recurrence_with_exact_scalars": {
+    "unseen_before_epoch": 3021,
+    "same_observed_target": 111,
+    "different_frame_same_target": 111,
+    "new_target_for_known_key": 9,
+    "signatures": 2772,
+    "multiple_target_signatures": 35,
+    "observation_count": 3141,
+    "scope": "previous-epoch-only coarse-signature recurrence; no within-Run labels; NOT certified transition hits or predicted full egraphs"
+  },
+  "coarse_transition_key_recurrence": {
+    "unseen_before_epoch": 2019,
+    "new_target_for_known_key": 283,
+    "ambiguous_prior_targets": 702,
+    "same_observed_target": 137,
+    "different_frame_same_target": 137,
+    "signatures": 1139,
+    "multiple_target_signatures": 446,
+    "observation_count": 3141,
+    "scope": "previous-epoch-only coarse-signature recurrence; no within-Run labels; NOT certified transition hits or predicted full egraphs"
+  },
+  "certified_cell_upgrades": 0,
+  "note": "recipe frame != RipSat Cell; observed target is only alias/operator-count projection; repair counts are association, not measured savings",
+  "program": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-results-observe-sum-bits/compile/eggfuse_related_files/program.json",
+  "provenance": {
+    "pipeline": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-results-observe-sum-bits/compile",
+    "selected_choices": [
+      "to-hoist"
+    ],
+    "marker_count": 47,
+    "source_sha256": "a0014215ec09515311042eff1ccd3df54514e358f68a8d7a70aa54db137a4c12",
+    "source_sk_sha256": "fa9a0d7e23238b5e3ab50ab077f27c976b66b606956218c1f84fd7d49f5bd93a",
+    "source_sk_mk_sha256": "5a41d6ad89e2f790928a5f7ad12fe4539f0e85fad176f5818576efece0b9614e",
+    "program_sha256": "b65524271725f667b08f822f61e9bb92d3d01dd2d8d08fa652d3c3f618fa8d26"
+  },
+  "baked_library": {
+    "path": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-results-observe-sum-bits/compile/passes/analyze/969954f387af08d0a753c8988ed95a1f511a1c461f9c43c2ee9e0785e71ebd6d/result/cell-recipes.json",
+    "sha256": "c66a512a80c623afcaee8e0c9941e3e5d652ea3b233aaa44091787fdcf75a151",
+    "cell_count": 89,
+    "registered_cell_count": 0,
+    "registered_with_program": 0,
+    "counts": {
+      "not_saturated": 89,
+      "unavailable": 89
+    },
+    "reasons": {
+      "In 2:1-103: (function CellStructuralKey-Expr (Expr) CellStructuralKey :merge (cell-key-min old new) :unextractable)\nUndefined sort CellStructuralKey": 89
+    },
+    "live_substitution_authorized": 0
+  },
+  "diagnostic_report": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/cell-read-deformation-sum-bits/diagnostic/runtime/report.json",
+  "diagnostic_report_sha256": "590864b5b187942318eaa41868adbccfa1d9a7fdc9bfd65007b45b3a4f8b875f",
+  "effective_settings": {
+    "CELL_CPU_MERGE_PROGRAMS": "1",
+    "CELL_CPU_KNOWN_RESULTS": "off",
+    "CELL_CPU_UNION_IMPACT": "1",
+    "CELL_CPU_UNION_GRAFT": "0",
+    "CELL_CPU_UNION_TRACE": "0",
+    "CELL_CPU_MARKER_REFUTATION": "0",
+    "CELL_CPU_SIEVE": "0",
+    "CELL_CPU_CONGRUENCE": "0",
+    "CELL_CPU_REFERENCE_VIEWS": "1",
+    "CELL_CPU_MARKER_FIELDS": "copy",
+    "CELL_CPU_ABSORB": "1",
+    "CELL_CPU_MULTISTAGE": "1",
+    "CELL_CPU_COMPOSITIONS": "0"
+  },
+  "total_repair_visits": 2378,
+  "attributed_repair_visits": 2378,
+  "unattributed_repair_visits": 0,
+  "verification": {
+    "snapshots": 1511,
+    "all_tables_including_markers": true,
+    "exact_graphs_bindings_visibility_and_schedule": true,
+    "streamer_sha256": "8d7d22797cbf403cc9f0a470948ec5f97646724b45c509a221da39d2eac50eb8"
+  },
+  "verification_reused_from": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/cell-read-deformation-sum-bits/summary.json"
+}
