@@ -89,6 +89,7 @@ pub struct Executor {
     column_queries: bool,
     query_indexes: QueryIndexes,
     sieve: crate::sieve::Sieve,
+    refutation: crate::refutation::Refutation,
     profile_queries: bool,
     query_profile: Vec<(u64, f64, u64)>,
     progress: bool,
@@ -171,6 +172,11 @@ impl Executor {
         let sieve = crate::sieve::Sieve::new(&graph.program);
         let mut query_indexes = QueryIndexes::default();
         query_indexes.track_changes = sieve.enabled;
+        // Sieve rejections have their own dependency graph, not these read
+        // leases. Keep the prototype paths separate rather than under-record it.
+        let refutation_enabled =
+            std::env::var("CELL_CPU_MARKER_REFUTATION").as_deref() == Ok("1") && !sieve.enabled;
+        query_indexes.watch_reads = refutation_enabled;
         let mut e = Self {
             compositions_enabled: std::env::var("CELL_CPU_COMPOSITIONS").as_deref() == Ok("1"),
             composition_stats: CompositionStats::default(),
@@ -188,6 +194,7 @@ impl Executor {
             column_queries: std::env::var("CELL_CPU_QUERY_MODE").as_deref() != Ok("reverse"),
             query_indexes,
             sieve,
+            refutation: crate::refutation::Refutation::new(refutation_enabled),
             profile_queries: std::env::var_os("CELL_CPU_PROFILE").is_some(),
             query_profile: vec![(0, 0.0, 0); n],
             progress: std::env::var_os("CELL_CPU_PROGRESS").is_some(),
@@ -234,6 +241,111 @@ impl Executor {
         epoch: u64,
         out: &mut Vec<Binding>,
         delta: Option<(usize, u64, Dependency)>,
+    ) -> Result<()> {
+        if !self.refutation.enabled {
+            return self.solve_inner(query, rid, remaining, env, epoch, out, delta, None);
+        }
+        let markers = if self.refutation.enabled {
+            query
+                .iter()
+                .enumerate()
+                .filter_map(|(i, a)| match a.call {
+                    Call::Table(t)
+                        if !remaining[i] && self.graph.program.views.markers.contains(&t) =>
+                    {
+                        Some((i, t))
+                    }
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+        } else {
+            vec![]
+        };
+        // Scope: suppress a residual JOIN, not claim credit for one empty lookup.
+        let tables = query
+            .iter()
+            .enumerate()
+            .filter(|(i, a)| remaining[*i] && matches!(a.call, Call::Table(_)))
+            .count();
+        if markers.is_empty() || tables < 2 {
+            return self.solve_inner(query, rid, remaining, env, epoch, out, delta, None);
+        }
+        use crate::refutation::{Operand, Operator};
+        let mut variables = BTreeMap::new();
+        let key = crate::refutation::Key {
+            atoms: query
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| remaining[*i])
+                .map(|(_, a)| {
+                    let op = match &a.call {
+                        Call::Table(t) => Operator::Table(*t),
+                        Call::Primitive(n, o) => Operator::Primitive(n.clone(), o.clone()),
+                    };
+                    let args = a
+                        .args
+                        .iter()
+                        .map(|a| {
+                            if let Some(v) = operand(a, env, &self.graph) {
+                                Operand::Bound(v)
+                            } else {
+                                let Arg::Slot(s) = a else { unreachable!() };
+                                let next = variables.len();
+                                Operand::Variable(*variables.entry(*s).or_insert(next))
+                            }
+                        })
+                        .collect();
+                    (op, args)
+                })
+                .collect(),
+        };
+        if self
+            .refutation
+            .reject(rid, &key, &self.query_indexes, &self.graph)
+        {
+            return Ok(());
+        }
+        let mut proof = crate::refutation::Evidence::default();
+        for (i, t) in markers {
+            let bound = query[i]
+                .args
+                .iter()
+                .map(|a| operand(a, env, &self.graph))
+                .collect::<Vec<_>>();
+            proof
+                .reads
+                .push(self.query_indexes.read_stamp(&self.graph, t, &bound)?);
+        }
+        let before = out.len();
+        let candidates = self.graph.stats.residual_candidates;
+        self.solve_inner(
+            query,
+            rid,
+            remaining,
+            env,
+            epoch,
+            out,
+            delta,
+            Some(&mut proof),
+        )?;
+        self.refutation.finish(
+            key,
+            proof,
+            self.graph.stats.residual_candidates - candidates,
+            out.len() != before,
+        );
+        Ok(())
+    }
+    fn solve_inner(
+        &mut self,
+        query: &[Atom],
+        rid: usize,
+        remaining: &mut [bool],
+        env: &mut QueryEnv,
+        epoch: u64,
+        out: &mut Vec<Binding>,
+        delta: Option<(usize, u64, Dependency)>,
+        mut evidence: Option<&mut crate::refutation::Evidence>,
     ) -> Result<()> {
         if !remaining.iter().any(|pending| *pending) {
             out.push(Binding {
@@ -293,12 +405,31 @@ impl Executor {
                 )? {
                     let mark = env.trail.len();
                     if bind(atom.args.last().unwrap(), &v, env, &self.graph) {
-                        self.solve(query, rid, remaining, env, epoch, out, delta)?;
+                        self.solve_inner(
+                            query,
+                            rid,
+                            remaining,
+                            env,
+                            epoch,
+                            out,
+                            delta,
+                            evidence.as_deref_mut(),
+                        )?;
                     }
                     env.rollback(mark);
                 }
             }
             Call::Table(t) => {
+                if let Some(proof) = evidence.as_deref_mut() {
+                    let bound = atom
+                        .args
+                        .iter()
+                        .map(|a| operand(a, env, &self.graph))
+                        .collect::<Vec<_>>();
+                    proof
+                        .reads
+                        .push(self.query_indexes.read_stamp(&self.graph, *t, &bound)?);
+                }
                 let key = atom.args[..atom.args.len() - 1]
                     .iter()
                     .map(|a| operand(a, &env, &self.graph))
@@ -337,12 +468,16 @@ impl Executor {
                     // Disjoint partition by latest committed witness, then atom.
                     // Within one RHS, later recipe positions (outer constructors)
                     // own the match instead of their earlier constituent leaves.
-                    if r.hidden
-                        || delta.is_some_and(|(pivot, epoch, witness)| {
-                            (r.epoch, r.witness) > (epoch, witness)
-                                || ((r.epoch, r.witness) == (epoch, witness) && chosen < pivot)
-                        })
-                    {
+                    if r.hidden {
+                        continue;
+                    }
+                    if delta.is_some_and(|(pivot, epoch, witness)| {
+                        (r.epoch, r.witness) > (epoch, witness)
+                            || ((r.epoch, r.witness) == (epoch, witness) && chosen < pivot)
+                    }) {
+                        if let Some(proof) = evidence.as_deref_mut() {
+                            proof.delta_restricted = true;
+                        }
                         continue;
                     }
                     let mark = env.trail.len();
@@ -353,7 +488,23 @@ impl Executor {
                         .all(|(a, v)| bind(a, v, env, &self.graph))
                     {
                         env.record(chosen, Some(r.witness));
-                        self.solve(query, rid, remaining, env, epoch.max(r.epoch), out, delta)?;
+                        if self.refutation.enabled
+                            && evidence.is_none()
+                            && self.graph.program.views.markers.contains(t)
+                        {
+                            self.solve(query, rid, remaining, env, epoch.max(r.epoch), out, delta)?;
+                        } else {
+                            self.solve_inner(
+                                query,
+                                rid,
+                                remaining,
+                                env,
+                                epoch.max(r.epoch),
+                                out,
+                                delta,
+                                evidence.as_deref_mut(),
+                            )?;
+                        }
                         env.record(chosen, None);
                     }
                     env.rollback(mark);
@@ -1345,6 +1496,9 @@ impl Executor {
             self.query_indexes.update(&mut self.graph)?;
             self.sieve.publish(&mut self.query_indexes);
         }
+        if self.refutation.enabled {
+            self.refutation.publish(&self.query_indexes, &self.graph);
+        }
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.deliver();
@@ -1552,6 +1706,6 @@ impl Executor {
         Ok(e)
     }
     pub fn report(&self) -> J {
-        json!({"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

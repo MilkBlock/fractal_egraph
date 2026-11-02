@@ -39,7 +39,7 @@ impl Columns {
         }
         keys.len()
     }
-    fn put(&mut self, row: Row, bits: u32) -> (usize, usize) {
+    fn put(&mut self, row: Row, bits: u32, watch_reads: bool) -> (usize, usize) {
         if row.hidden {
             return (self.remove(row.witness), 0);
         }
@@ -49,6 +49,15 @@ impl Columns {
             .map(|v| fingerprint(v, bits))
             .collect::<Vec<_>>();
         if self.keys.get(&row.witness) == Some(&keys) {
+            // Equal fingerprints do not prove unchanged exact values (including
+            // forced collisions). Every changed witness invalidates read leases.
+            if watch_reads {
+                for (col, key) in keys.iter().enumerate() {
+                    let bucket = self.values[col].get_mut(key).unwrap();
+                    bucket.view = None;
+                    bucket.refinements.clear();
+                }
+            }
             return (0, 0);
         }
         let removed = self.remove(row.witness);
@@ -94,6 +103,7 @@ pub struct RefinementStats {
     pub avoided: u64,
 }
 pub struct QueryIndexes {
+    pub watch_reads: bool,
     tables: HashMap<usize, Columns>,
     references: usize,
     bits: u32,
@@ -111,9 +121,24 @@ pub enum Domain {
     One(Dependency),
     Many,
 }
+/// A lease on a complete candidate superset. Empty buckets need no tombstones:
+/// they stay valid exactly while the current index still has no such bucket.
+pub enum ReadStamp {
+    Bucket {
+        table: usize,
+        column: usize,
+        hash: u64,
+        view: Option<Rc<Vec<Dependency>>>,
+    },
+    Table {
+        table: usize,
+        version: u64,
+    },
+}
 impl Default for QueryIndexes {
     fn default() -> Self {
         Self {
+            watch_reads: false,
             tables: HashMap::new(),
             references: 0,
             intersection: std::env::var("CELL_CPU_JOIN_INTERSECTION").as_deref() == Ok("1"),
@@ -132,6 +157,57 @@ impl Default for QueryIndexes {
     }
 }
 impl QueryIndexes {
+    pub fn read_stamp(
+        &mut self,
+        graph: &Graph,
+        table: usize,
+        bound: &[Option<Value>],
+    ) -> Result<ReadStamp> {
+        self.ensure(graph, table)?;
+        let index = self.tables.get_mut(&table).unwrap();
+        if let Some((column, hash, _)) = index.best(bound, self.bits) {
+            let view = index.values[column].get_mut(&hash).map(|bucket| {
+                bucket
+                    .view
+                    .get_or_insert_with(|| Rc::new(bucket.facts.iter().copied().collect()))
+                    .clone()
+            });
+            Ok(ReadStamp::Bucket {
+                table,
+                column,
+                hash,
+                view,
+            })
+        } else {
+            Ok(ReadStamp::Table {
+                table,
+                version: index.version,
+            })
+        }
+    }
+    pub fn valid_read(&self, graph: &Graph, stamp: &ReadStamp) -> bool {
+        let table = match stamp {
+            ReadStamp::Bucket { table, .. } | ReadStamp::Table { table, .. } => *table,
+        };
+        let Some(index) = self.tables.get(&table) else {
+            return false;
+        };
+        if index.version != graph.query_versions[table] {
+            return false;
+        }
+        match stamp {
+            ReadStamp::Table { version, .. } => index.version == *version,
+            ReadStamp::Bucket {
+                column, hash, view, ..
+            } => match (view, index.values[*column].get(hash)) {
+                (None, None) => true,
+                (Some(old), Some(bucket)) => {
+                    bucket.view.as_ref().is_some_and(|now| Rc::ptr_eq(old, now))
+                }
+                _ => false,
+            },
+        }
+    }
     pub fn domain(
         &mut self,
         graph: &Graph,
@@ -174,7 +250,7 @@ impl QueryIndexes {
             if let Some(index) = self.tables.get_mut(&table) {
                 let (removed, added) = if let Some(row) = graph.row(fact)? {
                     self.updated_facts += 1;
-                    index.put(row, self.bits)
+                    index.put(row, self.bits, self.watch_reads)
                 } else {
                     (index.remove(fact), 0)
                 };
@@ -210,7 +286,7 @@ impl QueryIndexes {
             for fact in graph.witnesses(table) {
                 self.decoded_facts += 1;
                 if let Some(row) = graph.row(fact)? {
-                    let (_, added) = index.put(row, self.bits);
+                    let (_, added) = index.put(row, self.bits, self.watch_reads);
                     self.references += added;
                 }
             }
