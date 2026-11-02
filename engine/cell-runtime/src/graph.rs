@@ -167,6 +167,12 @@ pub struct Graph {
     pub changed: bool,
     pub stats: Stats,
     pub pending_unions: Vec<(u64, u64)>,
+    pub union_lineage_enabled: bool,
+    pub union_lineage: crate::union_graft::Lineage,
+    pub active_union_cause: Option<crate::union_graft::Cause>,
+    pending_union_causes: Vec<crate::union_graft::Cause>,
+    union_old_keys: BTreeMap<Dependency, Vec<Value>>,
+    pub union_roots: BTreeSet<u64>,
     pub events: Vec<Dependency>,
     pub anchors: Vec<(String, String, u64)>,
     pub next_cell: u32,
@@ -195,7 +201,7 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
 }
 impl Graph {
     pub fn image(&self) -> J {
-        json!({"key_lookup_calls":self.key_lookup_calls.get(),"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"marker_fields_copied":self.marker_fields_copied,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
+        json!({"union_lineage":self.union_lineage,"key_lookup_calls":self.key_lookup_calls.get(),"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"marker_fields_copied":self.marker_fields_copied,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
     }
     pub fn restore(program: Program, image: &J) -> Result<Self> {
         fn decode<T: serde::de::DeserializeOwned>(j: &J) -> Result<T> {
@@ -298,6 +304,10 @@ impl Graph {
         }
         g.functions = decode(&image["functions"])?;
         g.parents = decode(&image["parents"])?;
+        if g.union_lineage_enabled && !image["union_lineage"].is_null() {
+            g.union_lineage = decode(&image["union_lineage"])?;
+            g.union_lineage.validate(&g.parents)?;
+        }
         g.epoch = decode(&image["epoch"])?;
         g.stats = decode(&image["stats"])?;
         g.key_lookup_calls
@@ -418,6 +428,13 @@ impl Graph {
             changed: false,
             stats: Stats::default(),
             pending_unions: vec![],
+            union_lineage_enabled: std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
+                || std::env::var("CELL_CPU_UNION_TRACE").as_deref() == Ok("1"),
+            union_lineage: Default::default(),
+            active_union_cause: None,
+            pending_union_causes: vec![],
+            union_old_keys: BTreeMap::new(),
+            union_roots: BTreeSet::new(),
             events: vec![],
             anchors: vec![],
             next_cell: 1,
@@ -1024,15 +1041,52 @@ impl Graph {
             return Err("union requires equality values".into());
         };
         self.pending_unions.push((a, b));
+        if self.union_lineage_enabled {
+            self.pending_union_causes.push(
+                self.active_union_cause
+                    .clone()
+                    .unwrap_or(crate::union_graft::Cause::External),
+            );
+        }
         Ok(())
     }
-    fn union(&mut self, a: u64, b: u64) {
+    fn union(&mut self, a: u64, b: u64, cause: crate::union_graft::Cause) -> Result<()> {
+        let requested = [a, b];
         let a = root(&self.parents, a);
         let b = root(&self.parents, b);
         if a == b {
-            return;
+            return Ok(());
         }
         let (lo, hi) = (a.min(b), a.max(b));
+        if self.union_lineage_enabled {
+            // Save only dirty keys, not a permanent copy of all fact rows.
+            for d in self
+                .uses
+                .get(&hi)
+                .into_iter()
+                .flatten()
+                .copied()
+                .collect::<Vec<_>>()
+            {
+                if self.union_old_keys.contains_key(&d) {
+                    continue;
+                }
+                if let Some(row) = self.row(d)? {
+                    let key = &row.values[..row.values.len() - 1];
+                    let mut ids = BTreeSet::new();
+                    for v in key {
+                        Self::refs(v, &mut ids);
+                    }
+                    if ids.contains(&hi) {
+                        self.union_old_keys.insert(d, key.to_vec());
+                    }
+                }
+            }
+            self.union_lineage
+                .record(self.epoch, requested, a, b, cause, &self.parents);
+            self.union_roots.insert(lo);
+            self.union_roots.insert(hi);
+        }
         self.parents.insert(hi, lo);
         let mut affected = self.uses.remove(&hi).unwrap_or_default();
         affected.extend(self.uses.get(&lo).into_iter().flatten().copied());
@@ -1040,6 +1094,30 @@ impl Graph {
         self.uses.insert(lo, affected);
         self.stats.unions += 1;
         self.changed = true;
+        Ok(())
+    }
+    /// Complete visible scalar equality incidences from the existing reverse
+    /// dependency index, including non-root argument positions.
+    pub fn equality_neighbors(&self, id: u64, tables: &BTreeSet<usize>) -> Result<Vec<Row>> {
+        let mut rows = vec![];
+        for d in self
+            .uses
+            .get(&root(&self.parents, id))
+            .into_iter()
+            .flatten()
+        {
+            if self
+                .dependency_table(*d)
+                .is_some_and(|t| tables.contains(&t))
+            {
+                if let Some(row) = self.row(*d)?
+                    && !row.hidden
+                {
+                    rows.push(row);
+                }
+            }
+        }
+        Ok(rows)
     }
     fn mark_affected(&mut self, affected: &BTreeSet<Dependency>) {
         for d in affected {
@@ -1077,7 +1155,15 @@ impl Graph {
             }
         }
     }
-    fn union_local_batch(&mut self, pairs: &[(u64, u64)]) {
+    fn union_local_batch(&mut self, pairs: &[(u64, u64)]) -> Result<()> {
+        if self.union_lineage_enabled {
+            for &(a, b) in pairs {
+                let before = self.stats.unions;
+                self.union(a, b, crate::union_graft::Cause::LocalCongruence)?;
+                self.congruence_stats.proven_unions += self.stats.unions - before;
+            }
+            return Ok(());
+        }
         let mut affected = BTreeSet::new();
         for &(a, b) in pairs {
             let (a, b) = (root(&self.parents, a), root(&self.parents, b));
@@ -1098,6 +1184,7 @@ impl Graph {
         // No callback or query runs within a proved union batch. Dependencies
         // are notified once after all its internal equivalences are installed.
         self.mark_affected(&affected);
+        Ok(())
     }
     pub fn set(&mut self, cell: u32, op: usize, t: usize, aa: &[Arg], v: &Arg) -> Result<()> {
         let key = self.arguments(cell, aa)?;
@@ -1379,8 +1466,13 @@ impl Graph {
         loop {
             if !self.pending_unions.is_empty() {
                 let pairs = std::mem::take(&mut self.pending_unions);
+                let mut causes = std::mem::take(&mut self.pending_union_causes).into_iter();
                 for (a, b) in pairs {
-                    self.union(a, b);
+                    self.union(
+                        a,
+                        b,
+                        causes.next().unwrap_or(crate::union_graft::Cause::External),
+                    )?;
                 }
                 continue;
             }
@@ -1424,10 +1516,34 @@ impl Graph {
                     if let Some(other) = found {
                         self.stats.repair_collisions += 1;
                         if self.program.tables[r.table].constructor {
+                            if self.union_lineage_enabled {
+                                let a = self
+                                    .union_old_keys
+                                    .get(&d)
+                                    .cloned()
+                                    .unwrap_or_else(|| key.to_vec());
+                                let b = self
+                                    .union_old_keys
+                                    .get(&other.witness)
+                                    .cloned()
+                                    .unwrap_or_else(|| {
+                                        other.values[..other.values.len() - 1].to_vec()
+                                    });
+                                if let Dependency::Fact(right) = other.witness {
+                                    self.active_union_cause = Some(self.union_lineage.congruence(
+                                        f,
+                                        right,
+                                        &a,
+                                        &b,
+                                        &self.parents,
+                                    ));
+                                }
+                            }
                             self.enqueue_union(
                                 r.values.last().unwrap().clone(),
                                 other.values.last().unwrap().clone(),
                             )?;
+                            self.active_union_cause = None;
                         }
                         if let Dependency::Fact(keep) = other.witness {
                             self.query_versions[r.table] += 1;
@@ -1462,6 +1578,7 @@ impl Graph {
                         self.subscribe(d, &r.values);
                         self.events.push(d);
                     }
+                    self.union_old_keys.remove(&d);
                 }
                 Dependency::Function(i) => {
                     let Some(row) = self.function(i) else {
@@ -1501,6 +1618,7 @@ impl Graph {
                 }
             }
         }
+        self.union_old_keys.clear();
         Ok(())
     }
     fn repair_local_congruence(&mut self, cell: u32) -> Result<()> {
@@ -1572,7 +1690,7 @@ impl Graph {
             }
         }
         if !pairs.is_empty() {
-            self.union_local_batch(&pairs);
+            self.union_local_batch(&pairs)?;
         }
         // Known local duplicates do not need another global signature probe.
         // The surviving occurrence remains dirty and must still meet any

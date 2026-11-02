@@ -65,6 +65,8 @@ def validate(program):
     if 'reference_views' not in program:expected.pop('reference_views')
     if 'multi_stage' not in program:  # Existing v1 controls remain valid, without optimization.
         expected.pop('multi_stage')
+    elif 'union_entries' not in program['multi_stage']:
+        expected['multi_stage'].pop('union_entries',None)  # Old artifact; new union-graft mode requires re-emission.
     if 'congruence' not in program: expected.pop('congruence')
     if 'merge_contracts' not in program: expected.pop('merge_contracts')
     expected['sha256']=digest({k:v for k,v in expected.items() if k!='sha256'})

@@ -100,6 +100,14 @@ impl Program {
         if j["schema"] != "eggfuse-cell-runtime/v1" {
             return Err("unsupported Cell runtime artifact".into());
         }
+        if std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
+            && j["multi_stage"]["union_entries"].is_null()
+        {
+            return Err(
+                "union graft requires compiler union_entries; re-emit the CPU device artifact"
+                    .into(),
+            );
+        }
         let ir = &j["recipe"];
         if ir["schema"] != "eggfuse-recipe/v1" || ir["scope"] != "original_program" {
             return Err("expected original-program Recipe IR".into());

@@ -90,6 +90,7 @@ pub struct Executor {
     query_indexes: QueryIndexes,
     sieve: crate::sieve::Sieve,
     refutation: crate::refutation::Refutation,
+    union_grafts: crate::union_graft::Grafts,
     profile_queries: bool,
     query_profile: Vec<(u64, f64, u64)>,
     progress: bool,
@@ -179,6 +180,10 @@ impl Executor {
         let refutation_enabled =
             std::env::var("CELL_CPU_MARKER_REFUTATION").as_deref() == Ok("1") && !sieve.enabled;
         query_indexes.watch_reads = refutation_enabled;
+        let union_grafts = crate::union_graft::Grafts::new(
+            &graph.program,
+            std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1"),
+        );
         let mut e = Self {
             compositions_enabled: std::env::var("CELL_CPU_COMPOSITIONS").as_deref() == Ok("1"),
             composition_stats: CompositionStats::default(),
@@ -197,6 +202,7 @@ impl Executor {
             query_indexes,
             sieve,
             refutation: crate::refutation::Refutation::new(refutation_enabled),
+            union_grafts,
             profile_queries: std::env::var_os("CELL_CPU_PROFILE").is_some(),
             query_profile: vec![(0, 0.0, 0); n],
             progress: std::env::var_os("CELL_CPU_PROGRESS").is_some(),
@@ -976,6 +982,65 @@ impl Executor {
         }
         Ok((true, epoch, Some((route.producer, depth))))
     }
+    fn match_union_graft(
+        &mut self,
+        rid: usize,
+        pivot: usize,
+        seed: &Row,
+        env: &mut QueryEnv,
+        out: &mut Vec<Binding>,
+    ) -> Result<bool> {
+        let Some((other, rows)) = self.union_grafts.route(&self.graph, rid, pivot, seed) else {
+            return Ok(false);
+        };
+        let query = self.graph.program.rules[rid].query.clone();
+        let before = out.len();
+        for row in rows {
+            self.union_grafts.stats.candidate_pairs += 1;
+            if row.hidden
+                || (row.epoch, row.witness) > (seed.epoch, seed.witness)
+                || ((row.epoch, row.witness) == (seed.epoch, seed.witness) && other < pivot)
+            {
+                continue;
+            }
+            let mark = env.trail.len();
+            if query[other]
+                .args
+                .iter()
+                .zip(&row.values)
+                .all(|(a, v)| bind(a, v, env, &self.graph))
+            {
+                env.record(other, Some(row.witness));
+                let mut remaining = (0..query.len())
+                    .map(|i| i != pivot && i != other)
+                    .collect::<Vec<_>>();
+                // Only primitives remain. Effects still enter the ordinary
+                // StagePatch and are invisible until the source Run publishes.
+                self.solve_inner(
+                    &query,
+                    rid,
+                    &mut remaining,
+                    env,
+                    seed.epoch.max(row.epoch),
+                    out,
+                    Some((pivot, seed.epoch, seed.witness)),
+                    None,
+                )?;
+                env.record(other, None);
+            }
+            env.rollback(mark);
+        }
+        self.union_grafts.stats.bindings += (out.len() - before) as u64;
+        if out.len() > before {
+            *self
+                .union_grafts
+                .stats
+                .bindings_by_rule
+                .entry(rid)
+                .or_default() += (out.len() - before) as u64;
+        }
+        Ok(true)
+    }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
         let full_witnesses = !self.graph.marker_fields_copied
@@ -1191,6 +1256,9 @@ impl Executor {
                             .collect::<Vec<_>>();
                         let mut epoch = row.epoch;
                         env.record(pivot, Some(row.witness));
+                        if self.match_union_graft(rid, pivot, row, &mut env, &mut found)? {
+                            continue;
+                        }
                         self.attach_recipe_context(rid, pivot, row, &mut env);
                         if self.reject_entry(rid, &rule.query, &remaining, &env) {
                             continue;
@@ -1414,6 +1482,13 @@ impl Executor {
         let ops = self.graph.program.templates[template].ops.clone();
         let mut completed = true;
         for (i, op) in ops.iter().enumerate() {
+            if self.graph.union_lineage_enabled {
+                self.graph.active_union_cause = Some(crate::union_graft::Cause::Apply {
+                    rule: rid,
+                    frame: cell,
+                    op: i,
+                });
+            }
             match op {
                 Op::Copy(..) => {}
                 Op::Let(dst, Call::Table(t), aa) => {
@@ -1488,6 +1563,7 @@ impl Executor {
                 Op::Panic => return Err("source panic".into()),
             }
         }
+        self.graph.active_union_cause = None;
         if origin.is_some() {
             self.continuation_stats.published_facts +=
                 self.graph.stats.logical_facts_created - facts;
@@ -1591,6 +1667,8 @@ impl Executor {
         }
         let repair_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
+        let union_roots = std::mem::take(&mut self.graph.union_roots);
+        self.union_grafts.publish(&self.graph, union_roots)?;
         if std::env::var("CELL_CPU_QUERY_INDEX_SCOPE").as_deref() == Ok("table") {
             self.query_indexes.invalidate(&self.graph);
             self.sieve.invalidate();
@@ -1809,6 +1887,6 @@ impl Executor {
         Ok(e)
     }
     pub fn report(&self) -> J {
-        json!({"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

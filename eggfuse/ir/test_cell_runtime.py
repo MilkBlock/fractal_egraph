@@ -38,4 +38,11 @@ class ContractTests(unittest.TestCase):
   with self.assertRaises(ValueError):validate(p)
  def test_legacy_artifact_has_no_synthetic_guarantees(self):
   p=build(self.core());p.pop('multi_stage');p['sha256']=digest({k:v for k,v in p.items() if k!='sha256'});self.assertEqual(validate(p),self.core())
+ def test_union_entry_is_derived_from_typed_wiring(self):
+  p=build(self.chain_core());self.assertTrue(p['multi_stage']['union_entries'])
+  p['multi_stage']['union_entries'][0]['columns'][0]+=1;p['sha256']=digest({k:v for k,v in p.items() if k!='sha256'})
+  with self.assertRaises(ValueError):validate(p)
+ def test_legacy_multistage_can_be_reemitted(self):
+  p=build(self.chain_core());p['multi_stage'].pop('union_entries');p['sha256']=digest({k:v for k,v in p.items() if k!='sha256'})
+  self.assertEqual(validate(p),self.chain_core())
 if __name__=='__main__':unittest.main()

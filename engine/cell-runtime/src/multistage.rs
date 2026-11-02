@@ -108,6 +108,13 @@ impl MultiStage {
         if raw.is_null() {
             return Ok(Self::default());
         }
+        if !raw["union_entries"].is_null()
+            && raw["union_entries"]
+                != serde_json::to_value(crate::union_graft::compile(program))
+                    .map_err(|e| e.to_string())?
+        {
+            return Err("union Spine entry differs from typed source query".into());
+        }
         if raw["schema"] != "eggfuse-multistage/v1"
             || raw["recipe_sha256"] != program.artifact["recipe"]["sha256"]
             || raw["control"] != program.artifact["recipe"]["control"]

@@ -11,6 +11,25 @@ from eggfuse.ir.recipe import digest
 
 SCHEMA = 'eggfuse-multistage/v1'
 
+def union_entries(recipe):
+    """Exact two-constructor joins, including key-to-result/non-root grafts."""
+    tables={t['name']:t for t in recipe['tables']}; result=[]
+    for rid,r in enumerate(recipe['rules']):
+        atoms=[i for i,a in enumerate(r['query']) if 'table' in a['call']]
+        if len(atoms)!=2:continue
+        positions=[]
+        for i in atoms:
+            a=r['query'][i];t=tables[a['call']['table']]
+            if t['kind']!='constructor':break
+            pos={}
+            for col,arg in enumerate(a['args']):
+                if 'slot' in arg and t['schema'][col]['kind']=='eq':pos.setdefault(arg['slot'],col)
+            positions.append(pos)
+        if len(positions)==2:
+            for slot in sorted(positions[0].keys() & positions[1].keys()):
+                result.append(dict(rule=rid,slot=slot,atoms=atoms,columns=[p[slot] for p in positions]))
+    return result
+
 def symbol(arg):
     return ('slot',arg['slot']) if 'slot' in arg else ('literal',json.dumps(arg,sort_keys=True,separators=(',',':')))
 
@@ -124,7 +143,7 @@ def build(recipe):
     # Rule nodes and these edges form a finite shared recipe graph, including SCCs.
     # Repeat/Saturate stay as control instructions, never copied into unbounded paths.
     return dict(schema=SCHEMA, recipe_sha256=recipe['sha256'], control=recipe['control'],
-        rule_sets=[dict(name=s['name'],rule_ids=s['rule_ids']) for s in recipe['rulesets']], routes=routes, entries=entries, finishes=finishes, data_loaders=loaders,
+        rule_sets=[dict(name=s['name'],rule_ids=s['rule_ids']) for s in recipe['rulesets']], routes=routes, entries=entries, finishes=finishes, data_loaders=loaders, union_entries=union_entries(recipe),
         contract=dict(activation='committed producer fact; current visible exhaustive projection',
             publication='original Run occurrence, after all entry bindings are gathered',
             late_input='ordinary delta route remains authoritative',

@@ -11,6 +11,7 @@ pub mod query;
 pub mod refutation;
 pub mod schedule;
 pub mod value;
+pub mod union_graft;
 
 pub mod sieve;
 
