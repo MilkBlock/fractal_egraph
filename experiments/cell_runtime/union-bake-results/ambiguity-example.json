@@ -1,0 +1,197 @@
+{
+  "scope": "same input projection, different repair outcome; not complete Cell equivalence",
+  "program_sha256": "bab11f703d313e82828f1a67187ec6592b4fa60e877389d0caa62424bbe08086",
+  "source_rule": "(rule ((Get expr i))\n      ((union (Single (Get expr i)) (SubTuple expr i 1)))\n        :ruleset always-run )",
+  "trigger_rules": {
+    "516": "(rewrite (AddContext ctx (Uop op c1)) (Uop op (AddContext ctx c1)) :ruleset context)"
+  },
+  "cohort": {
+    "source_projection_and_ordered_delta": [
+      251,
+      "context",
+      [
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      [
+        [
+          2,
+          0
+        ]
+      ],
+      [
+        [
+          {
+            "kind": "input_external",
+            "leaf": false,
+            "opponents": {
+              "AddContext": 1,
+              "Get": 2
+            },
+            "peer_outputs": [],
+            "peer_slots": [],
+            "slot": 2
+          }
+        ]
+      ],
+      null,
+      {
+        "0": {
+          "Single": 1,
+          "SubTuple": 2
+        },
+        "2": {
+          "Get": 2,
+          "Uop": 1
+        }
+      },
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "observation_refs": [
+      {
+        "epoch": 1185,
+        "frame": 1126,
+        "direct_events": [
+          938
+        ]
+      },
+      {
+        "epoch": 1185,
+        "frame": 8915,
+        "direct_events": [
+          939
+        ]
+      }
+    ],
+    "trigger_rules": [
+      516
+    ],
+    "observed_target_projections": [
+      {
+        "target": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            [
+              2,
+              0
+            ]
+          ],
+          [],
+          [
+            {
+              "after": {
+                "AddContext": 1,
+                "Single": 1,
+                "SubTuple": 2
+              },
+              "before": {
+                "Single": 1,
+                "SubTuple": 2
+              },
+              "slot": 0
+            },
+            {
+              "after": {
+                "AddContext": 1,
+                "Get": 2,
+                "Uop": 1
+              },
+              "before": {
+                "Get": 2,
+                "Uop": 1
+              },
+              "slot": 2
+            }
+          ]
+        ],
+        "count": 1
+      },
+      {
+        "target": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            [
+              2,
+              0
+            ]
+          ],
+          [],
+          [
+            {
+              "after": {
+                "AddContext": 1,
+                "Single": 1,
+                "SubTuple": 2
+              },
+              "before": {
+                "Single": 1,
+                "SubTuple": 2
+              },
+              "slot": 0
+            },
+            {
+              "after": {
+                "AddContext": 1,
+                "Get": 3,
+                "Uop": 1
+              },
+              "before": {
+                "Get": 2,
+                "Uop": 1
+              },
+              "slot": 2
+            }
+          ]
+        ],
+        "count": 1
+      }
+    ],
+    "requires_more_state": true
+  }
+}

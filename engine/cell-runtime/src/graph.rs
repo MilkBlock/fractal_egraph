@@ -173,6 +173,7 @@ pub struct Graph {
     pending_union_causes: Vec<crate::union_graft::Cause>,
     union_old_keys: BTreeMap<Dependency, Vec<Value>>,
     pub union_roots: BTreeSet<u64>,
+    pub union_impact: Option<crate::union_impact::Survey>,
     pub events: Vec<Dependency>,
     pub anchors: Vec<(String, String, u64)>,
     pub next_cell: u32,
@@ -429,12 +430,14 @@ impl Graph {
             stats: Stats::default(),
             pending_unions: vec![],
             union_lineage_enabled: std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
-                || std::env::var("CELL_CPU_UNION_TRACE").as_deref() == Ok("1"),
+                || std::env::var("CELL_CPU_UNION_TRACE").as_deref() == Ok("1")
+                || std::env::var("CELL_CPU_UNION_IMPACT").as_deref() == Ok("1"),
             union_lineage: Default::default(),
             active_union_cause: None,
             pending_union_causes: vec![],
             union_old_keys: BTreeMap::new(),
             union_roots: BTreeSet::new(),
+            union_impact: (std::env::var("CELL_CPU_UNION_IMPACT").as_deref()==Ok("1")).then(Default::default),
             events: vec![],
             anchors: vec![],
             next_cell: 1,
@@ -491,6 +494,7 @@ impl Graph {
             .map(|((sort, old), id)| (sort, old, id))
             .collect();
         g.repair()?;
+        if let Some(mut survey)=g.union_impact.take() {survey.finish(&g,"bootstrap")?;g.union_impact=Some(survey);}
         g.changed = false;
         Ok(g)
     }
@@ -1058,6 +1062,10 @@ impl Graph {
             return Ok(());
         }
         let (lo, hi) = (a.min(b), a.max(b));
+        if self.union_impact.is_some() {
+            let (hits,scanned,unready)=crate::union_impact::collect(self,a,b)?;
+            self.union_impact.as_mut().unwrap().record(self.union_lineage.events.len(),hits,scanned,unready);
+        }
         if self.union_lineage_enabled {
             // Save only dirty keys, not a permanent copy of all fact rows.
             for d in self
@@ -1118,6 +1126,10 @@ impl Graph {
             }
         }
         Ok(rows)
+    }
+    pub(crate) fn union_affected_owners(&self,a:u64,b:u64)->BTreeSet<u32> {
+        [a,b].into_iter().flat_map(|id|self.uses.get(&id).into_iter().flatten())
+            .filter_map(|d|self.origin(*d).map(|f|f.cell)).collect()
     }
     fn mark_affected(&mut self, affected: &BTreeSet<Dependency>) {
         for d in affected {
@@ -1493,6 +1505,9 @@ impl Graph {
                 }
             }
             self.stats.repaired_dependencies += 1;
+            if self.union_impact.is_some() {
+                if let Some(frame)=self.origin(d).map(|f|f.cell) {self.union_impact.as_mut().unwrap().repair(frame);}
+            }
             match d {
                 Dependency::Fact(f) => {
                     let Some(r) = self.fact(f)? else { continue };

@@ -115,3 +115,11 @@ equivalence is a narrower claim than replacing pristine egglog correctly.
 ## Reference marker views and checked takeover
 
 The official CPU target can emit exact slot projections and conditional containment certificates. `CELL_CPU_REFERENCE_VIEWS=1` enables virtual marker records, reference redirection, inherited continuation entries and body retirement. This remains opt-in: sum-bits passes every Run/binding comparison but is slower. See [REFERENCE_VIEWS.md](REFERENCE_VIEWS.md) for the representation, controls, tests and measured limits.
+
+## Union-driven Bake workload
+
+`CELL_CPU_UNION_IMPACT=1` observes direct union inputs separately from derived
+congruence results, without changing matching. The [survey](UNION_BAKE_SURVEY.md)
+reports the actual compiled library's certification status, per-template impact,
+repair attribution, causal recurrence, and symbolic Bake work requests. It does
+not turn a repeated coarse signature into an executable Cell transition.
