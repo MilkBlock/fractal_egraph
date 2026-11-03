@@ -16,7 +16,7 @@ The primary Cell CPU pipeline is documented in the [repository guide](../../READ
 cargo cpu --source experiments/cpu_multistage/chain.egg --output out/cpu-native --mode native
 ```
 
-The reference driver can also consume saved native CPU plans from the [research snapshot](https://github.com/MilkBlock/fractal_egraph/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5). The standalone Cell compiler produces plans for `cargo cell-run`.
+The reference driver can also consume saved native CPU plans from the [research snapshot](https://github.com/MilkBlock/eggfuse/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5). The standalone Cell compiler produces plans for `cargo cell-run`.
 
 `--plan` may be reused with new input facts, provided the typed rules, schemas and
 schedule are unchanged. Native mode does not require a plan. Existing output

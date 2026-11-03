@@ -98,7 +98,7 @@ partial table after an error.
 ## Source and reproducible checks
 
 - Native runtime: `egglog/src/cpu_cells/staged.rs`.
-The following preparation and experiment tools are available in the [research snapshot](https://github.com/MilkBlock/fractal_egraph/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5).
+The following preparation and experiment tools are available in the [research snapshot](https://github.com/MilkBlock/eggfuse/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5).
 
 - CPU preparation adapter: `eggfuse/compiler/targets/cpu.py`. The shared GPU
   analyzer is unchanged; its composition results are adapted to actual function
