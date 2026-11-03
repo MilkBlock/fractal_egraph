@@ -81,6 +81,7 @@ struct StagePatch {
 struct Produced { rule:usize, depth:u32, values:Vec<Value>, routes:Vec<usize> }
 pub struct Executor {
     stage_spine:crate::stage_spine::Programs,
+    entry_schedule:crate::entry_schedule::Scheduler,
     current_stage:String,
     retained:crate::retained::Contexts,
     local_sat:crate::local_sat::LocalSat,
@@ -132,7 +133,7 @@ struct QueryEnv {
     receipts:Option<Vec<Option<Dependency>>>,
     recipe_context: Option<(usize, u32)>,
     witnesses: MatchedFacts,
-    values: Vec<Option<Value>>,
+    values: crate::entry_schedule::Inputs,
     trail: Vec<usize>,
 }
 impl QueryEnv {
@@ -142,9 +143,13 @@ impl QueryEnv {
             receipts:(receipt_atoms>0).then(||vec![None;receipt_atoms]),
             recipe_context: None,
             witnesses: MatchedFacts::new(witness_slots, full_witnesses),
-            values: vec![None; slots],
+            values: crate::entry_schedule::Inputs::owned(slots),
             trail: vec![],
         }
+    }
+    fn shared(seed:crate::entry_schedule::Seed,witness_slots:usize,full:bool,knowledge:usize,receipts:usize)->Self {
+        Self{known:(knowledge>0).then(||vec![None;knowledge]),receipts:(receipts>0).then(||vec![None;receipts]),recipe_context:None,
+            witnesses:MatchedFacts::new(witness_slots,full),values:crate::entry_schedule::Inputs::shared(seed),trail:vec![]}
     }
     fn record(&mut self, atom: usize, witness: Option<Dependency>) {
         self.witnesses.record(atom, witness);
@@ -223,9 +228,11 @@ impl Executor {
         query_indexes.watch_context_rows=retained.shared();
         let mut stage_spine=crate::stage_spine::Programs::new(&graph.program);
         stage_spine.audit_receipts=audit;
-        graph.receipt_tracking=stage_spine.enabled && stage_spine.receipts;
+        let entry_schedule=crate::entry_schedule::Scheduler::new(&graph.program,
+            std::env::var("CELL_CPU_SHARED_NODE_SCHEDULE").as_deref()==Ok("1") && !matches!(std::env::var("CELL_CPU_QUERY_MODE").as_deref(),Ok("scan"|"indexed")));
+        graph.receipt_tracking=(stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
-            stage_spine,current_stage:String::new(),
+            stage_spine,entry_schedule,current_stage:String::new(),
             retained,
             local_sat,local_run:None,semantic_audit:vec![],
             compositions_enabled: std::env::var("CELL_CPU_COMPOSITIONS").as_deref() == Ok("1"),
@@ -263,6 +270,7 @@ impl Executor {
                 Ok("scan" | "indexed")
             ),
         };
+        e.entry_schedule.publish(&e.graph);
         e.deliver();
         e.graph.query_changes.clear();
         e
@@ -279,7 +287,7 @@ impl Executor {
             if let Some(table) = self.graph.live_table(event) {
                 for &rid in &self.readers[table] {
                     self.dirty.insert(rid);
-                    if self.graph.program.rules[rid].direct.is_some() || self.delta_queries {
+                    if !self.entry_schedule.accepts(rid) && (self.graph.program.rules[rid].direct.is_some() || self.delta_queries) {
                         self.pending[rid].insert(event);
                     }
                 }
@@ -1297,10 +1305,15 @@ impl Executor {
             }
             return Ok(vec![]);
         }
+        let scheduled=if !probe && self.entry_schedule.accepts(rid) {
+            Some(self.entry_schedule.seeds(&self.graph,rid,self.watermarks[rid])?)
+        } else {None};
         let mut stage_covered = BTreeSet::new();
         let mut found = vec![];
         if !probe && rule.seminaive && self.delta_queries {
-            if let Some(coverage)=self.stage_spine.answers(&mut self.graph,rid,&self.pending[rid],self.watermarks[rid])? {
+            let coverage=if let Some(seeds)=&scheduled {self.stage_spine.answers_scheduled(&mut self.graph,rid,seeds,self.watermarks[rid])?}
+                else {self.stage_spine.answers(&mut self.graph,rid,&self.pending[rid],self.watermarks[rid])?};
+            if let Some(coverage)=coverage {
                 found = coverage.answers.into_iter().map(|a| {
                     let receipts=(receipt_atoms>0).then(||a.witnesses.clone());
                     let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
@@ -1338,32 +1351,26 @@ impl Executor {
             let Call::Table(t) = atom.call else {
                 unreachable!()
             };
-            let candidates = if probe || !rule.seminaive {
+            let candidates = if let Some(seeds)=&scheduled {seeds.iter().map(|s|s.packet.row.witness).collect()}
+            else if probe || !rule.seminaive {
                 self.graph.witnesses(t)
             } else {
                 std::mem::take(&mut self.pending[rid]).into_iter().collect()
             };
-            for w in candidates {
+            for (seed_index,w) in candidates.into_iter().enumerate() {
                 if stage_covered.contains(&(anchor, w)) { continue; }
-                let row = if shared_seeds { self.stage_spine.seed_row(&mut self.graph, w)?.map(SeedRow::Shared) } else {
-                    self.graph.stats.decoded_rows += 1;
-                    self.graph.row(w)?.map(SeedRow::Owned)
+                let supplied=scheduled.as_ref().map(|seeds|seeds[seed_index].clone());
+                let row = if let Some(seed)=&supplied {SeedRow::Shared(seed.packet.row.clone())} else {
+                    let row = if shared_seeds { self.stage_spine.seed_row(&mut self.graph, w)?.map(SeedRow::Shared) } else {
+                        self.graph.stats.decoded_rows += 1;self.graph.row(w)?.map(SeedRow::Owned)
+                    };
+                    let Some(row)=row else {continue};row
                 };
-                let Some(row) = row else {
-                    continue;
-                };
-                if row.hidden || (!probe && rule.seminaive && row.epoch < self.watermarks[rid]) {
-                    continue;
-                }
-                if !shared_seeds { self.graph.stats.direct_candidates += 1; }
-                let mut env = QueryEnv::new(
-                    self.graph.program.templates[rule.template].sorts.len(),
-                    witness_slots,
-                    full_witnesses,
-                    if know_query {rule.query.len()}else{0},receipt_atoms,
-                );
-                let live = if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,anchor,&row,&mut env.values) }
-                    else { atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph)) };
+                if row.hidden || (!probe && rule.seminaive && row.epoch < self.watermarks[rid]) { continue; }
+                let mut env = if let Some(seed)=supplied {QueryEnv::shared(seed,witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)}
+                    else {QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)};
+                let live = if scheduled.is_some() {true} else if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,anchor,&row,env.values.owned_mut()) }
+                    else {self.graph.stats.direct_candidates+=1;atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph))};
                 if live {
                     if self.local_known(rid,&env){self.local_sat.stats.seed_receipts+=1;continue;}
                     env.record(anchor, Some(row.witness));
@@ -1469,46 +1476,26 @@ impl Executor {
             && rule.query.iter().any(|a| matches!(a.call, Call::Table(_)))
         {
             let watermark = self.watermarks[rid];
-            let changed = std::mem::take(&mut self.pending[rid])
-                .into_iter()
-                .map(|w| if shared_seeds { self.stage_spine.seed_row(&mut self.graph,w).map(|r|r.map(SeedRow::Shared)) } else { self.graph.row(w).map(|r|r.map(SeedRow::Owned)) })
-                .collect::<Result<Vec<_>>>()?
-                .into_iter()
-                .flatten()
-                .filter(|r| !r.hidden && r.epoch >= watermark)
-                .collect::<Vec<_>>();
+            let changed = if scheduled.is_some(){vec![]}else{std::mem::take(&mut self.pending[rid])
+                .into_iter().map(|w|if shared_seeds{self.stage_spine.seed_row(&mut self.graph,w).map(|r|r.map(SeedRow::Shared))}else{self.graph.row(w).map(|r|r.map(SeedRow::Owned))})
+                .collect::<Result<Vec<_>>>()?.into_iter().flatten().filter(|r|!r.hidden&&r.epoch>=watermark).collect::<Vec<_>>()};
             for (pivot, atom) in rule.query.iter().enumerate() {
-                let Call::Table(table) = atom.call else {
-                    continue;
-                };
-                for row in changed.iter().filter(|r| r.table == table) {
-                    // Keep the full pending domain for semi-naive ownership.
-                    // Coverage belongs to this atom/witness pair, not all uses
-                    // of a physical row in repeated-table/self-join queries.
-                    if stage_covered.contains(&(pivot, row.witness)) { continue; }
-                    if !self
-                        .sieve
-                        .allow(rid, pivot, table, row.witness, &self.query_indexes)
-                    {
-                        continue;
-                    }
-                    if !shared_seeds {
-                        self.graph.stats.residual_candidates += 1;
-                        self.graph.stats.decoded_rows += 1;
-                    }
-                    let mut env = QueryEnv::new(
-                        self.graph.program.templates[rule.template].sorts.len(),
-                        witness_slots,
-                        full_witnesses,
-                    if know_query {rule.query.len()}else{0},receipt_atoms,
-                    );
-                    let live = if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,pivot,row,&mut env.values) }
-                        else { atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph)) };
+                let Call::Table(table)=atom.call else {continue};
+                let candidates=scheduled.as_ref().into_iter().flat_map(|seeds|seeds.iter().filter(move|s|s.atom==pivot).map(|s|(Some(s),s.packet.row.as_ref())))
+                    .chain(changed.iter().filter(|r|r.table==table).map(|r|(None,&**r)));
+                for (supplied,row) in candidates {
+                    if stage_covered.contains(&(pivot,row.witness)){continue;}
+                    if !self.sieve.allow(rid,pivot,table,row.witness,&self.query_indexes){continue;}
+                    if !shared_seeds && scheduled.is_none(){self.graph.stats.residual_candidates+=1;self.graph.stats.decoded_rows+=1;}
+                    let mut env=if let Some(seed)=supplied{QueryEnv::shared(seed.clone(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)}
+                        else{QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)};
+                    let live=if scheduled.is_some(){true}else if shared_seeds{self.stage_spine.bind_seed(&self.graph,rid,pivot,row,env.values.owned_mut())}
+                        else{atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph))};
                     if live {
                         if self.local_known(rid,&env){self.local_sat.stats.seed_receipts+=1;continue;}
                         self.refutation_depth.begin(rid);
-                        let ticket = self.search_context_survey.start(&self.graph, rid, pivot,
-                            &env.values, self.continuation_stats.merge_candidate_rows, found.len());
+                        let ticket = if self.search_context_survey.enabled {self.search_context_survey.start(&self.graph, rid, pivot,
+                            &env.values.materialize(), self.continuation_stats.merge_candidate_rows, found.len())} else {None};
                         (|| -> Result<()> {
                         let mut remaining = (0..rule.query.len())
                             .map(|i| i != pivot)
@@ -2104,6 +2091,7 @@ impl Executor {
         let repair_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.stage_spine.publish(&mut self.graph)?;
+        self.entry_schedule.publish(&self.graph);
         self.graph.receipt_forwards.clear();
         let union_roots = std::mem::take(&mut self.graph.union_roots);
         self.union_grafts.publish(&self.graph, union_roots)?;
@@ -2353,6 +2341,6 @@ impl Executor {
     }
     pub fn take_semantic_audit(&mut self)->Vec<J>{std::mem::take(&mut self.semantic_audit)}
     pub fn report(&self) -> J {
-        json!({"stage_spine":self.stage_spine.report(),"retained_contexts":self.retained.report(),"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"entry_schedule":self.entry_schedule.report(),"stage_spine":self.stage_spine.report(),"retained_contexts":self.retained.report(),"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

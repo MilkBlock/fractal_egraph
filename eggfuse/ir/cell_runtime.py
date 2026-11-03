@@ -27,6 +27,7 @@ def build(core, marker=None, reference_tables=(), compositions=None):
     if marker is not None:
         from eggfuse.compiler.marker_ir import validate as validate_marker
         validate_marker(marker,core)
+    from eggfuse.analyzer.entry_schedule import build as entry_schedule_build
     from eggfuse.analyzer.multistage import build as multi_stage_build
     from eggfuse.analyzer.congruence import build as congruence_build
     from eggfuse.analyzer.merge_programs import build as merge_programs_build
@@ -41,6 +42,7 @@ def build(core, marker=None, reference_tables=(), compositions=None):
             direct_entry=len(reads)==1, entry_table=reads[0]['call']['table'] if len(reads)==1 else None,
             primitive_guards=[i for i,a in enumerate(rule['query']) if 'primitive' in a['call']]))
     payload = dict(schema=SCHEMA, merge_contracts=merge_contracts(core), recipe=recipe, multi_stage=multi_stage_build(recipe), congruence=congruence_build(recipe), templates=templates,requirements=requirements(core),
+        entry_schedule=entry_schedule_build(recipe),
         merge_programs=merge_programs_build(recipe),
         known_results=known_results_build(recipe),
         initial=copy.deepcopy(core.get('initial',[])),
@@ -66,6 +68,7 @@ def validate(program):
         checksum=program['marker_program_sha256']
         require(isinstance(checksum,str) and len(checksum)==64 and all(c in '0123456789abcdef' for c in checksum),'marker checksum')
         expected['marker_program_sha256']=checksum
+    if 'entry_schedule' not in program:expected.pop('entry_schedule')
     if 'reference_views' not in program:expected.pop('reference_views')
     if 'multi_stage' not in program:  # Existing v1 controls remain valid, without optimization.
         expected.pop('multi_stage')

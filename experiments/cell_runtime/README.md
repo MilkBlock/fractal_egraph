@@ -152,6 +152,14 @@ storage relocation. Capture lookups fall 20,129 -> 58; query candidates remain
 and remains opt-in. See [COMMIT_RECEIPTS.md](COMMIT_RECEIPTS.md) for receipt
 contracts, actual merge results, full-key audits, fallback and paired results.
 
+`CELL_CPU_SHARED_NODE_SCHEDULE=1` consumes compiler-emitted shared entry nodes,
+maintains current parameter packets by committed changes, and gives consumers
+borrowed projections at their own Run watermarks. The final sum-bits pair reduces
+inference 157.853 -> 146.952 ms and inclusive candidate checks 34,279 -> 25,643.
+It remains opt-in; residual suffixes and complete RHS effects are unchanged.
+See [SHARED_NODE_SCHEDULE.md](SHARED_NODE_SCHEDULE.md) for the compiler contract,
+copy/delivery accounting, exact-stage checks and identical residual depth profile.
+
 ## Union-driven Bake workload
 
 `CELL_CPU_UNION_IMPACT=1` observes direct union inputs separately from derived

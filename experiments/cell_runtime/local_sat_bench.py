@@ -44,7 +44,7 @@ def profile_existing(receipt, out):
         env={**lane['measurement']['configuration'],'CELL_CPU_REFUTATION_PROFILE':'1'}
         r=execute(program,out/name,engine,environment=env)
         assert json.loads((out/name/'runtime/state.json').read_text())==json.loads((receipt.parent/name/'state.json').read_text())
-        assert lane['all_candidate_visits']==r['stats']['direct_candidates']+r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows']+r['stage_spine']['stats']['pivot_candidates']
+        assert lane['all_candidate_visits']==r['stats']['direct_candidates']+r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows']+r['stage_spine']['stats']['pivot_candidates']+r['entry_schedule']['stats']['predicate_checks']
         profiles[name]=r['refutation_depth'];rules=profiles[name]['rules']
         totals={key:collections.Counter() for key in ('reads','candidate_rows','refuted_before_depth','deepest_seed')}
         for rule in rules.values():
@@ -52,14 +52,15 @@ def profile_existing(receipt, out):
             for key in totals:totals[key].update({int(k):v for k,v in rule[key].items()})
         seeds=sum(rule['seeds'] for rule in rules.values());hist=totals['deepest_seed']
         summary[name]={'seeds':seeds,**totals,'probability_max_depth_at_least':{d:sum(v for k,v in hist.items() if k>=d)/seeds for d in range(1,max(hist,default=0)+1)}}
-    base=profiles['ordinary']['rules']
+    baseline='ordinary' if 'ordinary' in profiles else 'off'
+    base=profiles[baseline]['rules']
     common={rid for rid,r in base.items() if r['seeds'] and all(p['rules'].get(rid,{}).get('seeds',0) for p in profiles.values())}
     mass=sum(base[rid]['seeds'] for rid in common)
     max_depth=max((int(d) for p in profiles.values() for r in p['rules'].values() for d in r['deepest_seed']),default=0)
     fixed={name:{d:sum(base[rid]['seeds']*sum(v for k,v in p['rules'][rid]['deepest_seed'].items() if int(k)>=d)/p['rules'][rid]['seeds'] for rid in common)/mass for d in range(1,max_depth+1)} for name,p in profiles.items()} if mass else {}
     result={'timing_eligible':False,'timed_lanes_reused_from':str(receipt.resolve()),'program_sha256':fingerprint(path),'binary_sha256':fingerprint(engine),
         'scope':'remaining ordinary matched delta seeds and inner table reads only; Spine entries, direct rules and singleton point projections outside these depth curves',
-        'profiles':profiles,'summary':summary,'fixed_rule_weight_curves':fixed,'fixed_rule_weight_common_support_mass':mass/sum(r['seeds'] for r in base.values()),
+        'profiles':profiles,'summary':summary,'baseline_lane':baseline,'fixed_rule_weight_curves':fixed,'fixed_rule_weight_common_support_mass':mass/sum(r['seeds'] for r in base.values()),
         'fixed_rule_weight_scope':'original matched-seed rule weights, restricted to rules still observed in every lane; candidate identity changes; moved queries are not refutations',
         'all_diagnostic_endpoints_exact':True}
     (out/'results.json').write_text(json.dumps(result,indent=2)+'\n')
@@ -69,7 +70,7 @@ def main():
     p=argparse.ArgumentParser();g=p.add_mutually_exclusive_group(required=True)
     g.add_argument('--profile-existing',type=Path);g.add_argument('--compiled',type=Path);g.add_argument('--demo-chain',type=int);g.add_argument('--demo-stages',type=int)
     p.add_argument('--instances',type=int,default=128);p.add_argument('--frontend',type=Path)
-    p.add_argument('--feature',choices=['local-sat','retained','spine-prefix','stage-spine','stage-partial','stage-shared','stage-receipts'],default='local-sat')
+    p.add_argument('--feature',choices=['local-sat','retained','spine-prefix','stage-spine','stage-partial','stage-shared','stage-receipts','node-schedule'],default='local-sat')
     p.add_argument('--stage-ablation',action='store_true',help='stage-partial/stage-shared: ordinary, whole-query, partial and shared-entry lanes')
     p.add_argument('--prefix-ablation',action='store_true',help='spine-prefix only: ordinary, shared reads, shared prefixes')
     p.add_argument('--shared-ablation',action='store_true',help='retained only: ordinary, per-rule, shared-domain lanes')
@@ -95,8 +96,8 @@ def main():
         src=out/'source.egg';src.write_text(source);program=build(prepare(src,a.frontend));path=out/'program.json';path.write_text(json.dumps(program))
         provenance={'source_sha256':fingerprint(src)};scope='synthetic shared-context chain through native typed frontend; not eggcc performance'
     engine=ROOT/'engine/cell-runtime/target/release/eggfuse-cell-runtime'
-    feature={'local-sat':'CELL_CPU_LOCAL_SAT','retained':'CELL_CPU_RETAINED_CONTEXTS','spine-prefix':'CELL_CPU_SPINE_PREFIXES','stage-spine':'CELL_CPU_STAGE_SPINE','stage-partial':'CELL_CPU_STAGE_SPINE_PARTIAL','stage-shared':'CELL_CPU_STAGE_SPINE_SHARED_ENTRIES','stage-receipts':'CELL_CPU_STAGE_SPINE_RECEIPTS'}[a.feature]
-    settings={**SETTINGS,'CELL_CPU_STAGE_SPINE':'1' if a.feature in ('stage-partial','stage-shared','stage-receipts') else '0','CELL_CPU_STAGE_SPINE_PARTIAL':'1' if a.feature in ('stage-shared','stage-receipts') else '0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'1' if a.feature=='stage-receipts' else '0','CELL_CPU_STAGE_SPINE_RECEIPTS':'0','CELL_CPU_LOCAL_SAT':'0','CELL_CPU_LOCAL_SAT_AUDIT':'0','CELL_CPU_REFUTATION_PROFILE':'0',
+    feature={'local-sat':'CELL_CPU_LOCAL_SAT','retained':'CELL_CPU_RETAINED_CONTEXTS','spine-prefix':'CELL_CPU_SPINE_PREFIXES','stage-spine':'CELL_CPU_STAGE_SPINE','stage-partial':'CELL_CPU_STAGE_SPINE_PARTIAL','stage-shared':'CELL_CPU_STAGE_SPINE_SHARED_ENTRIES','stage-receipts':'CELL_CPU_STAGE_SPINE_RECEIPTS','node-schedule':'CELL_CPU_SHARED_NODE_SCHEDULE'}[a.feature]
+    settings={**SETTINGS,'CELL_CPU_STAGE_SPINE':'1' if a.feature in ('stage-partial','stage-shared','stage-receipts','node-schedule') else '0','CELL_CPU_STAGE_SPINE_PARTIAL':'1' if a.feature in ('stage-shared','stage-receipts','node-schedule') else '0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'1' if a.feature in ('stage-receipts','node-schedule') else '0','CELL_CPU_STAGE_SPINE_RECEIPTS':'1' if a.feature=='node-schedule' else '0','CELL_CPU_SHARED_NODE_SCHEDULE':'0','CELL_CPU_LOCAL_SAT':'0','CELL_CPU_LOCAL_SAT_AUDIT':'0','CELL_CPU_REFUTATION_PROFILE':'0',
         'CELL_CPU_SPINE_PREFIXES':'0','CELL_CPU_RETAINED_CONTEXTS':'1' if a.feature=='spine-prefix' else '0','CELL_CPU_RETAINED_SHARED':'1','CELL_CPU_RETAINED_SETS':a.context_sets}
     old={k:os.environ.get(k) for k in settings}
     result={'scope':scope+'; standalone single-thread Cell CPU, merge programs ON','program':str(path),
@@ -122,19 +123,21 @@ def main():
                 states.append(json.loads((out/name/'state.json').read_text()))
                 controls.append([{k:s[k] for k in ('ruleset','iterations','path','epoch','logical_matches','changed')} for s in r['steps']])
                 result['lanes'][name]={'measurement':m,**metrics(r),'local_saturation':r['local_saturation'],
-                    'retained_contexts':r['retained_contexts'],'stage_spine':r['stage_spine'],
+                    'retained_contexts':r['retained_contexts'],'stage_spine':r['stage_spine'],'entry_schedule':r['entry_schedule'],
                     'runs_and_repair_calls':len(r['steps']),'changed_runs':sum(s['changed'] for s in r['steps']),
                     'point_reads':r['multi_stage']['stats']['point_reads'],
                     'inverse_reads':r['multi_stage']['stats']['inverse_reads'],
                     'merge_port_reads':r['multi_stage']['stats']['merge_port_reads'],
-                    'decoded_rows':r['stats']['decoded_rows'],
+                    'ordinary_decoded_rows':r['stats']['decoded_rows'],
+                    'decoded_rows':r['stats']['decoded_rows']+r['entry_schedule']['stats']['row_decodes'],
                     'candidate_scope':'ordinary delta/residual candidates plus merge-program candidates; fixed point reads reported separately',
                     'total_candidates':r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows'],
                     'direct_candidates':r['stats']['direct_candidates'],
-                    'all_candidate_visits':r['stats']['direct_candidates']+r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows']+r['stage_spine']['stats']['pivot_candidates'],
-                    'all_candidate_scope':'ordinary delta/residual + merge candidates + direct rule seeds + Spine pivot probes; precise port/capture reads separate'}
-                stats=r['local_saturation' if a.feature=='local-sat' else ('stage_spine' if a.feature in ('stage-spine','stage-partial','stage-shared','stage-receipts') else 'retained_contexts')]['stats']
+                    'all_candidate_visits':r['stats']['direct_candidates']+r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows']+r['stage_spine']['stats']['pivot_candidates']+r['entry_schedule']['stats']['predicate_checks'],
+                    'all_candidate_scope':'ordinary delta/residual + merge candidates + direct rule seeds + Spine pivot probes; shared-node predicate checks included; precise port/capture reads separate'}
+                stats=r['local_saturation' if a.feature=='local-sat' else ('stage_spine' if a.feature in ('stage-spine','stage-partial','stage-shared','stage-receipts','node-schedule') else 'retained_contexts')]['stats']
                 print(name,m['inference_seconds'],len(r['steps']),{k:v for k,v in stats.items() if not isinstance(v,dict)},flush=True)
+                if a.feature=='node-schedule':print(name,'schedule',r['entry_schedule'],flush=True)
                 if a.feature=='spine-prefix':print(name,'prefix',r['retained_contexts']['spine_prefixes']['stats'],flush=True)
             if a.feature!='local-sat':
                 assert all(c==controls[0] for c in controls[1:]),'source Run controls differ'

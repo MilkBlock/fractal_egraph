@@ -2,6 +2,7 @@
 //! stage's complete context; the stage consumes it without a structural join.
 //! Coverage is proved from functional table keys, not from observed frequency.
 use crate::{
+    entry_schedule::{Inputs, Seed},
     graph::{Dependency, Graph, Row},
     program::*,
     value::{self, Value, canon},
@@ -60,6 +61,7 @@ pub struct Stats {
     partial_queries: u64,
     pivot_candidates: u64,
     shared_entry_hits: u64,
+    entry_parameters_copied: u64,
     shared_entry_cross_rule_hits: u64,
     shared_row_hits: u64,
     peak_cached_entries: usize,
@@ -123,7 +125,7 @@ pub struct Programs {
 
     pub stats: Stats,
 }
-fn bind(a: &Arg, v: &Value, input: &mut [Option<Value>], g: &Graph) -> bool {
+fn bind(a: &Arg, v: &Value, input: &mut Inputs, g: &Graph) -> bool {
     match a {
         Arg::Literal(x) => canon(x, &g.parents) == *v,
         Arg::Slot(i) => match &input[*i] {
@@ -135,7 +137,7 @@ fn bind(a: &Arg, v: &Value, input: &mut [Option<Value>], g: &Graph) -> bool {
         },
     }
 }
-fn operand(a: &Arg, input: &[Option<Value>], g: &Graph) -> Option<Value> {
+fn operand(a: &Arg, input: &Inputs, g: &Graph) -> Option<Value> {
     match a {
         Arg::Literal(v) => Some(canon(v, &g.parents)),
         Arg::Slot(i) => input[*i].clone(),
@@ -244,38 +246,40 @@ impl Programs {
             s.anchor_tables.insert(t);
             s.consumer_tables.entry(*rid).or_default().insert(t);
         }
-        let mut shapes = BTreeMap::new();
-        for (rid, pivot) in p.rules.iter().enumerate().flat_map(|(rid, r)| {
-            r.query
-                .iter()
-                .enumerate()
-                .filter_map(move |(i, a)| matches!(a.call, Call::Table(_)).then_some((rid, i)))
-        }) {
-            let a = &p.rules[rid].query[pivot];
-            let Call::Table(t) = a.call else {
-                unreachable!()
-            };
-            let mut slots = BTreeMap::new();
-            let mut projection = vec![];
-            let pattern = a
-                .args
-                .iter()
-                .enumerate()
-                .map(|(col, arg)| match arg {
-                    Arg::Literal(v) => Arg::Literal(v.clone()),
-                    Arg::Slot(i) => {
-                        let n = slots.len();
-                        let normalized = *slots.entry(*i).or_insert_with(|| {
-                            projection.push((*i, col));
-                            n
-                        });
-                        Arg::Slot(normalized)
-                    }
-                })
-                .collect::<Vec<_>>();
-            let n = shapes.len();
-            let id = *shapes.entry((t, pattern)).or_insert(n);
-            s.anchor_shapes.insert((rid, pivot), (id, projection));
+        if std::env::var("CELL_CPU_SHARED_NODE_SCHEDULE").as_deref() != Ok("1") {
+            let mut shapes = BTreeMap::new();
+            for (rid, pivot) in p.rules.iter().enumerate().flat_map(|(rid, r)| {
+                r.query
+                    .iter()
+                    .enumerate()
+                    .filter_map(move |(i, a)| matches!(a.call, Call::Table(_)).then_some((rid, i)))
+            }) {
+                let a = &p.rules[rid].query[pivot];
+                let Call::Table(t) = a.call else {
+                    unreachable!()
+                };
+                let mut slots = BTreeMap::new();
+                let mut projection = vec![];
+                let pattern = a
+                    .args
+                    .iter()
+                    .enumerate()
+                    .map(|(col, arg)| match arg {
+                        Arg::Literal(v) => Arg::Literal(v.clone()),
+                        Arg::Slot(i) => {
+                            let n = slots.len();
+                            let normalized = *slots.entry(*i).or_insert_with(|| {
+                                projection.push((*i, col));
+                                n
+                            });
+                            Arg::Slot(normalized)
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                let n = shapes.len();
+                let id = *shapes.entry((t, pattern)).or_insert(n);
+                s.anchor_shapes.insert((rid, pivot), (id, projection));
+            }
         }
         // Store one cursor per committed anchor. Consumer programs attach only
         // on their own Run, rather than preparing the entire fanout at publish.
@@ -620,14 +624,14 @@ impl Programs {
                 {
                     continue;
                 }
-                let mut input = vec![None; g.program.templates[rule.template].sorts.len()];
+                let mut input = Inputs::owned(g.program.templates[rule.template].sorts.len());
                 // A failed literal/alias bind proves this exact entry empty too.
                 // Only partial mode needs to mark it for residual dispatch.
                 if self.partial {
                     covered.insert((pivot, w));
                 }
                 let live = if shared {
-                    self.bind_seed(g, rid, pivot, &row, &mut input)
+                    self.bind_seed(g, rid, pivot, &row, input.owned_mut())
                 } else {
                     self.stats.pivot_candidates += 1;
                     a.args
@@ -652,9 +656,80 @@ impl Programs {
                 covered.insert((pivot, w));
             }
         }
+        self.finish_answers(g, rid, ready, covered, complete, watermark)
+    }
+    pub fn answers_scheduled(
+        &mut self,
+        g: &mut Graph,
+        rid: usize,
+        seeds: &[Seed],
+        watermark: u64,
+    ) -> Result<Option<Coverage>> {
+        if !self.enabled
+            || !self
+                .consumer_tables
+                .get(&rid)
+                .is_some_and(|tables| tables.iter().any(|t| self.active_tables.contains_key(t)))
+        {
+            return Ok(None);
+        }
+        let clock = Instant::now();
+        let result = self.scheduled_inner(g, rid, seeds, watermark);
+        self.stats.query_seconds += clock.elapsed().as_secs_f64();
+        result
+    }
+    fn scheduled_inner(
+        &mut self,
+        g: &mut Graph,
+        rid: usize,
+        seeds: &[Seed],
+        watermark: u64,
+    ) -> Result<Option<Coverage>> {
+        self.stats.query_attempts += 1;
+        let mut ready = vec![];
+        let mut covered = BTreeSet::new();
+        let mut complete = true;
+        // Preserve the legacy depth tie-break order across different pivots.
+        let mut seeds = seeds.iter().collect::<Vec<_>>();
+        seeds.sort_by_key(|s| (s.packet.row.witness, s.atom));
+        for seed in seeds {
+            let pivot = seed.atom;
+            let w = seed.packet.row.witness;
+            if let Some(cursor) = self
+                .entries
+                .get(&w)
+                .filter(|_| self.orders.contains_key(&(rid, pivot)))
+            {
+                covered.insert((pivot, w));
+                ready.push((
+                    pivot,
+                    seed.packet.row.clone(),
+                    Inputs::shared(seed.clone()),
+                    cursor.clone(),
+                ));
+            } else {
+                self.fallback(rid, pivot);
+                if complete {
+                    self.stats.uncovered_queries += 1;
+                }
+                complete = false;
+            }
+        }
+        self.finish_answers(g, rid, ready, covered, complete, watermark)
+    }
+    fn finish_answers(
+        &mut self,
+        g: &mut Graph,
+        rid: usize,
+        ready: Vec<(usize, Rc<Row>, Inputs, Cursor)>,
+        covered: BTreeSet<(usize, Dependency)>,
+        complete: bool,
+        watermark: u64,
+    ) -> Result<Option<Coverage>> {
         if !complete && covered.is_empty() {
             return Ok(None);
         }
+        let rule = g.program.rules[rid].clone();
         let mut results: BTreeMap<Vec<Value>, (Answer, Cursor)> = BTreeMap::new();
         for (pivot, row, mut input, cursor) in ready {
             let mut witnesses = vec![None; rule.query.len()];
@@ -832,6 +907,7 @@ impl Programs {
             self.stats.shared_entry_cross_rule_hits += u64::from(*last_rule != rid);
             *last_rule = rid;
             if *valid {
+                self.stats.entry_parameters_copied += projection.len() as u64;
                 for &(slot, col) in projection {
                     input[slot] = Some(row.values[col].clone());
                 }
@@ -844,7 +920,17 @@ impl Programs {
                 .args
                 .iter()
                 .zip(&row.values)
-                .all(|(a, v)| bind(a, v, input, g));
+                .all(|(a, v)| match a {
+                    Arg::Literal(l) => canon(l, &g.parents) == *v,
+                    Arg::Slot(i) => match &input[*i] {
+                        Some(old) => old == v,
+                        None => {
+                            self.stats.entry_parameters_copied += 1;
+                            input[*i] = Some(v.clone());
+                            true
+                        }
+                    },
+                });
             self.entry_cache.insert(key, (valid, rid));
             self.stats.peak_cached_entries =
                 self.stats.peak_cached_entries.max(self.entry_cache.len());

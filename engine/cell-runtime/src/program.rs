@@ -63,6 +63,7 @@ pub struct Program {
     pub views: crate::views::Views,
     pub congruence: crate::congruence::Congruence,
     pub multi_stage: crate::multistage::MultiStage,
+    pub entry_schedule: crate::entry_schedule::Plan,
     pub compositions: crate::compositions::Compositions,
     pub tables: Vec<Table>,
     pub templates: Vec<Template>,
@@ -282,6 +283,7 @@ impl Program {
             views: crate::views::Views::default(),
             congruence: crate::congruence::Congruence::default(),
             multi_stage: crate::multistage::MultiStage::default(),
+            entry_schedule: crate::entry_schedule::Plan::default(),
             compositions: crate::compositions::Compositions::default(),
             tables,
             templates,
@@ -390,6 +392,7 @@ impl Program {
                 }
             }
         }
+        p.entry_schedule=crate::entry_schedule::Plan::parse(&p,&p.artifact["entry_schedule"])?;
         p.views = crate::views::Views::parse(&p, &p.artifact["reference_views"])?;
         if std::env::var("CELL_CPU_MERGE_PROGRAMS").as_deref()!=Ok("0") && p.artifact["merge_programs"].is_null() {
             return Err("merge programs require re-emitting the CPU artifact".into());

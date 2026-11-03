@@ -286,3 +286,15 @@ in legacy diagnostic scripts, not as acceptance for this path.
 
 The current worker ABI is 4 (ABIs 1/2 remain readable; the intermediate development
 ABI 3 must be recompiled). See [the batch contract](../../experiments/staged_batches/README.md).
+
+
+## Shared entry schedule for Cell CPU
+
+The Cell CPU target now emits `entry-schedule.json` from typed Recipe IR. It
+contains normalized table-entry predicates, exact correlated parameter layouts,
+consumer projections and original control gates. Rust independently verifies
+the plan before installing it. `CELL_CPU_SHARED_NODE_SCHEDULE=1` enables
+change-driven shared parameter packets and borrowed consumer inputs; old
+artifacts remain valid with the mode OFF and require re-emission to enable it.
+This first schedule covers table entries; multi-atom suffixes remain on the
+existing exact paths. See [the implementation and paired measurement](../../experiments/cell_runtime/SHARED_NODE_SCHEDULE.md).

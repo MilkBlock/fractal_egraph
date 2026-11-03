@@ -12,6 +12,7 @@ def emit(folder,core,recipe,marker,source,compositions=None):
     program=build(json.loads(core.read_text()),json.loads(marker.read_text()),compositions=json.loads(compositions.read_text()) if compositions else None);validate(program)
     (folder/'program.json').write_text(json.dumps(program))
     (folder/'reference-views.json').write_text(json.dumps(program['reference_views'],indent=2))
+    (folder/'entry-schedule.json').write_text(json.dumps(program['entry_schedule'],indent=2))
     (folder/'multi-stage-program.json').write_text(json.dumps(program['multi_stage'],indent=2))
     (folder/'merge-contracts.json').write_text(json.dumps(program['merge_contracts'],indent=2))
     (folder/'merge-programs.json').write_text(json.dumps(program['merge_programs'],indent=2))
@@ -26,7 +27,8 @@ def emit(folder,core,recipe,marker,source,compositions=None):
           'limits':['no GPU execution','unproven inverse reads retain residual matching','diagnostic unit-cost extraction only','source frontend restricts post-initialization commands']}
     (folder/'capabilities.json').write_text(json.dumps(caps,indent=2))
     files=['program.json','reference-views.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json']
-    files.extend(['merge-programs.json','known-results.json'])
+    files.extend(['merge-programs.json','known-results.json','entry-schedule.json'])
+    caps['entry_schedule']={'nodes':len(program['entry_schedule']['nodes']),'enable':'CELL_CPU_SHARED_NODE_SCHEDULE=1','scope':'shared typed table entries; source-gated residual consumers'}
     caps['merge_programs']={'programs':len(program['merge_programs']['programs']),'scheduled_entries':len(program['merge_programs']['entries']),'default':True,'disable':'CELL_CPU_MERGE_PROGRAMS=0','terminal_cell_substitution':False}
     caps['known_results']={'plans':len(program['known_results']['plans']),'reference_method':'CELL_CPU_KNOWN_RESULTS=on','instruction_method':'CELL_CPU_KNOWN_RESULTS=value','observe':'CELL_CPU_KNOWN_RESULTS=observe','default':False}
     caps['known_results'].update(static_aliases=len(program['known_results']['static_aliases']),static_method='CELL_CPU_KNOWN_RESULTS=static',static_scope='sequential original-program RHS; preserve all reads, updates and visibility actions')
@@ -41,6 +43,7 @@ def compile_target(pm,core,recipe,marker,source,stop_after,execute_runtime,compo
     implementations=[Path(__file__),ROOT/'eggfuse/ir/cell_runtime.py',ROOT/'eggfuse/ir/recipe.py',ROOT/'eggfuse/analyzer/multistage.py',ROOT/'eggfuse/analyzer/congruence.py',ROOT/'eggfuse/analyzer/reference_views.py',ROOT/'eggfuse/compiler/marker_ir.py',ROOT/'eggfuse/ir/structural_key.py',ROOT/'engine/structural-key/abi.json']
     outputs=['program.json','reference-views.json','multi-stage-program.json','local-congruence-program.json','merge-contracts.json','core.json','recipe-program.json','marker-program.json','source_sk_mk.egg','capabilities.json','manifest.json']
     outputs.append('merge-programs.json');implementations.append(ROOT/'eggfuse/analyzer/merge_programs.py')
+    outputs.append('entry-schedule.json');implementations.append(ROOT/'eggfuse/analyzer/entry_schedule.py')
     outputs.append('known-results.json');implementations.append(ROOT/'eggfuse/analyzer/known_results.py')
     if compositions:
         outputs.append('composition-program.json');implementations.append(ROOT/'eggfuse/analyzer/compositions.py')
