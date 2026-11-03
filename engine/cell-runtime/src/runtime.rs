@@ -79,6 +79,7 @@ struct StagePatch {
 }
 struct Produced { rule:usize, depth:u32, values:Vec<Value>, routes:Vec<usize> }
 pub struct Executor {
+    retained:crate::retained::Contexts,
     local_sat:crate::local_sat::LocalSat,
     local_run:Option<(usize,Rc<crate::local_sat::Plan>)>,
     semantic_audit:Vec<J>,
@@ -204,7 +205,10 @@ impl Executor {
             std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1"),
         );
         let local_sat=crate::local_sat::LocalSat::new(&graph.program);
+        let retained=crate::retained::Contexts::new(&graph.program);
+        query_indexes.watch_contexts=retained.enabled;
         let mut e = Self {
+            retained,
             local_sat,local_run:None,semantic_audit:vec![],
             compositions_enabled: std::env::var("CELL_CPU_COMPOSITIONS").as_deref() == Ok("1"),
             composition_stats: CompositionStats::default(),
@@ -1273,6 +1277,20 @@ impl Executor {
             }
             return Ok(vec![]);
         }
+        if !probe && self.retained.accepts(rid) {
+            let answers=self.retained.matches(&mut self.graph,&mut self.query_indexes,rid,self.watermarks[rid])?;
+            self.pending[rid].clear();
+            return Ok(answers.into_iter().map(|a| {
+                let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
+                let mut known=know_query.then(||vec![None;rule.query.len()]);
+                for (i,w) in a.witnesses.into_iter().enumerate() {
+                    witnesses.record(i,w);
+                    if let Some(k)=&mut known {k[i]=match w {Some(Dependency::Fact(f))=>Some(f),_=>None};}
+                }
+                Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,
+                    composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
+            }).collect())
+        }
         self.sieve
             .prepare(rid, &self.graph, &mut self.query_indexes)?;
         let mut found = vec![];
@@ -2042,6 +2060,7 @@ impl Executor {
             self.refutation.publish(&self.query_indexes, &self.graph,&context_changed_tables);
         }
         self.search_contexts.publish(&self.graph,&self.query_indexes,&context_changed_tables);
+        self.retained.publish(&self.graph,&mut self.query_indexes);
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.deliver();
@@ -2272,6 +2291,6 @@ impl Executor {
     }
     pub fn take_semantic_audit(&mut self)->Vec<J>{std::mem::take(&mut self.semantic_audit)}
     pub fn report(&self) -> J {
-        json!({"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"retained_contexts":self.retained.report(),"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

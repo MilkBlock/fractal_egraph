@@ -123,6 +123,13 @@ but the measured sum-bits Pass 3 has no demonstrated net benefit. See
 [LOCAL_SATURATION.md](LOCAL_SATURATION.md) for scope restrictions, semantic-boundary
 audits, checkpoint behavior and same-binary measurements.
 
+`CELL_CPU_RETAINED_CONTEXTS=1` retains correlated multi-source query prefixes for
+`always-run,type-analysis`, with old/new-key subscriptions, late ports and exact
+union/visibility updates. Source Run publication is unchanged. This is opt-in:
+the final sum-bits measurement reduces row work but still regresses in total
+time. See [RETAINED_CONTEXTS.md](RETAINED_CONTEXTS.md) for the implementation,
+all-stage audit, counters and reproduction command.
+
 ## Union-driven Bake workload
 
 `CELL_CPU_UNION_IMPACT=1` observes direct union inputs separately from derived
