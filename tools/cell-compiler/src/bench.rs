@@ -146,6 +146,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "sieve_probes": r["sieve"]["stats"]["probes"],
             "empty_join_skips": r["sieve"]["stats"]["empty_join_skips"],
             "cells_created": g.cells_created,
+            "dedup_key_slots_reused": g.dedup_key_slots_reused,
             "rhs_frames_avoided": g.rhs_frames_avoided,
             "runs": e.steps.len()
         });

@@ -141,6 +141,8 @@ pub struct Stats {
     pub cells_created: u64,
     #[serde(default)]
     pub rhs_frames_avoided: u64,
+    #[serde(default)]
+    pub dedup_key_slots_reused: u64,
     pub empty_frames_released: u64,
     pub native_table_reads: u64,
     pub native_table_writes: u64,
