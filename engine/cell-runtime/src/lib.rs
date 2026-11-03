@@ -28,3 +28,6 @@ pub mod retained;
 pub mod stage_spine;
 
 pub mod entry_schedule;
+
+mod merge_contract;
+pub mod compiler;

@@ -55,7 +55,7 @@ impl Compositions {
             .as_object_mut()
             .ok_or("composition object")?
             .remove("sha256");
-        if sha != Some(crate::checksum::digest(&payload).into())
+        if sha != Some(crate::checksum::artifact_digest(&payload).into())
             || raw["schema"] != "eggfuse-compositions/v1"
             || raw["recipe_sha256"] != p.artifact["recipe"]["sha256"]
             || raw["control"] != p.artifact["recipe"]["control"]

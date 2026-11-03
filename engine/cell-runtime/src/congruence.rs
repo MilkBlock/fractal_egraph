@@ -178,3 +178,97 @@ impl Congruence {
         Ok(out)
     }
 }
+
+pub(crate) fn compile(p: &Program) -> Result<J> {
+    use serde_json::json;
+    fn shape(
+        p: &Program,
+        t: &Template,
+        a: &Arg,
+        ids: &mut BTreeMap<String, usize>,
+        cache: &mut BTreeMap<Arg, usize>,
+    ) -> usize {
+        let a = norm(t, a);
+        if let Some(id) = cache.get(&a) {
+            return *id;
+        }
+        let key = if let Some((_, table, args)) = constructor(p, t, &a) {
+            format!(
+                "c{table}/{:?}",
+                args.iter()
+                    .map(|a| shape(p, t, a, ids, cache))
+                    .collect::<Vec<_>>()
+            )
+        } else {
+            match &a {
+                Arg::Slot(i) => format!("p{}", t.sorts[*i]),
+                Arg::Literal(v) => format!("l{}", serde_json::to_string(v).unwrap()),
+            }
+        };
+        let next = ids.len();
+        let id = *ids.entry(key).or_insert(next);
+        cache.insert(a, id);
+        id
+    }
+    let mut templates = vec![];
+    for (rid, r) in p.rules.iter().enumerate() {
+        let t = &p.templates[r.template];
+        let (mut ids, mut cache, mut buckets) = (
+            BTreeMap::new(),
+            BTreeMap::new(),
+            BTreeMap::<usize, Vec<(usize, usize)>>::new(),
+        );
+        for (i, e) in t.ops.iter().enumerate() {
+            if let Op::Let(dst, Call::Table(n), _) = e
+                && p.tables[*n].constructor
+            {
+                buckets
+                    .entry(shape(p, t, &Arg::Slot(*dst), &mut ids, &mut cache))
+                    .or_default()
+                    .push((i, *dst));
+            }
+        }
+        let mut groups = Vec::<(Vec<J>, Vec<J>)>::new();
+        let mut by_guard = BTreeMap::new();
+        let mut memo = BTreeMap::new();
+        let mut ordered = buckets.into_values().collect::<Vec<_>>();
+        ordered.sort_by_key(|b| b[0].0);
+        for bucket in ordered {
+            for (i, &(left, a)) in bucket.iter().enumerate() {
+                for &(right, b) in &bucket[i + 1..] {
+                    if let Some((guards, requires)) =
+                        prove(p, t, &Arg::Slot(a), &Arg::Slot(b), &mut memo)
+                    {
+                        let mut gs = vec![];
+                        for (a, b) in guards {
+                            let (Arg::Slot(a), Arg::Slot(b)) = (a, b) else {
+                                return Err("non-parameter guard for equal constructor shape".into());
+                            };
+                            let mut pair = [json!({"slot":a}), json!({"slot":b})];
+                            pair.sort_by_cached_key(J::to_string);
+                            gs.push(json!(pair));
+                        }
+                        gs.sort_by_cached_key(J::to_string);
+                        let id = *by_guard
+                            .entry(json!(gs).to_string())
+                            .or_insert(groups.len());
+                        if id == groups.len() {
+                            groups.push((gs, vec![]));
+                        }
+                        groups[id]
+                            .1
+                            .push(json!({"left":left,"right":right,"requires":requires}));
+                    }
+                }
+            }
+        }
+        let specs = groups
+            .into_iter()
+            .map(|(guards, merges)| json!({"guards":guards,"merges":merges}))
+            .collect::<Vec<_>>();
+        if !specs.is_empty() {
+            templates.push(json!({"rule":rid,"groups":specs}));
+        }
+    }
+    Ok(json!({"schema":"eggfuse-local-congruence/v1","templates":templates}))
+}

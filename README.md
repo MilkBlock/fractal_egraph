@@ -5,16 +5,25 @@
 项目由 **analyzer、compiler、engine、validation** 四个组件组成，基于本地 [egglog](egglog/)
 前端和原生参照实现。`fractal_egraph` 是旧项目名；现有 Rust 包／命令行 `egg_layout` 暂作兼容入口。
 
-当前统一编译流程是：
+编译流程按执行后端生成相应程序。
 
 ```text
 source.egg → source_sk.egg → Analyze/Bake
            → source_sk_mk.egg + marker / recipe 契约
-           → eggfuse device artifacts → GPU engine → 完整结果核对
+           → typed program → 独立 Cell CPU 或 GPU engine
 ```
 
-统一入口为 `python3 -m eggfuse`，提供 `analyze`、`compile`、`run`、`run-cells` 和 `report`。
-使用说明见[eggfuse 组件](eggfuse/README.md)与[编译器](eggfuse/compiler/README.md)；统一使用 `python3 -m eggfuse`，旧 Python 转发入口已删除。
+独立 Cell CPU 使用 Rust 编译器和 Cargo bench。在仓库根目录执行以下命令，可以在同一份 Pass 3 程序上比较候选访问和推理时间。
+
+```sh
+cargo cell-compile --case sum-bits --output out/cell-sum
+cargo cell-bench --program out/cell-sum/program.json --lane baseline --repeat 5
+cargo cell-bench --program out/cell-sum/program.json --lane nodes --repeat 5
+cargo cell-bench --program out/cell-sum/program.json --lane filtered --repeat 5 --verify-stages
+```
+
+也可以直接执行 `cargo cell-bench --case sum-bits --lane nodes`。输入、成本模型、计数口径及已知的原生图差异见 [Cell CPU 编译与 bench](tools/cell-compiler/README.md)。GPU 编译、原有实验驱动与报告命令见 [eggfuse 组件](eggfuse/README.md) 和 [编译器](eggfuse/compiler/README.md)。
+
 [组件审计与目录迁移方案](docs/architecture/eggfuse.md)说明当前能力、缺口和接口边界。
 
 **当前边界：** 通用 Cell 程序能在 GPU 上执行，但还会做局部查询；高效联合配方主要覆盖

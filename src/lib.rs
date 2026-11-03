@@ -23,3 +23,8 @@ pub mod slotted_layer;
 pub mod cell_recipe;
 pub mod structural_key;
 pub mod cell_schedule;
+
+pub mod source_ast;
+#[path="../examples/support/egg_source.rs"]
+pub mod egg_source;
+pub mod device_frontend;
