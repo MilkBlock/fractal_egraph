@@ -44,6 +44,62 @@
       "match_capacity": 16384
     },
     {
+      "name": "dot-product",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/dot-product.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "02f301e6689c2ddfca4c8a01b431d031a3289c6bba98f141deecd71edacded68",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/bril/core/dot-product.bril",
+      "pass_number": 3,
+      "source_sha256": "fb43092b0b8b4be2280c5640c048ef6cceba3d0eab1d86019dfc2096b9209646",
+      "captured_pass_sha256": "19b06fa1f67959018b4ada66912f80bf46bdac982c88825ad5f4a675c0593f6c"
+    },
+    {
+      "name": "sum-divisors",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/sum-divisors.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "9791fb092bc374d176f0534dd9ae4240b1a7de06e4fb2e7bd6d59771d0b6038a",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/bril/core/sum-divisors.bril",
+      "pass_number": 3,
+      "source_sha256": "31d42c1277f8990baa2561cddb34c41a94f1bb7bc3caf5e6db5086391b89f085",
+      "captured_pass_sha256": "a51359188c2d0e4b78add26ddfe03d371c96c566a72a853476f434918c761217"
+    },
+    {
+      "name": "fenwick_tree",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/fenwick_tree.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "4ff35d48f9ec759708f3ee14d1d54c5c67a0782b5b646d1e7bd6d7ac39f81dd5",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/fenwick/fenwick_tree.rs",
+      "pass_number": 3,
+      "source_sha256": "eeccd2e4ca66f1b3ed2d7e4c73ad19cef55d22c5861b9b9c87a63a55e179309a",
+      "captured_pass_sha256": "e8bff45ed52de8d8ba5110d37bb754bd1c58631c974847d4b7a28ff30ef44b5c"
+    },
+    {
+      "name": "jacobi-1d",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/jacobi-1d.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "3ad81c472ad9b461866c166e1569402581d69408f75430a48d3fef08d7fa173e",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/polybench/stencils/jacobi-1d.rs",
+      "pass_number": 3,
+      "source_sha256": "a17b36a69951b55cae822ad0fe2677ed731451cb8d283d49490f3582f457b83e",
+      "captured_pass_sha256": "58f7d5f730132d2d465e32d363280595c7b572fbaf34b67d92e12c660698ec6b"
+    },
+    {
       "name": "raytrace",
       "default": false,
       "parts": [
