@@ -1,5 +1,0 @@
-(datatype Counter (N i64))
-(ruleset advance)
-(rule ((N n)) ((N (+ n 1))) :ruleset advance)
-(N 0)
-(run advance 1)

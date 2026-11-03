@@ -1,5 +1,5 @@
 [alias]
-profile = "run --offline --release --manifest-path tools/eggfuse-profile/Cargo.toml --"
 cpu = "run --offline --release --manifest-path engine/cpu/Cargo.toml --"
 cell-compile = "run --release --locked --manifest-path tools/cell-compiler/Cargo.toml -- compile"
+cell-run = "run --release --locked --manifest-path engine/cell-runtime/Cargo.toml --"
 cell-bench = "bench --locked --manifest-path tools/cell-compiler/Cargo.toml --bench cell --"

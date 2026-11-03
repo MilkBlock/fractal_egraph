@@ -1,9 +1,0 @@
-{
-  "scope": "actual Metal runtime; index invalidation only; same source and Cell recipes",
-  "conflicting_keys": 64,
-  "full_states_and_rounds_equal": true,
-  "before_index_rebuilds": 66,
-  "after_index_rebuilds": 3,
-  "timing_claim": false,
-  "cell_credit": false
-}

@@ -1,2 +1,0 @@
-; Compatibility include; implementation lives in rules/.
-(include "rules/reduce.egg")

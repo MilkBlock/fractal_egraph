@@ -1,5 +1,0 @@
-vendor/
-results/*.stdout
-results/*.stderr
-results/stage-report*.json
-__pycache__/

@@ -1,13 +1,11 @@
 # Stage-gated CPU patches
 
-Run the new experimental path from the repository root:
+For a saved native staged plan, run the native CPU driver from the repository root.
 
 ```sh
-python3 -m eggfuse cpu --source input.egg --output out/staged \
-  --execution staged --stage-audit --check
+cargo cpu --source input.egg --output out/staged --mode staged --plan PROGRAM.json --stage-audit
 ```
 
-The Rust equivalent uses `cargo cpu --mode staged --plan PROGRAM.json`.
 `--stage-audit` is optional and records stage locations, table sizes, ordered
 updates, local merge expressions and actual replies. It is diagnostic overhead.
 
@@ -100,6 +98,8 @@ partial table after an error.
 ## Source and reproducible checks
 
 - Native runtime: `egglog/src/cpu_cells/staged.rs`.
+The following preparation and experiment tools are available in the [research snapshot](https://github.com/MilkBlock/fractal_egraph/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5).
+
 - CPU preparation adapter: `eggfuse/compiler/targets/cpu.py`. The shared GPU
   analyzer is unchanged; its composition results are adapted to actual function
   return ports, without exporting a synthetic saturation as source control.
