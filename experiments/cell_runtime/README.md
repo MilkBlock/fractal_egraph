@@ -137,6 +137,14 @@ maintenance regresses inference by 25.81%. See [STAGE_SPINE.md](STAGE_SPINE.md)
 for typed coverage, current-port checks, cross-ruleset execution, native-backed
 tests, all-stage audit and the remaining performance boundary.
 
+`CELL_CPU_STAGE_SPINE_PARTIAL=1` preserves covered entries while ordinary
+matching completes the gaps. With `CELL_CPU_STAGE_SPINE_SHARED_ENTRIES=1`, exact
+entry predicates also share validation across residual consumers: inclusive
+candidate checks fall 86,432 -> 34,279, though total inference remains slower.
+Both require stage Spine and remain opt-in. See
+[STAGE_ENTRY_COVERAGE.md](STAGE_ENTRY_COVERAGE.md) for accounting, complete-stage
+checks, per-rule depth diagnostics, and unchanged inner enumeration.
+
 ## Union-driven Bake workload
 
 `CELL_CPU_UNION_IMPACT=1` observes direct union inputs separately from derived

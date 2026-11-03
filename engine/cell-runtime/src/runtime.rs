@@ -117,6 +117,13 @@ pub struct Executor {
     continuation_stats: ContinuationStats,
     handoffs: BTreeSet<(usize, usize)>,
 }
+// Keep the ordinary lane's rows owned: optional shared entry caches must not
+// introduce reference-counted heap allocations when the feature is disabled.
+enum SeedRow { Owned(Row), Shared(Rc<Row>) }
+impl std::ops::Deref for SeedRow {
+    type Target = Row;
+    fn deref(&self) -> &Row { match self { Self::Owned(r) => r, Self::Shared(r) => r } }
+}
 /// Run-local binding workspace. Only successful matches become stored bindings;
 /// failed join branches undo slot assignments instead of cloning tree maps.
 struct QueryEnv {
@@ -1282,15 +1289,21 @@ impl Executor {
             }
             return Ok(vec![]);
         }
+        let mut stage_covered = BTreeSet::new();
+        let mut found = vec![];
         if !probe && rule.seminaive && self.delta_queries {
-            if let Some(answers)=self.stage_spine.answers(&mut self.graph,rid,&self.pending[rid],self.watermarks[rid])? {
-                self.pending[rid].clear();
-                return Ok(answers.into_iter().map(|a| {
+            if let Some(coverage)=self.stage_spine.answers(&mut self.graph,rid,&self.pending[rid],self.watermarks[rid])? {
+                found = coverage.answers.into_iter().map(|a| {
                     let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
                     let mut known=know_query.then(||vec![None;rule.query.len()]);
                     for (i,w) in a.witnesses.into_iter().enumerate() {witnesses.record(i,w);if let Some(k)=&mut known{k[i]=match w{Some(Dependency::Fact(f))=>Some(f),_=>None};}}
                     Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
-                }).collect());
+                }).collect();
+                if coverage.complete {
+                    self.pending[rid].clear();
+                    return Ok(found);
+                }
+                stage_covered = coverage.covered;
             }
         }
         if !probe && self.retained.accepts(rid) {
@@ -1309,7 +1322,7 @@ impl Executor {
         }
         self.sieve
             .prepare(rid, &self.graph, &mut self.query_indexes)?;
-        let mut found = vec![];
+        let shared_seeds = !probe && rule.seminaive && self.delta_queries && self.stage_spine.shared();
         if let Some(anchor) = rule.direct {
             let atom = &rule.query[anchor];
             let Call::Table(t) = atom.call else {
@@ -1321,25 +1334,27 @@ impl Executor {
                 std::mem::take(&mut self.pending[rid]).into_iter().collect()
             };
             for w in candidates {
-                self.graph.stats.decoded_rows += 1;
-                let Some(row) = self.graph.row(w)? else {
+                if stage_covered.contains(&(anchor, w)) { continue; }
+                let row = if shared_seeds { self.stage_spine.seed_row(&mut self.graph, w)?.map(SeedRow::Shared) } else {
+                    self.graph.stats.decoded_rows += 1;
+                    self.graph.row(w)?.map(SeedRow::Owned)
+                };
+                let Some(row) = row else {
                     continue;
                 };
                 if row.hidden || (!probe && rule.seminaive && row.epoch < self.watermarks[rid]) {
                     continue;
                 }
+                if !shared_seeds { self.graph.stats.direct_candidates += 1; }
                 let mut env = QueryEnv::new(
                     self.graph.program.templates[rule.template].sorts.len(),
                     witness_slots,
                     full_witnesses,
                     if know_query {rule.query.len()}else{0},
                 );
-                if atom
-                    .args
-                    .iter()
-                    .zip(&row.values)
-                    .all(|(a, v)| bind(a, v, &mut env, &self.graph))
-                {
+                let live = if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,anchor,&row,&mut env.values) }
+                    else { atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph)) };
+                if live {
                     if self.local_known(rid,&env){self.local_sat.stats.seed_receipts+=1;continue;}
                     env.record(anchor, Some(row.witness));
                     self.attach_recipe_context(rid, anchor, &row, &mut env);
@@ -1446,7 +1461,7 @@ impl Executor {
             let watermark = self.watermarks[rid];
             let changed = std::mem::take(&mut self.pending[rid])
                 .into_iter()
-                .map(|w| self.graph.row(w))
+                .map(|w| if shared_seeds { self.stage_spine.seed_row(&mut self.graph,w).map(|r|r.map(SeedRow::Shared)) } else { self.graph.row(w).map(|r|r.map(SeedRow::Owned)) })
                 .collect::<Result<Vec<_>>>()?
                 .into_iter()
                 .flatten()
@@ -1457,26 +1472,29 @@ impl Executor {
                     continue;
                 };
                 for row in changed.iter().filter(|r| r.table == table) {
+                    // Keep the full pending domain for semi-naive ownership.
+                    // Coverage belongs to this atom/witness pair, not all uses
+                    // of a physical row in repeated-table/self-join queries.
+                    if stage_covered.contains(&(pivot, row.witness)) { continue; }
                     if !self
                         .sieve
                         .allow(rid, pivot, table, row.witness, &self.query_indexes)
                     {
                         continue;
                     }
-                    self.graph.stats.residual_candidates += 1;
-                    self.graph.stats.decoded_rows += 1;
+                    if !shared_seeds {
+                        self.graph.stats.residual_candidates += 1;
+                        self.graph.stats.decoded_rows += 1;
+                    }
                     let mut env = QueryEnv::new(
                         self.graph.program.templates[rule.template].sorts.len(),
                         witness_slots,
                         full_witnesses,
                     if know_query {rule.query.len()}else{0},
                     );
-                    if atom
-                        .args
-                        .iter()
-                        .zip(&row.values)
-                        .all(|(a, v)| bind(a, v, &mut env, &self.graph))
-                    {
+                    let live = if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,pivot,row,&mut env.values) }
+                        else { atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph)) };
+                    if live {
                         if self.local_known(rid,&env){self.local_sat.stats.seed_receipts+=1;continue;}
                         self.refutation_depth.begin(rid);
                         let ticket = self.search_context_survey.start(&self.graph, rid, pivot,

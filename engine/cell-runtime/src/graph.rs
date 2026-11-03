@@ -136,6 +136,8 @@ pub struct Stats {
     pub residual_candidates: u64,
     pub bindings: u64,
     pub direct_bindings: u64,
+    #[serde(default)]
+    pub direct_candidates: u64,
     pub cells_created: u64,
     pub empty_frames_released: u64,
     pub native_table_reads: u64,

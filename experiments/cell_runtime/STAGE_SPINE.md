@@ -1,5 +1,9 @@
 # One Spine continues RHS execution across source stages
 
+Follow-up: [entry coverage and shared predicates](STAGE_ENTRY_COVERAGE.md)
+adds partial residual completion and reports candidate checks inclusive of Spine
+work. The measurements below remain the historical whole-query implementation.
+
 `CELL_CPU_STAGE_SPINE=1` enables a persistent context that feeds the actual RHS
 recipes of later source Runs. This extends query-prefix sharing with shared
 producer context and source-scheduled execution. **It remains OFF by default:**

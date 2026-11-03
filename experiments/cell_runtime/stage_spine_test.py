@@ -11,6 +11,8 @@ CHAIN='''(datatype E (N i64) (Seed E) (P E) (Q E) (R E) (Known E))
 (Seed (N 0))
 '''
 class StageSpineTests(unittest.TestCase):
+    MODES=({'CELL_CPU_STAGE_SPINE':'0','CELL_CPU_STAGE_SPINE_PARTIAL':'0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0'},
+           {'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0'})
     setUp=rt.RetainedTests.setUp
     tearDown=rt.RetainedTests.tearDown
     def pair(self,source,native=True):
@@ -19,8 +21,8 @@ class StageSpineTests(unittest.TestCase):
         from eggfuse.engine.cpu import compare_native
         import subprocess
         src=self.root/'source.egg';src.write_text(source);core=prepare(src,rt.FRONTEND);p=build(core);reports=[]
-        for flag in ('0','1'):
-            reports.append(execute(p,self.root/flag,rt.ENGINE,audit=True,environment={**rt.SETTINGS,'CELL_CPU_STAGE_SPINE':flag,'CELL_CPU_LOCAL_SAT':'0','CELL_CPU_RETAINED_CONTEXTS':'0'}))
+        for flag,mode in enumerate(self.MODES):
+            reports.append(execute(p,self.root/str(flag),rt.ENGINE,audit=True,environment={**rt.SETTINGS,**mode,'CELL_CPU_LOCAL_SAT':'0','CELL_CPU_RETAINED_CONTEXTS':'0'}))
         for file in ('state.json','stages.json','binding-audit.json'):
             self.assertEqual(json.loads((self.root/'0/runtime'/file).read_text()),json.loads((self.root/'1/runtime'/file).read_text()),file)
         if native:
@@ -115,7 +117,7 @@ class StageSpineTests(unittest.TestCase):
         self.assertIn('require compiler stage_entries',(self.root/'unsupported/runtime.log').read_text())
     def test_checkpoint_cold_programs_keep_semantics(self):
         p,_=self.pair(CHAIN+'(run-schedule (seq (run a) (run b) (run c)))')
-        env={**rt.SETTINGS,'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_LOCAL_SAT':'0'}
+        env={**rt.SETTINGS,**self.MODES[-1],'CELL_CPU_LOCAL_SAT':'0'}
         execute(p,self.root/'pause',rt.ENGINE,checkpoint_after=1,environment=env)
         execute(p,self.root/'resume',rt.ENGINE,resume=self.root/'pause/runtime/checkpoint.json',environment=env)
         self.assertEqual(json.loads((self.root/'1/runtime/state.json').read_text()),json.loads((self.root/'resume/runtime/state.json').read_text()))
