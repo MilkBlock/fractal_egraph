@@ -1,0 +1,425 @@
+{
+  "marker_control": {
+    "case": "sum-bits",
+    "artificial": {
+      "registered_units": 72,
+      "cell_eclasses": 56,
+      "selected": 30,
+      "views": 34,
+      "receipt_tables": 107,
+      "witnessed_views": 3,
+      "marked_sha256": "cf5f4c856e6f1c5cd526b81b6d96812a590ba0a28260735823c99bb71e330bb2",
+      "stage_entries": 256,
+      "shared_entry_nodes": 241
+    },
+    "zero_observed_cells": {
+      "registered_units": 0,
+      "cell_eclasses": 0,
+      "selected": 30,
+      "views": 34,
+      "receipt_tables": 107,
+      "witnessed_views": 0,
+      "marked_sha256": "cf5f4c856e6f1c5cd526b81b6d96812a590ba0a28260735823c99bb71e330bb2",
+      "stage_entries": 256,
+      "shared_entry_nodes": 241
+    },
+    "differing_program_fields": [
+      "marker_program_sha256",
+      "sha256"
+    ],
+    "identical_final_state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+    "persistent_spine": {
+      "empty": {
+        "resumed_steps": 3034,
+        "cross_stage_steps": 867,
+        "completed_steps": 7925,
+        "runs": 1428
+      },
+      "artificial": {
+        "resumed_steps": 3034,
+        "cross_stage_steps": 867,
+        "completed_steps": 7925,
+        "runs": 1428
+      }
+    }
+  },
+  "training": {
+    "real": {
+      "training_sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+      "deployment_sha256": "9be7fbf34c919e12aaa1405dce329696f13878ba6561ba7b8c9fa98a1d13ac17",
+      "physical_records": 4444,
+      "captured_boundaries": 882,
+      "registered_units": 18,
+      "registered_classes": 14,
+      "admission": {
+        "physical_handoffs": 3055,
+        "handoffs_by_reason": {
+          "anchor only: no residual instruction or reusable construction": 1,
+          "eligible before sampling": 9,
+          "initialization": 1119,
+          "no checked functional edge": 504,
+          "other typed rule fields differ": 424,
+          "typed query/effects differ": 998
+        },
+        "qualified_shapes": 4,
+        "counterfactual_unmarked_training_abi": {
+          "physical_handoffs": 3055,
+          "handoffs_by_reason": {
+            "anchor only: no residual instruction or reusable construction": 197,
+            "eligible before sampling": 40,
+            "initialization": 1119,
+            "no checked functional edge": 1699
+          },
+          "qualified_shapes": 12
+        }
+      },
+      "catalog_seconds_one_observation": 4.188213208,
+      "ledger": {
+        "0": {
+          "members": [
+            0
+          ],
+          "input_kind": "single producer preparation",
+          "direct_transfer": "no two-step executable emitted"
+        },
+        "1": {
+          "members": 1,
+          "class": 1,
+          "sha256": "97d9c6375c3a66fc338837f56ca635c580a3ee34d6a0a155338df68d45d6d425",
+          "freeze_seconds": 0.1458775,
+          "unit_bytes": 17010,
+          "input_kind": "two-application slice",
+          "producer": [
+            "type-analysis",
+            "(rule ((= lhs (Single e))\n       (HasType e (Base basety)))\n      ((HasType lhs (TupleT (TCons basety (TNil )))))\n        :ruleset type-analysis )"
+          ],
+          "consumer": [
+            "type-helpers",
+            "(rule ((= lst (TCons hd tl))\n       (= len (TypeList-length tl)))\n      ((set (TypeList-length lst) (+ 1 len)))\n        :ruleset type-helpers )"
+          ],
+          "anchor": "TCons",
+          "producer_guards": [],
+          "anchor_guards": [],
+          "instructions": [
+            "query"
+          ],
+          "reuses": 0
+        },
+        "2": {
+          "members": [
+            2
+          ],
+          "input_kind": "single producer preparation",
+          "direct_transfer": "no two-step executable emitted"
+        },
+        "3": {
+          "members": 1,
+          "class": 3,
+          "sha256": "85fb26c70176299cac0c7ac8033a5257841d1aacd5c600e93b1a77c8736dfd7b",
+          "freeze_seconds": 0.157410458,
+          "unit_bytes": 17691,
+          "input_kind": "two-application slice",
+          "producer": [
+            "type-analysis",
+            "(rule ((= lhs (DoWhile inp pred-body)))\n      ((ExpectType (Get pred-body 0) (Base (BoolT )) 'loop pred must be bool'))\n        :ruleset type-analysis )"
+          ],
+          "consumer": [
+            "always-run",
+            "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )"
+          ],
+          "anchor": "Get",
+          "producer_guards": [],
+          "anchor_guards": [
+            {
+              "column": 1,
+              "sort": "i64",
+              "text": "0"
+            }
+          ],
+          "instructions": [
+            "query",
+            "query",
+            "query",
+            "query"
+          ],
+          "reuses": 0
+        },
+        "4": {
+          "members": [
+            4
+          ],
+          "input_kind": "single producer preparation",
+          "direct_transfer": "no two-step executable emitted"
+        },
+        "5": {
+          "members": 1,
+          "class": 5,
+          "sha256": "4aa3277d8a69bbcd58a568d8e455d9eb36f66d9195fa736e03a02f0c4a8921d7",
+          "freeze_seconds": 0.155575125,
+          "unit_bytes": 14825,
+          "input_kind": "two-application slice",
+          "producer": [
+            "always-run",
+            "(rule ((leading-Expr tuple)\n       (> (tuple-length tuple) 0))\n      ((Get tuple 0))\n        :ruleset always-run )"
+          ],
+          "consumer": [
+            "is-resolved",
+            "(rule ((= lhs (Get _tup _i))\n       (ExprIsResolved _tup))\n      ((ExprIsResolved lhs))\n        :ruleset is-resolved )"
+          ],
+          "anchor": "Get",
+          "producer_guards": [
+            {
+              "role": {
+                "read": "tuple-length"
+              },
+              "sort": "i64",
+              "text": "5"
+            }
+          ],
+          "anchor_guards": [
+            {
+              "column": 1,
+              "sort": "i64",
+              "text": "0"
+            }
+          ],
+          "instructions": [
+            "query"
+          ],
+          "reuses": 0
+        },
+        "6": {
+          "members": [
+            6
+          ],
+          "input_kind": "single producer preparation",
+          "direct_transfer": "no two-step executable emitted"
+        },
+        "7": {
+          "members": 1,
+          "class": 7,
+          "sha256": "1292b453a27e35b54da6baa3eb7f063405a509ac597e07f6ef02ed7b96ed70cd",
+          "freeze_seconds": 0.156371833,
+          "unit_bytes": 16398,
+          "input_kind": "two-application slice",
+          "producer": [
+            "always-run",
+            "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )"
+          ],
+          "consumer": [
+            "is-resolved",
+            "(rule ((= lhs (Get _tup _i))\n       (ExprIsResolved _tup))\n      ((ExprIsResolved lhs))\n        :ruleset is-resolved )"
+          ],
+          "anchor": "Get",
+          "producer_guards": [
+            {
+              "role": {
+                "variable": "i"
+              },
+              "sort": "i64",
+              "text": "0"
+            },
+            {
+              "role": {
+                "read": "tuple-length"
+              },
+              "sort": "i64",
+              "text": "5"
+            }
+          ],
+          "anchor_guards": [
+            {
+              "column": 1,
+              "sort": "i64",
+              "text": "1"
+            }
+          ],
+          "instructions": [
+            "query"
+          ],
+          "reuses": 0
+        },
+        "8": {
+          "members": [
+            8,
+            14
+          ],
+          "input_kind": "single producer preparation",
+          "direct_transfer": "no two-step executable emitted"
+        },
+        "9": {
+          "members": 2,
+          "class": 9,
+          "sha256": "514ea88fa03d1c2ad84724ca02480b702db00335a4a00f165490cdb09137712f",
+          "freeze_seconds": 0.150541375,
+          "unit_bytes": 17018,
+          "input_kind": "two-application slice",
+          "producer": [
+            "always-run",
+            "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )"
+          ],
+          "consumer": [
+            "is-resolved",
+            "(rule ((= lhs (Get _tup _i))\n       (ExprIsResolved _tup))\n      ((ExprIsResolved lhs))\n        :ruleset is-resolved )"
+          ],
+          "anchor": "Get",
+          "producer_guards": [
+            {
+              "role": {
+                "variable": "i"
+              },
+              "sort": "i64",
+              "text": "2"
+            },
+            {
+              "role": {
+                "read": "tuple-length"
+              },
+              "sort": "i64",
+              "text": "5"
+            }
+          ],
+          "anchor_guards": [
+            {
+              "column": 1,
+              "sort": "i64",
+              "text": "3"
+            }
+          ],
+          "instructions": [
+            "query"
+          ],
+          "reuses": 0
+        },
+        "10": {
+          "members": [
+            10,
+            16
+          ],
+          "input_kind": "single producer preparation",
+          "direct_transfer": "no two-step executable emitted"
+        },
+        "11": {
+          "members": 2,
+          "class": 11,
+          "sha256": "983564b202003d1385e55a1fda4b1ff6cab6a64132b5ee4aa6b4ed241c83b9e9",
+          "freeze_seconds": 0.155808875,
+          "unit_bytes": 17021,
+          "input_kind": "two-application slice",
+          "producer": [
+            "always-run",
+            "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )"
+          ],
+          "consumer": [
+            "is-resolved",
+            "(rule ((= lhs (Get _tup _i))\n       (ExprIsResolved _tup))\n      ((ExprIsResolved lhs))\n        :ruleset is-resolved )"
+          ],
+          "anchor": "Get",
+          "producer_guards": [
+            {
+              "role": {
+                "variable": "i"
+              },
+              "sort": "i64",
+              "text": "3"
+            },
+            {
+              "role": {
+                "read": "tuple-length"
+              },
+              "sort": "i64",
+              "text": "5"
+            }
+          ],
+          "anchor_guards": [
+            {
+              "column": 1,
+              "sort": "i64",
+              "text": "4"
+            }
+          ],
+          "instructions": [
+            "query"
+          ],
+          "reuses": 0
+        },
+        "12": {
+          "members": [
+            12
+          ],
+          "input_kind": "single producer preparation",
+          "direct_transfer": "no two-step executable emitted"
+        },
+        "13": {
+          "members": 1,
+          "class": 13,
+          "sha256": "a290df6e2f5341121226d83183844d2fd2e45c941d62cfd277331b6e6752a9d1",
+          "freeze_seconds": 0.154022583,
+          "unit_bytes": 16401,
+          "input_kind": "two-application slice",
+          "producer": [
+            "always-run",
+            "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )"
+          ],
+          "consumer": [
+            "is-resolved",
+            "(rule ((= lhs (Get _tup _i))\n       (ExprIsResolved _tup))\n      ((ExprIsResolved lhs))\n        :ruleset is-resolved )"
+          ],
+          "anchor": "Get",
+          "producer_guards": [
+            {
+              "role": {
+                "variable": "i"
+              },
+              "sort": "i64",
+              "text": "1"
+            },
+            {
+              "role": {
+                "read": "tuple-length"
+              },
+              "sort": "i64",
+              "text": "5"
+            }
+          ],
+          "anchor_guards": [
+            {
+              "column": 1,
+              "sort": "i64",
+              "text": "2"
+            }
+          ],
+          "instructions": [
+            "query"
+          ],
+          "reuses": 0
+        }
+      }
+    },
+    "artificial": {
+      "training_sha256": "6c40aff2c010c4101afba9cb596275db97811b925748ac8bf1e96e56729ed1ed",
+      "deployment_sha256": "9be7fbf34c919e12aaa1405dce329696f13878ba6561ba7b8c9fa98a1d13ac17",
+      "physical_records": 74,
+      "captured_boundaries": 41,
+      "registered_units": 0,
+      "registered_classes": 0,
+      "admission": {
+        "physical_handoffs": 101,
+        "handoffs_by_reason": {
+          "typed query/effects differ": 101
+        },
+        "qualified_shapes": 0,
+        "counterfactual_unmarked_training_abi": {
+          "physical_handoffs": 101,
+          "handoffs_by_reason": {
+            "anchor only: no residual instruction or reusable construction": 12,
+            "no checked functional edge": 89
+          },
+          "qualified_shapes": 0
+        }
+      },
+      "catalog_seconds_one_observation": 0.383524583,
+      "ledger": {}
+    }
+  }
+}

@@ -48,3 +48,5 @@ A single-threaded Apple M3 Max run used ten alternating measured pairs per case 
 | raytrace | 24 | 9,908,673 | 34,912.86 | 34,805.65 |
 
 The class fired 31 times across one complete run of all eight cases, including 27 applications on held-out workloads. Every accepted entry still needs a live consumer port lookup. The baseline already has a keyed lookup for that port. Candidate visits did not fall, and the timing pairs do not demonstrate a consistent inference speedup. Additional full-stage audits on sum-bits and fenwick_tree agreed on the initial graphs, all 3,550 Run graphs and binding sets, with four and one cross-Run applications respectively. Relearning from sum-bits reproduced the frozen file byte for byte. The experiment remains opt-in. [Measurements, including raw timings and input fingerprints](results.json)
+
+The [class contribution study](attribution/README.md) separates source-generated markers from Bake witnesses and measures both standalone and marginal contributions of the full admitted catalog.
