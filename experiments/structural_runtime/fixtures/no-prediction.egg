@@ -1,7 +1,0 @@
-; Valid initialization but no inference. A prediction-required run must fail.
-(datatype Expr (Var i64))
-(function Expr-size (Expr) i64 :merge (min old new))
-(function to-hoist (Expr) Expr :merge new)
-(ruleset work)
-(rule ((= e (Var i))) ((set (Expr-size e) 1)) :ruleset work)
-(run work 0)

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Eggfuse Metal Profile"
-  short_description: "Profile eggfuse Metal kernels, occupancy and CPU/GPU stalls"
-  default_prompt: "Use $eggfuse-metal-profile to locate the current eggfuse GPU bottleneck using Xcode tools and verified replay."

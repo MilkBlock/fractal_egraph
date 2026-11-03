@@ -10,30 +10,13 @@ supports finite repeat without early publication. It still uses complete native
 queries to authorize patches; see [the staged execution contract](STAGED.md).
 The eager saturation implementation described below remains the default/reference.
 
-From the repository root:
+The primary Cell CPU pipeline is documented in the [repository guide](../../README.md). To run the native CPU reference on the small chain fixture, use a fresh output directory.
 
 ```sh
-python3 -m eggfuse cpu \
-  --source experiments/cpu_multistage/chain.egg \
-  --output out/cpu-chain --check
-```
-
-This builds offline, exports typed source rules, runs the existing analyzer's
-region/recipe passes, emits `cpu-program.json`, and executes it in a fresh native
-process. `--check` runs the same binary in ordinary native mode and compares all
-exportable table rows, function values, equality classes and subsumption flags.
-It refuses to claim equality if an opaque value cannot be exported. Compilation,
-bootstrap, inference and other source commands have separate timing fields.
-
-The Rust executable is also available directly:
-
-```sh
-cargo cpu --source experiments/cpu_multistage/chain.egg --prepare out/core.json
-# The Python command above performs the shared analyzer/lowering step.
-cargo cpu --source experiments/cpu_multistage/chain.egg --plan out/cpu-chain/cpu-program.json \
-  --output out/cpu-loaded --mode cell
 cargo cpu --source experiments/cpu_multistage/chain.egg --output out/cpu-native --mode native
 ```
+
+The reference driver can also consume saved native CPU plans from the [research snapshot](https://github.com/MilkBlock/fractal_egraph/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5). The standalone Cell compiler produces plans for `cargo cell-run`.
 
 `--plan` may be reused with new input facts, provided the typed rules, schemas and
 schedule are unchanged. Native mode does not require a plan. Existing output
@@ -118,11 +101,11 @@ mutations**; repeated constructor/union requests can be no-ops.
 
 | Layer | Implementation |
 |---|---|
-| Shared analysis | `eggfuse/analyzer/regions.py`, `eggfuse/ir/batches.py` |
-| CPU artifact | `eggfuse/compiler/targets/cpu.py` |
+| Shared analysis (research snapshot) | `eggfuse/analyzer/regions.py`, `eggfuse/ir/batches.py` |
+| CPU artifact (research snapshot) | `eggfuse/compiler/targets/cpu.py` |
 | Native checker and scoped execution | `egglog/src/cpu_cells.rs` |
 | Native cursor / auxiliary-table bridge | `egglog/egglog-bridge/src/rule.rs` |
 | Rust CLI | `engine/cpu/src/main.rs` |
-| Build, artifact loading, endpoint audit | `eggfuse/engine/cpu.py` |
+| Build, artifact loading, endpoint audit (research snapshot) | `eggfuse/engine/cpu.py` |
 
 See [tests and measurements](../../experiments/cpu_multistage/README.md).

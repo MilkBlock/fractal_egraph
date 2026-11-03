@@ -1,6 +1,0 @@
-(datatype T (N i64))
-(ruleset n)
-(rule ((= x (N 1))) ((N 1)) :ruleset n :naive)
-(N 1)
-(run n 1)
-(run n 1)

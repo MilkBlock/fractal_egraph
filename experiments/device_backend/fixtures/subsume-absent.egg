@@ -1,6 +1,0 @@
-(datatype T (N i64) (Wrap T))
-(ruleset h)
-(rule ((= x (N 1))) ((subsume (Wrap x))) :ruleset h)
-(N 1)
-(run h 1)
-(run h 1)

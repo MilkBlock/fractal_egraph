@@ -1,7 +1,0 @@
-(datatype T (N i64) (Combine T T))
-(function F (T) T :merge (Combine old new))
-(ruleset r)
-(let x (N 0))
-(set (F x) x)
-(rule ((= v (F x))) ((set (F x) v)) :ruleset r)
-(run r 1)

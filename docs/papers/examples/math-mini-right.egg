@@ -1,9 +1,0 @@
-; Minimal executable teaching fragment of egglog/tests/web-demo/math.egg.
-(datatype Math (Var String) (Add Math Math))
-(ruleset assoc)
-(ruleset comm)
-(rewrite (Add a (Add b c)) (Add (Add a b) c) :ruleset assoc)
-(rewrite (Add a b) (Add b a) :ruleset comm)
-(let $root (Add (Var "a") (Add (Var "b") (Var "c"))))
-(run-schedule (saturate (run assoc) (run comm)))
-(check (= $root (Add (Var "c") (Add (Var "a") (Var "b")))))

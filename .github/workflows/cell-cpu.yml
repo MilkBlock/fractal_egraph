@@ -1,0 +1,18 @@
+name: Cell CPU
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  cpu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --release --locked --manifest-path tools/cell-compiler/Cargo.toml
+      - run: cargo test --release --locked --manifest-path engine/cell-runtime/Cargo.toml --lib
+      - run: cargo cell-compile --case fact --output out/fact
+      - run: cargo cell-run --program out/fact/program.json --output out/run
+      - run: cargo cell-bench --program out/fact/program.json --lane nodes --repeat 1 --verify-stages

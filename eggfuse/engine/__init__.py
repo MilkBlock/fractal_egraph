@@ -1,1 +1,0 @@
-"""eggfuse engine component."""

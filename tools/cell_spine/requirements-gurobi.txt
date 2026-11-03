@@ -1,2 +1,0 @@
-# Optional comparison backend; not required by the default SCIP pipeline.
-gurobipy==13.0.3
