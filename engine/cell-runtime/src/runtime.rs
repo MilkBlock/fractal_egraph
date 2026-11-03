@@ -16,12 +16,38 @@ struct Binding {
     receipts:Option<Vec<Option<Dependency>>>,
     composition: Option<(Rc<crate::compositions::Edge>, crate::views::Context)>,
     witnesses: MatchedFacts,
-    values: BTreeMap<usize, Value>,
+    // Full match identity in the typed Recipe query-input order.
+    values: Vec<Value>,
     epoch: u64,
     parent: Option<FactRef>,
     continuation: Option<(usize, u32, bool)>,
     compiled: bool,
 }
+impl Binding {
+    fn dedup_in_order(bindings: &mut Vec<Self>) {
+        // Stable ordering preserves the first witness for each identity. A
+        // composed witness supersedes an ordinary one, as in the map collector.
+        bindings.sort_by(|a, b| a.values.cmp(&b.values));
+        bindings.dedup_by(|later, first| {
+            if later.values != first.values {
+                return false;
+            }
+            if first.composition.is_none() && later.composition.is_some() {
+                std::mem::swap(first, later);
+            }
+            true
+        });
+    }
+
+    fn input(&self, rule: &Rule, slot: usize) -> &Value {
+        let index = rule
+            .inputs
+            .binary_search(&slot)
+            .expect("validated query input slot");
+        &self.values[index]
+    }
+}
+
 #[derive(Default, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 struct CompositionStats {
@@ -161,11 +187,9 @@ impl QueryEnv {
             self.values[self.trail.pop().unwrap()] = None;
         }
     }
-    fn binding(&self) -> BTreeMap<usize, Value> {
-        self.values
-            .iter()
-            .enumerate()
-            .filter_map(|(i, v)| v.clone().map(|v| (i, v)))
+    fn binding(&self, inputs: &[usize]) -> Result<Vec<Value>> {
+        inputs.iter()
+            .map(|&slot| self.values[slot].clone().ok_or_else(|| "incomplete binding".into()))
             .collect()
     }
 }
@@ -474,14 +498,20 @@ impl Executor {
             self.search_contexts.stats.marker_anchored_hits+=u64::from(query.iter().enumerate().any(|(i,a)|
                 !remaining[i] && matches!(a.call,Call::Table(t) if self.graph.program.views.markers.contains(&t))));
             let (pivot,seed_epoch,seed_witness)=delta.unwrap();
+            let inputs = &self.graph.program.rules[rid].inputs;
+            let source_positions = inputs.iter().map(|slot| slots.iter().position(|s| s == slot)).collect::<Vec<_>>();
             for answer in answers.iter() {
                 self.search_contexts.stats.replay_rows+=1;
                 if answer.witnesses.iter().any(|(i,e,w)|(*e,*w)>(seed_epoch,seed_witness)
                     || ((*e,*w)==(seed_epoch,seed_witness) && atoms[*i]<pivot)) {
                     self.search_contexts.stats.delta_rejected_answers+=1;continue
                 }
-                let mut values=env.binding();
-                for (&slot,value) in slots.iter().zip(&answer.values){values.insert(slot,value.clone());}
+                let values = inputs.iter().zip(&source_positions).map(|(&slot, source)| {
+                    match source {
+                        Some(i) => answer.values.get(*i),
+                        None => env.values[slot].as_ref(),
+                    }.cloned().ok_or_else(|| "incomplete replay binding".to_string())
+                }).collect::<Result<Vec<_>>>()?;
                 let mut witnesses=env.witnesses.clone();let mut known=env.known.clone();let mut receipts=env.receipts.clone();
                 let mut max_epoch=epoch;
                 for (i,e,w) in &answer.witnesses {
@@ -519,7 +549,7 @@ impl Executor {
             }
             b.witnesses=witnesses;
             if cached.is_none() && proof.delta_restrictions==0 {
-                answers.push(crate::search_context::Answer{values:slots.iter().map(|s|b.values[s].clone()).collect(),witnesses:rows});
+                answers.push(crate::search_context::Answer{values:slots.iter().map(|s|b.input(&self.graph.program.rules[rid], *s).clone()).collect(),witnesses:rows});
             }
         }
         if cached.is_some() {
@@ -555,7 +585,7 @@ impl Executor {
                 composition: None,
                 witnesses: env.witnesses.clone(),
                 known:env.known.clone(),receipts:env.receipts.clone(),
-                values: env.binding(),
+                values: env.binding(&self.graph.program.rules[rid].inputs)?,
                 epoch,
                 parent: None,
                 continuation: None,
@@ -954,7 +984,7 @@ impl Executor {
             composition: Some((edge.clone(), context)),
             witnesses: env.witnesses.clone(),
                 known:env.known.clone(),receipts:env.receipts.clone(),
-            values: env.binding(),
+            values: env.binding(&self.graph.program.rules[rid].inputs)?,
             epoch,
             parent,
             continuation: Some((
@@ -1177,7 +1207,7 @@ impl Executor {
             return Ok(())
         }
         let Some((&i,tail))=order.split_first() else {
-            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),receipts:env.receipts.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
+            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),receipts:env.receipts.clone(),values:env.binding(&self.graph.program.rules[rid].inputs)?,epoch,parent:None,continuation:None,compiled:true});
             return Ok(())
         };
         let a=&query[i];let mark=env.trail.len();
@@ -1337,7 +1367,7 @@ impl Executor {
                     let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
                     let mut known=know_query.then(||vec![None;rule.query.len()]);
                     for (i,w) in a.witnesses.into_iter().enumerate() {witnesses.record(i,w);if let Some(k)=&mut known{k[i]=match w{Some(Dependency::Fact(f))=>Some(f),_=>None};}}
-                    Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,receipts,composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
+                    Binding{values:a.values,witnesses,known,receipts,composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
                 }).collect();
                 if coverage.complete {
                     self.pending[rid].clear();
@@ -1357,7 +1387,7 @@ impl Executor {
                     witnesses.record(i,w);
                     if let Some(k)=&mut known {k[i]=match w {Some(Dependency::Fact(f))=>Some(f),_=>None};}
                 }
-                Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,receipts,
+                Binding{values:a.values,witnesses,known,receipts,
                     composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
             }).collect())
         }
@@ -1441,7 +1471,7 @@ impl Executor {
                             composition: None,
                             witnesses: env.witnesses.clone(),
                 known:env.known.clone(),receipts:env.receipts.clone(),
-                            values: env.binding(),
+                            values: env.binding(&self.graph.program.rules[rid].inputs)?,
                             epoch,
                             parent: None,
                             continuation: None,
@@ -1630,7 +1660,7 @@ impl Executor {
                                 composition: None,
                                 witnesses: env.witnesses.clone(),
                 known:env.known.clone(),receipts:env.receipts.clone(),
-                                values: env.binding(),
+                                values: env.binding(&self.graph.program.rules[rid].inputs)?,
                                 epoch,
                                 parent: None,
                                 continuation: None,
@@ -1676,30 +1706,18 @@ impl Executor {
                 None,
             )?;
         }
-        let mut unique = BTreeMap::new();
-        for b in found {
-            if probe || !rule.seminaive || b.epoch >= self.watermarks[rid] {
-                let key = rule
-                    .inputs
-                    .iter()
-                    .map(|i| b.values.get(i).cloned().ok_or("incomplete binding"))
-                    .collect::<std::result::Result<Vec<_>, _>>()?;
-                match unique.entry(key) {
-                    std::collections::btree_map::Entry::Vacant(e) => {
-                        e.insert(b);
-                    }
-                    std::collections::btree_map::Entry::Occupied(mut e) => {
-                        if e.get().composition.is_none() && b.composition.is_some() {
-                            e.insert(b);
-                        }
-                    }
-                }
-            }
-        }
-        Ok(unique.into_values().collect())
+        found.retain(|b| probe || !rule.seminaive || b.epoch >= self.watermarks[rid]);
+        self.graph.stats.dedup_key_slots_reused += (found.len() as u64) * (rule.inputs.len() as u64);
+        Binding::dedup_in_order(&mut found);
+        Ok(found)
     }
     fn apply(&mut self, rid: usize, b: Binding) -> Result<Option<Produced>> {
-        let stage_cursor=self.stage_spine.begin(&self.graph.program,rid,&b.values,&self.current_stage,self.graph.epoch);
+        // Move the surviving payload into the existing frame storage once.
+        let mut values = BTreeMap::new();
+        for (&slot, value) in self.graph.program.rules[rid].inputs.iter().zip(b.values) {
+            values.insert(slot, value);
+        }
+        let stage_cursor=self.stage_spine.begin(&self.graph.program,rid,&values,&self.current_stage,self.graph.epoch);
         let stage_counts=stage_cursor.as_ref().map(|_|(self.graph.stats.constructor_requests,self.graph.stats.function_updates,self.graph.stats.union_requests));
         let template = self.graph.program.rules[rid].template;
         let origin = b.continuation;
@@ -1713,12 +1731,12 @@ impl Executor {
             && !self.compositions_enabled && !self.stage_spine.enabled
             && self.local_run.is_none() && origin.is_none() && !self.graph.union_lineage_enabled
         {
-            let Some(start) = self.graph.start_constructor_rhs(template, b.values, b.parent)? else {
+            let Some(start) = self.graph.start_constructor_rhs(template, values, b.parent)? else {
                 return Ok(None);
             };
             start
         } else {
-            (self.graph.reference_frame(template, b.values, b.parent, &b.witnesses)?, 0)
+            (self.graph.reference_frame(template, values, b.parent, &b.witnesses)?, 0)
         };
         if matches!(self.graph.known_mode.as_str(),"observe"|"on") {
             if let Some(plans)=self.graph.program.known_results.rules.get(&rid){
@@ -1930,7 +1948,7 @@ impl Executor {
     }
     fn apply_once(&mut self,rid:usize,b:Binding)->Result<(bool,Option<Produced>)> {
         let key=self.local_run.as_ref().filter(|(_,p)|p.targets.contains(&rid)).map(|(session,plan)|{
-            (*session,plan.completion_keys[&rid].iter().map(|i|b.values[i].clone()).collect::<Vec<_>>())
+            (*session,plan.completion_keys[&rid].iter().map(|i|b.input(&self.graph.program.rules[rid], *i).clone()).collect::<Vec<_>>())
         });
         if let Some((session,key))=&key && self.local_sat.sessions[*session].seen.contains(&(rid,key.clone())) {
             self.local_sat.stats.duplicate_bindings+=1;return Ok((false,None))
@@ -1957,8 +1975,7 @@ impl Executor {
             let Some(value)=value::primitive(name,&args,output,&self.graph.program.artifact["source_core"]["structural_key"]["nodes"])? else {return Ok(None)};
             if !bind(atom.args.last().unwrap(),&value,&mut env,&self.graph){return Ok(None)}
         }
-        let values=env.binding();
-        if rule.inputs.iter().any(|i|!values.contains_key(i)){return Err("incomplete local binding".into())}
+        let values = env.binding(&rule.inputs)?;
         if self.local_sat.check {
             for atom in &*rule.query {if let Call::Table(t)=atom.call {
                 let expected=atom.args.iter().map(|a|operand(a,&env,&self.graph).ok_or_else(||"unready local audit operand".to_string())).collect::<Result<Vec<_>>>()?;
@@ -2033,7 +2050,7 @@ impl Executor {
         let matches = patch.bindings.len();
         let search_seconds = start.elapsed().as_secs_f64();
         if self.audit {
-            self.binding_audit.push(json!({"ruleset":set,"bindings":patch.bindings.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
+            self.binding_audit.push(json!({"ruleset":set,"bindings":patch.bindings.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":self.graph.program.rules[*rid].inputs.iter().zip(&b.values).map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
         }
         let phase = Instant::now();
         let local_before=self.local_sat.stats.local_bindings;
@@ -2059,7 +2076,7 @@ impl Executor {
                 let prior=lineage.iter().rev().find(|(r,_)|*r==rid);
                 if prior.is_some_and(|(_,g)|*g!=generation){
                     let session=self.local_run.as_ref().unwrap().0;
-                    let key=plan.completion_keys[&rid].iter().map(|i|binding.values[i].clone()).collect::<Vec<_>>();
+                    let key=plan.completion_keys[&rid].iter().map(|i|binding.input(&self.graph.program.rules[rid], *i).clone()).collect::<Vec<_>>();
                     if self.local_sat.sessions[session].seen.contains(&(rid,key)){self.local_sat.stats.duplicate_bindings+=1;}
                     else{self.local_sat.stats.cycle_deferrals+=1;}
                     continue
@@ -2370,5 +2387,68 @@ impl Executor {
     pub fn take_semantic_audit(&mut self)->Vec<J>{std::mem::take(&mut self.semantic_audit)}
     pub fn report(&self) -> J {
         json!({"entry_schedule":self.entry_schedule.report(),"stage_spine":self.stage_spine.report(),"retained_contexts":self.retained.report(),"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+    }
+}
+
+#[cfg(test)]
+mod binding_tests {
+    use super::*;
+
+    #[test]
+    fn complete_binding_uses_declared_slots_in_order() {
+        let mut env = QueryEnv::new(5, 0, false, 0, 0);
+        env.values[4] = Some(Value::Int(7));
+        env.values[1] = Some(Value::Int(3));
+        assert_eq!(
+            env.binding(&[1, 4]).unwrap(),
+            [Value::Int(3), Value::Int(7)]
+        );
+        assert!(env.binding(&[1, 2, 4]).is_err());
+        assert!(env.binding(&[]).unwrap().is_empty());
+    }
+
+    #[test]
+    fn duplicates_keep_first_preferred_witness_and_full_identity() {
+        let edge = Rc::new(crate::compositions::Edge {
+            id: 0,
+            program: 0,
+            producer: 0,
+            consumer: 1,
+            instructions: vec![],
+            reuse: BTreeMap::new(),
+        });
+        let make = |v, epoch, composed: bool| Binding {
+            values: vec![Value::Int(5), Value::Int(v)],
+            epoch,
+            composition: composed.then(|| {
+                (
+                    edge.clone(),
+                    crate::views::Context {
+                        completed: true,
+                        composition: None,
+                        cell: 1,
+                        template: 0,
+                        depth: 1,
+                        op: 0,
+                    },
+                )
+            }),
+            known: None,
+            receipts: None,
+            witnesses: MatchedFacts::None,
+            parent: None,
+            continuation: None,
+            compiled: false,
+        };
+        let mut found = vec![
+            make(3, 1, false),
+            make(1, 2, false),
+            make(3, 3, true),
+            make(1, 4, false),
+            make(3, 5, true),
+            make(3, 6, false),
+        ];
+        Binding::dedup_in_order(&mut found);
+        assert_eq!(found.iter().map(|b| b.epoch).collect::<Vec<_>>(), [2, 3]);
     }
 }
