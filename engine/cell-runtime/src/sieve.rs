@@ -92,6 +92,7 @@ pub struct Stats {
     pub added_keys: u64,
     pub probes: u64,
     pub rejected: u64,
+    pub empty_join_skips: u64,
     pub per_rule: Vec<(u64, u64)>,
 }
 pub struct Sieve {
@@ -318,6 +319,17 @@ impl Sieve {
         }
         self.active[rid] = true;
         Ok(())
+    }
+    /// Each incoming guard is necessary for the whole conjunctive query.
+    /// An empty, built summary refutes every pivot in this snapshot. The next
+    /// scheduled Run checks again after publication has propagated new keys.
+    pub(crate) fn empty_join(&mut self, rid: usize) -> bool {
+        let empty = self.rules[rid].iter().flatten().any(|guard| {
+            let summary = &self.states[guard.child];
+            summary.built && summary.keys.is_empty()
+        });
+        self.stats.empty_join_skips += u64::from(empty);
+        empty
     }
     pub fn allow(
         &mut self,

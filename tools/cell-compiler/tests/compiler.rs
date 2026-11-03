@@ -217,3 +217,46 @@ fn witnessed_handoff_is_bound_to_the_compiled_recipe() {
     assert!(!compile("invalid", &args).status.success());
     assert!(!tmp.path().join("invalid").exists());
 }
+
+#[test]
+fn a_late_bridge_wakes_a_rule_with_an_empty_join_summary() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("late-bridge.egg");
+    fs::write(
+        &source,
+        r#"
+(relation Starts (i64))
+(relation Bridge (i64 i64))
+(relation Ends (i64))
+(relation Hit (i64))
+(ruleset search)
+(ruleset insert)
+(rule ((Starts x) (Bridge x y) (Ends y)) ((Hit x)) :ruleset search)
+(rule ((Starts x) (Ends y)) ((Bridge x y)) :ruleset insert)
+(Starts 10) (Bridge 20 30) (Ends 40)
+(run-schedule (seq (run search) (run insert) (run search)))
+(check (Hit 10))
+"#,
+    )
+    .unwrap();
+    let output = tmp.path().join("compiled");
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--output",
+        output.to_str().unwrap(),
+    ]);
+    let result = pass(&[
+        "bench",
+        "--program",
+        output.join("program.json").to_str().unwrap(),
+        "--lane",
+        "filtered",
+        "--repeat",
+        "1",
+        "--verify-stages",
+    ]);
+    let report: J = serde_json::from_slice(&result.stdout).unwrap();
+    assert!(report["counts"]["empty_join_skips"].as_u64().unwrap() > 0);
+}

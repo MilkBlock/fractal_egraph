@@ -135,7 +135,18 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
         let predicates = r["entry_schedule"]["stats"]["predicate_checks"]
             .as_u64()
             .ok_or("missing predicate counter")?;
-        let c = json!({"all_candidate_visits":g.residual_candidates+g.direct_candidates+merged+pivots+predicates,"merge_candidate_rows":merged,"pivot_candidates":pivots,"predicate_checks":predicates,"residual_candidates":g.residual_candidates,"direct_candidates":g.direct_candidates,"runs":e.steps.len()});
+        let c = json!({
+            "all_candidate_visits": g.residual_candidates + g.direct_candidates + merged + pivots + predicates,
+            "merge_candidate_rows": merged,
+            "pivot_candidates": pivots,
+            "predicate_checks": predicates,
+            "residual_candidates": g.residual_candidates,
+            "direct_candidates": g.direct_candidates,
+            "consumer_seed_deliveries": r["entry_schedule"]["stats"]["consumer_seed_deliveries"],
+            "sieve_probes": r["sieve"]["stats"]["probes"],
+            "empty_join_skips": r["sieve"]["stats"]["empty_join_skips"],
+            "runs": e.steps.len()
+        });
         if !counts.is_null() && counts != c {
             return Err("benchmark work differs between repetitions".into());
         }

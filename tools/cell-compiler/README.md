@@ -32,8 +32,12 @@ cargo cell-bench --case sum-bits --lane filtered
 cargo test --release --locked --manifest-path tools/cell-compiler/Cargo.toml
 ```
 
-在本次本机五次重复中，冻结的原始 sum-bits 输入生成 1,428 个 Run。三个 lane 的候选检查依次为 73,400、20,437 和 17,028。中位推理时间依次为 96.28、86.20 和 76.51 ms。基线和过滤版逐阶段结果一致。
+在入口分发前过滤改动之前的五次重复中，冻结的原始 sum-bits 输入生成 1,428 个 Run。三个 lane 的候选检查依次为 73,400、20,437 和 17,028。中位推理时间依次为 96.28、86.20 和 76.51 ms。基线和过滤版逐阶段结果一致。
 
 另行用带结构键声明的研究版 sum-bits 对照，旧 Python loader 接受 Rust 产物，旧、新编译器生成的 marked 程序在原生 egglog 上投影后 3,468 行、2,324 个等价类一致。用同一检查器比较 SK 和 marked，两个编译器都在 `TermBop` 遇到原有差异。独立 Cell CPU 与 marked 原生端点也有一条 `TermBop` 对不上。上述 bench 只用来比较 Cell 内部策略。[已有端点对照](../../experiments/cell_runtime/SOURCE_NATIVE_BASELINE.md)
 
 原生 `egglog-baseline` 在同一 marked 输入上的 Free Join 枚举和探测合计为 75,174 次，向 action buffer 交付 9,114 个绑定。[对照数据、计数定义和复现命令](benchmarks/free-join/README.md)
+
+开启共享入口、Sieve 和列交集后，调度器在构造消费者 seed 前检查 Sieve。如果某个必需的连接摘要已经构建且为空，当前查询可以直接返回空结果。写入发布之后，下一个 Run 重新判断。bench 的 `consumer_seed_deliveries` 统计实际交付的 seed，`sieve_probes` 统计 Bloom 探测，`empty_join_skips` 统计由空连接摘要排除的规则调用。三个计数单独列出。
+
+冻结 sum-bits 上，相对同一 filtered 配置的旧实现，seed 投递从 58,905 降到 32,792，Bloom 探测从 32,258 降到 22,909，原有口径的候选检查从 17,028 降到 16,779。残余候选仍是 9,309 次。初始图及全部 1,428 个 Run 的图、绑定和调度通过逐阶段审计。

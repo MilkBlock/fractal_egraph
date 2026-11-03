@@ -1305,9 +1305,27 @@ impl Executor {
             }
             return Ok(vec![]);
         }
-        let scheduled=if !probe && self.entry_schedule.accepts(rid) {
-            Some(self.entry_schedule.seeds(&self.graph,rid,self.watermarks[rid])?)
-        } else {None};
+        let scheduled_entry = !probe && self.entry_schedule.accepts(rid);
+        // Spine coverage and retained matching consume their own complete entry domains.
+        let early_sieve = scheduled_entry && self.sieve.enabled && self.delta_queries
+            && rule.direct.is_none() && !self.stage_spine.enabled && !self.retained.accepts(rid);
+        if early_sieve {
+            self.sieve.prepare(rid, &self.graph, &mut self.query_indexes)?;
+            if self.sieve.empty_join(rid) {
+                self.pending[rid].clear();
+                return Ok(vec![]);
+            }
+        }
+        let scheduled = if scheduled_entry {
+            let watermark = self.watermarks[rid];
+            Some(if early_sieve {
+                self.entry_schedule.seeds_where(&self.graph, rid, watermark, |atom, table, w| {
+                    self.sieve.allow(rid, atom, table, w, &self.query_indexes)
+                })?
+            } else {
+                self.entry_schedule.seeds(&self.graph, rid, watermark)?
+            })
+        } else { None };
         let mut stage_covered = BTreeSet::new();
         let mut found = vec![];
         if !probe && rule.seminaive && self.delta_queries {
@@ -1343,8 +1361,9 @@ impl Executor {
                     composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
             }).collect())
         }
-        self.sieve
-            .prepare(rid, &self.graph, &mut self.query_indexes)?;
+        if !early_sieve {
+            self.sieve.prepare(rid, &self.graph, &mut self.query_indexes)?;
+        }
         let shared_seeds = !probe && rule.seminaive && self.delta_queries && self.stage_spine.shared();
         if let Some(anchor) = rule.direct {
             let atom = &rule.query[anchor];
@@ -1485,7 +1504,7 @@ impl Executor {
                     .chain(changed.iter().filter(|r|r.table==table).map(|r|(None,&**r)));
                 for (supplied,row) in candidates {
                     if stage_covered.contains(&(pivot,row.witness)){continue;}
-                    if !self.sieve.allow(rid,pivot,table,row.witness,&self.query_indexes){continue;}
+                    if !early_sieve && !self.sieve.allow(rid,pivot,table,row.witness,&self.query_indexes){continue;}
                     if !shared_seeds && scheduled.is_none(){self.graph.stats.residual_candidates+=1;self.graph.stats.decoded_rows+=1;}
                     let mut env=if let Some(seed)=supplied{QueryEnv::shared(seed.clone(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)}
                         else{QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)};
