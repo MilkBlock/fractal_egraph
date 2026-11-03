@@ -116,6 +116,13 @@ equivalence is a narrower claim than replacing pristine egglog correctly.
 
 The official CPU target can emit exact slot projections and conditional containment certificates. `CELL_CPU_REFERENCE_VIEWS=1` enables virtual marker records, reference redirection, inherited continuation entries and body retirement. This remains opt-in: sum-bits passes every Run/binding comparison but is slower. See [REFERENCE_VIEWS.md](REFERENCE_VIEWS.md) for the representation, controls, tests and measured limits.
 
+`CELL_CPU_LOCAL_SAT=1` enables complete checked rule continuations within an
+eligible saturation scope, with effect-dependent completion receipts and normal
+delta fallback. It remains opt-in: the synthetic chain saves searches/barriers,
+but the measured sum-bits Pass 3 has no demonstrated net benefit. See
+[LOCAL_SATURATION.md](LOCAL_SATURATION.md) for scope restrictions, semantic-boundary
+audits, checkpoint behavior and same-binary measurements.
+
 ## Union-driven Bake workload
 
 `CELL_CPU_UNION_IMPACT=1` observes direct union inputs separately from derived

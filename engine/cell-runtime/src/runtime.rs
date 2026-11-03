@@ -6,7 +6,7 @@ use crate::{
     value::{self, Value, canon},
 };
 use serde_json::{Value as J, json};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::rc::Rc;
 use std::time::Instant;
 
@@ -77,7 +77,11 @@ struct ContinuationStats {
 struct StagePatch {
     bindings: Vec<(usize, Binding)>,
 }
+struct Produced { rule:usize, depth:u32, values:Vec<Value>, routes:Vec<usize> }
 pub struct Executor {
+    local_sat:crate::local_sat::LocalSat,
+    local_run:Option<(usize,Rc<crate::local_sat::Plan>)>,
+    semantic_audit:Vec<J>,
     pub compositions_enabled: bool,
     composition_stats: CompositionStats,
     pub graph: Graph,
@@ -199,7 +203,9 @@ impl Executor {
             &graph.program,
             std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1"),
         );
+        let local_sat=crate::local_sat::LocalSat::new(&graph.program);
         let mut e = Self {
+            local_sat,local_run:None,semantic_audit:vec![],
             compositions_enabled: std::env::var("CELL_CPU_COMPOSITIONS").as_deref() == Ok("1"),
             composition_stats: CompositionStats::default(),
             graph,
@@ -1277,6 +1283,7 @@ impl Executor {
                     .zip(&row.values)
                     .all(|(a, v)| bind(a, v, &mut env, &self.graph))
                 {
+                    if self.local_known(rid,&env){self.local_sat.stats.seed_receipts+=1;continue;}
                     env.record(anchor, Some(row.witness));
                     self.attach_recipe_context(rid, anchor, &row, &mut env);
                     if !probe {
@@ -1412,6 +1419,7 @@ impl Executor {
                         .zip(&row.values)
                         .all(|(a, v)| bind(a, v, &mut env, &self.graph))
                     {
+                        if self.local_known(rid,&env){self.local_sat.stats.seed_receipts+=1;continue;}
                         self.refutation_depth.begin(rid);
                         let ticket = self.search_context_survey.start(&self.graph, rid, pivot,
                             &env.values, self.continuation_stats.merge_candidate_rows, found.len());
@@ -1595,7 +1603,7 @@ impl Executor {
         }
         Ok(unique.into_values().collect())
     }
-    fn apply(&mut self, rid: usize, b: Binding) -> Result<()> {
+    fn apply(&mut self, rid: usize, b: Binding) -> Result<Option<Produced>> {
         let template = self.graph.program.rules[rid].template;
         let origin = b.continuation;
         if b.compiled {
@@ -1661,6 +1669,8 @@ impl Executor {
             }
             self.continuation_stats.max_depth = self.continuation_stats.max_depth.max(depth);
         }
+        let capture_layout=self.local_run.as_ref().and_then(|(_,p)|p.captures.get(&rid)).cloned();
+        let mut visible_ops=BTreeSet::new();
         let ops = self.graph.program.templates[template].ops.clone();
         let known_values=if self.graph.known_mode=="value" {self.graph.program.known_results.values.get(&rid).cloned()}else{None};
         let eliminate_static=self.graph.known_mode=="static";
@@ -1710,7 +1720,10 @@ impl Executor {
                             }
                             self.composition_stats.reuse_fallbacks += 1;
                         }
-                        let actual=self.graph.construct(cell, i, *t, aa, *dst)?;
+                        let actual=if capture_layout.as_ref().is_some_and(|c|c.effects.contains(&i)) {
+                            let mut visible=false;let v=self.graph.construct_visible(cell,i,*t,aa,*dst,&mut visible)?;
+                            if visible{visible_ops.insert(i);}v
+                        }else{self.graph.construct(cell,i,*t,aa,*dst)?};
                         if observe_static && static_skip.as_ref().is_some_and(|s|s[i]){
                             let a=self.graph.program.known_results.static_slots[template][*dst].clone().unwrap();
                             if self.graph.argument(cell,&a)?==actual{self.graph.known_stats.static_observed_equal+=1;}else{self.graph.known_stats.static_observed_other+=1;}
@@ -1750,7 +1763,10 @@ impl Executor {
                         .values
                         .insert(*dst, v);
                 }
-                Op::Set(t, aa, v) => self.graph.set(cell, i, *t, aa, v)?,
+                Op::Set(t, aa, v) => {
+                    if capture_layout.as_ref().is_some_and(|c|c.effects.contains(&i)){let mut visible=false;self.graph.set_visible(cell,i,*t,aa,v,&mut visible)?;if visible{visible_ops.insert(i);}}
+                    else{self.graph.set(cell,i,*t,aa,v)?;}
+                },
                 Op::Union(a, b) => {
                     let a = self.graph.argument(cell, &a)?;
                     let b = self.graph.argument(cell, &b)?;
@@ -1776,8 +1792,64 @@ impl Executor {
         }
         let state=self.graph.cells.get_mut(&cell).unwrap();state.completed=completed;state.completed_prefix=completed_prefix;
         self.graph.queue_absorption(cell, &b.witnesses);
+        let mut produced=None;
+        if completed && let Some((_,plan))=&self.local_run && let Some(routes)=plan.outgoing.get(&rid) {
+            let ready=routes.iter().enumerate().filter_map(|(i,t)|t.rows.iter().all(|(_,_,_,op)|op.is_none_or(|op|visible_ops.contains(&op))).then_some(i)).collect::<Vec<_>>();
+            self.local_sat.stats.incomplete_contexts+=(routes.len()-ready.len()) as u64;
+            if !ready.is_empty(){
+                let values=capture_layout.as_ref().unwrap().slots.iter().map(|i|self.graph.argument(cell,&Arg::Slot(*i))).collect::<Result<Vec<_>>>()?;
+                self.local_sat.stats.captures+=1;produced=Some(Produced{rule:rid,depth:self.graph.cells[&cell].recipe_depth,values,routes:ready});
+            }
+        }
         self.graph.release_empty(cell);
-        Ok(())
+        Ok(produced)
+    }
+    fn local_known(&self,rid:usize,env:&QueryEnv)->bool {
+        let Some((session,plan))=&self.local_run else{return false};
+        if !plan.targets.contains(&rid) || self.local_sat.sessions[*session].seen.is_empty(){return false}
+        let key=plan.completion_keys[&rid].iter().map(|i|env.values[*i].clone()).collect::<Option<Vec<_>>>();
+        key.is_some_and(|key|self.local_sat.sessions[*session].seen.contains(&(rid,key)))
+    }
+    fn apply_once(&mut self,rid:usize,b:Binding)->Result<(bool,Option<Produced>)> {
+        let key=self.local_run.as_ref().filter(|(_,p)|p.targets.contains(&rid)).map(|(session,plan)|{
+            (*session,plan.completion_keys[&rid].iter().map(|i|b.values[i].clone()).collect::<Vec<_>>())
+        });
+        if let Some((session,key))=&key && self.local_sat.sessions[*session].seen.contains(&(rid,key.clone())) {
+            self.local_sat.stats.duplicate_bindings+=1;return Ok((false,None))
+        }
+        let source=self.apply(rid,b)?;
+        // Completion means the exact pure RHS has been executed/enqueued. It
+        // becomes externally committed only at the normal block repair below.
+        if let Some((session,key))=key {
+            self.local_sat.sessions[session].seen.insert((rid,key));
+            self.local_sat.stats.peak_seen=self.local_sat.stats.peak_seen.max(self.local_sat.sessions[session].seen.len());
+        }
+        Ok((true,source))
+    }
+    fn local_successor(&mut self,source:&Produced,transfer:&crate::local_sat::Transfer)->Result<Option<Binding>> {
+        let rule=self.graph.program.rules[transfer.consumer].clone();
+        let mut env=QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),0,false,0);
+        for (slot,source_arg) in &transfer.assignments {
+            let v=match source_arg{Arg::Literal(v)=>canon(v,&self.graph.parents),Arg::Slot(i)=>source.values[*i].clone()};
+            env.values[*slot]=Some(v);
+        }
+        for &i in &*self.graph.program.multi_stage.finishes[transfer.consumer] {
+            let atom=&rule.query[i];let Call::Primitive(name,output)=&atom.call else{return Err("local finish includes a table search".into())};
+            let args=atom.args[..atom.args.len()-1].iter().map(|a|operand(a,&env,&self.graph).ok_or_else(||"unbound local guard".to_string())).collect::<Result<Vec<_>>>()?;
+            let Some(value)=value::primitive(name,&args,output,&self.graph.program.artifact["source_core"]["structural_key"]["nodes"])? else {return Ok(None)};
+            if !bind(atom.args.last().unwrap(),&value,&mut env,&self.graph){return Ok(None)}
+        }
+        let values=env.binding();
+        if rule.inputs.iter().any(|i|!values.contains_key(i)){return Err("incomplete local binding".into())}
+        if self.local_sat.check {
+            for atom in &*rule.query {if let Call::Table(t)=atom.call {
+                let expected=atom.args.iter().map(|a|operand(a,&env,&self.graph).ok_or_else(||"unready local audit operand".to_string())).collect::<Result<Vec<_>>>()?;
+                let row=self.graph.lookup(t,&expected[..expected.len()-1])?;
+                if row.is_none_or(|r|r.hidden || r.values!=expected){return Err(format!("local LHS witness missing: rule {} table {}",transfer.consumer,self.graph.program.tables[t].name));}
+            }}
+            self.local_sat.stats.audit_bindings+=1;
+        }
+        Ok(Some(Binding{values,witnesses:MatchedFacts::None,known:None,composition:None,parent:None,continuation:None,compiled:true,epoch:self.graph.epoch}))
     }
     fn probe(&mut self, set: &str) -> Result<bool> {
         let rules = self
@@ -1809,6 +1881,8 @@ impl Executor {
             .get(set)
             .ok_or_else(|| format!("unknown ruleset {set}"))?
             .clone();
+        self.local_run=self.local_sat.active(set);
+        if self.local_run.is_some(){self.local_sat.stats.source_runs+=1;}
         let mut work = vec![];
         // Every LHS is read before any effect is made visible. Prepared successor
         // recipes therefore cannot leak into this finite Run's matching snapshot.
@@ -1831,6 +1905,10 @@ impl Executor {
             self.query_indexes.clear();
             self.sieve.invalidate();
         }
+        if let Some((session,plan))=&self.local_run && self.local_sat.sessions[*session].seen.is_empty()
+            && !work.iter().any(|(r,_)|plan.outgoing.contains_key(r)) {
+            self.local_sat.stats.idle_runs+=1;self.local_run=None;
+        }
         let patch = StagePatch { bindings: work };
         let matches = patch.bindings.len();
         let search_seconds = start.elapsed().as_secs_f64();
@@ -1838,11 +1916,52 @@ impl Executor {
             self.binding_audit.push(json!({"ruleset":set,"bindings":patch.bindings.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
         }
         let phase = Instant::now();
+        let local_before=self.local_sat.stats.local_bindings;
+        let mut queue=VecDeque::new();let mut executed=0usize;
         for (rid, b) in patch.bindings {
-            self.apply(rid, b)?;
+            let (applied,source)=self.apply_once(rid,b)?;
+            if let Some(source)=source {queue.push_back((source,vec![(rid,0usize)]));}
+            executed+=usize::from(applied);
         }
-        let rhs_seconds = phase.elapsed().as_secs_f64();
-        self.graph.stats.bindings += matches as u64;
+        let ordinary_rhs_seconds=phase.elapsed().as_secs_f64();
+        let local_clock=self.local_run.is_some().then(Instant::now);
+        // Original snapshot RHS order finishes before any local successor.
+        while let Some((source,lineage))=queue.pop_front() {
+            self.local_sat.stats.max_pending=self.local_sat.stats.max_pending.max(queue.len()+1);
+            let plan=self.local_run.as_ref().unwrap().1.clone();
+            for &route in &source.routes {
+                let transfer=&plan.outgoing[&source.rule][route];
+                self.local_sat.stats.transfer_attempts+=1;
+                let Some(mut binding)=self.local_successor(&source,transfer)? else {self.local_sat.stats.guard_rejections+=1;continue};
+                let rid=transfer.consumer;
+                // Structural recursion boundary, not a depth/work budget.
+                let generation=lineage.last().unwrap().1+usize::from(!transfer.nonexpanding);
+                let prior=lineage.iter().rev().find(|(r,_)|*r==rid);
+                if prior.is_some_and(|(_,g)|*g!=generation){
+                    let session=self.local_run.as_ref().unwrap().0;
+                    let key=plan.completion_keys[&rid].iter().map(|i|binding.values[i].clone()).collect::<Vec<_>>();
+                    if self.local_sat.sessions[session].seen.contains(&(rid,key)){self.local_sat.stats.duplicate_bindings+=1;}
+                    else{self.local_sat.stats.cycle_deferrals+=1;}
+                    continue
+                }
+                binding.continuation=Some((source.rule,source.depth.checked_add(1).ok_or("local recipe depth overflow")?,false));
+                let (applied,next)=self.apply_once(rid,binding)?;
+                if !applied{continue}
+                if prior.is_some(){self.local_sat.stats.finite_reentries+=1;}
+                let mut chain=lineage.clone();chain.push((rid,generation));
+                self.local_sat.stats.max_chain=self.local_sat.stats.max_chain.max(chain.len());
+                self.local_sat.stats.local_bindings+=1;*self.local_sat.stats.by_rule.entry(rid).or_default()+=1;
+                *self.local_sat.stats.dispatch_sets.entry(set.into()).or_default()+=1;
+                let owner=self.graph.program.artifact["recipe"]["rules"][rid]["metadata"]["source_set"].as_str().unwrap_or(set);
+                *self.local_sat.stats.by_set.entry(owner.into()).or_default()+=1;
+                if let Some(next)=next {queue.push_back((next,chain));}
+                executed+=1;
+            }
+        }
+        self.local_run=None;
+        let local_seconds=local_clock.map_or(0.0,|clock|clock.elapsed().as_secs_f64());
+        let rhs_seconds=ordinary_rhs_seconds;
+        self.graph.stats.bindings += executed as u64;
         let phase = Instant::now();
         self.graph.repair()?;
         if let Some(mut survey)=self.graph.union_impact.take() {
@@ -1900,9 +2019,12 @@ impl Executor {
         self.graph.collect_garbage();
         let delivery_seconds = phase.elapsed().as_secs_f64();
         let changed = self.graph.changed;
-        self.steps.push(json!({"ordinal":self.steps.len()+1,"ruleset":set,"path":path,"iterations":iterations,"epoch":self.graph.epoch,"logical_matches":matches,"changed":changed,"live_cells":self.graph.cells.len(),"elapsed_seconds":start.elapsed().as_secs_f64(),"phases":{"search":search_seconds,"rhs":rhs_seconds,"repair":repair_seconds,"delivery_gc":delivery_seconds,"query_update":query_update_seconds}}));
+        self.steps.push(json!({"ordinal":self.steps.len()+1,"ruleset":set,"path":path,"iterations":iterations,"epoch":self.graph.epoch,"logical_matches":matches,"local_bindings":self.local_sat.stats.local_bindings-local_before,"executed_bindings":executed,"changed":changed,"live_cells":self.graph.cells.len(),"elapsed_seconds":start.elapsed().as_secs_f64(),"phases":{"search":search_seconds,"rhs":rhs_seconds,"local_sat":local_seconds,"repair":repair_seconds,"delivery_gc":delivery_seconds,"query_update":query_update_seconds}}));
         if self.audit {
             self.snapshots.push(self.graph.export()?);
+        }
+        if self.local_sat.check && !self.tasks.iter().any(|t|matches!(t,Task::Saturate{..})) {
+            self.semantic_audit.push(json!({"kind":"run","set":set,"path":path,"iterations":iterations,"state":self.graph.export()?}));
         }
         Ok(changed)
     }
@@ -1959,6 +2081,7 @@ impl Executor {
                         }
                     } else if !node["saturate"].is_null() {
                         let body = node["saturate"].clone();
+                        self.local_sat.enter(&self.graph.program,&body,&path,&iterations);
                         let mut it = iterations.clone();
                         it.push(0);
                         self.tasks.push(Task::Saturate {
@@ -2031,6 +2154,11 @@ impl Executor {
                             path,
                             iterations: it,
                         });
+                    } else {
+                        self.local_sat.exit(&path,&iterations);
+                        if self.local_sat.check && !self.tasks.iter().any(|t|matches!(t,Task::Saturate{..})) {
+                            self.semantic_audit.push(json!({"kind":"sat_exit","path":path,"iterations":iterations,"state":self.graph.export()?}));
+                        }
                     }
                 }
             }
@@ -2039,6 +2167,7 @@ impl Executor {
     }
     pub fn checkpoint(&self) -> J {
         let mut c = json!({"schema":"eggfuse-cell-checkpoint/v1","program":self.graph.program.artifact,"graph":self.graph.image(),"tasks":self.tasks,"watermarks":self.watermarks,"steps":self.steps,"continuation_stats":self.continuation_stats,"handoffs":self.handoffs});
+        c["local_saturation"]=self.local_sat.image();
         c["compositions_enabled"] = self.compositions_enabled.into();
         c["composition_stats"] = json!(self.composition_stats);
         c["sha256"] = crate::checksum::digest(&c).into();
@@ -2072,6 +2201,18 @@ impl Executor {
                 .map_err(|x| x.to_string())?;
         }
         e.tasks = serde_json::from_value(checkpoint["tasks"].clone()).map_err(|x| x.to_string())?;
+        if let Some(local)=checkpoint.get("local_saturation") {
+            if local["enabled"].as_bool()!=Some(e.local_sat.enabled){return Err("checkpoint local-saturation mode differs".into())}
+            e.local_sat.sessions=serde_json::from_value(local["sessions"].clone()).map_err(|x|x.to_string())?;
+            e.local_sat.stats=serde_json::from_value(local["stats"].clone()).map_err(|x|x.to_string())?;
+            for session in &e.local_sat.sessions {
+                let body=e.tasks.iter().find_map(|t|match t{Task::Saturate{body,path,iterations,..} if *path==session.key.path && *iterations==session.key.iterations=>Some(body),_=>None}).ok_or("checkpoint local scope missing")?;
+                if crate::local_sat::scope_sets(&e.graph.program,body).as_ref()!=Some(&session.sets){return Err("checkpoint local permissions differ".into())}
+                let plan=e.local_sat.plans.get(&session.sets).ok_or("checkpoint local plan missing")?;
+                for (r,key) in &session.seen {if !plan.targets.contains(r) || plan.completion_keys[r].len()!=key.len(){return Err("checkpoint completion key invalid".into())}}
+            }
+        }
+
         e.watermarks =
             serde_json::from_value(checkpoint["watermarks"].clone()).map_err(|x| x.to_string())?;
         e.steps = serde_json::from_value(checkpoint["steps"].clone()).map_err(|x| x.to_string())?;
@@ -2100,7 +2241,8 @@ impl Executor {
         }
         Ok(e)
     }
+    pub fn take_semantic_audit(&mut self)->Vec<J>{std::mem::take(&mut self.semantic_audit)}
     pub fn report(&self) -> J {
-        json!({"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

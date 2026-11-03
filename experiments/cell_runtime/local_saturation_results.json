@@ -1,0 +1,1163 @@
+{
+  "scope": "standalone single-thread Cell CPU; not native egglog; each pair run once; no averaged speedup",
+  "default_enabled": false,
+  "experiments": {
+    "chain": {
+      "scope": "synthetic shared-context chain through native typed frontend; not eggcc performance; standalone single-thread Cell CPU, merge programs ON",
+      "program": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/local-sat-chain/program.json",
+      "provenance": {
+        "source_sha256": "49326071d083bbac54c895c5a21b05c9208d3b6ed4cbcdfe1f178df7966cf966"
+      },
+      "endpoint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 1408,
+        "eclasses": 1408
+      },
+      "ratio": 1.031592715541588,
+      "fresh_process_exact_replay": true,
+      "lanes": {
+        "off": {
+          "measurement": {
+            "program_sha256": "42fa21929f2ecc6a6bbc0802992368748b7c8d52d57bee69f226f691c517f80c",
+            "binary_sha256": "2571c26a9252e625299e427ef3b86d714d9c495ec20298987fb30f847d60242c",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.02323512500151992,
+            "peak_rss_bytes": 11075584,
+            "inference_seconds": 0.004307417,
+            "setup_seconds": 0.001055291,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "0",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 9,
+          "total_candidates": 1024,
+          "key_lookup_calls": 2688,
+          "stats": {
+            "bindings": 1024,
+            "constructor_requests": 1152,
+            "constructor_reused": 0,
+            "logical_facts_created": 1408,
+            "function_updates": 0,
+            "union_requests": 0,
+            "unions": 0,
+            "repaired_dependencies": 0,
+            "repair_collisions": 0
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.000117624,
+            "local_sat": 0.0,
+            "query_update": 1.9957999999999998e-05,
+            "repair": 0.0015960430000000001,
+            "rhs": 0.0013638740000000002,
+            "search": 0.001094084
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {},
+            "by_set": {},
+            "captures": 0,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {},
+            "duplicate_bindings": 0,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 0,
+            "max_chain": 0,
+            "max_pending": 0,
+            "peak_seen": 0,
+            "scopes": 0,
+            "seed_receipts": 0,
+            "source_runs": 0,
+            "transfer_attempts": 0
+          }
+        },
+        "on": {
+          "measurement": {
+            "program_sha256": "42fa21929f2ecc6a6bbc0802992368748b7c8d52d57bee69f226f691c517f80c",
+            "binary_sha256": "2571c26a9252e625299e427ef3b86d714d9c495ec20298987fb30f847d60242c",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.01589599999715574,
+            "peak_rss_bytes": 12943360,
+            "inference_seconds": 0.0044435,
+            "setup_seconds": 0.00052975,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "1",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 2,
+          "total_candidates": 1792,
+          "key_lookup_calls": 3072,
+          "stats": {
+            "bindings": 1024,
+            "constructor_requests": 1152,
+            "constructor_reused": 0,
+            "logical_facts_created": 1408,
+            "function_updates": 0,
+            "union_requests": 0,
+            "unions": 0,
+            "repaired_dependencies": 0,
+            "repair_collisions": 0
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.000116584,
+            "local_sat": 0.001958542,
+            "query_update": 9.540999999999999e-06,
+            "repair": 0.000357833,
+            "rhs": 0.000593417,
+            "search": 0.00137725
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {
+              "1": 128,
+              "2": 128,
+              "3": 128,
+              "4": 128,
+              "5": 128,
+              "6": 128,
+              "7": 128
+            },
+            "by_set": {
+              "s": 896
+            },
+            "captures": 896,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {
+              "s": 896
+            },
+            "duplicate_bindings": 1024,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 896,
+            "max_chain": 8,
+            "max_pending": 128,
+            "peak_seen": 896,
+            "scopes": 1,
+            "seed_receipts": 0,
+            "source_runs": 2,
+            "transfer_attempts": 1024
+          }
+        }
+      },
+      "validation": {
+        "boundaries": 2,
+        "all_rows_values_equivalence_visibility": true,
+        "source_outer_sat_and_finite_run_boundaries": true,
+        "per_local_binding_original_lhs_checked": true,
+        "streamer_sha256": "f760a6743f3cf368d2c93be10d20f7a30364591496dbd3021bf94b39b126ac01"
+      }
+    },
+    "sum-bits": {
+      "scope": "actual authenticated sum-bits source_sk_mk pipeline; standalone single-thread Cell CPU, merge programs ON",
+      "program": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-static-compile/eggfuse_related_files/program.json",
+      "provenance": {
+        "pipeline": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-static-compile",
+        "selected_choices": [
+          "to-hoist"
+        ],
+        "marker_count": 47,
+        "source_sha256": "a0014215ec09515311042eff1ccd3df54514e358f68a8d7a70aa54db137a4c12",
+        "source_sk_sha256": "fa9a0d7e23238b5e3ab50ab077f27c976b66b606956218c1f84fd7d49f5bd93a",
+        "source_sk_mk_sha256": "5a41d6ad89e2f790928a5f7ad12fe4539f0e85fad176f5818576efece0b9614e",
+        "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+        "verified_pass_names": [
+          "structural_keys",
+          "bake_environment",
+          "analyze",
+          "markers",
+          "marker_ir",
+          "recipe_ir",
+          "device"
+        ]
+      },
+      "endpoint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4518,
+        "eclasses": 2324
+      },
+      "ratio": 1.025171682012309,
+      "fresh_process_exact_replay": true,
+      "lanes": {
+        "off": {
+          "measurement": {
+            "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+            "binary_sha256": "2571c26a9252e625299e427ef3b86d714d9c495ec20298987fb30f847d60242c",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.29886479099513963,
+            "peak_rss_bytes": 222789632,
+            "inference_seconds": 0.142974792,
+            "setup_seconds": 0.000962583,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "0",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 1510,
+          "total_candidates": 87218,
+          "key_lookup_calls": 62482,
+          "stats": {
+            "bindings": 12930,
+            "constructor_requests": 19199,
+            "constructor_reused": 15966,
+            "logical_facts_created": 4803,
+            "function_updates": 1045,
+            "union_requests": 3208,
+            "unions": 1037,
+            "repaired_dependencies": 2378,
+            "repair_collisions": 999
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.008165976999999979,
+            "local_sat": 0.0,
+            "query_update": 0.00525526999999999,
+            "repair": 0.014993006999999942,
+            "rhs": 0.026778926999999775,
+            "search": 0.07620244599999992
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {},
+            "by_set": {},
+            "captures": 0,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {},
+            "duplicate_bindings": 0,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 0,
+            "max_chain": 0,
+            "max_pending": 0,
+            "peak_seen": 0,
+            "scopes": 0,
+            "seed_receipts": 0,
+            "source_runs": 0,
+            "transfer_attempts": 0
+          }
+        },
+        "on": {
+          "measurement": {
+            "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+            "binary_sha256": "2571c26a9252e625299e427ef3b86d714d9c495ec20298987fb30f847d60242c",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.40137854099157266,
+            "peak_rss_bytes": 222101504,
+            "inference_seconds": 0.146573708,
+            "setup_seconds": 0.105860584,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "1",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 1510,
+          "total_candidates": 87218,
+          "key_lookup_calls": 62671,
+          "stats": {
+            "bindings": 12957,
+            "constructor_requests": 19199,
+            "constructor_reused": 15966,
+            "logical_facts_created": 4803,
+            "function_updates": 1147,
+            "union_requests": 3208,
+            "unions": 1037,
+            "repaired_dependencies": 2378,
+            "repair_collisions": 999
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.008253519999999959,
+            "local_sat": 0.0009898560000000038,
+            "query_update": 0.0055286050000000215,
+            "repair": 0.015791285999999738,
+            "rhs": 0.027283020999999786,
+            "search": 0.07590500399999978
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {
+              "310": 27,
+              "321": 7,
+              "702": 24,
+              "703": 76,
+              "704": 3
+            },
+            "by_set": {
+              "cell-spine-complete": 34,
+              "terms-helpers-helpers": 103
+            },
+            "captures": 218,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {
+              "cell-spine-complete": 7,
+              "terms-helpers-helpers": 130
+            },
+            "duplicate_bindings": 245,
+            "finite_reentries": 103,
+            "guard_rejections": 212,
+            "incomplete_contexts": 54,
+            "local_bindings": 137,
+            "max_chain": 3,
+            "max_pending": 9,
+            "peak_seen": 122,
+            "scopes": 574,
+            "seed_receipts": 0,
+            "source_runs": 725,
+            "transfer_attempts": 484
+          }
+        }
+      },
+      "validation": {
+        "boundaries": 282,
+        "all_rows_values_equivalence_visibility": true,
+        "source_outer_sat_and_finite_run_boundaries": true,
+        "per_local_binding_original_lhs_checked": true,
+        "streamer_sha256": "f760a6743f3cf368d2c93be10d20f7a30364591496dbd3021bf94b39b126ac01"
+      }
+    },
+    "chain-packed": {
+      "scope": "synthetic shared-context chain through native typed frontend; not eggcc performance; standalone single-thread Cell CPU, merge programs ON",
+      "program": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/local-sat-chain-packed/program.json",
+      "provenance": {
+        "source_sha256": "49326071d083bbac54c895c5a21b05c9208d3b6ed4cbcdfe1f178df7966cf966"
+      },
+      "endpoint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 1408,
+        "eclasses": 1408
+      },
+      "ratio": 1.0021127111261494,
+      "fresh_process_exact_replay": true,
+      "lanes": {
+        "off": {
+          "measurement": {
+            "program_sha256": "42fa21929f2ecc6a6bbc0802992368748b7c8d52d57bee69f226f691c517f80c",
+            "binary_sha256": "c4e71395ea4b5e84e6e5ae3014688e6953e92b81c5e293d0fad4234f5b4a62f8",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.02365550000104122,
+            "peak_rss_bytes": 11141120,
+            "inference_seconds": 0.004397667,
+            "setup_seconds": 0.001410583,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "0",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 9,
+          "total_candidates": 1024,
+          "key_lookup_calls": 2688,
+          "stats": {
+            "bindings": 1024,
+            "constructor_requests": 1152,
+            "constructor_reused": 0,
+            "logical_facts_created": 1408,
+            "function_updates": 0,
+            "union_requests": 0,
+            "unions": 0,
+            "repaired_dependencies": 0,
+            "repair_collisions": 0
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.000139335,
+            "local_sat": 0.0,
+            "query_update": 3.6335000000000004e-05,
+            "repair": 0.001667167,
+            "rhs": 0.001376875,
+            "search": 0.0010636640000000002
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {},
+            "by_set": {},
+            "captures": 0,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {},
+            "duplicate_bindings": 0,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "idle_runs": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 0,
+            "max_chain": 0,
+            "max_pending": 0,
+            "peak_seen": 0,
+            "scopes": 0,
+            "seed_receipts": 0,
+            "source_runs": 0,
+            "transfer_attempts": 0
+          }
+        },
+        "on": {
+          "measurement": {
+            "program_sha256": "42fa21929f2ecc6a6bbc0802992368748b7c8d52d57bee69f226f691c517f80c",
+            "binary_sha256": "c4e71395ea4b5e84e6e5ae3014688e6953e92b81c5e293d0fad4234f5b4a62f8",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.015451124985702336,
+            "peak_rss_bytes": 12861440,
+            "inference_seconds": 0.004406958,
+            "setup_seconds": 0.000554458,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "1",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 2,
+          "total_candidates": 1792,
+          "key_lookup_calls": 3072,
+          "stats": {
+            "bindings": 1024,
+            "constructor_requests": 1152,
+            "constructor_reused": 0,
+            "logical_facts_created": 1408,
+            "function_updates": 0,
+            "union_requests": 0,
+            "unions": 0,
+            "repaired_dependencies": 0,
+            "repair_collisions": 0
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.000134832,
+            "local_sat": 0.001839542,
+            "query_update": 9.459e-06,
+            "repair": 0.00041425,
+            "rhs": 0.000486333,
+            "search": 0.001480042
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {
+              "1": 128,
+              "2": 128,
+              "3": 128,
+              "4": 128,
+              "5": 128,
+              "6": 128,
+              "7": 128
+            },
+            "by_set": {
+              "s": 896
+            },
+            "captures": 896,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {
+              "s": 896
+            },
+            "duplicate_bindings": 1024,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "idle_runs": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 896,
+            "max_chain": 8,
+            "max_pending": 128,
+            "peak_seen": 896,
+            "scopes": 1,
+            "seed_receipts": 0,
+            "source_runs": 2,
+            "transfer_attempts": 1024
+          }
+        }
+      },
+      "validation": {
+        "boundaries": 2,
+        "all_rows_values_equivalence_visibility": true,
+        "source_outer_sat_and_finite_run_boundaries": true,
+        "per_local_binding_original_lhs_checked": true,
+        "streamer_sha256": "c8eeb68cc92628afac30c36448781db984fe2127cf16354697da88fb21bc6958"
+      }
+    },
+    "sum-bits-packed": {
+      "scope": "actual authenticated sum-bits source_sk_mk pipeline; standalone single-thread Cell CPU, merge programs ON",
+      "program": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-static-compile/eggfuse_related_files/program.json",
+      "provenance": {
+        "pipeline": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-static-compile",
+        "selected_choices": [
+          "to-hoist"
+        ],
+        "marker_count": 47,
+        "source_sha256": "a0014215ec09515311042eff1ccd3df54514e358f68a8d7a70aa54db137a4c12",
+        "source_sk_sha256": "fa9a0d7e23238b5e3ab50ab077f27c976b66b606956218c1f84fd7d49f5bd93a",
+        "source_sk_mk_sha256": "5a41d6ad89e2f790928a5f7ad12fe4539f0e85fad176f5818576efece0b9614e",
+        "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+        "verified_pass_names": [
+          "structural_keys",
+          "bake_environment",
+          "analyze",
+          "markers",
+          "marker_ir",
+          "recipe_ir",
+          "device"
+        ]
+      },
+      "endpoint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4518,
+        "eclasses": 2324
+      },
+      "ratio": 0.9767595911548584,
+      "fresh_process_exact_replay": true,
+      "lanes": {
+        "off": {
+          "measurement": {
+            "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+            "binary_sha256": "c4e71395ea4b5e84e6e5ae3014688e6953e92b81c5e293d0fad4234f5b4a62f8",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.2925386250135489,
+            "peak_rss_bytes": 221265920,
+            "inference_seconds": 0.144147292,
+            "setup_seconds": 0.000977541,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "0",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 1510,
+          "total_candidates": 87218,
+          "key_lookup_calls": 62482,
+          "stats": {
+            "bindings": 12930,
+            "constructor_requests": 19199,
+            "constructor_reused": 15966,
+            "logical_facts_created": 4803,
+            "function_updates": 1045,
+            "union_requests": 3208,
+            "unions": 1037,
+            "repaired_dependencies": 2378,
+            "repair_collisions": 999
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.008263023999999954,
+            "local_sat": 0.0,
+            "query_update": 0.005462480000000016,
+            "repair": 0.015758388999999765,
+            "rhs": 0.02735699599999976,
+            "search": 0.07595725100000003
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {},
+            "by_set": {},
+            "captures": 0,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {},
+            "duplicate_bindings": 0,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "idle_runs": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 0,
+            "max_chain": 0,
+            "max_pending": 0,
+            "peak_seen": 0,
+            "scopes": 0,
+            "seed_receipts": 0,
+            "source_runs": 0,
+            "transfer_attempts": 0
+          }
+        },
+        "on": {
+          "measurement": {
+            "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+            "binary_sha256": "c4e71395ea4b5e84e6e5ae3014688e6953e92b81c5e293d0fad4234f5b4a62f8",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.385968957998557,
+            "peak_rss_bytes": 221102080,
+            "inference_seconds": 0.14079725,
+            "setup_seconds": 0.100934458,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "1",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 1510,
+          "total_candidates": 87218,
+          "key_lookup_calls": 62671,
+          "stats": {
+            "bindings": 12957,
+            "constructor_requests": 19199,
+            "constructor_reused": 15966,
+            "logical_facts_created": 4803,
+            "function_updates": 1147,
+            "union_requests": 3208,
+            "unions": 1037,
+            "repaired_dependencies": 2378,
+            "repair_collisions": 999
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.00818979199999997,
+            "local_sat": 0.0007486670000000003,
+            "query_update": 0.005226834999999996,
+            "repair": 0.015037204999999916,
+            "rhs": 0.026196803999999775,
+            "search": 0.07365716299999993
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {
+              "310": 27,
+              "321": 7,
+              "702": 24,
+              "703": 76,
+              "704": 3
+            },
+            "by_set": {
+              "cell-spine-complete": 34,
+              "terms-helpers-helpers": 103
+            },
+            "captures": 218,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {
+              "cell-spine-complete": 7,
+              "terms-helpers-helpers": 130
+            },
+            "duplicate_bindings": 245,
+            "finite_reentries": 103,
+            "guard_rejections": 212,
+            "idle_runs": 594,
+            "incomplete_contexts": 54,
+            "local_bindings": 137,
+            "max_chain": 3,
+            "max_pending": 9,
+            "peak_seen": 48,
+            "scopes": 574,
+            "seed_receipts": 0,
+            "source_runs": 725,
+            "transfer_attempts": 484
+          }
+        }
+      },
+      "validation": {
+        "boundaries": 282,
+        "all_rows_values_equivalence_visibility": true,
+        "source_outer_sat_and_finite_run_boundaries": true,
+        "per_local_binding_original_lhs_checked": true,
+        "streamer_sha256": "c8eeb68cc92628afac30c36448781db984fe2127cf16354697da88fb21bc6958"
+      }
+    },
+    "chain-final": {
+      "scope": "synthetic shared-context chain through native typed frontend; not eggcc performance; standalone single-thread Cell CPU, merge programs ON",
+      "program": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/local-sat-chain-final/program.json",
+      "provenance": {
+        "source_sha256": "49326071d083bbac54c895c5a21b05c9208d3b6ed4cbcdfe1f178df7966cf966"
+      },
+      "endpoint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 1408,
+        "eclasses": 1408
+      },
+      "ratio": 0.7887741578547988,
+      "fresh_process_exact_replay": true,
+      "lanes": {
+        "off": {
+          "measurement": {
+            "program_sha256": "42fa21929f2ecc6a6bbc0802992368748b7c8d52d57bee69f226f691c517f80c",
+            "binary_sha256": "aaabe8d4b04b6b734ac9ee943e59e9201c4fb1728f0ae007d9030597abb76a37",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.01729229200282134,
+            "peak_rss_bytes": 11239424,
+            "inference_seconds": 0.004081333,
+            "setup_seconds": 0.000662917,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "0",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 9,
+          "total_candidates": 1024,
+          "key_lookup_calls": 2688,
+          "stats": {
+            "bindings": 1024,
+            "constructor_requests": 1152,
+            "constructor_reused": 0,
+            "logical_facts_created": 1408,
+            "function_updates": 0,
+            "union_requests": 0,
+            "unions": 0,
+            "repaired_dependencies": 0,
+            "repair_collisions": 0
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.00011129400000000002,
+            "local_sat": 0.0,
+            "query_update": 2.2166000000000004e-05,
+            "repair": 0.001645584,
+            "rhs": 0.0013068730000000003,
+            "search": 0.00092471
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {},
+            "by_set": {},
+            "captures": 0,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {},
+            "duplicate_bindings": 0,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "idle_runs": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 0,
+            "max_chain": 0,
+            "max_pending": 0,
+            "peak_seen": 0,
+            "scopes": 0,
+            "seed_receipts": 0,
+            "source_runs": 0,
+            "transfer_attempts": 0
+          }
+        },
+        "on": {
+          "measurement": {
+            "program_sha256": "42fa21929f2ecc6a6bbc0802992368748b7c8d52d57bee69f226f691c517f80c",
+            "binary_sha256": "aaabe8d4b04b6b734ac9ee943e59e9201c4fb1728f0ae007d9030597abb76a37",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.01507937500718981,
+            "peak_rss_bytes": 12271616,
+            "inference_seconds": 0.00321925,
+            "setup_seconds": 0.000569958,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "1",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 2,
+          "total_candidates": 1792,
+          "key_lookup_calls": 1280,
+          "stats": {
+            "bindings": 1024,
+            "constructor_requests": 1152,
+            "constructor_reused": 0,
+            "logical_facts_created": 1408,
+            "function_updates": 0,
+            "union_requests": 0,
+            "unions": 0,
+            "repaired_dependencies": 0,
+            "repair_collisions": 0
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.000134208,
+            "local_sat": 0.001782209,
+            "query_update": 6.833e-06,
+            "repair": 0.000380583,
+            "rhs": 0.00032529200000000003,
+            "search": 0.000561333
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {
+              "1": 128,
+              "2": 128,
+              "3": 128,
+              "4": 128,
+              "5": 128,
+              "6": 128,
+              "7": 128
+            },
+            "by_set": {
+              "s": 896
+            },
+            "captures": 896,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {
+              "s": 896
+            },
+            "duplicate_bindings": 128,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "idle_runs": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 896,
+            "max_chain": 8,
+            "max_pending": 128,
+            "peak_seen": 896,
+            "scopes": 1,
+            "seed_receipts": 1792,
+            "source_runs": 2,
+            "transfer_attempts": 1024
+          }
+        }
+      },
+      "validation": {
+        "boundaries": 2,
+        "all_rows_values_equivalence_visibility": true,
+        "source_outer_sat_and_finite_run_boundaries": true,
+        "per_local_binding_original_lhs_checked": true,
+        "streamer_sha256": "3c0533756a28187b072bcc8560565883c11a1cc6fb89da41dbf6fdf26843000e"
+      }
+    },
+    "sum-bits-final": {
+      "scope": "authenticated source_sk_mk pipeline; standalone single-thread Cell CPU, merge programs ON",
+      "program": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-static-compile/eggfuse_related_files/program.json",
+      "provenance": {
+        "pipeline": "/Users/mineralsteins/.codex/worktrees/cell-reference-views/egg_layout/out/known-static-compile",
+        "selected_choices": [
+          "to-hoist"
+        ],
+        "marker_count": 47,
+        "source_sha256": "a0014215ec09515311042eff1ccd3df54514e358f68a8d7a70aa54db137a4c12",
+        "source_sk_sha256": "fa9a0d7e23238b5e3ab50ab077f27c976b66b606956218c1f84fd7d49f5bd93a",
+        "source_sk_mk_sha256": "5a41d6ad89e2f790928a5f7ad12fe4539f0e85fad176f5818576efece0b9614e",
+        "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+        "verified_pass_names": [
+          "structural_keys",
+          "bake_environment",
+          "analyze",
+          "markers",
+          "marker_ir",
+          "recipe_ir",
+          "device"
+        ]
+      },
+      "endpoint": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4518,
+        "eclasses": 2324
+      },
+      "ratio": 1.025088548628423,
+      "fresh_process_exact_replay": true,
+      "lanes": {
+        "off": {
+          "measurement": {
+            "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+            "binary_sha256": "aaabe8d4b04b6b734ac9ee943e59e9201c4fb1728f0ae007d9030597abb76a37",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.29149795800913125,
+            "peak_rss_bytes": 224542720,
+            "inference_seconds": 0.139479292,
+            "setup_seconds": 0.001130625,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "0",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 1510,
+          "total_candidates": 87218,
+          "key_lookup_calls": 62482,
+          "stats": {
+            "bindings": 12930,
+            "constructor_requests": 19199,
+            "constructor_reused": 15966,
+            "logical_facts_created": 4803,
+            "function_updates": 1045,
+            "union_requests": 3208,
+            "unions": 1037,
+            "repaired_dependencies": 2378,
+            "repair_collisions": 999
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.007973545999999937,
+            "local_sat": 0.0,
+            "query_update": 0.005228654999999992,
+            "repair": 0.014788135999999938,
+            "rhs": 0.026509018999999794,
+            "search": 0.07360547299999998
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {},
+            "by_set": {},
+            "captures": 0,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {},
+            "duplicate_bindings": 0,
+            "finite_reentries": 0,
+            "guard_rejections": 0,
+            "idle_runs": 0,
+            "incomplete_contexts": 0,
+            "local_bindings": 0,
+            "max_chain": 0,
+            "max_pending": 0,
+            "peak_seen": 0,
+            "scopes": 0,
+            "seed_receipts": 0,
+            "source_runs": 0,
+            "transfer_attempts": 0
+          }
+        },
+        "on": {
+          "measurement": {
+            "program_sha256": "b26d10a2a8cda09b67f3d11977ea9c1dac193474d90a49d5ee7b229fd7ddf641",
+            "binary_sha256": "aaabe8d4b04b6b734ac9ee943e59e9201c4fb1728f0ae007d9030597abb76a37",
+            "machine": "MineralSteinsdeMacBook-Pro.local",
+            "wall_seconds": 0.31197945901658386,
+            "peak_rss_bytes": 223412224,
+            "inference_seconds": 0.142978625,
+            "setup_seconds": 0.016362208,
+            "audit": false,
+            "configuration": {
+              "CELL_CPU_MERGE_PROGRAMS": "1",
+              "CELL_CPU_KNOWN_RESULTS": "off",
+              "CELL_CPU_UNION_GRAFT": "0",
+              "CELL_CPU_UNION_TRACE": "0",
+              "CELL_CPU_UNION_IMPACT": "0",
+              "CELL_CPU_MARKER_REFUTATION": "0",
+              "CELL_CPU_SIEVE": "0",
+              "CELL_CPU_CONGRUENCE": "0",
+              "CELL_CPU_PRESEARCH_SURVEY": "0",
+              "CELL_CPU_SEARCH_CONTEXTS": "0",
+              "CELL_CPU_LOCAL_SAT": "1",
+              "CELL_CPU_LOCAL_SAT_AUDIT": "0",
+              "CELL_CPU_REFUTATION_PROFILE": "0",
+              "CELL_CPU_REFERENCE_VIEWS": "1",
+              "CELL_CPU_MARKER_FIELDS": "copy",
+              "CELL_CPU_ABSORB": "1",
+              "CELL_CPU_MULTISTAGE": "1",
+              "CELL_CPU_COMPOSITIONS": "0"
+            }
+          },
+          "runs": 1510,
+          "total_candidates": 87218,
+          "key_lookup_calls": 62671,
+          "stats": {
+            "bindings": 12957,
+            "constructor_requests": 19199,
+            "constructor_reused": 15966,
+            "logical_facts_created": 4803,
+            "function_updates": 1147,
+            "union_requests": 3208,
+            "unions": 1037,
+            "repaired_dependencies": 2378,
+            "repair_collisions": 999
+          },
+          "phase_seconds": {
+            "delivery_gc": 0.008140625999999972,
+            "local_sat": 0.000785119,
+            "query_update": 0.005382353000000011,
+            "repair": 0.015504839999999916,
+            "rhs": 0.026751973999999776,
+            "search": 0.07472471699999997
+          },
+          "local_stats": {
+            "audit_bindings": 0,
+            "by_rule": {
+              "310": 27,
+              "321": 7,
+              "702": 24,
+              "703": 76,
+              "704": 3
+            },
+            "by_set": {
+              "cell-spine-complete": 34,
+              "terms-helpers-helpers": 103
+            },
+            "captures": 218,
+            "cycle_deferrals": 0,
+            "dispatch_sets": {
+              "cell-spine-complete": 7,
+              "terms-helpers-helpers": 130
+            },
+            "duplicate_bindings": 245,
+            "finite_reentries": 103,
+            "guard_rejections": 212,
+            "idle_runs": 594,
+            "incomplete_contexts": 54,
+            "local_bindings": 137,
+            "max_chain": 3,
+            "max_pending": 9,
+            "peak_seen": 48,
+            "scopes": 574,
+            "seed_receipts": 0,
+            "source_runs": 725,
+            "transfer_attempts": 484
+          }
+        }
+      },
+      "validation": {
+        "boundaries": 282,
+        "all_rows_values_equivalence_visibility": true,
+        "source_outer_sat_and_finite_run_boundaries": true,
+        "per_local_binding_original_lhs_checked": true,
+        "streamer_sha256": "3c0533756a28187b072bcc8560565883c11a1cc6fb89da41dbf6fdf26843000e"
+      }
+    }
+  }
+}

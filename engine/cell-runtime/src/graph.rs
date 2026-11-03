@@ -1023,13 +1023,16 @@ impl Graph {
         self.changed = true;
         Ok(())
     }
-    pub fn construct(
+    pub fn construct(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize)->Result<Value>{self.construct_inner(cell,op,t,aa,dst,None)}
+    pub fn construct_visible(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize,visible:&mut bool)->Result<Value>{self.construct_inner(cell,op,t,aa,dst,Some(visible))}
+    fn construct_inner(
         &mut self,
         cell: u32,
         op: usize,
         t: usize,
         aa: &[Arg],
         dst: usize,
+        visible:Option<&mut bool>,
     ) -> Result<Value> {
         self.stats.constructor_requests += 1;
         let active=matches!(self.known_mode.as_str(),"observe"|"on");
@@ -1078,6 +1081,7 @@ impl Graph {
         }
         let remember=active && self.known_mode!="value" && (self.program.known_results.remember.get(&template).is_some_and(|s|s.contains(&op)) || self.program.known_results.rules.get(&template).and_then(|p|p.get(op)).is_some_and(Option::is_some));
         if let Some(row) = row {
+            if let Some(visible)=visible {*visible=!row.hidden;}
             self.stats.constructor_reused += 1;
             if remember && let Dependency::Fact(f)=row.witness {self.cells.get_mut(&cell).unwrap().known_results.insert(op,f);self.known_stats.retained_result_writes+=1;}
             let value = row.values.last().unwrap().clone();
@@ -1100,6 +1104,7 @@ impl Graph {
             false,
         )?;
         if remember {self.cells.get_mut(&cell).unwrap().known_results.insert(op,FactRef{cell,op:op as u32});self.known_stats.retained_result_writes+=1;}
+        if let Some(visible)=visible {*visible=true;}
         Ok(value)
     }
     pub fn reuse_result_slot(&mut self,cell:u32,t:usize,dst:usize,arg:&Arg)->Result<bool>{
@@ -1293,7 +1298,9 @@ impl Graph {
         self.mark_affected(&affected);
         Ok(())
     }
-    pub fn set(&mut self, cell: u32, op: usize, t: usize, aa: &[Arg], v: &Arg) -> Result<()> {
+    pub fn set(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],v:&Arg)->Result<()>{self.set_inner(cell,op,t,aa,v,None)}
+    pub fn set_visible(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],v:&Arg,visible:&mut bool)->Result<()>{self.set_inner(cell,op,t,aa,v,Some(visible))}
+    fn set_inner(&mut self, cell: u32, op: usize, t: usize, aa: &[Arg], v: &Arg,visible:Option<&mut bool>) -> Result<()> {
         let key = self.arguments(cell, aa)?;
         let value = self.argument(cell, v)?;
         if !self.program.tables[t].virtual_fact {
@@ -1309,15 +1316,18 @@ impl Graph {
                     }),
                 );
             }
+            if let Some(visible)=visible{*visible=true;}
             return Ok(());
         }
         if let Some(old) = self.lookup(t, &key)? {
+            if let Some(visible)=visible{*visible=!old.hidden && (!self.program.tables[t].constructor || old.values.last()==Some(&value));}
             if self.program.tables[t].constructor {
                 self.enqueue_union(old.values.last().unwrap().clone(), value)?
             } else if old.values.last() != Some(&value) {
                 return Err("relation output conflict".into());
             }
         } else {
+            if let Some(visible)=visible{*visible=true;}
             self.activate(
                 FactRef {
                     cell,
