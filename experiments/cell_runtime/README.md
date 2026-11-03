@@ -130,6 +130,13 @@ the final sum-bits measurement reduces row work but still regresses in total
 time. See [RETAINED_CONTEXTS.md](RETAINED_CONTEXTS.md) for the implementation,
 all-stage audit, counters and reproduction command.
 
+`CELL_CPU_STAGE_SPINE=1` carries shared committed producer context through
+later source Runs and executes their complete original RHS. It is opt-in:
+sum-bits covers 2,637 resumed applications and paths up to 9 steps, but capture
+maintenance regresses inference by 25.81%. See [STAGE_SPINE.md](STAGE_SPINE.md)
+for typed coverage, current-port checks, cross-ruleset execution, native-backed
+tests, all-stage audit and the remaining performance boundary.
+
 ## Union-driven Bake workload
 
 `CELL_CPU_UNION_IMPACT=1` observes direct union inputs separately from derived

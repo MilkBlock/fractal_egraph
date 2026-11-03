@@ -23,6 +23,8 @@ pub struct Continuation {
 }
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct MultiStage {
+    #[serde(default)]
+    pub stage_entries:Vec<(usize,usize,Rc<Vec<usize>>)>,
     pub routes: HashMap<(usize, usize, usize, usize), Rc<Continuation>>,
     pub entries: HashMap<(usize, usize), Rc<Vec<usize>>>,
     pub finishes: Vec<Rc<Vec<usize>>>,
@@ -130,7 +132,20 @@ impl MultiStage {
         if raw["rule_sets"] != J::Array(sets) {
             return Err("multi-stage permissions differ".into());
         }
+        if raw["stage_entries"].is_null() {
+            if std::env::var("CELL_CPU_STAGE_SPINE").as_deref()==Ok("1") {
+                return Err("stage Spine programs require compiler stage_entries; recompile source_sk_mk through the Cell CPU target".into());
+            }
+        } else if raw["stage_entries"]!=crate::stage_spine::compile_entries(program) {
+            return Err("stage entry program differs from exhaustive typed key flow".into());
+        }
         let mut result = Self::default();
+        if let Some(entries)=raw["stage_entries"].as_array() {
+            for e in entries {
+                result.stage_entries.push((e["rule"].as_u64().unwrap() as usize,e["anchor"].as_u64().unwrap() as usize,
+                    Rc::new(e["atoms"].as_array().unwrap().iter().map(|i|i.as_u64().unwrap() as usize).collect())));
+            }
+        }
         let verify_points = |rid: usize,
                              anchor: Option<usize>,
                              raw: &J|

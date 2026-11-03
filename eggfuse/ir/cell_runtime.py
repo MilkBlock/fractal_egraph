@@ -71,6 +71,7 @@ def validate(program):
         expected.pop('multi_stage')
     elif 'union_entries' not in program['multi_stage']:
         expected['multi_stage'].pop('union_entries',None)  # Old artifact; new union-graft mode requires re-emission.
+    if 'multi_stage' in program and 'stage_entries' not in program['multi_stage']:expected['multi_stage'].pop('stage_entries',None)
     if 'congruence' not in program: expected.pop('congruence')
     if 'merge_contracts' not in program: expected.pop('merge_contracts')
     if 'merge_programs' not in program: expected.pop('merge_programs')

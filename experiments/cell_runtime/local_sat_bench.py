@@ -35,9 +35,9 @@ def audit(path,program,out):
 
 def main():
     p=argparse.ArgumentParser();g=p.add_mutually_exclusive_group(required=True)
-    g.add_argument('--compiled',type=Path);g.add_argument('--demo-chain',type=int)
+    g.add_argument('--compiled',type=Path);g.add_argument('--demo-chain',type=int);g.add_argument('--demo-stages',type=int)
     p.add_argument('--instances',type=int,default=128);p.add_argument('--frontend',type=Path)
-    p.add_argument('--feature',choices=['local-sat','retained','spine-prefix'],default='local-sat')
+    p.add_argument('--feature',choices=['local-sat','retained','spine-prefix','stage-spine'],default='local-sat')
     p.add_argument('--prefix-ablation',action='store_true',help='spine-prefix only: ordinary, shared reads, shared prefixes')
     p.add_argument('--shared-ablation',action='store_true',help='retained only: ordinary, per-rule, shared-domain lanes')
     p.add_argument('--context-sets',default='always-run,type-analysis')
@@ -45,6 +45,14 @@ def main():
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
     if a.compiled:
         path,program,provenance=load_pipeline_artifact(a.compiled.resolve());scope='authenticated source_sk_mk pipeline'
+    elif a.demo_stages:
+        assert a.demo_stages>=2 and a.instances>0
+        n=a.demo_stages
+        declarations='(datatype E (N i64) (Seed E) (Known E) '+' '.join(f'(S{i} E)' for i in range(n))+')\n'+''.join(f'(ruleset s{i})\n' for i in range(n))
+        rules='(rule ((Seed x)) ((Known x) (S0 x)) :ruleset s0)\n'+''.join(f'(rule ((S{i-1} x) (Known x)) ((S{i} x)) :ruleset s{i})\n' for i in range(1,n))
+        source=declarations+rules+''.join(f'(Seed (N {i}))\n' for i in range(a.instances))+'(run-schedule (seq '+ ' '.join(f'(run s{i})' for i in range(n))+'))\n'
+        src=out/'source.egg';src.write_text(source);program=build(prepare(src,a.frontend));path=out/'program.json';path.write_text(json.dumps(program))
+        provenance={'source_sha256':fingerprint(src)};scope='synthetic source-scheduled multi-stage chain through native typed frontend; not eggcc performance'
     else:
         assert a.demo_chain>=2 and a.instances>0
         declarations='(datatype E (N i64) (Seed E) (Known E) '+ ' '.join(f'(S{i} E)' for i in range(a.demo_chain))+') (ruleset s)\n'
@@ -53,8 +61,8 @@ def main():
         src=out/'source.egg';src.write_text(source);program=build(prepare(src,a.frontend));path=out/'program.json';path.write_text(json.dumps(program))
         provenance={'source_sha256':fingerprint(src)};scope='synthetic shared-context chain through native typed frontend; not eggcc performance'
     engine=ROOT/'engine/cell-runtime/target/release/eggfuse-cell-runtime'
-    feature={'local-sat':'CELL_CPU_LOCAL_SAT','retained':'CELL_CPU_RETAINED_CONTEXTS','spine-prefix':'CELL_CPU_SPINE_PREFIXES'}[a.feature]
-    settings={**SETTINGS,'CELL_CPU_LOCAL_SAT':'0','CELL_CPU_LOCAL_SAT_AUDIT':'0','CELL_CPU_REFUTATION_PROFILE':'0',
+    feature={'local-sat':'CELL_CPU_LOCAL_SAT','retained':'CELL_CPU_RETAINED_CONTEXTS','spine-prefix':'CELL_CPU_SPINE_PREFIXES','stage-spine':'CELL_CPU_STAGE_SPINE'}[a.feature]
+    settings={**SETTINGS,'CELL_CPU_STAGE_SPINE':'0','CELL_CPU_LOCAL_SAT':'0','CELL_CPU_LOCAL_SAT_AUDIT':'0','CELL_CPU_REFUTATION_PROFILE':'0',
         'CELL_CPU_SPINE_PREFIXES':'0','CELL_CPU_RETAINED_CONTEXTS':'1' if a.feature=='spine-prefix' else '0','CELL_CPU_RETAINED_SHARED':'1','CELL_CPU_RETAINED_SETS':a.context_sets}
     old={k:os.environ.get(k) for k in settings}
     result={'scope':scope+'; standalone single-thread Cell CPU, merge programs ON','program':str(path),
@@ -75,7 +83,7 @@ def main():
                 states.append(json.loads((out/name/'state.json').read_text()))
                 controls.append([{k:s[k] for k in ('ruleset','iterations','path','epoch','logical_matches','changed')} for s in r['steps']])
                 result['lanes'][name]={'measurement':m,**metrics(r),'local_saturation':r['local_saturation'],
-                    'retained_contexts':r['retained_contexts'],
+                    'retained_contexts':r['retained_contexts'],'stage_spine':r['stage_spine'],
                     'runs_and_repair_calls':len(r['steps']),'changed_runs':sum(s['changed'] for s in r['steps']),
                     'point_reads':r['multi_stage']['stats']['point_reads'],
                     'inverse_reads':r['multi_stage']['stats']['inverse_reads'],
@@ -83,7 +91,7 @@ def main():
                     'decoded_rows':r['stats']['decoded_rows'],
                     'candidate_scope':'ordinary delta/residual candidates plus merge-program candidates; fixed point reads reported separately',
                     'total_candidates':r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows']}
-                stats=r['local_saturation' if a.feature=='local-sat' else 'retained_contexts']['stats']
+                stats=r['local_saturation' if a.feature=='local-sat' else ('stage_spine' if a.feature=='stage-spine' else 'retained_contexts')]['stats']
                 print(name,m['inference_seconds'],len(r['steps']),{k:v for k,v in stats.items() if not isinstance(v,dict)},flush=True)
                 if a.feature=='spine-prefix':print(name,'prefix',r['retained_contexts']['spine_prefixes']['stats'],flush=True)
             if a.feature!='local-sat':

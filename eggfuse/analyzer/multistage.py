@@ -116,12 +116,13 @@ def build(recipe):
                 if not steps and sum('table' in a['call'] for a in target['query'])!=1: continue
                 routes.append(dict(producer=producer, effect=anchor['index'], consumer=consumer, anchor=atom,
                     steps=steps, residual=sorted(remaining)))
-    def points(rule, known, remaining):
+    def points(rule, known, remaining, forward_only=False):
         order=[]
         while remaining:
             def priority(i):
                 a=rule['query'][i];full=all('slot' not in v or v['slot'] in known for v in a['args'][:-1])
                 if full:return 0 if 'primitive' in a['call'] else 1
+                if forward_only:return None
                 table=a['call'].get('table');out=a['args'][-1]
                 if table and tables[table]['schema'][-1]['kind']=='eq' and 'slot' in out and out['slot'] in known:return 2
                 return None
@@ -131,19 +132,24 @@ def build(recipe):
             order.append(i);remaining.remove(i)
             known.update(a['slot'] for a in rule['query'][i]['args'] if 'slot' in a)
         return order
-    entries=[];finishes=[]
+    entries=[];finishes=[];stage_entries=[]
     for rid,rule in enumerate(rules):
         table_atoms=[i for i,a in enumerate(rule['query']) if 'table' in a['call']]
         for anchor in table_atoms:
             known={a['slot'] for a in rule['query'][anchor]['args'] if 'slot' in a}
             order=points(rule,known,set(range(len(rule['query'])))-{anchor})
             if order:entries.append(dict(rule=rid,anchor=anchor,atoms=order))
+            if rule['metadata'].get('seminaive',True):
+                known={a['slot'] for a in rule['query'][anchor]['args'] if 'slot' in a}
+                order=points(rule,known,set(range(len(rule['query'])))-{anchor},forward_only=True)
+                if len(order)==len(rule['query'])-1 and all(i in known for i,s in enumerate(rule['slots']) if s['definition']=='query'):
+                    stage_entries.append(dict(rule=rid,anchor=anchor,table=rule['query'][anchor]['call']['table'],atoms=order))
         known={a['slot'] for i in table_atoms for a in rule['query'][i]['args'] if 'slot' in a}
         finishes.append(points(rule,known,set(range(len(rule['query'])))-set(table_atoms)))
     # Rule nodes and these edges form a finite shared recipe graph, including SCCs.
     # Repeat/Saturate stay as control instructions, never copied into unbounded paths.
     return dict(schema=SCHEMA, recipe_sha256=recipe['sha256'], control=recipe['control'],
-        rule_sets=[dict(name=s['name'],rule_ids=s['rule_ids']) for s in recipe['rulesets']], routes=routes, entries=entries, finishes=finishes, data_loaders=loaders, union_entries=union_entries(recipe),
+        rule_sets=[dict(name=s['name'],rule_ids=s['rule_ids']) for s in recipe['rulesets']], routes=routes, entries=entries, stage_entries=stage_entries, finishes=finishes, data_loaders=loaders, union_entries=union_entries(recipe),
         contract=dict(activation='committed producer fact; current visible exhaustive projection',
             publication='original Run occurrence, after all entry bindings are gathered',
             late_input='ordinary delta route remains authoritative',
