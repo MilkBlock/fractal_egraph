@@ -1,0 +1,3028 @@
+{
+  "scope": "Same full Pass 3, model, native kernel, exact completion and joint-service configuration. Only event-published shared exact condition markers changes. Not new Cell proof credit.",
+  "historical_control": true,
+  "marker_totals": {
+    "candidates": 235999,
+    "rejections": 126782,
+    "bindings": 142562,
+    "payload_references": 109979,
+    "residual_accesses_before": 708814,
+    "residual_accesses_after": 472053,
+    "new_answer_reads_before": 274964,
+    "new_answer_reads_after": 259062
+  },
+  "marker_depth_note": "Depth zero means marker routing without the old per-root residual loop, not zero work. Include leaf truth reads, conjunction publications, payload loads, tuple fanout and event maintenance from exact_markers; this is not native Free Join or ordinary GPU search.",
+  "variants": [
+    {
+      "directory": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/ridge-consumer-final-sort",
+      "backend": "resident-response",
+      "joint_services_enabled": true,
+      "predictor_executed": true,
+      "resident_scope": "sort",
+      "consumer_scopes": null,
+      "exact_markers": null,
+      "condition_blocks": {
+        "cache_probes": 523073,
+        "reads": 274964,
+        "hits": 433850,
+        "empty_hits": 327385,
+        "invalidations": 74644,
+        "witness_rows_materialized": 188982
+      },
+      "inference_seconds": 16.316437958,
+      "setup_seconds": 3.274214833,
+      "matrix": {
+        "requests": 827,
+        "coordinate_rows": 549,
+        "requested_cells": 827,
+        "computed_cells": 26307,
+        "padded_cells": 36160,
+        "blocks": 41,
+        "multi_column_cells": 826,
+        "max_columns": 48,
+        "max_rows": 85,
+        "single_column_padded_cells": 0
+      },
+      "resident": {
+        "contexts": 438,
+        "patches": 549,
+        "feature_assignments": 5582,
+        "cache_hits": 20,
+        "prefetched_heads_used": 20,
+        "computed_heads": 8769,
+        "unused_heads_current": 6355,
+        "unused_heads_discarded": 1587,
+        "context_buffer_bytes": 365568
+      },
+      "gpu_batches": 40,
+      "gpu_rows": 827,
+      "gpu_seconds": 0.003590583160985261,
+      "device_roundtrip_seconds": 0.06197183400000001,
+      "maintenance_seconds": 0.9000916059999748,
+      "query_seconds": 0.5269494239999997,
+      "uploaded_bytes": 64164,
+      "downloaded_bytes": 9868,
+      "ridge_bindings": 233588,
+      "combined_services": {
+        "forwarded_overlapping_rows": 283265,
+        "joint_bindings": 2041944,
+        "ridge_bindings": 233588,
+        "scope": "Existing joint/loop providers and ridge completion coexist. A query has one owner; shared journal rows fan out before ordinary GPU consumption."
+      },
+      "original_graph": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      }
+    },
+    {
+      "directory": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-pass3",
+      "backend": "resident-response",
+      "joint_services_enabled": true,
+      "predictor_executed": true,
+      "resident_scope": "sort",
+      "consumer_scopes": null,
+      "exact_markers": {
+        "statistics": {
+          "created": 520121,
+          "reused": 264364,
+          "removed": 232994,
+          "activated": 3414,
+          "deactivated": 3201,
+          "invalidations": 94,
+          "publications": 2979,
+          "truth_reads": 5456,
+          "payload_builds": 294,
+          "payload_hits": 7,
+          "factor_references": 769,
+          "tuples": 71444,
+          "consumer_tuple_visits": 162404,
+          "leaf_truth_reads": 122485,
+          "leaf_payloads": 49979,
+          "query_seconds": 0.04366626299999916
+        },
+        "live_markers": 287127,
+        "native_leaf_markers": 113672,
+        "conjunction_markers": 173455,
+        "shared_markers": 43988,
+        "live_anchor_uses": 407080,
+        "factor_connections": 637,
+        "scope": "Exact current native projection witnesses; not a new RipSat closure certificate"
+      },
+      "condition_blocks": {
+        "cache_probes": 400206,
+        "reads": 259062,
+        "hits": 236486,
+        "empty_hits": 216559,
+        "invalidations": 68621,
+        "witness_rows_materialized": 189036
+      },
+      "inference_seconds": 15.375663167,
+      "setup_seconds": 3.7409415,
+      "matrix": {
+        "requests": 829,
+        "coordinate_rows": 549,
+        "requested_cells": 829,
+        "computed_cells": 26307,
+        "padded_cells": 36544,
+        "blocks": 41,
+        "multi_column_cells": 828,
+        "max_columns": 48,
+        "max_rows": 84,
+        "single_column_padded_cells": 0
+      },
+      "resident": {
+        "contexts": 436,
+        "patches": 549,
+        "feature_assignments": 5534,
+        "cache_hits": 20,
+        "prefetched_heads_used": 20,
+        "computed_heads": 8769,
+        "unused_heads_current": 6323,
+        "unused_heads_discarded": 1617,
+        "context_buffer_bytes": 365568
+      },
+      "gpu_batches": 40,
+      "gpu_rows": 829,
+      "gpu_seconds": 0.0026696252170950174,
+      "device_roundtrip_seconds": 0.061964166,
+      "maintenance_seconds": 1.0863202709999262,
+      "query_seconds": 0.5616896979999986,
+      "uploaded_bytes": 63804,
+      "downloaded_bytes": 9876,
+      "ridge_bindings": 233588,
+      "combined_services": {
+        "forwarded_overlapping_rows": 283265,
+        "joint_bindings": 2041944,
+        "ridge_bindings": 233588,
+        "scope": "Existing joint/loop providers and ridge completion coexist. A query has one owner; shared journal rows fan out before ordinary GPU consumption."
+      },
+      "original_graph": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699068,
+        "eclass_mapping": 524631,
+        "tables": {
+          "Abs": 1,
+          "Accum-Bop": 3,
+          "Add": 1,
+          "Add-All-Gets": 7171,
+          "Add-Gets": 18641,
+          "AddContext": 12044,
+          "Alloc": 137,
+          "And": 1,
+          "Arg": 77,
+          "Base": 9,
+          "BinaryOpIsPure": 28,
+          "Bitand": 1,
+          "BodyContainsExpr": 50594,
+          "Bool": 2,
+          "BoolB": 2,
+          "BoolT": 1,
+          "Bop": 3486,
+          "Call": 121,
+          "Concat": 8147,
+          "Const": 1543,
+          "ContextOf": 19160,
+          "DelayedDropUnion": 29,
+          "DelayedSubstUnion": 4470,
+          "DidMemOptimization": 2,
+          "Div": 1,
+          "DoWhile": 84,
+          "DropAt": 2,
+          "DropAtInternal": 29,
+          "Empty": 5,
+          "Eq": 1,
+          "ExpectType": 2312,
+          "Expr-size": 19161,
+          "ExprIsPure": 5402,
+          "ExprIsResolved": 19173,
+          "ExtractedExpr": 7422,
+          "ExtractedExprCache": 9843,
+          "FAdd": 1,
+          "FDiv": 1,
+          "FEq": 1,
+          "FGreaterEq": 1,
+          "FGreaterThan": 1,
+          "FLessEq": 1,
+          "FLessThan": 1,
+          "FMul": 1,
+          "FSub": 1,
+          "Float": 16,
+          "FloatT": 1,
+          "Fmax": 1,
+          "Fmin": 1,
+          "Free": 1,
+          "Function": 29,
+          "FunctionHasType": 29,
+          "Get": 13341,
+          "GreaterEq": 1,
+          "GreaterThan": 1,
+          "HasArgType": 19160,
+          "HasType": 19160,
+          "If": 172,
+          "InFunc": 2,
+          "Int": 18,
+          "IntB": 18,
+          "IntT": 1,
+          "LessEq": 1,
+          "LessThan": 1,
+          "Load": 1,
+          "LoopIsFinite": 4,
+          "LoopNumItersGuess": 84,
+          "Mul": 1,
+          "Neg": 1,
+          "NoAlias": 1552,
+          "NoTerm": 1,
+          "Not": 1,
+          "Not-Just-Concat": 4405,
+          "Or": 1,
+          "PointerT": 5,
+          "PointerishType": 878,
+          "PointerishTypeList": 873,
+          "PotentialExtractedExpr": 69649,
+          "Print": 1,
+          "PtrAdd": 1,
+          "PureBaseType": 2,
+          "PureType": 7,
+          "PureTypeList": 5,
+          "Select": 1,
+          "Shl": 1,
+          "Shr": 1,
+          "Single": 4382,
+          "Smaller": 73371,
+          "Smax": 1,
+          "Smin": 1,
+          "StateT": 1,
+          "Sub": 1,
+          "SubTuple": 21246,
+          "Subst": 4961,
+          "TCPair": 63038,
+          "TCons": 902,
+          "TLConcat": 2705,
+          "TNil": 1,
+          "TermArg": 1,
+          "TermBop": 13798,
+          "TermConcat": 3607,
+          "TermConst": 36,
+          "TermGet": 31119,
+          "TermSingle": 10755,
+          "TermSubst": 635,
+          "TermTop": 3718,
+          "TermUop": 3,
+          "TernaryOpIsPure": 1,
+          "ToSubsumeIf": 4,
+          "Top": 938,
+          "TupleRemoveAt": 10,
+          "TupleT": 903,
+          "TypeList-ith": 5149,
+          "TypeList-length": 903,
+          "TypeListRemoveAt": 1,
+          "UnaryOpIsPure": 3,
+          "Uop": 3,
+          "Write": 1,
+          "___GeneratedFreshTable5": 1,
+          "bop->string": 24,
+          "bop-of-type": 13,
+          "bpred-of-type": 12,
+          "hi-bound": 878,
+          "is-inv-Expr": 1440,
+          "leading-Expr": 553,
+          "lo-bound": 878,
+          "lsr-inv": 122846,
+          "to-hoist": 84,
+          "to-hoist-size": 84,
+          "tuple-length": 11513
+        }
+      }
+    }
+  ],
+  "speedup": 1.0611859651698885,
+  "same_complete_binding_counts": true,
+  "complete_bindings": 2768828,
+  "exact_cpu_check_work": [
+    {
+      "rule": "(rewrite (Concat (Concat a b) c) (Concat a (Concat b c)) :ruleset always-run)",
+      "anchors": 12139,
+      "reads_before": 12139,
+      "reads_after": 7359,
+      "marker_candidates": 4780,
+      "marker_rejections": 1710,
+      "marker_bindings": 4400,
+      "marker_payload_references": 3070,
+      "depth_before": [
+        0,
+        12139
+      ],
+      "depth_after": [
+        4780,
+        7359
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.6062278606145481,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rewrite (Concat (Empty ty ctx) x) x :ruleset always-run)",
+      "anchors": 20,
+      "reads_before": 20,
+      "reads_after": 11,
+      "marker_candidates": 9,
+      "marker_rejections": 0,
+      "marker_bindings": 34,
+      "marker_payload_references": 9,
+      "depth_before": [
+        0,
+        20
+      ],
+      "depth_after": [
+        9,
+        11
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.55,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rewrite (Concat x (Empty ty ctx)) x :ruleset always-run)",
+      "anchors": 17,
+      "reads_before": 17,
+      "reads_after": 17,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        17
+      ],
+      "depth_after": [
+        0,
+        17
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rewrite (SubTuple expr x 0) (Empty ty ctx) :when ((HasArgType expr ty) (ContextOf expr ctx)) :ruleset always-run)",
+      "anchors": 16,
+      "reads_before": 32,
+      "reads_after": 32,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        0,
+        16
+      ],
+      "depth_after": [
+        0,
+        0,
+        16
+      ],
+      "reach_before": [
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rewrite (TupleRemoveAt tuple idx) (Concat (SubTuple tuple 0 idx) (SubTuple tuple (+ idx 1) (- len (+ idx 1)))) :when ((= len (tuple-length tuple))) :ruleset always-run)",
+      "anchors": 20,
+      "reads_before": 20,
+      "reads_after": 12,
+      "marker_candidates": 8,
+      "marker_rejections": 0,
+      "marker_bindings": 8,
+      "marker_payload_references": 8,
+      "depth_before": [
+        0,
+        20
+      ],
+      "depth_after": [
+        8,
+        12
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.6,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= f (Base (PointerT ty))))\n      ((PointerishType f))\n        :ruleset always-run )",
+      "anchors": 5,
+      "reads_before": 5,
+      "reads_after": 5,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        5
+      ],
+      "depth_after": [
+        0,
+        5
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= f (TCons (PointerT ty) tl)))\n      ((PointerishTypeList f))\n        :ruleset always-run )",
+      "anchors": 902,
+      "reads_before": 902,
+      "reads_after": 0,
+      "marker_candidates": 902,
+      "marker_rejections": 400,
+      "marker_bindings": 502,
+      "marker_payload_references": 502,
+      "depth_before": [
+        0,
+        902
+      ],
+      "depth_after": [
+        902
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= f (TCons hd tl))\n       (PointerishTypeList tl))\n      ((PointerishTypeList f))\n        :ruleset always-run )",
+      "anchors": 1742,
+      "reads_before": 1742,
+      "reads_after": 420,
+      "marker_candidates": 1322,
+      "marker_rejections": 690,
+      "marker_bindings": 632,
+      "marker_payload_references": 632,
+      "depth_before": [
+        0,
+        1742
+      ],
+      "depth_after": [
+        1322,
+        420
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.24110218140068887,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= f (TupleT l))\n       (PointerishTypeList l))\n      ((PointerishType f))\n        :ruleset always-run )",
+      "anchors": 1560,
+      "reads_before": 1560,
+      "reads_after": 269,
+      "marker_candidates": 1291,
+      "marker_rejections": 549,
+      "marker_bindings": 742,
+      "marker_payload_references": 742,
+      "depth_before": [
+        0,
+        1560
+      ],
+      "depth_after": [
+        1291,
+        269
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.17243589743589743,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= lhs (Arg ty ctx))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+      "anchors": 154,
+      "reads_before": 154,
+      "reads_after": 154,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        154
+      ],
+      "depth_after": [
+        0,
+        154
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= lhs (DoWhile inputs body))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+      "anchors": 142,
+      "reads_before": 142,
+      "reads_after": 116,
+      "marker_candidates": 26,
+      "marker_rejections": 0,
+      "marker_bindings": 26,
+      "marker_payload_references": 26,
+      "depth_before": [
+        0,
+        142
+      ],
+      "depth_after": [
+        26,
+        116
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.8169014084507042,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= lhs (If pred inputs thn els))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+      "anchors": 359,
+      "reads_before": 359,
+      "reads_after": 346,
+      "marker_candidates": 13,
+      "marker_rejections": 0,
+      "marker_bindings": 13,
+      "marker_payload_references": 13,
+      "depth_before": [
+        0,
+        359
+      ],
+      "depth_after": [
+        13,
+        346
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.9637883008356546,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((= lhs (Switch pred inputs bodies))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+      "anchors": 0,
+      "reads_before": 0,
+      "reads_after": 0,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [],
+      "depth_after": [],
+      "reach_before": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "reach_after": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "rule": "(rule ((Add-Gets orig (Concat left right) n)\n       (= len (tuple-length left)))\n      ((Add-Gets orig left n)\n       (Add-Gets orig right (+ n len)))\n        :ruleset always-run )",
+      "anchors": 23082,
+      "reads_before": 33150,
+      "reads_after": 32223,
+      "marker_candidates": 681,
+      "marker_rejections": 435,
+      "marker_bindings": 271,
+      "marker_payload_references": 492,
+      "depth_before": [
+        0,
+        13014,
+        10068
+      ],
+      "depth_after": [
+        681,
+        12579,
+        9822
+      ],
+      "reach_before": [
+        1.0,
+        0.4361840395113075,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.9704964907720302,
+        0.425526384195477,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Add-Gets orig (Single e) n))\n      ((union (Get orig n) e))\n        :ruleset always-run )",
+      "anchors": 22768,
+      "reads_before": 22768,
+      "reads_after": 8447,
+      "marker_candidates": 14321,
+      "marker_rejections": 5373,
+      "marker_bindings": 8948,
+      "marker_payload_references": 8948,
+      "depth_before": [
+        0,
+        22768
+      ],
+      "depth_after": [
+        14321,
+        8447
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.3710031623330991,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Add-Gets orig something n)\n       (Not-Just-Concat something))\n      ((Add-All-Gets orig something n 0))\n        :ruleset always-run )",
+      "anchors": 22371,
+      "reads_before": 22371,
+      "reads_after": 13155,
+      "marker_candidates": 9216,
+      "marker_rejections": 8961,
+      "marker_bindings": 255,
+      "marker_payload_references": 255,
+      "depth_before": [
+        0,
+        22371
+      ],
+      "depth_after": [
+        9216,
+        13155
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.5880380850207858,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Alloc amt e state ty)\n       (ContextOf e ctx))\n      ((ContextOf (Alloc amt e state ty) ctx))\n        :ruleset always-run )",
+      "anchors": 366,
+      "reads_before": 366,
+      "reads_after": 24,
+      "marker_candidates": 342,
+      "marker_rejections": 127,
+      "marker_bindings": 215,
+      "marker_payload_references": 215,
+      "depth_before": [
+        0,
+        366
+      ],
+      "depth_after": [
+        342,
+        24
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.06557377049180328,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Alloc amt e state ty)\n       (ContextOf state ctx))\n      ((ContextOf (Alloc amt e state ty) ctx))\n        :ruleset always-run )",
+      "anchors": 368,
+      "reads_before": 368,
+      "reads_after": 292,
+      "marker_candidates": 76,
+      "marker_rejections": 2,
+      "marker_bindings": 74,
+      "marker_payload_references": 74,
+      "depth_before": [
+        0,
+        368
+      ],
+      "depth_after": [
+        76,
+        292
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.7934782608695652,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Alloc _id _e _state _ty)))\n      ((BodyContainsExpr body _e)\n       (BodyContainsExpr body _state))\n        :ruleset always-run )",
+      "anchors": 473,
+      "reads_before": 473,
+      "reads_after": 473,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        473
+      ],
+      "depth_after": [
+        0,
+        473
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Bop _op _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+      "anchors": 12112,
+      "reads_before": 12112,
+      "reads_after": 10830,
+      "marker_candidates": 1282,
+      "marker_rejections": 144,
+      "marker_bindings": 2619,
+      "marker_payload_references": 1138,
+      "depth_before": [
+        0,
+        12112
+      ],
+      "depth_after": [
+        1282,
+        10830
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.8941545574636723,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Call _func _arg)))\n      ((BodyContainsExpr body _arg))\n        :ruleset always-run )",
+      "anchors": 347,
+      "reads_before": 347,
+      "reads_after": 346,
+      "marker_candidates": 1,
+      "marker_rejections": 0,
+      "marker_bindings": 3,
+      "marker_payload_references": 1,
+      "depth_before": [
+        0,
+        347
+      ],
+      "depth_after": [
+        1,
+        346
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.9971181556195965,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Concat _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+      "anchors": 22759,
+      "reads_before": 22759,
+      "reads_after": 13630,
+      "marker_candidates": 9129,
+      "marker_rejections": 3004,
+      "marker_bindings": 12184,
+      "marker_payload_references": 6125,
+      "depth_before": [
+        0,
+        22759
+      ],
+      "depth_after": [
+        9129,
+        13630
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.5988839579946394,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (DoWhile _in _pred-and-output)))\n      ((BodyContainsExpr body _in))\n        :ruleset always-run )",
+      "anchors": 175,
+      "reads_before": 175,
+      "reads_after": 80,
+      "marker_candidates": 95,
+      "marker_rejections": 4,
+      "marker_bindings": 179,
+      "marker_payload_references": 91,
+      "depth_before": [
+        0,
+        175
+      ],
+      "depth_after": [
+        95,
+        80
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.45714285714285713,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Get _tup _i)))\n      ((BodyContainsExpr body _tup))\n        :ruleset always-run )",
+      "anchors": 46722,
+      "reads_before": 46722,
+      "reads_after": 7656,
+      "marker_candidates": 39066,
+      "marker_rejections": 10733,
+      "marker_bindings": 50036,
+      "marker_payload_references": 28333,
+      "depth_before": [
+        0,
+        46722
+      ],
+      "depth_after": [
+        39066,
+        7656
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.16386284833697187,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (If _pred _input _then _else)))\n      ((BodyContainsExpr body _pred)\n       (BodyContainsExpr body _input))\n        :ruleset always-run )",
+      "anchors": 500,
+      "reads_before": 500,
+      "reads_after": 342,
+      "marker_candidates": 158,
+      "marker_rejections": 1,
+      "marker_bindings": 294,
+      "marker_payload_references": 157,
+      "depth_before": [
+        0,
+        500
+      ],
+      "depth_after": [
+        158,
+        342
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.684,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Single _x)))\n      ((BodyContainsExpr body _x))\n        :ruleset always-run )",
+      "anchors": 64564,
+      "reads_before": 64564,
+      "reads_after": 9179,
+      "marker_candidates": 55385,
+      "marker_rejections": 38616,
+      "marker_bindings": 16769,
+      "marker_payload_references": 16769,
+      "depth_before": [
+        0,
+        64564
+      ],
+      "depth_after": [
+        55385,
+        9179
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.14216901059413914,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Switch _pred _inputs _branches)))\n      ((BodyContainsExpr body _pred)\n       (BodyContainsExpr body _inputs))\n        :ruleset always-run )",
+      "anchors": 0,
+      "reads_before": 0,
+      "reads_after": 0,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [],
+      "depth_after": [],
+      "reach_before": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "reach_after": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Top _op _x _y _z)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y)\n       (BodyContainsExpr body _z))\n        :ruleset always-run )",
+      "anchors": 2609,
+      "reads_before": 2609,
+      "reads_after": 1196,
+      "marker_candidates": 1413,
+      "marker_rejections": 60,
+      "marker_bindings": 3848,
+      "marker_payload_references": 1353,
+      "depth_before": [
+        0,
+        2609
+      ],
+      "depth_after": [
+        1413,
+        1196
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.4584131851284017,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body (Uop _op _x)))\n      ((BodyContainsExpr body _x))\n        :ruleset always-run )",
+      "anchors": 8,
+      "reads_before": 8,
+      "reads_after": 8,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        8
+      ],
+      "depth_after": [
+        0,
+        8
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Const _n _ty _ctx)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+      "anchors": 74361,
+      "reads_before": 74647,
+      "reads_after": 74647,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        74075,
+        286
+      ],
+      "depth_after": [
+        0,
+        74075,
+        286
+      ],
+      "reach_before": [
+        1.0,
+        0.0038461021234249136,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0038461021234249136,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Empty _ty _ctx)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+      "anchors": 74341,
+      "reads_before": 74392,
+      "reads_after": 74392,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        74290,
+        51
+      ],
+      "depth_after": [
+        0,
+        74290,
+        51
+      ],
+      "reach_before": [
+        1.0,
+        0.000686027898467871,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.000686027898467871,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Function _name _tyin _tyout _out)))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+      "anchors": 74341,
+      "reads_before": 74341,
+      "reads_after": 74341,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        74341
+      ],
+      "depth_after": [
+        0,
+        74341
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Bop _op _x _y)\n       (BinaryOpIsPure _op)\n       (ExprIsPure _x)\n       (ExprIsPure _y))\n      ((ExprIsPure (Bop _op _x _y)))\n        :ruleset always-run )",
+      "anchors": 7970,
+      "reads_before": 9427,
+      "reads_after": 8574,
+      "marker_candidates": 337,
+      "marker_rejections": 79,
+      "marker_bindings": 258,
+      "marker_payload_references": 774,
+      "depth_before": [
+        0,
+        7240,
+        3,
+        727
+      ],
+      "depth_after": [
+        337,
+        7161,
+        3,
+        469
+      ],
+      "reach_before": [
+        1.0,
+        0.09159347553324969,
+        0.09121706398996236,
+        0.0
+      ],
+      "reach_after": [
+        0.9577164366373903,
+        0.05922208281053953,
+        0.058845671267252195,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Bop op x y)\n       (ContextOf x ctx))\n      ((ContextOf (Bop op x y) ctx))\n        :ruleset always-run )",
+      "anchors": 9339,
+      "reads_before": 9339,
+      "reads_after": 4402,
+      "marker_candidates": 4937,
+      "marker_rejections": 1814,
+      "marker_bindings": 3123,
+      "marker_payload_references": 3123,
+      "depth_before": [
+        0,
+        9339
+      ],
+      "depth_after": [
+        4937,
+        4402
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.4713566763036728,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Bop op x y)\n       (ContextOf y ctx))\n      ((ContextOf (Bop op x y) ctx))\n        :ruleset always-run )",
+      "anchors": 9490,
+      "reads_before": 9490,
+      "reads_after": 4407,
+      "marker_candidates": 5083,
+      "marker_rejections": 1539,
+      "marker_bindings": 3544,
+      "marker_payload_references": 3544,
+      "depth_before": [
+        0,
+        9490
+      ],
+      "depth_after": [
+        5083,
+        4407
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.4643835616438356,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Call func arg)\n       (ContextOf arg ctx))\n      ((ContextOf (Call func arg) ctx))\n        :ruleset always-run )",
+      "anchors": 242,
+      "reads_before": 242,
+      "reads_after": 196,
+      "marker_candidates": 46,
+      "marker_rejections": 23,
+      "marker_bindings": 23,
+      "marker_payload_references": 23,
+      "depth_before": [
+        0,
+        242
+      ],
+      "depth_after": [
+        46,
+        196
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.8099173553719008,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Concat _x _y)\n       (ExprIsPure _x)\n       (ExprIsPure _y))\n      ((ExprIsPure (Concat _x _y)))\n        :ruleset always-run )",
+      "anchors": 15126,
+      "reads_before": 18152,
+      "reads_after": 18150,
+      "marker_candidates": 2,
+      "marker_rejections": 2,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        12100,
+        3026
+      ],
+      "depth_after": [
+        2,
+        12098,
+        3026
+      ],
+      "reach_before": [
+        1.0,
+        0.20005288906518578,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.9998677773370356,
+        0.20005288906518578,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Concat x y)\n       (ContextOf x ctx))\n      ((ContextOf (Concat x y) ctx))\n        :ruleset always-run )",
+      "anchors": 15752,
+      "reads_before": 15752,
+      "reads_after": 2342,
+      "marker_candidates": 13410,
+      "marker_rejections": 4082,
+      "marker_bindings": 9328,
+      "marker_payload_references": 9328,
+      "depth_before": [
+        0,
+        15752
+      ],
+      "depth_after": [
+        13410,
+        2342
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.14867953275774504,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Concat x y)\n       (ContextOf y ctx))\n      ((ContextOf (Concat x y) ctx))\n        :ruleset always-run )",
+      "anchors": 17706,
+      "reads_before": 17706,
+      "reads_after": 9170,
+      "marker_candidates": 8536,
+      "marker_rejections": 3157,
+      "marker_bindings": 5379,
+      "marker_payload_references": 5379,
+      "depth_before": [
+        0,
+        17706
+      ],
+      "depth_after": [
+        8536,
+        9170
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.5179035355246809,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((DoWhile _in _pred-and-output)\n       (ExprIsPure _in)\n       (ExprIsPure _pred-and-output))\n      ((ExprIsPure (DoWhile _in _pred-and-output)))\n        :ruleset always-run )",
+      "anchors": 84,
+      "reads_before": 84,
+      "reads_after": 84,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        84
+      ],
+      "depth_after": [
+        0,
+        84
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Alloc _id _e _state _ty)))\n      ((ExprIsValid _e)\n       (ExprIsValid _state))\n        :ruleset always-run )",
+      "anchors": 234,
+      "reads_before": 234,
+      "reads_after": 234,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        234
+      ],
+      "depth_after": [
+        0,
+        234
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Bop _op _x _y)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y))\n        :ruleset always-run )",
+      "anchors": 6186,
+      "reads_before": 6186,
+      "reads_after": 5546,
+      "marker_candidates": 640,
+      "marker_rejections": 640,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        6186
+      ],
+      "depth_after": [
+        640,
+        5546
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.8965405754930488,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Call _func _arg)))\n      ((ExprIsValid _arg))\n        :ruleset always-run )",
+      "anchors": 121,
+      "reads_before": 121,
+      "reads_after": 121,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        121
+      ],
+      "depth_after": [
+        0,
+        121
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Concat _x _y)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y))\n        :ruleset always-run )",
+      "anchors": 10214,
+      "reads_before": 10214,
+      "reads_after": 6571,
+      "marker_candidates": 3643,
+      "marker_rejections": 3643,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        10214
+      ],
+      "depth_after": [
+        3643,
+        6571
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.6433326806344234,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (DoWhile _in _pred-and-output)))\n      ((ExprIsValid _in)\n       (ExprIsValid _pred-and-output))\n        :ruleset always-run )",
+      "anchors": 84,
+      "reads_before": 84,
+      "reads_after": 54,
+      "marker_candidates": 30,
+      "marker_rejections": 30,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        84
+      ],
+      "depth_after": [
+        30,
+        54
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.6428571428571429,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Function _name _tyin _tyout _out)))\n      ((ExprIsValid _out))\n        :ruleset always-run )",
+      "anchors": 29,
+      "reads_before": 29,
+      "reads_after": 29,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        29
+      ],
+      "depth_after": [
+        0,
+        29
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Get _tup _i)))\n      ((ExprIsValid _tup))\n        :ruleset always-run )",
+      "anchors": 22672,
+      "reads_before": 22672,
+      "reads_after": 7612,
+      "marker_candidates": 15060,
+      "marker_rejections": 15060,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        22672
+      ],
+      "depth_after": [
+        15060,
+        7612
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.3357445306986591,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (If _pred _input _then _else)))\n      ((ExprIsValid _pred)\n       (ExprIsValid _input)\n       (ExprIsValid _then)\n       (ExprIsValid _else))\n        :ruleset always-run )",
+      "anchors": 200,
+      "reads_before": 200,
+      "reads_after": 143,
+      "marker_candidates": 57,
+      "marker_rejections": 57,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        200
+      ],
+      "depth_after": [
+        57,
+        143
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.715,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Single _x)))\n      ((ExprIsValid _x))\n        :ruleset always-run )",
+      "anchors": 9094,
+      "reads_before": 9094,
+      "reads_after": 8974,
+      "marker_candidates": 120,
+      "marker_rejections": 120,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        9094
+      ],
+      "depth_after": [
+        120,
+        8974
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.9868044864745986,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Switch _pred _inputs _branches)))\n      ((ExprIsValid _pred)\n       (ExprIsValid _inputs)\n       (ListExprIsValid _branches))\n        :ruleset always-run )",
+      "anchors": 0,
+      "reads_before": 0,
+      "reads_after": 0,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [],
+      "depth_after": [],
+      "reach_before": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "reach_after": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Top _op _x _y _z)))\n      ((ExprIsValid _x)\n       (ExprIsValid _y)\n       (ExprIsValid _z))\n        :ruleset always-run )",
+      "anchors": 1588,
+      "reads_before": 1588,
+      "reads_after": 576,
+      "marker_candidates": 1012,
+      "marker_rejections": 1012,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        1588
+      ],
+      "depth_after": [
+        1012,
+        576
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.36272040302267,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((ExprIsValid (Uop _op _x)))\n      ((ExprIsValid _x))\n        :ruleset always-run )",
+      "anchors": 3,
+      "reads_before": 3,
+      "reads_after": 3,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        3
+      ],
+      "depth_after": [
+        0,
+        3
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Function _name _tyin _tyout _out)\n       (ExprIsPure _out))\n      ((ExprIsPure (Function _name _tyin _tyout _out)))\n        :ruleset always-run )",
+      "anchors": 29,
+      "reads_before": 29,
+      "reads_after": 28,
+      "marker_candidates": 1,
+      "marker_rejections": 1,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        29
+      ],
+      "depth_after": [
+        1,
+        28
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.9655172413793104,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Get _tup _i)\n       (ExprIsPure _tup))\n      ((ExprIsPure (Get _tup _i)))\n        :ruleset always-run )",
+      "anchors": 23605,
+      "reads_before": 23605,
+      "reads_after": 9856,
+      "marker_candidates": 13749,
+      "marker_rejections": 13659,
+      "marker_bindings": 90,
+      "marker_payload_references": 90,
+      "depth_before": [
+        0,
+        23605
+      ],
+      "depth_after": [
+        13749,
+        9856
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.4175386570641813,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Get tup i)\n       (ContextOf tup ctx))\n      ((ContextOf (Get tup i) ctx))\n        :ruleset always-run )",
+      "anchors": 34336,
+      "reads_before": 34336,
+      "reads_after": 8104,
+      "marker_candidates": 26232,
+      "marker_rejections": 9978,
+      "marker_bindings": 16254,
+      "marker_payload_references": 16254,
+      "depth_before": [
+        0,
+        34336
+      ],
+      "depth_after": [
+        26232,
+        8104
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.23602050326188256,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((HasType expr (TupleT tl))\n       (= len (TypeList-length tl)))\n      ((set (tuple-length expr) len))\n        :ruleset always-run )",
+      "anchors": 2053,
+      "reads_before": 4106,
+      "reads_after": 4106,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        0,
+        2053
+      ],
+      "depth_after": [
+        0,
+        0,
+        2053
+      ],
+      "reach_before": [
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((If _pred _input _then _else)\n       (ExprIsPure _pred)\n       (ExprIsPure _input)\n       (ExprIsPure _then)\n       (ExprIsPure _else))\n      ((ExprIsPure (If _pred _input _then _else)))\n        :ruleset always-run )",
+      "anchors": 319,
+      "reads_before": 343,
+      "reads_after": 343,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        311,
+        0,
+        0,
+        8
+      ],
+      "depth_after": [
+        0,
+        311,
+        0,
+        0,
+        8
+      ],
+      "reach_before": [
+        1.0,
+        0.025078369905956112,
+        0.025078369905956112,
+        0.025078369905956112
+      ],
+      "reach_after": [
+        1.0,
+        0.025078369905956112,
+        0.025078369905956112,
+        0.025078369905956112
+      ]
+    },
+    {
+      "rule": "(rule ((If pred inputs then else)\n       (ContextOf inputs ctx))\n      ((ContextOf (If pred inputs then else) ctx))\n        :ruleset always-run )",
+      "anchors": 371,
+      "reads_before": 371,
+      "reads_after": 122,
+      "marker_candidates": 249,
+      "marker_rejections": 74,
+      "marker_bindings": 175,
+      "marker_payload_references": 175,
+      "depth_before": [
+        0,
+        371
+      ],
+      "depth_after": [
+        249,
+        122
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.3288409703504043,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((If pred inputs then else)\n       (ContextOf pred ctx))\n      ((ContextOf (If pred inputs then else) ctx))\n        :ruleset always-run )",
+      "anchors": 356,
+      "reads_before": 356,
+      "reads_after": 224,
+      "marker_candidates": 132,
+      "marker_rejections": 53,
+      "marker_bindings": 79,
+      "marker_payload_references": 79,
+      "depth_before": [
+        0,
+        356
+      ],
+      "depth_after": [
+        132,
+        224
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.6292134831460674,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Single _x)\n       (ExprIsPure _x))\n      ((ExprIsPure (Single _x)))\n        :ruleset always-run )",
+      "anchors": 9987,
+      "reads_before": 9987,
+      "reads_after": 9987,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        9987
+      ],
+      "depth_after": [
+        0,
+        9987
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Single x)\n       (ContextOf x ctx))\n      ((ContextOf (Single x) ctx))\n        :ruleset always-run )",
+      "anchors": 26647,
+      "reads_before": 26647,
+      "reads_after": 26647,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        26647
+      ],
+      "depth_after": [
+        0,
+        26647
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Switch pred inputs branches)\n       (ContextOf pred ctx))\n      ((ContextOf (Switch pred inputs branches) ctx))\n        :ruleset always-run )",
+      "anchors": 0,
+      "reads_before": 0,
+      "reads_after": 0,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [],
+      "depth_after": [],
+      "reach_before": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "reach_after": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "rule": "(rule ((Top _op _x _y _z)\n       (TernaryOpIsPure _op)\n       (ExprIsPure _x)\n       (ExprIsPure _y)\n       (ExprIsPure _z))\n      ((ExprIsPure (Top _op _x _y _z)))\n        :ruleset always-run )",
+      "anchors": 1727,
+      "reads_before": 2231,
+      "reads_after": 2231,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        1559,
+        0,
+        0,
+        168
+      ],
+      "depth_after": [
+        0,
+        1559,
+        0,
+        0,
+        168
+      ],
+      "reach_before": [
+        1.0,
+        0.09727851766068327,
+        0.09727851766068327,
+        0.09727851766068327
+      ],
+      "reach_after": [
+        1.0,
+        0.09727851766068327,
+        0.09727851766068327,
+        0.09727851766068327
+      ]
+    },
+    {
+      "rule": "(rule ((Top op x y z)\n       (ContextOf x ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+      "anchors": 2133,
+      "reads_before": 2133,
+      "reads_after": 1156,
+      "marker_candidates": 977,
+      "marker_rejections": 64,
+      "marker_bindings": 913,
+      "marker_payload_references": 913,
+      "depth_before": [
+        0,
+        2133
+      ],
+      "depth_after": [
+        977,
+        1156
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.5419596812001876,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Top op x y z)\n       (ContextOf y ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+      "anchors": 2154,
+      "reads_before": 2154,
+      "reads_after": 864,
+      "marker_candidates": 1290,
+      "marker_rejections": 513,
+      "marker_bindings": 777,
+      "marker_payload_references": 777,
+      "depth_before": [
+        0,
+        2154
+      ],
+      "depth_after": [
+        1290,
+        864
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.4011142061281337,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Top op x y z)\n       (ContextOf z ctx))\n      ((ContextOf (Top op x y z) ctx))\n        :ruleset always-run )",
+      "anchors": 2120,
+      "reads_before": 2120,
+      "reads_after": 1184,
+      "marker_candidates": 936,
+      "marker_rejections": 371,
+      "marker_bindings": 565,
+      "marker_payload_references": 565,
+      "depth_before": [
+        0,
+        2120
+      ],
+      "depth_after": [
+        936,
+        1184
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.5584905660377358,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Uop _op _x)\n       (UnaryOpIsPure _op)\n       (ExprIsPure _x))\n      ((ExprIsPure (Uop _op _x)))\n        :ruleset always-run )",
+      "anchors": 5,
+      "reads_before": 9,
+      "reads_after": 9,
+      "marker_candidates": 0,
+      "marker_rejections": 0,
+      "marker_bindings": 0,
+      "marker_payload_references": 0,
+      "depth_before": [
+        0,
+        1,
+        4
+      ],
+      "depth_after": [
+        0,
+        1,
+        4
+      ],
+      "reach_before": [
+        1.0,
+        0.8,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        1.0,
+        0.8,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "rule": "(rule ((Uop op x)\n       (ContextOf x ctx))\n      ((ContextOf (Uop op x) ctx))\n        :ruleset always-run )",
+      "anchors": 6,
+      "reads_before": 6,
+      "reads_after": 2,
+      "marker_candidates": 4,
+      "marker_rejections": 2,
+      "marker_bindings": 2,
+      "marker_payload_references": 2,
+      "depth_before": [
+        0,
+        6
+      ],
+      "depth_after": [
+        4,
+        2
+      ],
+      "reach_before": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reach_after": [
+        0.3333333333333333,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "depth_scope": "CPU factorized residual checks, not ordinary GPU/Free Join depth; equal original anchor population",
+  "fixed_rule_weight_reach": {
+    "reach_before": [
+      1.0,
+      0.05710499096403555,
+      0.0033370929930719023,
+      0.0019118263682287402
+    ],
+    "reach_after": [
+      0.6953069269869233,
+      0.05643266208843335,
+      0.002831289981779556,
+      0.0019118263682287402
+    ]
+  },
+  "hardware_note": "Apple Metal simdgroup matrix arithmetic; no NVIDIA Tensor Core utilization measurement.",
+  "prefetch_note": "Computed but unrequested heads are speculative overhead until actually reused. Current/discarded unused heads are reported explicitly.",
+  "extraction": {
+    "passed": true,
+    "outputs": [
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-pass3/extraction-check/extraction/native.egg",
+        "reconstruction_seconds": 0.117546417,
+        "selected_rows": 8007,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-pass3/extraction-check/extraction/cpu.egg",
+        "reconstruction_seconds": 0.104739542,
+        "selected_rows": 8007,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      },
+      {
+        "file": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-pass3/extraction-check/extraction/gpu.egg",
+        "reconstruction_seconds": 0.106229292,
+        "selected_rows": 8007,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      }
+    ],
+    "checks": [
+      {
+        "candidate": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-pass3/extraction-check/extraction/cpu.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8006,
+          "eclass_mapping": 8006,
+          "tables": {
+            "Add": 1,
+            "Alloc": 132,
+            "And": 1,
+            "Arg": 1,
+            "Bool": 2,
+            "BoolT": 1,
+            "Bop": 2240,
+            "Call": 85,
+            "Concat": 1500,
+            "Const": 27,
+            "Div": 1,
+            "DoWhile": 58,
+            "DumC": 1,
+            "Eq": 1,
+            "FAdd": 1,
+            "FDiv": 1,
+            "FGreaterEq": 1,
+            "FGreaterThan": 1,
+            "FLessThan": 1,
+            "FMul": 1,
+            "FSub": 1,
+            "Float": 16,
+            "FloatT": 1,
+            "Free": 1,
+            "Function": 29,
+            "Get": 2394,
+            "GreaterThan": 1,
+            "If": 111,
+            "Int": 9,
+            "IntT": 1,
+            "LessThan": 1,
+            "Load": 1,
+            "Neg": 1,
+            "Not": 1,
+            "Or": 1,
+            "PointerT": 5,
+            "Print": 1,
+            "PtrAdd": 1,
+            "Single": 873,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 44,
+            "TNil": 1,
+            "Top": 431,
+            "TupleT": 19,
+            "Uop": 2,
+            "Write": 1
+          }
+        },
+        "error": null
+      },
+      {
+        "candidate": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-pass3/extraction-check/extraction/gpu.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8006,
+          "eclass_mapping": 8006,
+          "tables": {
+            "Add": 1,
+            "Alloc": 132,
+            "And": 1,
+            "Arg": 1,
+            "Bool": 2,
+            "BoolT": 1,
+            "Bop": 2240,
+            "Call": 85,
+            "Concat": 1500,
+            "Const": 27,
+            "Div": 1,
+            "DoWhile": 58,
+            "DumC": 1,
+            "Eq": 1,
+            "FAdd": 1,
+            "FDiv": 1,
+            "FGreaterEq": 1,
+            "FGreaterThan": 1,
+            "FLessThan": 1,
+            "FMul": 1,
+            "FSub": 1,
+            "Float": 16,
+            "FloatT": 1,
+            "Free": 1,
+            "Function": 29,
+            "Get": 2394,
+            "GreaterThan": 1,
+            "If": 111,
+            "Int": 9,
+            "IntT": 1,
+            "LessThan": 1,
+            "Load": 1,
+            "Neg": 1,
+            "Not": 1,
+            "Or": 1,
+            "PointerT": 5,
+            "Print": 1,
+            "PtrAdd": 1,
+            "Single": 873,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 44,
+            "TNil": 1,
+            "Top": 431,
+            "TupleT": 19,
+            "Uop": 2,
+            "Write": 1
+          }
+        },
+        "error": null
+      }
+    ],
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  },
+  "audit": {
+    "checks": 156426,
+    "scope": "Cell-supplied queries",
+    "exact_graph": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 699068,
+      "eclass_mapping": 524631,
+      "tables": {
+        "Abs": 1,
+        "Accum-Bop": 3,
+        "Add": 1,
+        "Add-All-Gets": 7171,
+        "Add-Gets": 18641,
+        "AddContext": 12044,
+        "Alloc": 137,
+        "And": 1,
+        "Arg": 77,
+        "Base": 9,
+        "BinaryOpIsPure": 28,
+        "Bitand": 1,
+        "BodyContainsExpr": 50594,
+        "Bool": 2,
+        "BoolB": 2,
+        "BoolT": 1,
+        "Bop": 3486,
+        "Call": 121,
+        "Concat": 8147,
+        "Const": 1543,
+        "ContextOf": 19160,
+        "DelayedDropUnion": 29,
+        "DelayedSubstUnion": 4470,
+        "DidMemOptimization": 2,
+        "Div": 1,
+        "DoWhile": 84,
+        "DropAt": 2,
+        "DropAtInternal": 29,
+        "Empty": 5,
+        "Eq": 1,
+        "ExpectType": 2312,
+        "Expr-size": 19161,
+        "ExprIsPure": 5402,
+        "ExprIsResolved": 19173,
+        "ExtractedExpr": 7422,
+        "ExtractedExprCache": 9843,
+        "FAdd": 1,
+        "FDiv": 1,
+        "FEq": 1,
+        "FGreaterEq": 1,
+        "FGreaterThan": 1,
+        "FLessEq": 1,
+        "FLessThan": 1,
+        "FMul": 1,
+        "FSub": 1,
+        "Float": 16,
+        "FloatT": 1,
+        "Fmax": 1,
+        "Fmin": 1,
+        "Free": 1,
+        "Function": 29,
+        "FunctionHasType": 29,
+        "Get": 13341,
+        "GreaterEq": 1,
+        "GreaterThan": 1,
+        "HasArgType": 19160,
+        "HasType": 19160,
+        "If": 172,
+        "InFunc": 2,
+        "Int": 18,
+        "IntB": 18,
+        "IntT": 1,
+        "LessEq": 1,
+        "LessThan": 1,
+        "Load": 1,
+        "LoopIsFinite": 4,
+        "LoopNumItersGuess": 84,
+        "Mul": 1,
+        "Neg": 1,
+        "NoAlias": 1552,
+        "NoTerm": 1,
+        "Not": 1,
+        "Not-Just-Concat": 4405,
+        "Or": 1,
+        "PointerT": 5,
+        "PointerishType": 878,
+        "PointerishTypeList": 873,
+        "PotentialExtractedExpr": 69649,
+        "Print": 1,
+        "PtrAdd": 1,
+        "PureBaseType": 2,
+        "PureType": 7,
+        "PureTypeList": 5,
+        "Select": 1,
+        "Shl": 1,
+        "Shr": 1,
+        "Single": 4382,
+        "Smaller": 73371,
+        "Smax": 1,
+        "Smin": 1,
+        "StateT": 1,
+        "Sub": 1,
+        "SubTuple": 21246,
+        "Subst": 4961,
+        "TCPair": 63038,
+        "TCons": 902,
+        "TLConcat": 2705,
+        "TNil": 1,
+        "TermArg": 1,
+        "TermBop": 13798,
+        "TermConcat": 3607,
+        "TermConst": 36,
+        "TermGet": 31119,
+        "TermSingle": 10755,
+        "TermSubst": 635,
+        "TermTop": 3718,
+        "TermUop": 3,
+        "TernaryOpIsPure": 1,
+        "ToSubsumeIf": 4,
+        "Top": 938,
+        "TupleRemoveAt": 10,
+        "TupleT": 903,
+        "TypeList-ith": 5149,
+        "TypeList-length": 903,
+        "TypeListRemoveAt": 1,
+        "UnaryOpIsPure": 3,
+        "Uop": 3,
+        "Write": 1,
+        "___GeneratedFreshTable5": 1,
+        "bop->string": 24,
+        "bop-of-type": 13,
+        "bpred-of-type": 12,
+        "hi-bound": 878,
+        "is-inv-Expr": 1440,
+        "leading-Expr": 553,
+        "lo-bound": 878,
+        "lsr-inv": 122846,
+        "to-hoist": 84,
+        "to-hoist-size": 84,
+        "tuple-length": 11513
+      }
+    }
+  },
+  "rust_tests": 38,
+  "provenance": {
+    "out/exact-marker-final-build/build.json": {
+      "runtime_repo": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout",
+      "runtime_commit": "06f5b701595d806b5eefe399e6fd407364b75610",
+      "runtime_dirty": [],
+      "binary": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-build/runner",
+      "features": [],
+      "binary_sha256": "d85700acee23cea8a64af1853da24afd226ca9fe758baa7df939fedf1c4cf3f5",
+      "worker_sha256": "4bbb31b4c9db222c1f1f1095761fc23e5a4ed52b1adafc8aeac5f315f5bf5a27",
+      "kernel_sha256": "50b6660627471003e2533e9ff5ef4297e42699417e1d91455b3b5bea6af01eed",
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/hook.rs": "5e93e95f7517d229874f954435b6db544dbff8b30aa8e532c91eece9b60ced0d",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/coordinates.rs": "5a726433c15eba5e1eedd2676f96911a53f8478806d7a3f9cf27d5e6f4e849d1",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/markers.rs": "ed47bfeb92cd0af65f5c109b1cd2daa43e88c6d1ffbda002d5b0fc459bbd4045",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/summaries.rs": "d62d1ae93ecbe58623ed89a79c0ac985483a2492a91a4f779d26670a8a6b45a7",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/conditions.rs": "20551c28608c85b643ea2332d1d489fbe2c24848a69f9087a917f4cba13066ea",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/exact_markers.rs": "9e82a51c48fe9ffc52e6fd0c0f5f466d6b7b9a14789302e77b6729a26ceb161e",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/main.rs": "7192048354eeef9df9bb0f05892e9ce6733fbf4c4a1f5c0f9ad149a5b005c74d",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/runtime.swift": "958fc46a154552d46ad6365e37edeab2ee4a6519e14346e2a3214dd579b6e615",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/shared_matrix.metal": "59f2c2a519faa71cbe70861424872098b13fa5d994d89b405628368d930ade95",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/resident.rs": "af3bd12c4216eed2e255cad280947c161d3f6f1e23dae53e9a7e5e0b0dfc742a",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/combined.rs": "cf913c618d8d34eb08410d20da6ec44807e9b7c3613e4726a4260fb5e20d7620",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/resident.swift": "0e67fc7bf2968131e9df91af7dbb10e85cd7555c0173eb7265fa2c0202406f7f",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/resident_matrix.metal": "a828ba8daf05ca5de915384551f07df307f7eb031ed40951ec37fd4daf99561a",
+        "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/experiments/structural_runtime/lower_ridge.py": "0f188295973b5568ebcb6ea56dc979bc813f8be2c168fbe065440f10b8a116d4",
+        "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/examples/support/live_table_bench.rs": "ac46f6c59cc483deddf70f482d438740026e08fabbcee01ce481d55551eddf63"
+      }
+    },
+    "out/exact-marker-final-pass3/gpu/identity.json": {
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-build/runner": "d85700acee23cea8a64af1853da24afd226ca9fe758baa7df939fedf1c4cf3f5",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/resident-response-model.json": "c80d1098e3eb6e2143115b87772226b440c926b9fa0a4616944f0aa83fa4db71",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-build/worker": "4bbb31b4c9db222c1f1f1095761fc23e5a4ed52b1adafc8aeac5f315f5bf5a27",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/exact-marker-final-build/kernel.metal": "50b6660627471003e2533e9ff5ef4297e42699417e1d91455b3b5bea6af01eed",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/structural-runtime-build/query-worker": "5365d916961fca76aa125a2c49e8ea423ab356460bf2c9200060198dc0480392",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/structural-runtime-pass3-v4/native/graph.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+      "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/shared-loop-selected/program/boundary-programs.json": "1332acb50268d4f23daaf7c541955086191006867686ef95a10c4adc38763c21",
+      "configuration": {
+        "STRUCTURAL_QUERY_WORKER": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/structural-runtime-build/query-worker",
+        "STRUCTURAL_EXACT_MARKERS": "1",
+        "STRUCTURAL_JOINT_SAT": "1",
+        "CELL_BOUNDARY_PROGRAMS": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/shared-loop-selected/program/boundary-programs.json",
+        "STRUCTURAL_REQUIRE_PREDICTOR": "1",
+        "STRUCTURAL_CONDITION_EXECUTION": "roots",
+        "STRUCTURAL_MATRIX_LAYOUT": "resident",
+        "STRUCTURAL_RESIDENT_SCOPE": "sort",
+        "STRUCTURAL_COORDINATES": "markers",
+        "STRUCTURAL_SHARED_CONDITIONS": "1",
+        "STRUCTURAL_COORDINATE_AUDIT": "0"
+      }
+    },
+    "out/ridge-consumer-final-sort/gpu/identity.json": {
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/ridge-consumer-final-build/runner": "5cd48911b5abd522c18b4889f8fa81646f74bcf1fd1ea46974b2a27cc8364dba",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/resident-response-model.json": "c80d1098e3eb6e2143115b87772226b440c926b9fa0a4616944f0aa83fa4db71",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/ridge-consumer-final-build/worker": "4bbb31b4c9db222c1f1f1095761fc23e5a4ed52b1adafc8aeac5f315f5bf5a27",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/ridge-consumer-final-build/kernel.metal": "50b6660627471003e2533e9ff5ef4297e42699417e1d91455b3b5bea6af01eed",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/structural-runtime-build/query-worker": "5365d916961fca76aa125a2c49e8ea423ab356460bf2c9200060198dc0480392",
+      "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/structural-runtime-pass3-v4/native/graph.control.json": "5ef6c3b63738d791bee8d3a0f3cc1493338fa7a2a81981ed8e7efb90becefcba",
+      "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/shared-loop-selected/program/boundary-programs.json": "1332acb50268d4f23daaf7c541955086191006867686ef95a10c4adc38763c21",
+      "configuration": {
+        "STRUCTURAL_QUERY_WORKER": "/Users/mineralsteins/.codex/worktrees/aaa8/egg_layout/out/structural-runtime-build/query-worker",
+        "STRUCTURAL_JOINT_SAT": "1",
+        "CELL_BOUNDARY_PROGRAMS": "/Users/mineralsteins/.codex/worktrees/automatic-refutation/egg_layout/out/shared-loop-selected/program/boundary-programs.json",
+        "STRUCTURAL_REQUIRE_PREDICTOR": "1",
+        "STRUCTURAL_CONDITION_EXECUTION": "roots",
+        "STRUCTURAL_MATRIX_LAYOUT": "resident",
+        "STRUCTURAL_RESIDENT_SCOPE": "sort",
+        "STRUCTURAL_COORDINATES": "markers",
+        "STRUCTURAL_SHARED_CONDITIONS": "1",
+        "STRUCTURAL_COORDINATE_AUDIT": "0"
+      }
+    }
+  },
+  "earlier_attempts": [
+    {
+      "directory": "exact-marker-pass3",
+      "change": "Maintain every marker",
+      "inference_seconds": 15.328881375,
+      "maintenance_seconds": 1.2965516179999377,
+      "query_seconds": 0.4878798659999985,
+      "exact_markers": {
+        "statistics": {
+          "created": 520121,
+          "reused": 264364,
+          "removed": 232994,
+          "invalidations": 177429,
+          "publications": 693408,
+          "truth_reads": 878598,
+          "payload_builds": 31244,
+          "payload_hits": 19036,
+          "factor_references": 31692,
+          "tuples": 71444,
+          "consumer_tuple_visits": 162404,
+          "query_seconds": 0.04286510499999917
+        },
+        "live_markers": 287127,
+        "shared_markers": 43988,
+        "live_anchor_uses": 407080,
+        "factor_connections": 465714,
+        "scope": "Exact current native projection witnesses; not a new RipSat closure certificate"
+      },
+      "condition_blocks": {
+        "cache_probes": 400206,
+        "reads": 259062,
+        "hits": 236486,
+        "empty_hits": 216559,
+        "invalidations": 68621,
+        "witness_rows_materialized": 189036
+      },
+      "exact_graph": true
+    },
+    {
+      "directory": "exact-marker-shared-pass3",
+      "change": "Only subscribe shared markers; still duplicate singleton state",
+      "inference_seconds": 16.429129791,
+      "maintenance_seconds": 1.2119260109998817,
+      "query_seconds": 0.5778052530000012,
+      "exact_markers": {
+        "statistics": {
+          "created": 520121,
+          "reused": 264364,
+          "removed": 232994,
+          "activated": 106259,
+          "deactivated": 62271,
+          "invalidations": 23592,
+          "publications": 118564,
+          "truth_reads": 121041,
+          "payload_builds": 32763,
+          "payload_hits": 17517,
+          "factor_references": 33238,
+          "tuples": 71444,
+          "consumer_tuple_visits": 162404,
+          "query_seconds": 0.05480033799999918
+        },
+        "live_markers": 287127,
+        "shared_markers": 43988,
+        "live_anchor_uses": 407080,
+        "factor_connections": 44412,
+        "scope": "Exact current native projection witnesses; not a new RipSat closure certificate"
+      },
+      "condition_blocks": {
+        "cache_probes": 400206,
+        "reads": 259062,
+        "hits": 236486,
+        "empty_hits": 216559,
+        "invalidations": 68621,
+        "witness_rows_materialized": 189036
+      },
+      "exact_graph": true
+    }
+  ],
+  "interpretation": "Historical control reused, not a new same-binary paired speedup. Residual accesses include cache hits; new answer reads and event-maintenance work are reported separately. This is exact event-maintained query reuse, not new RipSat closure proof credit or a GPU matrix implementation of all conditions. Ridge remains active for uncovered requests."
+}

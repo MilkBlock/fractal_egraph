@@ -138,6 +138,7 @@ fn observed_value(
             &eg.value_to_base::<egglog::sort::S>(value).to_string(),
         )?),
         "bool" => Some(eg.value_to_base::<bool>(value).to_string()),
+        eggfuse_structural_key::SORT => Some(crate::structural_key::source::value_literal(eg, value)?),
         "f64" => Some(
             Expr::Lit(
                 sp(),
@@ -187,12 +188,15 @@ pub struct Record {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 struct CaptureBoundary {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    stage: Option<Json>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     ripen: Option<crate::coarse_smooth::RipenFeedback>,
     kind: String,
     round: Option<usize>,
     end: usize,
 }
 struct Captured {
+    device_source: Option<Json>,
     reuse_plan: Json,
     reuse_signatures: BTreeSet<String>,
     changes: Vec<crate::closure_contract::Change>,
@@ -233,6 +237,7 @@ fn capture_text_with_planner(
 ) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
+    crate::structural_key::source::install(&mut eg, text)?;
     let mut commands =
         crate::visual_rule::surface_program(eg.parse_program(Some(name.to_owned()), text)?);
     let declarations: Vec<_> = commands
@@ -296,6 +301,7 @@ fn capture_text_with_planner(
     let trace = TraceSession::with_dependencies();
     trace.set_rhs_lookup_reads(true);
     let mut c = Captured {
+        device_source: None,
         reuse_plan: Json::Null,
         reuse_signatures: BTreeSet::new(),
         changes: vec![],
@@ -338,46 +344,32 @@ fn capture_text_with_planner(
     let mut producers = BTreeMap::new();
     let mut count = 0;
     let mut known = true;
-    for command in commands {
-        if let Command::RunSchedule(egglog::ast::GenericSchedule::Repeat(_, n, inner)) = &command {
-            if matches!(**inner, egglog::ast::GenericSchedule::Run(..)) {
-                for _ in 0..*n {
-                    let round_start = Instant::now();
-                    if let Some(p) = &planner {
-                        p.refresh(&mut eg)?;
-                    }
-                    eg.run_program_with_trace(
-                        vec![Command::RunSchedule((**inner).clone())],
-                        &trace,
-                    )?;
-                    let tier0_seconds = round_start.elapsed().as_secs_f64();
-                    let collect_start = Instant::now();
-                    count += 1;
-                    collect_with_planner(&eg, &trace, &mut c, &mut producers, planner.as_mut())?;
-                    c.boundaries.push(CaptureBoundary {
-                        ripen: None,
-                        kind: if known { "round" } else { "execution-boundary" }.into(),
-                        round: known.then_some(count),
-                        end: c.records.len(),
-                    });
-                    let collect_seconds = collect_start.elapsed().as_secs_f64();
-                    let sink_start = Instant::now();
-                    if let Some(sink) = sink.as_mut() {
-                        sink(&mut c)?;
-                    }
-                    let sink_seconds = sink_start.elapsed().as_secs_f64();
-                    eprintln!(
-                        "[perf-round] round={count} tier0={tier0_seconds:.6} collect={collect_seconds:.6} analysis_and_output={sink_seconds:.6}"
-                    );
-                    eprintln!("[native] round {count} completed");
-                }
-                continue;
+    for (command_index, command) in commands.iter().cloned().enumerate() {
+        if let Command::RunSchedule(s) = &command {
+            if c.device_source.is_none() {
+                c.device_source=Some(match crate::cell_schedule::device_entry(&mut eg,&commands[command_index..]) {
+                    Ok(mut core)=>{
+                        crate::structural_key::source::attach_device_runtime(&mut core,&c.preview_source)?;
+                        json!({"status":"ready","core":core})
+                    },
+                    Err(e)=>json!({"status":"unsupported","reason":e.to_string()}),
+                });
             }
+            let simple = matches!(s, egglog::ast::Schedule::Repeat(_,_,b) if matches!(**b,egglog::ast::Schedule::Run(..)));
+            if !simple { known = false; }
+            crate::cell_schedule::execute(&mut eg, &trace, s, command_index, &mut |eg,stage| {
+                if stage["phase"]=="begin" {if let Some(p)=&planner{p.refresh(eg)?;} return Ok(());}
+                let start=c.records.len();
+                collect_with_planner(eg,&trace,&mut c,&mut producers,planner.as_mut())?;
+                count+=1;
+                let mut stage=stage;stage["record_start"]=json!(start);stage["record_end"]=json!(c.records.len());
+                c.boundaries.push(CaptureBoundary {stage:Some(stage),ripen:None,kind:if known {"round"} else {"execution-boundary"}.into(),round:known.then_some(count),end:c.records.len()});
+                if simple {if let Some(sink)=sink.as_mut(){sink(&mut c)?;}}
+                Ok(())
+            })?;
+            if !simple {if let Some(sink)=sink.as_mut(){sink(&mut c)?;}}
+            continue;
         }
-        if matches!(command, Command::RunSchedule(_)) {
-            known = false;
-        }
-        let schedule = matches!(command, Command::RunSchedule(_));
         let external_change = match &command {
             Command::Action(Action::Set(_, op, _, _) | Action::Change(_, _, op, _)) => {
                 Some((false, vec![op.clone()]))
@@ -402,11 +394,6 @@ fn capture_text_with_planner(
             }
             _ => None,
         };
-        if schedule {
-            if let Some(p) = &planner {
-                p.refresh(&mut eg)?;
-            }
-        }
         match command {
             Command::Rule { rule } if planner.is_some() => {
                 planner
@@ -426,18 +413,7 @@ fn capture_text_with_planner(
                 ..Default::default()
             });
         }
-        if schedule {
-            collect_with_planner(&eg, &trace, &mut c, &mut producers, planner.as_mut())?;
-            c.boundaries.push(CaptureBoundary {
-                ripen: None,
-                kind: "execution-boundary".into(),
-                round: None,
-                end: c.records.len(),
-            });
-            if let Some(sink) = sink.as_mut() {
-                sink(&mut c)?;
-            }
-        }
+
     }
     collect_with_planner(&eg, &trace, &mut c, &mut producers, planner.as_mut())?;
     if c.boundaries.last().is_none_or(|b| b.end != c.records.len())
@@ -446,6 +422,7 @@ fn capture_text_with_planner(
             .is_some_and(|e| e.boundary > c.boundaries.len())
     {
         c.boundaries.push(CaptureBoundary {
+            stage: None,
             ripen: None,
             kind: "final".into(),
             round: None,
@@ -684,6 +661,7 @@ fn collect_with_planner(
                     &eg.value_to_base::<egglog::sort::S>(*v).to_string(),
                 )?),
                 "bool" => Some(eg.value_to_base::<bool>(*v).to_string()),
+                eggfuse_structural_key::SORT => Some(crate::structural_key::source::value_literal(eg, *v)?),
                 "f64" => Some(
                     Expr::Lit(
                         sp(),
@@ -1162,6 +1140,7 @@ fn execute(
             return Ok(());
         }
         let b = c.boundaries.last().cloned().unwrap_or(CaptureBoundary {
+            stage: None,
             ripen: None,
             kind: "capture".into(),
             round: None,
@@ -1235,6 +1214,7 @@ fn execute(
     }
     if persist_frames || stream_frames {
         let b = CaptureBoundary {
+            stage: None,
             ripen: None,
             kind: if pipeline.report()["counts"]["ObservedUnfinished"]
                 .as_u64()

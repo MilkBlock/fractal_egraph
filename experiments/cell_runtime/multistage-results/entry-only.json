@@ -1,0 +1,128 @@
+{
+  "fact": {
+    "baseline": {
+      "program_sha256": "756939bb17254e4f51ef61729511779cc0ed48e3046a96fc41d9390dc2fbfaaf",
+      "binary_sha256": "207913bf412d0a1b0777b73f18c4b9006ddff79a4f3fc89514a2b3371fc1a33e",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.35511412499909056,
+      "peak_rss_bytes": 139395072,
+      "inference_seconds": 0.025136583,
+      "setup_seconds": 0.000607084,
+      "audit": false,
+      "configuration": {
+        "CELL_CPU_MULTISTAGE": "0"
+      }
+    },
+    "optimized": {
+      "program_sha256": "756939bb17254e4f51ef61729511779cc0ed48e3046a96fc41d9390dc2fbfaaf",
+      "binary_sha256": "207913bf412d0a1b0777b73f18c4b9006ddff79a4f3fc89514a2b3371fc1a33e",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.5139699169994856,
+      "peak_rss_bytes": 139427840,
+      "inference_seconds": 0.021840667,
+      "setup_seconds": 0.000614959,
+      "audit": false,
+      "configuration": {
+        "CELL_CPU_LOCAL_PROJECTIONS": "0"
+      }
+    },
+    "speedup": 1.1509072960088627,
+    "runs": 427,
+    "logical_matches": 2187,
+    "baseline_candidates": 26487,
+    "optimized_candidates": 18584,
+    "phase_seconds": {
+      "delivery_gc": 0.0029438310000000053,
+      "query_update": 0.0007417910000000062,
+      "repair": 0.0013583850000000043,
+      "rhs": 0.003019867000000006,
+      "search": 0.012752246000000014
+    },
+    "exact_state_and_schedule": true,
+    "native_equivalence": "not asserted; separate native survey retains known discrepancies"
+  },
+  "loopfact": {
+    "baseline": {
+      "program_sha256": "31854e16ef331fcfeeec6206c0f643f274281bc6bb1acf56c108dabafbe13a97",
+      "binary_sha256": "207913bf412d0a1b0777b73f18c4b9006ddff79a4f3fc89514a2b3371fc1a33e",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.10691508299714769,
+      "peak_rss_bytes": 138559488,
+      "inference_seconds": 0.026054291,
+      "setup_seconds": 0.000534208,
+      "audit": false,
+      "configuration": {
+        "CELL_CPU_MULTISTAGE": "0"
+      }
+    },
+    "optimized": {
+      "program_sha256": "31854e16ef331fcfeeec6206c0f643f274281bc6bb1acf56c108dabafbe13a97",
+      "binary_sha256": "207913bf412d0a1b0777b73f18c4b9006ddff79a4f3fc89514a2b3371fc1a33e",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.10757612499946845,
+      "peak_rss_bytes": 138559488,
+      "inference_seconds": 0.022604125,
+      "setup_seconds": 0.000537959,
+      "audit": false,
+      "configuration": {
+        "CELL_CPU_LOCAL_PROJECTIONS": "0"
+      }
+    },
+    "speedup": 1.1526343532430474,
+    "runs": 415,
+    "logical_matches": 1902,
+    "baseline_candidates": 29342,
+    "optimized_candidates": 19984,
+    "phase_seconds": {
+      "delivery_gc": 0.002431886000000003,
+      "query_update": 0.0007614450000000056,
+      "repair": 0.0013237960000000043,
+      "rhs": 0.0028379040000000074,
+      "search": 0.014064287000000031
+    },
+    "exact_state_and_schedule": true,
+    "native_equivalence": "not asserted; separate native survey retains known discrepancies"
+  },
+  "sum-bits": {
+    "baseline": {
+      "program_sha256": "8e617c41c3655e11e7778bd7b81a74da1d5c6e4a50d8b7e660daf3c72c902932",
+      "binary_sha256": "207913bf412d0a1b0777b73f18c4b9006ddff79a4f3fc89514a2b3371fc1a33e",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.277497790997586,
+      "peak_rss_bytes": 147767296,
+      "inference_seconds": 0.185413416,
+      "setup_seconds": 0.000572208,
+      "audit": false,
+      "configuration": {
+        "CELL_CPU_MULTISTAGE": "0"
+      }
+    },
+    "optimized": {
+      "program_sha256": "8e617c41c3655e11e7778bd7b81a74da1d5c6e4a50d8b7e660daf3c72c902932",
+      "binary_sha256": "207913bf412d0a1b0777b73f18c4b9006ddff79a4f3fc89514a2b3371fc1a33e",
+      "machine": "MineralSteinsdeMacBook-Pro.local",
+      "wall_seconds": 0.25852679099989473,
+      "peak_rss_bytes": 148635648,
+      "inference_seconds": 0.166335833,
+      "setup_seconds": 0.000616542,
+      "audit": false,
+      "configuration": {
+        "CELL_CPU_LOCAL_PROJECTIONS": "0"
+      }
+    },
+    "speedup": 1.1146931641602444,
+    "runs": 933,
+    "logical_matches": 14534,
+    "baseline_candidates": 190284,
+    "optimized_candidates": 137218,
+    "phase_seconds": {
+      "delivery_gc": 0.022019835999999904,
+      "query_update": 0.006157313999999997,
+      "repair": 0.01770267399999988,
+      "rhs": 0.02211077199999992,
+      "search": 0.09570024000000002
+    },
+    "exact_state_and_schedule": true,
+    "native_equivalence": "not asserted; separate native survey retains known discrepancies"
+  }
+}

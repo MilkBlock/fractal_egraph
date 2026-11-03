@@ -1,0 +1,60 @@
+{
+  "fact": {
+    "scope": "actual Metal resident engine; same shader/worker; original finite and saturation schedule",
+    "native": null,
+    "source_sha256": "84615f276c5968cadaec53abf228a9acab66dd6c1597e902e9af1a8cab6ed149",
+    "shader_sha256": "270235cd8c4b7d9c297a8b8e844336630509343efc4ef1e33a796591a1ba2d9a",
+    "pass3": true,
+    "warmup_excluded": true,
+    "exact_state_and_history_equal": true,
+    "initial_rows": 129,
+    "runs": 407,
+    "seconds": {
+      "off": {
+        "inference": 0.2783910036087036,
+        "gpu": 0.19615275002433918
+      },
+      "on": {
+        "inference": 0.28535401821136475,
+        "gpu": 0.19821116665116278
+      }
+    },
+    "statistics": {
+      "off": {
+        "counters": {
+          "blocks_skipped": 0,
+          "blocks_tested": 90,
+          "rows_changed": 302,
+          "rows_visited": 18935,
+          "summary_refreshes": 0
+        },
+        "duplicate_group_rows_skipped": 0,
+        "enabled": false,
+        "summary_bytes": 84260
+      },
+      "on": {
+        "counters": {
+          "blocks_skipped": 17,
+          "blocks_tested": 90,
+          "rows_changed": 302,
+          "rows_visited": 14830,
+          "summary_refreshes": 85
+        },
+        "duplicate_group_rows_skipped": 4860,
+        "enabled": true,
+        "summary_bytes": 84260
+      }
+    },
+    "worker_provenance": {
+      "binary_sha256": "ee68f5a8dc15694e57785f9a7b1cf93e69cf3e23bd3ebf810d6be9a9ee3addb6",
+      "source_sha256": "f622b61fba6ec8718bdff30551601b2ed86221cecef0c61013e837dbd5ec9539",
+      "source_components": {
+        "engine/metal/generic_cell.swift": "7110e8c3758a5d1aadcae876ea16592a81a85a307f40a80fab1859c0205d67a1",
+        "engine/metal/scheduled_matrix.swift": "f7da54e7b801e314a4b46a5a064deb1d38e9c66db25be073fcb02b64e181b4e1",
+        "eggfuse/engine/scheduled.py": "e29c90edaf01ce38fee9aac0b9db62e698c9534334916f84c6216170a4baf767"
+      },
+      "source": "engine/metal/generic_cell.swift"
+    },
+    "audit": false
+  }
+}

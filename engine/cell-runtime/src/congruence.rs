@@ -1,0 +1,274 @@
+//! Checked, conditional congruence programs. They only union existing immutable
+//! constructor results. They never construct a future fact or run a source rule.
+use crate::program::*;
+use serde::{Deserialize, Serialize};
+use serde_json::Value as J;
+use std::collections::{BTreeMap, BTreeSet};
+use std::rc::Rc;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Merge {
+    pub left: usize,
+    pub right: usize,
+    pub requires: BTreeSet<u32>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Group {
+    pub guards: Vec<(Arg, Arg)>,
+    pub merges: Vec<Merge>,
+    pub requires: BTreeSet<u32>,
+}
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Congruence {
+    pub templates: BTreeMap<usize, Rc<Vec<Group>>>,
+    pub reorder_safe: bool,
+}
+type Proof = (BTreeSet<(Arg, Arg)>, BTreeSet<u32>);
+
+fn norm(t: &Template, a: &Arg) -> Arg {
+    if let Arg::Slot(i) = a {
+        if let Some(&op) = t.defs.get(i) {
+            if let Op::Copy(_, from) = &t.ops[op] {
+                return norm(t, from);
+            }
+        }
+    }
+    a.clone()
+}
+fn constructor<'a>(p: &Program, t: &'a Template, a: &Arg) -> Option<(usize, usize, &'a [Arg])> {
+    let Arg::Slot(i) = a else { return None };
+    let op = *t.defs.get(i)?;
+    match &t.ops[op] {
+        Op::Let(_, Call::Table(table), args) if p.tables[*table].constructor => {
+            Some((op, *table, args))
+        }
+        _ => None,
+    }
+}
+fn prove(
+    p: &Program,
+    t: &Template,
+    a: &Arg,
+    b: &Arg,
+    memo: &mut BTreeMap<(Arg, Arg), Option<Proof>>,
+) -> Option<Proof> {
+    let (a, b) = (norm(t, a), norm(t, b));
+    let pair = if a <= b { (a, b) } else { (b, a) };
+    if pair.0 == pair.1 {
+        return Some((BTreeSet::new(), BTreeSet::new()));
+    }
+    if let Some(proof) = memo.get(&pair) {
+        return proof.clone();
+    }
+    let proof = match (constructor(p, t, &pair.0), constructor(p, t, &pair.1)) {
+        (Some((i, x, aa)), Some((j, y, bb))) if x == y => {
+            let mut guards = BTreeSet::new();
+            let mut required = BTreeSet::from([i as u32, j as u32]);
+            for (a, b) in aa.iter().zip(bb) {
+                let Some((g, r)) = prove(p, t, a, b, memo) else {
+                    memo.insert(pair, None);
+                    return None;
+                };
+                guards.extend(g);
+                required.extend(r);
+            }
+            Some((guards, required))
+        }
+        _ if matches!((&pair.0, &pair.1), (Arg::Literal(_), Arg::Literal(_))) => None,
+        _ => Some((BTreeSet::from([pair.clone()]), BTreeSet::new())),
+    };
+    memo.insert(pair, proof.clone());
+    proof
+}
+
+impl Congruence {
+    pub fn parse(p: &Program, raw: &J) -> Result<Self> {
+        let mut out = Self::default();
+        if raw.is_null() {
+            return Ok(out);
+        }
+        if raw["schema"] != "eggfuse-local-congruence/v1" {
+            return Err("congruence schema".into());
+        }
+        // Moving constructor equalities ahead of ordered/effectful callbacks can
+        // change the callback's observable inputs. Only pure lattice reductions
+        // are admitted; arbitrary merge programs retain the existing repair order.
+        out.reorder_safe = p.tables.iter().enumerate().all(|(i, t)| {
+            if t.virtual_fact {
+                return true;
+            }
+            let c = &p.artifact["merge_contracts"]["tables"][i];
+            if !c.is_null() {
+                return c["kind"] == "lattice" || c["kind"] == "key-min";
+            }
+            let m = &t.merge;
+            t.schema.last().is_some_and(|s| s["kind"] == "i64")
+                && matches!(m["call"]["primitive"].as_str(), Some("min" | "max"))
+                && m["args"].as_array().is_some_and(|a| {
+                    a.len() == 2
+                        && ((a[0]["var"] == "old" && a[1]["var"] == "new")
+                            || (a[0]["var"] == "new" && a[1]["var"] == "old"))
+                })
+        });
+        for entry in array(&raw["templates"])? {
+            let rid = entry["rule"].as_u64().ok_or("congruence rule")? as usize;
+            let r = p.rules.get(rid).ok_or("congruence rule range")?;
+            let t = &p.templates[r.template];
+            let mut groups = vec![];
+            let mut memo = BTreeMap::new();
+            for group in array(&entry["groups"])? {
+                let mut guards = BTreeSet::new();
+                for g in array(&group["guards"])? {
+                    let aa = array(g)?;
+                    if aa.len() != 2 {
+                        return Err("congruence guard arity".into());
+                    }
+                    let (a, b) = (arg(&aa[0])?, arg(&aa[1])?);
+                    guards.insert(if a <= b { (a, b) } else { (b, a) });
+                }
+                let mut merges = vec![];
+                for m in array(&group["merges"])? {
+                    let left = m["left"].as_u64().ok_or("congruence left")? as usize;
+                    let right = m["right"].as_u64().ok_or("congruence right")? as usize;
+                    let dst = |op: usize| match t.ops.get(op) {
+                        Some(Op::Let(slot, Call::Table(table), _))
+                            if p.tables[*table].constructor =>
+                        {
+                            Ok(Arg::Slot(*slot))
+                        }
+                        _ => Err("congruence is not a constructor".to_string()),
+                    };
+                    let (expected, required) = prove(p, t, &dst(left)?, &dst(right)?, &mut memo)
+                        .ok_or("invalid congruence proof")?;
+                    let requires = array(&m["requires"])?
+                        .iter()
+                        .map(|x| {
+                            x.as_u64()
+                                .and_then(|v| u32::try_from(v).ok())
+                                .ok_or("congruence prerequisite".to_string())
+                        })
+                        .collect::<Result<BTreeSet<_>>>()?;
+                    if expected != guards
+                        || required != requires
+                        || left == right
+                        || !required.contains(&(left as u32))
+                        || !required.contains(&(right as u32))
+                    {
+                        return Err("congruence proof differs from constructor wiring".into());
+                    }
+                    merges.push(Merge {
+                        left,
+                        right,
+                        requires,
+                    });
+                }
+                groups.push(Group {
+                    guards: guards.into_iter().collect(),
+                    requires: merges
+                        .iter()
+                        .flat_map(|m| m.requires.iter().copied())
+                        .collect(),
+                    merges,
+                });
+            }
+            if out.templates.insert(r.template, Rc::new(groups)).is_some() {
+                return Err("duplicate congruence template".into());
+            }
+        }
+        Ok(out)
+    }
+}
+
+pub(crate) fn compile(p: &Program) -> Result<J> {
+    use serde_json::json;
+    fn shape(
+        p: &Program,
+        t: &Template,
+        a: &Arg,
+        ids: &mut BTreeMap<String, usize>,
+        cache: &mut BTreeMap<Arg, usize>,
+    ) -> usize {
+        let a = norm(t, a);
+        if let Some(id) = cache.get(&a) {
+            return *id;
+        }
+        let key = if let Some((_, table, args)) = constructor(p, t, &a) {
+            format!(
+                "c{table}/{:?}",
+                args.iter()
+                    .map(|a| shape(p, t, a, ids, cache))
+                    .collect::<Vec<_>>()
+            )
+        } else {
+            match &a {
+                Arg::Slot(i) => format!("p{}", t.sorts[*i]),
+                Arg::Literal(v) => format!("l{}", serde_json::to_string(v).unwrap()),
+            }
+        };
+        let next = ids.len();
+        let id = *ids.entry(key).or_insert(next);
+        cache.insert(a, id);
+        id
+    }
+    let mut templates = vec![];
+    for (rid, r) in p.rules.iter().enumerate() {
+        let t = &p.templates[r.template];
+        let (mut ids, mut cache, mut buckets) = (
+            BTreeMap::new(),
+            BTreeMap::new(),
+            BTreeMap::<usize, Vec<(usize, usize)>>::new(),
+        );
+        for (i, e) in t.ops.iter().enumerate() {
+            if let Op::Let(dst, Call::Table(n), _) = e
+                && p.tables[*n].constructor
+            {
+                buckets
+                    .entry(shape(p, t, &Arg::Slot(*dst), &mut ids, &mut cache))
+                    .or_default()
+                    .push((i, *dst));
+            }
+        }
+        let mut groups = Vec::<(Vec<J>, Vec<J>)>::new();
+        let mut by_guard = BTreeMap::new();
+        let mut memo = BTreeMap::new();
+        let mut ordered = buckets.into_values().collect::<Vec<_>>();
+        ordered.sort_by_key(|b| b[0].0);
+        for bucket in ordered {
+            for (i, &(left, a)) in bucket.iter().enumerate() {
+                for &(right, b) in &bucket[i + 1..] {
+                    if let Some((guards, requires)) =
+                        prove(p, t, &Arg::Slot(a), &Arg::Slot(b), &mut memo)
+                    {
+                        let mut gs = vec![];
+                        for (a, b) in guards {
+                            let (Arg::Slot(a), Arg::Slot(b)) = (a, b) else {
+                                return Err("non-parameter guard for equal constructor shape".into());
+                            };
+                            let mut pair = [json!({"slot":a}), json!({"slot":b})];
+                            pair.sort_by_cached_key(J::to_string);
+                            gs.push(json!(pair));
+                        }
+                        gs.sort_by_cached_key(J::to_string);
+                        let id = *by_guard
+                            .entry(json!(gs).to_string())
+                            .or_insert(groups.len());
+                        if id == groups.len() {
+                            groups.push((gs, vec![]));
+                        }
+                        groups[id]
+                            .1
+                            .push(json!({"left":left,"right":right,"requires":requires}));
+                    }
+                }
+            }
+        }
+        let specs = groups
+            .into_iter()
+            .map(|(guards, merges)| json!({"guards":guards,"merges":merges}))
+            .collect::<Vec<_>>();
+        if !specs.is_empty() {
+            templates.push(json!({"rule":rid,"groups":specs}));
+        }
+    }
+    Ok(json!({"schema":"eggfuse-local-congruence/v1","templates":templates}))
+}

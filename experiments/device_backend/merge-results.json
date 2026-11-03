@@ -1,0 +1,296 @@
+{
+  "scope": "GPU/native custom merge correctness; not timing",
+  "suite_checks": [
+    "custom-merge",
+    "merge-same",
+    "integer",
+    "float-identity",
+    "boolean",
+    "pipeline",
+    "subsume-absent",
+    "unit-function",
+    "initial-union",
+    "naive",
+    "repeat",
+    "math",
+    "combined",
+    "update",
+    "subsume-union",
+    "spine",
+    "spine-unchecked",
+    "periodic",
+    "final-check",
+    "panic",
+    "match-capacity",
+    "row-capacity",
+    "source-check",
+    "unit-lookup",
+    "ambiguous-old",
+    "overflow",
+    "reject-corrupt-visibility",
+    "reject-corrupt-value",
+    "reject-corrupt-equivalence"
+  ],
+  "suite_count": 29,
+  "custom_merge": {
+    "scope": "native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark",
+    "steps": [
+      {
+        "set": "first",
+        "rows": 8,
+        "matched": 1,
+        "updated": true,
+        "epoch": 2,
+        "unions": 0
+      },
+      {
+        "set": "device-backend-check-0",
+        "rows": 9,
+        "matched": 1,
+        "updated": true,
+        "epoch": 3,
+        "unions": 0
+      },
+      {
+        "set": "device-backend-check-1",
+        "rows": 10,
+        "matched": 1,
+        "updated": true,
+        "epoch": 4,
+        "unions": 0
+      },
+      {
+        "set": "device-backend-check-2",
+        "rows": 11,
+        "matched": 1,
+        "updated": true,
+        "epoch": 5,
+        "unions": 0
+      },
+      {
+        "set": "second",
+        "rows": 11,
+        "matched": 1,
+        "updated": true,
+        "epoch": 6,
+        "unions": 1
+      }
+    ],
+    "checks": [
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 4,
+        "step": 1
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 9,
+        "eclasses": 5,
+        "step": 2
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 10,
+        "eclasses": 6,
+        "step": 3
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 7,
+        "step": 4
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 6,
+        "step": 5
+      }
+    ],
+    "checked": true,
+    "check_mode": "periodic",
+    "native_oracle_runs": 5,
+    "run_control_upload_bytes": 40,
+    "run_status_download_bytes": 180,
+    "checkpoint_bytes": 3276,
+    "intermediate_binding_download_bytes": 0,
+    "cpu_rhs_calls": 0,
+    "cpu_rebuild_calls_outside_oracle": 0,
+    "wall_seconds_including_debug_checks": 0.010112792020663619,
+    "initial_row_upload_bytes": 336,
+    "native_retired_before_gpu_runs": false,
+    "oracle_starts_after_gpu": false,
+    "control_upload_bytes": 88,
+    "assertion_tables": [
+      "DeviceBackendCheck_0",
+      "DeviceBackendCheck_1",
+      "DeviceBackendCheck_2"
+    ],
+    "source_sha256": "f505528e98b44386452dea72963f6cf7bae5db80746844e457d8c7c5aee761e1",
+    "build": {
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "efc481e9c5f2475cccb996acaafaebcc9a9caeead0183867140a93c69d68e4bc",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "a15d80a823523dcf0c93bc74d564ea39775cf92f07a1afbb8aff70970a1cc414",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "bf50ab18117c5fb77ae99402d69d4ae1bac1b34e31628e2d8807e1ee106efd2d",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "43ba85e36103b507a3a9cf2e7b86d6fe87e5a4a3b93c5d5167e5a199316e60f0",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "903ee0291aa9d141dbc744cd0d8b7c36994d0741177e3aa4a28697bb5b4534fb"
+      },
+      "native_kernel_source_sha256": "22457a67b12cf78ff5645ffd59a057245b5de8a66b5ac18eb052cf48587ffeae",
+      "git_head": "1a5de963b8b65336a2f66486eaf023dca908918c",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/device_program.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-merge-final/frontend",
+      "frontend_sha256": "26f8866bb56446a1b7bb4b5490c5cb78d387440a49e9078bf511024e82f18713",
+      "worker_sha256": "62c6436d2deaa27686e8f55514273c28f5de9ce504e607417b21cb2cf5cd58a2"
+    },
+    "program_sha256": "eacd5c85070b06763ab6adcf6b7db66e57cebe50ba413919888d29aeabe57914"
+  },
+  "same_value": {
+    "scope": "native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark",
+    "steps": [
+      {
+        "set": "r",
+        "rows": 3,
+        "matched": 1,
+        "updated": false,
+        "epoch": 2,
+        "unions": 0
+      }
+    ],
+    "checks": [
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 1,
+        "step": 1
+      }
+    ],
+    "checked": true,
+    "check_mode": "periodic",
+    "native_oracle_runs": 1,
+    "run_control_upload_bytes": 8,
+    "run_status_download_bytes": 36,
+    "checkpoint_bytes": 228,
+    "intermediate_binding_download_bytes": 0,
+    "cpu_rhs_calls": 0,
+    "cpu_rebuild_calls_outside_oracle": 0,
+    "wall_seconds_including_debug_checks": 0.0023294580169022083,
+    "initial_row_upload_bytes": 168,
+    "native_retired_before_gpu_runs": false,
+    "oracle_starts_after_gpu": false,
+    "control_upload_bytes": 24,
+    "assertion_tables": [],
+    "source_sha256": "5f35c3104f62bd9c48712b02f0e5c6b40e377c76cfac35f71edc3c16afe19937",
+    "build": {
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "efc481e9c5f2475cccb996acaafaebcc9a9caeead0183867140a93c69d68e4bc",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "a15d80a823523dcf0c93bc74d564ea39775cf92f07a1afbb8aff70970a1cc414",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "bf50ab18117c5fb77ae99402d69d4ae1bac1b34e31628e2d8807e1ee106efd2d",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "43ba85e36103b507a3a9cf2e7b86d6fe87e5a4a3b93c5d5167e5a199316e60f0",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "903ee0291aa9d141dbc744cd0d8b7c36994d0741177e3aa4a28697bb5b4534fb"
+      },
+      "native_kernel_source_sha256": "22457a67b12cf78ff5645ffd59a057245b5de8a66b5ac18eb052cf48587ffeae",
+      "git_head": "1a5de963b8b65336a2f66486eaf023dca908918c",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/device_program.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-merge-final/frontend",
+      "frontend_sha256": "26f8866bb56446a1b7bb4b5490c5cb78d387440a49e9078bf511024e82f18713",
+      "worker_sha256": "62c6436d2deaa27686e8f55514273c28f5de9ce504e607417b21cb2cf5cd58a2"
+    },
+    "program_sha256": "d546d27f61c091aebfbf2e62f50e96fa0a42b7ccd0e7af4b72a014d72cf40e23"
+  },
+  "rebuild_collision": {
+    "scope": "native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark",
+    "steps": [
+      {
+        "set": "r",
+        "rows": 8,
+        "matched": 1,
+        "updated": true,
+        "epoch": 2,
+        "unions": 1
+      }
+    ],
+    "checks": [
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 4,
+        "step": 1
+      }
+    ],
+    "checked": true,
+    "check_mode": "periodic",
+    "native_oracle_runs": 1,
+    "run_control_upload_bytes": 8,
+    "run_status_download_bytes": 36,
+    "checkpoint_bytes": 548,
+    "intermediate_binding_download_bytes": 0,
+    "cpu_rhs_calls": 0,
+    "cpu_rebuild_calls_outside_oracle": 0,
+    "wall_seconds_including_debug_checks": 0.0017361250356771052,
+    "initial_row_upload_bytes": 448,
+    "native_retired_before_gpu_runs": false,
+    "oracle_starts_after_gpu": false,
+    "control_upload_bytes": 24,
+    "assertion_tables": [],
+    "source_sha256": "0ed5d9559777413b362e81cd062251ff603d269f2f7566fc38cfa941eba3ad7b",
+    "build": {
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "efc481e9c5f2475cccb996acaafaebcc9a9caeead0183867140a93c69d68e4bc",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "a15d80a823523dcf0c93bc74d564ea39775cf92f07a1afbb8aff70970a1cc414",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "bf50ab18117c5fb77ae99402d69d4ae1bac1b34e31628e2d8807e1ee106efd2d",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "43ba85e36103b507a3a9cf2e7b86d6fe87e5a4a3b93c5d5167e5a199316e60f0",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "903ee0291aa9d141dbc744cd0d8b7c36994d0741177e3aa4a28697bb5b4534fb"
+      },
+      "native_kernel_source_sha256": "22457a67b12cf78ff5645ffd59a057245b5de8a66b5ac18eb052cf48587ffeae",
+      "git_head": "1a5de963b8b65336a2f66486eaf023dca908918c",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/device_program.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-merge-final/frontend",
+      "frontend_sha256": "26f8866bb56446a1b7bb4b5490c5cb78d387440a49e9078bf511024e82f18713",
+      "worker_sha256": "62c6436d2deaa27686e8f55514273c28f5de9ce504e607417b21cb2cf5cd58a2"
+    },
+    "program_sha256": "feebf86287e388f5c53387b99c73264962d580be80e7eb6c80fc1aaba67c8cba"
+  }
+}

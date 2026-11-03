@@ -1,0 +1,137 @@
+{
+  "schema": "resident-joint-polyspine-results/v1",
+  "scope": "Actual GPU-owned complete saved Pass-3 schedule; not pristine egglog",
+  "reference": {
+    "context_phase_rows": 55152361,
+    "directory": "out/block-effects-pass3-eager",
+    "inference_seconds": 44.002707833074965,
+    "setup_seconds": 28.971359416958876,
+    "gpu_seconds": 32.511104699224234,
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "worker_sha256": "9cdf6772520b68ed7c54e5834157ee77018835aec12aeb34c70d3e24bfc0a18a"
+  },
+  "lanes": [
+    {
+      "directory": "out/block-effects-pass3",
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "program_sha256": "67a81d8b3b567a2cbda769e8a0cbbba2e99f7025713b7fd0a53f901828ba112c",
+      "worker_sha256": "9cdf6772520b68ed7c54e5834157ee77018835aec12aeb34c70d3e24bfc0a18a",
+      "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+      "report_sha256": "a5860be7361bf36752018cc23a3488d718214081baf1f4eae7390e0adc05278e",
+      "clean_timing": true,
+      "inference_seconds": 41.81428470893297,
+      "setup_seconds": 31.084096166072413,
+      "feature_refresh_mode": "incremental",
+      "feature_refresh": {
+        "context_checks": 0,
+        "base_rows_recomputed": 0,
+        "base_rows_reused": 0,
+        "seam_rows_recomputed": 0,
+        "seam_rows_reused": 0,
+        "encoding_row_lanes": 0,
+        "ridge_row_lanes": 0,
+        "exact_audit_rows": 0
+      },
+      "model_enabled": false,
+      "training_capture": false,
+      "final_check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699784,
+        "eclasses": 524742,
+        "native_reference": false,
+        "identity_contract": "typed graph bijection; physical allocation order may differ",
+        "original_schedule_equal": true,
+        "internal_run_history_equal": true
+      },
+      "joint_calls": 12,
+      "accepted": 12,
+      "fallback_reasons": {},
+      "interface_builds": 12,
+      "marker_binding_visits": 362879,
+      "root_context_visits": 226147,
+      "service_histogram": {
+        "0": 211065,
+        "1": 2778,
+        "2": 0,
+        "3": 924,
+        "4": 1638,
+        "5": 70,
+        "6": 0,
+        "7": 9672
+      },
+      "private_phases_by_stage": {
+        "0": 454,
+        "1": 1186,
+        "2": 1186
+      },
+      "fresh_private_constructor_rows": {
+        "terms": 195834,
+        "helpers": 97537
+      },
+      "function_value_updates": 103593,
+      "surviving_new_rows": 277308,
+      "updated_existing_rows": 2674,
+      "cross_stage_successful_binding_read_uses": 287678,
+      "cross_stage_version_consumer_pairs": 160342,
+      "matrix_rhs_rows": 11226,
+      "exact_integer_fallback_rows": 52982,
+      "positive_prediction_counts": [
+        0,
+        0,
+        0
+      ],
+      "global_publications": 12,
+      "cost_projection": {
+        "builds": 454,
+        "reuses": 2372,
+        "zero_extended_ids": 89128
+      },
+      "block_effects": {
+        "enabled": true,
+        "set_requests": 113916,
+        "set_blocks": 740,
+        "sets_merged": 113916,
+        "function_keys_published": 61074,
+        "sets_carried_through_comparison": 113916,
+        "union_blocks": 1186,
+        "union_changes": 90045,
+        "publication_waits_removed": 1186,
+        "producer_audit_rows": 0
+      },
+      "peak_retained_workspace_bytes": 597195632,
+      "device_to_device_copy_bytes": 12924303456,
+      "joint_gpu_seconds": 5.529818124952726,
+      "joint_control_seconds": 10.398136956966482,
+      "normal_intermediate_binding_download_bytes": 0,
+      "stage_contexts": {
+        "scope_count": 12,
+        "patches": 2826,
+        "audit": false,
+        "patch_words": 16812828,
+        "device_copy_bytes": 14405706968,
+        "gpu_seconds": 0.8431552919792011,
+        "seal_host_waits": 0,
+        "row_pages_copied": 1314668,
+        "peak_resident_bytes": 236322912,
+        "contract_sha256": "91afa7f74eeffb6e6fae0046f41501ce7b340556883d9e771a8a7869af66c0f6",
+        "loaded_artifact": "out/multi-stage-native-domains/terms.cell.json"
+      }
+    }
+  ],
+  "definitions": {
+    "service_histogram": "bit 0 terms binding, bit 1 helper binding, bit 2 changed comparison class; service is not net performance credit",
+    "context_visits": "instances across joint invocations, not distinct RipSat library families",
+    "fresh_rows": "real private hashcons allocations; some are retired by later congruence",
+    "cross_stage_version_consumer_pairs": "distinct (row version, consumer stage) uses on successful exact bindings",
+    "copy_bytes": "Device context materialization volume including page copies/growth and auxiliary column writes; not CPU/GPU table transfer",
+    "stage_gpu_seconds": "Dedicated stage command buffers only; commit-integrated journal work is in joint GPU time",
+    "timing": "single candidate runs; saved unchanged reference retained with provenance"
+  },
+  "limits": [
+    "Native equality is independently checked on the real initial nested terms scope and regression cases.",
+    "The full backend retains its pre-existing complete-Pass native mismatch.",
+    "Ridge proposals never authorize effects or remove the exact fallback.",
+    "This version retains ordered GPU RHS materialization and a private row-store mirror.",
+    "Fresh hardware occupancy and Tiger extraction speed are not measured here."
+  ]
+}

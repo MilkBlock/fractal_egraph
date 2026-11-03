@@ -1,0 +1,116 @@
+{
+  "scope": "checked schedule suffix/prefix only, not full end-to-end acceleration",
+  "before": "out/device-subst-scan-control",
+  "after": "out/device-subst-indexed-control",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "resumed_prefix_runs": 4208,
+  "measured_runs": 1,
+  "final_check": {
+    "exact_device_state": true,
+    "rows": 345224,
+    "native_reference": false
+  },
+  "timings": {
+    "device_control_wait": {
+      "before_seconds": 46.91456195904175,
+      "after_seconds": 0.04444441699888557,
+      "ratio": 1055.5782959245053
+    },
+    "device_gpu": {
+      "before_seconds": 46.902387625013944,
+      "after_seconds": 0.03317116672405973,
+      "ratio": 1413.9504954763825
+    },
+    "prepare": {
+      "before_seconds": 0.025815625034738332,
+      "after_seconds": 0.023818916699383408,
+      "ratio": 1.083828679555633
+    },
+    "match": {
+      "before_seconds": 0.0007224999717436731,
+      "after_seconds": 0.0007148750009946525,
+      "ratio": 1.010666159452228
+    },
+    "commit": {
+      "before_seconds": 46.87584950000746,
+      "after_seconds": 0.00863737502368167,
+      "ratio": 5427.094385908312
+    }
+  },
+  "builds": [
+    {
+      "profile": "release",
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "c63b68277a0ce6ba647ccc34876c15e254b3c6725f4c30fae0f803739c02e651",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/device_import.rs": "2b9a41c8a9a5fb055a1b6c0f0284792b4d174dd656932ba056745509eba70b7c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "f26b70def995b3b63db7cdb83a6db123615856078ab468622544b6efe338bd90",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "f2e54898c06333237a5914da5d1d1721173206ec5d17cb3447a9f63427d7aab0",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "65083061940019be43aeab7fce2e62187f1e8295b70e67cd6906b6e63ad6caad",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "7128bbd797a71c504bc2312a156873c07615daa71a311cdbf6667c162d917c04",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "54211b0803f8e7bc24e05580295521cb1bd52f90e6f6db4f27e2f53a1446753c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "c6e1fb0337dbcd4bb03bee79c05c118529caeaf58c2bf5fb4f9441f8c26ca331",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/rebuild_parallel.metal": "f4b9bc386a1b540d12284c8ef82af8cb669526e72c1d2cbb0d9549c6a85d3224",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_parallel.metal": "97f8da959e2c5b6478ac86e13c8cfd17e928cca43a5e649621044f61c418f142",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/match_sort.metal": "00b841cadc636d9a6d62668a4f1556df0b893463dfac0d6557f9d3ee3a7a1adf",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "c341a8145614b5f94cfc55c2da0d32e5e6d229f6a3e9da3c85f7cfe4181707b2"
+      },
+      "native_kernel_source_sha256": "8957f4973d912250c95abe39eabe103adc4e45738979ae7f433ae359830ca3ae",
+      "git_head": "5dec079372637aea3a5bd33476e37f3d44e5cd10",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-subsume/frontend",
+      "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+      "worker_sha256": "c28228973f68edfba44474af6efab26b35a0a60e01b3b30e3204446dff97262d"
+    },
+    {
+      "profile": "release",
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "c63b68277a0ce6ba647ccc34876c15e254b3c6725f4c30fae0f803739c02e651",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/device_import.rs": "2b9a41c8a9a5fb055a1b6c0f0284792b4d174dd656932ba056745509eba70b7c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "f26b70def995b3b63db7cdb83a6db123615856078ab468622544b6efe338bd90",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "f2e54898c06333237a5914da5d1d1721173206ec5d17cb3447a9f63427d7aab0",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "65083061940019be43aeab7fce2e62187f1e8295b70e67cd6906b6e63ad6caad",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "7128bbd797a71c504bc2312a156873c07615daa71a311cdbf6667c162d917c04",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "54211b0803f8e7bc24e05580295521cb1bd52f90e6f6db4f27e2f53a1446753c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "c6e1fb0337dbcd4bb03bee79c05c118529caeaf58c2bf5fb4f9441f8c26ca331",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/rebuild_parallel.metal": "f4b9bc386a1b540d12284c8ef82af8cb669526e72c1d2cbb0d9549c6a85d3224",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_parallel.metal": "97f8da959e2c5b6478ac86e13c8cfd17e928cca43a5e649621044f61c418f142",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/match_sort.metal": "00b841cadc636d9a6d62668a4f1556df0b893463dfac0d6557f9d3ee3a7a1adf",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "c341a8145614b5f94cfc55c2da0d32e5e6d229f6a3e9da3c85f7cfe4181707b2"
+      },
+      "native_kernel_source_sha256": "8957f4973d912250c95abe39eabe103adc4e45738979ae7f433ae359830ca3ae",
+      "git_head": "5dec079372637aea3a5bd33476e37f3d44e5cd10",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-subsume/frontend",
+      "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+      "worker_sha256": "c28228973f68edfba44474af6efab26b35a0a60e01b3b30e3204446dff97262d"
+    }
+  ]
+}

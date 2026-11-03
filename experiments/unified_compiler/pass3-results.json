@@ -1,0 +1,242 @@
+{
+  "schema": "eggfuse-pipeline-run-summary/v1",
+  "pipeline": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/unified-pass3-multistage",
+  "run": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/unified-pass3-multistage/passes/verify/1ff12f1207f2e99fd6d1de3a0f61b78461949851186847de5d59ce5473542cc9/gpu",
+  "scope": "actual GPU-owned full source schedule; compiler/setup/export excluded from inference time",
+  "complete_schedule": true,
+  "inference_seconds": 38.95573545899242,
+  "gpu_setup_seconds": 74.91542158299126,
+  "clean_timing": true,
+  "timings": {
+    "device_control_wait": 38.767212091595866,
+    "device_gpu": 28.28095565608237,
+    "prepare": 4.102536661201157,
+    "match": 8.880882831988856,
+    "commit": 15.297536162892357,
+    "native_oracle": 0.0,
+    "checkpoint_excluding_oracle": 0.0,
+    "comparison": 0.0,
+    "state_export_io": 0.8946804170263931,
+    "noop_preflight": null,
+    "rhs_commit": 11.956222789711319,
+    "parallel_rebuild": 3.3413133731810376
+  },
+  "rows": 699784,
+  "source_sha256": "468d70206f722ea5079ee68e1a86ae9446d9484049435b641e0a308f8fc4d376",
+  "program_sha256": "66c75fbbcd17dd9ded0a478d64559ae78cd6bf4e299617361aab3926e1762cbe",
+  "worker_sha256": "a45fe35f1d988d47aff6138dda2f09fa2258c349a80542d137de7b53c939251f",
+  "frontend_sha256": "4ace16c2b7ba747a9080979fc3c35b6de723ee54e81f094e614847d15af9397b",
+  "marker_program": {
+    "sha256": "cbe826e60013bc6ae4c731722ae7554e2699d623092b592bcc9c1b27015de59b",
+    "source_sha256": "468d70206f722ea5079ee68e1a86ae9446d9484049435b641e0a308f8fc4d376",
+    "tables": [],
+    "consumer_reads": 0,
+    "publication_sites": 0,
+    "functional_completion_shortcuts": 0,
+    "execution": "source-defined Unit views; original stage completion; marker-preferred exact queries"
+  },
+  "multi_stage_cell": {
+    "scope": "certified terms / terms-helpers / terms-helpers-helpers; other stages retain their original execution",
+    "accepted_scopes": 12,
+    "rejected_scopes": 0,
+    "stage_patches": 2826,
+    "private_phases": 2826,
+    "boundary_recipe_actions": 81104,
+    "boundary_fallback_actions": 0,
+    "update_recipe_actions": 113916,
+    "existing_result_updates": 42713,
+    "guard_pairs_eliminated": 2065416,
+    "joint_gpu_seconds": 5.015628830646165,
+    "joint_control_seconds": 10.16287075204309,
+    "global_publications": 12,
+    "counters_are": "executed recipe actions; not necessarily committed mutations"
+  },
+  "passes": [
+    {
+      "name": "structural_keys",
+      "cached": true,
+      "original_seconds": 11.021194332977757
+    },
+    {
+      "name": "bake_environment",
+      "cached": false,
+      "original_seconds": 2.6304838330252096
+    },
+    {
+      "name": "analyze",
+      "cached": true,
+      "original_seconds": 13.669218458002433
+    },
+    {
+      "name": "markers",
+      "cached": true,
+      "original_seconds": 2.5061877500265837
+    },
+    {
+      "name": "marker_ir",
+      "cached": true,
+      "original_seconds": 2.652427540975623
+    },
+    {
+      "name": "multi_stage_cell",
+      "cached": true,
+      "original_seconds": 0.1162098339991644
+    },
+    {
+      "name": "device",
+      "cached": true,
+      "original_seconds": 0.7105858749710023
+    },
+    {
+      "name": "sk_native",
+      "cached": false,
+      "original_seconds": 548.5304582909448
+    },
+    {
+      "name": "marked_native",
+      "cached": false,
+      "original_seconds": 556.7759362920187
+    }
+  ],
+  "verification_failure": {
+    "pass_name": "verify",
+    "directory": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/unified-pass3-multistage/passes/verify/1ff12f1207f2e99fd6d1de3a0f61b78461949851186847de5d59ce5473542cc9",
+    "message": "row count differs 697922 vs 699784"
+  },
+  "source_check": {
+    "sk_equals_marked": true,
+    "original_rows": 697922,
+    "original_eclasses": 524657,
+    "projected_tables": [],
+    "scope": "complete original facts, values, equivalence and visibility; marker maintenance is not original work"
+  },
+  "native_check": {
+    "exact_rows_values_equivalence_visibility": false,
+    "error": "row count differs 697922 vs 699784",
+    "native_rows": 697922
+  },
+  "historical_device_reference": {
+    "directory": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/cell-spines-pass3-full",
+    "inference_seconds": 42.33602204208728,
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "worker_sha256": "b0382011577cfc2f21f0d666c925b2f42f3b9c0b54e1c0b47ada6ec1dd338f3a",
+    "final_check": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 699784,
+      "eclasses": 524742
+    },
+    "typed_input_equal_modulo_singleton_sequences": true,
+    "native_reference": false,
+    "paired_speedup": false,
+    "note": "unchanged saved GPU endpoint; historical time, not a fresh same-build ablation"
+  },
+  "native_row_deltas": [
+    {
+      "table": "Smaller",
+      "native": 72198,
+      "gpu": 73975,
+      "difference": 1777
+    },
+    {
+      "table": "TCPair",
+      "native": 63051,
+      "gpu": 63094,
+      "difference": 43
+    },
+    {
+      "table": "TermConcat",
+      "native": 3620,
+      "gpu": 3647,
+      "difference": 27
+    },
+    {
+      "table": "TermGet",
+      "native": 31119,
+      "gpu": 31131,
+      "difference": 12
+    },
+    {
+      "table": "TermSingle",
+      "native": 10755,
+      "gpu": 10757,
+      "difference": 2
+    },
+    {
+      "table": "TermBop",
+      "native": 13798,
+      "gpu": 13800,
+      "difference": 2
+    },
+    {
+      "table": "PotentialExtractedExpr",
+      "native": 69649,
+      "gpu": 69648,
+      "difference": -1
+    }
+  ],
+  "extraction": {
+    "exact_import": {
+      "exact_import": true,
+      "rows": 699784,
+      "classes": 524742,
+      "rules_executed": 0,
+      "rebuilds_executed": 0,
+      "lane": "gpu",
+      "extracted": [],
+      "graph": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/unified-pass3-extraction/snapshot/native/graph.json",
+      "scope": "CPU extraction input only; import fidelity is not CPU/GPU inference equality"
+    },
+    "extraction_seconds": 2.0080420000012964,
+    "tiger_sha256": "3217499b37a7f94db54723aaba54a60a185ab96cb6a34352adc537d0e8f99c83",
+    "output_sha256": "bfb0adece793a2bc6bee32dcc1c46ba09fba3eb5c643b38120b7c26e1e9a46e3",
+    "reference": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/cell-spines-extraction/updates.egg",
+    "byte_identical": true,
+    "functions": 29,
+    "selected_rows": 8019
+  },
+  "smoke": {
+    "sk_equals_marked": true,
+    "original_rows": 214,
+    "original_eclasses": 182,
+    "projected_tables": [],
+    "scope": "complete original facts, values, equivalence and visibility; marker maintenance is not original work",
+    "gpu": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 214,
+      "eclasses": 182
+    },
+    "multi_stage_cell": {
+      "scope": "certified terms / terms-helpers / terms-helpers-helpers; other stages retain their original execution",
+      "accepted_scopes": 1,
+      "rejected_scopes": 0,
+      "stage_patches": 31,
+      "private_phases": 31,
+      "boundary_recipe_actions": 12,
+      "boundary_fallback_actions": 0,
+      "update_recipe_actions": 26,
+      "existing_result_updates": 13,
+      "guard_pairs_eliminated": 31,
+      "joint_gpu_seconds": 0.01407099945936352,
+      "joint_control_seconds": 0.0797385839978233,
+      "global_publications": 1,
+      "counters_are": "executed recipe actions; not necessarily committed mutations"
+    },
+    "gpu_inference_seconds": 0.0804086250718683,
+    "backend": "gpu",
+    "device_marker_contract": {
+      "sha256": "6f15cd6e9caafea43399254d65810c84626d19291ffce8a87a2a0e45c1c0924e",
+      "source_sha256": "cb51af464cac34504a616309fa724f7f926db986f843a0564a3ad052e8b529bc",
+      "tables": [],
+      "consumer_reads": 0,
+      "publication_sites": 0,
+      "functional_completion_shortcuts": 0,
+      "execution": "source-defined Unit views; original stage completion; marker-preferred exact queries"
+    }
+  },
+  "regressions": {
+    "contract_tests_passed": 6,
+    "real_wrong_host_options_rejected_before_gpu": true
+  },
+  "bake_scope": "74 native applications / 141 logical matches in small same-rule training input; not full Pass-3 Analyze coverage",
+  "failed_full_analyze": "Full input Analyze was terminated by SIGKILL after initialization history collection. No cause established."
+}

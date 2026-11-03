@@ -1,0 +1,145 @@
+{
+  "schema": "eggfuse-profile-suite-validation/v1",
+  "date": "2026-10-30",
+  "configuration": "resident-core",
+  "suite_sha256": "5d3d82c70dd54b23a97e53791ac815ffe6f394c2488f27656d258d74aa07b674",
+  "native_frontend_sha256": "4ace16c2b7ba747a9080979fc3c35b6de723ee54e81f094e614847d15af9397b",
+  "cases": [
+    {
+      "name": "fact",
+      "source_sha256": "84615f276c5968cadaec53abf228a9acab66dd6c1597e902e9af1a8cab6ed149",
+      "source_marker_tables": 0,
+      "clean_inference_seconds": 0.32484591007232666,
+      "gpu_seconds": 0.2436393750249408,
+      "cold_shader_setup_seconds": 257.50563299655914,
+      "profiled_inference_seconds": 1.2956349849700928,
+      "instrumentation_ratio": 3.988460204660175,
+      "final_physical_rows": 1089,
+      "logical_runs": 407,
+      "private_runs": 36,
+      "verification": {
+        "full_state_and_history_equal": true,
+        "outer_command_buffers": 54,
+        "private_schedule_execution": true,
+        "private_schedule_regions": 13,
+        "private_schedule_runs": 36
+      },
+      "worker_sha256": "4ddd517a24e258f13f4bfb4c83abfe12d9b62394548a01ab19e820d11b97b263",
+      "source_program": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/fact/baseline/b3e4007089ce24ddb4fd84bfe35f1cf4a36a3427de62e09652dacfc804f39340/attempt-0/run/program-0/attempt-0/program.json",
+      "baseline": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/fact/baseline/b3e4007089ce24ddb4fd84bfe35f1cf4a36a3427de62e09652dacfc804f39340/attempt-0/run/program-0/attempt-0/result.json",
+      "profile": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/fact/view/5fd9778bda53324e941883a09964eb2fda807e2dd29b16634faec438d001550b/attempt-0/dashboard/index.html"
+    },
+    {
+      "name": "loopfact",
+      "source_sha256": "26c0d368e168673ed0925e10e42651c255cc7068fa33af96ee065371b88b2051",
+      "source_marker_tables": 0,
+      "clean_inference_seconds": 0.35897600650787354,
+      "gpu_seconds": 0.27312850015005097,
+      "cold_shader_setup_seconds": 256.6042000055313,
+      "profiled_inference_seconds": 1.4302009344100952,
+      "instrumentation_ratio": 3.984112889112343,
+      "final_physical_rows": 1038,
+      "logical_runs": 388,
+      "private_runs": 26,
+      "verification": {
+        "full_state_and_history_equal": true,
+        "outer_command_buffers": 60,
+        "private_schedule_execution": true,
+        "private_schedule_regions": 13,
+        "private_schedule_runs": 26
+      },
+      "worker_sha256": "4ddd517a24e258f13f4bfb4c83abfe12d9b62394548a01ab19e820d11b97b263",
+      "source_program": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/loopfact/baseline/11633a81dff79dc6fdcb8819bd8751c699f6c6a7ffeed408f1c4b42b203da4a4/attempt-0/run/program-0/attempt-0/program.json",
+      "baseline": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/loopfact/baseline/11633a81dff79dc6fdcb8819bd8751c699f6c6a7ffeed408f1c4b42b203da4a4/attempt-0/run/program-0/attempt-0/result.json",
+      "profile": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/loopfact/view/68ef9ec77e7939fd196e08e08832b078dbb0d2c060dbadf3f57ffce79371185b/attempt-0/dashboard/index.html"
+    },
+    {
+      "name": "sum-bits",
+      "source_sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+      "source_marker_tables": 0,
+      "clean_inference_seconds": 1.0535999536514282,
+      "gpu_seconds": 0.8592245832987829,
+      "cold_shader_setup_seconds": 256.5601420402527,
+      "profiled_inference_seconds": 4.186673045158386,
+      "instrumentation_ratio": 3.973683778789819,
+      "final_physical_rows": 3258,
+      "logical_runs": 835,
+      "private_runs": 52,
+      "verification": {
+        "full_state_and_history_equal": true,
+        "outer_command_buffers": 177,
+        "private_schedule_execution": true,
+        "private_schedule_regions": 21,
+        "private_schedule_runs": 52
+      },
+      "worker_sha256": "4ddd517a24e258f13f4bfb4c83abfe12d9b62394548a01ab19e820d11b97b263",
+      "source_program": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/sum-bits/baseline/ada94fae3b95492a2ad9a3fd57f0b4f056c940aeaed1c8dd6d14293b40897e74/attempt-0/run/program-0/attempt-0/program.json",
+      "baseline": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/sum-bits/baseline/ada94fae3b95492a2ad9a3fd57f0b4f056c940aeaed1c8dd6d14293b40897e74/attempt-0/run/program-0/attempt-0/result.json",
+      "profile": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/sum-bits/view/e194556a8987211a4dc8101430739d79fe895cbc2b96d4964c9aecd152f3a97d/attempt-0/dashboard/index.html"
+    }
+  ],
+  "cache_check": {
+    "cargo_wall_seconds": 1.16,
+    "driver_seconds": 0.95584175,
+    "all_stages_hit": true,
+    "compiler_or_gpu_stages_launched": 0,
+    "evidence": "out/profile-suite-cache-check.time and .log"
+  },
+  "raytrace_static_check": {
+    "full_typed_core_equal_to_previous_profile": false,
+    "fields_equal": {
+      "assertion_tables": true,
+      "initial": true,
+      "rulesets": true,
+      "tables": true,
+      "schedule": false,
+      "schema": true
+    },
+    "rulesets": 30,
+    "tables": 260,
+    "initial_rows": 129,
+    "inference_executed": false,
+    "schedule_equal_modulo_singleton_sequence": true,
+    "normalization": "comparison only; remove sequence with exactly one child recursively; no source/control rewrite"
+  },
+  "wire_adapter_check": {
+    "valid_certificate_accepted": true,
+    "altered_certificate_rejected": true,
+    "python_files_modified": false
+  },
+  "hardware_check": {
+    "case": "fact",
+    "counter_rows": 642072,
+    "gpu_active_seconds": 0.059534907,
+    "coordinates": {
+      "start": {
+        "completed_runs": [
+          0
+        ],
+        "logical_boundary": true,
+        "outer_command": 0,
+        "pc": 0,
+        "worker_pid": 7108
+      },
+      "end": {
+        "completed_runs": [
+          55
+        ],
+        "logical_boundary": false,
+        "outer_command": 16,
+        "pc": 15,
+        "worker_pid": 7108
+      }
+    },
+    "verification": {
+      "full_state_and_history_equal": true,
+      "private_schedule_execution": true,
+      "private_schedule_regions": 13,
+      "private_schedule_runs": 36,
+      "outer_command_buffers": 54
+    },
+    "cache_reuse_without_execution": true,
+    "source": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/cache/fact/counters/97f1e34e81bece789cffa2a522caaa9e4de65b168d2a42ea999b44a1e40ff5ab/attempt-0/window",
+    "key_includes_recording_options": true
+  }
+}

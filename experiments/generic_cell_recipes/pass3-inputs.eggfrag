@@ -1,0 +1,7 @@
+(let a (Const (Int 1) (Base (IntT)) (InFunc "cell-training")))
+(let b (Arg (Base (IntT)) (InFunc "cell-training")))
+(let c (Bop (Add) a b))
+(Top (Select) a b c) (Uop (Neg) c)
+(let t (Concat (Single a) (Single b))) (Get t 0)
+(set (ExtractedExpr c) (TCPair (TermArg) 99))
+(PotentialExtractedExpr c (TCPair (TermConst (Int 5)) 4))

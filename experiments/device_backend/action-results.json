@@ -1,0 +1,286 @@
+{
+  "scope": "Correctness and diagnostic prefix timings including oracle/snapshots; not full Pass 3 inference speed",
+  "regression_count": 31,
+  "regression_checks": [
+    "sets",
+    "merge-rebuild",
+    "custom-merge",
+    "merge-same",
+    "integer",
+    "float-identity",
+    "boolean",
+    "pipeline",
+    "subsume-absent",
+    "unit-function",
+    "initial-union",
+    "naive",
+    "repeat",
+    "math",
+    "combined",
+    "update",
+    "subsume-union",
+    "spine",
+    "spine-unchecked",
+    "periodic",
+    "final-check",
+    "panic",
+    "match-capacity",
+    "row-capacity",
+    "source-check",
+    "unit-lookup",
+    "ambiguous-old",
+    "overflow",
+    "reject-corrupt-visibility",
+    "reject-corrupt-value",
+    "reject-corrupt-equivalence"
+  ],
+  "prefix_control_test": true,
+  "full_metal_compile": {
+    "rules": 548,
+    "shader_bytes": 599042,
+    "instructions": 61276,
+    "compile_startup_seconds": 17.234189987182617,
+    "handshake": "DVB1",
+    "exit": 0
+  },
+  "before_initialization": {
+    "complete_schedule": false,
+    "requested_max_runs": 1,
+    "scope": "native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark",
+    "steps": [
+      {
+        "set": "initialization",
+        "rows": 13457,
+        "matched": 1,
+        "updated": true,
+        "epoch": 2,
+        "unions": 0
+      }
+    ],
+    "checks": [
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 13457,
+        "eclasses": 13456,
+        "step": 1
+      }
+    ],
+    "checked": true,
+    "check_mode": "periodic",
+    "native_oracle_runs": 1,
+    "run_control_upload_bytes": 8,
+    "run_status_download_bytes": 36,
+    "checkpoint_bytes": 6993400,
+    "intermediate_binding_download_bytes": 0,
+    "cpu_rhs_calls": 0,
+    "cpu_rebuild_calls_outside_oracle": 0,
+    "wall_seconds_including_debug_checks": 70.19471574999625,
+    "initial_row_upload_bytes": 2476856,
+    "native_retired_before_gpu_runs": false,
+    "oracle_starts_after_gpu": false,
+    "control_upload_bytes": 24,
+    "assertion_tables": [],
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "build": {
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "43264661b41694ecb7a2bc53c11f9cd843b8b8c4e667fe30b1e9cfae87832074",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "f0a66424fa7b2414d78ed8a07663e6c16cf62a7d57018adcba76160f80c94d55",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "0a6915a6d7bdae5642a265045e2cc80083d9b0712a1c33cf721b9548b0481b23",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "437e1875f9662a3c0b3d0fb5678dcd1628ef5bb1e8e5dad63a210f360c8f153e",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "7707bbe2ba1b654f95284fb005f6813da1d8ec0bedd45705ed0bee112de40c0b",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "b6ed89da4c8fc6c20391affdd774c26181a7a776fec88843794c277602c0199c"
+      },
+      "native_kernel_source_sha256": "afc2a18dfd1bc71c276d51a4ad603707787c46e80b9e4e2c0e967688f493bdf9",
+      "git_head": "5f6f91d1785680c9fb67984e60f84569ae85be2d",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-actions/frontend",
+      "frontend_sha256": "f48366fc060159c4b4b6cad808cd7f56fd0ef1d0353a0706edb515f9d08ee207",
+      "worker_sha256": "bb9461fe1ded5b06d3e3aaaacc1dfe73277e5c281aaced30abba6e7a5d14b457"
+    },
+    "program_sha256": "b601a8965ade257da786c251df1b740ec6f3bd654ad952a0aec80dde953b6dc7"
+  },
+  "indexed_initialization": {
+    "complete_schedule": false,
+    "requested_max_runs": 1,
+    "scope": "native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark",
+    "steps": [
+      {
+        "set": "initialization",
+        "rows": 13457,
+        "matched": 1,
+        "updated": true,
+        "epoch": 2,
+        "unions": 0
+      }
+    ],
+    "checks": [
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 13457,
+        "eclasses": 13456,
+        "step": 1
+      }
+    ],
+    "checked": true,
+    "check_mode": "periodic",
+    "native_oracle_runs": 1,
+    "run_control_upload_bytes": 8,
+    "run_status_download_bytes": 36,
+    "checkpoint_bytes": 6993400,
+    "intermediate_binding_download_bytes": 0,
+    "cpu_rhs_calls": 0,
+    "cpu_rebuild_calls_outside_oracle": 0,
+    "wall_seconds_including_debug_checks": 5.065646999981254,
+    "initial_row_upload_bytes": 2476856,
+    "native_retired_before_gpu_runs": false,
+    "oracle_starts_after_gpu": false,
+    "control_upload_bytes": 24,
+    "assertion_tables": [],
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "build": {
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "43264661b41694ecb7a2bc53c11f9cd843b8b8c4e667fe30b1e9cfae87832074",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "55efdcf417f8c3e6b400dad38f24f94661c442c189f90038999c58484c0676cd",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "ef1d937acabe05a40feb38749ef87998ddc191567cd6eafe207ccee9e74ecf66",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "bc8d30325205ba824e8785288976f70d44f69ef0e06538dd9ff6ba79034f6ff6",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "7707bbe2ba1b654f95284fb005f6813da1d8ec0bedd45705ed0bee112de40c0b",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "2f08dc6a8ce13cc0072e9c670d1daf12ea84381f80aea5e9d54f2e7bf5cd2ef7",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "d265668f3e4744035995e81ac22a6950d0902f695806861014f64b52e56ef993"
+      },
+      "native_kernel_source_sha256": "afc2a18dfd1bc71c276d51a4ad603707787c46e80b9e4e2c0e967688f493bdf9",
+      "git_head": "5f6f91d1785680c9fb67984e60f84569ae85be2d",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-indexed/frontend",
+      "frontend_sha256": "f48366fc060159c4b4b6cad808cd7f56fd0ef1d0353a0706edb515f9d08ee207",
+      "worker_sha256": "a52fb777d0d7c22d5c39c3c71592be6c41a7dee00ccfedfcd96256b78e50e790"
+    },
+    "program_sha256": "d371391c48262599e70ceb2d2771b2f4f76ff85d88ed59def6c9ba47c3b7e694"
+  },
+  "three_boundaries": {
+    "complete_schedule": false,
+    "requested_max_runs": 3,
+    "scope": "native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark",
+    "steps": [
+      {
+        "set": "initialization",
+        "rows": 13457,
+        "matched": 1,
+        "updated": true,
+        "epoch": 2,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13458,
+        "matched": 1,
+        "updated": true,
+        "epoch": 3,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13465,
+        "matched": 7,
+        "updated": true,
+        "epoch": 4,
+        "unions": 0
+      }
+    ],
+    "checks": [
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 13457,
+        "eclasses": 13456,
+        "step": 1
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 13458,
+        "eclasses": 13456,
+        "step": 2
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 13465,
+        "eclasses": 13456,
+        "step": 3
+      }
+    ],
+    "checked": true,
+    "check_mode": "periodic",
+    "native_oracle_runs": 3,
+    "run_control_upload_bytes": 24,
+    "run_status_download_bytes": 108,
+    "checkpoint_bytes": 20982036,
+    "intermediate_binding_download_bytes": 0,
+    "cpu_rhs_calls": 0,
+    "cpu_rebuild_calls_outside_oracle": 0,
+    "wall_seconds_including_debug_checks": 21.360227708995808,
+    "initial_row_upload_bytes": 2476856,
+    "native_retired_before_gpu_runs": false,
+    "oracle_starts_after_gpu": false,
+    "control_upload_bytes": 56,
+    "assertion_tables": [],
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "build": {
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "43264661b41694ecb7a2bc53c11f9cd843b8b8c4e667fe30b1e9cfae87832074",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "55efdcf417f8c3e6b400dad38f24f94661c442c189f90038999c58484c0676cd",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "ef1d937acabe05a40feb38749ef87998ddc191567cd6eafe207ccee9e74ecf66",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "bc8d30325205ba824e8785288976f70d44f69ef0e06538dd9ff6ba79034f6ff6",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "7707bbe2ba1b654f95284fb005f6813da1d8ec0bedd45705ed0bee112de40c0b",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "2f08dc6a8ce13cc0072e9c670d1daf12ea84381f80aea5e9d54f2e7bf5cd2ef7",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "d265668f3e4744035995e81ac22a6950d0902f695806861014f64b52e56ef993"
+      },
+      "native_kernel_source_sha256": "afc2a18dfd1bc71c276d51a4ad603707787c46e80b9e4e2c0e967688f493bdf9",
+      "git_head": "5f6f91d1785680c9fb67984e60f84569ae85be2d",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-indexed/frontend",
+      "frontend_sha256": "f48366fc060159c4b4b6cad808cd7f56fd0ef1d0353a0706edb515f9d08ee207",
+      "worker_sha256": "a52fb777d0d7c22d5c39c3c71592be6c41a7dee00ccfedfcd96256b78e50e790"
+    },
+    "program_sha256": "d371391c48262599e70ceb2d2771b2f4f76ff85d88ed59def6c9ba47c3b7e694"
+  }
+}

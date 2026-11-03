@@ -1,0 +1,217 @@
+{
+  "scope": "Actual Metal execution of typed local programs, not a full Pass-3 speedup benchmark",
+  "original_source_cases": {
+    "checks": {
+      "representative-order": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 17,
+        "eclasses": 15,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "caabd6ac63a81bee8a9c38f7fe3c9bdceb33a79d42cb231673da9506429dd7af",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "properties": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 11,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "557a14e3ac4c7571aedd69982058f4f8a60c376f16a1271d13f1363572a3101a",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "correlated": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 9,
+        "eclasses": 9,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "3d72e6a85cc552112d1e0202982b786ab9f29ec10374f6ce3dd6db58fbeb7a0c",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "numeric": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 9,
+        "eclasses": 6,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "b7d67830285876c3c8efeee60df404bfbc61130591b9d6fae68a416c6a409478",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "recursive": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 17,
+        "eclasses": 13,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "d78beb1970f43724e8dcbbec0982b9f532b26b8cb3eb436e06b7fb409a9e989c",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "new-union-match": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 5,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "44b2df16ebd03009f4389bff2132482f177ea6f486b3a8d35393798aefb09dd5",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "identity": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 3,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "bc72d4bf87b1467ea90bf7debf5b90bb22ecbb42c56b3d34889c48cbbd8af39d",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "custom-merge": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 7,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "e9d31fc6db305d45621bc86a38128d8ac3ed01cd7f3bc3263883f7309a69148b",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "visibility": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 2,
+        "eclasses": 2,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "861fe8e61e72ef0522967878b3a383363681ddc70990e10b7ba5c3fdb96debd3",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "finite-repeat": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 6,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "81b01f0c9935ae2769ab7af199d759e7df042d12d75d3b7a11d7666915099a4c",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "missing-and-large": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 5,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "4227842dc59dd64d1e1880792f08e823d11f02e8ece2a479748292e5fdfb8bed",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      }
+    },
+    "batch_instances": 32
+  },
+  "resource_and_failure_boundaries": {
+    "growth": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 6,
+      "eclasses": 6,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "d17b0cfc9c8ab92747b6fce30b6a80a2aae9e3dcf63f2218a865984454f2ba7c",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "unchanged_instance_not_replayed": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 1,
+      "eclasses": 1,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "6c0fe6ebf8a4ec0a3b04d5007bc2d6be5ed189ccb0b2da72bc1fb5dd486f1d20",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "history_growth": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 41,
+      "eclasses": 41,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "05b13f6c00aa81b0532dc008cee99bc3cad104f58659738560870dd8615230f4",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "rhs_overflow_rejected": true,
+    "failed_intermediate_check_not_rescued": true,
+    "until_refused": true,
+    "string-0": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 2,
+      "eclasses": 2,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "2f424a5e617f23686e06930730b0eaaf954faee5c013b014dd30b8e9195b4eca",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "string-1": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 2,
+      "eclasses": 2,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "a8870dc9fed3b1d0564020a96ffd431ea7522850b8715a3a37946aa6d9568a60",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    }
+  },
+  "real_terms": {
+    "checked": 72,
+    "runs": 534,
+    "complete_state_and_each_run": true,
+    "input": "out/scheduled-generic-regression/terms/cell-recipes.json",
+    "device": "out/generic-terms-final",
+    "reference": "out/generic-terms-reference.json"
+  },
+  "automatic_analyzer_pipeline": {
+    "cells": [
+      {
+        "unit": 0,
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 5
+      },
+      {
+        "unit": 1,
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 5
+      },
+      {
+        "unit": 2,
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 4
+      }
+    ],
+    "source": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 6,
+      "eclasses": 5,
+      "projected_control_tables": [],
+      "original_native_schedule": true,
+      "source_sha256": "460090711a9cf74c08aa12872bdab01da13f6d031d61b84b707126bfed246b41",
+      "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+    },
+    "actual_initialized_cells": 3,
+    "finite_cells": 3,
+    "typed_programs": 1,
+    "excluded_unfinished": []
+  },
+  "existing_backend_regressions": [
+    "deferred-union",
+    "set-prediction",
+    "query-value-updates"
+  ],
+  "limits": [
+    "compiled local joins still execute",
+    "no live global skip certificate",
+    "until and interleaved host commands retain ordinary execution"
+  ],
+  "evidence_directories": [
+    "out/generic-cell-final",
+    "out/generic-boundaries-final",
+    "out/generic-pipeline-final",
+    "out/generic-terms-final",
+    "out/generic-existing-regression"
+  ]
+}

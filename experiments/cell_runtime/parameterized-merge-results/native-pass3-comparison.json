@@ -1,0 +1,8 @@
+{
+  "all_tables_graph_equal": false,
+  "difference": "missing native row ('TermBop', (('BinaryOp', 'Value(2)'), ('Term', 'Value(1245)'), ('Term', 'Value(2171)')))",
+  "reference": "out/source-native-marker-bench/shared-runner/remove/native-state.json",
+  "reference_sha256": "7798730747fdcad78df33c12d29f0dea1ce206fe6b7362eac6e11e183c830000",
+  "same_source_sha256": "5a41d6ad89e2f790928a5f7ad12fe4539f0e85fad176f5818576efece0b9614e",
+  "scope": "historical native reference, same marked source; no new native timing"
+}

@@ -127,6 +127,40 @@ pub struct RuleBuilder<'a> {
 }
 
 impl EGraph {
+    /// Exact native storage version, including value replacement and removal.
+    pub fn native_function_version(&self, function: FunctionId) -> core_relations::TableVersion {
+        self.db.get_table(self.funcs[function].table).version()
+    }
+    /// Reset a compiler-owned auxiliary table without advancing a source Run.
+    /// The native table generation invalidates cached indexes. Call only between
+    /// executions, never on source facts whose deletion needs normal propagation.
+    pub fn reset_auxiliary_table(&mut self, function: FunctionId) {
+        self.db.get_table_mut(self.funcs[function].table).clear();
+    }
+    /// Share seminaive cursors between source rules and scoped action variants.
+    pub fn run_rule_variants(
+        &mut self,
+        pairs: &[(RuleId, RuleId)],
+        skipped: &[RuleId],
+    ) -> Result<egglog_reports::IterationReport> {
+        for (original, variant) in pairs {
+            self.rules[*variant].last_run_at = self.rules[*original].last_run_at;
+        }
+        let ts = self.next_ts();
+        for rule in skipped {
+            self.rules[*rule].last_run_at = ts;
+        }
+        let result = self.run_rules(&pairs.iter().map(|p| p.1).collect::<Vec<_>>());
+        for (original, variant) in pairs {
+            self.rules[*original].last_run_at = self.rules[*variant].last_run_at;
+        }
+        result
+    }
+    /// Read-only execution metadata for alternative device backends. Keep the
+    /// original per-rule opt-out instead of assuming every rule is seminaive.
+    pub fn device_rule_is_seminaive(&self, id: RuleId) -> bool {
+        self.rules[id].query.seminaive
+    }
     /// Add a rewrite rule for this [`EGraph`] using a [`RuleBuilder`].
     /// If you aren't sure, use `egraph.new_rule("", true)`.
     pub fn new_rule(&mut self, desc: &str, seminaive: bool) -> RuleBuilder<'_> {
@@ -905,4 +939,20 @@ fn add_atom(
     }
     let vars = inner.convert_all(entries);
     Ok(qb.add_atom(table, &vars, constraints)?)
+}
+
+impl crate::TableAction {
+    /// Read visibility for a key whose existence is already promised by a
+    /// preceding constructor action. Never inserts or canonicalizes a row.
+    pub fn visible_or_missing(
+        &self,
+        state: &crate::core_relations::ExecutionState<'_>,
+        key: &[Value],
+    ) -> bool {
+        !self.table_math.subsume
+            || state
+                .get_table(self.table)
+                .get_row(key)
+                .is_none_or(|r| r.vals[self.table_math.subsume_col()] == NOT_SUBSUMED)
+    }
 }

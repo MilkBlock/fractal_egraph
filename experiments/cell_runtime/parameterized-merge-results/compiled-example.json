@@ -1,0 +1,1476 @@
+{
+  "scope": "actual marked sum-bits typed source; exact executable recipe, no terminal substitution",
+  "program_sha256": "9dda723c26093b23100451ab2d91a94bcacd71d8678c5f12a639378fab27a326",
+  "merge": {
+    "table": "ExtractedExpr",
+    "slots": [
+      {
+        "name": "TermAndCost",
+        "kind": "eq"
+      },
+      {
+        "name": "TermAndCost",
+        "kind": "eq"
+      },
+      {
+        "name": "TermAndCost",
+        "kind": "eq"
+      }
+    ],
+    "operations": [
+      {
+        "dst": 2,
+        "call": {
+          "table": "Smaller"
+        },
+        "args": [
+          {
+            "slot": 0
+          },
+          {
+            "slot": 1
+          }
+        ],
+        "kind": "construct"
+      }
+    ],
+    "result": {
+      "slot": 2
+    },
+    "equal_inputs": "return_old"
+  },
+  "relays": [
+    {
+      "rule": 290,
+      "table": "CellSpineView10"
+    }
+  ],
+  "entries": [
+    {
+      "rule": 290,
+      "anchor": 0,
+      "atoms": [
+        1
+      ]
+    },
+    {
+      "rule": 702,
+      "anchor": 2,
+      "atoms": [
+        0,
+        1
+      ]
+    },
+    {
+      "rule": 703,
+      "anchor": 2,
+      "atoms": [
+        0,
+        1
+      ]
+    },
+    {
+      "rule": 704,
+      "anchor": 1,
+      "atoms": [
+        0
+      ]
+    }
+  ],
+  "rules": {
+    "290": {
+      "metadata": {
+        "name": "complete-CellSpineView10",
+        "source_set": "cell-spine-complete",
+        "seminaive": true
+      },
+      "slots": [
+        {
+          "name": "@TCPair81",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_slot2",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@Smaller8",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_slot3",
+          "sort": {
+            "name": "Term",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_slot4",
+          "sort": {
+            "name": "i64",
+            "kind": "i64"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_slot1",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": 0
+        },
+        {
+          "name": "cell_spine_slot0",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": 1
+        }
+      ],
+      "query": [
+        {
+          "call": {
+            "table": "Smaller"
+          },
+          "args": [
+            {
+              "slot": 0
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 2
+            }
+          ]
+        },
+        {
+          "call": {
+            "table": "TCPair"
+          },
+          "args": [
+            {
+              "slot": 3
+            },
+            {
+              "slot": 4
+            },
+            {
+              "slot": 0
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "op": "copy",
+          "dst": 5,
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "arg": {
+            "slot": 0
+          },
+          "kind": "copy"
+        },
+        {
+          "op": "copy",
+          "dst": 6,
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "arg": {
+            "slot": 2
+          },
+          "kind": "copy"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView10"
+          },
+          "args": [
+            {
+              "slot": 6
+            },
+            {
+              "slot": 5
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 3
+            },
+            {
+              "slot": 4
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        }
+      ],
+      "interface": {
+        "rows": [
+          {
+            "atom": 0,
+            "table": "Smaller",
+            "columns": [
+              {
+                "slot": 0
+              },
+              {
+                "slot": 1
+              },
+              {
+                "slot": 2
+              }
+            ],
+            "key_columns": [
+              0,
+              1
+            ],
+            "witness": "complete visible row"
+          },
+          {
+            "atom": 1,
+            "table": "TCPair",
+            "columns": [
+              {
+                "slot": 3
+              },
+              {
+                "slot": 4
+              },
+              {
+                "slot": 0
+              }
+            ],
+            "key_columns": [
+              0,
+              1
+            ],
+            "witness": "complete visible row"
+          }
+        ],
+        "primitive_atoms": [],
+        "guaranteed_atoms": [],
+        "residual_atoms": [
+          0,
+          1
+        ],
+        "correlation": "one complete binding row; slot equality and literals remain constraints"
+      },
+      "footprint": {
+        "read_tables": [
+          "Smaller",
+          "TCPair"
+        ],
+        "write_tables": [
+          "CellSpineView10"
+        ],
+        "union_sorts": [],
+        "equality_invalidates": [],
+        "operations": [
+          "copy",
+          "set"
+        ],
+        "precision": "conservative direct/merge footprint; global rebuild may have further effects"
+      }
+    },
+    "702": {
+      "metadata": {
+        "name": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "source_set": "terms-helpers-helpers",
+        "seminaive": true
+      },
+      "slots": [
+        {
+          "name": "t2",
+          "sort": {
+            "name": "Term",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cost2",
+          "sort": {
+            "name": "i64",
+            "kind": "i64"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@TCPair98",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cost1",
+          "sort": {
+            "name": "i64",
+            "kind": "i64"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@<49",
+          "sort": {
+            "name": "Unit",
+            "kind": "Unit"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v7",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v5",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "t1",
+          "sort": {
+            "name": "Term",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@CellSpineView104",
+          "sort": {
+            "name": "Unit",
+            "kind": "Unit"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v6",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": 0
+        }
+      ],
+      "query": [
+        {
+          "call": {
+            "table": "TCPair"
+          },
+          "args": [
+            {
+              "slot": 0
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 2
+            }
+          ]
+        },
+        {
+          "call": {
+            "primitive": "<",
+            "inputs": [
+              "i64",
+              "i64"
+            ],
+            "output": "Unit"
+          },
+          "args": [
+            {
+              "slot": 3
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 4
+            }
+          ]
+        },
+        {
+          "call": {
+            "table": "CellSpineView10"
+          },
+          "args": [
+            {
+              "slot": 5
+            },
+            {
+              "slot": 6
+            },
+            {
+              "slot": 2
+            },
+            {
+              "slot": 7
+            },
+            {
+              "slot": 3
+            },
+            {
+              "slot": 8
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "op": "copy",
+          "dst": 9,
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "arg": {
+            "slot": 2
+          },
+          "kind": "copy"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "TCPair"
+          },
+          "args": [
+            {
+              "slot": 7
+            },
+            {
+              "slot": 3
+            }
+          ],
+          "value": {
+            "slot": 5
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView10"
+          },
+          "args": [
+            {
+              "slot": 6
+            },
+            {
+              "slot": 6
+            },
+            {
+              "slot": 9
+            },
+            {
+              "slot": 7
+            },
+            {
+              "slot": 3
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView31"
+          },
+          "args": [
+            {
+              "slot": 6
+            },
+            {
+              "slot": 7
+            },
+            {
+              "slot": 3
+            },
+            {
+              "slot": 6
+            },
+            {
+              "slot": 3
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView31"
+          },
+          "args": [
+            {
+              "slot": 9
+            },
+            {
+              "slot": 0
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 9
+            },
+            {
+              "slot": 1
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineApplied256"
+          },
+          "args": [
+            {
+              "slot": 5
+            },
+            {
+              "slot": 3
+            },
+            {
+              "slot": 7
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        }
+      ],
+      "interface": {
+        "rows": [
+          {
+            "atom": 0,
+            "table": "TCPair",
+            "columns": [
+              {
+                "slot": 0
+              },
+              {
+                "slot": 1
+              },
+              {
+                "slot": 2
+              }
+            ],
+            "key_columns": [
+              0,
+              1
+            ],
+            "witness": "complete visible row"
+          },
+          {
+            "atom": 2,
+            "table": "CellSpineView10",
+            "columns": [
+              {
+                "slot": 5
+              },
+              {
+                "slot": 6
+              },
+              {
+                "slot": 2
+              },
+              {
+                "slot": 7
+              },
+              {
+                "slot": 3
+              },
+              {
+                "slot": 8
+              }
+            ],
+            "key_columns": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "witness": "complete visible row"
+          }
+        ],
+        "primitive_atoms": [
+          1
+        ],
+        "guaranteed_atoms": [],
+        "residual_atoms": [
+          0,
+          1,
+          2
+        ],
+        "correlation": "one complete binding row; slot equality and literals remain constraints"
+      },
+      "footprint": {
+        "read_tables": [
+          "CellSpineView10",
+          "TCPair"
+        ],
+        "write_tables": [
+          "CellSpineApplied256",
+          "CellSpineView10",
+          "CellSpineView31",
+          "TCPair"
+        ],
+        "union_sorts": [
+          "TermAndCost"
+        ],
+        "equality_invalidates": [
+          "CellSpineApplied256",
+          "CellSpineApplied257",
+          "CellSpineApplied258",
+          "CellSpineView10",
+          "CellSpineView31",
+          "CellSpineView9",
+          "ExtractedExpr",
+          "PotentialExtractedExpr",
+          "Smaller",
+          "TCPair"
+        ],
+        "operations": [
+          "copy",
+          "set"
+        ],
+        "precision": "conservative direct/merge footprint; global rebuild may have further effects"
+      }
+    },
+    "703": {
+      "metadata": {
+        "name": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+        "source_set": "terms-helpers-helpers",
+        "seminaive": true
+      },
+      "slots": [
+        {
+          "name": "t2",
+          "sort": {
+            "name": "Term",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cost2",
+          "sort": {
+            "name": "i64",
+            "kind": "i64"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@TCPair102",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cost1",
+          "sort": {
+            "name": "i64",
+            "kind": "i64"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@>51",
+          "sort": {
+            "name": "Unit",
+            "kind": "Unit"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v7",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v5",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "t1",
+          "sort": {
+            "name": "Term",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@CellSpineView108",
+          "sort": {
+            "name": "Unit",
+            "kind": "Unit"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v6",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": 0
+        }
+      ],
+      "query": [
+        {
+          "call": {
+            "table": "TCPair"
+          },
+          "args": [
+            {
+              "slot": 0
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 2
+            }
+          ]
+        },
+        {
+          "call": {
+            "primitive": ">",
+            "inputs": [
+              "i64",
+              "i64"
+            ],
+            "output": "Unit"
+          },
+          "args": [
+            {
+              "slot": 3
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 4
+            }
+          ]
+        },
+        {
+          "call": {
+            "table": "CellSpineView10"
+          },
+          "args": [
+            {
+              "slot": 5
+            },
+            {
+              "slot": 6
+            },
+            {
+              "slot": 2
+            },
+            {
+              "slot": 7
+            },
+            {
+              "slot": 3
+            },
+            {
+              "slot": 8
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "op": "copy",
+          "dst": 9,
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "arg": {
+            "slot": 2
+          },
+          "kind": "copy"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "TCPair"
+          },
+          "args": [
+            {
+              "slot": 0
+            },
+            {
+              "slot": 1
+            }
+          ],
+          "value": {
+            "slot": 5
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView10"
+          },
+          "args": [
+            {
+              "slot": 9
+            },
+            {
+              "slot": 6
+            },
+            {
+              "slot": 9
+            },
+            {
+              "slot": 7
+            },
+            {
+              "slot": 3
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView31"
+          },
+          "args": [
+            {
+              "slot": 6
+            },
+            {
+              "slot": 7
+            },
+            {
+              "slot": 3
+            },
+            {
+              "slot": 6
+            },
+            {
+              "slot": 3
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView31"
+          },
+          "args": [
+            {
+              "slot": 9
+            },
+            {
+              "slot": 0
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 9
+            },
+            {
+              "slot": 1
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineApplied257"
+          },
+          "args": [
+            {
+              "slot": 5
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 0
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        }
+      ],
+      "interface": {
+        "rows": [
+          {
+            "atom": 0,
+            "table": "TCPair",
+            "columns": [
+              {
+                "slot": 0
+              },
+              {
+                "slot": 1
+              },
+              {
+                "slot": 2
+              }
+            ],
+            "key_columns": [
+              0,
+              1
+            ],
+            "witness": "complete visible row"
+          },
+          {
+            "atom": 2,
+            "table": "CellSpineView10",
+            "columns": [
+              {
+                "slot": 5
+              },
+              {
+                "slot": 6
+              },
+              {
+                "slot": 2
+              },
+              {
+                "slot": 7
+              },
+              {
+                "slot": 3
+              },
+              {
+                "slot": 8
+              }
+            ],
+            "key_columns": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "witness": "complete visible row"
+          }
+        ],
+        "primitive_atoms": [
+          1
+        ],
+        "guaranteed_atoms": [],
+        "residual_atoms": [
+          0,
+          1,
+          2
+        ],
+        "correlation": "one complete binding row; slot equality and literals remain constraints"
+      },
+      "footprint": {
+        "read_tables": [
+          "CellSpineView10",
+          "TCPair"
+        ],
+        "write_tables": [
+          "CellSpineApplied257",
+          "CellSpineView10",
+          "CellSpineView31",
+          "TCPair"
+        ],
+        "union_sorts": [
+          "TermAndCost"
+        ],
+        "equality_invalidates": [
+          "CellSpineApplied256",
+          "CellSpineApplied257",
+          "CellSpineApplied258",
+          "CellSpineView10",
+          "CellSpineView31",
+          "CellSpineView9",
+          "ExtractedExpr",
+          "PotentialExtractedExpr",
+          "Smaller",
+          "TCPair"
+        ],
+        "operations": [
+          "copy",
+          "set"
+        ],
+        "precision": "conservative direct/merge footprint; global rebuild may have further effects"
+      }
+    },
+    "704": {
+      "metadata": {
+        "name": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "source_set": "terms-helpers-helpers",
+        "seminaive": true
+      },
+      "slots": [
+        {
+          "name": "t2",
+          "sort": {
+            "name": "Term",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cost1",
+          "sort": {
+            "name": "i64",
+            "kind": "i64"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@TCPair106",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v7",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v5",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "t1",
+          "sort": {
+            "name": "Term",
+            "kind": "eq"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "@CellSpineView1012",
+          "sort": {
+            "name": "Unit",
+            "kind": "Unit"
+          },
+          "definition": "query"
+        },
+        {
+          "name": "cell_spine_v6",
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "definition": 0
+        }
+      ],
+      "query": [
+        {
+          "call": {
+            "table": "TCPair"
+          },
+          "args": [
+            {
+              "slot": 0
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 2
+            }
+          ]
+        },
+        {
+          "call": {
+            "table": "CellSpineView10"
+          },
+          "args": [
+            {
+              "slot": 3
+            },
+            {
+              "slot": 4
+            },
+            {
+              "slot": 2
+            },
+            {
+              "slot": 5
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 6
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "op": "copy",
+          "dst": 7,
+          "sort": {
+            "name": "TermAndCost",
+            "kind": "eq"
+          },
+          "arg": {
+            "slot": 2
+          },
+          "kind": "copy"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "TCPair"
+          },
+          "args": [
+            {
+              "slot": 5
+            },
+            {
+              "slot": 1
+            }
+          ],
+          "value": {
+            "slot": 3
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView10"
+          },
+          "args": [
+            {
+              "slot": 4
+            },
+            {
+              "slot": 4
+            },
+            {
+              "slot": 7
+            },
+            {
+              "slot": 5
+            },
+            {
+              "slot": 1
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView31"
+          },
+          "args": [
+            {
+              "slot": 4
+            },
+            {
+              "slot": 5
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 4
+            },
+            {
+              "slot": 1
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineView31"
+          },
+          "args": [
+            {
+              "slot": 7
+            },
+            {
+              "slot": 0
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 7
+            },
+            {
+              "slot": 1
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        },
+        {
+          "op": "set",
+          "call": {
+            "table": "CellSpineApplied258"
+          },
+          "args": [
+            {
+              "slot": 3
+            },
+            {
+              "slot": 1
+            },
+            {
+              "slot": 5
+            }
+          ],
+          "value": {
+            "literal": 0,
+            "sort": {
+              "name": "Unit",
+              "kind": "Unit"
+            }
+          },
+          "kind": "set"
+        }
+      ],
+      "interface": {
+        "rows": [
+          {
+            "atom": 0,
+            "table": "TCPair",
+            "columns": [
+              {
+                "slot": 0
+              },
+              {
+                "slot": 1
+              },
+              {
+                "slot": 2
+              }
+            ],
+            "key_columns": [
+              0,
+              1
+            ],
+            "witness": "complete visible row"
+          },
+          {
+            "atom": 1,
+            "table": "CellSpineView10",
+            "columns": [
+              {
+                "slot": 3
+              },
+              {
+                "slot": 4
+              },
+              {
+                "slot": 2
+              },
+              {
+                "slot": 5
+              },
+              {
+                "slot": 1
+              },
+              {
+                "slot": 6
+              }
+            ],
+            "key_columns": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "witness": "complete visible row"
+          }
+        ],
+        "primitive_atoms": [],
+        "guaranteed_atoms": [],
+        "residual_atoms": [
+          0,
+          1
+        ],
+        "correlation": "one complete binding row; slot equality and literals remain constraints"
+      },
+      "footprint": {
+        "read_tables": [
+          "CellSpineView10",
+          "TCPair"
+        ],
+        "write_tables": [
+          "CellSpineApplied258",
+          "CellSpineView10",
+          "CellSpineView31",
+          "TCPair"
+        ],
+        "union_sorts": [
+          "TermAndCost"
+        ],
+        "equality_invalidates": [
+          "CellSpineApplied256",
+          "CellSpineApplied257",
+          "CellSpineApplied258",
+          "CellSpineView10",
+          "CellSpineView31",
+          "CellSpineView9",
+          "ExtractedExpr",
+          "PotentialExtractedExpr",
+          "Smaller",
+          "TCPair"
+        ],
+        "operations": [
+          "copy",
+          "set"
+        ],
+        "precision": "conservative direct/merge footprint; global rebuild may have further effects"
+      }
+    }
+  },
+  "contract": {
+    "old_value": "read by the existing ordered set/repair commit",
+    "operands": "typed local slots; exact integers; full constructor alternatives",
+    "publication": "original Run StagePatch and repair boundaries",
+    "invalidation": "read current canonical visible ports; late rows use original delta entries",
+    "effects": "original complete RHS; no winner-only reduction",
+    "terminal_cell_substitution": false
+  }
+}

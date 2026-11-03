@@ -9,6 +9,10 @@ use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
 pub(super) fn contract(origin: &Value, source: &str, validation: &str) -> Result<Value> {
+    let runtime = crate::structural_key::source::declaration(source)?.map(str::to_owned);
+    if crate::structural_key::source::declaration(validation)? != runtime.as_deref() {
+        return Err("normalized source/validation native runtime differs".into());
+    }
     let marker = origin["parameter_marker"]
         .as_str()
         .ok_or("missing opaque-input constructor")?;
@@ -66,7 +70,7 @@ pub(super) fn contract(origin: &Value, source: &str, validation: &str) -> Result
     };
     let source = program(source)?;
     let validation = program(validation)?;
-    Ok(json!({"source":source,"validation":validation,"interface":interface}))
+    Ok(json!({"source":source,"validation":validation,"interface":interface,"native_runtime":runtime}))
 }
 
 #[cfg(test)]
@@ -74,6 +78,19 @@ mod tests {
     use super::*;
     fn origin(a: i64, b: i64) -> Value {
         json!({"parameter_marker":"RipenInput","reuse_interface_terms":{"lower":[format!("(RipenInput {a})"),format!("(RipenInput {b})")],"upper":[]}})
+    }
+    #[test]
+    fn native_runtime_is_part_of_the_cell_contract() {
+        let header = "; cell-structural-key-runtime/v1 {\"nodes\":[],\"bases\":[\"i64\"]}";
+        let a = format!("{header}\n(A (RipenInput 0))");
+        let b = a.replace("i64", "String");
+        let pa = contract(&origin(0, 1), &a, &a).unwrap();
+        let pb = contract(&origin(0, 1), &b, &b).unwrap();
+        assert_ne!(pa, pb);
+        assert!(contract(&origin(0, 1), &a, &b).is_err());
+        let child = format!("{b}\n(B (RipenInput 1))");
+        let pc = contract(&origin(0, 1), &child, &child).unwrap();
+        assert!(suffix(&pa, &pc).is_none());
     }
     #[test]
     fn opaque_slots_rename_but_alias_constants_order_and_obligations_survive() {
@@ -122,7 +139,8 @@ mod tests {
 /// Exact sequential factorization, never subtraction of an unordered effect set.
 /// Restrict to positive constructor programs; checkpoints retain their positions.
 pub(super) fn suffix(parent: &Value, child: &Value) -> Option<Value> {
-    if parent["interface"]["lower"] != child["interface"]["lower"] {
+    if parent["native_runtime"] != child["native_runtime"]
+        || parent["interface"]["lower"] != child["interface"]["lower"] {
         return None;
     }
     let mut result = serde_json::Map::new();
@@ -150,6 +168,7 @@ pub(super) fn suffix(parent: &Value, child: &Value) -> Option<Value> {
         result.insert(field.into(), json!(&full[prefix.len()..]));
     }
     result.insert("interface".into(), child["interface"].clone());
+    result.insert("native_runtime".into(), child["native_runtime"].clone());
     result.insert("kind".into(), json!("positive-sequential-suffix/v1"));
     Some(Value::Object(result))
 }
@@ -162,7 +181,7 @@ pub(super) fn residual(
     child: &Value,
     origin: &Value,
 ) -> Option<Value> {
-    if parents.is_empty() {
+    if parents.is_empty() || parents.iter().any(|(p, _)| p["native_runtime"] != child["native_runtime"]) {
         return None;
     }
     let marker = origin["parameter_marker"].as_str()?;
@@ -278,6 +297,7 @@ pub(super) fn residual(
         out.insert((*field).into(), json!(remaining));
     }
     out.insert("interface".into(), child["interface"].clone());
+    out.insert("native_runtime".into(), child["native_runtime"].clone());
     out.insert("parent_wiring".into(), json!(wiring));
     out.insert("kind".into(), json!("positive-parent-residual/v1"));
     Some(Value::Object(out))

@@ -1,0 +1,6 @@
+(datatype T (N i64))
+(relation A (T))
+(ruleset r)
+(rule ((= x (N 1))) ((A x)) :ruleset r)
+(N 1)
+(run r 5)

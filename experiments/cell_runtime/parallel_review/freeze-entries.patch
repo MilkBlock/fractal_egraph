@@ -1,0 +1,41 @@
+--- a/engine/cell-runtime/src/entry_schedule.rs
++++ b/engine/cell-runtime/src/entry_schedule.rs
+@@ -215,6 +215,7 @@
+     retired_packets: u64,
+ }
+ pub struct Scheduler {
++    replay: BTreeMap<u64,Vec<J>>,
+     pub enabled: bool,
+     plan: Plan,
+     states: Vec<State>,
+@@ -235,6 +236,7 @@
+             .collect();
+         Self {
+             enabled,
++            replay:BTreeMap::new(),
+             plan,
+             states,
+             rows: HashMap::new(),
+@@ -375,6 +377,14 @@
+                     }
+                 },
+             });
++            let args: Vec<_> = n.args.iter().map(|a| match a {
++                Arg::Literal(l) => Arg::Literal(canon(l, &g.parents)),
++                a => a.clone(),
++            }).collect();
++            self.replay.entry(g.epoch).or_default().push(json!({
++                "args":args, "values":row.values, "ports":n.ports,
++                "expected":valid.then_some(&values)
++            }));
+             if valid {
+                 let values =
+                     if let Some(p) = previous.as_ref().filter(|p| p.values.as_ref() == &values) {
+@@ -393,6 +403,6 @@
+         Ok(())
+     }
+     pub fn report(&self) -> J {
+-        json!({"enabled":self.enabled,"nodes":self.plan.nodes.len(),"stats":self.stats,"live_packets":self.states.iter().map(|s|s.rows.len()).sum::<usize>(),"scope":"compiled shared entry predicates; consumer watermarks and complete residual/RHS remain source scheduled"})
++        json!({"frozen_entry_jobs":self.replay,"enabled":self.enabled,"nodes":self.plan.nodes.len(),"stats":self.stats,"live_packets":self.states.iter().map(|s|s.rows.len()).sum::<usize>(),"scope":"compiled shared entry predicates; consumer watermarks and complete residual/RHS remain source scheduled"})
+     }
+ }

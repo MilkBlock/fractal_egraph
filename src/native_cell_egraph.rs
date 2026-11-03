@@ -15,6 +15,8 @@ mod normalize;
 mod families;
 #[path = "native_cell_ports.rs"]
 mod ports;
+#[path = "native_cell_program.rs"]
+mod cell_program;
 
 const DSL: &str = r#"
 (datatype*
@@ -25,6 +27,7 @@ const DSL: &str = r#"
 "#;
 
 pub(super) struct Registry {
+    recipes: crate::cell_recipe::Library,
     eg: EGraph,
     values: BTreeMap<usize, Value>,
     origins: BTreeMap<usize, usize>,
@@ -46,6 +49,7 @@ pub(super) struct Registry {
     families: families::Census,
     family_members: BTreeSet<(usize, usize)>,
     port_progressions: Json,
+    executable_evidence: cell_program::Census,
     catalog_revision: usize,
     port_version: Option<(usize, usize, usize, usize)>,
 }
@@ -55,6 +59,7 @@ impl Registry {
         let cmds = eg.parse_program(None, DSL)?;
         eg.run_program(cmds)?;
         Ok(Self {
+            recipes: Default::default(),
             eg,
             values: BTreeMap::new(),
             origins: BTreeMap::new(),
@@ -76,6 +81,7 @@ impl Registry {
             families: families::Census::default(),
             family_members: BTreeSet::new(),
             port_progressions: json!({"families":[]}),
+            executable_evidence: cell_program::Census::default(),
             catalog_revision: 0,
             port_version: None,
         })
@@ -83,8 +89,14 @@ impl Registry {
     pub fn contains(&self, unit: usize) -> bool {
         self.values.contains_key(&unit)
     }
+    pub fn register_device(&mut self, unit: usize, eg: &egglog::EGraph, rulesets: &[String]) {
+        self.recipes.register_device(unit, eg, rulesets);
+    }
     pub fn observe_history(&mut self, c: &super::super::Captured, store: &super::super::cs::Store, catalog: Option<&Json>) -> Result<()> {
+        self.recipes.observe_device_source(c.device_source.as_ref());
+        self.recipes.observe_schedule(&c.preview_source,c.boundaries.iter().filter_map(|b|b.stage.clone()).collect())?;
         self.families.observe(c, store);
+        self.executable_evidence.observe(c);
         let version=(c.records.len(),c.changes.len(),store.windows.len(),self.catalog_revision);
         if self.port_version!=Some(version) {
             self.port_progressions = ports::report(c, store, catalog);
@@ -114,6 +126,9 @@ impl Registry {
         // Parents are real registered CS units, not arbitrary intersecting fragments.
         // Retain original coordinate contracts for unsupported normalization cases.
         // Supported cases compare executable preparations, not history provenance.
+        if let Err(error) = self.recipes.register(unit, parents, origin, source, validation) {
+            self.recipes.unavailable(unit, error.to_string());
+        }
         let parent_contracts = parents
             .iter()
             .map(|p| {
@@ -293,6 +308,10 @@ impl Registry {
         self.catalog_revision += 1;
         Ok(())
     }
+    pub fn publish_recipes(&mut self, jobs: &[Json], out: &std::path::Path) -> Result<()> {
+        self.recipes.observe_jobs(jobs)?;
+        self.recipes.save(&out.join("cell-recipes.json"))
+    }
     pub fn report(&self) -> Json {
         let sort = self.eg.get_arcsort_by(|s| s.name() == "Cell");
         let mut classes = BTreeMap::new();
@@ -323,7 +342,7 @@ impl Registry {
         // Observation-specific coordinates are rebuilt from this snapshot's
         // catalog, whose class numbers need not be stable across refreshes.
         repetition["port_progressions"] = self.port_progressions.clone();
-        json!({"repetition_families":repetition,"graft_interfaces":grafts,"graft_interface_scope":"conditional replay extension, independent of historical edges; only exact completed endpoint certificates", "registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
+        json!({"generic_recipes":self.recipes.report(),"executable_program_evidence":self.executable_evidence.report(),"repetition_families":repetition,"graft_interfaces":grafts,"graft_interface_scope":"conditional replay extension, independent of historical edges; only exact completed endpoint certificates", "registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
     }
 }
 

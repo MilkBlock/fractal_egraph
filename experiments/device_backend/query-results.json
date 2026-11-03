@@ -1,0 +1,2192 @@
+{
+  "scope": "GPU query indexes and grouped rebuild, diagnostic prefix; not full Pass 3 benchmark",
+  "regressions": [
+    "sets",
+    "merge-rebuild",
+    "custom-merge",
+    "merge-same",
+    "integer",
+    "float-identity",
+    "boolean",
+    "pipeline",
+    "subsume-absent",
+    "unit-function",
+    "initial-union",
+    "naive",
+    "repeat",
+    "math",
+    "combined",
+    "update",
+    "subsume-union",
+    "spine",
+    "spine-unchecked",
+    "periodic",
+    "final-check",
+    "prefix",
+    "panic",
+    "match-capacity",
+    "row-capacity",
+    "source-check",
+    "unit-lookup",
+    "ambiguous-old",
+    "overflow",
+    "reject-corrupt-visibility",
+    "reject-corrupt-value",
+    "reject-corrupt-equivalence"
+  ],
+  "regression_count": 32,
+  "pass3_prefix": {
+    "complete_schedule": false,
+    "requested_max_runs": 256,
+    "scope": "native-compiled .egg, experimental GPU-owned execution backend; serial device reference kernel, not a throughput benchmark",
+    "steps": [
+      {
+        "set": "initialization",
+        "rows": 13457,
+        "matched": 1,
+        "updated": true,
+        "epoch": 2,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13458,
+        "matched": 1,
+        "updated": true,
+        "epoch": 3,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13465,
+        "matched": 7,
+        "updated": true,
+        "epoch": 4,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13487,
+        "matched": 22,
+        "updated": true,
+        "epoch": 5,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13519,
+        "matched": 32,
+        "updated": true,
+        "epoch": 6,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13554,
+        "matched": 35,
+        "updated": true,
+        "epoch": 7,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13586,
+        "matched": 32,
+        "updated": true,
+        "epoch": 8,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13617,
+        "matched": 31,
+        "updated": true,
+        "epoch": 9,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13654,
+        "matched": 37,
+        "updated": true,
+        "epoch": 10,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13693,
+        "matched": 39,
+        "updated": true,
+        "epoch": 11,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13732,
+        "matched": 39,
+        "updated": true,
+        "epoch": 12,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13770,
+        "matched": 38,
+        "updated": true,
+        "epoch": 13,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13804,
+        "matched": 34,
+        "updated": true,
+        "epoch": 14,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13836,
+        "matched": 32,
+        "updated": true,
+        "epoch": 15,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13864,
+        "matched": 28,
+        "updated": true,
+        "epoch": 16,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13887,
+        "matched": 23,
+        "updated": true,
+        "epoch": 17,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13905,
+        "matched": 18,
+        "updated": true,
+        "epoch": 18,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13919,
+        "matched": 14,
+        "updated": true,
+        "epoch": 19,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13928,
+        "matched": 9,
+        "updated": true,
+        "epoch": 20,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13935,
+        "matched": 7,
+        "updated": true,
+        "epoch": 21,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13939,
+        "matched": 4,
+        "updated": true,
+        "epoch": 22,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13942,
+        "matched": 3,
+        "updated": true,
+        "epoch": 23,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13945,
+        "matched": 3,
+        "updated": true,
+        "epoch": 24,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13946,
+        "matched": 1,
+        "updated": true,
+        "epoch": 25,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 13946,
+        "matched": 0,
+        "updated": false,
+        "epoch": 26,
+        "unions": 0
+      },
+      {
+        "set": "type-analysis",
+        "rows": 16129,
+        "matched": 1378,
+        "updated": true,
+        "epoch": 27,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 16129,
+        "matched": 0,
+        "updated": false,
+        "epoch": 28,
+        "unions": 0
+      },
+      {
+        "set": "type-analysis",
+        "rows": 20778,
+        "matched": 3155,
+        "updated": true,
+        "epoch": 29,
+        "unions": 0
+      },
+      {
+        "set": "type-helpers",
+        "rows": 21358,
+        "matched": 748,
+        "updated": true,
+        "epoch": 30,
+        "unions": 168
+      },
+      {
+        "set": "type-helpers",
+        "rows": 21848,
+        "matched": 746,
+        "updated": true,
+        "epoch": 31,
+        "unions": 338
+      },
+      {
+        "set": "type-helpers",
+        "rows": 22268,
+        "matched": 755,
+        "updated": true,
+        "epoch": 32,
+        "unions": 492
+      },
+      {
+        "set": "type-helpers",
+        "rows": 22661,
+        "matched": 732,
+        "updated": true,
+        "epoch": 33,
+        "unions": 596
+      },
+      {
+        "set": "type-helpers",
+        "rows": 22964,
+        "matched": 663,
+        "updated": true,
+        "epoch": 34,
+        "unions": 738
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23186,
+        "matched": 769,
+        "updated": true,
+        "epoch": 35,
+        "unions": 890
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23368,
+        "matched": 771,
+        "updated": true,
+        "epoch": 36,
+        "unions": 1006
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23454,
+        "matched": 705,
+        "updated": true,
+        "epoch": 37,
+        "unions": 1160
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23535,
+        "matched": 864,
+        "updated": true,
+        "epoch": 38,
+        "unions": 1242
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23567,
+        "matched": 630,
+        "updated": true,
+        "epoch": 39,
+        "unions": 1332
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23604,
+        "matched": 629,
+        "updated": true,
+        "epoch": 40,
+        "unions": 1372
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23635,
+        "matched": 383,
+        "updated": true,
+        "epoch": 41,
+        "unions": 1398
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23659,
+        "matched": 200,
+        "updated": true,
+        "epoch": 42,
+        "unions": 1418
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23665,
+        "matched": 164,
+        "updated": true,
+        "epoch": 43,
+        "unions": 1446
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23653,
+        "matched": 216,
+        "updated": true,
+        "epoch": 44,
+        "unions": 1478
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23655,
+        "matched": 244,
+        "updated": true,
+        "epoch": 45,
+        "unions": 1480
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23652,
+        "matched": 19,
+        "updated": true,
+        "epoch": 46,
+        "unions": 1486
+      },
+      {
+        "set": "type-helpers",
+        "rows": 23652,
+        "matched": 51,
+        "updated": false,
+        "epoch": 47,
+        "unions": 1486
+      },
+      {
+        "set": "type-analysis",
+        "rows": 27507,
+        "matched": 4404,
+        "updated": true,
+        "epoch": 48,
+        "unions": 1486
+      },
+      {
+        "set": "type-helpers",
+        "rows": 27509,
+        "matched": 5,
+        "updated": true,
+        "epoch": 49,
+        "unions": 1490
+      },
+      {
+        "set": "type-helpers",
+        "rows": 27507,
+        "matched": 3,
+        "updated": true,
+        "epoch": 50,
+        "unions": 1493
+      },
+      {
+        "set": "type-helpers",
+        "rows": 27507,
+        "matched": 9,
+        "updated": false,
+        "epoch": 51,
+        "unions": 1493
+      },
+      {
+        "set": "type-analysis",
+        "rows": 31637,
+        "matched": 5125,
+        "updated": true,
+        "epoch": 52,
+        "unions": 1493
+      },
+      {
+        "set": "type-helpers",
+        "rows": 31675,
+        "matched": 33,
+        "updated": true,
+        "epoch": 53,
+        "unions": 1496
+      },
+      {
+        "set": "type-helpers",
+        "rows": 31657,
+        "matched": 12,
+        "updated": true,
+        "epoch": 54,
+        "unions": 1523
+      },
+      {
+        "set": "type-helpers",
+        "rows": 31672,
+        "matched": 78,
+        "updated": true,
+        "epoch": 55,
+        "unions": 1523
+      },
+      {
+        "set": "type-helpers",
+        "rows": 31672,
+        "matched": 0,
+        "updated": false,
+        "epoch": 56,
+        "unions": 1523
+      },
+      {
+        "set": "type-analysis",
+        "rows": 34067,
+        "matched": 4412,
+        "updated": true,
+        "epoch": 57,
+        "unions": 1523
+      },
+      {
+        "set": "type-helpers",
+        "rows": 34141,
+        "matched": 56,
+        "updated": true,
+        "epoch": 58,
+        "unions": 1531
+      },
+      {
+        "set": "type-helpers",
+        "rows": 34142,
+        "matched": 48,
+        "updated": true,
+        "epoch": 59,
+        "unions": 1573
+      },
+      {
+        "set": "type-helpers",
+        "rows": 34154,
+        "matched": 111,
+        "updated": true,
+        "epoch": 60,
+        "unions": 1577
+      },
+      {
+        "set": "type-helpers",
+        "rows": 34163,
+        "matched": 17,
+        "updated": true,
+        "epoch": 61,
+        "unions": 1577
+      },
+      {
+        "set": "type-helpers",
+        "rows": 34165,
+        "matched": 2,
+        "updated": true,
+        "epoch": 62,
+        "unions": 1577
+      },
+      {
+        "set": "type-helpers",
+        "rows": 34165,
+        "matched": 0,
+        "updated": false,
+        "epoch": 63,
+        "unions": 1577
+      },
+      {
+        "set": "type-analysis",
+        "rows": 35371,
+        "matched": 2103,
+        "updated": true,
+        "epoch": 64,
+        "unions": 1577
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35459,
+        "matched": 50,
+        "updated": true,
+        "epoch": 65,
+        "unions": 1582
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35473,
+        "matched": 48,
+        "updated": true,
+        "epoch": 66,
+        "unions": 1630
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35490,
+        "matched": 140,
+        "updated": true,
+        "epoch": 67,
+        "unions": 1645
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35503,
+        "matched": 70,
+        "updated": true,
+        "epoch": 68,
+        "unions": 1653
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35516,
+        "matched": 40,
+        "updated": true,
+        "epoch": 69,
+        "unions": 1657
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35528,
+        "matched": 16,
+        "updated": true,
+        "epoch": 70,
+        "unions": 1657
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35536,
+        "matched": 8,
+        "updated": true,
+        "epoch": 71,
+        "unions": 1657
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35540,
+        "matched": 4,
+        "updated": true,
+        "epoch": 72,
+        "unions": 1657
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35544,
+        "matched": 4,
+        "updated": true,
+        "epoch": 73,
+        "unions": 1657
+      },
+      {
+        "set": "type-helpers",
+        "rows": 35544,
+        "matched": 0,
+        "updated": false,
+        "epoch": 74,
+        "unions": 1657
+      },
+      {
+        "set": "type-analysis",
+        "rows": 36554,
+        "matched": 1352,
+        "updated": true,
+        "epoch": 75,
+        "unions": 1657
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36631,
+        "matched": 42,
+        "updated": true,
+        "epoch": 76,
+        "unions": 1661
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36650,
+        "matched": 42,
+        "updated": true,
+        "epoch": 77,
+        "unions": 1700
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36678,
+        "matched": 153,
+        "updated": true,
+        "epoch": 78,
+        "unions": 1710
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36703,
+        "matched": 61,
+        "updated": true,
+        "epoch": 79,
+        "unions": 1714
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36730,
+        "matched": 40,
+        "updated": true,
+        "epoch": 80,
+        "unions": 1714
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36745,
+        "matched": 15,
+        "updated": true,
+        "epoch": 81,
+        "unions": 1719
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36758,
+        "matched": 19,
+        "updated": true,
+        "epoch": 82,
+        "unions": 1722
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36774,
+        "matched": 17,
+        "updated": true,
+        "epoch": 83,
+        "unions": 1722
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36785,
+        "matched": 13,
+        "updated": true,
+        "epoch": 84,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36798,
+        "matched": 15,
+        "updated": true,
+        "epoch": 85,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36810,
+        "matched": 12,
+        "updated": true,
+        "epoch": 86,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36817,
+        "matched": 7,
+        "updated": true,
+        "epoch": 87,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36822,
+        "matched": 5,
+        "updated": true,
+        "epoch": 88,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36824,
+        "matched": 2,
+        "updated": true,
+        "epoch": 89,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36826,
+        "matched": 2,
+        "updated": true,
+        "epoch": 90,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36828,
+        "matched": 2,
+        "updated": true,
+        "epoch": 91,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36830,
+        "matched": 2,
+        "updated": true,
+        "epoch": 92,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 36830,
+        "matched": 0,
+        "updated": false,
+        "epoch": 93,
+        "unions": 1724
+      },
+      {
+        "set": "type-analysis",
+        "rows": 37700,
+        "matched": 1281,
+        "updated": true,
+        "epoch": 94,
+        "unions": 1724
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37785,
+        "matched": 44,
+        "updated": true,
+        "epoch": 95,
+        "unions": 1726
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37813,
+        "matched": 44,
+        "updated": true,
+        "epoch": 96,
+        "unions": 1764
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37846,
+        "matched": 184,
+        "updated": true,
+        "epoch": 97,
+        "unions": 1776
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37874,
+        "matched": 107,
+        "updated": true,
+        "epoch": 98,
+        "unions": 1784
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37900,
+        "matched": 74,
+        "updated": true,
+        "epoch": 99,
+        "unions": 1790
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37922,
+        "matched": 52,
+        "updated": true,
+        "epoch": 100,
+        "unions": 1797
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37937,
+        "matched": 72,
+        "updated": true,
+        "epoch": 101,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37954,
+        "matched": 83,
+        "updated": true,
+        "epoch": 102,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37968,
+        "matched": 11,
+        "updated": true,
+        "epoch": 103,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37980,
+        "matched": 10,
+        "updated": true,
+        "epoch": 104,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 37994,
+        "matched": 12,
+        "updated": true,
+        "epoch": 105,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38008,
+        "matched": 12,
+        "updated": true,
+        "epoch": 106,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38021,
+        "matched": 12,
+        "updated": true,
+        "epoch": 107,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38032,
+        "matched": 11,
+        "updated": true,
+        "epoch": 108,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38042,
+        "matched": 10,
+        "updated": true,
+        "epoch": 109,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38052,
+        "matched": 10,
+        "updated": true,
+        "epoch": 110,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38060,
+        "matched": 8,
+        "updated": true,
+        "epoch": 111,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38066,
+        "matched": 6,
+        "updated": true,
+        "epoch": 112,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38070,
+        "matched": 4,
+        "updated": true,
+        "epoch": 113,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38073,
+        "matched": 3,
+        "updated": true,
+        "epoch": 114,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38075,
+        "matched": 2,
+        "updated": true,
+        "epoch": 115,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38077,
+        "matched": 2,
+        "updated": true,
+        "epoch": 116,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38079,
+        "matched": 2,
+        "updated": true,
+        "epoch": 117,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38081,
+        "matched": 2,
+        "updated": true,
+        "epoch": 118,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38083,
+        "matched": 2,
+        "updated": true,
+        "epoch": 119,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38085,
+        "matched": 2,
+        "updated": true,
+        "epoch": 120,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38086,
+        "matched": 1,
+        "updated": true,
+        "epoch": 121,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38087,
+        "matched": 1,
+        "updated": true,
+        "epoch": 122,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38087,
+        "matched": 0,
+        "updated": false,
+        "epoch": 123,
+        "unions": 1805
+      },
+      {
+        "set": "type-analysis",
+        "rows": 38790,
+        "matched": 1099,
+        "updated": true,
+        "epoch": 124,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38866,
+        "matched": 40,
+        "updated": true,
+        "epoch": 125,
+        "unions": 1805
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38867,
+        "matched": 36,
+        "updated": true,
+        "epoch": 126,
+        "unions": 1855
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38900,
+        "matched": 250,
+        "updated": true,
+        "epoch": 127,
+        "unions": 1855
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38930,
+        "matched": 15,
+        "updated": true,
+        "epoch": 128,
+        "unions": 1855
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38954,
+        "matched": 15,
+        "updated": true,
+        "epoch": 129,
+        "unions": 1860
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38982,
+        "matched": 61,
+        "updated": true,
+        "epoch": 130,
+        "unions": 1860
+      },
+      {
+        "set": "type-helpers",
+        "rows": 39000,
+        "matched": 14,
+        "updated": true,
+        "epoch": 131,
+        "unions": 1867
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38971,
+        "matched": 75,
+        "updated": true,
+        "epoch": 132,
+        "unions": 1913
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38964,
+        "matched": 571,
+        "updated": true,
+        "epoch": 133,
+        "unions": 1931
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38962,
+        "matched": 239,
+        "updated": true,
+        "epoch": 134,
+        "unions": 1941
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38957,
+        "matched": 140,
+        "updated": true,
+        "epoch": 135,
+        "unions": 1952
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38962,
+        "matched": 179,
+        "updated": true,
+        "epoch": 136,
+        "unions": 1952
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38953,
+        "matched": 3,
+        "updated": true,
+        "epoch": 137,
+        "unions": 1965
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38941,
+        "matched": 201,
+        "updated": true,
+        "epoch": 138,
+        "unions": 1979
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38942,
+        "matched": 223,
+        "updated": true,
+        "epoch": 139,
+        "unions": 1979
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38943,
+        "matched": 1,
+        "updated": true,
+        "epoch": 140,
+        "unions": 1979
+      },
+      {
+        "set": "type-helpers",
+        "rows": 38943,
+        "matched": 0,
+        "updated": false,
+        "epoch": 141,
+        "unions": 1979
+      },
+      {
+        "set": "type-analysis",
+        "rows": 39450,
+        "matched": 719,
+        "updated": true,
+        "epoch": 142,
+        "unions": 1979
+      },
+      {
+        "set": "type-helpers",
+        "rows": 39520,
+        "matched": 38,
+        "updated": true,
+        "epoch": 143,
+        "unions": 1981
+      },
+      {
+        "set": "type-helpers",
+        "rows": 39471,
+        "matched": 36,
+        "updated": true,
+        "epoch": 144,
+        "unions": 2064
+      },
+      {
+        "set": "type-helpers",
+        "rows": 39475,
+        "matched": 473,
+        "updated": true,
+        "epoch": 145,
+        "unions": 2064
+      },
+      {
+        "set": "type-helpers",
+        "rows": 39475,
+        "matched": 0,
+        "updated": false,
+        "epoch": 146,
+        "unions": 2064
+      },
+      {
+        "set": "type-analysis",
+        "rows": 39950,
+        "matched": 745,
+        "updated": true,
+        "epoch": 147,
+        "unions": 2064
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40027,
+        "matched": 45,
+        "updated": true,
+        "epoch": 148,
+        "unions": 2071
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40004,
+        "matched": 43,
+        "updated": true,
+        "epoch": 149,
+        "unions": 2134
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40026,
+        "matched": 268,
+        "updated": true,
+        "epoch": 150,
+        "unions": 2134
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40028,
+        "matched": 1,
+        "updated": true,
+        "epoch": 151,
+        "unions": 2134
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40030,
+        "matched": 1,
+        "updated": true,
+        "epoch": 152,
+        "unions": 2134
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40032,
+        "matched": 1,
+        "updated": true,
+        "epoch": 153,
+        "unions": 2134
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40026,
+        "matched": 1,
+        "updated": true,
+        "epoch": 154,
+        "unions": 2141
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40026,
+        "matched": 76,
+        "updated": false,
+        "epoch": 155,
+        "unions": 2141
+      },
+      {
+        "set": "type-analysis",
+        "rows": 40374,
+        "matched": 454,
+        "updated": true,
+        "epoch": 156,
+        "unions": 2141
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40406,
+        "matched": 42,
+        "updated": true,
+        "epoch": 157,
+        "unions": 2175
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40386,
+        "matched": 41,
+        "updated": true,
+        "epoch": 158,
+        "unions": 2221
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40394,
+        "matched": 245,
+        "updated": true,
+        "epoch": 159,
+        "unions": 2221
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40398,
+        "matched": 2,
+        "updated": true,
+        "epoch": 160,
+        "unions": 2221
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40402,
+        "matched": 2,
+        "updated": true,
+        "epoch": 161,
+        "unions": 2221
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40406,
+        "matched": 2,
+        "updated": true,
+        "epoch": 162,
+        "unions": 2221
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40410,
+        "matched": 2,
+        "updated": true,
+        "epoch": 163,
+        "unions": 2221
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40396,
+        "matched": 2,
+        "updated": true,
+        "epoch": 164,
+        "unions": 2237
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40396,
+        "matched": 149,
+        "updated": false,
+        "epoch": 165,
+        "unions": 2237
+      },
+      {
+        "set": "type-analysis",
+        "rows": 40663,
+        "matched": 362,
+        "updated": true,
+        "epoch": 166,
+        "unions": 2237
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40712,
+        "matched": 28,
+        "updated": true,
+        "epoch": 167,
+        "unions": 2241
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40688,
+        "matched": 27,
+        "updated": true,
+        "epoch": 168,
+        "unions": 2290
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40695,
+        "matched": 292,
+        "updated": true,
+        "epoch": 169,
+        "unions": 2290
+      },
+      {
+        "set": "type-helpers",
+        "rows": 40695,
+        "matched": 0,
+        "updated": false,
+        "epoch": 170,
+        "unions": 2290
+      },
+      {
+        "set": "type-analysis",
+        "rows": 41092,
+        "matched": 518,
+        "updated": true,
+        "epoch": 171,
+        "unions": 2290
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41130,
+        "matched": 26,
+        "updated": true,
+        "epoch": 172,
+        "unions": 2299
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41111,
+        "matched": 26,
+        "updated": true,
+        "epoch": 173,
+        "unions": 2339
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41117,
+        "matched": 235,
+        "updated": true,
+        "epoch": 174,
+        "unions": 2339
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41117,
+        "matched": 0,
+        "updated": false,
+        "epoch": 175,
+        "unions": 2339
+      },
+      {
+        "set": "type-analysis",
+        "rows": 41535,
+        "matched": 550,
+        "updated": true,
+        "epoch": 176,
+        "unions": 2339
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41566,
+        "matched": 20,
+        "updated": true,
+        "epoch": 177,
+        "unions": 2345
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41551,
+        "matched": 20,
+        "updated": true,
+        "epoch": 178,
+        "unions": 2377
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41555,
+        "matched": 208,
+        "updated": true,
+        "epoch": 179,
+        "unions": 2377
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41555,
+        "matched": 0,
+        "updated": false,
+        "epoch": 180,
+        "unions": 2377
+      },
+      {
+        "set": "type-analysis",
+        "rows": 41862,
+        "matched": 408,
+        "updated": true,
+        "epoch": 181,
+        "unions": 2377
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41889,
+        "matched": 18,
+        "updated": true,
+        "epoch": 182,
+        "unions": 2382
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41876,
+        "matched": 18,
+        "updated": true,
+        "epoch": 183,
+        "unions": 2410
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41878,
+        "matched": 191,
+        "updated": true,
+        "epoch": 184,
+        "unions": 2410
+      },
+      {
+        "set": "type-helpers",
+        "rows": 41878,
+        "matched": 0,
+        "updated": false,
+        "epoch": 185,
+        "unions": 2410
+      },
+      {
+        "set": "type-analysis",
+        "rows": 42130,
+        "matched": 346,
+        "updated": true,
+        "epoch": 186,
+        "unions": 2410
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42154,
+        "matched": 18,
+        "updated": true,
+        "epoch": 187,
+        "unions": 2417
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42143,
+        "matched": 18,
+        "updated": true,
+        "epoch": 188,
+        "unions": 2442
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42145,
+        "matched": 160,
+        "updated": true,
+        "epoch": 189,
+        "unions": 2443
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42146,
+        "matched": 2,
+        "updated": true,
+        "epoch": 190,
+        "unions": 2443
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42147,
+        "matched": 1,
+        "updated": true,
+        "epoch": 191,
+        "unions": 2443
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42147,
+        "matched": 0,
+        "updated": false,
+        "epoch": 192,
+        "unions": 2443
+      },
+      {
+        "set": "type-analysis",
+        "rows": 42355,
+        "matched": 226,
+        "updated": true,
+        "epoch": 193,
+        "unions": 2443
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42382,
+        "matched": 17,
+        "updated": true,
+        "epoch": 194,
+        "unions": 2446
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42374,
+        "matched": 16,
+        "updated": true,
+        "epoch": 195,
+        "unions": 2469
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42374,
+        "matched": 136,
+        "updated": true,
+        "epoch": 196,
+        "unions": 2473
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42371,
+        "matched": 21,
+        "updated": true,
+        "epoch": 197,
+        "unions": 2477
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42371,
+        "matched": 25,
+        "updated": false,
+        "epoch": 198,
+        "unions": 2477
+      },
+      {
+        "set": "type-analysis",
+        "rows": 42577,
+        "matched": 186,
+        "updated": true,
+        "epoch": 199,
+        "unions": 2477
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42608,
+        "matched": 16,
+        "updated": true,
+        "epoch": 200,
+        "unions": 2477
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42590,
+        "matched": 15,
+        "updated": true,
+        "epoch": 201,
+        "unions": 2510
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42590,
+        "matched": 195,
+        "updated": false,
+        "epoch": 202,
+        "unions": 2510
+      },
+      {
+        "set": "type-analysis",
+        "rows": 42729,
+        "matched": 129,
+        "updated": true,
+        "epoch": 203,
+        "unions": 2510
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42756,
+        "matched": 15,
+        "updated": true,
+        "epoch": 204,
+        "unions": 2512
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42741,
+        "matched": 15,
+        "updated": true,
+        "epoch": 205,
+        "unions": 2541
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42741,
+        "matched": 170,
+        "updated": false,
+        "epoch": 206,
+        "unions": 2541
+      },
+      {
+        "set": "type-analysis",
+        "rows": 42872,
+        "matched": 106,
+        "updated": true,
+        "epoch": 207,
+        "unions": 2541
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42898,
+        "matched": 13,
+        "updated": true,
+        "epoch": 208,
+        "unions": 2541
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42884,
+        "matched": 13,
+        "updated": true,
+        "epoch": 209,
+        "unions": 2568
+      },
+      {
+        "set": "type-helpers",
+        "rows": 42884,
+        "matched": 169,
+        "updated": false,
+        "epoch": 210,
+        "unions": 2568
+      },
+      {
+        "set": "type-analysis",
+        "rows": 43050,
+        "matched": 149,
+        "updated": true,
+        "epoch": 211,
+        "unions": 2568
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43076,
+        "matched": 14,
+        "updated": true,
+        "epoch": 212,
+        "unions": 2569
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43059,
+        "matched": 14,
+        "updated": true,
+        "epoch": 213,
+        "unions": 2599
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43059,
+        "matched": 176,
+        "updated": false,
+        "epoch": 214,
+        "unions": 2599
+      },
+      {
+        "set": "type-analysis",
+        "rows": 43208,
+        "matched": 128,
+        "updated": true,
+        "epoch": 215,
+        "unions": 2599
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43232,
+        "matched": 12,
+        "updated": true,
+        "epoch": 216,
+        "unions": 2599
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43218,
+        "matched": 12,
+        "updated": true,
+        "epoch": 217,
+        "unions": 2625
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43219,
+        "matched": 154,
+        "updated": true,
+        "epoch": 218,
+        "unions": 2625
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43219,
+        "matched": 0,
+        "updated": false,
+        "epoch": 219,
+        "unions": 2625
+      },
+      {
+        "set": "type-analysis",
+        "rows": 43338,
+        "matched": 122,
+        "updated": true,
+        "epoch": 220,
+        "unions": 2625
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43355,
+        "matched": 11,
+        "updated": true,
+        "epoch": 221,
+        "unions": 2628
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43342,
+        "matched": 11,
+        "updated": true,
+        "epoch": 222,
+        "unions": 2650
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43342,
+        "matched": 136,
+        "updated": false,
+        "epoch": 223,
+        "unions": 2650
+      },
+      {
+        "set": "type-analysis",
+        "rows": 43468,
+        "matched": 264,
+        "updated": true,
+        "epoch": 224,
+        "unions": 2650
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43482,
+        "matched": 7,
+        "updated": true,
+        "epoch": 225,
+        "unions": 2650
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43475,
+        "matched": 7,
+        "updated": true,
+        "epoch": 226,
+        "unions": 2664
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43476,
+        "matched": 102,
+        "updated": true,
+        "epoch": 227,
+        "unions": 2664
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43476,
+        "matched": 0,
+        "updated": false,
+        "epoch": 228,
+        "unions": 2664
+      },
+      {
+        "set": "type-analysis",
+        "rows": 43622,
+        "matched": 129,
+        "updated": true,
+        "epoch": 229,
+        "unions": 2664
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43634,
+        "matched": 9,
+        "updated": true,
+        "epoch": 230,
+        "unions": 2668
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43629,
+        "matched": 9,
+        "updated": true,
+        "epoch": 231,
+        "unions": 2681
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43632,
+        "matched": 86,
+        "updated": true,
+        "epoch": 232,
+        "unions": 2681
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43634,
+        "matched": 1,
+        "updated": true,
+        "epoch": 233,
+        "unions": 2681
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43636,
+        "matched": 1,
+        "updated": true,
+        "epoch": 234,
+        "unions": 2681
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43638,
+        "matched": 1,
+        "updated": true,
+        "epoch": 235,
+        "unions": 2681
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43640,
+        "matched": 1,
+        "updated": true,
+        "epoch": 236,
+        "unions": 2681
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43642,
+        "matched": 1,
+        "updated": true,
+        "epoch": 237,
+        "unions": 2681
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43644,
+        "matched": 1,
+        "updated": true,
+        "epoch": 238,
+        "unions": 2681
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43634,
+        "matched": 1,
+        "updated": true,
+        "epoch": 239,
+        "unions": 2692
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43634,
+        "matched": 100,
+        "updated": false,
+        "epoch": 240,
+        "unions": 2692
+      },
+      {
+        "set": "type-analysis",
+        "rows": 43759,
+        "matched": 246,
+        "updated": true,
+        "epoch": 241,
+        "unions": 2692
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43766,
+        "matched": 6,
+        "updated": true,
+        "epoch": 242,
+        "unions": 2695
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43760,
+        "matched": 6,
+        "updated": true,
+        "epoch": 243,
+        "unions": 2705
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43760,
+        "matched": 64,
+        "updated": false,
+        "epoch": 244,
+        "unions": 2705
+      },
+      {
+        "set": "type-analysis",
+        "rows": 43857,
+        "matched": 241,
+        "updated": true,
+        "epoch": 245,
+        "unions": 2705
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43863,
+        "matched": 3,
+        "updated": true,
+        "epoch": 246,
+        "unions": 2705
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43860,
+        "matched": 3,
+        "updated": true,
+        "epoch": 247,
+        "unions": 2711
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43860,
+        "matched": 51,
+        "updated": false,
+        "epoch": 248,
+        "unions": 2711
+      },
+      {
+        "set": "type-analysis",
+        "rows": 43939,
+        "matched": 71,
+        "updated": true,
+        "epoch": 249,
+        "unions": 2711
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43947,
+        "matched": 5,
+        "updated": true,
+        "epoch": 250,
+        "unions": 2712
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43944,
+        "matched": 5,
+        "updated": true,
+        "epoch": 251,
+        "unions": 2719
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43945,
+        "matched": 56,
+        "updated": true,
+        "epoch": 252,
+        "unions": 2719
+      },
+      {
+        "set": "type-helpers",
+        "rows": 43945,
+        "matched": 0,
+        "updated": false,
+        "epoch": 253,
+        "unions": 2719
+      },
+      {
+        "set": "type-analysis",
+        "rows": 44033,
+        "matched": 80,
+        "updated": true,
+        "epoch": 254,
+        "unions": 2719
+      },
+      {
+        "set": "type-helpers",
+        "rows": 44038,
+        "matched": 4,
+        "updated": true,
+        "epoch": 255,
+        "unions": 2721
+      },
+      {
+        "set": "type-helpers",
+        "rows": 44035,
+        "matched": 4,
+        "updated": true,
+        "epoch": 256,
+        "unions": 2727
+      },
+      {
+        "set": "type-helpers",
+        "rows": 44035,
+        "matched": 45,
+        "updated": false,
+        "epoch": 257,
+        "unions": 2727
+      }
+    ],
+    "checks": [
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 22661,
+        "eclasses": 19692,
+        "step": 32
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 35459,
+        "eclasses": 30373,
+        "step": 64
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 37846,
+        "eclasses": 32282,
+        "step": 96
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 38954,
+        "eclasses": 33064,
+        "step": 128
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 40402,
+        "eclasses": 34186,
+        "step": 160
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 42355,
+        "eclasses": 35908,
+        "step": 192
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 43482,
+        "eclasses": 36836,
+        "step": 224
+      },
+      {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 44035,
+        "eclasses": 37323,
+        "step": 256
+      }
+    ],
+    "checked": true,
+    "check_mode": "periodic",
+    "native_oracle_runs": 256,
+    "run_control_upload_bytes": 2048,
+    "run_status_download_bytes": 9216,
+    "checkpoint_bytes": 197612512,
+    "intermediate_binding_download_bytes": 0,
+    "cpu_rhs_calls": 0,
+    "cpu_rebuild_calls_outside_oracle": 0,
+    "wall_seconds_including_debug_checks": 123.10518274997594,
+    "initial_row_upload_bytes": 2476856,
+    "native_retired_before_gpu_runs": false,
+    "oracle_starts_after_gpu": false,
+    "control_upload_bytes": 2120,
+    "assertion_tables": [],
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "build": {
+      "sources": {
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "43264661b41694ecb7a2bc53c11f9cd843b8b8c4e667fe30b1e9cfae87832074",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "505cdf69cc80b97c7e4d973e61125b80b0d3a1703b8ac4fe4d59bf53c62ac37e",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "d328071a2e3220014f405100e14d71689c27cfd8125d8871dd139a865642c5f9",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "c5ccdc42b1a6d0033c7505d81a20714905cf110c89d93a2dfd82fd3eeeb6c2e9",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "c8e7dba56e63742c72452f12afa506f48a932729f00bab316557119c36a156f8",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "0edd221a833d3b483783587e10028770b7794f0c9693a5a7e60d33d93a0490c1",
+        "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "d265668f3e4744035995e81ac22a6950d0902f695806861014f64b52e56ef993"
+      },
+      "native_kernel_source_sha256": "afc2a18dfd1bc71c276d51a4ad603707787c46e80b9e4e2c0e967688f493bdf9",
+      "git_head": "c653af649d06d5e22c6ba744ce874a217496280d",
+      "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+      "native_kernel_dirty": [
+        " M egglog/Cargo.lock",
+        " M egglog/core-relations/src/action/mod.rs",
+        " M egglog/core-relations/src/table/mod.rs",
+        " M egglog/core-relations/src/table/rebuild.rs",
+        " M egglog/core-relations/src/table/tests.rs",
+        " M egglog/core-relations/src/table_spec.rs",
+        " M egglog/egglog-bridge/src/lib.rs",
+        " M egglog/src/virtual_facts.rs"
+      ],
+      "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-connected/frontend",
+      "frontend_sha256": "f48366fc060159c4b4b6cad808cd7f56fd0ef1d0353a0706edb515f9d08ee207",
+      "worker_sha256": "7dd9fa317cb861d2164d593ffb9bc6fb4d92e1eece11971213e4f3e08b3d05ba"
+    },
+    "program_sha256": "7b555709aee0a4114518867fc05f7ca9084c78085089c710f079bda84a380e9a"
+  }
+}

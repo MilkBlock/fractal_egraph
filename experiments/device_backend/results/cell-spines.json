@@ -1,0 +1,527 @@
+{
+  "scope": "actual GPU-owned complete Raytrace Pass 3, one run per setting; boundary recipes only differ",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "artifact_sha256": "8f0a556582641ec05fce20ff9acd8945ed534a105ff8f44b3b899c84b77d9d4b",
+  "worker_sha256": "b0382011577cfc2f21f0d666c925b2f42f3b9c0b54e1c0b47ada6ec1dd338f3a",
+  "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+  "same_worker": true,
+  "same_frontend": true,
+  "before": "out/cell-spines-pass3-control",
+  "after": "out/cell-spines-pass3-full",
+  "inference_seconds": {
+    "off": 42.919433292001486,
+    "on": 42.33602204208728
+  },
+  "inference_reduction_percent": 1.3593172257074793,
+  "joint_gpu_seconds": {
+    "off": 6.252832995261997,
+    "on": 5.3923851635772735
+  },
+  "generic_binders": {
+    "off": {
+      "terms": 81104,
+      "helpers": 0
+    },
+    "on": {
+      "terms": 0,
+      "helpers": 0
+    }
+  },
+  "spine_counters": {
+    "candidate_tuples": 81104,
+    "actions": 81104,
+    "fallback_actions": 0,
+    "multivalue_tuples": 0
+  },
+  "full_graph": {
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 699784,
+    "eclasses": 524742,
+    "native_reference": false,
+    "identity_contract": "typed graph bijection; physical allocation order may differ",
+    "original_schedule_equal": true,
+    "internal_run_history_equal": true
+  },
+  "quality": {
+    "passed": true,
+    "outputs": [
+      {
+        "file": "out/cell-spines-extraction/control.egg",
+        "reconstruction_seconds": 0.110417709,
+        "selected_rows": 8019,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      },
+      {
+        "file": "out/cell-spines-extraction/updates.egg",
+        "reconstruction_seconds": 0.103044417,
+        "selected_rows": 8019,
+        "functions": [
+          "bbox_between",
+          "bbox_ray_intersect",
+          "bbox_size",
+          "bbox_triangle",
+          "bbox_union",
+          "build_bvh",
+          "build_cube",
+          "dot",
+          "fabs",
+          "fmax",
+          "fmin",
+          "intersect",
+          "main",
+          "make_leaf_node",
+          "partition",
+          "partition_cost",
+          "point_max",
+          "point_min",
+          "sample_ray",
+          "sqrt",
+          "trace",
+          "triangle_max",
+          "triangle_min",
+          "vec_add",
+          "vec_cross",
+          "vec_len",
+          "vec_normalize",
+          "vec_scale",
+          "vec_sub"
+        ],
+        "function_count": 29
+      }
+    ],
+    "checks": [
+      {
+        "candidate": "out/cell-spines-extraction/updates.egg",
+        "exact_selected_dag": {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 8018,
+          "eclass_mapping": 8018,
+          "tables": {
+            "Add": 1,
+            "Alloc": 132,
+            "And": 1,
+            "Arg": 1,
+            "Bool": 2,
+            "BoolT": 1,
+            "Bop": 2246,
+            "Call": 85,
+            "Concat": 1500,
+            "Const": 27,
+            "Div": 1,
+            "DoWhile": 58,
+            "DumC": 1,
+            "Eq": 1,
+            "FAdd": 1,
+            "FDiv": 1,
+            "FGreaterEq": 1,
+            "FGreaterThan": 1,
+            "FLessThan": 1,
+            "FMul": 1,
+            "FSub": 1,
+            "Float": 16,
+            "FloatT": 1,
+            "Free": 1,
+            "Function": 29,
+            "Get": 2400,
+            "GreaterThan": 1,
+            "If": 111,
+            "Int": 9,
+            "IntT": 1,
+            "LessThan": 1,
+            "Load": 1,
+            "Neg": 1,
+            "Not": 1,
+            "Or": 1,
+            "PointerT": 5,
+            "Print": 1,
+            "PtrAdd": 1,
+            "Single": 873,
+            "StateT": 1,
+            "Sub": 1,
+            "TCons": 44,
+            "TNil": 1,
+            "Top": 431,
+            "TupleT": 19,
+            "Uop": 2,
+            "Write": 1
+          }
+        },
+        "error": null
+      }
+    ],
+    "scope": "Actual production Tiger outputs reconstructed as constructor DAGs; all selected operators, constants, parameters and function roots compared modulo allocated IDs. Identical selected DAG implies identical objective under the same cost model. No surrogate tree-size quality score or new executable runtime/interpreter test."
+  },
+  "reused_control_extraction": "out/cell-update-pass3/extraction",
+  "coverage_checks": {
+    "all": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 214,
+        "eclasses": 182,
+        "step": 1
+      },
+      "generic_terms_bindings": 0,
+      "direct_actions": 12,
+      "fallback_actions": 0
+    },
+    "missing-top": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 214,
+        "eclasses": 182,
+        "step": 1
+      },
+      "generic_terms_bindings": 2,
+      "direct_actions": 10,
+      "fallback_actions": 2
+    },
+    "wire-rejected": true,
+    "arithmetic-rejected": true,
+    "effects-rejected": true,
+    "evidence-rejected": true,
+    "duplicate-rejected": true
+  },
+  "real_rule_checks": {
+    "provenance": {
+      "pass3_source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "artifact_sha256": "8f0a556582641ec05fce20ff9acd8945ed534a105ff8f44b3b899c84b77d9d4b",
+      "observed_old_value_requests": 13
+    },
+    "two-improvements": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 149,
+        "eclasses": 143,
+        "step": 1
+      },
+      "updates": [
+        {
+          "groups_considered": 8,
+          "guard_pairs_eliminated": 4,
+          "guard_pairs_checked": 4,
+          "actions": 4,
+          "existing_result_actions": 2,
+          "multiple_witness_actions": 0,
+          "owners": 1
+        }
+      ],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": [
+        {
+          "candidate_tuples": 0,
+          "actions": 0,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        }
+      ]
+    },
+    "correlated-bags": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 188,
+        "eclasses": 168,
+        "step": 1
+      },
+      "updates": [
+        {
+          "groups_considered": 40,
+          "guard_pairs_eliminated": 22,
+          "guard_pairs_checked": 25,
+          "actions": 22,
+          "existing_result_actions": 13,
+          "multiple_witness_actions": 5,
+          "owners": 2
+        }
+      ],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": [
+        {
+          "candidate_tuples": 8,
+          "actions": 8,
+          "fallback_actions": 0,
+          "multivalue_tuples": 8
+        }
+      ]
+    },
+    "late-improvements": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 150,
+        "eclasses": 143,
+        "step": 3
+      },
+      "updates": [
+        {
+          "groups_considered": 4,
+          "guard_pairs_eliminated": 2,
+          "guard_pairs_checked": 2,
+          "actions": 2,
+          "existing_result_actions": 1,
+          "multiple_witness_actions": 0,
+          "owners": 1
+        },
+        {
+          "groups_considered": 5,
+          "guard_pairs_eliminated": 3,
+          "guard_pairs_checked": 2,
+          "actions": 2,
+          "existing_result_actions": 1,
+          "multiple_witness_actions": 0,
+          "owners": 1
+        }
+      ],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": [
+        {
+          "candidate_tuples": 0,
+          "actions": 0,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        },
+        {
+          "candidate_tuples": 0,
+          "actions": 0,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        }
+      ]
+    },
+    "comparison-enables-update": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 148,
+        "eclasses": 142,
+        "step": 1
+      },
+      "updates": [
+        {
+          "groups_considered": 5,
+          "guard_pairs_eliminated": 2,
+          "guard_pairs_checked": 2,
+          "actions": 2,
+          "existing_result_actions": 1,
+          "multiple_witness_actions": 0,
+          "owners": 1
+        }
+      ],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": [
+        {
+          "candidate_tuples": 0,
+          "actions": 0,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        }
+      ]
+    },
+    "multiple-spines": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 163,
+        "eclasses": 150,
+        "step": 1
+      },
+      "updates": [
+        {
+          "groups_considered": 16,
+          "guard_pairs_eliminated": 8,
+          "guard_pairs_checked": 8,
+          "actions": 8,
+          "existing_result_actions": 4,
+          "multiple_witness_actions": 0,
+          "owners": 3
+        }
+      ],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": [
+        {
+          "candidate_tuples": 4,
+          "actions": 4,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        }
+      ]
+    },
+    "large-costs": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 150,
+        "eclasses": 143,
+        "step": 1
+      },
+      "updates": [
+        {
+          "groups_considered": 8,
+          "guard_pairs_eliminated": 4,
+          "guard_pairs_checked": 4,
+          "actions": 4,
+          "existing_result_actions": 2,
+          "multiple_witness_actions": 0,
+          "owners": 1
+        }
+      ],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": [
+        {
+          "candidate_tuples": 0,
+          "actions": 0,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        }
+      ]
+    },
+    "late-cost-alias": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 148,
+        "eclasses": 141,
+        "step": 3
+      },
+      "updates": [
+        {
+          "groups_considered": 4,
+          "guard_pairs_eliminated": 2,
+          "guard_pairs_checked": 2,
+          "actions": 2,
+          "existing_result_actions": 1,
+          "multiple_witness_actions": 0,
+          "owners": 1
+        },
+        {
+          "groups_considered": 2,
+          "guard_pairs_eliminated": 2,
+          "guard_pairs_checked": 4,
+          "actions": 1,
+          "existing_result_actions": 1,
+          "multiple_witness_actions": 1,
+          "owners": 1
+        }
+      ],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": [
+        {
+          "candidate_tuples": 0,
+          "actions": 0,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        },
+        {
+          "candidate_tuples": 0,
+          "actions": 0,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        }
+      ]
+    },
+    "finite-run": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 144,
+        "eclasses": 140,
+        "step": 3
+      },
+      "updates": [],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": []
+    },
+    "mixed-programs": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 163,
+        "eclasses": 150,
+        "step": 1
+      }
+    },
+    "negative-rollback": {
+      "accepted": false,
+      "reason": 8,
+      "published_state_byte_identical": true,
+      "numeric_payload_not_downloaded": true
+    },
+    "overflow-rollback": {
+      "accepted": false,
+      "reason": 5,
+      "published_state_byte_identical": true,
+      "numeric_payload_not_downloaded": true
+    },
+    "forged-update-rejected": true,
+    "missing-evidence-rejected": true,
+    "invalid-configuration-rejected": true,
+    "finite-entry-sentinel": {
+      "native": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 156,
+        "eclasses": 147,
+        "step": 3
+      },
+      "updates": [
+        {
+          "groups_considered": 12,
+          "guard_pairs_eliminated": 7,
+          "guard_pairs_checked": 5,
+          "actions": 5,
+          "existing_result_actions": 3,
+          "multiple_witness_actions": 0,
+          "owners": 3
+        }
+      ],
+      "original_helper_bindings": 0,
+      "original_terms_bindings": 0,
+      "spines": [
+        {
+          "candidate_tuples": 2,
+          "actions": 2,
+          "fallback_actions": 0,
+          "multivalue_tuples": 0
+        }
+      ]
+    }
+  },
+  "v1_regression_checks": 18,
+  "limits": [
+    "81,104 candidate tuples unchanged",
+    "unattributed absolute-time drift from previous 39.9954 s record",
+    "existing native CPU/device full-Pass-3 mismatch remains",
+    "no new occupancy measurements",
+    "explicit opt-in artifact only"
+  ]
+}

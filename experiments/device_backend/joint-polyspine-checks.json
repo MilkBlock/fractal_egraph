@@ -1,0 +1,61 @@
+{
+  "schema": "resident-joint-polyspine-checks/v1",
+  "tests": {
+    "joint_program": {
+      "cases": 34,
+      "result": "out/joint-polyspine-tests-published/results.json",
+      "sha256": "9ac8148f5401f91e5241ba1d2a11ad49dfccb6d3827298fcf400e093fc7ca6d7",
+      "passed": true
+    },
+    "device_backend": {
+      "cases": 60,
+      "result": "out/joint-regression-backend/results.json",
+      "sha256": "f1c02e601e2917a281c3e15dc87f34e4cbe90d2b8290b233db85b7ce937bbded",
+      "passed": true
+    },
+    "predicate_matrix": {
+      "cases": 16,
+      "result": "out/joint-regression-matrix/results.json",
+      "sha256": "d31137152974ca453ce59a8b40c6a99495d2d00521c7a1cad4eb38761a44fa2f",
+      "passed": true
+    },
+    "comparison_matrix": {
+      "cases": 19,
+      "result": "out/joint-regression-comparison/results.json",
+      "sha256": "8841695c6680579199c41e16d27a389066255e0eae583228554eef00508c9acd",
+      "passed": true
+    },
+    "analyzer_polyspine": {
+      "cases": 39,
+      "result": "out/joint-regression-polyspine-verified.log",
+      "sha256": "c46b8308db249c6f0d53bcbb5ad5b8fe1e2268b51f0ae27c4d0ee61d9b6d09f2",
+      "passed": true
+    },
+    "interface_pure": {
+      "cases": 3,
+      "result": "out/joint-regression-interfaces-pure.log",
+      "sha256": "80d34249e15c264ee89a600874f2ebbfd30d84d067cda5d7360bf22910da27e0",
+      "passed": true
+    }
+  },
+  "build": {
+    "worker_sha256": "16ab49b6fa75efc2720069b3ca902192c5ebbe23135db7336163da10a4f7c046",
+    "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b"
+  },
+  "native_initial_terms": {
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 27793,
+    "eclasses": 21655,
+    "step": 2
+  },
+  "gpu_feature_score_audit": {
+    "frames": 3,
+    "max_projection_error": 0.0,
+    "max_ridge_score_error": 0.0
+  },
+  "full_pass_check": "See joint-polyspine-results.json; exact complete device graph against saved previous device backend, not full native equivalence",
+  "unavailable_legacy_checks": [
+    "Three tools.cell_spine.test_interfaces tests require target/release/examples/lhs_ast and native_math_baseline, absent in this checkout; not reported as passing. Equivalent native binding/union/retirement cases run in the new GPU/native joint suite."
+  ],
+  "profiling": "Ordinary-Run profiler preparation/Swift build passed with the existing unstaged shared-encoder label patch; new compacted scopes reject incompatible Run-only replay. No hardware capture in this task."
+}

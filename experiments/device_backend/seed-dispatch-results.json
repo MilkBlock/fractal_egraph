@@ -1,0 +1,41 @@
+{
+  "scope": "checked schedule suffix/prefix only, not full end-to-end acceleration",
+  "before": "out/device-radix4-suffix",
+  "after": "out/device-seed-dispatch-suffix",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "resumed_prefix_runs": 6232,
+  "measured_runs": 3865,
+  "final_check": {
+    "exact_device_state": true,
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 699784,
+    "native_reference": false
+  },
+  "timings": {
+    "device_control_wait": {
+      "before_seconds": 41.901891516696196,
+      "after_seconds": 31.604058467200957,
+      "ratio": 1.3258389443932477
+    },
+    "device_gpu": {
+      "before_seconds": 38.23306079162285,
+      "after_seconds": 28.336928543518297,
+      "ratio": 1.3492309419811188
+    },
+    "prepare": {
+      "before_seconds": 10.008177666924894,
+      "after_seconds": 9.790470085397828,
+      "ratio": 1.022236683185598
+    },
+    "match": {
+      "before_seconds": 14.51044929260388,
+      "after_seconds": 4.942482041544281,
+      "ratio": 2.9358628257291723
+    },
+    "commit": {
+      "before_seconds": 13.714433832094073,
+      "after_seconds": 13.603976416576188,
+      "ratio": 1.0081194947811947
+    }
+  }
+}

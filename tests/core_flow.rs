@@ -69,7 +69,17 @@ fn all_observed_entries_are_registered_and_identical_entries_share_work() {
             .count()
             >= 269
     );
-    assert_eq!(q["catalog"]["catalog"]["saturated_rule_compositions"], 1);
+    // Observed windows also include B -> C without the A fact. That closure
+    // must not merge with A -> B -> C, despite their shared suffix.
+    assert_eq!(q["catalog"]["catalog"]["saturated_rule_compositions"], 2);
+    let shapes: std::collections::BTreeSet<Vec<String>> = fs::read_dir(out.join("catalog/states"))
+        .unwrap().map(|p| {
+            let state=read(p.unwrap().path());
+            state["rows"].as_array().unwrap().iter().map(|r|r["op"].as_str().unwrap().to_owned())
+                .collect::<std::collections::BTreeSet<_>>().into_iter().collect()
+        }).collect();
+    assert_eq!(shapes, [vec!["A", "B", "C", "RipenInput"], vec!["B", "C", "RipenInput"]]
+        .into_iter().map(|s|s.into_iter().map(str::to_owned).collect()).collect());
     fs::remove_dir_all(base).unwrap();
 }
 #[test]

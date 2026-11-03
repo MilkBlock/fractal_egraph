@@ -1,0 +1,505 @@
+{
+  "schema": "eggfuse-shared-structural-key-check/v1",
+  "date": "2026-11-01",
+  "native_merge_fix": "ead5232",
+  "runtime": "native egglog oracle, standalone Cell CPU engine, resident Metal; unified SK/marker compiler",
+  "raytrace_executed": false,
+  "micro_cases": {
+    "key-spine": {
+      "selected_choices": [
+        "Winner"
+      ],
+      "markers": 2,
+      "cpu": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 45,
+        "eclasses": 20
+      },
+      "metal": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 45,
+        "eclasses": 20
+      },
+      "metal_replay": {
+        "contract": "checked derivations and GPU L1 reproducibility; no CPU final-graph completeness claim",
+        "seed_conditions": "exact existing GPU matcher against the Run snapshot",
+        "successor_conditions": "all actual canonical table rows and guards checked before publication; unions merge at block boundaries then resume saved contexts",
+        "numeric_effects": "source i64 arithmetic audited before publication; bounded affine matrix path with integer fallback",
+        "constructor_results": "actual keyed row or its queued constructor-prediction equality; audited before successor use",
+        "completed": true,
+        "rounds": 22,
+        "per_round_fingerprints_and_control_equal": true,
+        "fingerprint_scope": "global resident rows at ordinary Run boundaries; cumulative private fact-coordinate fingerprints inside certified schedule regions",
+        "final_rows_ids_values_visibility_equal": true,
+        "native_whole_graph_equivalence_required": false
+      },
+      "cpu_operations": {
+        "bindings": 45,
+        "cells_created": 49,
+        "constructor_requests": 56,
+        "constructor_reused": 40,
+        "decoded_rows": 171,
+        "direct_bindings": 17,
+        "empty_frames_released": 23,
+        "function_updates": 33,
+        "key_operations": 46,
+        "logical_facts_created": 20,
+        "merge_calls": 30,
+        "merge_contract_calls": {
+          "key-min": 16,
+          "lattice": 7,
+          "ordered": 4,
+          "ranked-selection": 3
+        },
+        "merge_port_reads": 12,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 0,
+        "residual_candidates": 110,
+        "unions": 0
+      },
+      "metal_key_header": [
+        138,
+        46,
+        12,
+        26,
+        0,
+        0,
+        0,
+        0
+      ],
+      "scope": "correctness with active SK/marker passes; NOT a performance benchmark"
+    },
+    "key-values": {
+      "selected_choices": [
+        "Winner"
+      ],
+      "markers": 0,
+      "cpu": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 17,
+        "eclasses": 8
+      },
+      "metal": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 17,
+        "eclasses": 8
+      },
+      "metal_replay": {
+        "contract": "checked derivations and GPU L1 reproducibility; no CPU final-graph completeness claim",
+        "seed_conditions": "exact existing GPU matcher against the Run snapshot",
+        "successor_conditions": "all actual canonical table rows and guards checked before publication; unions merge at block boundaries then resume saved contexts",
+        "numeric_effects": "source i64 arithmetic audited before publication; bounded affine matrix path with integer fallback",
+        "constructor_results": "actual keyed row or its queued constructor-prediction equality; audited before successor use",
+        "completed": true,
+        "rounds": 7,
+        "per_round_fingerprints_and_control_equal": true,
+        "fingerprint_scope": "global resident rows at ordinary Run boundaries; cumulative private fact-coordinate fingerprints inside certified schedule regions",
+        "final_rows_ids_values_visibility_equal": true,
+        "native_whole_graph_equivalence_required": false
+      },
+      "cpu_operations": {
+        "bindings": 14,
+        "cells_created": 18,
+        "constructor_requests": 4,
+        "constructor_reused": 0,
+        "decoded_rows": 48,
+        "direct_bindings": 4,
+        "empty_frames_released": 7,
+        "function_updates": 13,
+        "key_operations": 18,
+        "logical_facts_created": 8,
+        "merge_calls": 9,
+        "merge_contract_calls": {
+          "key-min": 4,
+          "lattice": 4,
+          "ranked-selection": 1
+        },
+        "merge_port_reads": 4,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 0,
+        "residual_candidates": 22,
+        "unions": 0
+      },
+      "metal_key_header": [
+        85,
+        18,
+        4,
+        9,
+        0,
+        0,
+        0,
+        0
+      ],
+      "scope": "correctness with active SK/marker passes; NOT a performance benchmark"
+    },
+    "key-refresh": {
+      "selected_choices": [
+        "Winner"
+      ],
+      "markers": 0,
+      "cpu": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 4
+      },
+      "metal": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 4
+      },
+      "metal_replay": {
+        "contract": "checked derivations and GPU L1 reproducibility; no CPU final-graph completeness claim",
+        "seed_conditions": "exact existing GPU matcher against the Run snapshot",
+        "successor_conditions": "all actual canonical table rows and guards checked before publication; unions merge at block boundaries then resume saved contexts",
+        "numeric_effects": "source i64 arithmetic audited before publication; bounded affine matrix path with integer fallback",
+        "constructor_results": "actual keyed row or its queued constructor-prediction equality; audited before successor use",
+        "completed": true,
+        "rounds": 19,
+        "per_round_fingerprints_and_control_equal": true,
+        "fingerprint_scope": "global resident rows at ordinary Run boundaries; cumulative private fact-coordinate fingerprints inside certified schedule regions",
+        "final_rows_ids_values_visibility_equal": true,
+        "native_whole_graph_equivalence_required": false
+      },
+      "cpu_operations": {
+        "bindings": 27,
+        "cells_created": 31,
+        "constructor_requests": 12,
+        "constructor_reused": 8,
+        "decoded_rows": 96,
+        "direct_bindings": 8,
+        "empty_frames_released": 24,
+        "function_updates": 15,
+        "key_operations": 35,
+        "logical_facts_created": 8,
+        "merge_calls": 24,
+        "merge_contract_calls": {
+          "key-min": 8,
+          "lattice": 13,
+          "ranked-selection": 3
+        },
+        "merge_port_reads": 12,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 19,
+        "residual_candidates": 47,
+        "unions": 4
+      },
+      "metal_key_header": [
+        85,
+        35,
+        12,
+        22,
+        0,
+        0,
+        0,
+        0
+      ],
+      "scope": "correctness with active SK/marker passes; NOT a performance benchmark"
+    },
+    "key-depth": {
+      "selected_choices": [
+        "Winner"
+      ],
+      "markers": 0,
+      "cpu": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 17,
+        "eclasses": 8
+      },
+      "metal": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 17,
+        "eclasses": 8
+      },
+      "metal_replay": {
+        "contract": "checked derivations and GPU L1 reproducibility; no CPU final-graph completeness claim",
+        "seed_conditions": "exact existing GPU matcher against the Run snapshot",
+        "successor_conditions": "all actual canonical table rows and guards checked before publication; unions merge at block boundaries then resume saved contexts",
+        "numeric_effects": "source i64 arithmetic audited before publication; bounded affine matrix path with integer fallback",
+        "constructor_results": "actual keyed row or its queued constructor-prediction equality; audited before successor use",
+        "completed": true,
+        "rounds": 8,
+        "per_round_fingerprints_and_control_equal": true,
+        "fingerprint_scope": "global resident rows at ordinary Run boundaries; cumulative private fact-coordinate fingerprints inside certified schedule regions",
+        "final_rows_ids_values_visibility_equal": true,
+        "native_whole_graph_equivalence_required": false
+      },
+      "cpu_operations": {
+        "bindings": 16,
+        "cells_created": 20,
+        "constructor_requests": 5,
+        "constructor_reused": 1,
+        "decoded_rows": 46,
+        "direct_bindings": 8,
+        "empty_frames_released": 9,
+        "function_updates": 13,
+        "key_operations": 15,
+        "logical_facts_created": 8,
+        "merge_calls": 10,
+        "merge_contract_calls": {
+          "key-min": 5,
+          "lattice": 4,
+          "ranked-selection": 1
+        },
+        "merge_port_reads": 4,
+        "native_free_join_calls": 0,
+        "native_table_reads": 0,
+        "native_table_writes": 0,
+        "repaired_dependencies": 0,
+        "residual_candidates": 20,
+        "unions": 0
+      },
+      "metal_key_header": [
+        51,
+        15,
+        4,
+        10,
+        0,
+        0,
+        0,
+        0
+      ],
+      "scope": "correctness with active SK/marker passes; NOT a performance benchmark"
+    }
+  },
+  "small_pass3": {
+    "case": "sum-bits",
+    "choices": [
+      "to-hoist"
+    ],
+    "markers": 48,
+    "cpu_inference_seconds": 0.556118209,
+    "metal": {
+      "backend": "regions",
+      "verification": {
+        "contract": "checked derivations and GPU L1 reproducibility; no CPU final-graph completeness claim",
+        "seed_conditions": "exact existing GPU matcher against the Run snapshot",
+        "successor_conditions": "all actual canonical table rows and guards checked before publication; unions merge at block boundaries then resume saved contexts",
+        "numeric_effects": "source i64 arithmetic audited before publication; bounded affine matrix path with integer fallback",
+        "constructor_results": "actual keyed row or its queued constructor-prediction equality; audited before successor use",
+        "completed": true,
+        "rounds": 1459,
+        "per_round_fingerprints_and_control_equal": true,
+        "fingerprint_scope": "global resident rows at ordinary Run boundaries; cumulative private fact-coordinate fingerprints inside certified schedule regions",
+        "final_rows_ids_values_visibility_equal": true,
+        "native_whole_graph_equivalence_required": false
+      },
+      "multi_stage_cell": {
+        "incremental_rebuild": {
+          "enabled_instances": 0,
+          "counters": {
+            "blocks_tested": 0,
+            "blocks_skipped": 0,
+            "rows_visited": 0,
+            "rows_changed": 0,
+            "summary_refreshes": 0
+          },
+          "duplicate_group_rows_skipped": 0,
+          "summary_bytes": 0
+        },
+        "packet_bindings": 0,
+        "packet_requests": 0,
+        "packet_fresh_rows": 0,
+        "packet_depth_passes": 0,
+        "packet_ordered_tails": 0,
+        "packet_fallbacks": 0,
+        "packet_cells": 0,
+        "packet_cell_steps": 0,
+        "packet_reserved": 0,
+        "packet_existing_hits": 0,
+        "packet_reused_requests": 0,
+        "wave_validated_steps": 9782,
+        "wave_effect_requests": 1764,
+        "wave_fresh_rows": 899,
+        "wave_key_groups": 1162,
+        "wave_duplicate_keys": 226,
+        "cell_waves": 672,
+        "parallel_union_batches": 102,
+        "wave_guard_reads": 14661,
+        "wave_union_pairs": 721,
+        "parallel_union_pairs": 1035,
+        "wave_noop_effects": 23319,
+        "wave_certificates": 2566,
+        "merge_index_refreshes": 1,
+        "merge_index_rows": 7958,
+        "ordinary_rhs_bindings": 3701,
+        "ordinary_rhs_runs": 342,
+        "direct_single_step_invocations": 10971,
+        "witnessed_constructor_reads": 10743,
+        "witnessed_constructor_sets": 150,
+        "seed_rows_examined": 5060329,
+        "active_seed_rows": 58518,
+        "grounded_seed_jobs": 357,
+        "proved_empty_cell_seeds": 0,
+        "cell_noop_checks": 0,
+        "parallel_constructor_requests": 0,
+        "parallel_constructor_rows": 0,
+        "constructor_batches": 0,
+        "constructor_batch_fallbacks": 0,
+        "proved_empty_rhs": 4056,
+        "parallel_noop_checks": 6436,
+        "matcher_binding_outputs": 20648,
+        "private_schedule_binding_outputs": 422,
+        "executed_rule_invocations": 28981,
+        "match_count_scope": "exact matcher outputs, private schedule invocations and accepted inline invocations are counted separately; none is committed mutations",
+        "batch_tiles": 1596,
+        "batch_seed_invocations": 2534,
+        "validated_successor_invocations": 7911,
+        "rejected_successor_invocations": 1730,
+        "batch_effect_requests": 38483,
+        "residual_invocations": 18114,
+        "max_tile_rows": 128,
+        "matrix_context_rows": 1357,
+        "exact_numeric_audits": 439,
+        "completed_binding_shortcuts": 123,
+        "continuation_blocks": 51,
+        "union_merge_blocks": 102,
+        "actual_set_results": 2260,
+        "custom_merge_requests": 215,
+        "constructor_set_requests": 665,
+        "constructor_result_audits": 13572,
+        "scope": "original control gates with witnessed saturation-local successor firing in one shared GPU identity domain",
+        "cached_spine_reuses": 0,
+        "spine_builds": 0,
+        "correlated_rows_built": 0,
+        "correlated_rows_consumed": 0,
+        "prefix_table_reads": 0,
+        "invalidated_spines": 0,
+        "cache_compactions": 0,
+        "witness_validated_tuple_reuses": 0,
+        "stage_runs": 1459,
+        "row_index_rebuilds": 108,
+        "cache_growths": 0,
+        "exact_residual_queries": true,
+        "invalidation_granularity": "table mutation versions",
+        "identities": "shared hashcons/union; local recipe slots receive actual constructor results",
+        "execution": "GPU control, parallel keyed Cell waves where admitted, ordered publication for noncommuting callbacks"
+      },
+      "gpu_inference_seconds": 3.5713319778442383
+    },
+    "cold_shader_compile_seconds": 3237.803,
+    "warm_shader_compile_seconds": 48.367,
+    "warm_pipeline_hits": 100,
+    "warm_pipeline_misses": 0,
+    "cpu_statistics": {
+      "bindings": 45911,
+      "cells_created": 46195,
+      "constructor_requests": 33287,
+      "constructor_reused": 30002,
+      "decoded_rows": 794075,
+      "direct_bindings": 3276,
+      "empty_frames_released": 37087,
+      "function_updates": 10105,
+      "key_operations": 5115,
+      "logical_facts_created": 3920,
+      "merge_calls": 31634,
+      "merge_contract_calls": {
+        "key-min": 1713,
+        "lattice": 629,
+        "ordered": 29068,
+        "ranked-selection": 7,
+        "unique": 217
+      },
+      "merge_port_reads": 28,
+      "native_free_join_calls": 0,
+      "native_table_reads": 0,
+      "native_table_writes": 0,
+      "repaired_dependencies": 38291,
+      "residual_candidates": 686851,
+      "unions": 1089
+    },
+    "metal_key_operations": 4110,
+    "metal_merge_port_reads": 12,
+    "native_comparison": {
+      "row_counts": {
+        "native": 10186,
+        "cell_cpu": 10339,
+        "metal": 10267
+      },
+      "table_count_differences": [
+        {
+          "table": "CellSpineApplied254",
+          "native": 102,
+          "cell_cpu": 102,
+          "metal": 99
+        },
+        {
+          "table": "CellSpineApplied256",
+          "native": 24,
+          "cell_cpu": 75,
+          "metal": 55
+        },
+        {
+          "table": "CellSpineApplied258",
+          "native": 3,
+          "cell_cpu": 3,
+          "metal": 0
+        },
+        {
+          "table": "CellSpineView10",
+          "native": 103,
+          "cell_cpu": 154,
+          "metal": 131
+        },
+        {
+          "table": "Smaller",
+          "native": 103,
+          "cell_cpu": 154,
+          "metal": 131
+        }
+      ],
+      "interpretation": "Counts only; does not locate first semantic divergence or assign cause."
+    },
+    "projected_diagnostic": {
+      "excluded_tables": [
+        "CellSpineApplied254",
+        "CellSpineApplied256",
+        "CellSpineApplied258",
+        "CellSpineView10",
+        "Smaller"
+      ],
+      "scope": "diagnostic only; excluded facts are semantically observable, not a relaxed acceptance gate",
+      "cpu": {
+        "equal": false,
+        "reason": "missing native row ('TermBop', (('BinaryOp', 'Value(2)'), ('Term', 'Value(1245)'), ('Term', 'Value(2171)')))"
+      },
+      "metal": {
+        "equal": false,
+        "reason": "different equality partition"
+      }
+    },
+    "speedup_claim": false,
+    "scope": "integration invocation with replay/audit; different endpoints, not a performance comparison",
+    "input_sha256": "a0014215ec09515311042eff1ccd3df54514e358f68a8d7a70aa54db137a4c12",
+    "source_sk_sha256": "fa9a0d7e23238b5e3ab50ab077f27c976b66b606956218c1f84fd7d49f5bd93a",
+    "source_sk_mk_sha256": "7e2e19c1e9cc23eaee8e68717b40f0d36ceede3a287d4efefd6f54588752aa90"
+  },
+  "checks": {
+    "key_unit_tests": 4,
+    "native_merge_tests": 2,
+    "cpu_runtime_unit_tests": 2,
+    "python_tests": 31,
+    "legacy_cpu_native_cases": 50,
+    "forged_contracts_rejected": [
+      "kind",
+      "reads",
+      "constructs",
+      "equal_inputs",
+      "schema"
+    ],
+    "cpu_resume_exact": true,
+    "gpu_native_import_without_inference": true,
+    "assembled_legacy_swift_typecheck": true
+  },
+  "limitations": [
+    "Metal key primitives in LHS rejected; generated RHS/merge path supported",
+    "ordered exact key interning and merge reads, not parallel key optimization",
+    "full sum-bits native endpoint mismatch retained",
+    "cold shader compile dominates setup; cache-only option prevents accidental pipeline misses"
+  ]
+}

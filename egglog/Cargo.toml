@@ -134,6 +134,7 @@ table-read-profile = ["egglog-core-relations/table-read-profile", "egglog-bridge
 join-work-profile = ["egglog-core-relations/join-work-profile"]
 
 [dependencies]
+eggfuse-structural-key = { path = "../engine/structural-key" }
 smallvec.workspace = true
 clap = { workspace = true, features = ["derive"], optional = true }
 egraph-serialize = { workspace = true}

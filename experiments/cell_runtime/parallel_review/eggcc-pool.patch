@@ -1,0 +1,18 @@
+diff --git a/dag_in_context/src/lib.rs b/dag_in_context/src/lib.rs
+index 12cac244..1bfacd1d 100644
+--- a/dag_in_context/src/lib.rs
++++ b/dag_in_context/src/lib.rs
+@@ -59,9 +59,10 @@ fn new_single_threaded_egraph() -> egglog::EGraph {
+     static RAYON_INIT: Once = Once::new();
+     RAYON_INIT.call_once(|| {
+         // Ignore the error if the global pool was already initialized elsewhere.
+-        let _ = rayon::ThreadPoolBuilder::new()
+-            .num_threads(1)
+-            .build_global();
++        let threads: usize = std::env::var("EGGCC_PROFILE_THREADS").unwrap().parse().unwrap();
++        let init = rayon::ThreadPoolBuilder::new().num_threads(threads).build_global();
++        assert_eq!(rayon::current_num_threads(), threads, "effective Rayon pool width differs");
++        eprintln!("eggcc profile effective Rayon threads={} init={:?}", rayon::current_num_threads(), init);
+     });
+     egglog::new_experimental_egraph()
+ }

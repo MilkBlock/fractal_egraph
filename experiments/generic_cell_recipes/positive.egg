@@ -1,0 +1,7 @@
+(datatype Tree (Leaf) (Twig Tree) (Branch Tree))
+(ruleset growth)
+(ruleset share)
+(rule ((= x (Leaf))) ((Twig x)) :ruleset growth)
+(rule ((= x (Twig y))) ((Branch x) (union x y)) :ruleset share)
+(Leaf)
+(run-schedule (saturate (run growth) (run share)))

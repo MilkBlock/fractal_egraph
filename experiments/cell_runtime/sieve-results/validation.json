@@ -1,0 +1,1428 @@
+{
+  "check-final": {
+    "math": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 31,
+        "eclasses": 15
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 42,
+        "atoms": 60,
+        "runs": 9,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "finite": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 3
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 2,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "late-right-delta": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 3,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "overlapping-deltas": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 6
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 5,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "union-enables-join": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 4,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "late-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 3
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 5,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "function-ports": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 3
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 4,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "ordered-merge": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 5
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 7,
+        "atoms": 19,
+        "runs": 6,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "key-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 1
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 2,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "set-alias": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 2,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "container-guard-after-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 4,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "subsume": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 2,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "delete": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 1,
+        "eclasses": 1
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 2,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "deleted-parent-binding": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 2,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 2,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "non-idempotent": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 3
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "same-value-constructor-merge": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "repeat-quiescent-stop": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 1,
+        "eclasses": 1
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "until-no-future-error": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 2,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-late": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 11
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 5,
+        "atoms": 13,
+        "runs": 5,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 10
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 11,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-correlated": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 6,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-multiple-guards": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 10,
+        "eclasses": 10
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 9,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-visible-delete": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 6
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 4,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-refinement-shared": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 9
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 5,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-cycle": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 12,
+        "eclasses": 12
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 9,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-refinement-invalidation": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 10
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 7,
+        "atoms": 13,
+        "runs": 5,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "hundred-node-cell": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 101,
+        "eclasses": 101
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-local-chain": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 6
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 9,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "multistage-finite-visibility": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 5
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 4,
+        "runs": 2,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-alias-alternatives": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 6,
+        "atoms": 15,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-updated-reply": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 5,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-hidden-source": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 3,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-late-boundary": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 6,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-function-chain": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 5
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 7,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "multistage-reentrant-repeat": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 7,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "multistage-reentrant-saturate": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 13,
+        "eclasses": 13
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 6,
+        "atoms": 16,
+        "runs": 7,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-28-stages": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 120,
+        "eclasses": 120
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 84,
+        "atoms": 246,
+        "runs": 28,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-nonroot": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 9,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-future-error": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    }
+  },
+  "collisions-final": {
+    "math": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 31,
+        "eclasses": 15
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 42,
+        "atoms": 60,
+        "runs": 9,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "finite": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 3
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 2,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "late-right-delta": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 3,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "overlapping-deltas": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 6
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 5,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "union-enables-join": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 4,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "late-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 3
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 5,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "function-ports": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 3
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 4,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "ordered-merge": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 5
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 7,
+        "atoms": 19,
+        "runs": 6,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "key-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 1
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 2,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "set-alias": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 2,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "container-guard-after-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 4,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "subsume": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 2,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "delete": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 1,
+        "eclasses": 1
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 2,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "deleted-parent-binding": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 2,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 2,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "non-idempotent": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 3
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 2,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "same-value-constructor-merge": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 3,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "repeat-quiescent-stop": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 1,
+        "eclasses": 1
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "until-no-future-error": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 2,
+        "eclasses": 2
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-late": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 11
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 5,
+        "atoms": 13,
+        "runs": 5,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 10
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 11,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-correlated": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 6,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-multiple-guards": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 10,
+        "eclasses": 10
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 9,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-visible-delete": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 6
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 4,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-refinement-shared": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 9
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 5,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-cycle": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 12,
+        "eclasses": 12
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 9,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-refinement-invalidation": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 10
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 7,
+        "atoms": 13,
+        "runs": 5,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "hundred-node-cell": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 101,
+        "eclasses": 101
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-local-chain": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 6
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 9,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "multistage-finite-visibility": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 5
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2,
+        "atoms": 4,
+        "runs": 2,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-alias-alternatives": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 6,
+        "atoms": 15,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-updated-reply": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 5,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 5,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-hidden-source": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 3,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-late-boundary": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 6,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-function-chain": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 5
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 7,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "multistage-reentrant-repeat": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 7,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": true
+    },
+    "multistage-reentrant-saturate": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 13,
+        "eclasses": 13
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 6,
+        "atoms": 16,
+        "runs": 7,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-28-stages": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 120,
+        "eclasses": 120
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 84,
+        "atoms": 246,
+        "runs": 28,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-nonroot": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 7
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 9,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "multistage-future-error": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 4
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1,
+        "atoms": 1,
+        "runs": 1,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    }
+  },
+  "sharing-assertions": {
+    "join-sieve-late": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 11
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 5,
+        "atoms": 13,
+        "runs": 5,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-refinement-shared": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 9
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 5,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    }
+  },
+  "run-scope": {
+    "join-sieve-late": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 11
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 5,
+        "atoms": 13,
+        "runs": 5,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 10
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 11,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-refinement-shared": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 9
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 5,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    }
+  },
+  "table-scope": {
+    "join-sieve-late": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 11
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 5,
+        "atoms": 13,
+        "runs": 5,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-sieve-union": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 10
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 4,
+        "atoms": 11,
+        "runs": 3,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    },
+    "join-refinement-shared": {
+      "verification": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 9
+      },
+      "binding_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 3,
+        "atoms": 5,
+        "runs": 4,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "replay_exact": true,
+      "checkpoint_checked": false
+    }
+  },
+  "small-pass3-per-stage-audit": {
+    "fact": {
+      "all_stage_states_and_bindings_exact": true,
+      "independent_lhs_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 2187,
+        "atoms": 4745,
+        "runs": 427,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "scope": "correctness with audit overhead; NOT a timing run"
+    },
+    "loopfact": {
+      "all_stage_states_and_bindings_exact": true,
+      "independent_lhs_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 1902,
+        "atoms": 4441,
+        "runs": 415,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "scope": "correctness with audit overhead; NOT a timing run"
+    },
+    "sum-bits": {
+      "all_stage_states_and_bindings_exact": true,
+      "independent_lhs_audit": {
+        "kind": "independent complete-LHS stage-entry audit",
+        "bindings": 14534,
+        "atoms": 33767,
+        "runs": 933,
+        "scope": "soundness of reported matches; not proof of completeness or whole effect semantics"
+      },
+      "scope": "correctness with audit overhead; NOT a timing run"
+    }
+  },
+  "rust-tests": [
+    "bloom_growth_never_loses_insertions",
+    "new_key_propagates_even_if_or_did_not_change_bits"
+  ],
+  "ir_integrity_tests": 8
+}

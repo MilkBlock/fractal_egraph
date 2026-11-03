@@ -1,0 +1,17 @@
+(datatype T (N i64) (W T) (Parent T))
+(relation Tail (T))
+(ruleset r)
+(ruleset read-hidden)
+(N 0) (N 1) (N 2) (N 3)
+(Parent (N 0))
+; union-to-set lowering must not make W(y)'s set return value visible to the
+; constructor-prediction cache. Otherwise Parent(w) incorrectly reads the
+; committed Parent(x), and the Tail action executes instead of being masked.
+(rule ((= x (N 0)) (= y (N 1)))
+      ((union x (W y)) (let w (W y)) (subsume (Parent w)) (Tail y)) :ruleset r)
+; A first prediction through subsume is hidden, even after a pending Set.
+(rule ((= x (N 2)) (= y (N 3)))
+      ((union x (W y)) (subsume (W y)) (Tail y)) :ruleset r)
+(rule ((= y (N 3))) ((W y) (Tail y)) :ruleset read-hidden)
+(run r 1)
+(run read-hidden 1)

@@ -1,0 +1,159 @@
+{
+  "schema": "resident-joint-polyspine-results/v1",
+  "scope": "Actual GPU-owned complete saved Pass-3 schedule; not pristine egglog",
+  "reference": {
+    "directory": "out/device-comparison-pass3",
+    "inference_seconds": 39.30713695893064,
+    "setup_seconds": 28.6659147500759,
+    "gpu_seconds": 30.4764173788717,
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "worker_sha256": "430d8060ff2b2bd1b6ccffc309595e82541bea7bc1df71382493298c97f35de9"
+  },
+  "lanes": [
+    {
+      "directory": "out/joint-polyspine-published-control",
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "program_sha256": "1df845657a7c2b6652da9bd555b4da9ae9e6d975ec2cdb0229d3e96f426c0d75",
+      "worker_sha256": "16ab49b6fa75efc2720069b3ca902192c5ebbe23135db7336163da10a4f7c046",
+      "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+      "report_sha256": "6cbd07758d826fced0a2f1dfb843a561fa7b823afedd3a02b0eb31592d55ef88",
+      "clean_timing": true,
+      "inference_seconds": 40.62416966690216,
+      "setup_seconds": 44.71386183402501,
+      "model_enabled": false,
+      "training_capture": false,
+      "final_check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699784,
+        "eclasses": 524742,
+        "native_reference": false,
+        "identity_contract": "typed graph bijection; physical allocation order may differ",
+        "original_schedule_equal": true,
+        "internal_run_history_equal": false
+      },
+      "joint_calls": 12,
+      "accepted": 12,
+      "fallback_reasons": {},
+      "interface_builds": 12,
+      "marker_binding_visits": 362879,
+      "root_context_visits": 226147,
+      "service_histogram": {
+        "0": 211065,
+        "1": 2778,
+        "2": 0,
+        "3": 924,
+        "4": 1638,
+        "5": 70,
+        "6": 0,
+        "7": 9672
+      },
+      "private_phases_by_stage": {
+        "0": 454,
+        "1": 1186,
+        "2": 1186
+      },
+      "fresh_private_constructor_rows": {
+        "terms": 195834,
+        "helpers": 97537
+      },
+      "function_value_updates": 103593,
+      "surviving_new_rows": 277308,
+      "updated_existing_rows": 2674,
+      "cross_stage_successful_binding_read_uses": 311531,
+      "cross_stage_version_consumer_pairs": 184564,
+      "matrix_rhs_rows": 11226,
+      "exact_integer_fallback_rows": 52982,
+      "positive_prediction_counts": [
+        0,
+        0,
+        0
+      ],
+      "global_publications": 12,
+      "peak_retained_workspace_bytes": 597500160,
+      "device_to_device_copy_bytes": 12281002080,
+      "joint_gpu_seconds": 4.690526917343959,
+      "joint_control_seconds": 10.118269206956029,
+      "normal_intermediate_binding_download_bytes": 0
+    },
+    {
+      "directory": "out/joint-polyspine-published-ridge",
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "program_sha256": "2b67e5514b56efaca2db10293741d5776084337edb6aae8e14b71fe59cd3700b",
+      "worker_sha256": "16ab49b6fa75efc2720069b3ca902192c5ebbe23135db7336163da10a4f7c046",
+      "frontend_sha256": "7206a86b051d64769956e6ae655feaebc58ca12a8b33d333147f7bf23dd1d00b",
+      "report_sha256": "70f8be95f970e6eb88b0de01d2c20e32a82ada92e51af5301e539151c5522610",
+      "clean_timing": true,
+      "inference_seconds": 44.34075562492944,
+      "setup_seconds": 1.192812499939464,
+      "model_enabled": true,
+      "training_capture": false,
+      "final_check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 699784,
+        "eclasses": 524742,
+        "native_reference": false,
+        "identity_contract": "typed graph bijection; physical allocation order may differ",
+        "original_schedule_equal": true,
+        "internal_run_history_equal": false
+      },
+      "joint_calls": 12,
+      "accepted": 12,
+      "fallback_reasons": {},
+      "interface_builds": 12,
+      "marker_binding_visits": 362879,
+      "root_context_visits": 226147,
+      "service_histogram": {
+        "0": 211065,
+        "1": 2778,
+        "2": 0,
+        "3": 924,
+        "4": 1638,
+        "5": 70,
+        "6": 0,
+        "7": 9672
+      },
+      "private_phases_by_stage": {
+        "0": 454,
+        "1": 1186,
+        "2": 1186
+      },
+      "fresh_private_constructor_rows": {
+        "terms": 195834,
+        "helpers": 97537
+      },
+      "function_value_updates": 103593,
+      "surviving_new_rows": 277308,
+      "updated_existing_rows": 2674,
+      "cross_stage_successful_binding_read_uses": 311531,
+      "cross_stage_version_consumer_pairs": 184564,
+      "matrix_rhs_rows": 11226,
+      "exact_integer_fallback_rows": 52982,
+      "positive_prediction_counts": [
+        233363,
+        200665,
+        175639
+      ],
+      "global_publications": 12,
+      "peak_retained_workspace_bytes": 597500160,
+      "device_to_device_copy_bytes": 12281002080,
+      "joint_gpu_seconds": 9.40008461184334,
+      "joint_control_seconds": 14.718085331958719,
+      "normal_intermediate_binding_download_bytes": 0
+    }
+  ],
+  "definitions": {
+    "service_histogram": "bit 0 terms binding, bit 1 helper binding, bit 2 changed comparison class; service is not net performance credit",
+    "context_visits": "instances across joint invocations, not distinct RipSat library families",
+    "fresh_rows": "real private hashcons allocations; some are retired by later congruence",
+    "cross_stage_version_consumer_pairs": "distinct (row version, consumer stage) uses on successful exact bindings",
+    "copy_bytes": "GPU-private transactional view copies; not CPU/GPU table transfer",
+    "timing": "single candidate runs; saved unchanged reference retained with provenance"
+  },
+  "limits": [
+    "Native equality is independently checked on the real initial nested terms scope and regression cases.",
+    "The full backend retains its pre-existing complete-Pass native mismatch.",
+    "Ridge proposals never authorize effects or remove the exact fallback.",
+    "This version retains ordered GPU RHS materialization and a private row-store mirror.",
+    "Fresh hardware occupancy and Tiger extraction speed are not measured here."
+  ]
+}

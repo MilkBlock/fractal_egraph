@@ -1,0 +1,233 @@
+{
+  "scope": "actual eggcc rule family on a frozen structural carrier; standalone matrix executor, not full Pass 3",
+  "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+  "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "ruleset": "is-resolved",
+  "rules": 17,
+  "native_prefix_runs": 1563,
+  "native_prefix_seconds": 4.166581208992284,
+  "operator_preparation_seconds": 0.17350899998564273,
+  "worker_wall_including_setup_seconds": 0.14415166701655835,
+  "final_row_encoding_seconds": 1.445048667024821,
+  "native_timing_control": {
+    "seconds": 0.326213083,
+    "clone_seconds": 0.014432208,
+    "runs": 532,
+    "logical_matches": 28115,
+    "scope": "native closure only, no intervening query/snapshot export"
+  },
+  "initial_rows": 276778,
+  "fact_coordinates": 18674,
+  "clauses": 28115,
+  "anchor_rows_read": 28160,
+  "separators": [
+    {
+      "arity": 0,
+      "coefficients": [
+        15360
+      ],
+      "threshold": 0.5,
+      "positive_min": 1.0,
+      "negative_max": 0.0,
+      "roundoff_bound": 9.5367431640625e-07,
+      "margin": 0.5,
+      "truth_assignments": 1,
+      "regularization": 1.0,
+      "positive_score_rescaling": 2.0
+    },
+    {
+      "arity": 1,
+      "coefficients": [
+        14336,
+        15360
+      ],
+      "threshold": 1.0,
+      "positive_min": 1.5,
+      "negative_max": 0.5,
+      "roundoff_bound": 1.430511474609375e-06,
+      "margin": 0.5,
+      "truth_assignments": 2,
+      "regularization": 1.0,
+      "positive_score_rescaling": 2.5
+    },
+    {
+      "arity": 2,
+      "coefficients": [
+        0,
+        15360,
+        15360
+      ],
+      "threshold": 1.5,
+      "positive_min": 2.0,
+      "negative_max": 1.0,
+      "roundoff_bound": 1.9073486328125e-06,
+      "margin": 0.5,
+      "truth_assignments": 4,
+      "regularization": 1.0,
+      "positive_score_rescaling": 4.0
+    },
+    {
+      "arity": 3,
+      "coefficients": [
+        47309,
+        15360,
+        15360,
+        15360
+      ],
+      "threshold": 1.89990234375,
+      "positive_min": 2.39990234375,
+      "negative_max": 1.39990234375,
+      "roundoff_bound": 3.4333206713199615e-06,
+      "margin": 0.5,
+      "truth_assignments": 8,
+      "regularization": 1.0,
+      "positive_score_rescaling": 6.6
+    },
+    {
+      "arity": 4,
+      "coefficients": [
+        48128,
+        14988,
+        14988,
+        14988,
+        14988
+      ],
+      "threshold": 1.8642578125,
+      "positive_min": 2.2734375,
+      "negative_max": 1.455078125,
+      "roundoff_bound": 4.075467586517334e-06,
+      "margin": 0.4091796875,
+      "truth_assignments": 16,
+      "regularization": 1.0,
+      "positive_score_rescaling": 9.18181818181818
+    }
+  ],
+  "gpu": {
+    "batches": 67,
+    "control_seconds": 0.06354188919067383,
+    "coordinate_bytes": 130368,
+    "cpu_bindings_or_scores_during_iteration": 0,
+    "final_bytes": 74696,
+    "gpu_seconds": 0.033622250077314675,
+    "matrix_flops_per_active_run": 1047552,
+    "new_facts": 18674,
+    "query_calls_during_iteration": 0,
+    "resident_allocated_bytes": 1540096,
+    "runs": 532,
+    "scope": "standalone compiled closure, not full Pass 3 runtime",
+    "status_bytes": 1340,
+    "table_writes_during_iteration": 0,
+    "weight_bytes": 1920
+  },
+  "native_closure_step_seconds_diagnostic": 0.40035328899999983,
+  "native_logical_matches": 28115,
+  "full_graph_check": {
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 295452,
+    "eclasses": 229455
+  },
+  "final_materialization": "typed rows decoded once after convergence; no native repair or rule execution",
+  "matching_predicates_read_during_grounding": 0,
+  "weight_nonzero_fraction": 0.125,
+  "model_labels": "Boolean conjunction truth domains, not expected graph outcomes",
+  "limits": [
+    "Fixed topology: no in-loop union, set, subsume or structural growth.",
+    "Anchor scan and fixed wiring construction are real preparation costs.",
+    "Block-diagonal weights still perform zero multiplications; no high-utilization claim.",
+    "Native phase timings include intermittent observation; not an end-to-end speedup benchmark."
+  ],
+  "per_run_checks_summary": {
+    "runs": 532,
+    "all_exact": true
+  },
+  "same_worker_comparison": {
+    "scope": "same frozen native closure, original schedule frontiers; not full Pass 3",
+    "reference": "out/matrix-closure-raytrace-timed",
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "program_sha256": "a5040b5cb1c7eabd2e05eacd869a8769178e004efaa348d1e834267c7b15bccf",
+    "worker_sha256": "222524b6e6fe3df1349a424ee49f862eb394fda8f5d689b816e0e2937c5ffd15",
+    "kernel_sha256": "12df3d4e8f7a111d67d712ab38d7a0c34dae681c5ed7d22b3e39d371bd74a84c",
+    "native_control_reused": {
+      "seconds": 0.326213083,
+      "clone_seconds": 0.014432208,
+      "runs": 532,
+      "logical_matches": 28115,
+      "scope": "native closure only, no intervening query/snapshot export"
+    },
+    "operator_preparation_seconds": 0.17350899998564273,
+    "full_graph_check_reused": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 295452,
+      "eclasses": 229455
+    },
+    "all_fact_birth_times_identical": true,
+    "lanes": {
+      "matrix": {
+        "batches": 67,
+        "control_seconds": 0.06352901458740234,
+        "coordinate_bytes": 130368,
+        "cpu_bindings_or_scores_during_iteration": 0,
+        "final_bytes": 74696,
+        "gpu_seconds": 0.03506016649771482,
+        "matrix_flops_per_active_run": 1047552,
+        "mode": "matrix",
+        "new_facts": 18674,
+        "query_calls_during_iteration": 0,
+        "resident_allocated_bytes": 1540096,
+        "runs": 532,
+        "scope": "standalone compiled closure, not full Pass 3 runtime",
+        "status_bytes": 1340,
+        "table_writes_during_iteration": 0,
+        "weight_bytes": 1920
+      },
+      "direct": {
+        "batches": 67,
+        "control_seconds": 0.04222095012664795,
+        "coordinate_bytes": 130368,
+        "cpu_bindings_or_scores_during_iteration": 0,
+        "final_bytes": 74696,
+        "gpu_seconds": 0.016896458226256073,
+        "matrix_flops_per_active_run": 0,
+        "mode": "direct",
+        "new_facts": 18674,
+        "query_calls_during_iteration": 0,
+        "resident_allocated_bytes": 1540096,
+        "runs": 532,
+        "scope": "standalone compiled closure, not full Pass 3 runtime",
+        "status_bytes": 1340,
+        "table_writes_during_iteration": 0,
+        "weight_bytes": 1920
+      }
+    }
+  },
+  "small_fixture": {
+    "rules": 3,
+    "fact_coordinates": 6,
+    "clauses": 7,
+    "full_graph_check": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 17,
+      "eclasses": 11
+    }
+  },
+  "tests": {
+    "compiler_tests": 7,
+    "corrupt_separator_rejected": true
+  },
+  "artifacts": {
+    "native_checked": "out/matrix-closure-raytrace-timed",
+    "comparison": "out/matrix-closure-raytrace-comparison",
+    "fixture": "out/matrix-closure-fixture-v2"
+  },
+  "source_sha256s": {
+    "experiments/matrix_closure/build.py": "767c05f44dacc2b398905c226083abf4040014c2e107f3a98cc1b55b4f156713",
+    "experiments/matrix_closure/run.py": "a124014cee7933098d94d6e48e8000f2601d4cd561d57ce11d41aaa866dc512f",
+    "experiments/matrix_closure/compiler.py": "d91aab8c8faadb0c9ae8d9176af10b7fecc58805b3938929b8e3be4fa77146b2",
+    "experiments/matrix_closure/test_compiler.py": "8ce4fd0e057c8bda5cd9e4e8e53f5f64615e872480e87702432947322c11320d",
+    "experiments/matrix_closure/compare_worker.py": "f112395cae06d5cd93a45289b878cc2b5a0d4efb233ebe7bd110659171cb29d7",
+    "experiments/matrix_closure/kernel.metal": "12df3d4e8f7a111d67d712ab38d7a0c34dae681c5ed7d22b3e39d371bd74a84c",
+    "experiments/matrix_closure/worker.swift": "8bf6c4f04675e12e05a607951f02bbafc23901985d78e6c3970b1ef1fb446740",
+    "experiments/matrix_closure/fixture.egg": "b8a2734e6b236ffe055a732ed18ec25b71c89675f27e717e104521a5fef95013"
+  },
+  "provenance_note": "Timing binary and kernel hashes are pinned in same_worker_comparison. A later Boolean-input validation check is outside the timed loop."
+}

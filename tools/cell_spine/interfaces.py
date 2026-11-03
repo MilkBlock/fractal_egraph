@@ -30,6 +30,9 @@ def coordinates(layout):
 def storage_columns(layout):return layout['columns']+layout.get('interface_columns',0)
 
 
+from eggfuse.ir.interface import native_row_interface
+
+
 def extend(bundle,mode='auto'):
     if mode not in ('inline','auto','shared'):raise ValueError('unknown interface mode')
     if mode=='inline':return dict(bundle,interface_mode=mode)

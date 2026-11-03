@@ -1,0 +1,818 @@
+{
+  "explicit": {
+    "schema": "polyspine-residual-results/v1",
+    "scope": "offline pending-answer prediction with device-derived finite-depth residual context",
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "capture": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/polyspine-residual-data",
+    "capture_sha256": "287d5217c74fe3d5ba2dff249b14f196b0979f19e919f43c95c33c3611c2abd4",
+    "old_dataset_sha256": "65efecab64ce508c671e822c53659fe8886e52088845a0300ebe99e9a9c0f34a",
+    "native_runs": 10121,
+    "trace_exact": true,
+    "split": {
+      "train_cycles": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "test_cycles": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "same_program_and_possible_repeated_bindings": true
+    },
+    "coordinates": "explicit",
+    "selected_rules": 16,
+    "admitted_rules": 14,
+    "rejected": [
+      {
+        "source_rule": 61,
+        "name": "(rule ((= lhs (Get (Arg (TupleT tylist) _ctx) i))\n       (!= (TypeList-ith tylist i) (StateT )))\n      ((ExprIsPure lhs))\n        :ruleset always-run )",
+        "reason": "multiple structural atoms or primitive guard"
+      },
+      {
+        "source_rule": 67,
+        "name": "(rule ((Call _f _arg)\n       (ExprIsPure _arg)\n       (ExprIsPure (Function _f inty outty out)))\n      ((ExprIsPure (Call _f _arg)))\n        :ruleset always-run )",
+        "reason": "multiple structural atoms or primitive guard"
+      }
+    ],
+    "results": [
+      {
+        "variant": "shape_pending",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 14,
+          "fp": 8,
+          "fn": 33,
+          "tn": 109372,
+          "precision": 0.6363636363636364,
+          "recall": 0.2978723404255319,
+          "accuracy": 0.9996253209902493,
+          "brier": 0.0013641186426123695
+        },
+        "fit_and_score_seconds": 0.014295457978732884,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "state_1",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 45,
+          "fp": 5,
+          "fn": 2,
+          "tn": 109375,
+          "precision": 0.9,
+          "recall": 0.9574468085106383,
+          "accuracy": 0.9999360304129694,
+          "brier": 0.001140075509681329
+        },
+        "fit_and_score_seconds": 0.015964707999955863,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "state_2",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 45,
+          "fp": 4,
+          "fn": 2,
+          "tn": 109376,
+          "precision": 0.9183673469387755,
+          "recall": 0.9574468085106383,
+          "accuracy": 0.9999451689254023,
+          "brier": 0.0010673347564120065
+        },
+        "fit_and_score_seconds": 0.015571790980175138,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "state_4",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 45,
+          "fp": 6,
+          "fn": 2,
+          "tn": 109374,
+          "precision": 0.8823529411764706,
+          "recall": 0.9574468085106383,
+          "accuracy": 0.9999268919005364,
+          "brier": 0.0010664043563705392
+        },
+        "fit_and_score_seconds": 0.01554499997291714,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "state_8",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 45,
+          "fp": 6,
+          "fn": 2,
+          "tn": 109374,
+          "precision": 0.8823529411764706,
+          "recall": 0.9574468085106383,
+          "accuracy": 0.9999268919005364,
+          "brier": 0.0010666132722705556
+        },
+        "fit_and_score_seconds": 0.01590895897243172,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "erased_8",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 38,
+          "fp": 4,
+          "fn": 9,
+          "tn": 109376,
+          "precision": 0.9047619047619048,
+          "recall": 0.8085106382978723,
+          "accuracy": 0.9998811993383717,
+          "brier": 0.001146245174173416
+        },
+        "fit_and_score_seconds": 0.015161541989073157,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "shuffled_8",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 14,
+          "fp": 8,
+          "fn": 33,
+          "tn": 109372,
+          "precision": 0.6363636363636364,
+          "recall": 0.2978723404255319,
+          "accuracy": 0.9996253209902493,
+          "brier": 0.0013634530528432607
+        },
+        "fit_and_score_seconds": 0.022768915980122983,
+        "prior": 0.031264340766017536
+      }
+    ],
+    "deterministic_projection": {
+      "1": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 2,
+        "tn": 109380,
+        "precision": 1.0,
+        "recall": 0.9574468085106383,
+        "accuracy": 0.9999817229751341,
+        "brier": 1.827702486589233e-05
+      },
+      "2": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 2,
+        "tn": 109380,
+        "precision": 1.0,
+        "recall": 0.9574468085106383,
+        "accuracy": 0.9999817229751341,
+        "brier": 1.827702486589233e-05
+      },
+      "4": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 2,
+        "tn": 109380,
+        "precision": 1.0,
+        "recall": 0.9574468085106383,
+        "accuracy": 0.9999817229751341,
+        "brier": 1.827702486589233e-05
+      },
+      "8": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 2,
+        "tn": 109380,
+        "precision": 1.0,
+        "recall": 0.9574468085106383,
+        "accuracy": 0.9999817229751341,
+        "brier": 1.827702486589233e-05
+      }
+    },
+    "frozen_closure": {
+      "tp": 45,
+      "fp": 0,
+      "fn": 2,
+      "tn": 109380,
+      "precision": 1.0,
+      "recall": 0.9574468085106383,
+      "accuracy": 0.9999817229751341,
+      "brier": 1.827702486589233e-05
+    },
+    "projection_errors": [
+      {
+        "cycle": 10,
+        "row": 20890,
+        "key": "('Expr', 'eq', 'Value(768223)')",
+        "truth": true,
+        "proof": false,
+        "old_frame": "frame-041.npz"
+      },
+      {
+        "cycle": 10,
+        "row": 20892,
+        "key": "('Expr', 'eq', 'Value(768225)')",
+        "truth": true,
+        "proof": false,
+        "old_frame": "frame-041.npz"
+      }
+    ],
+    "gpu_checks": [
+      {
+        "cycle": 0,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 1,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 2,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 3,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 4,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 5,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 6,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 7,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 8,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 9,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 10,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 11,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      }
+    ],
+    "score_gpu": {
+      "coordinate_blocks": "two structural blocks, last 32 coordinates are explicit numeric context",
+      "coordinate_input": "Analyze-derived constructor spine token bags; no opaque ID feature",
+      "coordinate_nonlinearity": "none",
+      "coordinate_tokens": 465406,
+      "current_probe_bytes": 4948648,
+      "device": "Apple M3 Max",
+      "jobs": 7,
+      "kernels": 4,
+      "matrix_jobs": 7,
+      "matrix_probe_keys": 13925,
+      "matrix_row_kind": "distinct structural signatures",
+      "matrix_tiles": 1744,
+      "max_score_error": 3.5762786865234375e-07,
+      "nonzero_coefficient_flops": 13668720,
+      "output_bytes": 55700,
+      "outputs": 13925,
+      "reference_limit": "FP16 arithmetic checked against CPU scores; predicate predictions remain speculative; Apple matrix operations are not NVIDIA Tensor Core evidence",
+      "resident_weight_prior_and_routing_bytes": 57736,
+      "retained_runs": 1,
+      "scheduled_tile_flops": 114294784,
+      "scope": "standalone speculative response evaluation; no exact GPU key index or native runtime speedup",
+      "temporary_code_bytes": 14259200,
+      "threshold_disagreements": 0,
+      "timing": {
+        "gpu_seconds": 0.0017438333597965539,
+        "host_submit_wait_seconds": 0.002815416664816439
+      },
+      "useful_matrix_flops": 14259200,
+      "warmups": 1
+    },
+    "projection_gpu_seconds": 0.00364491663640365,
+    "erased_projection_gpu_seconds": 0.0036127500352449715,
+    "offline_observation_seconds": 35.82003541395534,
+    "offline_packing_seconds": 23.91659728990635,
+    "offline_diagnostic_seconds": 1.663924708031118,
+    "offline_fit_feature_packing_seconds": 95.39008508302504,
+    "total_observed_query_rows": 248022,
+    "incidences_per_rule_row": 1.5073550451697295,
+    "projection_arithmetic": "sparse fixed column gather + AND + OR; NOT GEMM or learned inference",
+    "score_arithmetic": "FP16/FP32 ridge GEMM; not a correctness proof",
+    "limits": [
+      "Frozen pre-stage support program, not full always-run semantics.",
+      "No new structural row, future union, function update or unsupported guard is predicted as fact.",
+      "Rules with multiple structural atoms/guards remain explicit unsupported paths.",
+      "No whole-engine speedup; unsupported paths still need exact completion.",
+      "Sparse admitted dependencies do not prove arbitrary egraphs are sparse.",
+      "A projected positive is a frozen-carrier diagnostic, not a production closure certificate."
+    ],
+    "score_worker_sha256": "b6bfc1df97e69086d0f81ec0e9efa4eb5d2d19d071f053defe3167d9a02f1cb5",
+    "sources": {
+      "residual_fit.py": "653de3f03daddbd2b178ce6f50e31110ca4c8295e90b6e93d3999c13a63cfdd2",
+      "residual.py": "961793009b13aeada7c3948effd27e4f9d5e2b0d5d239ae179c3c6050f36c9a5",
+      "residual.metal": "a452100f3a0b78a360117eed1453dce1bc26c8df8a5da05a6cee035cbf502809",
+      "residual_worker.swift": "82bec75f91b85564ca3cadcfc6dc6e76d46851e44f68825323948c635945b8f4"
+    }
+  },
+  "tokens": {
+    "schema": "polyspine-residual-results/v1",
+    "scope": "offline pending-answer prediction with device-derived finite-depth residual context",
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "capture": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/polyspine-residual-data",
+    "capture_sha256": "287d5217c74fe3d5ba2dff249b14f196b0979f19e919f43c95c33c3611c2abd4",
+    "old_dataset_sha256": "65efecab64ce508c671e822c53659fe8886e52088845a0300ebe99e9a9c0f34a",
+    "native_runs": 10121,
+    "trace_exact": true,
+    "split": {
+      "train_cycles": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "test_cycles": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "same_program_and_possible_repeated_bindings": true
+    },
+    "coordinates": "tokens",
+    "selected_rules": 16,
+    "admitted_rules": 14,
+    "rejected": [
+      {
+        "source_rule": 61,
+        "name": "(rule ((= lhs (Get (Arg (TupleT tylist) _ctx) i))\n       (!= (TypeList-ith tylist i) (StateT )))\n      ((ExprIsPure lhs))\n        :ruleset always-run )",
+        "reason": "multiple structural atoms or primitive guard"
+      },
+      {
+        "source_rule": 67,
+        "name": "(rule ((Call _f _arg)\n       (ExprIsPure _arg)\n       (ExprIsPure (Function _f inty outty out)))\n      ((ExprIsPure (Call _f _arg)))\n        :ruleset always-run )",
+        "reason": "multiple structural atoms or primitive guard"
+      }
+    ],
+    "results": [
+      {
+        "variant": "shape_pending",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 14,
+          "fp": 6,
+          "fn": 33,
+          "tn": 109374,
+          "precision": 0.7,
+          "recall": 0.2978723404255319,
+          "accuracy": 0.9996435980151152,
+          "brier": 0.0013584765931564638
+        },
+        "fit_and_score_seconds": 0.017658500000834465,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "state_1",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 43,
+          "fp": 3,
+          "fn": 4,
+          "tn": 109377,
+          "precision": 0.9347826086956522,
+          "recall": 0.9148936170212766,
+          "accuracy": 0.9999360304129694,
+          "brier": 0.0009434575411305159
+        },
+        "fit_and_score_seconds": 0.01721200003521517,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "state_2",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 44,
+          "fp": 3,
+          "fn": 3,
+          "tn": 109377,
+          "precision": 0.9361702127659575,
+          "recall": 0.9361702127659575,
+          "accuracy": 0.9999451689254023,
+          "brier": 0.0009803955005444058
+        },
+        "fit_and_score_seconds": 0.016933374979998916,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "state_4",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 14,
+          "fp": 5,
+          "fn": 33,
+          "tn": 109375,
+          "precision": 0.7368421052631579,
+          "recall": 0.2978723404255319,
+          "accuracy": 0.999652736527548,
+          "brier": 0.0013516981679546488
+        },
+        "fit_and_score_seconds": 0.017961957957595587,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "state_8",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 45,
+          "fp": 1,
+          "fn": 2,
+          "tn": 109379,
+          "precision": 0.9782608695652174,
+          "recall": 0.9574468085106383,
+          "accuracy": 0.9999725844627012,
+          "brier": 0.0010188474944235815
+        },
+        "fit_and_score_seconds": 0.01715179200982675,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "erased_8",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 38,
+          "fp": 1,
+          "fn": 9,
+          "tn": 109379,
+          "precision": 0.9743589743589743,
+          "recall": 0.8085106382978723,
+          "accuracy": 0.9999086148756705,
+          "brier": 0.001130061660297841
+        },
+        "fit_and_score_seconds": 0.017109042033553123,
+        "prior": 0.031264340766017536
+      },
+      {
+        "variant": "shuffled_8",
+        "train_rows": 84985,
+        "train_positive": 2657,
+        "test": {
+          "tp": 14,
+          "fp": 6,
+          "fn": 33,
+          "tn": 109374,
+          "precision": 0.7,
+          "recall": 0.2978723404255319,
+          "accuracy": 0.9996435980151152,
+          "brier": 0.0013340055131340698
+        },
+        "fit_and_score_seconds": 0.026583375001791865,
+        "prior": 0.031264340766017536
+      }
+    ],
+    "deterministic_projection": {
+      "1": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 2,
+        "tn": 109380,
+        "precision": 1.0,
+        "recall": 0.9574468085106383,
+        "accuracy": 0.9999817229751341,
+        "brier": 1.827702486589233e-05
+      },
+      "2": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 2,
+        "tn": 109380,
+        "precision": 1.0,
+        "recall": 0.9574468085106383,
+        "accuracy": 0.9999817229751341,
+        "brier": 1.827702486589233e-05
+      },
+      "4": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 2,
+        "tn": 109380,
+        "precision": 1.0,
+        "recall": 0.9574468085106383,
+        "accuracy": 0.9999817229751341,
+        "brier": 1.827702486589233e-05
+      },
+      "8": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 2,
+        "tn": 109380,
+        "precision": 1.0,
+        "recall": 0.9574468085106383,
+        "accuracy": 0.9999817229751341,
+        "brier": 1.827702486589233e-05
+      }
+    },
+    "frozen_closure": {
+      "tp": 45,
+      "fp": 0,
+      "fn": 2,
+      "tn": 109380,
+      "precision": 1.0,
+      "recall": 0.9574468085106383,
+      "accuracy": 0.9999817229751341,
+      "brier": 1.827702486589233e-05
+    },
+    "projection_errors": [
+      {
+        "cycle": 10,
+        "row": 20890,
+        "key": "('Expr', 'eq', 'Value(768223)')",
+        "truth": true,
+        "proof": false,
+        "old_frame": "frame-041.npz"
+      },
+      {
+        "cycle": 10,
+        "row": 20892,
+        "key": "('Expr', 'eq', 'Value(768225)')",
+        "truth": true,
+        "proof": false,
+        "old_frame": "frame-041.npz"
+      }
+    ],
+    "gpu_checks": [
+      {
+        "cycle": 0,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 1,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 2,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 3,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 4,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 5,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 6,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 7,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 8,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 9,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 10,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      },
+      {
+        "cycle": 11,
+        "proof_coordinates_exact": true,
+        "erased_coordinates_exact": true
+      }
+    ],
+    "score_gpu": {
+      "coordinate_blocks": "separate local and recursive context",
+      "coordinate_input": "Analyze-derived constructor spine token bags; no opaque ID feature",
+      "coordinate_nonlinearity": "none",
+      "coordinate_tokens": 615766,
+      "current_probe_bytes": 5260328,
+      "device": "Apple M3 Max",
+      "jobs": 7,
+      "kernels": 3,
+      "matrix_jobs": 7,
+      "matrix_probe_keys": 13925,
+      "matrix_row_kind": "distinct structural signatures",
+      "matrix_tiles": 1744,
+      "max_score_error": 2.384185791015625e-07,
+      "nonzero_coefficient_flops": 14259200,
+      "output_bytes": 55700,
+      "outputs": 13925,
+      "reference_limit": "FP16 arithmetic checked against CPU scores; predicate predictions remain speculative; Apple matrix operations are not NVIDIA Tensor Core evidence",
+      "resident_weight_prior_and_routing_bytes": 57736,
+      "retained_runs": 1,
+      "scheduled_tile_flops": 114294784,
+      "scope": "standalone speculative response evaluation; no exact GPU key index or native runtime speedup",
+      "temporary_code_bytes": 14259200,
+      "threshold_disagreements": 0,
+      "timing": {
+        "gpu_seconds": 0.0013393749832175672,
+        "host_submit_wait_seconds": 0.0018632083665579557
+      },
+      "useful_matrix_flops": 14259200,
+      "warmups": 1
+    },
+    "projection_gpu_seconds": 0.00364491663640365,
+    "erased_projection_gpu_seconds": 0.0036127500352449715,
+    "offline_observation_seconds": 35.82003541395534,
+    "offline_packing_seconds": 23.91659728990635,
+    "offline_diagnostic_seconds": 1.663924708031118,
+    "offline_fit_feature_packing_seconds": 126.92091133299982,
+    "total_observed_query_rows": 248022,
+    "incidences_per_rule_row": 1.5073550451697295,
+    "projection_arithmetic": "sparse fixed column gather + AND + OR; NOT GEMM or learned inference",
+    "score_arithmetic": "FP16/FP32 ridge GEMM; not a correctness proof",
+    "limits": [
+      "Frozen pre-stage support program, not full always-run semantics.",
+      "No new structural row, future union, function update or unsupported guard is predicted as fact.",
+      "Rules with multiple structural atoms/guards remain explicit unsupported paths.",
+      "No whole-engine speedup; unsupported paths still need exact completion.",
+      "Sparse admitted dependencies do not prove arbitrary egraphs are sparse.",
+      "A projected positive is a frozen-carrier diagnostic, not a production closure certificate."
+    ],
+    "score_worker_sha256": "b6bfc1df97e69086d0f81ec0e9efa4eb5d2d19d071f053defe3167d9a02f1cb5",
+    "sources": {
+      "residual_fit.py": "653de3f03daddbd2b178ce6f50e31110ca4c8295e90b6e93d3999c13a63cfdd2",
+      "residual.py": "961793009b13aeada7c3948effd27e4f9d5e2b0d5d239ae179c3c6050f36c9a5",
+      "residual.metal": "a452100f3a0b78a360117eed1453dce1bc26c8df8a5da05a6cee035cbf502809",
+      "residual_worker.swift": "82bec75f91b85564ca3cadcfc6dc6e76d46851e44f68825323948c635945b8f4"
+    }
+  },
+  "native_cases": [
+    {
+      "cycle": 10,
+      "before_key": [
+        "Expr",
+        "eq",
+        "Value(768223)"
+      ],
+      "after_key": [
+        "Expr",
+        "eq",
+        "Value(8226)"
+      ],
+      "destination_already_pure_at_entry": true,
+      "new_heads": [
+        "AddContext",
+        "Concat",
+        "SubTuple"
+      ]
+    },
+    {
+      "cycle": 10,
+      "before_key": [
+        "Expr",
+        "eq",
+        "Value(768225)"
+      ],
+      "after_key": [
+        "Expr",
+        "eq",
+        "Value(8819)"
+      ],
+      "destination_already_pure_at_entry": true,
+      "new_heads": [
+        "AddContext",
+        "Concat",
+        "SubTuple"
+      ]
+    }
+  ],
+  "label_audit": {
+    "scope": "independent native endpoint audit of borrowed labels and entry state",
+    "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "capture_sha256": "287d5217c74fe3d5ba2dff249b14f196b0979f19e919f43c95c33c3611c2abd4",
+    "native_runs": 10121,
+    "checks": [
+      {
+        "cycle": 0,
+        "entry_rows": 12750,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 1,
+        "entry_rows": 17978,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 2,
+        "entry_rows": 17741,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 3,
+        "entry_rows": 17737,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 4,
+        "entry_rows": 18212,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 5,
+        "entry_rows": 22960,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 6,
+        "entry_rows": 23161,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 7,
+        "entry_rows": 23295,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 8,
+        "entry_rows": 23395,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 9,
+        "entry_rows": 23496,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 10,
+        "entry_rows": 23638,
+        "entry_and_exit_labels_exact": true
+      },
+      {
+        "cycle": 11,
+        "entry_rows": 23659,
+        "entry_and_exit_labels_exact": true
+      }
+    ],
+    "wall_seconds_diagnostic": 78.5261045829975
+  },
+  "scope": "text results only; binary artifacts remain untracked"
+}

@@ -1,0 +1,414 @@
+{
+  "scope": "Correctness through a 1024-Run diagnostic prefix and a same-checkpoint two-Run GPU comparison; not full Pass 3 or extraction performance",
+  "regression_count": 37,
+  "regressions": [
+    "delta-join",
+    "deferred-union",
+    "sets",
+    "merge-rebuild",
+    "custom-merge",
+    "merge-same",
+    "integer",
+    "float-identity",
+    "boolean",
+    "pipeline",
+    "subsume-absent",
+    "unit-function",
+    "initial-union",
+    "naive",
+    "repeat",
+    "math",
+    "combined",
+    "update",
+    "subsume-union",
+    "spine",
+    "reject-eager-union",
+    "spine-unchecked",
+    "periodic",
+    "final-check",
+    "prefix",
+    "resumed",
+    "stored-reference",
+    "panic",
+    "match-capacity",
+    "row-capacity",
+    "source-check",
+    "unit-lookup",
+    "ambiguous-old",
+    "overflow",
+    "reject-corrupt-visibility",
+    "reject-corrupt-value",
+    "reject-corrupt-equivalence"
+  ],
+  "cpu_oracle_fix": "2431271",
+  "runs": {
+    "no_delta": {
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "program_sha256": "dc1a594104e4170744b8511df71fd70640934a4b7a453d00bef9e8c50de005fa",
+      "complete_schedule": false,
+      "resumed_prefix_runs": 960,
+      "requested_max_runs": 962,
+      "timings_seconds": {
+        "device_control_wait": 2.0806120830238797,
+        "device_gpu": 2.0730126667185687,
+        "prepare": 0.5322781250579283,
+        "match": 1.5398862916626967,
+        "commit": 0.0008482499979436398,
+        "native_oracle": 49.09559007314965,
+        "checkpoint_excluding_oracle": 3.432930000068154,
+        "comparison": 2.3649346249876544
+      },
+      "native_oracle_runs": 962,
+      "check_mode": "periodic",
+      "delta_queries": false,
+      "path": "out/device-pass3-delta-off-pair",
+      "steps": 962,
+      "last_step": {
+        "set": "always-run",
+        "rows": 242503,
+        "matched": 140,
+        "updated": true,
+        "epoch": 963,
+        "unions": 33904
+      },
+      "checks": [
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 242401,
+          "eclasses": 190648,
+          "step": 960
+        },
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 242503,
+          "eclasses": 190670,
+          "step": 962
+        }
+      ],
+      "device_commands": [
+        {
+          "set": "type-helpers",
+          "gpu_seconds": 0.5322915833676234,
+          "prepare_seconds": 0.5322735000518151,
+          "match_seconds": 9.624985978007317e-06,
+          "commit_seconds": 8.45832983031869e-06,
+          "index_rebuilds": 0
+        },
+        {
+          "set": "always-run",
+          "gpu_seconds": 1.5407210833509453,
+          "prepare_seconds": 4.62500611320138e-06,
+          "match_seconds": 1.5398766666767187,
+          "commit_seconds": 0.0008397916681133211,
+          "index_rebuilds": 1
+        }
+      ],
+      "build": {
+        "sources": {
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "43264661b41694ecb7a2bc53c11f9cd843b8b8c4e667fe30b1e9cfae87832074",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "1a629ee17553676a177b40fdce4b6c2fd41654bbb3d2f1a17f79bb7e56c74cbd",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "5872c0dbe6075c286d2ce71697f8c279dc00e7063ae60f43197ff85332f7df3f",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "2f3cc95f985092d52d2c57d6dbd9b0ab9f811125360bb808229fd762b07ba505",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "e49a60d33412ab5fa4c89e0c7c16c4ff5b59d0be57f2d5cdfeb61c91175265cd",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "27ba0fbf32abb2f2a5d88aac583933efecfc2fbd82cc5489e31c1e154a138418",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "fa73fb041f4a106c63477308033c0c13bb3d77719314fbeed69000e189ffae6d"
+        },
+        "native_kernel_source_sha256": "edde9d62008531bd1e000899a12ee7d2c7c21368fd3d1c07824a63a9576bf700",
+        "git_head": "243127173f72eef0a139ea6446e025ca8679a269",
+        "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+        "native_kernel_dirty": [
+          " M egglog/Cargo.lock",
+          " M egglog/core-relations/src/action/mod.rs",
+          " M egglog/core-relations/src/table/mod.rs",
+          " M egglog/core-relations/src/table/rebuild.rs",
+          " M egglog/core-relations/src/table/tests.rs",
+          " M egglog/core-relations/src/table_spec.rs",
+          " M egglog/egglog-bridge/src/lib.rs",
+          " M egglog/src/virtual_facts.rs"
+        ],
+        "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-delta-pair/frontend",
+        "frontend_sha256": "782eec563741f3bd1906684ca62343e00928b51515bee482d9469a875b7e9b1a",
+        "worker_sha256": "d2a3d8229f7b3ea48c37db2b3ba797c9b97584144e2f5a72cc4a84a31373ed65"
+      }
+    },
+    "delta_scan": {
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "program_sha256": "9094e63b3f58fc8196b4dfea2391905aaa3a173e97b8685094f17f78a9763d7b",
+      "complete_schedule": false,
+      "resumed_prefix_runs": 960,
+      "requested_max_runs": 962,
+      "timings_seconds": {
+        "device_control_wait": 2.151543624990154,
+        "device_gpu": 2.146343958331272,
+        "prepare": 0.5356357916607521,
+        "match": 1.6098652916844003,
+        "commit": 0.0008428749861195683,
+        "native_oracle": 0.0,
+        "checkpoint_excluding_oracle": 1.9691420000162907,
+        "comparison": 1.1546455000061542
+      },
+      "native_oracle_runs": 0,
+      "check_mode": "stored",
+      "delta_queries": true,
+      "path": "out/device-pass3-delta-on-pair",
+      "steps": 962,
+      "last_step": {
+        "set": "always-run",
+        "rows": 242503,
+        "matched": 140,
+        "updated": true,
+        "epoch": 963,
+        "unions": 33904
+      },
+      "checks": [
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 242503,
+          "eclasses": 190670,
+          "step": 962
+        }
+      ],
+      "device_commands": [
+        {
+          "set": "type-helpers",
+          "gpu_seconds": 0.5356539583299309,
+          "prepare_seconds": 0.5356312500080094,
+          "match_seconds": 1.4333345461636782e-05,
+          "commit_seconds": 8.374976459890604e-06,
+          "index_rebuilds": 0
+        },
+        {
+          "set": "always-run",
+          "gpu_seconds": 1.610690000001341,
+          "prepare_seconds": 4.5416527427732944e-06,
+          "match_seconds": 1.6098509583389387,
+          "commit_seconds": 0.0008345000096596777,
+          "index_rebuilds": 1
+        }
+      ],
+      "build": {
+        "sources": {
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "43264661b41694ecb7a2bc53c11f9cd843b8b8c4e667fe30b1e9cfae87832074",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "1a629ee17553676a177b40fdce4b6c2fd41654bbb3d2f1a17f79bb7e56c74cbd",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "5872c0dbe6075c286d2ce71697f8c279dc00e7063ae60f43197ff85332f7df3f",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "2f3cc95f985092d52d2c57d6dbd9b0ab9f811125360bb808229fd762b07ba505",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "e49a60d33412ab5fa4c89e0c7c16c4ff5b59d0be57f2d5cdfeb61c91175265cd",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "27ba0fbf32abb2f2a5d88aac583933efecfc2fbd82cc5489e31c1e154a138418",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "fa73fb041f4a106c63477308033c0c13bb3d77719314fbeed69000e189ffae6d"
+        },
+        "native_kernel_source_sha256": "edde9d62008531bd1e000899a12ee7d2c7c21368fd3d1c07824a63a9576bf700",
+        "git_head": "243127173f72eef0a139ea6446e025ca8679a269",
+        "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+        "native_kernel_dirty": [
+          " M egglog/Cargo.lock",
+          " M egglog/core-relations/src/action/mod.rs",
+          " M egglog/core-relations/src/table/mod.rs",
+          " M egglog/core-relations/src/table/rebuild.rs",
+          " M egglog/core-relations/src/table/tests.rs",
+          " M egglog/core-relations/src/table_spec.rs",
+          " M egglog/egglog-bridge/src/lib.rs",
+          " M egglog/src/virtual_facts.rs"
+        ],
+        "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-delta-pair/frontend",
+        "frontend_sha256": "782eec563741f3bd1906684ca62343e00928b51515bee482d9469a875b7e9b1a",
+        "worker_sha256": "d2a3d8229f7b3ea48c37db2b3ba797c9b97584144e2f5a72cc4a84a31373ed65"
+      }
+    },
+    "delta_index": {
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "program_sha256": "6f629a39788a6efc8f34661b42e9890b4391785d0bf5cebc5ef2ac8ce425a625",
+      "complete_schedule": false,
+      "resumed_prefix_runs": 960,
+      "requested_max_runs": 962,
+      "timings_seconds": {
+        "device_control_wait": 1.0262319589965045,
+        "device_gpu": 1.0199244583491236,
+        "prepare": 0.5785517499316484,
+        "match": 0.4405260417261161,
+        "commit": 0.0008466666913591325,
+        "native_oracle": 0.0,
+        "checkpoint_excluding_oracle": 2.0700254589901306,
+        "comparison": 1.1510177080053836
+      },
+      "native_oracle_runs": 0,
+      "check_mode": "stored",
+      "delta_queries": true,
+      "path": "out/device-pass3-time-index-pair",
+      "steps": 962,
+      "last_step": {
+        "set": "always-run",
+        "rows": 242503,
+        "matched": 140,
+        "updated": true,
+        "epoch": 963,
+        "unions": 33904
+      },
+      "checks": [
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 242503,
+          "eclasses": 190670,
+          "step": 962
+        }
+      ],
+      "device_commands": [
+        {
+          "set": "type-helpers",
+          "gpu_seconds": 0.5785690416814759,
+          "prepare_seconds": 0.5785470833070576,
+          "match_seconds": 1.3916695024818182e-05,
+          "commit_seconds": 8.04167939350009e-06,
+          "index_rebuilds": 0
+        },
+        {
+          "set": "always-run",
+          "gpu_seconds": 0.44135541666764766,
+          "prepare_seconds": 4.666624590754509e-06,
+          "match_seconds": 0.4405121250310913,
+          "commit_seconds": 0.0008386250119656324,
+          "index_rebuilds": 1
+        }
+      ],
+      "build": {
+        "sources": {
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "43264661b41694ecb7a2bc53c11f9cd843b8b8c4e667fe30b1e9cfae87832074",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "9895b6cbab18fb2c05f9311c37ab664c83037aa5826095ffac70f5418b90c0b1",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "5872c0dbe6075c286d2ce71697f8c279dc00e7063ae60f43197ff85332f7df3f",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "2f3cc95f985092d52d2c57d6dbd9b0ab9f811125360bb808229fd762b07ba505",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "e49a60d33412ab5fa4c89e0c7c16c4ff5b59d0be57f2d5cdfeb61c91175265cd",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "c6e1fb0337dbcd4bb03bee79c05c118529caeaf58c2bf5fb4f9441f8c26ca331",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "6775821c0f6b86ce994adb7fe782052baa69098747ccaf01103bc3353c5f3f8b"
+        },
+        "native_kernel_source_sha256": "edde9d62008531bd1e000899a12ee7d2c7c21368fd3d1c07824a63a9576bf700",
+        "git_head": "243127173f72eef0a139ea6446e025ca8679a269",
+        "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+        "native_kernel_dirty": [
+          " M egglog/Cargo.lock",
+          " M egglog/core-relations/src/action/mod.rs",
+          " M egglog/core-relations/src/table/mod.rs",
+          " M egglog/core-relations/src/table/rebuild.rs",
+          " M egglog/core-relations/src/table/tests.rs",
+          " M egglog/core-relations/src/table_spec.rs",
+          " M egglog/egglog-bridge/src/lib.rs",
+          " M egglog/src/virtual_facts.rs"
+        ],
+        "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-time-index/frontend",
+        "frontend_sha256": "782eec563741f3bd1906684ca62343e00928b51515bee482d9469a875b7e9b1a",
+        "worker_sha256": "d2a3d8229f7b3ea48c37db2b3ba797c9b97584144e2f5a72cc4a84a31373ed65"
+      }
+    },
+    "prefix1024": {
+      "source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "program_sha256": "9094e63b3f58fc8196b4dfea2391905aaa3a173e97b8685094f17f78a9763d7b",
+      "complete_schedule": false,
+      "resumed_prefix_runs": 960,
+      "requested_max_runs": 1024,
+      "timings_seconds": {
+        "device_control_wait": 38.8645157032297,
+        "device_gpu": 38.723668250022456,
+        "prepare": 0.5385341665823944,
+        "match": 38.16405645851046,
+        "commit": 0.02107762492960319,
+        "native_oracle": 65.69325125782052,
+        "checkpoint_excluding_oracle": 8.680450335028581,
+        "comparison": 5.972636457008775
+      },
+      "native_oracle_runs": 1024,
+      "check_mode": "periodic",
+      "delta_queries": true,
+      "path": "out/device-pass3-delta1024",
+      "steps": 1024,
+      "last_step": {
+        "set": "always-run",
+        "rows": 244629,
+        "matched": 84,
+        "updated": true,
+        "epoch": 1025,
+        "unions": 33904
+      },
+      "checks": [
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 242401,
+          "eclasses": 190648,
+          "step": 960
+        },
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 243028,
+          "eclasses": 190788,
+          "step": 976
+        },
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 243612,
+          "eclasses": 190914,
+          "step": 992
+        },
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 244158,
+          "eclasses": 191040,
+          "step": 1008
+        },
+        {
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 244629,
+          "eclasses": 191164,
+          "step": 1024
+        }
+      ],
+      "device_commands": null,
+      "build": {
+        "sources": {
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/device_program.rs": "43264661b41694ecb7a2bc53c11f9cd843b8b8c4e667fe30b1e9cfae87832074",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/src/lib.rs": "480e902f85675d4b79677816a9dc85c60b86423398b66ece74e5e7d375d35817",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/egglog/egglog-bridge/src/rule.rs": "bb42efe374a0079d4d5a43d4d3bc0f4a52474bebe07b52d84711037fec5dfe60",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/frontend.rs": "c477f45186c5f84a8979a2285deb3fe25e9e321f375a6fdee84fdab2c314286c",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/compiler.py": "d26901fdab8ee7a64eab2fabaea534ba184403773f2b93acc6ee338159de23a6",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/worker.swift": "5872c0dbe6075c286d2ce71697f8c279dc00e7063ae60f43197ff85332f7df3f",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/kernel.metal": "2f3cc95f985092d52d2c57d6dbd9b0ab9f811125360bb808229fd762b07ba505",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/sets.metal": "fe3f16a4d57182334d3d2efb01189077e1eab0cba7f6ba1711e91a609a29c00c",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/actions.metal": "f32c2a2a23f9e2618e7d6b632c312c4d7c09a79e87714d3071646f5c2978c15f",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/row_index.metal": "e49a60d33412ab5fa4c89e0c7c16c4ff5b59d0be57f2d5cdfeb61c91175265cd",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/query_index.metal": "27ba0fbf32abb2f2a5d88aac583933efecfc2fbd82cc5489e31c1e154a138418",
+          "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/experiments/device_backend/run.py": "fa73fb041f4a106c63477308033c0c13bb3d77719314fbeed69000e189ffae6d"
+        },
+        "native_kernel_source_sha256": "edde9d62008531bd1e000899a12ee7d2c7c21368fd3d1c07824a63a9576bf700",
+        "git_head": "243127173f72eef0a139ea6446e025ca8679a269",
+        "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+        "native_kernel_dirty": [
+          " M egglog/Cargo.lock",
+          " M egglog/core-relations/src/action/mod.rs",
+          " M egglog/core-relations/src/table/mod.rs",
+          " M egglog/core-relations/src/table/rebuild.rs",
+          " M egglog/core-relations/src/table/tests.rs",
+          " M egglog/core-relations/src/table_spec.rs",
+          " M egglog/egglog-bridge/src/lib.rs",
+          " M egglog/src/virtual_facts.rs"
+        ],
+        "frontend": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/device-backend-build-delta/frontend",
+        "frontend_sha256": "782eec563741f3bd1906684ca62343e00928b51515bee482d9469a875b7e9b1a",
+        "worker_sha256": "d2a3d8229f7b3ea48c37db2b3ba797c9b97584144e2f5a72cc4a84a31373ed65"
+      }
+    }
+  },
+  "two_run_gpu_ratio": 2.032515888553159,
+  "match_phase_ratio": 3.4955624544441237,
+  "regression_directory": "out/device-backend-execution-final-suite"
+}

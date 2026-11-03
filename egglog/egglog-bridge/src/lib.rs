@@ -33,6 +33,7 @@ use once_cell::sync::Lazy;
 use smallvec::SmallVec;
 use web_time::{Duration, Instant};
 
+mod device_import;
 pub mod macros;
 pub(crate) mod rule;
 #[cfg(test)]
@@ -1216,6 +1217,10 @@ impl MergeFn {
     }
 
     fn resolve(&self, function_name: &str, egraph: &mut EGraph) -> ResolvedMergeFn {
+        self.resolve_inner(function_name, egraph, true)
+    }
+
+    fn resolve_inner(&self, function_name: &str, egraph: &mut EGraph, top_level: bool) -> ResolvedMergeFn {
         match self {
             MergeFn::Const(v) => ResolvedMergeFn::Const(*v),
             MergeFn::Old => ResolvedMergeFn::Old,
@@ -1236,7 +1241,7 @@ impl MergeFn {
                 prim: *prim,
                 args: args
                     .iter()
-                    .map(|arg| arg.resolve(function_name, egraph))
+                    .map(|arg| arg.resolve_inner(function_name, egraph, false))
                     .collect::<Vec<_>>(),
                 panic: egraph.new_panic(format!(
                     "Merge function for {function_name} primitive call failed"
@@ -1251,6 +1256,7 @@ impl MergeFn {
                     func_info.name
                 );
                 ResolvedMergeFn::Function {
+                    skip_equal: top_level,
                     func: TableAction::new(egraph, *func),
                     panic: egraph.new_panic(format!(
                         "Lookup on {} failed in the merge function for {function_name}",
@@ -1258,7 +1264,7 @@ impl MergeFn {
                     )),
                     args: args
                         .iter()
-                        .map(|arg| arg.resolve(function_name, egraph))
+                        .map(|arg| arg.resolve_inner(function_name, egraph, false))
                         .collect::<Vec<_>>(),
                 }
             }
@@ -1286,6 +1292,7 @@ enum ResolvedMergeFn {
         panic: ExternalFunctionId,
     },
     Function {
+        skip_equal: bool,
         func: TableAction,
         args: Vec<ResolvedMergeFn>,
         panic: ExternalFunctionId,
@@ -1334,9 +1341,11 @@ impl ResolvedMergeFn {
                     }
                 }
             }
-            ResolvedMergeFn::Function { func, args, panic } => {
+            ResolvedMergeFn::Function { func, args, panic, skip_equal } => {
+                // Preserve the top-level merge shortcut. A nested lookup can
+                // return another sort (e.g. a score/key); cur is not its result.
                 // see github.com/egraphs-good/egglog/pull/287
-                if cur == new {
+                if *skip_equal && cur == new {
                     return cur;
                 }
 

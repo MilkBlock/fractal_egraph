@@ -1,0 +1,52 @@
+{
+  "chain": {
+    "completed_runs": 7,
+    "suspension_points": [
+      0,
+      1,
+      2
+    ],
+    "full_rows_ids_values_visibility_equal": true,
+    "per_round_fingerprints_and_control_equal": true,
+    "effect_and_index_counters_equal": true
+  },
+  "union-merge-subsume": {
+    "completed_runs": 4,
+    "suspension_points": [
+      0,
+      1,
+      2
+    ],
+    "full_rows_ids_values_visibility_equal": true,
+    "per_round_fingerprints_and_control_equal": true,
+    "effect_and_index_counters_equal": true
+  },
+  "growing-history-and-contexts": {
+    "completed_runs": 44,
+    "suspension_points": [
+      0,
+      1,
+      17
+    ],
+    "full_rows_ids_values_visibility_equal": true,
+    "per_round_fingerprints_and_control_equal": true,
+    "effect_and_index_counters_equal": true
+  },
+  "block-continuation": {
+    "completed_runs": 6,
+    "suspension_points": [
+      0,
+      1,
+      2
+    ],
+    "full_rows_ids_values_visibility_equal": true,
+    "per_round_fingerprints_and_control_equal": true,
+    "effect_and_index_counters_equal": true
+  },
+  "negative_checks": {
+    "changed_program_rejected": true,
+    "corrupt_buffer_rejected": true,
+    "corrupt_worker_rejected": true,
+    "frozen_resume_without_current_build": true
+  }
+}

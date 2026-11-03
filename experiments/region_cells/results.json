@@ -1,0 +1,950 @@
+{
+  "scope": "actual Metal execution with independent native oracles; small inputs, no timing benchmark",
+  "cases": {
+    "representative-order": {
+      "nodes": 4,
+      "rules": 2,
+      "regions": 1,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 17,
+        "eclasses": 15,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "caabd6ac63a81bee8a9c38f7fe3c9bdceb33a79d42cb231673da9506429dd7af",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        58,
+        1056,
+        0,
+        4,
+        4,
+        2,
+        4,
+        4,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "properties": {
+      "nodes": 5,
+      "rules": 2,
+      "regions": 2,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 11,
+        "eclasses": 11,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "557a14e3ac4c7571aedd69982058f4f8a60c376f16a1271d13f1363572a3101a",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        97,
+        1060,
+        1,
+        5,
+        5,
+        2,
+        5,
+        3,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "correlated": {
+      "nodes": 0,
+      "rules": 1,
+      "regions": 1,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 9,
+        "eclasses": 9,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "3d72e6a85cc552112d1e0202982b786ab9f29ec10374f6ce3dd6db58fbeb7a0c",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        16,
+        1040,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "numeric": {
+      "nodes": 3,
+      "rules": 3,
+      "regions": 3,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 9,
+        "eclasses": 6,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "b7d67830285876c3c8efeee60df404bfbc61130591b9d6fae68a416c6a409478",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        58,
+        1052,
+        0,
+        3,
+        3,
+        1,
+        3,
+        2,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "recursive": {
+      "nodes": 2,
+      "rules": 2,
+      "regions": 2,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 17,
+        "eclasses": 13,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "d78beb1970f43724e8dcbbec0982b9f532b26b8cb3eb436e06b7fb409a9e989c",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        96,
+        1048,
+        0,
+        8,
+        20,
+        10,
+        17,
+        6,
+        4,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "new-union-match": {
+      "nodes": 13,
+      "rules": 2,
+      "regions": 2,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 5,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "44b2df16ebd03009f4389bff2132482f177ea6f486b3a8d35393798aefb09dd5",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        158,
+        1092,
+        0,
+        23,
+        16,
+        6,
+        19,
+        12,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "identity": {
+      "nodes": 0,
+      "rules": 2,
+      "regions": 2,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 4,
+        "eclasses": 3,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "bc72d4bf87b1467ea90bf7debf5b90bb22ecbb42c56b3d34889c48cbbd8af39d",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        16,
+        1040,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "custom-merge": {
+      "nodes": 0,
+      "rules": 2,
+      "regions": 2,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 7,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "e9d31fc6db305d45621bc86a38128d8ac3ed01cd7f3bc3263883f7309a69148b",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        16,
+        1040,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "visibility": {
+      "nodes": 0,
+      "rules": 3,
+      "regions": 3,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 2,
+        "eclasses": 2,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "861fe8e61e72ef0522967878b3a383363681ddc70990e10b7ba5c3fdb96debd3",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        16,
+        1040,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "finite-repeat": {
+      "nodes": 0,
+      "rules": 1,
+      "regions": 1,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 6,
+        "eclasses": 6,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "81b01f0c9935ae2769ab7af199d759e7df042d12d75d3b7a11d7666915099a4c",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        16,
+        1040,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "missing-and-large": {
+      "nodes": 3,
+      "rules": 1,
+      "regions": 1,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 5,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "4227842dc59dd64d1e1880792f08e823d11f02e8ece2a479748292e5fdfb8bed",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        71,
+        1052,
+        0,
+        3,
+        5,
+        1,
+        6,
+        2,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "late-input": {
+      "nodes": 8,
+      "rules": 4,
+      "regions": 4,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 8,
+        "eclasses": 6,
+        "projected_control_tables": [
+          "DeviceBackendCheck_0"
+        ],
+        "original_native_schedule": true,
+        "source_sha256": "6b63de711d866d506e1017446b9a3f3ea3731e039365909afe614fd990bc2fb1",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        129,
+        1072,
+        2,
+        10,
+        9,
+        3,
+        9,
+        2,
+        3,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "union-new-wiring": {
+      "nodes": 8,
+      "rules": 4,
+      "regions": 4,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 9,
+        "eclasses": 6,
+        "projected_control_tables": [
+          "DeviceBackendCheck_0"
+        ],
+        "original_native_schedule": true,
+        "source_sha256": "06ee9e5fc3f602baf11d43a4f39599eaa2de1a6109c9e8654ad43340b51c6f58",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        129,
+        1072,
+        2,
+        10,
+        9,
+        3,
+        9,
+        2,
+        3,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "subsume-retirement": {
+      "nodes": 3,
+      "rules": 3,
+      "regions": 3,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 7,
+        "eclasses": 5,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "267210816ad637e2c792f0198f51b45f92df0338c3abb4d2aa31f94c6be716f3",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        58,
+        1052,
+        0,
+        3,
+        3,
+        1,
+        3,
+        3,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "correlated-alternatives": {
+      "nodes": 13,
+      "rules": 4,
+      "regions": 4,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 14,
+        "eclasses": 10,
+        "projected_control_tables": [
+          "DeviceBackendCheck_0",
+          "DeviceBackendCheck_1"
+        ],
+        "original_native_schedule": true,
+        "source_sha256": "cae7ae51a6dc7a5cd224bd5ac72d4ad4a9a7ab814d48d2920c356eccdbe8365c",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        224,
+        1092,
+        3,
+        13,
+        16,
+        8,
+        18,
+        0,
+        2,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "smoke": {
+      "nodes": 16,
+      "rules": 5,
+      "regions": 5,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 12,
+        "eclasses": 8,
+        "projected_control_tables": [
+          "DeviceBackendCheck_0"
+        ],
+        "original_native_schedule": true,
+        "source_sha256": "371611627c69455b50c7900fad5773b95b3c0a4ca9ad6eab7a17bff657c16a3a",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        270,
+        1104,
+        2,
+        18,
+        25,
+        9,
+        24,
+        4,
+        3,
+        0,
+        0,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "real-finite": {
+      "nodes": 4,
+      "rules": 17,
+      "regions": 1,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 152,
+        "eclasses": 142,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "2875cba8a7a4a74ab1f14e8dbfc9043f5256dd07999fc74d540637e50a4fa00e",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        54,
+        1056,
+        0,
+        2,
+        3,
+        1,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "real-late-union": {
+      "nodes": 7,
+      "rules": 18,
+      "regions": 1,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 165,
+        "eclasses": 143,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "67c0d679d527e2f7d9a199d10211ecf7d33f6254a9ff2dddd72d79c4e874369c",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        474,
+        1068,
+        0,
+        17,
+        137,
+        60,
+        147,
+        15,
+        7,
+        0,
+        0,
+        5,
+        1,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "real-context-to-terms": {
+      "nodes": 18,
+      "rules": 31,
+      "regions": 2,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 229,
+        "eclasses": 181,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "b4ef30bbc287bdb58ae784b9545f70f6f7e2ac22a1b0b20b6d3f10f9ecef45a1",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        472,
+        1112,
+        0,
+        30,
+        195,
+        66,
+        250,
+        22,
+        17,
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "real-renamed": {
+      "nodes": 4,
+      "rules": 17,
+      "regions": 1,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 171,
+        "eclasses": 147,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "7733302cee0d5f53cd58d713c80c777b0bf6b3f0277eb0b6609305590affa8c0",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        440,
+        1056,
+        0,
+        12,
+        107,
+        46,
+        118,
+        10,
+        5,
+        0,
+        0,
+        4,
+        1,
+        0,
+        0,
+        0
+      ],
+      "growths": 0,
+      "same_original_runs_and_matches": true
+    },
+    "growth": {
+      "nodes": 3,
+      "rules": 2,
+      "regions": 2,
+      "check": {
+        "exact_rows_values_equivalence_visibility": true,
+        "rows": 560,
+        "eclasses": 400,
+        "projected_control_tables": [],
+        "original_native_schedule": true,
+        "source_sha256": "93b530f02f41b40fcc91b0a6f4bc52a92c1fe9a52276058242fa2a24c8073d19",
+        "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+      },
+      "stats": [
+        1954,
+        2104,
+        2,
+        4,
+        240,
+        160,
+        318,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "growths": 1,
+      "same_original_runs_and_matches": true
+    }
+  },
+  "static_pass3": {
+    "source": "out/cell-update-pass3/full-control/core.json",
+    "rule_entries": 579,
+    "unique_rules": 548,
+    "regions": 87,
+    "spine_nodes": 434,
+    "rules_with_keyed_prefix": 264,
+    "variants": 1890,
+    "variants_with_keyed_prefix": 414,
+    "meaning": "static compiled prefix availability, not runtime hit rate or speedup",
+    "rulesets": [
+      {
+        "name": "add-to-debug-expr",
+        "rules": 0,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "all-optimizations",
+        "rules": 44,
+        "rules_with_keyed_prefix": 39
+      },
+      {
+        "name": "always-run",
+        "rules": 222,
+        "rules_with_keyed_prefix": 95
+      },
+      {
+        "name": "apply-drop-unions",
+        "rules": 1,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "apply-subst-unions",
+        "rules": 1,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "boundary-analysis",
+        "rules": 1,
+        "rules_with_keyed_prefix": 1
+      },
+      {
+        "name": "boundary-analysis-prep",
+        "rules": 1,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "canon",
+        "rules": 8,
+        "rules_with_keyed_prefix": 8
+      },
+      {
+        "name": "cheap-optimizations",
+        "rules": 31,
+        "rules_with_keyed_prefix": 28
+      },
+      {
+        "name": "cicm-index",
+        "rules": 2,
+        "rules_with_keyed_prefix": 1
+      },
+      {
+        "name": "cleanup-drop",
+        "rules": 3,
+        "rules_with_keyed_prefix": 2
+      },
+      {
+        "name": "context",
+        "rules": 17,
+        "rules_with_keyed_prefix": 2
+      },
+      {
+        "name": "drop",
+        "rules": 17,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "error-checking",
+        "rules": 24,
+        "rules_with_keyed_prefix": 14
+      },
+      {
+        "name": "initialization",
+        "rules": 1,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "interval-analysis",
+        "rules": 43,
+        "rules_with_keyed_prefix": 31
+      },
+      {
+        "name": "is-resolved",
+        "rules": 17,
+        "rules_with_keyed_prefix": 13
+      },
+      {
+        "name": "loop-iters-analysis",
+        "rules": 4,
+        "rules_with_keyed_prefix": 3
+      },
+      {
+        "name": "mem-simple",
+        "rules": 13,
+        "rules_with_keyed_prefix": 4
+      },
+      {
+        "name": "non-weakly-linear",
+        "rules": 7,
+        "rules_with_keyed_prefix": 6
+      },
+      {
+        "name": "passthrough",
+        "rules": 6,
+        "rules_with_keyed_prefix": 5
+      },
+      {
+        "name": "state-edge-passthrough",
+        "rules": 1,
+        "rules_with_keyed_prefix": 1
+      },
+      {
+        "name": "subst",
+        "rules": 18,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "subsume-after-helpers",
+        "rules": 1,
+        "rules_with_keyed_prefix": 1
+      },
+      {
+        "name": "term-subst",
+        "rules": 12,
+        "rules_with_keyed_prefix": 2
+      },
+      {
+        "name": "terms",
+        "rules": 8,
+        "rules_with_keyed_prefix": 6
+      },
+      {
+        "name": "terms-helpers",
+        "rules": 3,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "terms-helpers-helpers",
+        "rules": 3,
+        "rules_with_keyed_prefix": 0
+      },
+      {
+        "name": "type-analysis",
+        "rules": 60,
+        "rules_with_keyed_prefix": 24
+      },
+      {
+        "name": "type-helpers",
+        "rules": 10,
+        "rules_with_keyed_prefix": 6
+      }
+    ]
+  },
+  "pipeline_verification": {
+    "sk_equals_marked": true,
+    "original_rows": 12,
+    "original_eclasses": 8,
+    "projected_tables": [],
+    "scope": "complete original facts, values, equivalence and visibility; marker maintenance is not original work",
+    "multi_stage_cell": {
+      "scope": "shared global GPU identity domain with original staged control",
+      "cached_spine_reuses": 2,
+      "spine_builds": 18,
+      "correlated_rows_built": 25,
+      "correlated_rows_consumed": 9,
+      "prefix_table_reads": 24,
+      "invalidated_spines": 4,
+      "cache_compactions": 3,
+      "witness_validated_tuple_reuses": 2,
+      "stage_runs": 10,
+      "cache_growths": 0,
+      "exact_residual_queries": true,
+      "invalidation_granularity": "table mutation versions",
+      "identities": "shared hashcons/union; local recipe slots receive actual constructor results",
+      "execution": "GPU-resident control, serial within a shared arena; not a throughput claim"
+    },
+    "gpu_inference_seconds": 0.007357001304626465,
+    "backend": "regions",
+    "device_marker_contract": {
+      "sha256": "40daa7647fa22ce3634a4eb9d12349942d11b8820a55ba9281b0af610767ee78",
+      "source_sha256": "9c8d38b9c49d7c90c18884ed6b9c98ca63f2c2ecfb8982b830b5153d334d523f",
+      "tables": [],
+      "consumer_reads": 0,
+      "publication_sites": 0,
+      "functional_completion_shortcuts": 0,
+      "execution": "source-defined Unit views; original stage completion; marker-preferred exact queries"
+    },
+    "gpu": {
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 12,
+      "eclasses": 8
+    }
+  },
+  "ordinary_pipeline_regression": "out/region-ordinary-regression/checks.json passed",
+  "limits": [
+    "table-version refresh is not per-key subscriber dispatch",
+    "serial inside the shared GPU identity domain",
+    "logical-Run local rebuild remains",
+    "full Raytrace native/GPU difference unresolved"
+  ],
+  "portable_artifact_reload": {
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 12,
+    "eclasses": 8,
+    "projected_control_tables": [
+      "DeviceBackendCheck_0"
+    ],
+    "original_native_schedule": true,
+    "source_sha256": "9c8d38b9c49d7c90c18884ed6b9c98ca63f2c2ecfb8982b830b5153d334d523f",
+    "frontend_sha256": "dd829fd79b87c1e82470385ad72068bf4fd2c5e9050af68353d16005525290a2"
+  },
+  "canonical_specialized_mode_rejected": true
+}
