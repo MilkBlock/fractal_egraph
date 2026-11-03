@@ -41,6 +41,21 @@ impl Plans {
             }
             return Ok(Self::default());
         }
+        let (result, mut expected) = Self::derive(p)?;
+        if raw.get("static_aliases").is_none() {
+            if std::env::var("CELL_CPU_KNOWN_RESULTS").as_deref() == Ok("static") {
+                return Err("static aliases require re-emitting the CPU artifact".into());
+            }
+            expected.as_object_mut().unwrap().remove("static_aliases");
+        }
+        if *raw != expected {
+            return Err("known result projections differ from typed recipe".into());
+        }
+        // Reject non-array payloads even when a future compiler has no plans.
+        array(&raw["plans"])?;
+        Ok(result)
+    }
+    pub(crate) fn derive(p:&Program)->Result<(Self,J)> {
         let mut plans = vec![];
         let mut result = Self::default();
         for (rid, r) in p.rules.iter().enumerate() {
@@ -181,21 +196,11 @@ impl Plans {
             result.static_slots.push(slots);
             result.static_skip.push(Rc::new(skip));
         }
-        let mut expected = json!({"schema":"eggfuse-known-results/v1","recipe_sha256":p.artifact["recipe"]["sha256"],"plans":plans,"static_aliases":static_aliases,
+        let expected = json!({"schema":"eggfuse-known-results/v1","recipe_sha256":p.artifact["recipe"]["sha256"],"plans":plans,"static_aliases":static_aliases,
             "contract":"live canonical FactRef with identical full constructor key; dirty domains fall back; never skip set/union/guard"});
-        if raw.get("static_aliases").is_none() {
-            if std::env::var("CELL_CPU_KNOWN_RESULTS").as_deref() == Ok("static") {
-                return Err("static aliases require re-emitting the CPU artifact".into());
-            }
-            expected.as_object_mut().unwrap().remove("static_aliases");
-        }
-        if *raw != expected {
-            return Err("known result projections differ from typed recipe".into());
-        }
-        // Reject non-array payloads even when a future compiler has no plans.
-        array(&raw["plans"])?;
-        Ok(result)
+        Ok((result,expected))
     }
+
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]

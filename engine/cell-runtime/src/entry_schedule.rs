@@ -47,6 +47,13 @@ impl Plan {
             }
             return Ok(Self::default());
         }
+        let (s, expected) = Self::derive(p)?;
+        if *raw != expected {
+            return Err("shared entry schedule differs from typed query wiring/control".into());
+        }
+        Ok(s)
+    }
+    pub(crate) fn derive(p:&Program)->Result<(Self,J)> {
         let mut s = Self {
             nodes: vec![],
             rules: vec![vec![]; p.rules.len()],
@@ -118,11 +125,9 @@ impl Plan {
             "delivery":"independent consumer watermarks; original RHS publication",
             "invalidation":"old/new witnesses, visibility, canonical identities and same-key forwarding",
             "scope":"table entry nodes; residual queries and guards remain exact"}});
-        if *raw != expected {
-            return Err("shared entry schedule differs from typed query wiring/control".into());
-        }
-        Ok(s)
+        Ok((s,expected))
     }
+
 }
 pub struct Packet {
     pub row: Rc<Row>,

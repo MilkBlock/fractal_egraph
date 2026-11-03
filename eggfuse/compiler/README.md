@@ -1,5 +1,7 @@
 # Unified eggfuse compilation
 
+独立 Cell CPU 的 Rust 入口是 `cargo cell-compile` 和 `cargo cell-bench`。原有 Python 管线供 GPU、历史实验和迁移回归使用。命令见 [Cell CPU 编译与 bench](../../tools/cell-compiler/README.md)。
+
 Bake validation now distinguishes failed native environments, observed endpoints
 and certified closures. Invalid environments cannot pass through a successful
 JSON/process receipt. `--marker-locality identity` (default) includes structural

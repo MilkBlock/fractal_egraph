@@ -102,10 +102,13 @@ pub fn call(j: &J, names: &BTreeMap<String, usize>) -> Result<Call> {
 }
 impl Program {
     pub fn parse(j: J) -> Result<Self> {
+        Self::load(j, false)
+    }
+    pub(crate) fn load(j: J, compiling: bool) -> Result<Self> {
         if j["schema"] != "eggfuse-cell-runtime/v1" {
             return Err("unsupported Cell runtime artifact".into());
         }
-        if std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
+        if !compiling && std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
             && j["multi_stage"]["union_entries"].is_null()
         {
             return Err(
@@ -295,6 +298,9 @@ impl Program {
             artifact: j,
         };
         p.validate()?;
+        if compiling {
+            return Ok(p);
+        }
         if p.tables
             .iter()
             .any(|t| t.schema.iter().any(|s| s["kind"] == "structural_key"))
@@ -315,79 +321,11 @@ impl Program {
                 return Err("merge contract schema".into());
             }
             for (t, c) in p.tables.iter().zip(cs) {
-                let e = &t.merge;
-                let op = e["call"]["primitive"].as_str();
-                let vars = e["args"].as_array().map(|xs| {
-                    let mut v = xs
-                        .iter()
-                        .map(|x| x["var"].as_str().unwrap_or(""))
-                        .collect::<Vec<_>>();
-                    v.sort();
-                    v
-                });
-                let kind = if t.constructor {
-                    "congruence"
-                } else if e.is_null() {
-                    "unique"
-                } else if matches!(op, Some("min" | "max" | "or" | "and" | "cell-key-min"))
-                    && vars == Some(vec!["new", "old"])
-                {
-                    if op == Some("cell-key-min") {
-                        "key-min"
-                    } else {
-                        "lattice"
-                    }
-                } else if op == Some("cell-key-select")
-                    && e["args"][0]["var"] == "old"
-                    && e["args"][1]["var"] == "new"
-                    && e["args"][2]["call"]["primitive"] == "cell-key-prefer-left"
-                {
-                    "ranked-selection"
-                } else {
-                    "ordered"
-                };
-                fn ports(
-                    e: &J,
-                    tables: &[Table],
-                    reads: &mut std::collections::BTreeSet<String>,
-                    constructs: &mut std::collections::BTreeSet<String>,
-                ) -> Result<()> {
-                    if let Some(name) = e["call"]["table"].as_str() {
-                        let t = tables
-                            .iter()
-                            .find(|t| t.name == name)
-                            .ok_or("unknown merge port")?;
-                        if t.constructor {
-                            constructs.insert(name.into());
-                        } else {
-                            reads.insert(name.into());
-                        }
-                    }
-                    if let Some(xs) = e["args"].as_array() {
-                        for x in xs {
-                            ports(x, tables, reads, constructs)?;
-                        }
-                    }
-                    Ok(())
-                }
-                let mut reads = std::collections::BTreeSet::new();
-                let mut constructs = std::collections::BTreeSet::new();
-                ports(e, &p.tables, &mut reads, &mut constructs)?;
-                if c["reads"] != serde_json::json!(reads)
-                    || c["constructs"] != serde_json::json!(constructs)
-                {
+                let expected=crate::merge_contract::table(&p,t)?;
+                if ["reads","constructs"].iter().any(|k|c[k]!=expected[k]){
                     return Err("merge contract footprint differs".into());
                 }
-                if c["table"] != t.name
-                    || c["expression"] != *e
-                    || c["kind"] != kind
-                    || c["equal_inputs"]
-                        != if e["call"]["table"].is_string() {
-                            "return_old"
-                        } else {
-                            "evaluate"
-                        }
-                {
+                if ["table","expression","kind","equal_inputs"].iter().any(|k|c[k]!=expected[k]){
                     return Err("merge contract differs from source".into());
                 }
             }
