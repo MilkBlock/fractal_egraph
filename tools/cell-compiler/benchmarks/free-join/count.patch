@@ -1,0 +1,41 @@
+--- a/egglog/core-relations/src/free_join/execute.rs
++++ b/egglog/core-relations/src/free_join/execute.rs
+@@ -957,0 +958 @@
++            crate::count_fj(4);
+@@ -997,0 +999 @@
++                                crate::count_fj(4);
+@@ -1105,0 +1108 @@
++                        crate::count_fj(0);
+@@ -1155,0 +1159,2 @@
++                        crate::count_fj(0);
++                        crate::count_fj(3);
+@@ -1267,0 +1273 @@
++                            crate::count_fj(0);
+@@ -1272,0 +1279 @@
++                                crate::count_fj(3);
+@@ -1385,0 +1393 @@
++                        crate::count_fj(1);
+@@ -1458,0 +1467 @@
++                        crate::count_fj(1);
+@@ -1476,0 +1486 @@
++                            crate::count_fj(3);
+@@ -1571,0 +1582 @@
++                        crate::count_fj(3);
+@@ -1596 +1607,2 @@
+-                            let group_key = group.0;
++                            if mode == &MatScanMode::KeyOnly { crate::count_fj(2); }
++let group_key = group.0;
+@@ -1601,0 +1614 @@
++                                    crate::count_fj(2);
+@@ -1642,0 +1656 @@
++                        crate::count_fj(3);
+@@ -1654,0 +1669 @@
++                                    crate::count_fj(2);
+--- a/egglog/core-relations/src/lib.rs
++++ b/egglog/core-relations/src/lib.rs
+@@ -48,0 +49,5 @@
++
++pub static FJ_WORK: [std::sync::atomic::AtomicU64; 5] = [const {std::sync::atomic::AtomicU64::new(0)}; 5];
++
++#[inline(always)]
++fn count_fj(i:usize){if option_env!("EGGLOG_COUNT_FREE_JOIN").is_some(){FJ_WORK[i].fetch_add(1,std::sync::atomic::Ordering::Relaxed);}}
