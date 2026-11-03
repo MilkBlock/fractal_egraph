@@ -288,6 +288,15 @@ impl Scheduler {
         }
     }
     pub fn seeds(&mut self, g: &Graph, rid: usize, watermark: u64) -> Result<Vec<Seed>> {
+        self.seeds_where(g, rid, watermark, |_, _, _| true)
+    }
+    pub(crate) fn seeds_where(
+        &mut self,
+        g: &Graph,
+        rid: usize,
+        watermark: u64,
+        mut allow: impl FnMut(usize, usize, Dependency) -> bool,
+    ) -> Result<Vec<Seed>> {
         self.stats.consumer_calls += 1;
         let mut out = vec![];
         for c in self.plan.rules[rid].clone() {
@@ -296,6 +305,9 @@ impl Scheduler {
                 .epochs
                 .range((watermark, Dependency::Fact(FactRef { cell: 0, op: 0 }))..)
             {
+                if !allow(c.atom, self.plan.nodes[c.node].table, w) {
+                    continue;
+                }
                 let packet = &self.states[c.node].rows[&w];
                 self.stats.consumer_seed_deliveries += 1;
                 self.stats.borrowed_slots += self.plan.nodes[c.node].ports as u64;

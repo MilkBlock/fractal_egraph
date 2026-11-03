@@ -1305,9 +1305,27 @@ impl Executor {
             }
             return Ok(vec![]);
         }
-        let scheduled=if !probe && self.entry_schedule.accepts(rid) {
-            Some(self.entry_schedule.seeds(&self.graph,rid,self.watermarks[rid])?)
-        } else {None};
+        let scheduled_entry = !probe && self.entry_schedule.accepts(rid);
+        // Spine coverage and retained matching consume their own complete entry domains.
+        let early_sieve = scheduled_entry && self.sieve.enabled && self.delta_queries
+            && rule.direct.is_none() && !self.stage_spine.enabled && !self.retained.accepts(rid);
+        if early_sieve {
+            self.sieve.prepare(rid, &self.graph, &mut self.query_indexes)?;
+            if self.sieve.empty_join(rid) {
+                self.pending[rid].clear();
+                return Ok(vec![]);
+            }
+        }
+        let scheduled = if scheduled_entry {
+            let watermark = self.watermarks[rid];
+            Some(if early_sieve {
+                self.entry_schedule.seeds_where(&self.graph, rid, watermark, |atom, table, w| {
+                    self.sieve.allow(rid, atom, table, w, &self.query_indexes)
+                })?
+            } else {
+                self.entry_schedule.seeds(&self.graph, rid, watermark)?
+            })
+        } else { None };
         let mut stage_covered = BTreeSet::new();
         let mut found = vec![];
         if !probe && rule.seminaive && self.delta_queries {
@@ -1343,8 +1361,9 @@ impl Executor {
                     composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
             }).collect())
         }
-        self.sieve
-            .prepare(rid, &self.graph, &mut self.query_indexes)?;
+        if !early_sieve {
+            self.sieve.prepare(rid, &self.graph, &mut self.query_indexes)?;
+        }
         let shared_seeds = !probe && rule.seminaive && self.delta_queries && self.stage_spine.shared();
         if let Some(anchor) = rule.direct {
             let atom = &rule.query[anchor];
@@ -1485,7 +1504,7 @@ impl Executor {
                     .chain(changed.iter().filter(|r|r.table==table).map(|r|(None,&**r)));
                 for (supplied,row) in candidates {
                     if stage_covered.contains(&(pivot,row.witness)){continue;}
-                    if !self.sieve.allow(rid,pivot,table,row.witness,&self.query_indexes){continue;}
+                    if !early_sieve && !self.sieve.allow(rid,pivot,table,row.witness,&self.query_indexes){continue;}
                     if !shared_seeds && scheduled.is_none(){self.graph.stats.residual_candidates+=1;self.graph.stats.decoded_rows+=1;}
                     let mut env=if let Some(seed)=supplied{QueryEnv::shared(seed.clone(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)}
                         else{QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)};
@@ -1689,9 +1708,18 @@ impl Executor {
         }
         let facts = self.graph.stats.logical_facts_created;
         let updates = self.graph.stats.function_updates;
-        let cell = self
-            .graph
-            .reference_frame(template, b.values, b.parent, &b.witnesses)?;
+        let (cell, first_op) = if self.graph.program.rules[rid].constructor_only
+            && !self.graph.views_enabled && self.graph.known_mode == "off"
+            && !self.compositions_enabled && !self.stage_spine.enabled
+            && self.local_run.is_none() && origin.is_none() && !self.graph.union_lineage_enabled
+        {
+            let Some(start) = self.graph.start_constructor_rhs(template, b.values, b.parent)? else {
+                return Ok(None);
+            };
+            start
+        } else {
+            (self.graph.reference_frame(template, b.values, b.parent, &b.witnesses)?, 0)
+        };
         if matches!(self.graph.known_mode.as_str(),"observe"|"on") {
             if let Some(plans)=self.graph.program.known_results.rules.get(&rid){
                 for (op,source) in plans.iter().enumerate(){
@@ -1756,8 +1784,8 @@ impl Executor {
         let observe_static=self.graph.known_mode=="observe";
         let static_skip=if eliminate_static || observe_static {self.graph.program.known_results.static_skip.get(rid).cloned()}else{None};
         let mut completed = true;
-        let mut completed_prefix=0;
-        for (i, op) in ops.iter().enumerate() {
+        let mut completed_prefix=first_op;
+        for (i, op) in ops.iter().enumerate().skip(first_op) {
             if eliminate_static && static_skip.as_ref().is_some_and(|s|s[i]){
                 self.graph.known_stats.static_eliminated+=1;
                 self.graph.known_stats.avoided_lookups+=1;

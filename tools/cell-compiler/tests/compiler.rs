@@ -217,3 +217,107 @@ fn witnessed_handoff_is_bound_to_the_compiled_recipe() {
     assert!(!compile("invalid", &args).status.success());
     assert!(!tmp.path().join("invalid").exists());
 }
+
+#[test]
+fn a_late_bridge_wakes_a_rule_with_an_empty_join_summary() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("late-bridge.egg");
+    fs::write(
+        &source,
+        r#"
+(relation Starts (i64))
+(relation Bridge (i64 i64))
+(relation Ends (i64))
+(relation Hit (i64))
+(ruleset search)
+(ruleset insert)
+(rule ((Starts x) (Bridge x y) (Ends y)) ((Hit x)) :ruleset search)
+(rule ((Starts x) (Ends y)) ((Bridge x y)) :ruleset insert)
+(Starts 10) (Bridge 20 30) (Ends 40)
+(run-schedule (seq (run search) (run insert) (run search)))
+(check (Hit 10))
+"#,
+    )
+    .unwrap();
+    let output = tmp.path().join("compiled");
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--output",
+        output.to_str().unwrap(),
+    ]);
+    let result = pass(&[
+        "bench",
+        "--program",
+        output.join("program.json").to_str().unwrap(),
+        "--lane",
+        "filtered",
+        "--repeat",
+        "1",
+        "--verify-stages",
+    ]);
+    let report: J = serde_json::from_slice(&result.stdout).unwrap();
+    assert!(report["counts"]["empty_join_skips"].as_u64().unwrap() > 0);
+}
+
+#[test]
+fn reused_constructor_prefix_preserves_later_cell_identities() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("constructor-prefix.egg");
+    fs::write(
+        &src,
+        r#"
+(datatype E (Seed i64) (A E) (B E) (C E))
+(ruleset build)
+(rule ((= s (Seed i))) ((C (B (A s)))) :ruleset build)
+(A (Seed 1))
+(C (B (A (Seed 2))))
+(Seed 3)
+(run-schedule (run build))
+(check (= x (C (B (A (Seed 1))))) (= y (C (B (A (Seed 3))))))
+"#,
+    )
+    .unwrap();
+    let out = tmp.path().join("compiled");
+    pass(&[
+        "compile",
+        "--source",
+        src.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let program = out.join("program.json");
+    let report: J = serde_json::from_slice(
+        &pass(&[
+            "bench",
+            "--program",
+            program.to_str().unwrap(),
+            "--lane",
+            "baseline",
+            "--repeat",
+            "1",
+        ])
+        .stdout,
+    )
+    .unwrap();
+    assert!(report["counts"]["rhs_frames_avoided"].as_u64().unwrap() > 0);
+
+    // Observation retains eager frames to record physical constructor witnesses.
+    // Compare every boundary including the IDs of facts created after a full hit.
+    let stages = |mode| {
+        let run = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+            .arg("internal-stages")
+            .arg(&program)
+            .env("CELL_CPU_KNOWN_RESULTS", mode)
+            .output()
+            .unwrap();
+        assert!(
+            run.status.success(),
+            "{}",
+            String::from_utf8_lossy(&run.stderr)
+        );
+        serde_json::from_slice::<Vec<String>>(&run.stdout).unwrap()
+    };
+    assert_eq!(stages("off"), stages("observe"));
+}
