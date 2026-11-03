@@ -12,4 +12,4 @@ Use fresh output directories. To compile your own program, replace `--case sum-b
 
 For performance comparisons, run the same artifact with `--lane baseline`, `--lane nodes` and `--lane filtered`. The optional stage audit compares the selected CPU lane against the baseline on the initial graph and each Run's graph, bindings and schedule. See the [compiler and benchmark guide](tools/cell-compiler/README.md) for supported inputs and the known native endpoint discrepancy.
 
-The [research snapshot](https://github.com/MilkBlock/fractal_egraph/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5) contains the Metal engine, Python compiler and experimental benchmarks.
+The [research snapshot](https://github.com/MilkBlock/eggfuse/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5) contains the Metal engine, Python compiler and experimental benchmarks.
