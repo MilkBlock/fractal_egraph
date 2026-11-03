@@ -470,7 +470,7 @@ impl Executor {
         env.witnesses=MatchedFacts::new(query.len(),true);
         let mut proof=crate::refutation::Evidence::default();
         let result=if let Some(order)=order {
-            self.merge_points(query,order,env,epoch,delta.unwrap(),out,Some(&mut proof))
+            self.merge_points(rid,query,order,env,epoch,delta.unwrap(),out,Some(&mut proof))
         } else {self.solve_inner(query,rid,remaining,env,epoch,out,delta,Some(&mut proof))};
         env.witnesses=old.clone();result?;
         let mut answers=vec![];
@@ -514,6 +514,11 @@ impl Executor {
         delta: Option<(usize, u64, Dependency)>,
         mut evidence: Option<&mut crate::refutation::Evidence>,
     ) -> Result<()> {
+        if !self.refutation.enabled && !self.search_contexts.enabled && self.local_known(rid,env) {
+            self.local_sat.stats.inner_receipts+=1;
+            self.local_sat.stats.skipped_remaining_table_atoms+=query.iter().zip(remaining.iter()).filter(|(a,p)|**p && matches!(a.call,Call::Table(_))).count() as u64;
+            return Ok(())
+        }
         if !remaining.iter().any(|pending| *pending) {
             out.push(Binding {
                 composition: None,
@@ -689,6 +694,7 @@ impl Executor {
     }
     fn points(
         &mut self,
+        rid: usize,
         query: &[Atom],
         order: &[usize],
         env: &mut QueryEnv,
@@ -700,6 +706,13 @@ impl Executor {
         for &i in order {
             if !remaining[i] {
                 continue;
+            }
+            // A completed effect is not a negative match proof. Do not publish
+            // this short circuit into the separate refutation/query caches.
+            if !self.refutation.enabled && !self.search_contexts.enabled && self.local_known(rid,env) {
+                self.local_sat.stats.inner_receipts+=1;
+                self.local_sat.stats.skipped_remaining_table_atoms+=query.iter().zip(remaining.iter()).filter(|(a,p)|**p && matches!(a.call,Call::Table(_))).count() as u64;
+                return Ok(false)
             }
             let atom = &query[i];
             let args = atom.args[..atom.args.len() - 1]
@@ -963,6 +976,11 @@ impl Executor {
             if !remaining[read.atom] {
                 continue;
             }
+            if !self.refutation.enabled && !self.search_contexts.enabled && self.local_known(rid,env) {
+                self.local_sat.stats.inner_receipts+=1;
+                self.local_sat.stats.skipped_remaining_table_atoms+=query.iter().zip(remaining.iter()).filter(|(a,p)|**p && matches!(a.call,Call::Table(_))).count() as u64;
+                return Ok((false,epoch,None))
+            }
             let atom = &query[read.atom];
             let bound = atom
                 .args
@@ -1120,8 +1138,13 @@ impl Executor {
     // Fixed constructor-port wiring from the checked merge program. All alias
     // alternatives remain explicit and use the original latest-witness split.
     // No effects run here: complete bindings enter the normal sealed StagePatch.
-    fn merge_points(&mut self,query:&[Atom],order:&[usize],env:&mut QueryEnv,epoch:u64,
+    fn merge_points(&mut self,rid:usize,query:&[Atom],order:&[usize],env:&mut QueryEnv,epoch:u64,
         delta:(usize,u64,Dependency),out:&mut Vec<Binding>,mut evidence:Option<&mut crate::refutation::Evidence>)->Result<()> {
+        if !self.refutation.enabled && !self.search_contexts.enabled && self.local_known(rid,env) {
+            self.local_sat.stats.inner_receipts+=1;
+            self.local_sat.stats.skipped_remaining_table_atoms+=order.iter().filter(|i|matches!(query[**i].call,Call::Table(_))).count() as u64;
+            return Ok(())
+        }
         let Some((&i,tail))=order.split_first() else {
             out.push(Binding{composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
             return Ok(())
@@ -1134,7 +1157,7 @@ impl Executor {
                 let args=a.args[..a.args.len()-1].iter().map(|a|operand(a,env,&self.graph).ok_or_else(||"merge guard input".to_string())).collect::<Result<Vec<_>>>()?;
                 if name.starts_with("cell-key-"){self.graph.stats.key_operations+=1;}
                 if let Some(v)=value::primitive(name,&args,sort,&self.graph.program.artifact["source_core"]["structural_key"]["nodes"])? {
-                    if bind(a.args.last().unwrap(),&v,env,&self.graph){self.merge_points(query,tail,env,epoch,delta,out,evidence.as_deref_mut())?;}
+                    if bind(a.args.last().unwrap(),&v,env,&self.graph){self.merge_points(rid,query,tail,env,epoch,delta,out,evidence.as_deref_mut())?;}
                 }
             },
             Call::Table(t)=>{
@@ -1163,7 +1186,7 @@ impl Executor {
                         if let Some(proof)=evidence.as_deref_mut(){proof.delta_restrictions+=1;}continue
                     }
                     if a.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,env,&self.graph)) {
-                        env.record(i,Some(row.witness));self.merge_points(query,tail,env,epoch.max(row.epoch),delta,out,evidence.as_deref_mut())?;env.record(i,None);
+                        env.record(i,Some(row.witness));self.merge_points(rid,query,tail,env,epoch.max(row.epoch),delta,out,evidence.as_deref_mut())?;env.record(i,None);
                     }
                     env.rollback(mark);
                 }
@@ -1180,7 +1203,7 @@ impl Executor {
         if hit {self.refutation.stats.compiled_hits+=1;if !self.refutation.shadow{self.refutation_depth.reject(2);return Ok(())}}
         let before=out.len();let candidates=self.continuation_stats.merge_candidate_rows;let keys=self.graph.key_lookup_calls.get();
         let mut proof=crate::refutation::Evidence::default();
-        self.merge_points(query,order,env,row.epoch,(pivot,row.epoch,row.witness),out,Some(&mut proof))?;
+        self.merge_points(rid,query,order,env,row.epoch,(pivot,row.epoch,row.witness),out,Some(&mut proof))?;
         if hit {
             if out.len()!=before{return Err("compiled port refutation rejected a valid binding".into())}
             self.refutation.shadow_work(rid,self.continuation_stats.merge_candidate_rows-candidates,self.graph.key_lookup_calls.get()-keys);
@@ -1199,7 +1222,7 @@ impl Executor {
         }else if self.search_contexts.enabled && !self.refutation.enabled && !self.sieve.enabled && order.iter().any(|i|matches!(query[*i].call,Call::Table(_))) {
             let mut remaining=(0..query.len()).map(|i|i!=pivot).collect::<Vec<_>>();
             self.solve_context(&query,rid,&mut remaining,env,row.epoch,out,Some((pivot,row.epoch,row.witness)),Some(&order))?;
-        }else{self.merge_points(&query,&order,env,row.epoch,(pivot,row.epoch,row.witness),out,None)?;}
+        }else{self.merge_points(rid,&query,&order,env,row.epoch,(pivot,row.epoch,row.witness),out,None)?;}
         let n=(out.len()-before) as u64;self.continuation_stats.merge_bindings+=n;
         *self.continuation_stats.merge_bindings_by_rule.entry(rid).or_default()+=n;
         Ok(true)
@@ -1315,6 +1338,7 @@ impl Executor {
                             .cloned()
                         {
                             if !self.points(
+                                rid,
                                 &rule.query,
                                 &order,
                                 &mut env,
@@ -1456,6 +1480,7 @@ impl Executor {
                                 .cloned()
                             {
                                 if !self.points(
+                                    rid,
                                     &rule.query,
                                     &order,
                                     &mut env,
@@ -1493,6 +1518,7 @@ impl Executor {
                                 .cloned()
                             {
                                 if !self.points(
+                                    rid,
                                     &rule.query,
                                     &order,
                                     &mut env,
@@ -1518,6 +1544,7 @@ impl Executor {
                                 self.graph.program.multi_stage.finishes.get(rid).cloned()
                             {
                                 if !self.points(
+                                    rid,
                                     &rule.query,
                                     &order,
                                     &mut env,
@@ -1963,7 +1990,9 @@ impl Executor {
         let rhs_seconds=ordinary_rhs_seconds;
         self.graph.stats.bindings += executed as u64;
         let phase = Instant::now();
+        let old_unions=self.graph.stats.unions;
         self.graph.repair()?;
+        if self.graph.stats.unions!=old_unions {self.local_sat.repair_receipts(&self.graph.parents);}
         if let Some(mut survey)=self.graph.union_impact.take() {
             survey.finish(&self.graph,set)?;
             self.graph.union_impact=Some(survey);

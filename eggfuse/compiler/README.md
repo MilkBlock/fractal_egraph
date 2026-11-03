@@ -1,5 +1,12 @@
 # Unified eggfuse compilation
 
+Bake validation now distinguishes failed native environments, observed endpoints
+and certified closures. Invalid environments cannot pass through a successful
+JSON/process receipt. `--marker-locality identity` (default) includes structural
+consumer connectors in marker shapes and prefixes; `all` retains the prior
+scalar-connected selection for ablation. See
+[the sum-bits validation and measurements](../../experiments/cell_runtime/BAKE_AND_LOCALITY_REPAIR.md).
+
 One entry produces and verifies:
 
 ```text

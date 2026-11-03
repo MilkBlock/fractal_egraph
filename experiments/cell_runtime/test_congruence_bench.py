@@ -17,7 +17,9 @@ class PipelineBenchmarkTests(unittest.TestCase):
                     p.write_text(value if isinstance(value,str) else json.dumps(value))
             return pm.run(name,inputs,options or {},[],list(outputs),write,lambda f:None)
         sk=step('structural_keys',{'source':src},{'result/source_sk.egg':'keyed','result/report.json':{'selected_choices':['choose']}})
-        analysis=step('analyze',{'source_sk':sk/'result/source_sk.egg'},{'result/cell-recipes.json':{}})
+        analysis=step('analyze',{'source_sk':sk/'result/source_sk.egg'},
+            {'result/cell-recipes.json':{},'result/analysis.json':{'status':'complete'},
+             'result/cell-device-recipes.json':{'programs':[],'instances':[]}})
         marked=step('markers',{'source_sk':sk/'result/source_sk.egg','analysis':analysis/'result/cell-recipes.json'},{'result/published.egg':'marked'})
         ir=step('marker_ir',{'marked_source':marked/'result/published.egg','analysis':analysis/'result/cell-recipes.json'},
                 {'core.json':{},'marker-program.json':{'markers':[{}]}})

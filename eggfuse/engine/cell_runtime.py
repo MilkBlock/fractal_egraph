@@ -82,6 +82,8 @@ def load_pipeline_artifact(output):
     if (root/'pipeline.json').is_file() and any(s['name']=='bake_environment' for s in json.loads((root/'pipeline.json').read_text()).get('passes',[])):
         required.append('bake_environment')
     records=verified_receipts(root,required)
+    from eggfuse.analyzer.health import validate as validate_bake_health
+    bake_health=validate_bake_health(records['analyze'][0]/'result')
     has_compositions=(artifact/'composition-program.json').is_file()
     if has_compositions:records.update(verified_receipts(root,['compositions']))
     device,receipt=records['device']
@@ -111,6 +113,7 @@ def load_pipeline_artifact(output):
     sk=json.loads((records['structural_keys'][0]/'result/report.json').read_text())
     marker=json.loads((artifact/'marker-program.json').read_text())
     provenance={'pipeline':str(root),'passes':{n:r[1]['contract'] for n,r in records.items()},
+                'bake_health':bake_health,
                 'selected_choices':sk.get('selected_choices',[]),'marker_count':len(marker['markers']),
                 'source_sha256':records['structural_keys'][1]['contract']['inputs']['source']['sha256'],
                 'source_sk_sha256':records['structural_keys'][1]['artifacts']['result/source_sk.egg'],

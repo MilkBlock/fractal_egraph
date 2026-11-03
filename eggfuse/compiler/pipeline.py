@@ -16,7 +16,7 @@ def native_core(frontend,source,folder):
         proc=subprocess.run([str(frontend),str(source)],input='',text=True,stdout=subprocess.PIPE,stderr=error,check=True)
     return json.loads(proc.stdout.splitlines()[0])
 
-def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu',multi_stage_cell=False,bake_source=None,incremental_rebuild=False,composition_evidence=None):
+def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_after='verify',run_gpu=True,capacity=4096,match_capacity=16384,backend='gpu',multi_stage_cell=False,bake_source=None,incremental_rebuild=False,composition_evidence=None,marker_locality='identity'):
     source=Path(source).resolve();build=Path(build).resolve();tools=Path(tools).resolve()
     if multi_stage_cell and backend not in ('gpu','cell-cpu'):raise ValueError('multi-stage Cell requires the GPU regions or cell-cpu backend')
     if multi_stage_cell and backend=='gpu':backend='regions'
@@ -54,10 +54,14 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
         command([analyzer,'analyze','--source',evidence_source,'--output',folder/'result'],folder/'analyze.log')
         from eggfuse.analyzer.native import publish_recipes
         publish_recipes(folder/'result')
-    analysis=pm.run('analyze',{'source_sk':evidence_source,'analyzer':analyzer},{'graphs':False},base+[ROOT/'eggfuse/analyzer/native.py',ROOT/'eggfuse/analyzer/recipes.py',ROOT/'eggfuse/analyzer/merge_programs.py',ROOT/'eggfuse/analyzer/regions.py',ROOT/'eggfuse/analyzer/batches.py',ROOT/'eggfuse/ir/batches.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/ir/recipe.py'],
-        ['result/recipe-library.json','result/parameterized-merge-programs.json','result/cell-recipes.json','result/cell-device-recipes.json','result/analysis.json','result/catalog/*.json','result/catalog/states/*.json','result/saturated-rule-composition/cells/*/observed-saturated-state.json'],
+    def check_analysis(folder):
+        from eggfuse.analyzer.health import validate
+        valid_json(folder/'result','cell-recipes.json')
+        validate(folder/'result')
+    analysis=pm.run('analyze',{'source_sk':evidence_source,'analyzer':analyzer},{'graphs':False},base+[ROOT/'eggfuse/analyzer/health.py',ROOT/'eggfuse/analyzer/native.py',ROOT/'eggfuse/analyzer/recipes.py',ROOT/'eggfuse/analyzer/merge_programs.py',ROOT/'eggfuse/analyzer/regions.py',ROOT/'eggfuse/analyzer/batches.py',ROOT/'eggfuse/ir/batches.py',ROOT/'eggfuse/ir/regions.py',ROOT/'eggfuse/ir/library.py',ROOT/'eggfuse/ir/recipe.py'],
+        ['result/recipe-library.json','result/parameterized-merge-programs.json','result/bake-health.json','result/cell-recipes.json','result/cell-device-recipes.json','result/analysis.json','result/catalog/*.json','result/catalog/states/*.json','result/saturated-rule-composition/cells/*/observed-saturated-state.json'],
         analyze,
-        lambda f:valid_json(f/'result','cell-recipes.json'),preserves=['source semantics'])/'result'
+        check_analysis,preserves=['source semantics; explicit Bake health and proof scope'])/'result'
     # The catalogue is an explicit dependency: changing Bake invalidates only
     # consumers of its evidence, not the already completed SK pass.
     witness_files=sorted((analysis/'catalog/states').glob('*.json'))+sorted((analysis/'saturated-rule-composition/cells').glob('*/observed-saturated-state.json'))
@@ -68,10 +72,10 @@ def compile_pipeline(source,output,build,tools,solver_python,profile=None,stop_a
     if venv.exists():marker_inputs['solver_environment']=venv
     if profile:marker_inputs['profile']=Path(profile).resolve()
     def markers(folder):
-        request=dict(source=str(sk_source),analysis=str(analysis),output=str(folder/'result'),ast_binary=str(ast_binary),profile=str(Path(profile).resolve()) if profile else None)
+        request=dict(source=str(sk_source),analysis=str(analysis),output=str(folder/'result'),ast_binary=str(ast_binary),profile=str(Path(profile).resolve()) if profile else None,locality=marker_locality)
         (folder/'request.json').write_text(json.dumps(request))
         command([solver_python,'-m','eggfuse.compiler.select_markers',folder/'request.json'],folder/'markers.log')
-    marked=pm.run('markers',marker_inputs,{'selection':'profile' if profile else 'explicit structural baseline'},
+    marked=pm.run('markers',marker_inputs,{'selection':'profile' if profile else 'explicit structural baseline','locality':marker_locality},
         base+[ROOT/'tools/cell_spine'/n for n in ['pass3_markers.py','spine_state.py','solver.py','terms.py','takeover.py','representation.py','lhs_coverage.py']]+[ROOT/'eggfuse/compiler/select_markers.py'],
         ['result/published.egg','result/shared.egg','result/markers.json'],markers,lambda f:valid_json(f/'result','markers.json'),
         preserves=['original guards and effects','full correlated binding keys'])/'result'
@@ -212,6 +216,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,default=ROOT/'out/device-build')
     p.add_argument('--tools',type=Path,default=ROOT/'target/debug/examples');p.add_argument('--solver-python',type=Path,default=Path(sys.executable));p.add_argument('--profile',type=Path)
     p.add_argument('--composition-evidence',type=Path,help='Typed-recipe-bound observed handoffs for shared multi-rule recipes (Cell CPU)')
+    p.add_argument('--marker-locality',choices=['identity','all'],default='identity',help='Require eclass-connected marker bodies; all retains the old scalar-connected selection for ablation')
     p.add_argument('--bake-source',type=Path,help='Optional small training input; typed declarations/rules must match the execution environment');p.add_argument('--multi-stage-cell',action='store_true',help='Compile witnessed multi-stage batches; GPU context matrices, deterministic block publication and soundness/L1 checks');p.add_argument('--incremental-rebuild',action='store_true',help='Use conservative GPU block summaries to avoid unaffected union repair; requires --multi-stage-cell');p.add_argument('--stop-after',choices=['sk','analyze','markers','recipe','device','verify'],default='verify');p.add_argument('--cpu-only',action='store_true');p.add_argument('--backend',choices=['gpu','local','cell-cpu'],default='gpu');p.add_argument('--capacity',type=int,default=4096);p.add_argument('--match-capacity',type=int,default=16384);a=p.parse_args()
-    pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend,a.multi_stage_cell,a.bake_source,a.incremental_rebuild,a.composition_evidence)
+    pm=compile_pipeline(a.source,a.output,a.build,a.tools,a.solver_python.absolute(),a.profile,a.stop_after,not a.cpu_only,a.capacity,a.match_capacity,a.backend,a.multi_stage_cell,a.bake_source,a.incremental_rebuild,a.composition_evidence,a.marker_locality)
     print(json.dumps(dict(output=str(pm.output),passes=[dict(name=r['name'],cached=r['cached']) for r in pm.receipts],complete=a.stop_after=='verify',backend=a.backend,gpu_checked=a.backend!='cell-cpu' and a.stop_after=='verify' and not a.cpu_only),indent=2))

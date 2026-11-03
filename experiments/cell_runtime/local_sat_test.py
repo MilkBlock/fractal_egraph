@@ -96,6 +96,29 @@ class LocalSatTests(unittest.TestCase):
 (rule ((Pair z z) (= z (A x))) ((Seen x)) :ruleset s)
 (Pair (A (N 0)) (B (N 0)))
 (run-schedule (saturate s)) (check (Seen (N 0)))''')
+    def test_receipts_follow_repaired_representatives(self):
+        _,(_,b)=self.pair('''(datatype E (N i64) (P E) (Q E) (R E) (Other E)) (ruleset s)
+(rule ((P x)) ((Q x)) :ruleset s)
+(rule ((Q x)) ((R x)) :ruleset s)
+(rule ((R x) (Other y)) ((union x y)) :ruleset s)
+(Other (N 0)) (P (N 1))
+(run-schedule (saturate s)) (check (= (N 0) (N 1)) (R (N 0)))''')
+        self.assertGreater(b['local_saturation']['stats']['canonicalized_receipts'],0)
+        self.assertGreater(b['local_saturation']['stats']['seed_receipts'],0)
+    def test_receipt_can_stop_an_inner_join(self):
+        source='''(datatype E (N i64) (Seed E E E) (P E E) (Q E E) (K E) (R E E)) (ruleset s)
+(rule ((Seed x y z)) ((P x y) (Q y z) (K x) (K z)) :ruleset s)
+(rule ((P x y) (Q y z) (K x) (K z)) ((R x z)) :ruleset s)
+(Seed (N 0) (N 1) (N 2)) (Seed (N 3) (N 4) (N 5))
+(run-schedule (saturate s)) (check (R (N 0) (N 2)) (R (N 3) (N 5)))'''
+        root=self.root
+        try:
+            for mode in ('0','1'):
+                self.root=root/mode;self.root.mkdir()
+                _,(_,b)=self.pair(source,extra={'CELL_CPU_MULTISTAGE':mode})
+                self.assertGreater(b['local_saturation']['stats']['inner_receipts'],0)
+                self.assertGreater(b['local_saturation']['stats']['skipped_remaining_table_atoms'],0)
+        finally:self.root=root
     def test_cycle_returns_to_fair_global_queue(self):
         _,(_,b)=self.pair('''(datatype E (P i64) (Q i64)) (ruleset s)
 (rule ((P n) (< n 3)) ((P (+ n 1))) :ruleset s)

@@ -32,6 +32,11 @@ BASE='''(datatype E (N i64) (A E) (B E) (C E) (D E) (Out E i64))
 '''
 
 CASES={
+ 'consumer-bridge':'''(datatype E (N i64) (Branch E E) (Read E i64) (Left E E E) (Right E E E)) (ruleset s)
+(rule ((= root (Branch x y)) (= u (Read x i)) (= v (Read y i))) ((Left root u v)) :ruleset s :name "left")
+(rule ((= root (Branch x y)) (= u (Read x i)) (= v (Read y i))) ((Right root u v)) :ruleset s :name "right")
+(Branch (N 0) (N 1)) (Read (N 0) 0) (Read (N 1) 0) (Read (N 9) 0)
+(run-schedule (saturate s))''',
  'bool-literal':'''(datatype E (N i64) (Tag bool E) (Wrap E) (C E) (D E)) (ruleset s)
 (rule ((= r (Wrap (Tag true (N n))))) ((C r)) :ruleset s :name "one")
 (rule ((= r (Wrap (Tag true (N n))))) ((D r)) :ruleset s :name "two")
@@ -90,6 +95,13 @@ class SpineStates(unittest.TestCase):
         self.assertTrue(m['markers']);self.assertTrue(m['continuations'])
         self.assertTrue(any(v['parent'] for v in r['markers']))
         self.assertGreater(r['variants']['published']['publish_actions'],0)
+
+    def test_scalar_join_is_anchored_to_its_consumer_structure(self):
+        r,_,_,state=self.cases['consumer-bridge']
+        self.assertTrue(any(len(v['body'])==3 for v in r['markers']))
+        for v in r['markers']:
+            self.assertIn('Branch',[f['args'][1]['head'] for f in v['body']])
+        self.assertEqual(sum(row['table']=='Left' for row in state['rows']),1)
 
     def test_late_and_changed_ports_remain_live(self):
         _,_,m,state=self.cases['late-update']

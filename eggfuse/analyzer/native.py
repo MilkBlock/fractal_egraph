@@ -7,6 +7,8 @@ ROOT=Path(__file__).resolve().parents[2]
 
 def publish_recipes(directory):
     directory=Path(directory)
+    from .health import publish as publish_health
+    publish_health(directory)
     source=directory/'cell-device-recipes.json'
     raw=json.loads(source.read_text())
     from eggfuse.ir.structural_key import validate_core

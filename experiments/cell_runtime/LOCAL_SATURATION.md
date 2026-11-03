@@ -1,5 +1,9 @@
 # Saturation-local rule continuation
 
+Historical experiment: its old Bake artifact is now intentionally rejected by
+the pipeline loader. Use [BAKE_AND_LOCALITY_REPAIR.md](BAKE_AND_LOCALITY_REPAIR.md)
+for the repaired pipeline, current reproduction commands and later measurements.
+
 Implemented on `codex/cell-local-saturation`, based on `a677d10`.
 This is the **standalone, single-thread Cell CPU runtime**, not native egglog
 and not the Metal backend. The feature is **opt-in**:

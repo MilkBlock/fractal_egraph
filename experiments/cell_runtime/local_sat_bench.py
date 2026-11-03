@@ -63,6 +63,11 @@ def main():
                 states.append(json.loads((out/name/'state.json').read_text()))
                 result['lanes'][name]={'measurement':m,**metrics(r),'local_saturation':r['local_saturation'],
                     'runs_and_repair_calls':len(r['steps']),'changed_runs':sum(s['changed'] for s in r['steps']),
+                    'point_reads':r['multi_stage']['stats']['point_reads'],
+                    'inverse_reads':r['multi_stage']['stats']['inverse_reads'],
+                    'merge_port_reads':r['multi_stage']['stats']['merge_port_reads'],
+                    'decoded_rows':r['stats']['decoded_rows'],
+                    'candidate_scope':'ordinary delta/residual candidates plus merge-program candidates; fixed point reads reported separately',
                     'total_candidates':r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows']}
                 print(name,m['inference_seconds'],len(r['steps']),r['local_saturation']['stats'],flush=True)
             result['endpoint']=compare_native(program['source_core'],states[1],states[0])

@@ -564,6 +564,9 @@ pub struct Stats {
     pub local_bindings: u64,
     pub duplicate_bindings: u64,
     pub seed_receipts: u64,
+    pub inner_receipts: u64,
+    pub skipped_remaining_table_atoms: u64,
+    pub canonicalized_receipts: u64,
     pub cycle_deferrals: u64,
     pub finite_reentries: u64,
     pub guard_rejections: u64,
@@ -584,6 +587,17 @@ pub struct LocalSat {
     pub stats: Stats,
 }
 impl LocalSat {
+    /// Receipts certify pure effects modulo congruence. Keep their keys in the
+    /// same identity space as the repaired query rows, not the pre-union space.
+    pub fn repair_receipts(&mut self, parents: &crate::value::Parents) {
+        for session in &mut self.sessions {
+            session.seen = std::mem::take(&mut session.seen).into_iter().map(|(r, key)| {
+                let next = key.iter().map(|v| crate::value::canon(v, parents)).collect::<Vec<_>>();
+                self.stats.canonicalized_receipts += u64::from(next != key);
+                (r, next)
+            }).collect();
+        }
+    }
     pub fn new(p: &Program) -> Self {
         let enabled = std::env::var("CELL_CPU_LOCAL_SAT").as_deref() == Ok("1");
         let mut s = Self {

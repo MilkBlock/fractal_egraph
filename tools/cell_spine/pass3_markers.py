@@ -83,7 +83,44 @@ def flatten(rule,sig,globals_=frozenset()):
                 head=[a if a['kind']=='panic' else t.remap_action(a,subst) for a in rule['head']])
 
 
-def canonical(pair,types):
+def structural_fragments(flat,sig,fragments):
+    """Retain eclass-connected fragments and add their consumer connectors.
+
+    Primitive equality (e.g. a shared index) is a guard, not evidence that two
+    nodes belong to one local structure. For disconnected fragments, include all
+    vertices on shortest structural paths in this consumer. No operator names,
+    sampled bindings, cardinality cutoffs or arbitrary search budgets are used.
+    The remaining original query is always retained when no such path exists.
+    """
+    eq_sorts={s['output'] for s in sig.values() if s['kind']=='constructor'}
+    vertices=[{v for e in f['args'] for v in vars_in(e) if flat['types'][v] in eq_sorts}
+              for f in flat['body'][:flat['atom_count']]]
+    edges=[{j for j,y in enumerate(vertices) if i!=j and x & y} for i,x in enumerate(vertices)]
+    distances=[]
+    for start in range(len(edges)):
+        ds={start:0};queue=[start]
+        for i in queue:
+            for j in sorted(edges[i]):
+                if j not in ds:ds[j]=ds[i]+1;queue.append(j)
+        distances.append(ds)
+    result=set()
+    for fragment in fragments:
+        selected=set(fragment)
+        reached={fragment[0]};queue=[fragment[0]]
+        for i in queue:
+            for j in sorted(edges[i] & selected - reached):reached.add(j);queue.append(j)
+        if reached==selected:
+            result.add(fragment);continue
+        for a,b in itertools.combinations(fragment,2):
+            if b not in distances[a]:break
+            distance=distances[a][b]
+            selected.update(i for i in range(len(edges))
+                            if i in distances[a] and i in distances[b]
+                            and distances[a][i]+distances[b][i]==distance)
+        else:result.add(tuple(sorted(selected)))
+    return result,eq_sorts
+
+def canonical(pair,types,link_sorts=None):
     choices=[]
     for first in range(len(pair)):
         facts=[pair[first]];pending=pair[:first]+pair[first+1:]
@@ -91,8 +128,14 @@ def canonical(pair,types):
         # Prefer keyed continuations, but retain correlated reverse fibers.
         # Their complete tuple is the marker key; no representative is picked.
         while pending:
-            ready=[f for f in pending if set.union(set(),*(vars_in(e) for e in f['args'][1]['args']))<=available]
-            if not ready:ready=[f for f in pending if set.union(*(vars_in(e) for e in f['args'])) & available]
+            if link_sorts is None:
+                ready=[f for f in pending if set.union(set(),*(vars_in(e) for e in f['args'][1]['args']))<=available]
+                if not ready:ready=[f for f in pending if set.union(*(vars_in(e) for e in f['args'])) & available]
+            else:
+                linked=[f for f in pending if any(v in available and types[v] in link_sorts
+                        for e in f['args'] for v in vars_in(e))]
+                ready=[f for f in linked if set.union(set(),*(vars_in(e) for e in f['args'][1]['args']))<=available]
+                if not ready:ready=linked
             if not ready:break
             f=min(ready,key=lambda f:text(f['args'][1]));pending.remove(f);facts.append(f)
             available|=set.union(*(vars_in(e) for e in f['args']))
@@ -233,7 +276,8 @@ def schedule(s,consumers):
     return f'(saturate {schedule(s["child"],consumers)})'
 
 
-def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backend='scip'):
+def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backend='scip',locality='identity'):
+    if locality not in ('identity','all'):raise ValueError('unknown marker locality policy')
     out.mkdir(parents=True,exist_ok=False)
     if ast_binary is None:data=compiler.ast(source,out/'source-ast.json')
     else:
@@ -261,7 +305,7 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
     # A permanent positive marker may only certify immutable visible rows.
     changed={a['head'] for r in data['rules'] for a in r['head'] if a['kind']=='change'}
     changed.update(a['action']['head'] for a in data['actions'] if a['action']['kind']=='change')
-    cells=load_cells(analysis,sig);groups={};flats={}
+    cells=load_cells(analysis,sig);groups={};flats={};locality_changes=0
     for rule in data['rules']:
         if rule['ruleset'] not in active:continue
         globals_={a['action']['name'] for a in data['actions'] if a['action']['kind']=='let' and a['command_ordinal']<rule['command_ordinal']}
@@ -271,11 +315,15 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
         n=flat['atom_count']
         fragments=set(itertools.combinations(range(n),2))
         fragments.update(tuple(range(i,j)) for i in range(n) for j in range(i+3,n+1))
+        link_sorts=None
+        if locality=='identity':
+            connected,link_sorts=structural_fragments(flat,sig,fragments)
+            locality_changes+=len(fragments-connected);fragments=connected
         for indices in sorted(fragments):
             pair=[flat['body'][i] for i in indices]
             if any(f['args'][1]['head'] in changed for f in pair):continue
-            if not set.union(*(vars_in(e) for e in pair[0]['args'])) & set.union(*(vars_in(e) for e in pair[1]['args'])):continue
-            normalized=canonical(pair,flat['types'])
+            if locality=='all' and not set.union(*(vars_in(e) for e in pair[0]['args'])) & set.union(*(vars_in(e) for e in pair[1]['args'])):continue
+            normalized=canonical(pair,flat['types'],link_sorts)
             if normalized is None:continue
             key,body,args,sorts=normalized
             g=groups.setdefault(key,dict(body=body,sorts=sorts,parameters=[f'{SLOT}{i}' for i in range(len(sorts))],occurrences=[],key=hashlib.sha256(key.encode()).hexdigest()))
@@ -391,7 +439,8 @@ def compile_source(source,analysis,out,ast_binary=None,profile=None,solver_backe
         analysis_sha256={str(p.relative_to(analysis)):compiler.digest(p) for p in library_files},
         cells=[name for name,_ in cells],markers=views,variants=variants,modified_consumers=len(by_rule),
         spine_states=[{k:v for k,v in s.items() if k!='action'} for s in applied.values()],
-        selection_diagnostics=dict(normalized_fragments=len(groups),unshared_fragments=unshared,offered_fragments=len(eligible),analyze_witnessed_fragments=witnessed,source_only_fragments=len(eligible)-witnessed),
+        selection_diagnostics=dict(normalized_fragments=len(groups),unshared_fragments=unshared,offered_fragments=len(eligible),analyze_witnessed_fragments=witnessed,source_only_fragments=len(eligible)-witnessed,
+            locality=locality,disconnected_fragments_extended_or_omitted=locality_changes),
         scheduled_rulesets=sorted(active),maintenance_before=sorted(consumers),
         structural_objective=primary,cost_model='profile-supplied lifecycle nanoseconds' if profile else 'structural baseline; not a runtime performance estimate',tie_break='maximum shared occurrences at the same objective',
         profile_provenance=None if profile is None else profile.get('provenance'),
