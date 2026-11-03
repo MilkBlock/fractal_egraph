@@ -28,6 +28,8 @@ struct CompositionStats {
     match_seconds: f64,
     entry_seconds: f64,
     attempts: u64,
+    baked_guard_misses: u64,
+    cross_run_applications: u64,
     bindings: u64,
     rejected: u64,
     unavailable: u64,
@@ -825,6 +827,9 @@ impl Executor {
         }
         Ok(true)
     }
+    fn composition_active(&self, rid: usize) -> bool {
+        self.compositions_enabled && self.graph.program.compositions.baked_members.as_ref().is_none_or(|members| members[rid])
+    }
     fn composed_match(
         &mut self,
         rid: usize,
@@ -832,7 +837,7 @@ impl Executor {
         seed: &Row,
         env: &mut QueryEnv,
     ) -> Result<ComposedMatch> {
-        if !self.compositions_enabled {
+        if !self.composition_active(rid) {
             return Ok(ComposedMatch::Fallback);
         }
         let start = Instant::now();
@@ -866,6 +871,18 @@ impl Executor {
         else {
             return Ok(ComposedMatch::Fallback);
         };
+        let plan = &self.graph.program.compositions;
+        if plan
+            .anchor_literals
+            .iter()
+            .any(|(col, value)| seed.values.get(*col) != Some(value))
+            || plan.producer_literals.iter().any(|(arg, value)| {
+                self.graph.context_argument(context, arg).ok().as_ref() != Some(value)
+            })
+        {
+            self.composition_stats.baked_guard_misses += 1;
+            return Ok(ComposedMatch::Fallback);
+        }
         self.composition_stats.attempts += 1;
         let query = self.graph.program.rules[rid].query.clone();
         let mark = env.trail.len();
@@ -1710,7 +1727,7 @@ impl Executor {
         let updates = self.graph.stats.function_updates;
         let (cell, first_op) = if self.graph.program.rules[rid].constructor_only
             && !self.graph.views_enabled && self.graph.known_mode == "off"
-            && !self.compositions_enabled && !self.stage_spine.enabled
+            && !self.composition_active(rid) && !self.stage_spine.enabled
             && self.local_run.is_none() && origin.is_none() && !self.graph.union_lineage_enabled
         {
             let Some(start) = self.graph.start_constructor_rhs(template, b.values, b.parent)? else {
@@ -1729,7 +1746,7 @@ impl Executor {
                 }
             }
         }
-        if self.compositions_enabled {
+        if self.composition_active(rid) {
             let started = Instant::now();
             if let Some((edge, context)) = &b.composition {
                 let old = context.composition.filter(|c| c.program == edge.program);
@@ -1744,6 +1761,14 @@ impl Executor {
                 };
                 self.graph.cells.get_mut(&cell).unwrap().composition = Some(cursor);
                 self.composition_stats.continued_steps += 1;
+                if self
+                    .graph
+                    .cells
+                    .get(&context.cell)
+                    .is_some_and(|p| p.started_epoch < self.graph.epoch)
+                {
+                    self.composition_stats.cross_run_applications += 1;
+                }
                 self.composition_stats.marker_continued_steps += u64::from(cursor.marker_entry);
                 self.composition_stats.max_steps =
                     self.composition_stats.max_steps.max(cursor.steps);

@@ -241,3 +241,10 @@ pub fn compile(core: J, markers: &BTreeSet<String>, evidence: Option<&J>) -> Res
     Program::parse(j.clone())?;
     Ok(j)
 }
+
+/// Build and independently check cross-rule programs from observed producer/consumer pairs.
+pub fn composition_program(p: &Program, evidence: &J) -> Result<J> {
+    let plan = compositions::build(p, evidence)?;
+    crate::compositions::Compositions::parse(p, &plan)?;
+    Ok(plan)
+}
