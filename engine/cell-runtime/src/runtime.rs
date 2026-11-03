@@ -1708,9 +1708,18 @@ impl Executor {
         }
         let facts = self.graph.stats.logical_facts_created;
         let updates = self.graph.stats.function_updates;
-        let cell = self
-            .graph
-            .reference_frame(template, b.values, b.parent, &b.witnesses)?;
+        let (cell, first_op) = if self.graph.program.rules[rid].constructor_only
+            && !self.graph.views_enabled && self.graph.known_mode == "off"
+            && !self.compositions_enabled && !self.stage_spine.enabled
+            && self.local_run.is_none() && origin.is_none() && !self.graph.union_lineage_enabled
+        {
+            let Some(start) = self.graph.start_constructor_rhs(template, b.values, b.parent)? else {
+                return Ok(None);
+            };
+            start
+        } else {
+            (self.graph.reference_frame(template, b.values, b.parent, &b.witnesses)?, 0)
+        };
         if matches!(self.graph.known_mode.as_str(),"observe"|"on") {
             if let Some(plans)=self.graph.program.known_results.rules.get(&rid){
                 for (op,source) in plans.iter().enumerate(){
@@ -1775,8 +1784,8 @@ impl Executor {
         let observe_static=self.graph.known_mode=="observe";
         let static_skip=if eliminate_static || observe_static {self.graph.program.known_results.static_skip.get(rid).cloned()}else{None};
         let mut completed = true;
-        let mut completed_prefix=0;
-        for (i, op) in ops.iter().enumerate() {
+        let mut completed_prefix=first_op;
+        for (i, op) in ops.iter().enumerate().skip(first_op) {
             if eliminate_static && static_skip.as_ref().is_some_and(|s|s[i]){
                 self.graph.known_stats.static_eliminated+=1;
                 self.graph.known_stats.avoided_lookups+=1;

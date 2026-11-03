@@ -47,6 +47,8 @@ pub struct Template {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Rule {
+    #[serde(default)]
+    pub(crate) constructor_only: bool,
     pub template: usize,
     pub query: Rc<Vec<Atom>>,
     pub inputs: Rc<Vec<usize>>,
@@ -237,7 +239,13 @@ impl Program {
                     }
                 }
             }
+            let constructor_only = ops.iter().all(|op| match op {
+                Op::Copy(..) => true,
+                Op::Let(_, Call::Table(t), _) => tables[*t].virtual_fact && tables[*t].constructor,
+                _ => false,
+            });
             rules.push(Rule {
+                constructor_only,
                 template: templates.len(),
                 query: Rc::new(query),
                 inputs: Rc::new(inputs),
