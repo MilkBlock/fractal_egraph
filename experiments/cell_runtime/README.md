@@ -177,3 +177,5 @@ union repair fix, and the remaining whole-Pass-3 difference.
 experiments and union read-projection survey. These experiments remain opt-in:
 static elimination has only a small single-run benefit; the reference/copy
 variants did not establish net speedup.
+
+The [architecture and parallelism review](parallel_review/README.md) evaluates feature consolidation using current factorial ablations, verified eggcc pool widths and a frozen Cell entry projection replay. It proposes a serial reference path and a staged path to parallel residual search.
