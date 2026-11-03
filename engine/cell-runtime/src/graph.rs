@@ -139,6 +139,8 @@ pub struct Stats {
     #[serde(default)]
     pub direct_candidates: u64,
     pub cells_created: u64,
+    #[serde(default)]
+    pub rhs_frames_avoided: u64,
     pub empty_frames_released: u64,
     pub native_table_reads: u64,
     pub native_table_writes: u64,
@@ -590,47 +592,93 @@ impl Graph {
             ),
         })
     }
-    pub fn frame(&mut self, template: usize, values: BTreeMap<usize, Value>) -> Result<u32> {
+    fn reserve_cell_id(&mut self) -> Result<u32> {
         let id = self.next_cell;
-        self.next_cell = self
-            .next_cell
-            .checked_add(1)
-            .ok_or("Cell identity exhausted")?;
-        self.cells.insert(
-            id,
-            Cell {
-                known_results:BTreeMap::new(),completed_prefix:0,started_epoch:self.epoch,
-                completed: false,
-                composition: None,
-                template,
-                parent: None,
-                values,
-                facts: BTreeMap::new(),
-                recipe_depth: 0,
-                providers: BTreeMap::new(),
-            },
-        );
-        self.stats.cells_created += 1;
+        self.next_cell = id.checked_add(1).ok_or("Cell identity exhausted")?;
         Ok(id)
+    }
+    fn new_cell(
+        &self,
+        template: usize,
+        mut values: BTreeMap<usize, Value>,
+        parent: Option<FactRef>,
+    ) -> Cell {
+        let columns = &self.program.templates[template].parent_columns;
+        let parent = parent.filter(|_| !columns.is_empty());
+        if parent.is_some() {
+            for slot in columns.keys() {
+                values.remove(slot);
+            }
+        }
+        Cell {
+            template,
+            values,
+            parent,
+            known_results: BTreeMap::new(),
+            completed_prefix: 0,
+            started_epoch: self.epoch,
+            completed: false,
+            composition: None,
+            facts: BTreeMap::new(),
+            recipe_depth: 0,
+            providers: BTreeMap::new(),
+        }
+    }
+    fn store_cell(&mut self, id: u32, cell: Cell) {
+        if let Some(parent) = cell.parent {
+            self.retain_reference(parent);
+        }
+        self.cells.insert(id, cell);
+        self.stats.cells_created += 1;
+    }
+    pub fn frame(&mut self, template: usize, values: BTreeMap<usize, Value>) -> Result<u32> {
+        self.linked_frame(template, values, None)
     }
     pub fn linked_frame(
         &mut self,
         template: usize,
-        mut values: BTreeMap<usize, Value>,
+        values: BTreeMap<usize, Value>,
         parent: Option<FactRef>,
     ) -> Result<u32> {
-        let parent = parent.filter(|_| !self.program.templates[template].parent_columns.is_empty());
-        if parent.is_some() {
-            for slot in self.program.templates[template].parent_columns.keys() {
-                values.remove(slot);
+        let id = self.reserve_cell_id()?;
+        let frame = self.new_cell(template, values, parent);
+        self.store_cell(id, frame);
+        Ok(id)
+    }
+
+    /// Run the read-only prefix against live canonical constructor rows. Keep
+    /// the ID sequence even on a full hit since later eclass IDs encode it.
+    pub(crate) fn start_constructor_rhs(
+        &mut self,
+        template: usize,
+        values: BTreeMap<usize, Value>,
+        parent: Option<FactRef>,
+    ) -> Result<Option<(u32, usize)>> {
+        let id = self.reserve_cell_id()?;
+        let mut frame = self.new_cell(template, values, parent);
+        let ops = self.program.templates[template].ops.clone();
+        for (op, instruction) in ops.iter().enumerate() {
+            let (dst, table, args) = match instruction {
+                Op::Copy(..) => continue, // slot_in resolves copy definitions on demand
+                Op::Let(dst, Call::Table(t), args) => (*dst, *t, args),
+                _ => return Err("unexpected operation in constructor-only RHS".into()),
+            };
+            let key = args
+                .iter()
+                .map(|a| self.argument_in(id, &frame, a))
+                .collect::<Result<Vec<_>>>()?;
+            self.stats.constructor_requests += 1;
+            if let Some(row) = self.lookup(table, &key)? {
+                self.stats.constructor_reused += 1;
+                frame.values.insert(dst, row.values.last().unwrap().clone());
+            } else {
+                self.store_cell(id, frame);
+                self.insert_constructor(id, op, table, &key, dst)?;
+                return Ok(Some((id, op + 1)));
             }
         }
-        let id = self.frame(template, values)?;
-        self.cells.get_mut(&id).unwrap().parent = parent;
-        if let Some(p) = parent {
-            self.retain_reference(p);
-        }
-        Ok(id)
+        self.stats.rhs_frames_avoided += 1;
+        Ok(None)
     }
     pub fn argument(&self, cell: u32, a: &Arg) -> Result<Value> {
         match a {
@@ -1124,6 +1172,20 @@ impl Graph {
                 .insert(dst, value.clone());
             return Ok(value);
         }
+        let value = self.insert_constructor(cell, op, t, &key, dst)?;
+        if remember {self.cells.get_mut(&cell).unwrap().known_results.insert(op,FactRef{cell,op:op as u32});self.known_stats.retained_result_writes+=1;}
+        if let Some(receipt)=receipt { *receipt=Some(Dependency::Fact(FactRef{cell,op:op as u32})); }
+        if let Some(visible)=visible {*visible=true;}
+        Ok(value)
+    }
+    fn insert_constructor(
+        &mut self,
+        cell: u32,
+        op: usize,
+        t: usize,
+        key: &[Value],
+        dst: usize,
+    ) -> Result<Value> {
         let value = self.slot(cell, dst)?;
         self.activate(
             FactRef {
@@ -1131,13 +1193,10 @@ impl Graph {
                 op: op as u32,
             },
             t,
-            &key,
+            key,
             value.clone(),
             false,
         )?;
-        if remember {self.cells.get_mut(&cell).unwrap().known_results.insert(op,FactRef{cell,op:op as u32});self.known_stats.retained_result_writes+=1;}
-        if let Some(receipt)=receipt { *receipt=Some(Dependency::Fact(FactRef{cell,op:op as u32})); }
-        if let Some(visible)=visible {*visible=true;}
         Ok(value)
     }
     pub fn reuse_result_slot(&mut self,cell:u32,t:usize,dst:usize,arg:&Arg)->Result<bool>{

@@ -145,6 +145,8 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "consumer_seed_deliveries": r["entry_schedule"]["stats"]["consumer_seed_deliveries"],
             "sieve_probes": r["sieve"]["stats"]["probes"],
             "empty_join_skips": r["sieve"]["stats"]["empty_join_skips"],
+            "cells_created": g.cells_created,
+            "rhs_frames_avoided": g.rhs_frames_avoided,
             "runs": e.steps.len()
         });
         if !counts.is_null() && counts != c {
