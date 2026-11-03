@@ -126,6 +126,31 @@ class RetainedTests(unittest.TestCase):
         execute(p,self.root/'pause',ENGINE,checkpoint_after=1,environment=env)
         execute(p,self.root/'resume',ENGINE,resume=self.root/'pause/runtime/checkpoint.json',environment=env)
         self.assertEqual(json.loads((self.root/'1/runtime/state.json').read_text()),json.loads((self.root/'resume/runtime/state.json').read_text()))
+    def test_shared_read_predicates_keep_correlation_aliases_and_stages(self):
+        source=BASE+'''(ruleset b)
+(rule ((R aa bb) (S bb cc) (= price (Cost cc)) (< price 8)) ((Out aa cc (+ price 100))) :ruleset b)
+(rule ((R x x) (S x z) (= price (Cost z))) ((Out x z (+ price 200))) :ruleset b)
+(rule ((R x y) (S y z) (= 9 (Cost z))) ((Out x z 300)) :ruleset b)
+(rule () ((union (N 0) (N 1)) (set (Cost (N 4)) 3)) :ruleset change)
+(run-schedule (seq (run a) (run b) (run change) (run b) (run a)))'''
+        _,(_,r),_=self.pair(source)
+        c=r['retained_contexts'];s=c['stats']
+        self.assertGreater(s['shared_cross_rule_hits'],0)
+        self.assertGreater(c['shared_max_fanout'],1)
+        self.assertLess(c['shared_live_domains'],c['shared_domain_users'])
+        self.assertEqual(s['shared_domains_created']-s['shared_domains_retired'],c['shared_live_domains'])
+    def test_shared_waiting_port_replacement_and_retirement(self):
+        source=BASE.replace('(set (Cost (N 3)) 9)','')+'''
+(rule ((R x y) (S y z) (= c (Cost z))) ((Out x z (+ c 10))) :ruleset a)
+(rule () ((set (Cost (N 3)) 1)) :ruleset producer)
+(rule () ((delete (S (N 2) (N 4))) (set (Cost (N 3)) 2)) :ruleset change)
+(run-schedule (seq (run a) (run producer) (run a) (run change) (run a)))'''
+        _,(_,r),_=self.pair(source,extra={'CELL_CPU_HASH_BITS':'0'})
+        self.assertGreater(r['retained_contexts']['stats']['shared_irrelevant_changes'],0)
+        self.assertGreater(r['retained_contexts']['stats']['shared_event_payloads_reused'],0)
+        self.assertEqual(r['retained_contexts']['stats']['shared_event_rows_decoded'],0)
+    def test_per_rule_ablation_keeps_previous_semantics(self):
+        self.pair(BASE+'(run-schedule (saturate a))',extra={'CELL_CPU_RETAINED_SHARED':'0'})
     def test_existing_semantics(self):
         root=self.root
         try:

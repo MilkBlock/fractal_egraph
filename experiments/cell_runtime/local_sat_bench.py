@@ -38,6 +38,7 @@ def main():
     g.add_argument('--compiled',type=Path);g.add_argument('--demo-chain',type=int)
     p.add_argument('--instances',type=int,default=128);p.add_argument('--frontend',type=Path)
     p.add_argument('--feature',choices=['local-sat','retained'],default='local-sat')
+    p.add_argument('--shared-ablation',action='store_true',help='retained only: ordinary, per-rule, shared-domain lanes')
     p.add_argument('--context-sets',default='always-run,type-analysis')
     p.add_argument('--output',type=Path,required=True);p.add_argument('--audit',action='store_true');a=p.parse_args()
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
@@ -53,18 +54,22 @@ def main():
     engine=ROOT/'engine/cell-runtime/target/release/eggfuse-cell-runtime'
     feature='CELL_CPU_LOCAL_SAT' if a.feature=='local-sat' else 'CELL_CPU_RETAINED_CONTEXTS'
     settings={**SETTINGS,'CELL_CPU_LOCAL_SAT':'0','CELL_CPU_LOCAL_SAT_AUDIT':'0','CELL_CPU_REFUTATION_PROFILE':'0',
-        'CELL_CPU_RETAINED_CONTEXTS':'0','CELL_CPU_RETAINED_SETS':a.context_sets}
+        'CELL_CPU_RETAINED_CONTEXTS':'0','CELL_CPU_RETAINED_SHARED':'1','CELL_CPU_RETAINED_SETS':a.context_sets}
     old={k:os.environ.get(k) for k in settings}
     result={'scope':scope+'; standalone single-thread Cell CPU, merge programs ON','program':str(path),
         'program_sha256':fingerprint(path),'binary_sha256':fingerprint(engine),
-        'feature':a.feature,'provenance':provenance,'lanes':{}}
+        'feature':a.feature,'shared_ablation':a.shared_ablation,'provenance':provenance,'lanes':{}}
     try:
         os.environ.update(settings)
         with mode(False):
-            states=[]
-            for name,flag in [('off','0'),('on','1')]:
+            states=[];controls=[]
+            assert not a.shared_ablation or a.feature=='retained'
+            lanes=[('off','0','1'),('private','1','0'),('on','1','1')] if a.shared_ablation else [('off','0','1'),('on','1','1')]
+            for name,flag,shared in lanes:
+                os.environ['CELL_CPU_RETAINED_SHARED']=shared
                 os.environ[feature]=flag;m,r=timed(path,engine,out/name)
                 states.append(json.loads((out/name/'state.json').read_text()))
+                controls.append([{k:s[k] for k in ('ruleset','iterations','path','epoch','logical_matches','changed')} for s in r['steps']])
                 result['lanes'][name]={'measurement':m,**metrics(r),'local_saturation':r['local_saturation'],
                     'retained_contexts':r['retained_contexts'],
                     'runs_and_repair_calls':len(r['steps']),'changed_runs':sum(s['changed'] for s in r['steps']),
@@ -76,7 +81,11 @@ def main():
                     'total_candidates':r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows']}
                 stats=r['local_saturation' if a.feature=='local-sat' else 'retained_contexts']['stats']
                 print(name,m['inference_seconds'],len(r['steps']),{k:v for k,v in stats.items() if not isinstance(v,dict)},flush=True)
-            result['endpoint']=compare_native(program['source_core'],states[1],states[0])
+            if a.feature=='retained':
+                assert all(c==controls[0] for c in controls[1:]),'source Run controls differ'
+                result['all_lanes_same_run_controls']=True
+            result['endpoints']=[compare_native(program['source_core'],s,states[0]) for s in states[1:]]
+            result['endpoint']=result['endpoints'][-1]
             result['ratio']=result['lanes']['on']['measurement']['inference_seconds']/result['lanes']['off']['measurement']['inference_seconds']
             (out/'results.json').write_text(json.dumps(result,indent=2)+'\n')
             if a.audit:
@@ -87,7 +96,7 @@ def main():
                 # Fresh process reproduces actual identities, not only isomorphism.
                 os.environ[feature]='1'
                 subprocess.run([str(engine),'--program',str(path),'--output',str(out/'replay')],check=True,capture_output=True)
-                assert states[1]==json.loads((out/'replay/state.json').read_text())
+                assert states[-1]==json.loads((out/'replay/state.json').read_text())
                 result['fresh_process_exact_replay']=True
                 (out/'results.json').write_text(json.dumps(result,indent=2)+'\n');print('verified',result['verification'].get('boundaries',result['verification'].get('snapshots')),flush=True)
     finally:

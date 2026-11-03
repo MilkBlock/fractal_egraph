@@ -40,7 +40,7 @@ impl Columns {
         }
         keys.len()
     }
-    fn put(&mut self, row: Row, bits: u32, watch_reads: bool) -> (usize, usize) {
+    fn put(&mut self, row: &Row, bits: u32, watch_reads: bool) -> (usize, usize) {
         if row.hidden {
             return (self.remove(row.witness), 0);
         }
@@ -106,6 +106,8 @@ pub struct RefinementStats {
 pub struct QueryIndexes {
     pub watch_contexts: bool,
     pub read_changes: Vec<(ReadKey, Dependency)>,
+    pub watch_context_rows: bool,
+    pub read_rows: HashMap<Dependency, Option<Row>>,
     pub read_reset: bool,
     pub watch_reads: bool,
     pub revision: u64,
@@ -152,7 +154,7 @@ impl ReadStamp {
 impl Default for QueryIndexes {
     fn default() -> Self {
         Self {
-            watch_contexts:false,read_changes:vec![],read_reset:false,
+            watch_contexts:false,read_changes:vec![],read_reset:false,watch_context_rows:false,read_rows:HashMap::new(),
             watch_reads: false,
             revision: 0,
             tables: HashMap::new(),
@@ -284,25 +286,32 @@ impl QueryIndexes {
         // Collapse all writes/union repairs within a Run to the final visible row.
         for (fact, table) in std::mem::take(&mut graph.query_changes) {
             if let Some(index) = self.tables.get_mut(&table) {
-                if self.watch_contexts && index.leased_reads {
+                let watched = self.watch_contexts && index.leased_reads;
+                let old_keys = watched.then(||index.keys.get(&fact).cloned()).flatten();
+                if watched {
                     self.read_changes.push((ReadKey::Table(table),fact));
-                    if let Some(keys)=index.keys.get(&fact){
+                    if let Some(keys)=&old_keys {
                         self.read_changes.extend(keys.iter().enumerate().map(|(i,k)|(ReadKey::Bucket(table,i,*k),fact)));
                     }
                 }
-                let (removed, added) = if let Some(row) = graph.row(fact)? {
+                let row = graph.row(fact)?;
+                let (removed, added) = if let Some(row) = &row {
                     self.updated_facts += 1;
                     index.put(row, self.bits, self.watch_reads || index.leased_reads)
                 } else {
                     (index.remove(fact), 0)
                 };
+                // The index already decoded this committed row. Move its payload
+                // into the publication batch, instead of decoding it again in
+                // each subscribed context. Cleared after the current publication.
+                if watched && self.watch_context_rows { self.read_rows.insert(fact,row); }
                 if self.track_changes && added > 0 {
                     self.changes.push((fact, table));
                 }
                 self.references = self.references - removed + added;
-                if self.watch_contexts && index.leased_reads {
-                    if let Some(keys)=index.keys.get(&fact){
-                        self.read_changes.extend(keys.iter().enumerate().map(|(i,k)|(ReadKey::Bucket(table,i,*k),fact)));
+                if watched {
+                    if let Some(keys)=index.keys.get(&fact) {
+                        self.read_changes.extend(keys.iter().enumerate().filter(|(i,k)|old_keys.as_ref().and_then(|keys|keys.get(*i))!=Some(*k)).map(|(i,k)|(ReadKey::Bucket(table,i,*k),fact)));
                     }
                 }
             }
@@ -335,7 +344,7 @@ impl QueryIndexes {
             for fact in graph.witnesses(table) {
                 self.decoded_facts += 1;
                 if let Some(row) = graph.row(fact)? {
-                    let (_, added) = index.put(row, self.bits, self.watch_reads);
+                    let (_, added) = index.put(&row, self.bits, self.watch_reads);
                     self.references += added;
                 }
             }

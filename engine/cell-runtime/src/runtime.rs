@@ -207,6 +207,7 @@ impl Executor {
         let local_sat=crate::local_sat::LocalSat::new(&graph.program);
         let retained=crate::retained::Contexts::new(&graph.program);
         query_indexes.watch_contexts=retained.enabled;
+        query_indexes.watch_context_rows=retained.shared();
         let mut e = Self {
             retained,
             local_sat,local_run:None,semantic_audit:vec![],
@@ -2060,7 +2061,7 @@ impl Executor {
             self.refutation.publish(&self.query_indexes, &self.graph,&context_changed_tables);
         }
         self.search_contexts.publish(&self.graph,&self.query_indexes,&context_changed_tables);
-        self.retained.publish(&self.graph,&mut self.query_indexes);
+        self.retained.publish(&mut self.graph,&mut self.query_indexes)?;
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.deliver();

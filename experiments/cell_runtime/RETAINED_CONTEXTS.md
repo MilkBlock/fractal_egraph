@@ -1,5 +1,10 @@
 # Multi-source contexts for always-run and type-analysis
 
+Follow-up: [shared read domains](SHARED_CONTEXTS.md) removes duplicate predicate
+work across these per-rule contexts. The measurements below describe the initial
+independent-context implementation; use the follow-up report for current results.
+
+
 This implements resumable matching in the **standalone single-thread Cell CPU
 runtime**, using the existing authenticated source -> SK -> marker -> typed
 Recipe pipeline. It does not add a different parser, rewrite the source schedule,
