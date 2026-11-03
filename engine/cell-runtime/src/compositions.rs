@@ -29,6 +29,8 @@ pub struct Edge {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Compositions {
     #[serde(default)]
+    pub(crate) alternatives: BTreeMap<usize, Vec<BakedGuards>>,
+    #[serde(default)]
     pub(crate) baked_members: Option<Vec<bool>>,
     #[serde(default)]
     pub(crate) anchor_literals: Vec<(usize, crate::value::Value)>,
@@ -38,6 +40,11 @@ pub struct Compositions {
     pub rule_program: BTreeMap<usize, usize>,
     pub marker_entries: BTreeSet<usize>,
     pub programs: usize,
+}
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub(crate) struct BakedGuards {
+    pub producer: Vec<(Arg, crate::value::Value)>,
+    pub anchor: Vec<(usize, crate::value::Value)>,
 }
 fn num(j: &J, k: &str) -> Result<usize> {
     j[k].as_u64()
@@ -62,7 +69,7 @@ impl Compositions {
             .ok_or("composition object")?
             .remove("sha256");
         if sha != Some(crate::checksum::artifact_digest(&payload).into())
-            || !matches!(raw["schema"].as_str(),Some("eggfuse-compositions/v1"|"eggfuse-baked-composition/v1"))
+            || !matches!(raw["schema"].as_str(),Some("eggfuse-compositions/v1"|"eggfuse-baked-composition/v1"|"eggfuse-baked-portfolio/v1"))
             || raw["recipe_sha256"] != p.artifact["recipe"]["sha256"]
             || raw["control"] != p.artifact["recipe"]["control"]
             || raw["evidence"]["recipe_sha256"] != raw["recipe_sha256"]
@@ -117,6 +124,9 @@ impl Compositions {
                     || p.views.markers.contains(&t))
         };
         let mut out = Self::default();
+        if raw["schema"] == "eggfuse-baked-portfolio/v1" {
+            out.baked_members = Some(vec![false; p.rules.len()]);
+        }
         if raw["schema"] == "eggfuse-baked-composition/v1" {
             if array(&raw["edges"])?.len() != 1 || array(&raw["programs"])?.len() != 1 {
                 return Err("expected one baked handoff".into());
@@ -299,28 +309,50 @@ impl Compositions {
                 return Err("reuse operation out of range".into());
             }
 
-            if raw["schema"] == "eggfuse-baked-composition/v1" {
-                let original = &p.artifact["recipe"]["rules"][producer]["slots"];
-                for guard in array(&e["producer_literals"])? {
-                    let slot = num(guard, "slot")?;
-                    let field = original.get(slot).ok_or("unknown producer guard slot")?;
-                    if field["definition"] != "query" || field["sort"] != guard["operand"]["sort"] {
-                        return Err("invalid producer guard".into());
-                    }
-                    out.producer_literals
-                        .push((Arg::Slot(slot), crate::value::literal(&guard["operand"])?));
-                }
-                let atom = dst.query.get(anchor).ok_or("missing baked anchor")?;
-                let Call::Table(table) = atom.call else {
-                    return Err("baked anchor is not a table".into());
+            if out.baked_members.is_some() {
+                let variants = if raw["schema"] == "eggfuse-baked-portfolio/v1" {
+                    array(&e["variants"])?.as_slice()
+                } else {
+                    std::slice::from_ref(e)
                 };
-                for guard in array(&e["anchor_literals"])? {
-                    let col = num(guard, "column")?;
-                    if p.tables[table].schema.get(col) != Some(&guard["operand"]["sort"]) {
-                        return Err("baked anchor literal schema differs".into());
+                if variants.is_empty() {
+                    return Err("baked edge needs an admitted guard".into());
+                }
+                let mut alternatives = vec![];
+                for variant in variants {
+                    let mut guards = BakedGuards::default();
+                    let original = &p.artifact["recipe"]["rules"][producer]["slots"];
+                    for guard in array(&variant["producer_literals"])? {
+                        let slot = num(guard, "slot")?;
+                        let field = original.get(slot).ok_or("unknown producer guard slot")?;
+                        if field["definition"] != "query" || field["sort"] != guard["operand"]["sort"] {
+                            return Err("invalid producer guard".into());
+                        }
+                        guards
+                            .producer
+                            .push((Arg::Slot(slot), crate::value::literal(&guard["operand"])?));
                     }
-                    out.anchor_literals
-                        .push((col, crate::value::literal(&guard["operand"])?));
+                    let atom = dst.query.get(anchor).ok_or("missing baked anchor")?;
+                    let Call::Table(table) = atom.call else {
+                        return Err("baked anchor is not a table".into());
+                    };
+                    for guard in array(&variant["anchor_literals"])? {
+                        let col = num(guard, "column")?;
+                        if p.tables[table].schema.get(col) != Some(&guard["operand"]["sort"]) {
+                            return Err("baked anchor literal schema differs".into());
+                        }
+                        guards
+                            .anchor
+                            .push((col, crate::value::literal(&guard["operand"])?));
+                    }
+                    alternatives.push(guards);
+                }
+                if raw["schema"] == "eggfuse-baked-composition/v1" {
+                    let guard = alternatives.pop().unwrap();
+                    out.producer_literals = guard.producer;
+                    out.anchor_literals = guard.anchor;
+                } else {
+                    out.alternatives.insert(id, alternatives);
                 }
             }
             let edge = Rc::new(Edge {

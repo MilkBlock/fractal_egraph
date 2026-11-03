@@ -872,14 +872,20 @@ impl Executor {
             return Ok(ComposedMatch::Fallback);
         };
         let plan = &self.graph.program.compositions;
-        if plan
-            .anchor_literals
-            .iter()
-            .any(|(col, value)| seed.values.get(*col) != Some(value))
-            || plan.producer_literals.iter().any(|(arg, value)| {
-                self.graph.context_argument(context, arg).ok().as_ref() != Some(value)
-            })
-        {
+        let accepts = |anchors: &[(usize, Value)], producer: &[(Arg, Value)]| {
+            anchors
+                .iter()
+                .all(|(col, value)| seed.values.get(*col) == Some(value))
+                && producer.iter().all(|(arg, value)| {
+                    self.graph.context_argument(context, arg).ok().as_ref() == Some(value)
+                })
+        };
+        let accepted = if let Some(alternatives) = plan.alternatives.get(&edge.id) {
+            alternatives.iter().any(|v| accepts(&v.anchor, &v.producer))
+        } else {
+            accepts(&plan.anchor_literals, &plan.producer_literals)
+        };
+        if !accepted {
             self.composition_stats.baked_guard_misses += 1;
             return Ok(ComposedMatch::Fallback);
         }
