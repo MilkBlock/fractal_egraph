@@ -196,6 +196,9 @@ pub struct Graph {
     pub next_cell: u32,
     pub query_versions: Vec<u64>,
     pub query_changes: HashMap<Dependency, usize>,
+    // Transient commit-boundary receipts, never part of a checkpoint.
+    pub receipt_tracking: bool,
+    pub receipt_forwards: HashMap<Dependency, Dependency>,
     pub congruence_enabled: bool,
     pub congruence_stats: CongruenceStats,
     congruence_dirty: BTreeSet<u32>,
@@ -219,6 +222,25 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
     h.finish()
 }
 impl Graph {
+    /// Follow only storage relocation and proved same-key coalescence in this
+    /// commit. Equal result classes alone never establish a row receipt.
+    /// A receipt's key was checked by its query/action. Keys only change by
+    /// canonicalization; receipt forwarding preserves that same-key relation.
+    /// Check liveness/visibility here without decoding the recipe again.
+    pub fn receipt_visible(&self,w:Dependency,table:usize)->bool {
+        match w {
+            Dependency::Fact(f)=>self.live_table(w)==Some(table) && self.cells.get(&f.cell)
+                .and_then(|c|c.facts.get(&f.op)).is_some_and(|s|!s.hidden),
+            Dependency::Function(i)=>self.functions.get(i).is_some_and(|f|f.live && f.table==table),
+        }
+    }
+    pub fn resolve_receipt(&self, mut w:Dependency)->Dependency {
+        loop {
+            let moved=match w { Dependency::Fact(f)=>Dependency::Fact(self.resolve_reference(f)),_=>w };
+            if moved!=w { w=moved; continue; }
+            if let Some(next)=self.receipt_forwards.get(&w) { w=*next; } else { return w; }
+        }
+    }
     pub fn known_report(&self)->J {
         json!({"mode":self.known_mode,"stats":self.known_stats,
             "live_known_results":self.cells.values().map(|c|c.known_results.len()).sum::<usize>(),
@@ -474,6 +496,8 @@ impl Graph {
             next_cell: 1,
             query_versions: vec![0; n],
             query_changes: HashMap::new(),
+            receipt_tracking: false,
+            receipt_forwards: HashMap::new(),
             congruence_enabled,
             congruence_stats: CongruenceStats::default(),
             congruence_dirty: BTreeSet::new(),
@@ -1025,8 +1049,12 @@ impl Graph {
         self.changed = true;
         Ok(())
     }
-    pub fn construct(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize)->Result<Value>{self.construct_inner(cell,op,t,aa,dst,None)}
-    pub fn construct_visible(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize,visible:&mut bool)->Result<Value>{self.construct_inner(cell,op,t,aa,dst,Some(visible))}
+    pub fn construct(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize)->Result<Value>{self.construct_inner(cell,op,t,aa,dst,None,None)}
+    pub fn construct_visible(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize,visible:&mut bool)->Result<Value>{self.construct_inner(cell,op,t,aa,dst,Some(visible),None)}
+    pub fn construct_recorded(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize,
+        receipt:&mut Option<Dependency>,visible:&mut bool)->Result<Value> {
+        self.construct_inner(cell,op,t,aa,dst,Some(visible),Some(receipt))
+    }
     fn construct_inner(
         &mut self,
         cell: u32,
@@ -1035,6 +1063,7 @@ impl Graph {
         aa: &[Arg],
         dst: usize,
         visible:Option<&mut bool>,
+        receipt:Option<&mut Option<Dependency>>,
     ) -> Result<Value> {
         self.stats.constructor_requests += 1;
         let active=matches!(self.known_mode.as_str(),"observe"|"on");
@@ -1083,6 +1112,7 @@ impl Graph {
         }
         let remember=active && self.known_mode!="value" && (self.program.known_results.remember.get(&template).is_some_and(|s|s.contains(&op)) || self.program.known_results.rules.get(&template).and_then(|p|p.get(op)).is_some_and(Option::is_some));
         if let Some(row) = row {
+            if let Some(receipt)=receipt { *receipt=Some(row.witness); }
             if let Some(visible)=visible {*visible=!row.hidden;}
             self.stats.constructor_reused += 1;
             if remember && let Dependency::Fact(f)=row.witness {self.cells.get_mut(&cell).unwrap().known_results.insert(op,f);self.known_stats.retained_result_writes+=1;}
@@ -1106,6 +1136,7 @@ impl Graph {
             false,
         )?;
         if remember {self.cells.get_mut(&cell).unwrap().known_results.insert(op,FactRef{cell,op:op as u32});self.known_stats.retained_result_writes+=1;}
+        if let Some(receipt)=receipt { *receipt=Some(Dependency::Fact(FactRef{cell,op:op as u32})); }
         if let Some(visible)=visible {*visible=true;}
         Ok(value)
     }
@@ -1300,16 +1331,21 @@ impl Graph {
         self.mark_affected(&affected);
         Ok(())
     }
-    pub fn set(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],v:&Arg)->Result<()>{self.set_inner(cell,op,t,aa,v,None)}
-    pub fn set_visible(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],v:&Arg,visible:&mut bool)->Result<()>{self.set_inner(cell,op,t,aa,v,Some(visible))}
-    fn set_inner(&mut self, cell: u32, op: usize, t: usize, aa: &[Arg], v: &Arg,visible:Option<&mut bool>) -> Result<()> {
+    pub fn set(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],v:&Arg)->Result<()>{self.set_inner(cell,op,t,aa,v,None,None)}
+    pub fn set_visible(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],v:&Arg,visible:&mut bool)->Result<()>{self.set_inner(cell,op,t,aa,v,Some(visible),None)}
+    pub fn set_recorded(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],v:&Arg,
+        receipt:&mut Option<Dependency>,visible:&mut bool)->Result<()> {
+        self.set_inner(cell,op,t,aa,v,Some(visible),Some(receipt))
+    }
+    fn set_inner(&mut self, cell: u32, op: usize, t: usize, aa: &[Arg], v: &Arg,
+        visible:Option<&mut bool>,receipt:Option<&mut Option<Dependency>>) -> Result<()> {
         let key = self.arguments(cell, aa)?;
         let value = self.argument(cell, v)?;
         if !self.program.tables[t].virtual_fact {
             let before = self.stats.function_updates;
-            self.set_function(t, key.clone(), value)?;
+            let index=self.set_function_inner(t, key, value)?;
+            if let Some(receipt)=receipt { *receipt=Some(Dependency::Function(index)); }
             if self.stats.function_updates != before {
-                let index = self.function_keys[&(t, key)];
                 self.function_origin(
                     index,
                     Some(FactRef {
@@ -1322,6 +1358,7 @@ impl Graph {
             return Ok(());
         }
         if let Some(old) = self.lookup(t, &key)? {
+            if let Some(receipt)=receipt { *receipt=Some(old.witness); }
             if let Some(visible)=visible{*visible=!old.hidden && (!self.program.tables[t].constructor || old.values.last()==Some(&value));}
             if self.program.tables[t].constructor {
                 self.enqueue_union(old.values.last().unwrap().clone(), value)?
@@ -1329,6 +1366,7 @@ impl Graph {
                 return Err("relation output conflict".into());
             }
         } else {
+            if let Some(receipt)=receipt { *receipt=Some(Dependency::Fact(FactRef{cell,op:op as u32})); }
             if let Some(visible)=visible{*visible=true;}
             self.activate(
                 FactRef {
@@ -1492,7 +1530,10 @@ impl Graph {
         }
         result.ok_or_else(|| format!("unready merge port {}", self.program.tables[t].name))
     }
-    pub fn set_function(&mut self, t: usize, key: Vec<Value>, value: Value) -> Result<()> {
+    pub fn set_function(&mut self,t:usize,key:Vec<Value>,value:Value)->Result<()> {
+        self.set_function_inner(t,key,value).map(|_|())
+    }
+    fn set_function_inner(&mut self, t: usize, key: Vec<Value>, value: Value) -> Result<usize> {
         let key = key
             .into_iter()
             .map(|v| canon(&v, &self.parents))
@@ -1511,6 +1552,7 @@ impl Graph {
                 let row = self.function(i).unwrap();
                 self.subscribe(row.witness, &row.values);
             }
+            Ok(i)
         } else {
             let i = self.functions.len();
             self.functions.push(Function {
@@ -1528,8 +1570,8 @@ impl Graph {
             self.events.push(Dependency::Function(i));
             let row = self.function(i).unwrap();
             self.subscribe(row.witness, &row.values);
+            Ok(i)
         }
-        Ok(())
     }
     fn retire(&mut self, f: FactRef) -> Result<()> {
         if let Some(r) = self.fact(f)? {
@@ -1705,6 +1747,7 @@ impl Graph {
                             target.epoch = self.epoch;
                             self.events.push(other.witness);
                         }
+                        if self.receipt_tracking { self.receipt_forwards.insert(Dependency::Fact(f),other.witness); }
                         self.retire(f)?;
                     } else {
                         self.intern.entry(h).or_default().insert(f);
@@ -1746,6 +1789,7 @@ impl Graph {
                             self.functions[j].value = next;
                             self.functions[j].epoch = self.epoch;
                             self.functions[i].live = false;
+                            if self.receipt_tracking { self.receipt_forwards.insert(Dependency::Function(i),Dependency::Function(j)); }
                             self.function_origin(i, None);
                             self.function_operators[row.table].remove(&i);
                             self.subscribe(d, &[]);
@@ -1868,6 +1912,7 @@ impl Graph {
             self.dirty.remove(&Dependency::Fact(old));
             self.dirty_markers.remove(&old);
             self.dirty_facts[table].remove(&old);
+            if self.receipt_tracking { self.receipt_forwards.insert(Dependency::Fact(old),Dependency::Fact(keep)); }
             self.congruence_stats.coalesced_facts += 1;
         }
         Ok(())

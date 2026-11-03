@@ -4,8 +4,8 @@ from experiments.cell_runtime import stage_spine_test as st
 CHAIN=st.CHAIN
 
 class StagePartialTests(st.StageSpineTests):
-    MODES=({'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0'},
-           {'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'1','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0'})
+    MODES=({'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0','CELL_CPU_STAGE_SPINE_RECEIPTS':'0'},
+           {'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'1','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0','CELL_CPU_STAGE_SPINE_RECEIPTS':'0'})
     def test_mixed_known_and_unknown_producers_keep_covered_entries(self):
         _,(before,after)=self.pair(CHAIN+'''(P (N 1)) (Known (N 1))
 (run-schedule (seq (run a) (run b) (run c))) (check (R (N 0)) (R (N 1)))''')

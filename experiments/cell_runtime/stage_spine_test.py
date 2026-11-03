@@ -11,8 +11,8 @@ CHAIN='''(datatype E (N i64) (Seed E) (P E) (Q E) (R E) (Known E))
 (Seed (N 0))
 '''
 class StageSpineTests(unittest.TestCase):
-    MODES=({'CELL_CPU_STAGE_SPINE':'0','CELL_CPU_STAGE_SPINE_PARTIAL':'0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0'},
-           {'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0'})
+    MODES=({'CELL_CPU_STAGE_SPINE':'0','CELL_CPU_STAGE_SPINE_PARTIAL':'0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0','CELL_CPU_STAGE_SPINE_RECEIPTS':'0'},
+           {'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'0','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0','CELL_CPU_STAGE_SPINE_RECEIPTS':'0'})
     setUp=rt.RetainedTests.setUp
     tearDown=rt.RetainedTests.tearDown
     def pair(self,source,native=True):

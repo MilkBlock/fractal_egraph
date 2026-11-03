@@ -13,6 +13,7 @@ use std::time::Instant;
 #[derive(Clone, Debug)]
 struct Binding {
     known:Option<Vec<Option<FactRef>>>,
+    receipts:Option<Vec<Option<Dependency>>>,
     composition: Option<(Rc<crate::compositions::Edge>, crate::views::Context)>,
     witnesses: MatchedFacts,
     values: BTreeMap<usize, Value>,
@@ -128,15 +129,17 @@ impl std::ops::Deref for SeedRow {
 /// failed join branches undo slot assignments instead of cloning tree maps.
 struct QueryEnv {
     known:Option<Vec<Option<FactRef>>>,
+    receipts:Option<Vec<Option<Dependency>>>,
     recipe_context: Option<(usize, u32)>,
     witnesses: MatchedFacts,
     values: Vec<Option<Value>>,
     trail: Vec<usize>,
 }
 impl QueryEnv {
-    fn new(slots: usize, witness_slots: usize, full_witnesses: bool, knowledge_atoms:usize) -> Self {
+    fn new(slots: usize, witness_slots: usize, full_witnesses: bool, knowledge_atoms:usize, receipt_atoms:usize) -> Self {
         Self {
             known:(knowledge_atoms>0).then(||vec![None;knowledge_atoms]),
+            receipts:(receipt_atoms>0).then(||vec![None;receipt_atoms]),
             recipe_context: None,
             witnesses: MatchedFacts::new(witness_slots, full_witnesses),
             values: vec![None; slots],
@@ -145,6 +148,7 @@ impl QueryEnv {
     }
     fn record(&mut self, atom: usize, witness: Option<Dependency>) {
         self.witnesses.record(atom, witness);
+        if let Some(rows)=&mut self.receipts { rows[atom]=witness; }
         if let Some(rows)=&mut self.known {rows[atom]=if let Some(Dependency::Fact(f))=witness{Some(f)}else{None};}
     }
     fn rollback(&mut self, mark: usize) {
@@ -185,7 +189,7 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     }
 }
 impl Executor {
-    pub fn new(graph: Graph, audit: bool) -> Self {
+    pub fn new(mut graph: Graph, audit: bool) -> Self {
         let mut readers = vec![vec![]; graph.program.tables.len()];
         for (rid, r) in graph.program.rules.iter().enumerate() {
             for a in r.query.iter() {
@@ -217,7 +221,9 @@ impl Executor {
         let retained=crate::retained::Contexts::new(&graph.program);
         query_indexes.watch_contexts=retained.enabled;
         query_indexes.watch_context_rows=retained.shared();
-        let stage_spine=crate::stage_spine::Programs::new(&graph.program);
+        let mut stage_spine=crate::stage_spine::Programs::new(&graph.program);
+        stage_spine.audit_receipts=audit;
+        graph.receipt_tracking=stage_spine.enabled && stage_spine.receipts;
         let mut e = Self {
             stage_spine,current_stage:String::new(),
             retained,
@@ -468,14 +474,15 @@ impl Executor {
                 }
                 let mut values=env.binding();
                 for (&slot,value) in slots.iter().zip(&answer.values){values.insert(slot,value.clone());}
-                let mut witnesses=env.witnesses.clone();let mut known=env.known.clone();
+                let mut witnesses=env.witnesses.clone();let mut known=env.known.clone();let mut receipts=env.receipts.clone();
                 let mut max_epoch=epoch;
                 for (i,e,w) in &answer.witnesses {
                     let atom=atoms[*i];witnesses.record(atom,Some(*w));
+                    if let Some(rows)=&mut receipts{rows[atom]=Some(*w);}
                     if let Some(known)=known.as_mut(){known[atom]=if let Dependency::Fact(f)=w{Some(*f)}else{None};}
                     max_epoch=max_epoch.max(*e);
                 }
-                replay.push(Binding{values,witnesses,known,epoch:max_epoch,parent:None,continuation:None,composition:None,compiled:order.is_some()});
+                replay.push(Binding{values,witnesses,known,receipts,epoch:max_epoch,parent:None,continuation:None,composition:None,compiled:order.is_some()});
             }
             self.search_contexts.stats.reused_bindings+=replay.len() as u64;
             if !self.search_contexts.observe {out.extend(replay);return Ok(())}
@@ -539,7 +546,7 @@ impl Executor {
             out.push(Binding {
                 composition: None,
                 witnesses: env.witnesses.clone(),
-                known:env.known.clone(),
+                known:env.known.clone(),receipts:env.receipts.clone(),
                 values: env.binding(),
                 epoch,
                 parent: None,
@@ -938,7 +945,7 @@ impl Executor {
         Ok(ComposedMatch::Matched(Binding {
             composition: Some((edge.clone(), context)),
             witnesses: env.witnesses.clone(),
-                known:env.known.clone(),
+                known:env.known.clone(),receipts:env.receipts.clone(),
             values: env.binding(),
             epoch,
             parent,
@@ -1162,7 +1169,7 @@ impl Executor {
             return Ok(())
         }
         let Some((&i,tail))=order.split_first() else {
-            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
+            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),receipts:env.receipts.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
             return Ok(())
         };
         let a=&query[i];let mark=env.trail.len();
@@ -1245,6 +1252,7 @@ impl Executor {
     }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
+        let receipt_atoms=if !probe && self.stage_spine.capture_receipts(rid){rule.query.len()}else{0};
         let know_query=matches!(self.graph.known_mode.as_str(),"observe"|"on") && self.graph.program.known_results.queries.contains(&rid);
         let full_witnesses = !self.graph.marker_fields_copied
             && self
@@ -1294,10 +1302,11 @@ impl Executor {
         if !probe && rule.seminaive && self.delta_queries {
             if let Some(coverage)=self.stage_spine.answers(&mut self.graph,rid,&self.pending[rid],self.watermarks[rid])? {
                 found = coverage.answers.into_iter().map(|a| {
+                    let receipts=(receipt_atoms>0).then(||a.witnesses.clone());
                     let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
                     let mut known=know_query.then(||vec![None;rule.query.len()]);
                     for (i,w) in a.witnesses.into_iter().enumerate() {witnesses.record(i,w);if let Some(k)=&mut known{k[i]=match w{Some(Dependency::Fact(f))=>Some(f),_=>None};}}
-                    Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
+                    Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,receipts,composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
                 }).collect();
                 if coverage.complete {
                     self.pending[rid].clear();
@@ -1310,13 +1319,14 @@ impl Executor {
             let answers=self.retained.matches(&mut self.graph,&mut self.query_indexes,rid,self.watermarks[rid])?;
             self.pending[rid].clear();
             return Ok(answers.into_iter().map(|a| {
+                let receipts=(receipt_atoms>0).then(||a.witnesses.clone());
                 let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
                 let mut known=know_query.then(||vec![None;rule.query.len()]);
                 for (i,w) in a.witnesses.into_iter().enumerate() {
                     witnesses.record(i,w);
                     if let Some(k)=&mut known {k[i]=match w {Some(Dependency::Fact(f))=>Some(f),_=>None};}
                 }
-                Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,
+                Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,receipts,
                     composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
             }).collect())
         }
@@ -1350,7 +1360,7 @@ impl Executor {
                     self.graph.program.templates[rule.template].sorts.len(),
                     witness_slots,
                     full_witnesses,
-                    if know_query {rule.query.len()}else{0},
+                    if know_query {rule.query.len()}else{0},receipt_atoms,
                 );
                 let live = if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,anchor,&row,&mut env.values) }
                     else { atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph)) };
@@ -1404,7 +1414,7 @@ impl Executor {
                         found.push(Binding {
                             composition: None,
                             witnesses: env.witnesses.clone(),
-                known:env.known.clone(),
+                known:env.known.clone(),receipts:env.receipts.clone(),
                             values: env.binding(),
                             epoch,
                             parent: None,
@@ -1490,7 +1500,7 @@ impl Executor {
                         self.graph.program.templates[rule.template].sorts.len(),
                         witness_slots,
                         full_witnesses,
-                    if know_query {rule.query.len()}else{0},
+                    if know_query {rule.query.len()}else{0},receipt_atoms,
                     );
                     let live = if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,pivot,row,&mut env.values) }
                         else { atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph)) };
@@ -1613,7 +1623,7 @@ impl Executor {
                             found.push(Binding {
                                 composition: None,
                                 witnesses: env.witnesses.clone(),
-                known:env.known.clone(),
+                known:env.known.clone(),receipts:env.receipts.clone(),
                                 values: env.binding(),
                                 epoch,
                                 parent: None,
@@ -1653,7 +1663,7 @@ impl Executor {
                     self.graph.program.templates[rule.template].sorts.len(),
                     witness_slots,
                     full_witnesses,
-                    if know_query {rule.query.len()}else{0},
+                    if know_query {rule.query.len()}else{0},receipt_atoms,
                 ),
                 0,
                 &mut found,
@@ -1753,6 +1763,7 @@ impl Executor {
         let capture_layout=self.local_run.as_ref().and_then(|(_,p)|p.captures.get(&rid)).cloned();
         let mut visible_ops=BTreeSet::new();
         let ops = self.graph.program.templates[template].ops.clone();
+        let mut effect_receipts=self.stage_spine.capture_receipts(rid).then(||vec![None;ops.len()]);
         let known_values=if self.graph.known_mode=="value" {self.graph.program.known_results.values.get(&rid).cloned()}else{None};
         let eliminate_static=self.graph.known_mode=="static";
         let observe_static=self.graph.known_mode=="observe";
@@ -1801,7 +1812,12 @@ impl Executor {
                             }
                             self.composition_stats.reuse_fallbacks += 1;
                         }
-                        let actual=if capture_layout.as_ref().is_some_and(|c|c.effects.contains(&i)) {
+                        let actual=if let Some(receipts)=&mut effect_receipts {
+                            let mut visible=false;
+                            let value=self.graph.construct_recorded(cell,i,*t,aa,*dst,&mut receipts[i],&mut visible)?;
+                            if visible { visible_ops.insert(i); }
+                            value
+                        }else if capture_layout.as_ref().is_some_and(|c|c.effects.contains(&i)) {
                             let mut visible=false;let v=self.graph.construct_visible(cell,i,*t,aa,*dst,&mut visible)?;
                             if visible{visible_ops.insert(i);}v
                         }else{self.graph.construct(cell,i,*t,aa,*dst)?};
@@ -1817,6 +1833,7 @@ impl Executor {
                                 self.graph.program.tables[*t].name
                             )
                         })?;
+                        if let Some(receipts)=&mut effect_receipts { receipts[i]=Some(row.witness); }
                         self.graph
                             .cells
                             .get_mut(&cell)
@@ -1845,7 +1862,10 @@ impl Executor {
                         .insert(*dst, v);
                 }
                 Op::Set(t, aa, v) => {
-                    if capture_layout.as_ref().is_some_and(|c|c.effects.contains(&i)){let mut visible=false;self.graph.set_visible(cell,i,*t,aa,v,&mut visible)?;if visible{visible_ops.insert(i);}}
+                    if let Some(receipts)=&mut effect_receipts {
+                        let mut visible=false;self.graph.set_recorded(cell,i,*t,aa,v,&mut receipts[i],&mut visible)?;
+                        if visible { visible_ops.insert(i); }
+                    }else if capture_layout.as_ref().is_some_and(|c|c.effects.contains(&i)){let mut visible=false;self.graph.set_visible(cell,i,*t,aa,v,&mut visible)?;if visible{visible_ops.insert(i);}}
                     else{self.graph.set(cell,i,*t,aa,v)?;}
                 },
                 Op::Union(a, b) => {
@@ -1883,7 +1903,7 @@ impl Executor {
             }
         }
         if let Some((c,f,u))=stage_counts {self.stage_spine.effects(self.graph.stats.constructor_requests-c,self.graph.stats.function_updates-f,self.graph.stats.union_requests-u);}
-        if completed {if let Some(cursor)=stage_cursor {self.stage_spine.capture(&self.graph,rid,cell,cursor)?;}}
+        if completed {if let Some(cursor)=stage_cursor {self.stage_spine.capture(&self.graph,rid,cell,cursor,b.receipts.as_deref(),effect_receipts.as_deref())?;}}
         self.graph.release_empty(cell);
         Ok(produced)
     }
@@ -1911,7 +1931,7 @@ impl Executor {
     }
     fn local_successor(&mut self,source:&Produced,transfer:&crate::local_sat::Transfer)->Result<Option<Binding>> {
         let rule=self.graph.program.rules[transfer.consumer].clone();
-        let mut env=QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),0,false,0);
+        let mut env=QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),0,false,0,0);
         for (slot,source_arg) in &transfer.assignments {
             let v=match source_arg{Arg::Literal(v)=>canon(v,&self.graph.parents),Arg::Slot(i)=>source.values[*i].clone()};
             env.values[*slot]=Some(v);
@@ -1932,7 +1952,7 @@ impl Executor {
             }}
             self.local_sat.stats.audit_bindings+=1;
         }
-        Ok(Some(Binding{values,witnesses:MatchedFacts::None,known:None,composition:None,parent:None,continuation:None,compiled:true,epoch:self.graph.epoch}))
+        Ok(Some(Binding{values,witnesses:MatchedFacts::None,known:None,receipts:None,composition:None,parent:None,continuation:None,compiled:true,epoch:self.graph.epoch}))
     }
     fn probe(&mut self, set: &str) -> Result<bool> {
         let rules = self
@@ -1951,6 +1971,7 @@ impl Executor {
     }
     fn run(&mut self, set: &str, path: &[usize], iterations: &[u64]) -> Result<bool> {
         self.current_stage=set.into();
+        self.graph.receipt_forwards.clear();
         if let Some(survey)=self.graph.union_impact.as_mut() {survey.run_start_cell=self.graph.next_cell;}
         self.graph.epoch = self.graph.epoch.checked_add(1).ok_or("epoch exhausted")?;
         self.graph.changed = false;
@@ -2083,6 +2104,7 @@ impl Executor {
         let repair_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.stage_spine.publish(&mut self.graph)?;
+        self.graph.receipt_forwards.clear();
         let union_roots = std::mem::take(&mut self.graph.union_roots);
         self.union_grafts.publish(&self.graph, union_roots)?;
         let context_changed_tables=if self.search_contexts.enabled || (self.refutation.enabled && self.refutation.scoped) {

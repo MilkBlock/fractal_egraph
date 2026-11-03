@@ -145,6 +145,13 @@ Both require stage Spine and remain opt-in. See
 [STAGE_ENTRY_COVERAGE.md](STAGE_ENTRY_COVERAGE.md) for accounting, complete-stage
 checks, per-rule depth diagnostics, and unchanged inner enumeration.
 
+`CELL_CPU_STAGE_SPINE_RECEIPTS=1` transfers existing LHS/RHS witnesses into
+Spine context capture after source repair, following same-key coalescence and
+storage relocation. Capture lookups fall 20,129 -> 58; query candidates remain
+34,279 and no net inference speedup is demonstrated. It requires stage Spine
+and remains opt-in. See [COMMIT_RECEIPTS.md](COMMIT_RECEIPTS.md) for receipt
+contracts, actual merge results, full-key audits, fallback and paired results.
+
 ## Union-driven Bake workload
 
 `CELL_CPU_UNION_IMPACT=1` observes direct union inputs separately from derived

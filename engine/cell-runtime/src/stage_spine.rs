@@ -45,6 +45,13 @@ pub struct Stats {
     contexts_created: u64,
     captured_contexts: u64,
     capture_reads: u64,
+    receipt_attempts: u64,
+    receipt_hits: u64,
+    receipt_redirects: u64,
+    receipt_rejections: u64,
+    receipt_missing: u64,
+    receipt_decodes: u64,
+    receipt_hits_by_source: BTreeMap<String, u64>,
     anchor_publications: u64,
     missing_capture_rows: u64,
     anchors_retired: u64,
@@ -94,6 +101,8 @@ pub struct Stats {
 pub struct Programs {
     pub enabled: bool,
     pub partial: bool,
+    pub receipts: bool,
+    pub audit_receipts: bool,
     shared_entries: bool,
     cache_epoch: u64,
     anchor_shapes: BTreeMap<(usize, usize), (usize, Vec<(usize, usize)>)>,
@@ -105,7 +114,10 @@ pub struct Programs {
     orders: BTreeMap<(usize, usize), Vec<usize>>,
     entries: HashMap<Dependency, Cursor>,
     active_tables: BTreeMap<usize, usize>,
-    contexts_pending: Vec<(Cursor, Vec<(usize, Vec<Value>, bool)>)>,
+    contexts_pending: Vec<(
+        Cursor,
+        Vec<(usize, Vec<Value>, bool, Option<Dependency>, &'static str)>,
+    )>,
     origins: BTreeMap<(usize, Vec<Value>), Cursor>,
     next_context: u64,
 
@@ -200,6 +212,8 @@ impl Programs {
         let enabled = std::env::var("CELL_CPU_STAGE_SPINE").as_deref() == Ok("1");
         let mut s = Self {
             enabled,
+            receipts: std::env::var("CELL_CPU_STAGE_SPINE_RECEIPTS").as_deref() == Ok("1"),
+            audit_receipts: false,
             partial: std::env::var("CELL_CPU_STAGE_SPINE_PARTIAL").as_deref() == Ok("1"),
             shared_entries: std::env::var("CELL_CPU_STAGE_SPINE_SHARED_ENTRIES").as_deref()
                 == Ok("1"),
@@ -357,7 +371,18 @@ impl Programs {
         drop(c);
         Some(cursor)
     }
-    pub fn capture(&mut self, g: &Graph, rid: usize, cell: u32, cursor: Cursor) -> Result<()> {
+    pub fn capture_receipts(&self, rid: usize) -> bool {
+        self.enabled && self.receipts && self.producers.contains(&rid)
+    }
+    pub fn capture(
+        &mut self,
+        g: &Graph,
+        rid: usize,
+        cell: u32,
+        cursor: Cursor,
+        query: Option<&[Option<Dependency>]>,
+        effects: Option<&[Option<Dependency>]>,
+    ) -> Result<()> {
         self.stats.completed_steps += 1;
         if !self.producers.contains(&rid) {
             return Ok(());
@@ -366,22 +391,40 @@ impl Programs {
         let rule = &g.program.rules[rid];
         let template = &g.program.templates[rule.template];
         let mut facts = vec![];
-        for atom in rule.query.iter() {
+        for (i, atom) in rule.query.iter().enumerate() {
             if let Call::Table(t) = atom.call {
-                facts.push((t, g.arguments(cell, &atom.args)?, false));
+                facts.push((
+                    t,
+                    g.arguments(cell, &atom.args)?,
+                    false,
+                    query.and_then(|w| w[i]),
+                    "query",
+                ));
             }
         }
-        for op in template.ops.iter() {
+        for (i, op) in template.ops.iter().enumerate() {
             match op {
                 Op::Let(dst, Call::Table(t), args) => {
                     let mut row = g.arguments(cell, args)?;
                     row.push(g.argument(cell, &Arg::Slot(*dst))?);
-                    facts.push((*t, row, self.anchor_tables.contains(t)));
+                    facts.push((
+                        *t,
+                        row,
+                        self.anchor_tables.contains(t),
+                        effects.and_then(|w| w[i]),
+                        "effect",
+                    ));
                 }
                 Op::Set(t, args, v) => {
                     let mut row = g.arguments(cell, args)?;
                     row.push(g.argument(cell, v)?);
-                    facts.push((*t, row, self.anchor_tables.contains(t)));
+                    facts.push((
+                        *t,
+                        row,
+                        self.anchor_tables.contains(t),
+                        effects.and_then(|w| w[i]),
+                        "effect",
+                    ));
                 }
                 _ => (),
             }
@@ -424,7 +467,7 @@ impl Programs {
         for (cursor, rows) in std::mem::take(&mut self.contexts_pending) {
             let mut context = cursor.context.borrow_mut();
             context.canonicalize(g);
-            for (t, values, anchor) in rows {
+            for (t, values, anchor, receipt, source) in rows {
                 let key = values[..values.len() - 1]
                     .iter()
                     .map(|v| canon(v, &g.parents))
@@ -433,11 +476,48 @@ impl Programs {
                 let w = if let Some(w) = resolved.get(&cache_key) {
                     *w
                 } else {
-                    self.stats.capture_reads += 1;
-                    let w = g
-                        .lookup(t, &cache_key.1)?
-                        .filter(|r| !r.hidden)
-                        .map(|r| r.witness);
+                    let mut direct = None;
+                    if self.receipts {
+                        if let Some(old) = receipt {
+                            self.stats.receipt_attempts += 1;
+                            let w = g.resolve_receipt(old);
+                            self.stats.receipt_redirects += u64::from(w != old);
+                            let visible = g.receipt_visible(w, t);
+                            if self.audit_receipts && visible {
+                                self.stats.receipt_decodes += 1;
+                                if g.row(w)?.is_none_or(|r| {
+                                    r.table != t
+                                        || r.hidden
+                                        || r.values[..r.values.len() - 1] != cache_key.1
+                                }) {
+                                    return Err(
+                                        "commit receipt does not preserve its source key".into()
+                                    );
+                                }
+                            }
+                            if visible {
+                                self.stats.receipt_hits += 1;
+                                *self
+                                    .stats
+                                    .receipt_hits_by_source
+                                    .entry(source.into())
+                                    .or_default() += 1;
+                                direct = Some(w);
+                            } else {
+                                self.stats.receipt_rejections += 1;
+                            }
+                        } else {
+                            self.stats.receipt_missing += 1;
+                        }
+                    }
+                    let w = if let Some(w) = direct {
+                        Some(w)
+                    } else {
+                        self.stats.capture_reads += 1;
+                        g.lookup(t, &cache_key.1)?
+                            .filter(|r| !r.hidden)
+                            .map(|r| r.witness)
+                    };
                     resolved.insert(cache_key.clone(), w);
                     w
                 };
@@ -792,7 +872,7 @@ impl Programs {
             .map(|c| (c.context.borrow().id, c.context.clone()))
             .collect::<BTreeMap<_, _>>();
         let facts: usize = contexts.values().map(|c| c.borrow().facts.len()).sum();
-        json!({"enabled":self.enabled,"partial_enabled":self.partial,"shared_entries_enabled":self.shared_entries,"stats":self.stats,"producer_rules":self.producers.len(),
+        json!({"enabled":self.enabled,"receipts_enabled":self.receipts,"partial_enabled":self.partial,"shared_entries_enabled":self.shared_entries,"stats":self.stats,"producer_rules":self.producers.len(),
             "keyed_entries":self.orders.len(),"live_spines":contexts.len(),
             "entry_references":self.entries.len(),"context_fact_references":facts,
             "scope":"source-scheduled RHS continuation from committed producer contexts; exhaustive functional-key entries; unknown delta entries use ordinary matching; no early effect visibility"})

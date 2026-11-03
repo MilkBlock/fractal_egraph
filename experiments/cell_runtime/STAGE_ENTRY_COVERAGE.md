@@ -1,5 +1,9 @@
 # Preserve entry coverage and share exact seed predicates
 
+Follow-up: [direct commit receipts](COMMIT_RECEIPTS.md) removes duplicate
+capture lookup using original query/action witnesses. The measurements below
+retain the preceding keyed-capture implementation.
+
 This follows [STAGE_SPINE.md](STAGE_SPINE.md), using the same authenticated
 sum-bits source_sk_mk and standalone, single-thread Cell CPU engine. The target
 of this experiment is **fewer candidate validations**. It does not link native

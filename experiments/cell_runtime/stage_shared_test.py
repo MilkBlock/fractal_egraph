@@ -3,8 +3,8 @@ import unittest
 from experiments.cell_runtime import stage_partial_test as pt
 
 class StageSharedTests(pt.StagePartialTests):
-    MODES=({'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'1','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0'},
-           {'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'1','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'1'})
+    MODES=({'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'1','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'0','CELL_CPU_STAGE_SPINE_RECEIPTS':'0'},
+           {'CELL_CPU_STAGE_SPINE':'1','CELL_CPU_STAGE_SPINE_PARTIAL':'1','CELL_CPU_STAGE_SPINE_SHARED_ENTRIES':'1','CELL_CPU_STAGE_SPINE_RECEIPTS':'0'})
     def test_mixed_known_and_unknown_producers_keep_covered_entries(self):
         _,(before,after)=self.pair(pt.CHAIN+'''(P (N 1)) (Known (N 1))
 (run-schedule (seq (run a) (run b) (run c))) (check (R (N 0)) (R (N 1)))''')
