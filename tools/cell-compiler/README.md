@@ -9,7 +9,7 @@ cargo cell-compile --case sum-bits --output out/cell-sum
 cargo cell-compile --source my.egg --bake-source training.egg --output out/cell-custom
 ```
 
-`--output` 需要一个新目录。对自定义输入可省略 `--bake-source`，直接用结构键变换后的执行程序训练。另给训练输入时，编译器先核对训练中使用的类型、merge 定义和规则。预置 case 支持 `fact`、`loopfact`、`sum-bits`、`raytrace`，按套件清单拼接并校验 SHA-256，共用仓库内冻结的小训练输入。[套件清单](../../experiments/profile_suite/suite.json)
+`--output` 需要一个新目录。对自定义输入可省略 `--bake-source`，直接用结构键变换后的执行程序训练。另给训练输入时，编译器先核对训练中使用的类型、merge 定义和规则。预置 case 包括 `fact`、`loopfact`、`sum-bits`、`dot-product`、`sum-divisors`、`fenwick_tree`、`jacobi-1d` 和 `raytrace`。它们按清单拼接并校验 SHA-256，共用仓库内冻结的小训练输入。四个新增 Pass 3 的来源、规模和运行命令见[较大负载对照](../../experiments/profile_suite/README.md)。[套件清单](../../experiments/profile_suite/suite.json)
 
 输出包括原始源码、`source_sk.egg`、Bake 观察目录、`source_sk_mk.egg`、marker 选择和证明、Recipe、`program.json`、各 CPU 计划与文件摘要。结构键只响应源码显式的 `cell-choice/v1`。marker 只选取符合条件的构造子片段，保留原规则的效果，在相关 Run 前安排完整性规则。Bake 记录可匹配的观测 Cell。源码采用现有 CPU 后端支持的扁平输入，初始化之后可使用 schedule 和 check。
 
