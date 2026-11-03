@@ -37,7 +37,8 @@ def main():
     p=argparse.ArgumentParser();g=p.add_mutually_exclusive_group(required=True)
     g.add_argument('--compiled',type=Path);g.add_argument('--demo-chain',type=int)
     p.add_argument('--instances',type=int,default=128);p.add_argument('--frontend',type=Path)
-    p.add_argument('--feature',choices=['local-sat','retained'],default='local-sat')
+    p.add_argument('--feature',choices=['local-sat','retained','spine-prefix'],default='local-sat')
+    p.add_argument('--prefix-ablation',action='store_true',help='spine-prefix only: ordinary, shared reads, shared prefixes')
     p.add_argument('--shared-ablation',action='store_true',help='retained only: ordinary, per-rule, shared-domain lanes')
     p.add_argument('--context-sets',default='always-run,type-analysis')
     p.add_argument('--output',type=Path,required=True);p.add_argument('--audit',action='store_true');a=p.parse_args()
@@ -52,20 +53,23 @@ def main():
         src=out/'source.egg';src.write_text(source);program=build(prepare(src,a.frontend));path=out/'program.json';path.write_text(json.dumps(program))
         provenance={'source_sha256':fingerprint(src)};scope='synthetic shared-context chain through native typed frontend; not eggcc performance'
     engine=ROOT/'engine/cell-runtime/target/release/eggfuse-cell-runtime'
-    feature='CELL_CPU_LOCAL_SAT' if a.feature=='local-sat' else 'CELL_CPU_RETAINED_CONTEXTS'
+    feature={'local-sat':'CELL_CPU_LOCAL_SAT','retained':'CELL_CPU_RETAINED_CONTEXTS','spine-prefix':'CELL_CPU_SPINE_PREFIXES'}[a.feature]
     settings={**SETTINGS,'CELL_CPU_LOCAL_SAT':'0','CELL_CPU_LOCAL_SAT_AUDIT':'0','CELL_CPU_REFUTATION_PROFILE':'0',
-        'CELL_CPU_RETAINED_CONTEXTS':'0','CELL_CPU_RETAINED_SHARED':'1','CELL_CPU_RETAINED_SETS':a.context_sets}
+        'CELL_CPU_SPINE_PREFIXES':'0','CELL_CPU_RETAINED_CONTEXTS':'1' if a.feature=='spine-prefix' else '0','CELL_CPU_RETAINED_SHARED':'1','CELL_CPU_RETAINED_SETS':a.context_sets}
     old={k:os.environ.get(k) for k in settings}
     result={'scope':scope+'; standalone single-thread Cell CPU, merge programs ON','program':str(path),
         'program_sha256':fingerprint(path),'binary_sha256':fingerprint(engine),
-        'feature':a.feature,'shared_ablation':a.shared_ablation,'provenance':provenance,'lanes':{}}
+        'feature':a.feature,'shared_ablation':a.shared_ablation,'prefix_ablation':a.prefix_ablation,'provenance':provenance,'lanes':{}}
     try:
         os.environ.update(settings)
         with mode(False):
             states=[];controls=[]
             assert not a.shared_ablation or a.feature=='retained'
             lanes=[('off','0','1'),('private','1','0'),('on','1','1')] if a.shared_ablation else [('off','0','1'),('on','1','1')]
+            assert not a.prefix_ablation or a.feature=='spine-prefix'
+            if a.prefix_ablation:lanes=[('ordinary','0','1'),('off','0','1'),('on','1','1')]
             for name,flag,shared in lanes:
+                if a.prefix_ablation:os.environ['CELL_CPU_RETAINED_CONTEXTS']='0' if name=='ordinary' else '1'
                 os.environ['CELL_CPU_RETAINED_SHARED']=shared
                 os.environ[feature]=flag;m,r=timed(path,engine,out/name)
                 states.append(json.loads((out/name/'state.json').read_text()))
@@ -81,7 +85,8 @@ def main():
                     'total_candidates':r['stats']['residual_candidates']+r['multi_stage']['stats']['merge_candidate_rows']}
                 stats=r['local_saturation' if a.feature=='local-sat' else 'retained_contexts']['stats']
                 print(name,m['inference_seconds'],len(r['steps']),{k:v for k,v in stats.items() if not isinstance(v,dict)},flush=True)
-            if a.feature=='retained':
+                if a.feature=='spine-prefix':print(name,'prefix',r['retained_contexts']['spine_prefixes']['stats'],flush=True)
+            if a.feature!='local-sat':
                 assert all(c==controls[0] for c in controls[1:]),'source Run controls differ'
                 result['all_lanes_same_run_controls']=True
             result['endpoints']=[compare_native(program['source_core'],s,states[0]) for s in states[1:]]
@@ -89,7 +94,7 @@ def main():
             result['ratio']=result['lanes']['on']['measurement']['inference_seconds']/result['lanes']['off']['measurement']['inference_seconds']
             (out/'results.json').write_text(json.dumps(result,indent=2)+'\n')
             if a.audit:
-                if a.feature=='retained':
+                if a.feature!='local-sat':
                     from experiments.cell_runtime.refutation_bench import audit as stage_audit
                     result['verification']=stage_audit(path,program,out/'audit',ROOT/'engine/cell-runtime/target/release/examples/project_stages',feature)
                 else:result['verification']=audit(path,program,out/'audit')

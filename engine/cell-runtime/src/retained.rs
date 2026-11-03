@@ -14,7 +14,10 @@ use std::{
     rc::Rc,
 };
 
-#[derive(Clone)]
+#[path = "retained_prefix.rs"]
+mod prefix;
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct Answer {
     pub values: Vec<Value>,
     pub witnesses: Vec<Option<Dependency>>,
@@ -86,6 +89,7 @@ pub struct Contexts {
     pub enabled: bool,
     rules: BTreeSet<usize>,
     roots: BTreeMap<usize, Node>,
+    prefixes: prefix::Prefixes,
     anchors: BTreeMap<usize, usize>,
     signals: Signals,
     literal_rules: BTreeSet<usize>,
@@ -427,8 +431,10 @@ impl Contexts {
             })
             .copied()
             .collect();
+        let prefixes = prefix::Prefixes::new(p, &rules, &anchors);
         Self {
             enabled,
+            prefixes,
             rules,
             roots: BTreeMap::new(),
             anchors,
@@ -553,23 +559,15 @@ impl Contexts {
             }
         }
         if self.unions != g.stats.unions && !self.literal_rules.is_empty() {
-            fn mark(n: &Node, s: &mut Signals) {
-                if n.id != 0 {
-                    s.slots[n.id as usize].full = true;
-                    s.notify(n.id);
-                }
-                for b in &n.branches {
-                    mark(&b.child, s)
-                }
-                if let Some(c) = &n.primitive {
-                    mark(c, s)
-                }
-            }
             for rid in &self.literal_rules {
                 if let Some(n) = self.roots.get(rid) {
-                    mark(n, &mut self.signals);
+                    mark_full(n, &mut self.signals);
                 }
             }
+        }
+        if self.unions != g.stats.unions {
+            self.prefixes
+                .invalidate_literals(&self.literal_rules, &mut self.signals);
         }
         self.unions = g.stats.unions;
         self.stats.publication_seconds += clock.elapsed().as_secs_f64();
@@ -586,6 +584,14 @@ impl Contexts {
         self.stats.active_rule = rid;
         *self.stats.calls_by_rule.entry(rid).or_default() += 1;
         let before = self.stats.candidate_rows;
+        if self.prefixes.accepts(rid) {
+            let answers =
+                self.prefixes
+                    .matches(rid, g, ix, &mut self.stats, &mut self.signals, watermark)?;
+            *self.stats.rows_by_rule.entry(rid).or_default() += self.stats.candidate_rows - before;
+            record_answers(&answers, &mut self.stats);
+            return Ok(answers);
+        }
         let rule = g.program.rules[rid].clone();
         let mut remaining = vec![true; rule.query.len()];
         // Only query coordinates belong in retained contexts. RHS temporaries
@@ -624,21 +630,13 @@ impl Contexts {
             rule.seminaive.then_some(watermark),
             &mut unique,
             &mut self.stats,
+            false,
         )?;
-        self.stats.emitted_bindings += unique.len() as u64;
-        for a in unique.values() {
-            let owners = a
-                .witnesses
-                .iter()
-                .filter_map(|w| match w {
-                    Some(Dependency::Fact(f)) => Some(f.cell),
-                    _ => None,
-                })
-                .collect::<BTreeSet<_>>();
-            self.stats.multi_producer_bindings += u64::from(owners.len() > 1);
-        }
-        Ok(unique.into_values().collect())
+        let answers = unique.into_values().collect::<Vec<_>>();
+        record_answers(&answers, &mut self.stats);
+        Ok(answers)
     }
+
     pub fn report(&self) -> J {
         let mut contexts = 0;
         let mut branches = 0;
@@ -649,7 +647,11 @@ impl Contexts {
             branches += b;
             slots += c;
         }
-        json!({"enabled":self.enabled,"selected_rules":self.rules,"structural_anchors":self.anchors,"stats":self.stats,
+        let (a, b, c) = self.prefixes.storage();
+        contexts += a;
+        branches += b;
+        slots += c;
+        json!({"spine_prefixes":self.prefixes.report(),"enabled":self.enabled,"selected_rules":self.rules,"structural_anchors":self.anchors,"stats":self.stats,
             "shared_domains":self.signals.shared,
             "shared_live_domains":self.signals.domain_keys.len(),
             "shared_domain_slots":self.signals.domains.len(),
@@ -660,6 +662,33 @@ impl Contexts {
             "scope":"exact typed query continuations across source Runs; partial/empty domains retained; not a certified RipSat closure or permission to reorder effects"})
     }
 }
+fn mark_full(n: &Node, s: &mut Signals) {
+    if n.id != 0 {
+        s.slots[n.id as usize].full = true;
+        s.notify(n.id);
+    }
+    for b in &n.branches {
+        mark_full(&b.child, s);
+    }
+    if let Some(c) = &n.primitive {
+        mark_full(c, s);
+    }
+}
+fn record_answers(answers: &[Answer], stats: &mut Stats) {
+    stats.emitted_bindings += answers.len() as u64;
+    for a in answers {
+        let owners = a
+            .witnesses
+            .iter()
+            .filter_map(|w| match w {
+                Some(Dependency::Fact(f)) => Some(f.cell),
+                _ => None,
+            })
+            .collect::<BTreeSet<_>>();
+        stats.multi_producer_bindings += u64::from(owners.len() > 1);
+    }
+}
+
 fn storage(n: &Node) -> (usize, usize, usize) {
     let mut result = (
         usize::from(n.ready),
@@ -1121,6 +1150,7 @@ fn collect(
     watermark: Option<u64>,
     out: &mut BTreeMap<Vec<Value>, Answer>,
     stats: &mut Stats,
+    prefer_latest: bool,
 ) -> Result<()> {
     if n.matches == 0 {
         return Ok(());
@@ -1131,7 +1161,16 @@ fn collect(
     }
     if let Some(i) = n.chosen {
         if let Some(child) = &n.primitive {
-            collect(child, inputs, witnesses, epoch, watermark, out, stats)?;
+            collect(
+                child,
+                inputs,
+                witnesses,
+                epoch,
+                watermark,
+                out,
+                stats,
+                prefer_latest,
+            )?;
         } else {
             for b in &n.branches {
                 witnesses[i] = Some(b.witness);
@@ -1143,6 +1182,7 @@ fn collect(
                     watermark,
                     out,
                     stats,
+                    prefer_latest,
                 )?;
             }
             witnesses[i] = None;
@@ -1156,6 +1196,9 @@ fn collect(
                     .ok_or("incomplete retained output".into())
             })
             .collect::<Result<Vec<_>>>()?;
+        if prefer_latest && out.get(&values).is_some_and(|old| old.epoch < epoch) {
+            out.remove(&values);
+        }
         out.entry(values.clone()).or_insert_with(|| Answer {
             values,
             witnesses: witnesses.to_vec(),

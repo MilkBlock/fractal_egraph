@@ -1,5 +1,10 @@
 # Share exact input domains before continuing individual rules
 
+Follow-up: [multi-atom Spine prefixes](SPINE_PREFIXES.md) shares complete joint
+bindings and nested prefix providers. Its maintenance counters improved, but the
+final sum-bits timing still regressed slightly; it is separately opt-in.
+
+
 This extends `RETAINED_CONTEXTS.md` in the **standalone single-thread Cell CPU
 engine**. It does not modify native egglog or the compiler's Bake coverage. The
 input is the same authenticated sum-bits Pass 3 `source_sk_mk` artifact, merge
