@@ -28,6 +28,12 @@ pub struct Edge {
 }
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Compositions {
+    #[serde(default)]
+    pub(crate) baked_members: Option<Vec<bool>>,
+    #[serde(default)]
+    pub(crate) anchor_literals: Vec<(usize, crate::value::Value)>,
+    #[serde(default)]
+    pub(crate) producer_literals: Vec<(Arg, crate::value::Value)>,
     pub edges: HashMap<(usize, usize, usize, usize), Rc<Edge>>,
     pub rule_program: BTreeMap<usize, usize>,
     pub marker_entries: BTreeSet<usize>,
@@ -56,7 +62,7 @@ impl Compositions {
             .ok_or("composition object")?
             .remove("sha256");
         if sha != Some(crate::checksum::artifact_digest(&payload).into())
-            || raw["schema"] != "eggfuse-compositions/v1"
+            || !matches!(raw["schema"].as_str(),Some("eggfuse-compositions/v1"|"eggfuse-baked-composition/v1"))
             || raw["recipe_sha256"] != p.artifact["recipe"]["sha256"]
             || raw["control"] != p.artifact["recipe"]["control"]
             || raw["evidence"]["recipe_sha256"] != raw["recipe_sha256"]
@@ -111,6 +117,12 @@ impl Compositions {
                     || p.views.markers.contains(&t))
         };
         let mut out = Self::default();
+        if raw["schema"] == "eggfuse-baked-composition/v1" {
+            if array(&raw["edges"])?.len() != 1 || array(&raw["programs"])?.len() != 1 {
+                return Err("expected one baked handoff".into());
+            }
+            out.baked_members = Some(vec![false; p.rules.len()]);
+        }
         for program in array(&raw["programs"])? {
             let id = num(program, "id")?;
             if id != out.programs {
@@ -120,6 +132,9 @@ impl Compositions {
             for step in array(&program["steps"])? {
                 let r = num(step, "rule")?;
                 let rule = p.rules.get(r).ok_or("composition step rule")?;
+                if let Some(members) = &mut out.baked_members {
+                    members[r] = true;
+                }
                 let original = &p.artifact["recipe"]["rules"][r];
                 if original["metadata"]["source_set"]
                     .as_str()
@@ -282,6 +297,31 @@ impl Compositions {
             }
             if !declarations.is_empty() {
                 return Err("reuse operation out of range".into());
+            }
+
+            if raw["schema"] == "eggfuse-baked-composition/v1" {
+                let original = &p.artifact["recipe"]["rules"][producer]["slots"];
+                for guard in array(&e["producer_literals"])? {
+                    let slot = num(guard, "slot")?;
+                    let field = original.get(slot).ok_or("unknown producer guard slot")?;
+                    if field["definition"] != "query" || field["sort"] != guard["operand"]["sort"] {
+                        return Err("invalid producer guard".into());
+                    }
+                    out.producer_literals
+                        .push((Arg::Slot(slot), crate::value::literal(&guard["operand"])?));
+                }
+                let atom = dst.query.get(anchor).ok_or("missing baked anchor")?;
+                let Call::Table(table) = atom.call else {
+                    return Err("baked anchor is not a table".into());
+                };
+                for guard in array(&e["anchor_literals"])? {
+                    let col = num(guard, "column")?;
+                    if p.tables[table].schema.get(col) != Some(&guard["operand"]["sort"]) {
+                        return Err("baked anchor literal schema differs".into());
+                    }
+                    out.anchor_literals
+                        .push((col, crate::value::literal(&guard["operand"])?));
+                }
             }
             let edge = Rc::new(Edge {
                 id,

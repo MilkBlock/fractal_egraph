@@ -1,0 +1,343 @@
+{
+  "schema": "eggfuse-baked-unit-experiment/v1",
+  "base_commit": "4c93233c5e004c8bfea3252f610d30133b8fe58f",
+  "unit_sha256": "514ea88fa03d1c2ad84724ca02480b702db00335a4a00f165490cdb09137712f",
+  "machine": "Apple M3 Max",
+  "lane": "standalone-cell-cpu, filtered",
+  "training_case": "sum-bits",
+  "timing": "one warm-up per lane, then alternate order by pair. Inference only. Every measured pair uses the same linked program and executable.",
+  "cases": {
+    "fact": {
+      "program_sha256": "99bab003f1aa0536674ee19dbe293ff2647568b619b6a1718c87245b510bc4c5",
+      "runs": 634,
+      "bindings": 1871,
+      "state_sha256": "4f73d47c28f13d02dd908e39355f2503fc8a9c46fe7a3fdf92446cbe80823e60",
+      "cross_run_applications": 0,
+      "guard_misses": 0,
+      "consumer_port_reads": 0,
+      "off": {
+        "inference_ms": [
+          15.349708,
+          15.734749999999998,
+          16.363834,
+          16.385834,
+          15.470167,
+          16.382958,
+          15.269,
+          16.676582999999997,
+          15.689333,
+          16.379834
+        ],
+        "median_ms": 16.049292,
+        "total_candidate_visits": 3317,
+        "key_lookups": 5341
+      },
+      "on": {
+        "inference_ms": [
+          16.276083,
+          16.320291,
+          15.049750000000001,
+          15.589916,
+          15.492625,
+          19.237583,
+          15.375083,
+          14.971375,
+          15.784833,
+          15.970458
+        ],
+        "median_ms": 15.6873745,
+        "total_candidate_visits": 3317,
+        "key_lookups": 5341
+      }
+    },
+    "loopfact": {
+      "program_sha256": "79e73de73ee74aa612a4feb6809f514b2ecd5403c7d47f6de954db1354d8c4d4",
+      "runs": 618,
+      "bindings": 1557,
+      "state_sha256": "ae273684ee80f577d599f51551448e9deb87b6f883a65f71bf94f24c83c335f9",
+      "cross_run_applications": 0,
+      "guard_misses": 0,
+      "consumer_port_reads": 0,
+      "off": {
+        "inference_ms": [
+          16.148291,
+          16.407375,
+          14.327,
+          14.158624999999999,
+          14.169625,
+          15.814667000000002,
+          14.628416999999999,
+          14.57125,
+          15.539582999999999,
+          16.230999999999998
+        ],
+        "median_ms": 15.084,
+        "total_candidate_visits": 2946,
+        "key_lookups": 4768
+      },
+      "on": {
+        "inference_ms": [
+          15.253917000000001,
+          16.276167,
+          16.277791999999998,
+          15.738959,
+          15.798875,
+          16.592834,
+          16.743292,
+          15.950584000000001,
+          16.132,
+          16.246625
+        ],
+        "median_ms": 16.1893125,
+        "total_candidate_visits": 2946,
+        "key_lookups": 4768
+      }
+    },
+    "sum-bits": {
+      "program_sha256": "d18c2167bfb935e69397e160fdca50934d7459daa00e1a18639c43620bdf26b0",
+      "runs": 1428,
+      "bindings": 10226,
+      "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+      "cross_run_applications": 4,
+      "guard_misses": 30,
+      "consumer_port_reads": 4,
+      "off": {
+        "inference_ms": [
+          74.85562499999999,
+          80.2735,
+          77.113,
+          75.54204200000001,
+          81.547375,
+          76.739042,
+          79.238375,
+          77.037167,
+          82.23675,
+          79.363333
+        ],
+        "median_ms": 78.17568750000001,
+        "total_candidate_visits": 16779,
+        "key_lookups": 29177
+      },
+      "on": {
+        "inference_ms": [
+          78.153875,
+          74.7135,
+          80.251583,
+          82.274625,
+          71.348917,
+          83.630625,
+          78.496083,
+          85.550084,
+          80.02075,
+          82.05054200000001
+        ],
+        "median_ms": 80.1361665,
+        "total_candidate_visits": 16779,
+        "key_lookups": 29177
+      }
+    },
+    "dot-product": {
+      "program_sha256": "041d1be027865d395dbaebbec5db086f96fecfa86a57e582269cdd53b3e5215c",
+      "runs": 1535,
+      "bindings": 7722,
+      "state_sha256": "cb266d29f9813144443bbfb344853fcefa90ffe8a55f9b103a90cb7d06ffd2f4",
+      "cross_run_applications": 0,
+      "guard_misses": 5,
+      "consumer_port_reads": 0,
+      "off": {
+        "inference_ms": [
+          69.96,
+          67.485959,
+          67.053541,
+          63.381417,
+          63.895834,
+          66.08458300000001,
+          65.071292,
+          62.587791,
+          62.717541000000004,
+          68.75845899999999
+        ],
+        "median_ms": 65.5779375,
+        "total_candidate_visits": 14700,
+        "key_lookups": 24419
+      },
+      "on": {
+        "inference_ms": [
+          67.837333,
+          70.803667,
+          67.812083,
+          71.93416699999999,
+          66.22958399999999,
+          69.645792,
+          69.216125,
+          68.567792,
+          62.501,
+          70.30024999999999
+        ],
+        "median_ms": 68.8919585,
+        "total_candidate_visits": 14700,
+        "key_lookups": 24419
+      }
+    },
+    "sum-divisors": {
+      "program_sha256": "3f340965731866acdb69d70a0627d0e88be8cd9524c10a91e81ee83cfae01fa3",
+      "runs": 1644,
+      "bindings": 26124,
+      "state_sha256": "5437a9144d2306c77342171e71a72032f5c557908984fc115d571d320ad69212",
+      "cross_run_applications": 0,
+      "guard_misses": 127,
+      "consumer_port_reads": 0,
+      "off": {
+        "inference_ms": [
+          183.62062500000002,
+          163.94720800000002,
+          159.92600000000002,
+          169.663083,
+          165.48850000000002,
+          172.848667,
+          162.695958,
+          169.769583,
+          182.206916,
+          190.751583
+        ],
+        "median_ms": 169.71633300000002,
+        "total_candidate_visits": 42614,
+        "key_lookups": 72009
+      },
+      "on": {
+        "inference_ms": [
+          184.54204199999998,
+          170.74525,
+          165.255541,
+          158.651334,
+          167.22120800000002,
+          161.945292,
+          161.072416,
+          182.068708,
+          185.864667,
+          185.435958
+        ],
+        "median_ms": 168.983229,
+        "total_candidate_visits": 42614,
+        "key_lookups": 72009
+      }
+    },
+    "fenwick_tree": {
+      "program_sha256": "4af5f8982f6ba57e34be53c0a154c87113f64f719d65c194a56ae1a05e141014",
+      "runs": 2122,
+      "bindings": 26208,
+      "state_sha256": "0ee4fe3dd7979d435d30c5683b8d75d4773727b02f916b925b65f656b04de8d6",
+      "cross_run_applications": 1,
+      "guard_misses": 76,
+      "consumer_port_reads": 1,
+      "off": {
+        "inference_ms": [
+          189.62020800000002,
+          201.279458,
+          195.658666,
+          202.08950000000002,
+          190.500708,
+          211.545042,
+          185.82245799999998,
+          187.40937499999998,
+          190.959167,
+          185.674333
+        ],
+        "median_ms": 190.7299375,
+        "total_candidate_visits": 46043,
+        "key_lookups": 73402
+      },
+      "on": {
+        "inference_ms": [
+          202.86599999999999,
+          210.970042,
+          190.84125,
+          193.450458,
+          212.92987499999998,
+          211.90966699999998,
+          195.91120800000002,
+          183.32612500000002,
+          198.67458399999998,
+          213.030375
+        ],
+        "median_ms": 200.77029199999998,
+        "total_candidate_visits": 46043,
+        "key_lookups": 73402
+      }
+    },
+    "jacobi-1d": {
+      "program_sha256": "ea7b773f7b532050ee65a44c8c312ee35a43c1c6a20e1a92f4425cbf34d87d36",
+      "runs": 1990,
+      "bindings": 51151,
+      "state_sha256": "5d073ebf98a5313593b5fc0714ef7d34b926c60bf9cf06e9922b5b2c918138ff",
+      "cross_run_applications": 2,
+      "guard_misses": 125,
+      "consumer_port_reads": 2,
+      "off": {
+        "inference_ms": [
+          422.943709,
+          405.131917,
+          372.258375,
+          373.28033300000004,
+          390.988833,
+          377.792709,
+          367.804167,
+          371.692458,
+          370.61854100000005,
+          368.661041
+        ],
+        "median_ms": 372.769354,
+        "total_candidate_visits": 94462,
+        "key_lookups": 135475
+      },
+      "on": {
+        "inference_ms": [
+          401.053459,
+          383.660417,
+          377.880917,
+          385.87154200000003,
+          375.317042,
+          360.381834,
+          354.52925,
+          364.34299999999996,
+          373.791791,
+          357.183833
+        ],
+        "median_ms": 374.5544165,
+        "total_candidate_visits": 94462,
+        "key_lookups": 135475
+      }
+    },
+    "raytrace": {
+      "program_sha256": "6b8bee419f4e28d30385e1644f95d72d2db88a82810f79a72b36b83794aac777",
+      "runs": 16883,
+      "bindings": 3785196,
+      "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+      "cross_run_applications": 24,
+      "guard_misses": 2322,
+      "consumer_port_reads": 28,
+      "off": {
+        "inference_ms": [
+          33605.878708,
+          33931.358291000004,
+          35894.371083000005,
+          36660.729041000006
+        ],
+        "median_ms": 34912.86468700001,
+        "total_candidate_visits": 9908673,
+        "key_lookups": 7844569
+      },
+      "on": {
+        "inference_ms": [
+          34308.572125,
+          34246.993958,
+          35302.727375,
+          36793.434875000006
+        ],
+        "median_ms": 34805.64975,
+        "total_candidate_visits": 9908673,
+        "key_lookups": 7844569
+      }
+    }
+  }
+}

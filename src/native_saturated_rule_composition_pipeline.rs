@@ -775,3 +775,53 @@ impl Pipeline {
         Ok(())
     }
 }
+
+/// Register bounded two-application slices from actual committed producer reads.
+/// Unselected history remains in Captured for boundary and interface recovery.
+pub(super) fn bake_sample(c: &Captured, selected: &[&Json], out: &Path) -> Result<Json> {
+    std::fs::create_dir_all(out)?;
+    let mut registry = cell_egraph::Registry::new()?;
+    let mut cache = ripen::PreparationCache::default();
+    let mut registered = BTreeMap::new();
+    let mut jobs = vec![];
+    let mut samples = vec![];
+    let mut rejected = vec![];
+    for &h in selected {
+        let ids = h["records"].as_array().ok_or("missing handoff records")?;
+        let pair = ids
+            .iter()
+            .map(|v| v.as_u64().map(|u| u as usize).ok_or("invalid record id"))
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        let mut parents = vec![];
+        for members in [&pair[..1], &pair[..]] {
+            if let Some(&id) = registered.get(members) {
+                parents.push(id);
+                continue;
+            }
+            let prepared = cache.prepare(c, members);
+            let (source, validation, origin) = match prepared {
+                Ok(v) => v,
+                Err(e) => {
+                    rejected.push(json!({"records":members,"reason":e.to_string()}));
+                    break;
+                }
+            };
+            let unit = registered.len();
+            registry.register(unit, &parents, &origin, &source, &validation)?;
+            let folder = out.join(format!("unit-{unit}"));
+            std::fs::create_dir(&folder)?;
+            std::fs::write(folder.join("source.egg"), source)?;
+            std::fs::write(folder.join("checks.egg"), validation)?;
+            jobs.push(json!({"candidate_id":unit,"cell_unit":unit,"state":"Prepared"}));
+            registered.insert(members.to_vec(), unit);
+            parents.push(unit);
+        }
+        if let Some(&id) = registered.get(&pair) {
+            samples.push(json!({"unit":id,"handoff":h}));
+        }
+    }
+    registry.publish_recipes(&jobs, out)?;
+    let graph = registry.report();
+    crate::pipeline::write_json(&out.join("cell-egraph.json"), &graph)?;
+    Ok(json!({"graph":graph,"samples":samples,"rejected":rejected}))
+}

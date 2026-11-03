@@ -1429,3 +1429,94 @@ mod incremental_history_tests {
         assert!(!make_c[0].parents.contains(&make_b[0]));
     }
 }
+
+/// Physical handoffs between different source rulesets in a complete native run.
+pub fn bake_transfer_sample(
+    name: &str,
+    text: &str,
+    out: &Path,
+    select: impl FnOnce(&[Json]) -> Result<Vec<usize>>,
+) -> Result<Json> {
+    let mut c = capture_text_with_sink(name, text, None, None)?;
+    update_layers(&mut c)?;
+    let mut stages = vec![0; c.records.len()];
+    let mut start = 0;
+    for (ordinal, b) in c.boundaries.iter().enumerate() {
+        stages[start..b.end].fill(ordinal);
+        start = b.end;
+    }
+    let mut rows = vec![];
+    for (consumer, r) in c.records.iter().enumerate() {
+        let dst = &c.rules[r.rule].rule;
+        if dst.ruleset.is_empty() || dst.ruleset.starts_with("cell-") {
+            continue;
+        }
+        for &producer in &r.parents {
+            let parent = &c.records[producer];
+            let src = &c.rules[parent.rule].rule;
+            if stages[producer] == stages[consumer]
+                || src.ruleset == dst.ruleset
+                || src.ruleset.starts_with("cell-")
+            {
+                continue;
+            }
+            for fact in parent.produced.iter().filter(|f| r.required.contains(f)) {
+                let Some(table) = c.pool.values[*fact].sort.strip_prefix("Fact:") else {
+                    continue;
+                };
+                let Some(span) =
+                    parent
+                        .outputs
+                        .iter()
+                        .zip(&parent.values)
+                        .find_map(|(role, id)| match role {
+                            Output::Row(span) if id == fact => Some(span),
+                            _ => None,
+                        })
+                else {
+                    continue;
+                };
+                let literals=parent.outputs.iter().zip(&parent.values).filter_map(|(role,id)|{
+                    let Output::Column(site,col)=role else{return None};
+                    if site!=span{return None}
+                    c.pool.literals.get(id).map(|literal|json!({"column":col,"sort":c.pool.values[*id].sort.as_ref(),"text":literal}))
+                }).collect::<Vec<_>>();
+                // Recover the producer's scalar input parameters and read ports.
+                // Read IDs refer to facts; their result values live in read_results.
+                let mut producer_literals = vec![];
+                let mut reads = parent.read_results.iter();
+                for (role, token) in parent.inputs.iter().zip(&parent.wanted) {
+                    let (role, token) = match role {
+                        Input::Var(var) => (json!({"variable":var}), Some(*token)),
+                        Input::Read(site) => {
+                            let result = reads.next().copied().flatten();
+                            let call = &c.rules[parent.rule]
+                                .calls
+                                .get(site)
+                                .ok_or("missing source read")?
+                                .1;
+                            let Expr::Call(_, head, _) = call else {
+                                return Err("read has no source operator".into());
+                            };
+                            (json!({"read":head}), result)
+                        }
+                    };
+                    if let Some(token) = token
+                        && let Some(literal) = c.pool.literals.get(&token)
+                    {
+                        producer_literals.push(json!({"role":role,"sort":c.pool.values[token].sort.as_ref(),"text":literal}));
+                    }
+                }
+                rows.push(json!({"producer":[src.ruleset,src.name],"consumer":[dst.ruleset,dst.name],"table":table,"producer_literals":producer_literals,"anchor_literals":literals,"records":[producer,consumer],"runs":[stages[producer],stages[consumer]]}));
+            }
+        }
+    }
+    let selected = select(&rows)?
+        .into_iter()
+        .map(|i| rows.get(i).ok_or("unknown observed handoff"))
+        .collect::<std::result::Result<Vec<_>, _>>()?;
+    let baked = saturated_rule_composition_pipeline::bake_sample(&c, &selected, out)?;
+    Ok(
+        json!({"records":c.records.len(),"boundaries":c.boundaries.len(),"cross_ruleset_write_read_handoffs":rows.len(),"sample":baked}),
+    )
+}
