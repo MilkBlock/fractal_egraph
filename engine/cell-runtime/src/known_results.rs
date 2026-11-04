@@ -207,6 +207,7 @@ impl Plans {
 #[serde(default)]
 pub struct Stats {
     pub static_eliminated: u64,
+    pub lazy_prefix_eliminated: u64,
     pub static_observed_equal:u64,
     pub static_observed_other:u64,
     pub value_eligible: u64,
@@ -229,4 +230,16 @@ pub struct Stats {
     pub observed_other_witness: u64,
     pub retained_result_writes: u64,
     pub opportunities_by_table: BTreeMap<String, u64>,
+}
+
+impl Stats {
+    pub(crate) fn elide_static(&mut self, aliases: Option<&[bool]>, op: usize) -> bool {
+        if aliases.is_some_and(|skip| skip[op]) {
+            self.static_eliminated += 1;
+            self.avoided_lookups += 1;
+            true
+        } else {
+            false
+        }
+    }
 }

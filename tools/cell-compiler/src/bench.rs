@@ -1,7 +1,9 @@
 use super::*;
 use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::time::Instant;
-fn lane_process(lane: &str, modules: &BTreeMap<&str, &str>) -> Result<Command> {
+type ModuleFlags<'a> = BTreeMap<&'a str, (&'static str, &'static str)>;
+
+fn lane_process(lane: &str, modules: &ModuleFlags<'_>) -> Result<Command> {
     let mut cmd = Command::new(std::env::current_exe()?);
     let filtered = matches!(
         lane,
@@ -30,9 +32,7 @@ fn lane_process(lane: &str, modules: &BTreeMap<&str, &str>) -> Result<Command> {
         "CELL_CPU_JOIN_INTERSECTION",
         if filtered { "1" } else { "0" },
     );
-    for flag in modules.values() {
-        cmd.env(flag, "1");
-    }
+    cmd.envs(modules.values().copied());
     Ok(cmd)
 }
 pub(super) fn run(mut args: Vec<String>) -> Result<()> {
@@ -54,9 +54,10 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
     if let Some(requested) = opts.get("--modules") {
         for name in requested.split(',') {
             let flag = match name {
-                "local-congruence" => "CELL_CPU_CONGRUENCE",
-                "union-graft" => "CELL_CPU_UNION_GRAFT",
-                "stage-spine" => "CELL_CPU_STAGE_SPINE",
+                "local-congruence" => ("CELL_CPU_CONGRUENCE", "1"),
+                "union-graft" => ("CELL_CPU_UNION_GRAFT", "1"),
+                "stage-spine" => ("CELL_CPU_STAGE_SPINE", "1"),
+                "static-aliases" => ("CELL_CPU_KNOWN_RESULTS", "static"),
                 _ => return Err(format!("unknown bench module {name:?}").into()),
             };
             if modules.insert(name, flag).is_some() {
@@ -101,7 +102,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
         return Err("unknown bench lane".into());
     }
     if verify {
-        let stages = |name: &str, flags: &BTreeMap<&str, &str>| -> Result<Vec<String>> {
+        let stages = |name: &str, flags: &ModuleFlags<'_>| -> Result<Vec<String>> {
             let output = lane_process(name, flags)?
                 .arg("internal-stages")
                 .arg(&program)
@@ -200,6 +201,9 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "consumer_seed_deliveries": r["entry_schedule"]["stats"]["consumer_seed_deliveries"],
             "sieve_probes": r["sieve"]["stats"]["probes"],
             "empty_join_skips": r["sieve"]["stats"]["empty_join_skips"],
+            "constructor_requests": g.constructor_requests,
+            "static_eliminated": e.graph.known_stats.static_eliminated,
+            "lazy_prefix_eliminated": e.graph.known_stats.lazy_prefix_eliminated,
             "cells_created": g.cells_created,
             "rhs_frames_avoided": g.rhs_frames_avoided,
             "free_join": r["free_join"],

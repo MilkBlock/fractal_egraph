@@ -1905,12 +1905,20 @@ impl Executor {
         }
         let facts = self.graph.stats.logical_facts_created;
         let updates = self.graph.stats.function_updates;
+        let eliminate_static = self.graph.known_mode == "static";
+        let observe_static = self.graph.known_mode == "observe";
+        let static_skip = if eliminate_static || observe_static {
+            self.graph.program.known_results.static_skip.get(rid).cloned()
+        } else {
+            None
+        };
+        let aliases = static_skip.as_deref().map(Vec::as_slice).filter(|_| eliminate_static);
         let (cell, first_op) = if self.graph.program.rules[rid].constructor_only
-            && !self.graph.views_enabled && self.graph.known_mode == "off"
+            && !self.graph.views_enabled && (self.graph.known_mode == "off" || eliminate_static)
             && !self.compositions_enabled && stage_cursor.is_none()
             && self.local_run.is_none() && origin.is_none() && !self.graph.union_lineage_enabled
         {
-            let Some(start) = self.graph.start_constructor_rhs(template, b.values, b.parent)? else {
+            let Some(start) = self.graph.start_constructor_rhs(template, b.values, b.parent, aliases)? else {
                 return Ok(None);
             };
             start
@@ -1977,15 +1985,10 @@ impl Executor {
         let ops = self.graph.program.templates[template].ops.clone();
         let mut effect_receipts=self.stage_spine.capture_receipts(rid).then(||vec![None;ops.len()]);
         let known_values=if self.graph.known_mode=="value" {self.graph.program.known_results.values.get(&rid).cloned()}else{None};
-        let eliminate_static=self.graph.known_mode=="static";
-        let observe_static=self.graph.known_mode=="observe";
-        let static_skip=if eliminate_static || observe_static {self.graph.program.known_results.static_skip.get(rid).cloned()}else{None};
         let mut completed = true;
         let mut completed_prefix=first_op;
         for (i, op) in ops.iter().enumerate().skip(first_op) {
-            if eliminate_static && static_skip.as_ref().is_some_and(|s|s[i]){
-                self.graph.known_stats.static_eliminated+=1;
-                self.graph.known_stats.avoided_lookups+=1;
+            if self.graph.known_stats.elide_static(aliases, i) {
                 completed_prefix=i+1;continue;
             }
             if self.graph.union_lineage_enabled {
