@@ -136,7 +136,13 @@ fn compile(
         .get("--composition-evidence")
         .map(|f| read(Path::new(f)))
         .transpose()?;
-    let mut p = eggfuse_cell_runtime::compiler::compile(core, &names, evidence.as_ref())?;
+    let mut p = eggfuse_cell_runtime::compiler::compile_with_entry(
+        core,
+        &names,
+        evidence.as_ref(),
+        opts.contains_key("--emit-free-join-entry")
+            || opts.get("--lane").is_some_and(|s| s == "free-join-entry"),
+    )?;
     p.as_object_mut().unwrap().remove("sha256");
     p["marker_program_sha256"] = marker["sha256"].clone();
     p["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&p));
@@ -195,6 +201,12 @@ fn options(
         }
         if !allowed.contains(&key.as_str()) {
             return Err(format!("unknown option {key}").into());
+        }
+        if key == "--emit-free-join-entry" {
+            if opts.insert(key.clone(), String::new()).is_some() {
+                return Err(format!("duplicate {key}").into());
+            }
+            continue;
         }
         let v = args
             .next()
@@ -260,7 +272,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
     };
     if cmd == "help" || args.iter().any(|a| a == "--help") {
         println!(
-            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join] [--verify-stages]"
+            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry] [--verify-stages]"
         );
         return Ok(());
     }
@@ -278,6 +290,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
                     "--profile",
                     "--marker-locality",
                     "--composition-evidence",
+                    "--emit-free-join-entry",
                 ],
             )?;
             let (s, b) = inputs(&opts)?;

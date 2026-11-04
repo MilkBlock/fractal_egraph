@@ -854,6 +854,18 @@ impl Graph {
             Dependency::Function(i) => Ok(self.function(i)),
         }
     }
+    pub(crate) fn visible_epoch(&self, w: Dependency) -> Option<u64> {
+        match w {
+            Dependency::Fact(f) => self
+                .cells
+                .get(&f.cell)?
+                .facts
+                .get(&f.op)
+                .filter(|s| !s.hidden)
+                .map(|s| s.epoch),
+            Dependency::Function(i) => self.functions.get(i).filter(|f| f.live).map(|f| f.epoch),
+        }
+    }
     /// Delivery only needs liveness and the table, not the decoded binding.
     pub fn live_table(&self, w: Dependency) -> Option<usize> {
         match w {

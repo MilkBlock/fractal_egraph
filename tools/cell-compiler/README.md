@@ -45,3 +45,5 @@ cargo test --release --locked --manifest-path tools/cell-compiler/Cargo.toml
 对于只含构造和复制的 RHS，普通存储路径先在当前图上按原顺序查找构造。在第一次查找未命中时登记 Cell 并创建对应事实。如果所有构造都已存在，运行时只保留该次执行的编号消耗，后续事实的等价类编号与原路径一致。`counts.cells_created` 是登记到图中的 Cell 数量，`counts.rhs_frames_avoided` 是免去登记的 RHS 次数。
 
 实验 lane `free-join` 在 `filtered` 的同一份索引上按共享列探测残余关系，`--verify-stages` 直接与 `filtered` 比较。候选访问与新增的键分组、探测分开计数。[八个 Pass 3 对照](benchmarks/free-join/CELL.md)
+
+`free-join-entry` 会在分发共享 seed 前按完整 LHS 探测相连的表。编译时加 `--emit-free-join-entry` 可将计划写进程序，旧产物在选择这个 lane 时从 typed Recipe 推导相同的计划。[入口计划与八组对照](benchmarks/free-join/ENTRY.md)

@@ -57,6 +57,8 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[serde(skip)]
+    pub(crate) entry_join: Option<Rc<crate::entry_join::Plan>>,
     #[serde(default)]
     pub known_results: crate::known_results::Plans,
     #[serde(default)]
@@ -295,6 +297,7 @@ impl Program {
             congruence: crate::congruence::Congruence::default(),
             multi_stage: crate::multistage::MultiStage::default(),
             entry_schedule: crate::entry_schedule::Plan::default(),
+            entry_join: None,
             compositions: crate::compositions::Compositions::default(),
             tables,
             templates,
@@ -337,6 +340,13 @@ impl Program {
                     return Err("merge contract differs from source".into());
                 }
             }
+        }
+        if let Some(raw) = p.artifact.get("free_join_entry") {
+            let emitted: crate::entry_join::Plan = serde_json::from_value(raw.clone()).map_err(|e|e.to_string())?;
+            if emitted != crate::entry_join::Plan::derive(&p) {
+                return Err("Free Join entry plan differs from typed LHS".into());
+            }
+            p.entry_join = Some(Rc::new(emitted));
         }
         p.entry_schedule=crate::entry_schedule::Plan::parse(&p,&p.artifact["entry_schedule"])?;
         p.views = crate::views::Views::parse(&p, &p.artifact["reference_views"])?;

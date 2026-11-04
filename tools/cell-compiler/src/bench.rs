@@ -3,7 +3,7 @@ use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::time::Instant;
 fn lane_process(lane: &str) -> Result<Command> {
     let mut cmd = Command::new(std::env::current_exe()?);
-    let filtered = matches!(lane, "filtered" | "free-join");
+    let filtered = matches!(lane, "filtered" | "free-join" | "free-join-entry");
     for (k, _) in std::env::vars_os() {
         if k.to_string_lossy().starts_with("CELL_CPU_") {
             cmd.env_remove(k);
@@ -15,7 +15,11 @@ fn lane_process(lane: &str) -> Result<Command> {
     )
     .env(
         "CELL_CPU_FREE_JOIN",
-        if lane == "free-join" { "1" } else { "0" },
+        match lane {
+            "free-join-entry" => "entry",
+            "free-join" => "1",
+            _ => "0",
+        },
     )
     .env("CELL_CPU_SIEVE", if filtered { "1" } else { "0" })
     .env(
@@ -62,7 +66,15 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
         out.join("program.json")
     };
     let lane = opts.get("--lane").map(String::as_str).unwrap_or("nodes");
-    if !["baseline", "nodes", "filtered", "free-join"].contains(&lane) {
+    if ![
+        "baseline",
+        "nodes",
+        "filtered",
+        "free-join",
+        "free-join-entry",
+    ]
+    .contains(&lane)
+    {
         return Err("unknown bench lane".into());
     }
     if verify {
@@ -76,7 +88,9 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             }
             Ok(serde_json::from_slice(&output.stdout)?)
         };
-        let control = if lane == "free-join" {
+        let control = if lane == "free-join-entry" {
+            "free-join"
+        } else if lane == "free-join" {
             "filtered"
         } else {
             "baseline"

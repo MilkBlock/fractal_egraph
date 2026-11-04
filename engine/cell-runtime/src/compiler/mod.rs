@@ -207,6 +207,14 @@ fn views(p: &Program, markers: &BTreeSet<String>) -> Result<J> {
     )
 }
 pub fn compile(core: J, markers: &BTreeSet<String>, evidence: Option<&J>) -> Result<J> {
+    compile_with_entry(core, markers, evidence, false)
+}
+pub fn compile_with_entry(
+    core: J,
+    markers: &BTreeSet<String>,
+    evidence: Option<&J>,
+    emit_entry: bool,
+) -> Result<J> {
     let ir = recipe::build(&core)?;
     let mut templates = vec![];
     for (rid, r) in array(&ir["rules"])?.iter().enumerate() {
@@ -227,7 +235,14 @@ pub fn compile(core: J, markers: &BTreeSet<String>, evidence: Option<&J>) -> Res
         ("reference_views", views(&p, markers)?),
         ("congruence", crate::congruence::compile(&p)?),
     ];
+    let entry = emit_entry
+        .then(|| serde_json::to_value(crate::entry_join::Plan::derive(&p)))
+        .transpose()
+        .map_err(|e| e.to_string())?;
     j = p.artifact;
+    if let Some(plan) = entry {
+        j["free_join_entry"] = plan;
+    }
     for (k, v) in plans {
         j[k] = v;
     }

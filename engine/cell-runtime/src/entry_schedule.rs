@@ -295,7 +295,17 @@ impl Scheduler {
         g: &Graph,
         rid: usize,
         watermark: u64,
+        allow: impl FnMut(usize, usize, Dependency) -> bool,
+    ) -> Result<Vec<Seed>> {
+        self.seeds_checked(g, rid, watermark, allow, |_, _| Ok(true))
+    }
+    pub(crate) fn seeds_checked(
+        &mut self,
+        g: &Graph,
+        rid: usize,
+        watermark: u64,
         mut allow: impl FnMut(usize, usize, Dependency) -> bool,
+        mut admit: impl FnMut(usize, &Row) -> Result<bool>,
     ) -> Result<Vec<Seed>> {
         self.stats.consumer_calls += 1;
         let mut out = vec![];
@@ -309,6 +319,9 @@ impl Scheduler {
                     continue;
                 }
                 let packet = &self.states[c.node].rows[&w];
+                if !admit(c.atom, &packet.row)? {
+                    continue;
+                }
                 self.stats.consumer_seed_deliveries += 1;
                 self.stats.borrowed_slots += self.plan.nodes[c.node].ports as u64;
                 out.push(Seed {

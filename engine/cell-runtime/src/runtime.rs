@@ -675,9 +675,11 @@ impl Executor {
                     if !self.indexed_queries {
                         Rc::new(self.graph.witnesses(*t))
                     } else if self.column_queries {
-                        if let Some(domain) = env.domain(chosen) {
+                        let num_bound = bound.iter().filter(|v|v.is_some()).count();
+                        if let Some(domain) = env.domains.iter().rev().find(|d| d.atom==chosen)
+                            .filter(|d|!self.free_join.entry_mode() || num_bound<=d.projected_columns) {
                             self.free_join.stats.subtrie_uses += 1;
-                            domain.clone()
+                            domain.rows.clone()
                         } else {
                             self.query_indexes.candidates(&self.graph, *t, &bound)?
                         }
@@ -871,7 +873,12 @@ impl Executor {
                 Call::Table(t) => {
                     let row = if let Some(args) = args {
                         self.continuation_stats.point_reads += 1;
-                        self.graph.lookup(*t, &args)?
+                        if let Some(domain) = env.domain(i).filter(|d| d.len() == 1) {
+                            self.free_join.stats.entry_point_uses += 1;
+                            self.graph.row(domain[0])?
+                        } else {
+                            self.graph.lookup(*t, &args)?
+                        }
                     } else if allow_inverse
                         && matches!(
                             operand(atom.args.last().unwrap(), env, &self.graph),
@@ -1414,16 +1421,57 @@ impl Executor {
                 return Ok(vec![]);
             }
         }
+        let early_join = scheduled_entry
+            && self.delta_queries
+            && rule.direct.is_none()
+            && !self.stage_spine.enabled
+            && !self.retained.accepts(rid)
+            && self.local_run.is_none()
+            && !self.refutation.enabled
+            && !self.search_contexts.enabled
+            && self.free_join.has_entry(rid);
+        let mut entry_domains = Vec::new();
         let scheduled = if scheduled_entry {
             let watermark = self.watermarks[rid];
-            Some(if early_sieve {
-                self.entry_schedule.seeds_where(&self.graph, rid, watermark, |atom, table, w| {
-                    self.sieve.allow(rid, atom, table, w, &self.query_indexes)
-                })?
+            Some(if early_join {
+                self.entry_schedule.seeds_checked(
+                    &self.graph,
+                    rid,
+                    watermark,
+                    |_, _, _| true,
+                    |atom, row| {
+                        if early_sieve
+                            && !self
+                                .sieve
+                                .allow(rid, atom, row.table, row.witness, &self.query_indexes)
+                        {
+                            return Ok(false);
+                        }
+                        if let Some(domains) = self.free_join.admit(
+                            &self.graph,
+                            &mut self.query_indexes,
+                            rid,
+                            atom,
+                            row,
+                        )? {
+                            entry_domains.push(domains);
+                            Ok(true)
+                        } else {
+                            Ok(false)
+                        }
+                    },
+                )?
+            } else if early_sieve {
+                self.entry_schedule
+                    .seeds_where(&self.graph, rid, watermark, |atom, table, w| {
+                        self.sieve.allow(rid, atom, table, w, &self.query_indexes)
+                    })?
             } else {
                 self.entry_schedule.seeds(&self.graph, rid, watermark)?
             })
-        } else { None };
+        } else {
+            None
+        };
         let mut stage_covered = BTreeSet::new();
         let mut found = vec![];
         if !probe && rule.seminaive && self.delta_queries {
@@ -1598,14 +1646,33 @@ impl Executor {
                 .collect::<Result<Vec<_>>>()?.into_iter().flatten().filter(|r|!r.hidden&&r.epoch>=watermark).collect::<Vec<_>>()};
             for (pivot, atom) in rule.query.iter().enumerate() {
                 let Call::Table(table)=atom.call else {continue};
-                let candidates=scheduled.as_ref().into_iter().flat_map(|seeds|seeds.iter().filter(move|s|s.atom==pivot).map(|s|(Some(s),s.packet.row.as_ref())))
+                let candidates=scheduled.as_ref().into_iter().flat_map(|seeds|seeds.iter().enumerate().filter(move|(_,s)|s.atom==pivot).map(|(i,s)|(Some((i,s)),s.packet.row.as_ref())))
                     .chain(changed.iter().filter(|r|r.table==table).map(|r|(None,&**r)));
                 for (supplied,row) in candidates {
                     if stage_covered.contains(&(pivot,row.witness)){continue;}
                     if !early_sieve && !self.sieve.allow(rid,pivot,table,row.witness,&self.query_indexes){continue;}
                     if !shared_seeds && scheduled.is_none(){self.graph.stats.residual_candidates+=1;self.graph.stats.decoded_rows+=1;}
-                    let mut env=if let Some(seed)=supplied{QueryEnv::shared(seed.clone(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)}
-                        else{QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0},receipt_atoms)};
+                    let mut env = if let Some((i, seed)) = supplied {
+                        let mut env = QueryEnv::shared(
+                            seed.clone(),
+                            witness_slots,
+                            full_witnesses,
+                            if know_query { rule.query.len() } else { 0 },
+                            receipt_atoms,
+                        );
+                        if early_join {
+                            env.domains = std::mem::take(&mut entry_domains[i]);
+                        }
+                        env
+                    } else {
+                        QueryEnv::new(
+                            self.graph.program.templates[rule.template].sorts.len(),
+                            witness_slots,
+                            full_witnesses,
+                            if know_query { rule.query.len() } else { 0 },
+                            receipt_atoms,
+                        )
+                    };
                     let live=if scheduled.is_some(){true}else if shared_seeds{self.stage_spine.bind_seed(&self.graph,rid,pivot,row,env.values.owned_mut())}
                         else{atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph))};
                     if live {
