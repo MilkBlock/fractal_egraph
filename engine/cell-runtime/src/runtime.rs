@@ -9,13 +9,14 @@ use crate::{
     value::{self, Value, canon},
 };
 use serde_json::{Value as J, json};
+use crate::known_results::QueryFacts;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::rc::Rc;
 use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct Binding {
-    known:Option<Vec<Option<FactRef>>>,
+    known: QueryFacts,
     composition: Option<(Rc<crate::compositions::Edge>, crate::views::Context)>,
     witnesses: MatchedFacts,
     values: BTreeMap<usize, Value>,
@@ -132,7 +133,7 @@ impl std::ops::Deref for SeedRow {
 /// Run-local binding workspace. Only successful matches become stored bindings;
 /// failed join branches undo slot assignments instead of cloning tree maps.
 struct QueryEnv {
-    known:Option<Vec<Option<FactRef>>>,
+    known: QueryFacts,
     recipe_context: Option<(usize, u32)>,
     witnesses: MatchedFacts,
     values: crate::entry_schedule::Inputs,
@@ -140,9 +141,9 @@ struct QueryEnv {
     domains: Vec<Subtrie>,
 }
 impl QueryEnv {
-    fn new(slots: usize, witness_slots: usize, full_witnesses: bool, knowledge_atoms:usize) -> Self {
+    fn new(slots: usize, witness_slots: usize, full_witnesses: bool, known: QueryFacts) -> Self {
         Self {
-            known:(knowledge_atoms>0).then(||vec![None;knowledge_atoms]),
+            known,
             recipe_context: None,
             witnesses: MatchedFacts::new(witness_slots, full_witnesses),
             values: crate::entry_schedule::Inputs::owned(slots),
@@ -150,8 +151,8 @@ impl QueryEnv {
             domains: vec![],
         }
     }
-    fn shared(seed:crate::entry_schedule::Seed,witness_slots:usize,full:bool,knowledge:usize)->Self {
-        Self{known:(knowledge>0).then(||vec![None;knowledge]),recipe_context:None,
+    fn shared(seed:crate::entry_schedule::Seed,witness_slots:usize,full:bool,known: QueryFacts)->Self {
+        Self{known,recipe_context:None,
             witnesses:MatchedFacts::new(witness_slots,full),values:crate::entry_schedule::Inputs::shared(seed),trail:vec![],domains:vec![]}
     }
     fn domain(&self, atom: usize) -> Option<&Rc<Vec<Dependency>>> {
@@ -159,7 +160,7 @@ impl QueryEnv {
     }
     fn record(&mut self, atom: usize, witness: Option<Dependency>) {
         self.witnesses.record(atom, witness);
-        if let Some(rows)=&mut self.known {rows[atom]=if let Some(Dependency::Fact(f))=witness{Some(f)}else{None};}
+        self.known.record(atom, witness);
     }
     fn rollback(&mut self, mark: usize) {
         while self.trail.len() > mark {
@@ -497,7 +498,7 @@ impl Executor {
                 let mut max_epoch=epoch;
                 for (i,e,w) in &answer.witnesses {
                     let atom=atoms[*i];witnesses.record(atom,Some(*w));
-                    if let Some(known)=known.as_mut(){known[atom]=if let Dependency::Fact(f)=w{Some(*f)}else{None};}
+                    known.record(atom, Some(*w));
                     max_epoch=max_epoch.max(*e);
                 }
                 replay.push(Binding{values,witnesses,known,epoch:max_epoch,parent:None,continuation:None,composition:None,compiled:order.is_some()});
@@ -1364,7 +1365,6 @@ impl Executor {
     }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
-        let know_query=matches!(self.graph.known_mode.as_str(),"observe"|"on") && self.graph.program.known_results.queries.contains(&rid);
         let full_witnesses = !self.graph.marker_fields_copied
             && self
                 .graph
@@ -1408,6 +1408,13 @@ impl Executor {
             }
             return Ok(vec![]);
         }
+        let query_facts = match self.graph.known_mode.as_str() {
+            "observe" | "on" if self.graph.program.known_results.queries.contains(&rid) => {
+                QueryFacts::All(vec![None; rule.query.len()])
+            }
+            "static" if !probe => self.stage_spine.alias_query_facts(rid),
+            _ => QueryFacts::None,
+        };
         let scheduled_entry = !probe && self.entry_schedule.accepts(rid);
         // A necessary join summary can reject an empty domain before either route.
         let early_sieve = scheduled_entry && self.sieve.enabled && self.delta_queries
@@ -1516,8 +1523,8 @@ impl Executor {
             if let Some(coverage)=coverage {
                 found = coverage.answers.into_iter().map(|a| {
                     let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
-                    let mut known=know_query.then(||vec![None;rule.query.len()]);
-                    for (i,w) in a.witnesses.into_iter().enumerate() {witnesses.record(i,w);if let Some(k)=&mut known{k[i]=match w{Some(Dependency::Fact(f))=>Some(f),_=>None};}}
+                    let mut known=query_facts.clone();
+                    for (i,w) in a.witnesses.into_iter().enumerate() {witnesses.record(i,w);known.record(i,w);}
                     Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
                 }).collect();
                 if coverage.complete {
@@ -1532,10 +1539,10 @@ impl Executor {
             self.pending[rid].clear();
             return Ok(answers.into_iter().map(|a| {
                 let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
-                let mut known=know_query.then(||vec![None;rule.query.len()]);
+                let mut known=query_facts.clone();
                 for (i,w) in a.witnesses.into_iter().enumerate() {
                     witnesses.record(i,w);
-                    if let Some(k)=&mut known {k[i]=match w {Some(Dependency::Fact(f))=>Some(f),_=>None};}
+                    known.record(i,w);
                 }
                 Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,
                     composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
@@ -1566,8 +1573,8 @@ impl Executor {
                     let Some(row)=row else {continue};row
                 };
                 if row.hidden || (!probe && rule.seminaive && row.epoch < self.watermarks[rid]) { continue; }
-                let mut env = if let Some(seed)=supplied {QueryEnv::shared(seed,witness_slots,full_witnesses,if know_query{rule.query.len()}else{0})}
-                    else {QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),witness_slots,full_witnesses,if know_query{rule.query.len()}else{0})};
+                let mut env = if let Some(seed)=supplied {QueryEnv::shared(seed,witness_slots,full_witnesses,query_facts.clone())}
+                    else {QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),witness_slots,full_witnesses,query_facts.clone())};
                 let live = if scheduled.is_some() {true} else if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,anchor,&row,env.values.owned_mut()) }
                     else {self.graph.stats.direct_candidates+=1;atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph))};
                 if live {
@@ -1691,7 +1698,7 @@ impl Executor {
                             seed.clone(),
                             witness_slots,
                             full_witnesses,
-                            if know_query { rule.query.len() } else { 0 },
+                            query_facts.clone(),
                         );
                         if early_join {
                             env.domains = std::mem::take(&mut entry_domains[i]);
@@ -1702,7 +1709,7 @@ impl Executor {
                             self.graph.program.templates[rule.template].sorts.len(),
                             witness_slots,
                             full_witnesses,
-                            if know_query { rule.query.len() } else { 0 },
+                            query_facts.clone(),
                         )
                     };
                     let live=if scheduled.is_some(){true}else if shared_seeds{self.stage_spine.bind_seed(&self.graph,rid,pivot,row,env.values.owned_mut())}
@@ -1866,7 +1873,7 @@ impl Executor {
                     self.graph.program.templates[rule.template].sorts.len(),
                     witness_slots,
                     full_witnesses,
-                    if know_query {rule.query.len()}else{0},
+                    query_facts.clone(),
                 ),
                 0,
                 &mut found,
@@ -1928,7 +1935,7 @@ impl Executor {
         if matches!(self.graph.known_mode.as_str(),"observe"|"on") {
             if let Some(plans)=self.graph.program.known_results.rules.get(&rid){
                 for (op,source) in plans.iter().enumerate(){
-                    if let Some(crate::known_results::Source::Query(i))=source && let Some(f)=b.known.as_ref().and_then(|rows|rows[*i]){
+                    if let Some(crate::known_results::Source::Query(i))=source && let Some(f)=b.known.get(*i){
                         self.graph.cells.get_mut(&cell).unwrap().known_results.insert(op,f);
                     }
                 }
@@ -2118,7 +2125,12 @@ impl Executor {
             }
         }
         if let Some((c,f,u))=stage_counts {self.stage_spine.effects(self.graph.stats.constructor_requests-c,self.graph.stats.function_updates-f,self.graph.stats.union_requests-u);}
-        if completed {if let Some(cursor)=stage_cursor {self.stage_spine.capture_step(&self.graph,rid,cell,cursor,effect_receipts.as_deref())?;}}
+        if completed && let Some(cursor) = stage_cursor {
+            self.stage_spine.capture_step(
+                &self.graph, rid, cell, cursor,
+                |i| b.known.get(i).map(Dependency::Fact), effect_receipts.as_deref(),
+            )?;
+        }
         self.graph.release_empty(cell);
         Ok(produced)
     }
@@ -2146,7 +2158,7 @@ impl Executor {
     }
     fn local_successor(&mut self,source:&Produced,transfer:&crate::local_sat::Transfer)->Result<Option<Binding>> {
         let rule=self.graph.program.rules[transfer.consumer].clone();
-        let mut env=QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),0,false,0);
+        let mut env=QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),0,false,QueryFacts::None);
         for (slot,source_arg) in &transfer.assignments {
             let v=match source_arg{Arg::Literal(v)=>canon(v,&self.graph.parents),Arg::Slot(i)=>source.values[*i].clone()};
             env.values[*slot]=Some(v);
@@ -2167,7 +2179,7 @@ impl Executor {
             }}
             self.local_sat.stats.audit_bindings+=1;
         }
-        Ok(Some(Binding{values,witnesses:MatchedFacts::None,known:None,composition:None,parent:None,continuation:None,compiled:true,epoch:self.graph.epoch}))
+        Ok(Some(Binding{values,witnesses:MatchedFacts::None,known:QueryFacts::None,composition:None,parent:None,continuation:None,compiled:true,epoch:self.graph.epoch}))
     }
     fn probe(&mut self, set: &str) -> Result<bool> {
         let rules = self

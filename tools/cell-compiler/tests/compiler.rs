@@ -783,3 +783,51 @@ fn only_an_applied_continuation_materializes_a_shared_spine_root() {
     assert_eq!(spine["resumed_steps"], 2);
     assert_eq!(spine["max_chain"], 2);
 }
+
+#[test]
+fn elided_anchors_use_the_proved_fact_and_recheck_visibility_after_repair() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("alias-receipts.egg");
+    // F(I(1)) and F(I(2)) share a result but have different keys and only
+    // the second becomes hidden. G(F(x)) aliases an earlier RHS after normalization.
+    fs::write(
+        &src,
+        r#"(datatype E (I i64) (F E) (G E))
+(relation Input (E))
+(relation SeenF (E))
+(relation SeenG (E))
+(ruleset emit)
+(ruleset read)
+(rule ((Input x) (= f (F x))) ((G f) (G (F x))) :ruleset emit)
+(rule ((= dead (I 2))) ((subsume (F dead))) :ruleset emit)
+(rule ((= f (F x))) ((SeenF x)) :ruleset read)
+(rule ((= g (G x))) ((SeenG x)) :ruleset read)
+(Input (I 1)) (Input (I 2))
+(union (F (I 1)) (F (I 2)))
+(run-schedule (seq (run emit) (run read)))
+(check (SeenF (I 1)) (SeenG (F (I 1))))
+"#,
+    )
+    .unwrap();
+    let result = pass(&[
+        "bench",
+        "--source",
+        src.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--modules",
+        "stage-spine,static-aliases",
+        "--repeat",
+        "2",
+        "--verify-stages",
+    ]);
+    let report: J = serde_json::from_slice(&result.stdout).unwrap();
+    let counts = &report["counts"];
+    let spine = &counts["stage_spine"];
+    assert_eq!(counts["static_eliminated"], 4);
+    assert_eq!(spine["alias_query_forwards"], 2);
+    assert_eq!(spine["alias_effect_forwards"], 2);
+    assert_eq!(spine["receipt_rejections"], 1);
+    assert_eq!(spine["capture_reads"], 1);
+    assert_eq!(spine["resumed_steps"], 2);
+}

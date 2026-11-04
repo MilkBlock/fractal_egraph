@@ -1,4 +1,5 @@
 //! Constructor knowledge carried by live recipe instances, not a global memo.
+use crate::graph::{Dependency, FactRef};
 use crate::program::{Arg, Call, Op, Program, Result, array};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
@@ -14,10 +15,41 @@ pub enum Source {
 pub struct Plans {
     pub static_slots: Vec<Vec<Option<Arg>>>,
     pub static_skip: Vec<Rc<Vec<bool>>>,
+    /// Original matched atom or constructor operation for each statically aliased slot's defining operation.
+    #[serde(default)]
+    pub static_sources: Vec<Vec<Option<Source>>>,
     pub values: BTreeMap<usize, Rc<Vec<Option<Arg>>>>,
     pub rules: BTreeMap<usize, Vec<Option<Source>>>,
     pub queries: BTreeSet<usize>,
     pub remember: BTreeMap<usize, BTreeSet<usize>>,
+}
+/// Keep a single requested query witness inline.
+#[derive(Clone, Debug, Default)]
+pub(crate) enum QueryFacts {
+    #[default]
+    None,
+    One(usize, Option<FactRef>),
+    All(Vec<Option<FactRef>>),
+}
+impl QueryFacts {
+    pub fn record(&mut self, atom: usize, witness: Option<Dependency>) {
+        let fact = match witness {
+            Some(Dependency::Fact(f)) => Some(f),
+            _ => None,
+        };
+        match self {
+            Self::One(source, slot) if *source == atom => *slot = fact,
+            Self::All(rows) => rows[atom] = fact,
+            _ => {}
+        }
+    }
+    pub fn get(&self, atom: usize) -> Option<FactRef> {
+        match self {
+            Self::One(source, fact) if *source == atom => *fact,
+            Self::All(rows) => rows[atom],
+            _ => None,
+        }
+    }
 }
 fn normalize(a: &Arg, copies: &BTreeMap<usize, Arg>) -> Arg {
     let mut a = a.clone();
@@ -151,9 +183,10 @@ impl Plans {
         for (rid, r) in p.rules.iter().enumerate() {
             let t = &p.templates[r.template];
             let mut aliases = BTreeMap::new();
-            let mut known: BTreeMap<(usize, Vec<Arg>), (Arg, J)> = BTreeMap::new();
+            let mut known: BTreeMap<(usize, Vec<Arg>), (Arg, J, Source)> = BTreeMap::new();
             let mut slots = vec![None; t.sorts.len()];
             let mut skip = vec![false; t.ops.len()];
+            let mut sources = vec![None; t.ops.len()];
             for (i, a) in r.query.iter().enumerate() {
                 if let Call::Table(t) = a.call
                     && p.tables[t].constructor
@@ -169,6 +202,7 @@ impl Plans {
                                 .last()
                                 .unwrap()
                                 .clone(),
+                            Source::Query(i),
                         ));
                 }
             }
@@ -180,19 +214,23 @@ impl Plans {
                     Op::Hide(t, _, true) => known.retain(|(table, _), _| table != t),
                     Op::Let(dst, Call::Table(t), aa) if p.tables[*t].constructor => {
                         let key = (*t, aa.iter().map(|a| normalize(a, &aliases)).collect());
-                        if let Some((value, j)) = known.get(&key) {
+                        if let Some((value, j, source)) = known.get(&key) {
+                            sources[i] = Some(*source);
                             slots[*dst] = Some(value.clone());
                             skip[i] = true;
                             aliases.insert(*dst, value.clone());
                             static_aliases
                                 .push(json!({"rule":rid,"operation":i,"dst":dst,"value":j}));
                         } else {
-                            known.insert(key, (Arg::Slot(*dst), json!({"slot":dst})));
+                            known.insert(key, (Arg::Slot(*dst), json!({"slot":dst}), Source::Effect(i)));
                         }
                     }
                     _ => (),
                 }
             }
+            // Aliases never replace the original source in known, so nested
+            // aliases resolve directly to a matched atom or an executed RHS.
+            result.static_sources.push(sources);
             result.static_slots.push(slots);
             result.static_skip.push(Rc::new(skip));
         }
