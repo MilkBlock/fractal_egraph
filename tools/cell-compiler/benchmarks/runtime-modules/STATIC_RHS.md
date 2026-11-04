@@ -49,3 +49,5 @@ CELL_CPU_FREE_JOIN=planned cargo cell-run --program out/static-ray/program.json 
 ```
 
 For the RHS audit, apply [the diagnostic patch](root-rhs-audit.patch) in temporary copies of both revisions. Use the same CLI invocation with `CHECK_RHS_DIGESTS=1` for each policy and compare the three `rhs.json` arrays with `cmp`. [Raw samples, counters and fingerprints](static-rhs-results.json)
+
+The follow-up carries the original matched fact or earlier action receipt into Spine for skipped constructor anchors. [Forwarded receipt comparison](ALIAS_RECEIPTS.md)

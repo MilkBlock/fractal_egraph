@@ -4,6 +4,7 @@
 use crate::{
     entry_schedule::{Inputs, Seed},
     graph::{Dependency, Graph, Row},
+    known_results::{QueryFacts, Source},
     program::*,
     value::{self, Value, canon},
 };
@@ -140,6 +141,8 @@ pub struct Stats {
     dispatch_headers: u64,
     context_reads: u64,
     captured_anchors: u64,
+    alias_query_forwards: u64,
+    alias_effect_forwards: u64,
     distinct_anchor_keys: u64,
     context_fact_publications: u64,
     completed_steps: u64,
@@ -182,8 +185,9 @@ pub struct Programs {
     orders: BTreeMap<(usize, usize), Vec<usize>>,
     entries: HashMap<Dependency, Cursor>,
     active_tables: BTreeMap<usize, usize>,
-    // A rule's compiled RHS indices that can supply a consumer pivot.
-    anchor_ops: Vec<Vec<usize>>,
+    // Anchor-producing operations and their optional proven receipt sources.
+    anchor_ops: Vec<Vec<(usize, Option<Source>)>>,
+    alias_query_facts: Vec<QueryFacts>,
     // All anchors of one application share this slot, including after key coalescence.
     pending_steps: Vec<Started>,
     pending_anchors: Vec<(usize, Vec<Value>, usize, Option<Dependency>)>,
@@ -299,6 +303,7 @@ impl Programs {
             entries: HashMap::new(),
             active_tables: BTreeMap::new(),
             anchor_ops: vec![],
+            alias_query_facts: vec![],
             pending_steps: vec![],
             pending_anchors: vec![],
             root_set: Rc::from(""),
@@ -378,7 +383,29 @@ impl Programs {
             let is_producer = ops
                 .iter()
                 .any(|&i| crate::multistage::source(p, rid, "effect", i).is_ok());
-            s.anchor_ops.push(if is_producer { ops } else { vec![] });
+            let mut query_facts = QueryFacts::None;
+            let mut anchors = Vec::new();
+            if is_producer {
+                for op in ops {
+                    let source = p
+                        .known_results
+                        .static_sources
+                        .get(rid)
+                        .and_then(|rows| rows[op]);
+                    if let Some(Source::Query(atom)) = source {
+                        match query_facts {
+                            QueryFacts::None => query_facts = QueryFacts::One(atom, None),
+                            QueryFacts::One(first, _) if first != atom => {
+                                query_facts = QueryFacts::All(vec![None; r.query.len()])
+                            }
+                            _ => {}
+                        }
+                    }
+                    anchors.push((op, source));
+                }
+            }
+            s.anchor_ops.push(anchors);
+            s.alias_query_facts.push(query_facts);
         }
         s
     }
@@ -474,18 +501,31 @@ impl Programs {
     pub fn capture_receipts(&self, rid: usize) -> bool {
         self.enabled && self.receipts && self.anchor_ops.get(rid).is_some_and(|ops| !ops.is_empty())
     }
-    /// The query-witness argument is retained for API compatibility. Consumer
-    /// ports populate their checked caches on first demand.
+    pub(crate) fn alias_query_facts(&self, rid: usize) -> QueryFacts {
+        if self.receipts {
+            self.alias_query_facts.get(rid).cloned().unwrap_or_default()
+        } else {
+            QueryFacts::None
+        }
+    }
+    /// Query witnesses are used only as receipts for proved RHS aliases.
     pub fn capture(
         &mut self,
         g: &Graph,
         rid: usize,
         cell: u32,
         cursor: Cursor,
-        _query: Option<&[Option<Dependency>]>,
+        query: Option<&[Option<Dependency>]>,
         effects: Option<&[Option<Dependency>]>,
     ) -> Result<()> {
-        self.capture_step(g, rid, cell, Started::Live(cursor), effects)
+        self.capture_step(
+            g,
+            rid,
+            cell,
+            Started::Live(cursor),
+            |atom| query.and_then(|rows| rows.get(atom).copied().flatten()),
+            effects,
+        )
     }
     pub(crate) fn capture_step(
         &mut self,
@@ -493,6 +533,7 @@ impl Programs {
         rid: usize,
         cell: u32,
         step: Started,
+        query_fact: impl Fn(usize) -> Option<Dependency>,
         effects: Option<&[Option<Dependency>]>,
     ) -> Result<()> {
         self.stats.completed_steps += 1;
@@ -505,17 +546,30 @@ impl Programs {
         self.capture_unions.get_or_insert(g.stats.unions);
         let slot = self.pending_steps.len();
         self.pending_steps.push(step);
-        for &i in &self.anchor_ops[rid] {
+        for &(i, source) in &self.anchor_ops[rid] {
             let (table, args) = match &template.ops[i] {
                 Op::Let(_, Call::Table(t), args) | Op::Set(t, args, _) => (*t, args),
                 _ => unreachable!("validated anchor operation"),
             };
-            self.pending_anchors.push((
-                table,
-                g.arguments(cell, args)?,
-                slot,
-                effects.and_then(|w| w[i]),
-            ));
+            let receipt = effects.and_then(|rows| rows[i]).or_else(|| {
+                if !self.receipts || g.known_mode != "static" {
+                    return None;
+                }
+                match source? {
+                    Source::Query(atom) => {
+                        let w = query_fact(atom)?;
+                        self.stats.alias_query_forwards += 1;
+                        Some(w)
+                    }
+                    Source::Effect(op) => {
+                        let w = effects?[op]?;
+                        self.stats.alias_effect_forwards += 1;
+                        Some(w)
+                    }
+                }
+            });
+            self.pending_anchors
+                .push((table, g.arguments(cell, args)?, slot, receipt));
             self.stats.captured_anchors += 1;
         }
         self.stats.captured_contexts += 1;
