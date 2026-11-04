@@ -270,7 +270,7 @@ fn reused_constructor_prefix_preserves_later_cell_identities() {
         r#"
 (datatype E (Seed i64) (A E) (B E) (C E))
 (ruleset build)
-(rule ((= s (Seed i))) ((C (B (A s)))) :ruleset build)
+(rule ((= s (Seed i))) ((C (B (A (Seed i)))) (A (Seed i))) :ruleset build)
 (A (Seed 1))
 (C (B (A (Seed 2))))
 (Seed 3)
@@ -301,7 +301,37 @@ fn reused_constructor_prefix_preserves_later_cell_identities() {
         .stdout,
     )
     .unwrap();
-    assert!(report["counts"]["rhs_frames_avoided"].as_u64().unwrap() > 0);
+    let combined: J = serde_json::from_slice(
+        &pass(&[
+            "bench",
+            "--program",
+            program.to_str().unwrap(),
+            "--lane",
+            "baseline",
+            "--modules",
+            "static-aliases",
+            "--repeat",
+            "2",
+            "--verify-stages",
+        ])
+        .stdout,
+    )
+    .unwrap();
+    let base = &report["counts"];
+    let counts = &combined["counts"];
+    // Seed(2) takes the full-hit path; Seed(1) and Seed(3) miss at different
+    // positions. Later constructors read earlier aliases after materialization.
+    assert_eq!(counts["static_eliminated"], 9);
+    assert_eq!(counts["lazy_prefix_eliminated"], 5);
+    assert_eq!(
+        base["constructor_requests"].as_u64().unwrap()
+            - counts["constructor_requests"].as_u64().unwrap(),
+        9
+    );
+    assert_eq!(base["rhs_frames_avoided"], 1);
+    assert_eq!(counts["rhs_frames_avoided"], base["rhs_frames_avoided"]);
+    assert_eq!(counts["cells_created"], base["cells_created"]);
+    assert_eq!(combined["final_state_sha256"], report["final_state_sha256"]);
 
     // Observation retains eager frames to record physical constructor witnesses.
     // Compare every boundary including the IDs of facts created after a full hit.

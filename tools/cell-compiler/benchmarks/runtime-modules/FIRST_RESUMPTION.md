@@ -29,3 +29,5 @@ Each timed sample used the same frozen program and matched the full graph endpoi
 The single-thread timing protocol uses an excluded warm-up per lane, fresh processes and alternating order. Inference excludes compilation, setup, export and auditing. Compare these two revisions using the same artifacts and the [Cargo commands from the first-publication experiment](ROOTS.md#reproduce), with `9fdc920` as the first-publication control. For the separate heap and RHS check, apply [the ordered RHS instrumentation](root-rhs-audit.patch) followed by [the allocator instrumentation](resume-heap-audit.patch) with `git apply --unidiff-zero` in a temporary copy of each revision. Use the same `CHECK_RHS_DIGESTS=1` invocation as in the linked commands. Compare the `rhs.json` arrays with `cmp`. The two integers in `heap.json` are allocation and reallocation calls.
 
 [Per-run samples, work counters, fingerprints and heap audit](resume-results.json)
+
+The constructor reuse ablation combines the same Spine with lazy RHS frames and compiler-proven result aliases. [Static constructor reuse](STATIC_RHS.md)

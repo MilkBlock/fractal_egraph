@@ -653,11 +653,18 @@ impl Graph {
         template: usize,
         values: BTreeMap<usize, Value>,
         parent: Option<FactRef>,
+        aliases: Option<&[bool]>,
     ) -> Result<Option<(u32, usize)>> {
         let id = self.reserve_cell_id()?;
         let mut frame = self.new_cell(template, values, parent);
         let ops = self.program.templates[template].ops.clone();
         for (op, instruction) in ops.iter().enumerate() {
+            // slot_in resolves the validated alias in either the temporary
+            // frame or the same frame after its first constructor miss.
+            if self.known_stats.elide_static(aliases, op) {
+                self.known_stats.lazy_prefix_eliminated += 1;
+                continue;
+            }
             let (dst, table, args) = match instruction {
                 Op::Copy(..) => continue, // slot_in resolves copy definitions on demand
                 Op::Let(dst, Call::Table(t), args) => (*dst, *t, args),
