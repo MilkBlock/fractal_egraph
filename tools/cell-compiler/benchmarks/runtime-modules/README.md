@@ -91,3 +91,5 @@ With `--modules`, stage verification compares the requested set against the same
 The follow-up routes only live, certified rule entries to Spine and restores early filtering on the other entries. [Routed Spine comparison](ROUTING.md)
 
 The producer slot transfer experiment measures physical Row decodes, binding copies and parent-backed RHS frames. [Slot transfer ablation](SLOT_TRANSFER.md)
+
+The [Spine combination study](SPINE_SHAPES.md) measures applied cursor lineages and transfers precompiled consumer blocks between frozen Pass 3 programs.

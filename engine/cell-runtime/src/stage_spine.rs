@@ -17,8 +17,15 @@ use std::{
     time::Instant,
 };
 
+#[cfg(feature = "spine-shapes")]
+#[path = "spine_shapes.rs"]
+mod shapes;
 #[derive(Clone)]
 pub struct Cursor {
+    #[cfg(feature = "spine-blocks")]
+    via_block: bool,
+    #[cfg(feature = "spine-shapes")]
+    trace: shapes::Trace,
     root: Rc<Root>,
     pub depth: u32,
     pub producer: usize,
@@ -72,6 +79,10 @@ impl Started {
                     set: set.clone(),
                     context: OnceCell::new(),
                 }),
+                #[cfg(feature = "spine-shapes")]
+                trace: Default::default(),
+                #[cfg(feature = "spine-blocks")]
+                via_block: false,
                 depth: 1,
                 producer: *producer,
             });
@@ -155,6 +166,10 @@ pub struct Stats {
     bindings: u64,
     steps_executed: u64,
     resumed_steps: u64,
+    #[cfg(feature = "spine-blocks")]
+    block_entries: u64,
+    #[cfg(feature = "spine-blocks")]
+    block_resumptions: u64,
     cross_stage_steps: u64,
     marker_roots: u64,
     constructor_requests: u64,
@@ -172,7 +187,15 @@ pub struct Stats {
     covered_by_rule: BTreeMap<usize, u64>,
     fallback_by_rule: BTreeMap<usize, u64>,
 }
+struct Publication {
+    slot: usize,
+    receipt: Option<Dependency>,
+    #[cfg(feature = "spine-shapes")]
+    source: crate::graph::FactRef,
+}
 pub struct Programs {
+    #[cfg(feature = "spine-shapes")]
+    shapes: shapes::Profile,
     pub enabled: bool,
     pub partial: bool,
     pub receipts: bool,
@@ -191,7 +214,7 @@ pub struct Programs {
     alias_query_facts: Vec<QueryFacts>,
     // All anchors of one application share this slot, including after key coalescence.
     pending_steps: Vec<Started>,
-    pending_anchors: Vec<(usize, Vec<Value>, usize, Option<Dependency>)>,
+    pending_anchors: Vec<(usize, Vec<Value>, Publication)>,
     root_set: Rc<str>,
     capture_unions: Option<u64>,
     origins: BTreeMap<(usize, Vec<Value>), Cursor>,
@@ -212,6 +235,75 @@ fn bind(a: &Arg, v: &Value, input: &mut Inputs, g: &Graph) -> bool {
             }
         },
     }
+}
+fn record_answer(
+    results: &mut BTreeMap<Vec<Value>, (Answer, Cursor)>,
+    values: Vec<Value>,
+    witnesses: Vec<Option<Dependency>>,
+    epoch: u64,
+    parameter_parent: Option<crate::graph::FactRef>,
+    cursor: Cursor,
+) {
+    let candidate = (
+        Answer {
+            parameter_parent,
+            values: values.clone(),
+            witnesses,
+            epoch,
+        },
+        cursor,
+    );
+    match results.entry(values) {
+        std::collections::btree_map::Entry::Vacant(e) => {
+            e.insert(candidate);
+        }
+        std::collections::btree_map::Entry::Occupied(mut e) => {
+            if candidate.1.depth > e.get().1.depth {
+                e.insert(candidate);
+            }
+        }
+    }
+}
+fn read_port(
+    g: &mut Graph,
+    cursor: &Cursor,
+    table: usize,
+    args: Vec<Value>,
+    stats: &mut Stats,
+) -> Result<Option<Row>> {
+    let good =
+        |r: &crate::graph::Row| r.table == table && !r.hidden && r.values[..args.len()] == args;
+    // A candidate may fail a later port or guard, or lose
+    // binding deduplication. Only an applied origin promotes the root.
+    let cache = cursor.root.context.get();
+    let witness = cache.and_then(|context| {
+        let mut context = context.borrow_mut();
+        context.canonicalize(g);
+        context.facts.get(&(table, args.clone())).copied()
+    });
+    let mut row = if let Some(w) = witness {
+        stats.context_reads += 1;
+        g.stats.decoded_rows += 1;
+        g.row(w)?.filter(good)
+    } else {
+        None
+    };
+    if row.is_none() {
+        stats.port_refreshes += 1;
+        row = g.lookup(table, &args)?;
+        if let Some(context) = cache {
+            let mut context = context.borrow_mut();
+            if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
+                context.facts.insert((table, args), r.witness);
+                stats.port_cache_fills += 1;
+            } else {
+                context.facts.remove(&(table, args));
+            }
+        } else {
+            stats.pre_resume_port_lookups += 1;
+        }
+    }
+    Ok(row.filter(|r| !r.hidden))
 }
 fn operand(a: &Arg, input: &Inputs, g: &Graph) -> Option<Value> {
     match a {
@@ -305,6 +397,8 @@ impl Programs {
             orders: BTreeMap::new(),
             entries: HashMap::new(),
             active_tables: BTreeMap::new(),
+            #[cfg(feature = "spine-shapes")]
+            shapes: Default::default(),
             anchor_ops: vec![],
             alias_query_facts: vec![],
             pending_steps: vec![],
@@ -410,6 +504,8 @@ impl Programs {
             s.anchor_ops.push(anchors);
             s.alias_query_facts.push(query_facts);
         }
+        #[cfg(feature = "spine-shapes")]
+        s.shapes.catalog(p, &s.anchor_ops);
         s
     }
     pub fn begin(
@@ -454,11 +550,17 @@ impl Programs {
         *self.stats.by_set.entry(set.into()).or_default() += 1;
         if let Some(mut cursor) = previous {
             self.stats.resumed_steps += 1;
+            #[cfg(feature = "spine-blocks")]
+            {
+                self.stats.block_resumptions += u64::from(cursor.via_block);
+            }
             *self.stats.resumed_by_set.entry(set.into()).or_default() += 1;
             cursor.depth = cursor
                 .depth
                 .checked_add(1)
                 .expect("stage recipe depth exhausted");
+            #[cfg(feature = "spine-shapes")]
+            self.shapes.resume(&mut cursor.trace, cursor.producer, rid);
             cursor.producer = rid;
             let mut c = cursor.root.materialize(&mut self.stats).borrow_mut();
             self.stats.cross_stage_steps += u64::from(!c.sets.contains(set));
@@ -571,8 +673,16 @@ impl Programs {
                     }
                 }
             });
-            self.pending_anchors
-                .push((table, g.arguments(cell, args)?, slot, receipt));
+            self.pending_anchors.push((
+                table,
+                g.arguments(cell, args)?,
+                Publication {
+                    slot,
+                    receipt,
+                    #[cfg(feature = "spine-shapes")]
+                    source: crate::graph::FactRef { cell, op: i as u32 },
+                },
+            ));
             self.stats.captured_anchors += 1;
         }
         self.stats.captured_contexts += 1;
@@ -615,17 +725,18 @@ impl Programs {
             .capture_unions
             .take()
             .is_some_and(|before| before != g.stats.unions);
-        for (table, mut key, slot, receipt) in self.pending_anchors.drain(..) {
+        for (table, mut key, publication) in self.pending_anchors.drain(..) {
             if recanonicalize {
                 for value in &mut key {
                     *value = canon(value, &g.parents);
                 }
             }
-            anchors.insert((table, key), (slot, receipt));
+            anchors.insert((table, key), publication);
         }
         self.stats.distinct_anchor_keys += anchors.len() as u64;
         let hits_before = self.stats.receipt_hits;
-        for ((table, key), (slot, receipt)) in anchors {
+        for ((table, key), publication) in anchors {
+            let Publication { slot, receipt, .. } = publication;
             let mut witness = None;
             if self.receipts {
                 if let Some(old) = receipt {
@@ -661,6 +772,12 @@ impl Programs {
             }
             if let Some(w) = witness {
                 let cursor = self.pending_steps[slot].cursor(&mut self.stats).clone();
+                #[cfg(feature = "spine-shapes")]
+                let cursor = {
+                    let mut cursor = cursor;
+                    cursor.trace.source = Some(publication.source);
+                    cursor
+                };
                 if self.entries.insert(w, cursor).is_none() {
                     *self.active_tables.entry(table).or_default() += 1;
                 }
@@ -902,6 +1019,52 @@ impl Programs {
             let mut witnesses = vec![None; rule.query.len()];
             witnesses[pivot] = Some(row.witness);
             let mut epoch = row.epoch;
+            #[cfg(feature = "spine-shapes")]
+            let cursor = {
+                let mut c = cursor;
+                c.trace.pivot = pivot;
+                c.trace.same_fact = c.trace.source.map(Dependency::Fact) == Some(row.witness);
+                c
+            };
+            #[cfg(feature = "spine-blocks")]
+            let mut cursor = cursor;
+            #[cfg(feature = "spine-blocks")]
+            {
+                cursor.via_block = false;
+                if g.slot_transfer == crate::graph::SlotTransfer::Off
+                    && let Some(block) = g.program.spine_blocks.get(rid, pivot)
+                {
+                    self.stats.block_entries += 1;
+                    let port = if let Some(p) = &block.port {
+                        let args = p.key.iter().map(|v| v.get(g, &row, None)).collect();
+                        let Some(found) = read_port(g, &cursor, p.table, args, &mut self.stats)?
+                        else {
+                            continue;
+                        };
+                        if p.check_result
+                            .as_ref()
+                            .is_some_and(|v| v.get(g, &row, None) != *found.values.last().unwrap())
+                        {
+                            continue;
+                        }
+                        epoch = epoch.max(found.epoch);
+                        witnesses[p.atom] = Some(found.witness);
+                        Some(found)
+                    } else {
+                        None
+                    };
+                    if epoch >= watermark {
+                        let values = block
+                            .inputs
+                            .iter()
+                            .map(|v| v.get(g, &row, port.as_ref()))
+                            .collect();
+                        cursor.via_block = true;
+                        record_answer(&mut results, values, witnesses, epoch, None, cursor);
+                    }
+                    continue;
+                }
+            }
             let mut valid = true;
             let order = &self.orders[&(rid, pivot)];
             // Only the owner of the actual committed pivot can back RHS slots.
@@ -980,40 +1143,7 @@ impl Programs {
                     .collect::<Result<Vec<_>>>()?;
                 match &a.call {
                     Call::Table(t) => {
-                        let good = |r: &crate::graph::Row| {
-                            r.table == *t && !r.hidden && r.values[..args.len()] == args
-                        };
-                        // A candidate may fail a later port or guard, or lose
-                        // binding deduplication. Only an applied origin promotes the root.
-                        let cache = cursor.root.context.get();
-                        let witness = cache.and_then(|context| {
-                            let mut context = context.borrow_mut();
-                            context.canonicalize(g);
-                            context.facts.get(&(*t, args.clone())).copied()
-                        });
-                        let mut row = if let Some(w) = witness {
-                            self.stats.context_reads += 1;
-                            g.stats.decoded_rows += 1;
-                            g.row(w)?.filter(good)
-                        } else {
-                            None
-                        };
-                        if row.is_none() {
-                            self.stats.port_refreshes += 1;
-                            row = g.lookup(*t, &args)?;
-                            if let Some(context) = cache {
-                                let mut context = context.borrow_mut();
-                                if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
-                                    context.facts.insert((*t, args), r.witness);
-                                    self.stats.port_cache_fills += 1;
-                                } else {
-                                    context.facts.remove(&(*t, args));
-                                }
-                            } else {
-                                self.stats.pre_resume_port_lookups += 1;
-                            }
-                        }
-                        let Some(row) = row.filter(|r| !r.hidden) else {
+                        let Some(row) = read_port(g, &cursor, *t, args, &mut self.stats)? else {
                             valid = false;
                             break;
                         };
@@ -1068,25 +1198,14 @@ impl Programs {
                         .ok_or("incomplete stage recipe input".into())
                     })
                     .collect::<Result<Vec<_>>>()?;
-                let candidate = (
-                    Answer {
-                        parameter_parent,
-                        values: values.clone(),
-                        witnesses,
-                        epoch,
-                    },
-                    cursor.clone(),
+                record_answer(
+                    &mut results,
+                    values,
+                    witnesses,
+                    epoch,
+                    parameter_parent,
+                    cursor,
                 );
-                match results.entry(values) {
-                    std::collections::btree_map::Entry::Vacant(e) => {
-                        e.insert(candidate);
-                    }
-                    std::collections::btree_map::Entry::Occupied(mut e) => {
-                        if cursor.depth > e.get().1.depth {
-                            e.insert(candidate);
-                        }
-                    }
-                }
             }
         }
         if complete {
@@ -1200,6 +1319,10 @@ impl Programs {
         self.stats.constructor_requests += constructors;
         self.stats.function_updates += updates;
         self.stats.union_requests += unions;
+    }
+    #[cfg(feature = "spine-shapes")]
+    pub fn shape_report(&self) -> J {
+        self.shapes.report()
     }
     pub fn report(&self) -> J {
         let contexts = self

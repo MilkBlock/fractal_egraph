@@ -27,6 +27,8 @@ pub mod search_context;
 pub mod local_sat;
 pub mod retained;
 
+#[cfg(feature = "spine-blocks")]
+pub mod spine_blocks;
 pub mod stage_spine;
 
 pub mod entry_schedule;
