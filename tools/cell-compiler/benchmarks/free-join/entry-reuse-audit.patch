@@ -1,0 +1,22 @@
+--- a/engine/cell-runtime/src/free_join.rs
++++ b/engine/cell-runtime/src/free_join.rs
+@@ -28,0 +29 @@
++    diagnostic: std::collections::BTreeMap<usize, [u64; 7]>,
+@@ -44,0 +46 @@
++    seen_versions: HashMap<usize, (u64, std::collections::HashSet<SmallVec<[u64; 4]>>)>,
+@@ -116,0 +119 @@
++            seen_versions: HashMap::new(),
+@@ -184,0 +188,13 @@
++                    let counts = self.stats.diagnostic.entry(step.projection).or_default();
++                    counts[0] += 1;
++                    counts[1] += u64::from(rows.is_none());
++                    counts[2] += u64::from(rows.as_ref().is_some_and(|r| r.len() == 1));
++                    counts[3] += rows.as_ref().map_or(0, |r| r.len() as u64);
++                    let (version, keys) = self.seen_versions.entry(step.projection).or_default();
++                    if *version != g.query_versions[shape.table] {
++                        *version = g.query_versions[shape.table];
++                        keys.clear();
++                    }
++                    counts[4] += u64::from(!keys.insert(miss.key().1.clone()));
++                    counts[5] += g.witness_count(shape.table) as u64;
++                    counts[6] = counts[6].max(keys.len() as u64);

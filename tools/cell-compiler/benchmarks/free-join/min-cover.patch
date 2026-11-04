@@ -1,0 +1,5 @@
+--- a/egglog/egglog-bridge/src/rule.rs
++++ b/egglog/egglog-bridge/src/rule.rs
+@@ -149 +149 @@
+-                plan_strategy: Default::default(),
++                plan_strategy: PlanStrategy::MinCover,

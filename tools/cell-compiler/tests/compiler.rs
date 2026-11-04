@@ -326,9 +326,16 @@ fn reused_constructor_prefix_preserves_later_cell_identities() {
 fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
     let tmp = tempfile::tempdir().unwrap();
     let source = tmp.path().join("triangle.egg");
+    // Many unrelated driver keys make the reverse plan profitable with exact
+    // fingerprints. With forced collisions the same shape must fall back safely.
+    let noise = (10..106)
+        .map(|x| format!("(R {x} {x})"))
+        .collect::<Vec<_>>()
+        .join("\n");
     fs::write(
         &source,
-        r#"
+        format!(
+            r#"
 (relation R (i64 i64))
 (relation S (i64 i64))
 (relation T (i64 i64))
@@ -337,12 +344,14 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
 (ruleset extend)
 (rule ((R x y) (S y z) (T z x)) ((Hit x y z)) :ruleset find)
 (rule ((R x y) (= x 1)) ((T 8 x)) :ruleset extend)
+{noise}
 (R 1 2) (R 1 3) (R 4 2)
 (S 2 7) (S 2 8) (S 3 7) (S 3 9)
 (T 7 1) (T 7 4) (T 9 4)
 (run-schedule (seq (run find) (run extend) (run find)))
 (check (Hit 1 2 7) (Hit 4 2 7) (Hit 1 3 7) (Hit 1 2 8))
-"#,
+"#
+        ),
     )
     .unwrap();
     let out = tmp.path().join("artifact");
@@ -436,4 +445,26 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
     let expected = stages("0");
     assert_eq!(expected, stages("1"));
     assert_eq!(expected, stages("entry"));
+    assert_eq!(expected, stages("planned"));
+    let planned = pass(&[
+        "bench",
+        "--program",
+        pg.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--repeat",
+        "3",
+        "--verify-stages",
+    ]);
+    let planned: J = serde_json::from_slice(&planned.stdout).unwrap();
+    assert!(
+        planned["counts"]["free_join"]["reverse_stages"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    assert_eq!(
+        compiled["final_state_sha256"],
+        planned["final_state_sha256"]
+    );
 }

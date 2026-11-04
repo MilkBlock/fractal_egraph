@@ -468,6 +468,39 @@ impl QueryIndexes {
                 .clone(),
         )
     }
+    pub(crate) fn key_count(&self, table: usize, col: usize) -> Option<usize> {
+        Some(self.tables.get(&table)?.values[col].len())
+    }
+    /// Enumerate follower keys and their matching cover references. Abort
+    /// before copying a bucket that would exceed the forward-scan budget.
+    pub(crate) fn reverse_cover(
+        &self,
+        driver: (usize, usize),
+        follower: (usize, usize),
+        budget: usize,
+        keys: &mut u64,
+    ) -> Option<Vec<Dependency>> {
+        let drivers = &self.tables.get(&driver.0)?.values[driver.1];
+        let followers = &self.tables.get(&follower.0)?.values[follower.1];
+        let limit = budget.checked_sub(followers.len())?;
+        let mut hits = vec![];
+        let mut size = 0;
+        for key in followers.keys() {
+            *keys += 1;
+            if let Some(bucket) = drivers.get(key) {
+                size += bucket.facts.len();
+                if size > limit {
+                    return None;
+                }
+                hits.push(bucket);
+            }
+        }
+        let mut rows = Vec::with_capacity(size);
+        for bucket in hits {
+            rows.extend(&bucket.facts);
+        }
+        Some(rows)
+    }
     pub fn refinement_storage(&self) -> (usize, usize) {
         self.tables
             .values()
