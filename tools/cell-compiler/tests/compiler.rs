@@ -321,3 +321,74 @@ fn reused_constructor_prefix_preserves_later_cell_identities() {
     };
     assert_eq!(stages("off"), stages("observe"));
 }
+
+#[test]
+fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("triangle.egg");
+    fs::write(
+        &source,
+        r#"
+(relation R (i64 i64))
+(relation S (i64 i64))
+(relation T (i64 i64))
+(relation Hit (i64 i64 i64))
+(ruleset find)
+(ruleset extend)
+(rule ((R x y) (S y z) (T z x)) ((Hit x y z)) :ruleset find)
+(rule ((R x y) (= x 1)) ((T 8 x)) :ruleset extend)
+(R 1 2) (R 1 3) (R 4 2)
+(S 2 7) (S 2 8) (S 3 7) (S 3 9)
+(T 7 1) (T 7 4) (T 9 4)
+(run-schedule (seq (run find) (run extend) (run find)))
+(check (Hit 1 2 7) (Hit 4 2 7) (Hit 1 3 7) (Hit 1 2 8))
+"#,
+    )
+    .unwrap();
+    let out = tmp.path().join("artifact");
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let pg = out.join("program.json");
+    let trial = pass(&[
+        "bench",
+        "--program",
+        pg.to_str().unwrap(),
+        "--lane",
+        "free-join",
+        "--repeat",
+        "1",
+        "--verify-stages",
+    ]);
+    let counters: J = serde_json::from_slice(&trial.stdout).unwrap();
+    assert!(counters["counts"]["free_join"]["probes"].as_u64().unwrap() > 0);
+    assert!(
+        counters["counts"]["free_join"]["subtrie_uses"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+
+    let stages = |mode| {
+        let output = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+            .args(["internal-stages", pg.to_str().unwrap()])
+            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
+            .env("CELL_CPU_SIEVE", "1")
+            .env("CELL_CPU_JOIN_INTERSECTION", "1")
+            .env("CELL_CPU_HASH_BITS", "0")
+            .env("CELL_CPU_FREE_JOIN", mode)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        output.stdout
+    };
+    assert_eq!(stages("0"), stages("1"));
+}

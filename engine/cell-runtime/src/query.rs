@@ -419,6 +419,55 @@ impl QueryIndexes {
         }
         Ok(result)
     }
+    pub(crate) fn fingerprint(&self, value: &Value) -> u64 {
+        fingerprint(value, self.bits)
+    }
+    /// Probe a subatom by its full projected prefix. Fingerprint collisions
+    /// only enlarge the domain; the executor verifies every actual row.
+    pub(crate) fn probe(
+        &mut self,
+        table: usize,
+        selectors: &[(usize, u64)],
+        examined: &mut u64,
+        materialized: &mut u64,
+    ) -> Option<Rc<Vec<Dependency>>> {
+        let index = self.tables.get_mut(&table).expect("prepared probe index");
+        let mut best = None;
+        for &(col, key) in selectors {
+            let size = index.values[col].get(&key)?.facts.len();
+            if best.is_none_or(|(_, _, n)| size < n) {
+                best = Some((col, key, size));
+            }
+        }
+        let (col, key, size) = best.expect("nonempty subatom");
+        let bucket = index.values[col].get_mut(&key).unwrap();
+        if selectors.len() > 1 {
+            let matches = |w: &Dependency| selectors.iter().all(|&(c, k)| index.keys[w][c] == k);
+            *examined += size as u64;
+            if size == 1 {
+                if !matches(bucket.facts.first().unwrap()) {
+                    return None;
+                }
+            } else {
+                let subset = bucket
+                    .facts
+                    .iter()
+                    .copied()
+                    .filter(matches)
+                    .collect::<Vec<_>>();
+                return (!subset.is_empty()).then(|| Rc::new(subset));
+            }
+        }
+        Some(
+            bucket
+                .view
+                .get_or_insert_with(|| {
+                    *materialized += size as u64;
+                    Rc::new(bucket.facts.iter().copied().collect())
+                })
+                .clone(),
+        )
+    }
     pub fn refinement_storage(&self) -> (usize, usize) {
         self.tables
             .values()

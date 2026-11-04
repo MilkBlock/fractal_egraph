@@ -8,6 +8,7 @@ eggfuse-structural-key = { path = "../structural-key" }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 sha2 = "0.10"
+smallvec = "1"
 
 [profile.release]
 debug = 1
