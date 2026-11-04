@@ -1,0 +1,260 @@
+{
+  "host": "Apple M3 Max, one thread, rustc 1.94.0 release",
+  "parent": "7f0daf9",
+  "lane": "free-join-planned",
+  "cases": {
+    "sum-bits": {
+      "program_sha256": "9be7fbf34c919e12aaa1405dce329696f13878ba6561ba7b8c9fa98a1d13ac17",
+      "marked_source_sha256": "cf5f4c856e6f1c5cd526b81b6d96812a590ba0a28260735823c99bb71e330bb2",
+      "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+      "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+      "runs": 1428,
+      "lanes": {
+        "off": {
+          "ms": [
+            72.273,
+            72.692,
+            78.796,
+            76.098,
+            75.188,
+            82.37,
+            77.892
+          ],
+          "median_ms": 76.098,
+          "phase_medians_ms": {
+            "delivery_gc": 2.199,
+            "local_sat": 0.0,
+            "query_update": 8.793,
+            "repair": 4.992,
+            "rhs": 19.565,
+            "search": 34.451
+          },
+          "counts": {
+            "seeds": 10326,
+            "candidate_visits": 15549,
+            "residual_candidates": 8280,
+            "decoded_rows": 13081,
+            "entry_probes": 16537,
+            "sieve_probes": 17575,
+            "empty_join_skips": 458,
+            "graph_key_lookups": 21067,
+            "rhs_frames_avoided": 3079,
+            "bindings": 10226,
+            "routed_spine_seeds": 0,
+            "routed_matcher_seeds": 0,
+            "mixed_routed_queries": 0,
+            "resumed_steps": 0,
+            "cross_stage_steps": 0,
+            "max_chain": 0,
+            "capture_reads": 0,
+            "query_takeovers": 0,
+            "partial_queries": 0
+          }
+        },
+        "old": {
+          "ms": [
+            114.858,
+            105.152,
+            112.141,
+            109.818,
+            107.527,
+            112.066,
+            111.057
+          ],
+          "median_ms": 111.057,
+          "phase_medians_ms": {
+            "delivery_gc": 2.153,
+            "local_sat": 0.0,
+            "query_update": 24.777,
+            "repair": 5.173,
+            "rhs": 28.268,
+            "search": 44.565
+          },
+          "counts": {
+            "seeds": 58905,
+            "candidate_visits": 16532,
+            "residual_candidates": 8813,
+            "decoded_rows": 14716,
+            "entry_probes": 0,
+            "sieve_probes": 31425,
+            "empty_join_skips": 0,
+            "graph_key_lookups": 45004,
+            "rhs_frames_avoided": 0,
+            "bindings": 10226,
+            "routed_spine_seeds": null,
+            "routed_matcher_seeds": null,
+            "mixed_routed_queries": null,
+            "resumed_steps": 3034,
+            "cross_stage_steps": 867,
+            "max_chain": 12,
+            "capture_reads": 16425,
+            "query_takeovers": 782,
+            "partial_queries": 179
+          }
+        },
+        "new": {
+          "ms": [
+            98.088,
+            107.244,
+            97.442,
+            104.661,
+            105.085,
+            104.983,
+            102.522
+          ],
+          "median_ms": 104.661,
+          "phase_medians_ms": {
+            "delivery_gc": 2.201,
+            "local_sat": 0.0,
+            "query_update": 25.051,
+            "repair": 5.235,
+            "rhs": 28.334,
+            "search": 37.637
+          },
+          "counts": {
+            "seeds": 12788,
+            "candidate_visits": 15549,
+            "residual_candidates": 8280,
+            "decoded_rows": 12005,
+            "entry_probes": 14057,
+            "sieve_probes": 17575,
+            "empty_join_skips": 458,
+            "graph_key_lookups": 41110,
+            "rhs_frames_avoided": 966,
+            "bindings": 10226,
+            "routed_spine_seeds": 5785,
+            "routed_matcher_seeds": 7003,
+            "mixed_routed_queries": 111,
+            "resumed_steps": 3034,
+            "cross_stage_steps": 867,
+            "max_chain": 12,
+            "capture_reads": 16425,
+            "query_takeovers": 769,
+            "partial_queries": 111
+          }
+        }
+      }
+    },
+    "raytrace": {
+      "program_sha256": "69dbac8860ffc045e28f0013e8c3d85275ab99664c176a03a18415efc73aa1d0",
+      "marked_source_sha256": "be28350d8a5cfbb4a94edf74d4977e8434a844e58dcb48f5a2b8438efa7d93c4",
+      "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+      "schedule_sha256": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5",
+      "runs": 16883,
+      "lanes": {
+        "off": {
+          "ms": [
+            32977.387,
+            31529.989,
+            33620.328
+          ],
+          "median_ms": 32977.387,
+          "phase_medians_ms": {
+            "delivery_gc": 958.034,
+            "local_sat": 0.0,
+            "query_update": 4732.368,
+            "repair": 1953.303,
+            "rhs": 9166.396,
+            "search": 16081.634
+          },
+          "counts": {
+            "seeds": 3437773,
+            "candidate_visits": 9522225,
+            "residual_candidates": 6522466,
+            "decoded_rows": 7862010,
+            "entry_probes": 3155529,
+            "sieve_probes": 15169192,
+            "empty_join_skips": 1109,
+            "graph_key_lookups": 4044330,
+            "rhs_frames_avoided": 387680,
+            "bindings": 3785196,
+            "routed_spine_seeds": 0,
+            "routed_matcher_seeds": 0,
+            "mixed_routed_queries": 0,
+            "resumed_steps": 0,
+            "cross_stage_steps": 0,
+            "max_chain": 0,
+            "capture_reads": 0,
+            "query_takeovers": 0,
+            "partial_queries": 0
+          }
+        },
+        "old": {
+          "ms": [
+            53314.212,
+            56567.608,
+            54397.677
+          ],
+          "median_ms": 54397.677,
+          "phase_medians_ms": {
+            "delivery_gc": 942.305,
+            "local_sat": 0.0,
+            "query_update": 14700.784,
+            "repair": 1950.436,
+            "rhs": 13561.987,
+            "search": 23150.49
+          },
+          "counts": {
+            "seeds": 33476641,
+            "candidate_visits": 9828851,
+            "residual_candidates": 6589981,
+            "decoded_rows": 8088770,
+            "entry_probes": 0,
+            "sieve_probes": 24368529,
+            "empty_join_skips": 0,
+            "graph_key_lookups": 12446417,
+            "rhs_frames_avoided": 0,
+            "bindings": 3785196,
+            "routed_spine_seeds": null,
+            "routed_matcher_seeds": null,
+            "mixed_routed_queries": null,
+            "resumed_steps": 663403,
+            "cross_stage_steps": 134299,
+            "max_chain": 29,
+            "capture_reads": 6002351,
+            "query_takeovers": 6955,
+            "partial_queries": 945
+          }
+        },
+        "new": {
+          "ms": [
+            47591.524,
+            49516.839,
+            48413.754
+          ],
+          "median_ms": 48413.754,
+          "phase_medians_ms": {
+            "delivery_gc": 952.948,
+            "local_sat": 0.0,
+            "query_update": 14676.413,
+            "repair": 1913.994,
+            "rhs": 13372.27,
+            "search": 17400.771
+          },
+          "counts": {
+            "seeds": 4577790,
+            "candidate_visits": 9522225,
+            "residual_candidates": 6522466,
+            "decoded_rows": 7486641,
+            "entry_probes": 2768996,
+            "sieve_probes": 15169192,
+            "empty_join_skips": 1109,
+            "graph_key_lookups": 11578670,
+            "rhs_frames_avoided": 134085,
+            "bindings": 3785196,
+            "routed_spine_seeds": 1872925,
+            "routed_matcher_seeds": 2704865,
+            "mixed_routed_queries": 722,
+            "resumed_steps": 663403,
+            "cross_stage_steps": 134299,
+            "max_chain": 29,
+            "capture_reads": 6002351,
+            "query_takeovers": 6929,
+            "partial_queries": 722
+          }
+        }
+      },
+      "ordered_rhs_digests_sha256": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e"
+    }
+  }
+}

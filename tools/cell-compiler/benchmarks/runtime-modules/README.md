@@ -87,3 +87,5 @@ cargo cell-bench --source tools/cell-compiler/benchmarks/runtime-modules/congrue
 ```
 
 With `--modules`, stage verification compares the requested set against the same lane with those modules off. The worker clears ambient `CELL_CPU_*` settings. Its JSON distinguishes requests from effective activation and reports graft pairs, neighborhood reads, resumed steps, chain depth and local proofs. For comparable fresh-process timings, use `--repeat 1` for each configuration in each rotated round. [Raw timing samples, phase medians, counters and state digests](results.json)
+
+The follow-up routes only live, certified rule entries to Spine and restores early filtering on the other entries. [Routed Spine comparison](ROUTING.md)

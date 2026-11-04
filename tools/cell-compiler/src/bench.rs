@@ -227,6 +227,9 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
                 "enabled": spine["enabled"], "capture_reads": spine["stats"]["capture_reads"],
                 "resumed_steps": spine["stats"]["resumed_steps"], "cross_stage_steps": spine["stats"]["cross_stage_steps"],
                 "max_chain": spine["stats"]["max_chain"],
+                "routed_spine_seeds": spine["stats"]["routed_spine_seeds"],
+                "routed_matcher_seeds": spine["stats"]["routed_matcher_seeds"],
+                "mixed_routed_queries": spine["stats"]["mixed_routed_queries"],
             });
         }
         // Over-budget attempts stop at the first overflowing hash bucket.
