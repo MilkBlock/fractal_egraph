@@ -56,3 +56,5 @@ done
 ```
 
 Use `--repeat 1` in rotated fresh processes for the measurement protocol above. `--verify-stages` checks full graph, binding and schedule snapshots on small inputs. The runtime equivalents are `CELL_CPU_RANGE_GUARDS`, `CELL_CPU_FD_KEYS` and `CELL_CPU_SCALAR_MERGE`, each enabled by 1. For the separate ordered-RHS audit, use [the audit patch](../runtime-modules/root-rhs-audit.patch) and the [runtime replay instructions](../runtime-modules/ALIAS_RECEIPTS.md), setting the three flags individually and together. [Raw samples, phase medians, work counters and fingerprints](results.json)
+
+[Range-only transfer to three larger Pass 3 workloads](EXPANDED_RANGE.md) includes mixed-domain counts and an isolated admission-threshold comparison.

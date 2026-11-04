@@ -1,0 +1,998 @@
+{
+  "base_revision": "43fbd9db5fafc233755206c14d62b748175cc579",
+  "production_revision": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+  "protocol": "Apple M3 Max, rustc 1.94.0 release, single-threaded standalone Cell CPU; one excluded warm-up per lane, five fresh-process pairs with alternating order. Only range-guards varied. Subprocess wall includes artifact load and graph export but excludes compilation.",
+  "cases": {
+    "deriche": {
+      "source_sha256": "3b171c9061179cfc1da3200f888b09c6fb6c8229b60cbb61b791a40141023790",
+      "flat_sha256": "b93d070e55594487e9caabf7c0d646233745368aa235f5dc29c338eacf5071c6",
+      "captured_pass_sha256": "49edcee967162123cfe44bbf8226c359de69c8c424fe5aa0e0f2c40e95e259f6",
+      "bake_sha256": "6c40aff2c010c4101afba9cb596275db97811b925748ac8bf1e96e56729ed1ed",
+      "analysis_sha256": "34853e3687c9326d68f8cd6717666a329331a6015daceae1325a8f35710e960a",
+      "marked_sha256": "5fdb6e27a4a1c7755513d2c49a2bf3f82d37a7c108e243e4b64d3e627c75953f",
+      "program_sha256": "ac5310a1c4bdedebe0aac3b43b3a1560a42922430dcf479d0a5ef8396fa62600",
+      "initial_lets": 6562,
+      "production_endpoint_nodes": 135965,
+      "runs": 5687,
+      "effects": {
+        "bindings": 727719,
+        "logical_facts_created": 165345,
+        "function_updates": 265381,
+        "union_requests": 131876,
+        "unions": 46146,
+        "merge_calls": 445860,
+        "cells_created": 704869,
+        "constructor_requests": 453513,
+        "distinct_delivery_events": 484822,
+        "rhs_executions": 727719,
+        "resumed_steps": 137321,
+        "max_chain": 30
+      },
+      "state_sha256": "f7c736995e474201ac58e56bbad2c878a67299f3d9de8d7f6e08534147f1b3c1",
+      "schedule_sha256": "b882a69322c5f42e94669695c5a29a216f224dce5faa78765153fb82d3368676",
+      "ordered_rhs_digest_list_sha256": "f66a09d73680914ce5441ec79808bbc9c99b207c5247f4b9ee59bc9d1c7b82fc",
+      "standard": {
+        "off": {
+          "ms": [
+            5346.364,
+            4875.253,
+            4720.762,
+            5286.825,
+            5554.086
+          ],
+          "median_ms": 5286.825,
+          "process_wall_ms": [
+            6033.68,
+            5586.23,
+            5377.346,
+            5973.888,
+            6246.515
+          ],
+          "median_wall_ms": 5973.888,
+          "maintenance_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_maintenance_ms": 0.0,
+          "phase_medians_ms": {
+            "delivery_gc": 161.112,
+            "local_sat": 0.0,
+            "query_update": 916.917,
+            "repair": 295.165,
+            "rhs": 1509.344,
+            "search": 2375.964
+          },
+          "work": {
+            "range": {},
+            "residual_candidates": 957033,
+            "decoded_rows": 1072684,
+            "candidate_visits": 1437068
+          }
+        },
+        "on": {
+          "ms": [
+            5057.952,
+            4835.747,
+            4897.969,
+            5482.163,
+            5670.058
+          ],
+          "median_ms": 5057.952,
+          "process_wall_ms": [
+            5756.683,
+            5490.648,
+            5551.449,
+            6176.553,
+            6368.828
+          ],
+          "median_wall_ms": 5756.683,
+          "maintenance_ms": [
+            3.4478,
+            3.0579,
+            2.9733,
+            3.278,
+            3.1357
+          ],
+          "median_maintenance_ms": 3.1357,
+          "phase_medians_ms": {
+            "delivery_gc": 156.904,
+            "local_sat": 0.0,
+            "query_update": 853.499,
+            "repair": 294.12,
+            "rhs": 1464.251,
+            "search": 2274.772
+          },
+          "work": {
+            "range": {
+              "broad_fallbacks": 0,
+              "build_rows": 6023,
+              "builds": 1,
+              "changed_entries": 1680,
+              "empty_domains": 101,
+              "hits": 100,
+              "input_rows": 4157,
+              "invalidated_axes": 0,
+              "mixed_prefixes": 0,
+              "output_rows": 0,
+              "partial_domains": 0,
+              "partial_input_rows": 0,
+              "partial_output_rows": 0,
+              "range_refs": 0,
+              "subset_checks": 0,
+              "update_rows": 1680,
+              "uses": 101
+            },
+            "residual_candidates": 952876,
+            "decoded_rows": 1068527,
+            "candidate_visits": 1432911
+          }
+        },
+        "faster_pairs": 2,
+        "median_paired_delta_ms": 115.972
+      },
+      "shadow": {
+        "size_bins": {
+          "2-7": {
+            "calls": 1830,
+            "input": 5792,
+            "exact_survivors": 665,
+            "mixed_calls": 97,
+            "mixed_input": 522,
+            "mixed_survivors": 425,
+            "empty_calls": 1628,
+            "full_calls": 105
+          },
+          "8-31": {
+            "calls": 876,
+            "input": 13123,
+            "exact_survivors": 3187,
+            "mixed_calls": 267,
+            "mixed_input": 3456,
+            "mixed_survivors": 3187,
+            "empty_calls": 609,
+            "full_calls": 0
+          },
+          "32+": {
+            "calls": 101,
+            "input": 4157,
+            "exact_survivors": 0,
+            "mixed_calls": 0,
+            "mixed_input": 0,
+            "mixed_survivors": 0,
+            "empty_calls": 101,
+            "full_calls": 0
+          }
+        },
+        "first_mixed_examples": [
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 60,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 65,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 65,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 2,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 71,
+            "size": 3,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 2,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 71,
+            "size": 3,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1,
+              2
+            ]
+          }
+        ],
+        "mixed_by_site_and_size": [
+          {
+            "rule": 62,
+            "atom": 0,
+            "guard": 2,
+            "range_column": 3,
+            "size_bin": 0,
+            "calls": 4,
+            "input": 28,
+            "exact_survivors": 24,
+            "mixed_calls": 4,
+            "mixed_input": 28,
+            "mixed_survivors": 24,
+            "empty_calls": 0,
+            "full_calls": 0
+          },
+          {
+            "rule": 62,
+            "atom": 0,
+            "guard": 2,
+            "range_column": 3,
+            "size_bin": 1,
+            "calls": 1,
+            "input": 9,
+            "exact_survivors": 6,
+            "mixed_calls": 1,
+            "mixed_input": 9,
+            "mixed_survivors": 6,
+            "empty_calls": 0,
+            "full_calls": 0
+          },
+          {
+            "rule": 577,
+            "atom": 1,
+            "guard": 2,
+            "range_column": 1,
+            "size_bin": 0,
+            "calls": 93,
+            "input": 494,
+            "exact_survivors": 401,
+            "mixed_calls": 93,
+            "mixed_input": 494,
+            "mixed_survivors": 401,
+            "empty_calls": 0,
+            "full_calls": 0
+          },
+          {
+            "rule": 577,
+            "atom": 1,
+            "guard": 2,
+            "range_column": 1,
+            "size_bin": 1,
+            "calls": 266,
+            "input": 3447,
+            "exact_survivors": 3181,
+            "mixed_calls": 266,
+            "mixed_input": 3447,
+            "mixed_survivors": 3181,
+            "empty_calls": 0,
+            "full_calls": 0
+          }
+        ]
+      }
+    },
+    "3mm": {
+      "source_sha256": "1cfd09d54aa051f8e58a5d65a4391fd25e8bb96f39998e4b5fe8453d90559967",
+      "flat_sha256": "e390e27aa13096bbcac54df8a42fed18df9145a605f677f645b8aaed40bd0f4b",
+      "captured_pass_sha256": "f58d415a056eb8f034a2e386e3fdb5c0e43c5ce3dcf22d6f3e6e537ac69ff7c3",
+      "bake_sha256": "6c40aff2c010c4101afba9cb596275db97811b925748ac8bf1e96e56729ed1ed",
+      "analysis_sha256": "34853e3687c9326d68f8cd6717666a329331a6015daceae1325a8f35710e960a",
+      "marked_sha256": "82c766c5596d07db3e8b89b64c6c1155849007b1a66a107d680c7c0c0fd92ef2",
+      "program_sha256": "0f5b97915c8f5fa47c3a5321a6552c2da8d346c1df99622da242e3c4b110c939",
+      "initial_lets": 6508,
+      "production_endpoint_nodes": 104995,
+      "runs": 4260,
+      "effects": {
+        "bindings": 385546,
+        "logical_facts_created": 119659,
+        "function_updates": 81163,
+        "union_requests": 95930,
+        "unions": 28142,
+        "merge_calls": 134342,
+        "cells_created": 350642,
+        "constructor_requests": 364716,
+        "distinct_delivery_events": 237346,
+        "rhs_executions": 385546,
+        "resumed_steps": 85563,
+        "max_chain": 29
+      },
+      "state_sha256": "adfdc62dc97847ba2df110f96de2d86aa37b83705c3f3b1802b51cc4e623b217",
+      "schedule_sha256": "d04cd57728684c5bee34b131b291cc2c900f1cf6da9717c72f44c1cd39f92c9f",
+      "ordered_rhs_digest_list_sha256": "e7d83431a910fefd0f4ba124a33a3885cf051da3b2c882a2a8ad54847c8ec9b5",
+      "standard": {
+        "off": {
+          "ms": [
+            2711.607,
+            2693.672,
+            3062.355,
+            2772.764,
+            2824.343
+          ],
+          "median_ms": 2772.764,
+          "process_wall_ms": [
+            3260.37,
+            3228.53,
+            3784.937,
+            3321.676,
+            3371.742
+          ],
+          "median_wall_ms": 3321.676,
+          "maintenance_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_maintenance_ms": 0.0,
+          "phase_medians_ms": {
+            "delivery_gc": 68.108,
+            "local_sat": 0.0,
+            "query_update": 477.392,
+            "repair": 176.028,
+            "rhs": 771.572,
+            "search": 1261.662
+          },
+          "work": {
+            "range": {},
+            "residual_candidates": 431036,
+            "decoded_rows": 517125,
+            "candidate_visits": 675556
+          }
+        },
+        "on": {
+          "ms": [
+            2703.246,
+            2778.987,
+            2786.963,
+            3042.463,
+            2782.809
+          ],
+          "median_ms": 2782.809,
+          "process_wall_ms": [
+            3246.507,
+            3317.431,
+            3357.445,
+            3620.655,
+            3311.072
+          ],
+          "median_wall_ms": 3317.431,
+          "maintenance_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_maintenance_ms": 0.0,
+          "phase_medians_ms": {
+            "delivery_gc": 68.464,
+            "local_sat": 0.0,
+            "query_update": 479.993,
+            "repair": 180.852,
+            "rhs": 778.5,
+            "search": 1255.424
+          },
+          "work": {
+            "range": {
+              "broad_fallbacks": 0,
+              "build_rows": 0,
+              "builds": 0,
+              "changed_entries": 0,
+              "empty_domains": 0,
+              "hits": 0,
+              "input_rows": 0,
+              "invalidated_axes": 0,
+              "mixed_prefixes": 0,
+              "output_rows": 0,
+              "partial_domains": 0,
+              "partial_input_rows": 0,
+              "partial_output_rows": 0,
+              "range_refs": 0,
+              "subset_checks": 0,
+              "update_rows": 0,
+              "uses": 0
+            },
+            "residual_candidates": 431036,
+            "decoded_rows": 517125,
+            "candidate_visits": 675556
+          }
+        },
+        "faster_pairs": 3,
+        "median_paired_delta_ms": -8.361
+      },
+      "shadow": {
+        "size_bins": {
+          "2-7": {
+            "calls": 1081,
+            "input": 2675,
+            "exact_survivors": 526,
+            "mixed_calls": 76,
+            "mixed_input": 389,
+            "mixed_survivors": 313,
+            "empty_calls": 906,
+            "full_calls": 99
+          },
+          "8-31": {
+            "calls": 251,
+            "input": 3198,
+            "exact_survivors": 2860,
+            "mixed_calls": 242,
+            "mixed_input": 3102,
+            "mixed_survivors": 2860,
+            "empty_calls": 9,
+            "full_calls": 0
+          },
+          "32+": {
+            "calls": 0,
+            "input": 0,
+            "exact_survivors": 0,
+            "mixed_calls": 0,
+            "mixed_input": 0,
+            "mixed_survivors": 0,
+            "empty_calls": 0,
+            "full_calls": 0
+          }
+        },
+        "first_mixed_examples": [
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 55,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 55,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 60,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 2,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 60,
+            "size": 3,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 60,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          }
+        ],
+        "mixed_by_site_and_size": [
+          {
+            "rule": 577,
+            "atom": 1,
+            "guard": 2,
+            "range_column": 1,
+            "size_bin": 0,
+            "calls": 76,
+            "input": 389,
+            "exact_survivors": 313,
+            "mixed_calls": 76,
+            "mixed_input": 389,
+            "mixed_survivors": 313,
+            "empty_calls": 0,
+            "full_calls": 0
+          },
+          {
+            "rule": 577,
+            "atom": 1,
+            "guard": 2,
+            "range_column": 1,
+            "size_bin": 1,
+            "calls": 242,
+            "input": 3102,
+            "exact_survivors": 2860,
+            "mixed_calls": 242,
+            "mixed_input": 3102,
+            "mixed_survivors": 2860,
+            "empty_calls": 0,
+            "full_calls": 0
+          }
+        ]
+      },
+      "cutoff_2": {
+        "off": {
+          "ms": [
+            2796.298,
+            2777.92,
+            2810.077,
+            2857.356,
+            2753.304
+          ],
+          "median_ms": 2796.298,
+          "process_wall_ms": [
+            3435.585,
+            3336.614,
+            3375.316,
+            3413.036,
+            3319.369
+          ],
+          "median_wall_ms": 3375.316,
+          "maintenance_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_maintenance_ms": 0.0,
+          "phase_medians_ms": {
+            "delivery_gc": 69.542,
+            "local_sat": 0.0,
+            "query_update": 487.03,
+            "repair": 183.767,
+            "rhs": 782.652,
+            "search": 1249.454
+          },
+          "work": {
+            "range": {},
+            "residual_candidates": 431036,
+            "decoded_rows": 517125,
+            "candidate_visits": 675556
+          }
+        },
+        "on": {
+          "ms": [
+            3064.923,
+            2956.312,
+            2970.292,
+            2772.04,
+            2767.371
+          ],
+          "median_ms": 2956.312,
+          "process_wall_ms": [
+            3648.944,
+            3531.911,
+            3555.7,
+            3327.813,
+            3349.384
+          ],
+          "median_wall_ms": 3531.911,
+          "maintenance_ms": [
+            5.2255,
+            5.33,
+            5.2845,
+            4.8517,
+            4.8971
+          ],
+          "median_maintenance_ms": 5.2255,
+          "phase_medians_ms": {
+            "delivery_gc": 71.883,
+            "local_sat": 0.0,
+            "query_update": 520.035,
+            "repair": 188.93,
+            "rhs": 828.165,
+            "search": 1323.363
+          },
+          "work": {
+            "range": {
+              "broad_fallbacks": 314,
+              "build_rows": 3144,
+              "builds": 2,
+              "changed_entries": 3312,
+              "empty_domains": 915,
+              "hits": 1330,
+              "input_rows": 5873,
+              "invalidated_axes": 0,
+              "mixed_prefixes": 318,
+              "output_rows": 3700,
+              "partial_domains": 4,
+              "partial_input_rows": 8,
+              "partial_output_rows": 4,
+              "range_refs": 1669,
+              "subset_checks": 8,
+              "update_rows": 3638,
+              "uses": 1332
+            },
+            "residual_candidates": 428863,
+            "decoded_rows": 514952,
+            "candidate_visits": 673383
+          }
+        },
+        "faster_pairs": 1,
+        "median_paired_delta_ms": 160.215
+      }
+    },
+    "conjugate-gradient": {
+      "source_sha256": "af917c7a14d85890b18a0dd6f1cde4e6b6a7cd1f30a96804b61bc949a1b39775",
+      "flat_sha256": "529b23353ef58c911c06672a0f42a87540d788f8b58fce6da3266251170678a1",
+      "captured_pass_sha256": "954818741328b7376bbdceb6226af5632263eb2c0667a97f011b64f360572038",
+      "bake_sha256": "6c40aff2c010c4101afba9cb596275db97811b925748ac8bf1e96e56729ed1ed",
+      "analysis_sha256": "34853e3687c9326d68f8cd6717666a329331a6015daceae1325a8f35710e960a",
+      "marked_sha256": "aec6db7e7a7d10a4c587862a52b03f953353ffed565c54a210652ea7de780273",
+      "program_sha256": "3bfd16f86a3cf4036d01aaa38894fa76fee1c9942b43ee5a283797f0011f5aa2",
+      "initial_lets": 3400,
+      "production_endpoint_nodes": 39849,
+      "runs": 2896,
+      "effects": {
+        "bindings": 179527,
+        "logical_facts_created": 48851,
+        "function_updates": 36207,
+        "union_requests": 45611,
+        "unions": 13693,
+        "merge_calls": 64975,
+        "cells_created": 161810,
+        "constructor_requests": 162149,
+        "distinct_delivery_events": 101288,
+        "rhs_executions": 179527,
+        "resumed_steps": 40802,
+        "max_chain": 21
+      },
+      "state_sha256": "0396b4a577df9eeed21dadfde041a32ce188abaeae27023be6f6f3672cc8e2e1",
+      "schedule_sha256": "10bcf8d2edad5cbeb7f8433abd853c9bc368e05235b64f32477d6fa8bdce71da",
+      "ordered_rhs_digest_list_sha256": "0be17389d89156ba07c8223358c0f96a6d613da5db9334bc0910c8e9bc4c3c52",
+      "standard": {
+        "off": {
+          "ms": [
+            1225.271,
+            1157.933,
+            1184.155,
+            1169.84,
+            1187.904
+          ],
+          "median_ms": 1184.155,
+          "process_wall_ms": [
+            1507.525,
+            1455.88,
+            1473.419,
+            1455.216,
+            1464.912
+          ],
+          "median_wall_ms": 1464.912,
+          "maintenance_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_maintenance_ms": 0.0,
+          "phase_medians_ms": {
+            "delivery_gc": 31.694,
+            "local_sat": 0.0,
+            "query_update": 193.707,
+            "repair": 74.819,
+            "rhs": 327.449,
+            "search": 544.615
+          },
+          "work": {
+            "range": {},
+            "residual_candidates": 192485,
+            "decoded_rows": 229022,
+            "candidate_visits": 303741
+          }
+        },
+        "on": {
+          "ms": [
+            1199.903,
+            1199.352,
+            1197.485,
+            1158.232,
+            1188.543
+          ],
+          "median_ms": 1197.485,
+          "process_wall_ms": [
+            1485.309,
+            1479.921,
+            1496.376,
+            1439.946,
+            1470.245
+          ],
+          "median_wall_ms": 1479.921,
+          "maintenance_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median_maintenance_ms": 0.0,
+          "phase_medians_ms": {
+            "delivery_gc": 31.765,
+            "local_sat": 0.0,
+            "query_update": 195.63,
+            "repair": 76.057,
+            "rhs": 329.915,
+            "search": 546.399
+          },
+          "work": {
+            "range": {
+              "broad_fallbacks": 0,
+              "build_rows": 0,
+              "builds": 0,
+              "changed_entries": 0,
+              "empty_domains": 0,
+              "hits": 0,
+              "input_rows": 0,
+              "invalidated_axes": 0,
+              "mixed_prefixes": 0,
+              "output_rows": 0,
+              "partial_domains": 0,
+              "partial_input_rows": 0,
+              "partial_output_rows": 0,
+              "range_refs": 0,
+              "subset_checks": 0,
+              "update_rows": 0,
+              "uses": 0
+            },
+            "residual_candidates": 192485,
+            "decoded_rows": 229022,
+            "candidate_visits": 303741
+          }
+        },
+        "faster_pairs": 2,
+        "median_paired_delta_ms": 0.639
+      },
+      "shadow": {
+        "size_bins": {
+          "2-7": {
+            "calls": 373,
+            "input": 1008,
+            "exact_survivors": 257,
+            "mixed_calls": 50,
+            "mixed_input": 258,
+            "mixed_survivors": 208,
+            "empty_calls": 301,
+            "full_calls": 22
+          },
+          "8-31": {
+            "calls": 19,
+            "input": 179,
+            "exact_survivors": 160,
+            "mixed_calls": 19,
+            "mixed_input": 179,
+            "mixed_survivors": 160,
+            "empty_calls": 0,
+            "full_calls": 0
+          },
+          "32+": {
+            "calls": 0,
+            "input": 0,
+            "exact_survivors": 0,
+            "mixed_calls": 0,
+            "mixed_input": 0,
+            "mixed_survivors": 0,
+            "empty_calls": 0,
+            "full_calls": 0
+          }
+        },
+        "first_mixed_examples": [
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 37,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 2,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 42,
+            "size": 3,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 1,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 42,
+            "size": 2,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 2,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 48,
+            "size": 3,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "atom": 1,
+            "bound": "Gt",
+            "guard": 2,
+            "kept": 3,
+            "limit": 0,
+            "prefix_column": 0,
+            "range_column": 1,
+            "rule": 577,
+            "run": 48,
+            "size": 4,
+            "table": "TypeList-ith",
+            "values": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "mixed_by_site_and_size": [
+          {
+            "rule": 577,
+            "atom": 1,
+            "guard": 2,
+            "range_column": 1,
+            "size_bin": 0,
+            "calls": 50,
+            "input": 258,
+            "exact_survivors": 208,
+            "mixed_calls": 50,
+            "mixed_input": 258,
+            "mixed_survivors": 208,
+            "empty_calls": 0,
+            "full_calls": 0
+          },
+          {
+            "rule": 577,
+            "atom": 1,
+            "guard": 2,
+            "range_column": 1,
+            "size_bin": 1,
+            "calls": 19,
+            "input": 179,
+            "exact_survivors": 160,
+            "mixed_calls": 19,
+            "mixed_input": 179,
+            "mixed_survivors": 160,
+            "empty_calls": 0,
+            "full_calls": 0
+          }
+        ]
+      }
+    }
+  }
+}

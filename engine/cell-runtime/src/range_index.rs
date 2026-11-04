@@ -75,6 +75,11 @@ pub(crate) struct Stats {
     pub build_rows: u64,
     pub input_rows: u64,
     pub output_rows: u64,
+    pub empty_domains: u64,
+    pub mixed_prefixes: u64,
+    pub partial_domains: u64,
+    pub partial_input_rows: u64,
+    pub partial_output_rows: u64,
     pub update_rows: u64,
     pub changed_entries: u64,
     pub subset_checks: u64,
@@ -146,6 +151,7 @@ impl RangeIndex {
         self.stats.uses += 1;
         self.stats.input_rows += rows.len() as u64;
         let Some(bucket) = axis.buckets.get(&prefix.1) else {
+            self.stats.empty_domains += 1;
             return Ok(Rc::new(vec![]));
         };
         let lo = *bucket.first_key_value().expect("nonempty prefix").0;
@@ -157,12 +163,14 @@ impl RangeIndex {
             Bound::Ge => v >= threshold,
         };
         if !accepts(lo) && !accepts(hi) {
+            self.stats.empty_domains += 1;
             return Ok(Rc::new(vec![]));
         }
         if accepts(lo) && accepts(hi) {
             self.stats.output_rows += rows.len() as u64;
             return Ok(rows.clone());
         }
+        self.stats.mixed_prefixes += 1;
         let bounds = match bound {
             Bound::Lt => (Unbounded, Excluded(threshold)),
             Bound::Le => (Unbounded, Included(threshold)),
@@ -189,6 +197,13 @@ impl RangeIndex {
             .copied()
             .filter(|w| survivors.contains(w))
             .collect();
+        if narrowed.is_empty() {
+            self.stats.empty_domains += 1;
+        } else if narrowed.len() < rows.len() {
+            self.stats.partial_domains += 1;
+            self.stats.partial_input_rows += rows.len() as u64;
+            self.stats.partial_output_rows += narrowed.len() as u64;
+        }
         self.stats.output_rows += narrowed.len() as u64;
         Ok(Rc::new(narrowed))
     }
