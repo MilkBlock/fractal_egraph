@@ -22,6 +22,46 @@ pub struct Cursor {
     pub depth: u32,
     pub producer: usize,
 }
+/// One RHS application. New roots carry identity and source position until a
+/// visible anchor wins publication; resumed applications already own a context.
+pub(crate) enum Started {
+    Root {
+        id: u64,
+        producer: usize,
+        epoch: u64,
+        set: Rc<str>,
+    },
+    Live(Cursor),
+}
+impl Started {
+    fn cursor(&mut self, stats: &mut Stats) -> &Cursor {
+        if let Self::Root {
+            id,
+            producer,
+            epoch,
+            set,
+        } = self
+        {
+            *self = Self::Live(Cursor {
+                context: Rc::new(RefCell::new(Context {
+                    id: *id,
+                    sets: BTreeSet::from([set.to_string()]),
+                    last_epoch: *epoch,
+                    visits: 1,
+                    unions: 0,
+                    facts: BTreeMap::new(),
+                })),
+                depth: 1,
+                producer: *producer,
+            });
+            stats.contexts_created += 1;
+        }
+        let Self::Live(cursor) = self else {
+            unreachable!()
+        };
+        cursor
+    }
+}
 struct Context {
     id: u64,
     sets: BTreeSet<String>,
@@ -43,6 +83,7 @@ pub struct Coverage {
 }
 #[derive(Default, Serialize)]
 pub struct Stats {
+    root_attempts: u64,
     contexts_created: u64,
     captured_contexts: u64,
     capture_reads: u64,
@@ -122,7 +163,10 @@ pub struct Programs {
     active_tables: BTreeMap<usize, usize>,
     // A rule's compiled RHS indices that can supply a consumer pivot.
     anchor_ops: Vec<Vec<usize>>,
-    pending_anchors: Vec<(usize, Vec<Value>, Cursor, Option<Dependency>)>,
+    // All anchors of one application share this slot, including after key coalescence.
+    pending_steps: Vec<Started>,
+    pending_anchors: Vec<(usize, Vec<Value>, usize, Option<Dependency>)>,
+    root_set: Rc<str>,
     capture_unions: Option<u64>,
     origins: BTreeMap<(usize, Vec<Value>), Cursor>,
     next_context: u64,
@@ -234,7 +278,9 @@ impl Programs {
             entries: HashMap::new(),
             active_tables: BTreeMap::new(),
             anchor_ops: vec![],
+            pending_steps: vec![],
             pending_anchors: vec![],
+            root_set: Rc::from(""),
             capture_unions: None,
             origins: BTreeMap::new(),
             next_context: 0,
@@ -323,6 +369,17 @@ impl Programs {
         set: &str,
         epoch: u64,
     ) -> Option<Cursor> {
+        let mut step = self.begin_step(p, rid, values, set, epoch)?;
+        Some(step.cursor(&mut self.stats).clone())
+    }
+    pub(crate) fn begin_step(
+        &mut self,
+        p: &Program,
+        rid: usize,
+        values: &BTreeMap<usize, Value>,
+        set: &str,
+        epoch: u64,
+    ) -> Option<Started> {
         if !self.enabled {
             return None;
         }
@@ -340,7 +397,9 @@ impl Programs {
         if previous.is_none() && self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return None;
         }
-        let cursor = if let Some(mut cursor) = previous {
+        self.stats.steps_executed += 1;
+        *self.stats.by_set.entry(set.into()).or_default() += 1;
+        if let Some(mut cursor) = previous {
             self.stats.resumed_steps += 1;
             *self.stats.resumed_by_set.entry(set.into()).or_default() += 1;
             self.stats.cross_stage_steps += u64::from(!cursor.context.borrow().sets.contains(set));
@@ -349,11 +408,21 @@ impl Programs {
                 .checked_add(1)
                 .expect("stage recipe depth exhausted");
             cursor.producer = rid;
-            cursor
+            let mut c = cursor.context.borrow_mut();
+            c.sets.insert(set.into());
+            if c.last_epoch != epoch {
+                c.visits += 1;
+                c.last_epoch = epoch;
+            }
+            self.stats.max_chain = self.stats.max_chain.max(cursor.depth);
+            self.stats.max_sets_per_spine = self.stats.max_sets_per_spine.max(c.sets.len());
+            self.stats.max_stage_visits = self.stats.max_stage_visits.max(c.visits);
+            drop(c);
+            Some(Started::Live(cursor))
         } else {
             let id = self.next_context;
             self.next_context += 1;
-            self.stats.contexts_created += 1;
+            self.stats.root_attempts += 1;
             self.stats.marker_roots += u64::from(
                 p.templates[p.rules[rid].template]
                     .ops
@@ -365,32 +434,19 @@ impl Programs {
                         _ => false,
                     }),
             );
-            Cursor {
-                context: Rc::new(RefCell::new(Context {
-                    id,
-                    sets: BTreeSet::new(),
-                    last_epoch: epoch,
-                    visits: 1,
-                    unions: 0,
-                    facts: BTreeMap::new(),
-                })),
-                depth: 1,
-                producer: rid,
+            self.stats.max_chain = self.stats.max_chain.max(1);
+            self.stats.max_sets_per_spine = self.stats.max_sets_per_spine.max(1);
+            self.stats.max_stage_visits = self.stats.max_stage_visits.max(1);
+            if self.root_set.as_ref() != set {
+                self.root_set = Rc::from(set);
             }
-        };
-        let mut c = cursor.context.borrow_mut();
-        c.sets.insert(set.into());
-        if c.last_epoch != epoch {
-            c.visits += 1;
-            c.last_epoch = epoch;
+            Some(Started::Root {
+                id,
+                producer: rid,
+                epoch,
+                set: self.root_set.clone(),
+            })
         }
-        self.stats.max_chain = self.stats.max_chain.max(cursor.depth);
-        self.stats.max_sets_per_spine = self.stats.max_sets_per_spine.max(c.sets.len());
-        self.stats.max_stage_visits = self.stats.max_stage_visits.max(c.visits);
-        self.stats.steps_executed += 1;
-        *self.stats.by_set.entry(set.into()).or_default() += 1;
-        drop(c);
-        Some(cursor)
     }
     pub fn capture_receipts(&self, rid: usize) -> bool {
         self.enabled && self.receipts && self.anchor_ops.get(rid).is_some_and(|ops| !ops.is_empty())
@@ -406,6 +462,16 @@ impl Programs {
         _query: Option<&[Option<Dependency>]>,
         effects: Option<&[Option<Dependency>]>,
     ) -> Result<()> {
+        self.capture_step(g, rid, cell, Started::Live(cursor), effects)
+    }
+    pub(crate) fn capture_step(
+        &mut self,
+        g: &Graph,
+        rid: usize,
+        cell: u32,
+        step: Started,
+        effects: Option<&[Option<Dependency>]>,
+    ) -> Result<()> {
         self.stats.completed_steps += 1;
         if self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return Ok(());
@@ -414,6 +480,8 @@ impl Programs {
         let rule = &g.program.rules[rid];
         let template = &g.program.templates[rule.template];
         self.capture_unions.get_or_insert(g.stats.unions);
+        let slot = self.pending_steps.len();
+        self.pending_steps.push(step);
         for &i in &self.anchor_ops[rid] {
             let (table, args) = match &template.ops[i] {
                 Op::Let(_, Call::Table(t), args) | Op::Set(t, args, _) => (*t, args),
@@ -422,7 +490,7 @@ impl Programs {
             self.pending_anchors.push((
                 table,
                 g.arguments(cell, args)?,
-                cursor.clone(),
+                slot,
                 effects.and_then(|w| w[i]),
             ));
             self.stats.captured_anchors += 1;
@@ -467,17 +535,17 @@ impl Programs {
             .capture_unions
             .take()
             .is_some_and(|before| before != g.stats.unions);
-        for (table, mut key, cursor, receipt) in self.pending_anchors.drain(..) {
+        for (table, mut key, slot, receipt) in self.pending_anchors.drain(..) {
             if recanonicalize {
                 for value in &mut key {
                     *value = canon(value, &g.parents);
                 }
             }
-            anchors.insert((table, key), (cursor, receipt));
+            anchors.insert((table, key), (slot, receipt));
         }
         self.stats.distinct_anchor_keys += anchors.len() as u64;
         let hits_before = self.stats.receipt_hits;
-        for ((table, key), (cursor, receipt)) in anchors {
+        for ((table, key), (slot, receipt)) in anchors {
             let mut witness = None;
             if self.receipts {
                 if let Some(old) = receipt {
@@ -512,6 +580,7 @@ impl Programs {
                     .map(|r| r.witness);
             }
             if let Some(w) = witness {
+                let cursor = self.pending_steps[slot].cursor(&mut self.stats).clone();
                 if self.entries.insert(w, cursor).is_none() {
                     *self.active_tables.entry(table).or_default() += 1;
                 }
@@ -528,6 +597,7 @@ impl Programs {
                 .entry("effect".into())
                 .or_default() += hits;
         }
+        self.pending_steps.clear();
         self.origins.clear();
         self.entry_cache.clear();
         self.row_cache.clear();

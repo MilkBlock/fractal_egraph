@@ -227,6 +227,8 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
                 "enabled": spine["enabled"], "capture_reads": spine["stats"]["capture_reads"],
                 "resumed_steps": spine["stats"]["resumed_steps"], "cross_stage_steps": spine["stats"]["cross_stage_steps"],
                 "max_chain": spine["stats"]["max_chain"],
+                "root_attempts": spine["stats"]["root_attempts"],
+                "contexts_created": spine["stats"]["contexts_created"],
                 "captured_anchors": spine["stats"]["captured_anchors"],
                 "distinct_anchor_keys": spine["stats"]["distinct_anchor_keys"],
                 "anchor_publications": spine["stats"]["anchor_publications"],

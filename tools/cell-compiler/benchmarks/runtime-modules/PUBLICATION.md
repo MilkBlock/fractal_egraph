@@ -56,3 +56,5 @@ cargo cell-run --program out/anchor-ray/program.json --output out/anchor-ray-tri
 ```
 
 [Per-run timings, effects, phase medians and validation fingerprints](anchor-results.json)
+
+The next ablation defers root allocation until a visible anchor wins publication. [Root allocations and ordered RHS audit](ROOTS.md)

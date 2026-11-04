@@ -697,3 +697,53 @@ fn spine_coalesces_canonical_anchor_keys_after_all_effects() {
     };
     assert_eq!(stages("0"), stages("1"));
 }
+
+#[test]
+fn only_visible_winners_materialize_a_shared_spine_root() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("fanout.egg");
+    // Two writers propose both anchors of key 7. Neither anchor of key 8
+    // survives repair. Both consumers of key 7 must share one materialization.
+    fs::write(
+        &src,
+        r#"(relation WriteKey (i64 i64))
+(relation DropKey (i64))
+(relation L (i64))
+(relation R (i64))
+(relation SawWrite (i64))
+(relation SawLeft (i64))
+(relation SawRight (i64))
+(ruleset emit)
+(ruleset read)
+(rule ((WriteKey serial key)) ((L key) (R key) (SawWrite serial)) :ruleset emit)
+(rule ((DropKey key)) ((delete (L key))) :ruleset emit)
+(rule ((DropKey key)) ((delete (R key))) :ruleset emit)
+(rule ((L key)) ((SawLeft key)) :ruleset read)
+(rule ((R key)) ((SawRight key)) :ruleset read)
+(WriteKey 1 7) (WriteKey 2 7) (WriteKey 3 8) (DropKey 8)
+(run-schedule (seq (run emit) (run read)))
+"#,
+    )
+    .unwrap();
+    let result = pass(&[
+        "bench",
+        "--source",
+        src.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--modules",
+        "stage-spine",
+        "--repeat",
+        "2",
+        "--verify-stages",
+    ]);
+    let report: J = serde_json::from_slice(&result.stdout).unwrap();
+    let spine = &report["counts"]["stage_spine"];
+    assert_eq!(spine["root_attempts"], 3);
+    assert_eq!(spine["captured_anchors"], 6);
+    assert_eq!(spine["distinct_anchor_keys"], 4);
+    assert_eq!(spine["anchor_publications"], 2);
+    assert_eq!(spine["contexts_created"], 1);
+    assert_eq!(spine["resumed_steps"], 2);
+    assert_eq!(spine["max_chain"], 2);
+}

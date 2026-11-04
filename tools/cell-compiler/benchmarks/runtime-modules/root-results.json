@@ -1,0 +1,218 @@
+{
+  "eager_revision": "56f107f532af8e43c15b1117447af58122b93fdd",
+  "protocol": "frozen marked input; standalone Cell CPU; one M3 Max thread; Rust 1.94.0 release; planned Free Join + shared entry + Sieve + intersection + stage Spine with receipts; one excluded warm-up per lane; alternating lane order, fresh process per sample",
+  "cases": {
+    "sum-bits": {
+      "program_sha256": "9be7fbf34c919e12aaa1405dce329696f13878ba6561ba7b8c9fa98a1d13ac17",
+      "marked_source_sha256": "cf5f4c856e6f1c5cd526b81b6d96812a590ba0a28260735823c99bb71e330bb2",
+      "runs": 1428,
+      "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+      "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+      "previous_census_roots_never_published": 1019,
+      "lanes": {
+        "eager": {
+          "samples_ms": [
+            79.596,
+            82.29,
+            77.423,
+            82.66,
+            79.995,
+            81.361,
+            81.852
+          ],
+          "median_ms": 81.361,
+          "phase_medians_ms": {
+            "delivery_gc": 2.125,
+            "local_sat": 0.0,
+            "query_update": 11.89,
+            "repair": 4.9,
+            "rhs": 22.34,
+            "search": 34.572
+          },
+          "counts": {
+            "contexts_created": 4891,
+            "captured_contexts": 7246,
+            "resumed_steps": 3034,
+            "max_chain": 12,
+            "cross_stage_steps": 867,
+            "max_sets_per_spine": 8,
+            "max_stage_visits": 23,
+            "captured_anchors": 12898,
+            "distinct_anchor_keys": 8472,
+            "anchor_publications": 8414,
+            "capture_reads": 58,
+            "receipt_redirects": 391,
+            "port_cache_fills": 1849,
+            "routed_spine_seeds": 5785,
+            "routed_matcher_seeds": 7003,
+            "marker_roots": 592,
+            "steps_executed": 7925,
+            "completed_steps": 7925,
+            "root_attempts": 4891,
+            "live_contexts": 1281,
+            "live_anchor_refs": 2093,
+            "live_port_refs": 961,
+            "bindings": 10226,
+            "rhs_executions": 10226,
+            "candidate_visits": 15549
+          }
+        },
+        "deferred": {
+          "samples_ms": [
+            81.007,
+            77.947,
+            77.809,
+            81.073,
+            78.606,
+            76.241,
+            80.217
+          ],
+          "median_ms": 78.606,
+          "phase_medians_ms": {
+            "delivery_gc": 2.016,
+            "local_sat": 0.0,
+            "query_update": 11.717,
+            "repair": 4.682,
+            "rhs": 21.366,
+            "search": 33.496
+          },
+          "counts": {
+            "contexts_created": 3872,
+            "captured_contexts": 7246,
+            "resumed_steps": 3034,
+            "max_chain": 12,
+            "cross_stage_steps": 867,
+            "max_sets_per_spine": 8,
+            "max_stage_visits": 23,
+            "captured_anchors": 12898,
+            "distinct_anchor_keys": 8472,
+            "anchor_publications": 8414,
+            "capture_reads": 58,
+            "receipt_redirects": 391,
+            "port_cache_fills": 1849,
+            "routed_spine_seeds": 5785,
+            "routed_matcher_seeds": 7003,
+            "marker_roots": 592,
+            "steps_executed": 7925,
+            "completed_steps": 7925,
+            "root_attempts": 4891,
+            "live_contexts": 1281,
+            "live_anchor_refs": 2093,
+            "live_port_refs": 961,
+            "bindings": 10226,
+            "rhs_executions": 10226,
+            "candidate_visits": 15549
+          }
+        }
+      },
+      "full_root_allocations_avoided": 1019,
+      "ordered_rhs_digest_list_sha256": {
+        "eager": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+        "deferred": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a"
+      },
+      "faster_pairs": 5
+    },
+    "raytrace": {
+      "program_sha256": "69dbac8860ffc045e28f0013e8c3d85275ab99664c176a03a18415efc73aa1d0",
+      "marked_source_sha256": "be28350d8a5cfbb4a94edf74d4977e8434a844e58dcb48f5a2b8438efa7d93c4",
+      "runs": 16883,
+      "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+      "schedule_sha256": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5",
+      "previous_census_roots_never_published": 992998,
+      "lanes": {
+        "eager": {
+          "samples_ms": [
+            36789.719,
+            37154.154,
+            36477.15
+          ],
+          "median_ms": 36789.719,
+          "phase_medians_ms": {
+            "delivery_gc": 930.695,
+            "local_sat": 0.0,
+            "query_update": 6528.601,
+            "repair": 1910.49,
+            "rhs": 10788.409,
+            "search": 16549.606
+          },
+          "counts": {
+            "contexts_created": 2481357,
+            "captured_contexts": 3007006,
+            "resumed_steps": 663403,
+            "max_chain": 29,
+            "cross_stage_steps": 134299,
+            "max_sets_per_spine": 8,
+            "max_stage_visits": 139,
+            "captured_anchors": 3704657,
+            "distinct_anchor_keys": 2302171,
+            "anchor_publications": 2302142,
+            "capture_reads": 29,
+            "receipt_redirects": 42761,
+            "port_cache_fills": 510764,
+            "routed_spine_seeds": 1872925,
+            "routed_matcher_seeds": 2704865,
+            "marker_roots": 169520,
+            "steps_executed": 3144760,
+            "completed_steps": 3144760,
+            "root_attempts": 2481357,
+            "live_contexts": 268621,
+            "live_anchor_refs": 345803,
+            "live_port_refs": 108046,
+            "bindings": 3785196,
+            "rhs_executions": 3785196,
+            "candidate_visits": 9522225
+          }
+        },
+        "deferred": {
+          "samples_ms": [
+            36971.945,
+            35415.462,
+            35562.675
+          ],
+          "median_ms": 35562.675,
+          "phase_medians_ms": {
+            "delivery_gc": 914.654,
+            "local_sat": 0.0,
+            "query_update": 6398.818,
+            "repair": 1901.028,
+            "rhs": 10204.721,
+            "search": 16103.917
+          },
+          "counts": {
+            "contexts_created": 1488359,
+            "captured_contexts": 3007006,
+            "resumed_steps": 663403,
+            "max_chain": 29,
+            "cross_stage_steps": 134299,
+            "max_sets_per_spine": 8,
+            "max_stage_visits": 139,
+            "captured_anchors": 3704657,
+            "distinct_anchor_keys": 2302171,
+            "anchor_publications": 2302142,
+            "capture_reads": 29,
+            "receipt_redirects": 42761,
+            "port_cache_fills": 510764,
+            "routed_spine_seeds": 1872925,
+            "routed_matcher_seeds": 2704865,
+            "marker_roots": 169520,
+            "steps_executed": 3144760,
+            "completed_steps": 3144760,
+            "root_attempts": 2481357,
+            "live_contexts": 268621,
+            "live_anchor_refs": 345803,
+            "live_port_refs": 108046,
+            "bindings": 3785196,
+            "rhs_executions": 3785196,
+            "candidate_visits": 9522225
+          }
+        }
+      },
+      "full_root_allocations_avoided": 992998,
+      "ordered_rhs_digest_list_sha256": {
+        "eager": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+        "deferred": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e"
+      },
+      "faster_pairs": 2
+    }
+  }
+}
