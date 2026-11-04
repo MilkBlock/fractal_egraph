@@ -45,6 +45,10 @@ pub(super) struct Window {
 }
 #[derive(Default)]
 pub(super) struct Store {
+    pub limits: crate::bake_limits::BakeLimits,
+    depth_cuts: usize,
+    size_cuts: usize,
+    budget_cuts: usize,
     pub units: Vec<Unit>,
     pub compositions: Vec<Composition>,
     by_members: BTreeMap<Vec<usize>, usize>,
@@ -52,7 +56,6 @@ pub(super) struct Store {
     seen_events: usize,
     seen_layers: usize,
     positive: Option<Vec<bool>>,
-    pairs: BTreeSet<(Vec<usize>, usize)>,
     observed_mode: Option<bool>,
     event_states: Vec<Option<usize>>,
     confirmations: usize,
@@ -64,6 +67,64 @@ pub(super) struct Store {
     observed_members: BTreeMap<(u64, usize), Vec<usize>>,
 }
 impl Store {
+    pub fn bounded(limits: crate::bake_limits::BakeLimits) -> Self {
+        Self {
+            limits,
+            ..Default::default()
+        }
+    }
+    fn room(&mut self) -> bool {
+        if self.units.len() < self.limits.max_units {
+            true
+        } else {
+            self.budget_cuts += 1;
+            false
+        }
+    }
+    fn fits(&mut self, depth: usize, size: usize) -> bool {
+        if depth > self.limits.max_depth {
+            self.depth_cuts += 1;
+            false
+        } else if size > self.limits.max_nodes {
+            self.size_cuts += 1;
+            false
+        } else {
+            true
+        }
+    }
+    // Records are in causal order. Only edges inside this window contribute.
+    fn window_depth(c: &Captured, members: &[usize]) -> usize {
+        let mut depths = BTreeMap::new();
+        for &i in members {
+            let d = 1 + c.records[i]
+                .parents
+                .iter()
+                .filter_map(|p| depths.get(p))
+                .max()
+                .copied()
+                .unwrap_or(0);
+            depths.insert(i, d);
+        }
+        depths.into_values().max().unwrap_or(0)
+    }
+    fn prior_within_limit(&self, parts: &[usize]) -> Option<BTreeSet<usize>> {
+        let mut seen = BTreeSet::new();
+        let mut result = BTreeSet::new();
+        let mut todo = parts.to_vec();
+        while let Some(u) = todo.pop() {
+            if !seen.insert(u) {
+                continue;
+            }
+            result.extend(&self.units[u].coarse);
+            if result.len() >= self.limits.max_nodes {
+                return None;
+            }
+            if let Some(c) = self.units[u].source_composition {
+                todo.extend(&self.compositions[c].parts);
+            }
+        }
+        Some(result)
+    }
     fn intern(&mut self, u: Unit) -> Option<usize> {
         let key = u.members();
         if self.by_members.contains_key(&key) {
@@ -132,15 +193,25 @@ impl Store {
         }
         let mut added = vec![];
         for layer in self.seen_layers..s.coarse_layers.len() {
+            if !self.room() {
+                continue;
+            }
+            if !self.fits(1, s.coarse_layers[layer].members.len()) {
+                continue;
+            }
             let mut members = s.coarse_layers[layer].members.clone();
             members.sort();
             members.dedup();
+            let depth = Self::window_depth(c, &members);
+            if !self.fits(depth, members.len()) {
+                continue;
+            }
             let u = Unit {
                 coarse_layer: Some(layer),
                 coarse: members.clone(),
                 smooth: vec![],
                 source_composition: None,
-                depth: 0,
+                depth,
             };
             if let Some(id) = self.intern(u) {
                 added.push(("CSUnit".into(), id));
@@ -155,7 +226,20 @@ impl Store {
         }
         for consumer in self.seen_events..s.occurrences.len() {
             let occurrence = &s.occurrences[consumer];
-            let own = self.by_layer[&occurrence.coarse_layer];
+            if !self.room() {
+                continue;
+            }
+            let Some(&own) = self.by_layer.get(&occurrence.coarse_layer) else {
+                continue;
+            };
+            if occurrence
+                .apply
+                .parents
+                .iter()
+                .any(|p| !self.by_layer.contains_key(&s.occurrences[*p].coarse_layer))
+            {
+                continue;
+            }
             let parts: Vec<_> = occurrence
                 .apply
                 .parents
@@ -165,20 +249,33 @@ impl Store {
                 .collect::<BTreeSet<_>>()
                 .into_iter()
                 .collect();
-            if parts.len() < 2 || !self.pairs.insert((parts.clone(), consumer)) {
+            if parts.len() < 2 {
                 continue;
             }
             // One actual consumer defines one hyperedge. Do not enumerate subsets or
             // pair all units that happen to mention the same constant.
+            let composition_depth = 1 + parts
+                .iter()
+                .map(|i| self.units[*i].depth)
+                .max()
+                .unwrap_or(0);
+            if !self.fits(composition_depth, parts.len()) {
+                continue;
+            }
             let roots: BTreeSet<_> = parts
                 .iter()
                 .flat_map(|i| self.units[*i].coarse.iter().copied())
                 .collect();
             let mut members = roots.clone();
             let mut todo = vec![consumer];
-            while let Some(i) = todo.pop() {
+            while members.len() <= self.limits.max_nodes
+                && let Some(i) = todo.pop()
+            {
                 members.insert(i);
                 for &p in &c.records[i].parents {
+                    if members.len() > self.limits.max_nodes {
+                        break;
+                    }
                     if !roots.contains(&p) && members.insert(p) {
                         todo.push(p);
                     }
@@ -186,6 +283,16 @@ impl Store {
             }
             let id = self.compositions.len();
             let members: Vec<_> = members.into_iter().collect();
+            if !self.fits(composition_depth, members.len()) {
+                continue;
+            }
+            if self.by_members.contains_key(&members) {
+                continue;
+            }
+            let depth = composition_depth.max(Self::window_depth(c, &members));
+            if !self.fits(depth, members.len()) {
+                continue;
+            }
             let has_smooth_parent = occurrence
                 .apply
                 .parents
@@ -220,12 +327,6 @@ impl Store {
                 producer_parts: vec![],
                 context_parts: vec![],
             });
-            let depth = parts
-                .iter()
-                .map(|i| self.units[*i].depth)
-                .max()
-                .unwrap_or(0)
-                + 1;
             if let Some(id) = self.intern(Unit {
                 coarse_layer: Some(occurrence.coarse_layer),
                 coarse: members,
@@ -269,7 +370,12 @@ impl Store {
     fn discover_windows(&mut self, c: &Captured, first: usize, boundary: usize, added: &mut Vec<(String, usize)>) {
         for record in first..c.records.len() {
             let Some(container) = self.event_states[record] else { continue };
-            let mut joined = c.records[record].parents.clone();
+            let mut joined=if c.records[record].parents.len()<self.limits.max_nodes {
+                c.records[record].parents.clone()
+            } else {
+                self.size_cuts += 1;
+                vec![]
+            };
             // All recorded producer antecedents belong together. Do not choose
             // one parent or manufacture a subset of an AND dependency.
             if joined.iter().any(|p| *p >= record) { continue }
@@ -277,15 +383,20 @@ impl Store {
             let mut descriptions = vec![("apply_entry", vec![record])];
             if joined.len() > 1 { descriptions.push(("producer_consumer", joined)); }
             for (kind, members) in descriptions {
+                let depth=Self::window_depth(c,&members);
+                if !self.fits(depth,members.len()){continue}
                 let key=Self::membership_key(members.iter().copied());
                 let existing=self.observed_members.get(&key).into_iter().flatten()
                     .copied().find(|id|self.members(*id)==members);
                 let (unit, new_entry) = if let Some(id) = existing {
                     (id, false)
                 } else {
+                    if !self.room() {
+                        continue;
+                    }
                     let id = self.units.len();
                     self.units.push(Unit { coarse_layer: None, coarse: members.clone(), smooth: vec![],
-                        source_composition: None, depth: 0 });
+                        source_composition: None, depth });
                     self.observed_members.entry(key).or_default().push(id);
                     added.push(("HistoryWindow".into(), id));
                     (id, true)
@@ -330,6 +441,7 @@ impl Store {
         self.port_frontiers = rebased;
         let first = self.event_states.len();
         let mut pending = BTreeMap::<usize, BTreeSet<usize>>::new();
+        let mut cut_frontiers = BTreeMap::new();
         for record in self.event_states.len()..c.records.len() {
             let r = &c.records[record];
             // Match survival or a deduplicated write is not a new state mutation.
@@ -338,15 +450,19 @@ impl Store {
                 self.event_states.push(None);
                 continue;
             }
+            if !self.room() {
+                self.event_states.push(None);
+                continue;
+            }
             let roots: Vec<_> = r.read_results.iter().flatten().copied().collect();
             // Same-batch peers see the previous frontier; recording order does
             // not invent a causal chain between simultaneous matches.
-            let producer_parts: Vec<_> = r
+            let mut producer_parts: Vec<_> = r
                 .parents
                 .iter()
                 .filter_map(|p| self.event_states.get(*p).copied().flatten())
                 .collect();
-            let context_parts: Vec<_> = roots
+            let mut context_parts: Vec<_> = roots
                 .iter()
                 .flat_map(|r| {
                     self.port_frontiers
@@ -358,14 +474,37 @@ impl Store {
                 .collect::<BTreeSet<_>>()
                 .into_iter()
                 .collect();
-            let parts: Vec<_> = producer_parts
+            let mut parts: Vec<_> = producer_parts
                 .iter()
                 .chain(&context_parts)
                 .copied()
                 .collect::<BTreeSet<_>>()
                 .into_iter()
                 .collect();
-            let prior: BTreeSet<_> = parts.iter().flat_map(|p| self.members(*p)).collect();
+            let mut depth = 1 + parts
+                .iter()
+                .map(|p| self.units[*p].depth)
+                .max()
+                .unwrap_or(0);
+            let prior = if self.fits(depth, parts.len() + 1) {
+                self.prior_within_limit(&parts).or_else(|| {
+                    self.size_cuts += 1;
+                    None
+                })
+            } else {
+                None
+            };
+            // Re-open the current application as a root, with all its original
+            // input obligations, rather than dropping the live event or a port.
+            let prior = prior.unwrap_or_else(|| {
+                // Retire superseded frontiers as usual without reattaching
+                // an oversized prefix to this new root's replay recipe.
+                cut_frontiers.insert(self.units.len(), std::mem::take(&mut parts));
+                producer_parts.clear();
+                context_parts.clear();
+                depth = 1;
+                BTreeSet::new()
+            });
             let supplied: BTreeSet<_> = prior
                 .iter()
                 .flat_map(|i| c.records[*i].required.iter().chain(&c.records[*i].produced))
@@ -400,11 +539,6 @@ impl Store {
                 context_parts,
             });
             let id = self.units.len();
-            let depth = parts
-                .iter()
-                .map(|p| self.units[*p].depth + 1)
-                .max()
-                .unwrap_or(0);
             self.units.push(Unit {
                 coarse_layer: None,
                 coarse: vec![record],
@@ -436,10 +570,16 @@ impl Store {
             let superseded: BTreeSet<_> = states
                 .iter()
                 .flat_map(|id| {
-                    self.units[*id]
-                        .source_composition
+                    cut_frontiers
+                        .get(id)
+                        .or_else(|| {
+                            self.units[*id]
+                                .source_composition
+                                .map(|comp| &self.compositions[comp].parts)
+                        })
                         .into_iter()
-                        .flat_map(|comp| self.compositions[comp].parts.iter().copied())
+                        .flatten()
+                        .copied()
                 })
                 .collect();
             let frontier = self.port_frontiers.entry(port).or_default();
@@ -476,7 +616,7 @@ impl Store {
                 v
             })
             .collect();
-        json!({"discovery":if self.observed_mode==Some(true){"committed_apply_dag"}else{"legacy_layers"},"confirmations_without_new_effect":self.confirmations,"members_are_deltas":self.observed_mode==Some(true),"units":units,"compositions":self.compositions,"windows":self.windows,
+        json!({"limits":self.limits,"depth_cuts":self.depth_cuts,"size_cuts":self.size_cuts,"budget_cuts":self.budget_cuts,"discovery":if self.observed_mode==Some(true){"committed_apply_dag"}else{"legacy_layers"},"confirmations_without_new_effect":self.confirmations,"members_are_deltas":self.observed_mode==Some(true),"units":units,"compositions":self.compositions,"windows":self.windows,
             "windows_enabled":self.windows_enabled==Some(true),
             "window_scope":"single-apply entries and complete immediate-producer neighborhoods; external obligations replayed; not all DAG paths; windows never enter prefix frontiers",
             "scope":"witnessed mutation prefixes plus independently replayed history windows; no partner search or parent-subset enumeration"})

@@ -1,4 +1,5 @@
 //! Native history -> CS interfaces -> ripen -> exact sharing -> weak dominate.
+pub mod bake_limits;
 pub mod closure_contract;
 pub mod coarse_smooth;
 pub mod native_analyze;

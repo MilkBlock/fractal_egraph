@@ -1,3 +1,5 @@
+#[cfg(feature = "iterative-bake")]
+mod iterate;
 mod bench;
 mod keys;
 mod marker_ir;
@@ -270,6 +272,12 @@ pub fn cli(default_bench: bool) -> Result<()> {
     } else {
         args.remove(0)
     };
+    if cmd == "iterate" && args.iter().any(|a| a == "--help") {
+        println!(
+            "cargo cell-iterate --program SEED --output NEW_DIR [--rounds N] [--max-depth N] [--max-nodes N] [--new-per-round N] [--max-units N] [--candidate-slots N] [--min-support N]"
+        );
+        return Ok(());
+    }
     if cmd == "help" || args.iter().any(|a| a == "--help") {
         println!(
             "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry|free-join-planned] [--modules local-congruence,union-graft,stage-spine,static-aliases,slot-transfer,range-guards,fd-keys,scalar-merge] [--slot-transfer off|siblings|parent|both|local-only|parent-check|parent-owned] [--verify-stages]"
@@ -278,6 +286,8 @@ pub fn cli(default_bench: bool) -> Result<()> {
     }
     egglog::EGraph::set_num_threads(1);
     match cmd.as_str() {
+        #[cfg(feature = "iterative-bake")]
+        "iterate" => iterate::run(args),
         "internal-bake" if args.len() == 2 => bake(Path::new(&args[0]), Path::new(&args[1])),
         "compile" => {
             let opts = options(

@@ -2,6 +2,8 @@ use crate::query::QueryIndexes;
 #[path = "free_join.rs"]
 mod free_join;
 use free_join::{FreeJoin, Subtrie};
+#[path="execute_kernel.rs"]
+mod execute_kernel;
 use crate::schedule::{self, Task};
 use crate::{
     graph::*,
@@ -16,10 +18,12 @@ use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct Binding {
+    #[cfg(feature = "iterative-bake")]
+    direct: Option<crate::stage_spine::DirectOrigin>,
     known: QueryFacts,
     composition: Option<(Rc<crate::compositions::Edge>, crate::views::Context)>,
     witnesses: MatchedFacts,
-    values: BTreeMap<usize, Value>,
+    values: crate::slots::Slots,
     epoch: u64,
     parent: Option<FactRef>,
     continuation: Option<(usize, u32, bool)>,
@@ -101,7 +105,7 @@ pub struct Executor {
     pub graph: Graph,
     pub steps: Vec<J>,
     watermarks: Vec<u64>,
-    dirty: BTreeSet<usize>,
+    dirty: Vec<bool>,
     pending: Vec<BTreeSet<Dependency>>,
     readers: Vec<Vec<usize>>,
     pub audit: bool,
@@ -173,7 +177,7 @@ impl QueryEnv {
             self.values[self.trail.pop().unwrap()] = None;
         }
     }
-    fn binding(&self) -> BTreeMap<usize, Value> {
+    fn binding(&self) -> crate::slots::Slots {
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::count(|c| c.binding_seal_copies += self.values.iter().flatten().count() as u64);
         self.values
@@ -193,16 +197,15 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     // The graph is immutable throughout matching, so assigned values stay canonical.
     // All callers provide a canonical row, local slot, or primitive output.
     // No writes are visible during this immutable matching snapshot.
-    let v = v.clone();
     match a {
-        Arg::Literal(l) => canon(l, &g.parents) == v,
+        Arg::Literal(l) => canon(l, &g.parents) == *v,
         Arg::Slot(i) => {
             if let Some(old) = &env.values[*i] {
-                *old == v
+                old == v
             } else {
                 #[cfg(feature = "slot-transfer-audit")]
                 crate::transfer_audit::count(|c| c.fresh_bind_copies += 1);
-                env.values[*i] = Some(v);
+                env.values[*i] = Some(v.clone());
                 env.trail.push(*i);
                 true
             }
@@ -210,6 +213,11 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     }
 }
 impl Executor {
+    #[cfg(feature = "iterative-bake")]
+    pub fn iterative_training(&self) -> &crate::iterative::Training {
+        &self.stage_spine.training
+    }
+
     #[cfg(feature = "spine-shapes")]
     pub fn spine_shape_report(&self) -> J {
         let mut report = self.stage_spine.shape_report();
@@ -276,7 +284,7 @@ impl Executor {
             graph,
             steps: vec![],
             watermarks: vec![0; n],
-            dirty: (0..n).collect(),
+            dirty: vec![true;n],
             pending: vec![BTreeSet::new(); n],
             readers,
             audit,
@@ -322,7 +330,7 @@ impl Executor {
         for event in events {
             if let Some(table) = self.graph.live_table(event) {
                 for &rid in &self.readers[table] {
-                    self.dirty.insert(rid);
+                    self.dirty[rid]=true;
                     if !self.entry_schedule.accepts(rid) && (self.graph.program.rules[rid].direct.is_some() || self.delta_queries) {
                         self.pending[rid].insert(event);
                     }
@@ -525,7 +533,10 @@ impl Executor {
                     known.record(atom, Some(*w));
                     max_epoch=max_epoch.max(*e);
                 }
-                replay.push(Binding{values,witnesses,known,epoch:max_epoch,parent:None,continuation:None,composition:None,compiled:order.is_some()});
+                replay.push(Binding{
+                    #[cfg(feature = "iterative-bake")]
+                    direct: None,
+                    values,witnesses,known,epoch:max_epoch,parent:None,continuation:None,composition:None,compiled:order.is_some()});
             }
             self.search_contexts.stats.reused_bindings+=replay.len() as u64;
             if !self.search_contexts.observe {out.extend(replay);return Ok(())}
@@ -587,6 +598,8 @@ impl Executor {
         }
         if !remaining.iter().any(|pending| *pending) {
             out.push(Binding {
+                #[cfg(feature = "iterative-bake")]
+                direct: None,
                 composition: None,
                 witnesses: env.witnesses.clone(),
                 known:env.known.clone(),
@@ -848,7 +861,7 @@ impl Executor {
             if atom
                 .args
                 .iter()
-                .zip(&r.values)
+                .zip(r.values.iter())
                 .all(|(a, v)| bind(a, v, env, &self.graph))
             {
                 env.record(chosen, Some(r.witness));
@@ -929,7 +942,7 @@ impl Executor {
                             self.free_join.stats.entry_point_uses += 1;
                             self.graph.row(domain[0])?
                         } else {
-                            self.graph.lookup(*t, &args)?
+                            self.graph.lookup_canonical(*t, &args)?
                         }
                     } else if allow_inverse
                         && matches!(
@@ -969,7 +982,7 @@ impl Executor {
                     if !atom
                         .args
                         .iter()
-                        .zip(&row.values)
+                        .zip(row.values.iter())
                         .all(|(a, v)| bind(a, v, env, &self.graph))
                     {
                         return Ok(false);
@@ -1045,7 +1058,7 @@ impl Executor {
                 if !atom
                     .args
                     .iter()
-                    .zip(&values)
+                    .zip(values.iter())
                     .all(|(a, v)| bind(a, v, env, &self.graph))
                 {
                     self.composition_stats.rejected += 1;
@@ -1062,7 +1075,7 @@ impl Executor {
                 let value = match &atom.call {
                     Call::Table(t) => {
                         self.composition_stats.port_reads += 1;
-                        let Some(row) = self.graph.lookup(*t, &key)? else {
+                        let Some(row) = self.graph.lookup_canonical(*t, &key)? else {
                             self.composition_stats.rejected += 1;
                             return Ok(ComposedMatch::Rejected);
                         };
@@ -1108,6 +1121,8 @@ impl Executor {
             None
         };
         Ok(ComposedMatch::Matched(Binding {
+            #[cfg(feature = "iterative-bake")]
+            direct: None,
             composition: Some((edge.clone(), context)),
             witnesses: env.witnesses.clone(),
                 known:env.known.clone(),
@@ -1271,7 +1286,7 @@ impl Executor {
             if !atom
                 .args
                 .iter()
-                .zip(&values)
+                .zip(values.iter())
                 .all(|(a, v)| bind(a, v, env, &self.graph))
             {
                 env.rollback(mark);
@@ -1309,7 +1324,7 @@ impl Executor {
             if query[other]
                 .args
                 .iter()
-                .zip(&row.values)
+                .zip(row.values.iter())
                 .all(|(a, v)| bind(a, v, env, &self.graph))
             {
                 env.record(other, Some(row.witness));
@@ -1354,7 +1369,10 @@ impl Executor {
             return Ok(())
         }
         let Some((&i,tail))=order.split_first() else {
-            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
+            out.push(Binding{
+                #[cfg(feature = "iterative-bake")]
+                direct: None,
+                composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
             return Ok(())
         };
         let a=&query[i];let mark=env.trail.len();
@@ -1393,7 +1411,7 @@ impl Executor {
                     if (row.epoch,row.witness)>(delta.1,delta.2) || ((row.epoch,row.witness)==(delta.1,delta.2) && i<delta.0){
                         if let Some(proof)=evidence.as_deref_mut(){proof.delta_restrictions+=1;}continue
                     }
-                    if a.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,env,&self.graph)) {
+                    if a.args.iter().zip(row.values.iter()).all(|(a,v)|bind(a,v,env,&self.graph)) {
                         env.record(i,Some(row.witness));self.merge_points(rid,query,tail,env,epoch.max(row.epoch),delta,out,evidence.as_deref_mut())?;env.record(i,None);
                     }
                     env.rollback(mark);
@@ -1464,7 +1482,7 @@ impl Executor {
         } else {
             0
         };
-        if !probe && rule.seminaive && !self.dirty.remove(&rid) {
+        if !probe && rule.seminaive && !std::mem::replace(&mut self.dirty[rid],false) {
             return Ok(vec![]);
         }
         // No join can succeed if a required relation is empty. This is a query
@@ -1601,6 +1619,8 @@ impl Executor {
                         self.graph.stats.slot_transfer.rhs_parent_bindings += 1;
                     }
                     Binding {
+                        #[cfg(feature = "iterative-bake")]
+                        direct: a.direct,
                         values: rule.inputs.iter().copied().zip(a.values).collect(),
                         witnesses, known, composition: None,
                         parent: a.parameter_parent.filter(|_| self.graph.slot_transfer != SlotTransfer::ParentCheck),
@@ -1624,7 +1644,10 @@ impl Executor {
                     witnesses.record(i,w);
                     known.record(i,w);
                 }
-                Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,
+                Binding{
+                    #[cfg(feature = "iterative-bake")]
+                    direct: None,
+                    values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,
                     composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
             }).collect())
         }
@@ -1656,7 +1679,7 @@ impl Executor {
                 let mut env = if let Some(seed)=supplied {QueryEnv::shared(seed,witness_slots,full_witnesses,query_facts.clone())}
                     else {QueryEnv::new(self.graph.program.templates[rule.template].sorts.len(),witness_slots,full_witnesses,query_facts.clone())};
                 let live = if scheduled.is_some() {true} else if shared_seeds { self.stage_spine.bind_seed(&self.graph,rid,anchor,&row,env.values.owned_mut()) }
-                    else {self.graph.stats.direct_candidates+=1;atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph))};
+                    else {self.graph.stats.direct_candidates+=1;atom.args.iter().zip(row.values.iter()).all(|(a,v)|bind(a,v,&mut env,&self.graph))};
                 if live {
                     if self.local_known(rid,&env){self.local_sat.stats.seed_receipts+=1;continue;}
                     env.record(anchor, Some(row.witness));
@@ -1705,6 +1728,8 @@ impl Executor {
                     }
                     if self.multistage_enabled && !remaining.iter().any(|v| *v) {
                         found.push(Binding {
+                            #[cfg(feature = "iterative-bake")]
+                            direct: None,
                             composition: None,
                             witnesses: env.witnesses.clone(),
                 known:env.known.clone(),
@@ -1765,14 +1790,46 @@ impl Executor {
             let changed = if scheduled.is_some(){vec![]}else{std::mem::take(&mut self.pending[rid])
                 .into_iter().map(|w|if shared_seeds{self.stage_spine.seed_row(&mut self.graph,w).map(|r|r.map(SeedRow::Shared))}else{self.graph.row(w).map(|r|r.map(SeedRow::Owned))})
                 .collect::<Result<Vec<_>>>()?.into_iter().flatten().filter(|r|!r.hidden&&r.epoch>=watermark).collect::<Vec<_>>()};
+            let use_kernel = self.multistage_enabled
+                && self.indexed_queries
+                && self.free_join.planned
+                && scheduled.is_some()
+                && !self.graph.views_enabled
+                && !self.compositions_enabled
+                && self.local_run.is_none()
+                && !self.search_contexts.enabled
+                && !self.refutation.enabled
+                && !self.union_grafts.enabled
+                && self.graph.slot_transfer == SlotTransfer::Off;
+            let mut regs = None;
             for (pivot, atom) in rule.query.iter().enumerate() {
                 let Call::Table(table)=atom.call else {continue};
+                let kernel = use_kernel
+                    .then(|| self.graph.program.kernels[rid][pivot].clone())
+                    .flatten()
+                    .filter(|k| {
+                        self.range_index.is_none()
+                            || !k.steps.iter().any(|s| {
+                                matches!(s.access, crate::row_kernel::Access::Expand)
+                                    && !self.graph.program.physical.ranges[rid][s.atom].is_empty()
+                            })
+                    });
                 let candidates=scheduled.as_ref().into_iter().flat_map(|seeds|seeds.iter().enumerate().filter(move|(_,s)|s.atom==pivot).map(|(i,s)|(Some((i,s)),s.packet.row.as_ref())))
                     .chain(changed.iter().filter(|r|r.table==table).map(|r|(None,&**r)));
                 for (supplied,row) in candidates {
                     if stage_covered.contains(&(pivot,row.witness)){continue;}
                     if !early_sieve && !self.sieve.allow(rid,pivot,table,row.witness,&self.query_indexes){continue;}
                     if !shared_seeds && scheduled.is_none(){self.graph.stats.residual_candidates+=1;self.graph.stats.decoded_rows+=1;}
+                    if let (Some(kernel), Some((i, _))) = (&kernel, supplied) {
+                        let regs = regs.get_or_insert_with(|| execute_kernel::Registers::new(&rule));
+                        let domains = if early_join {
+                            entry_domains[i].as_slice()
+                        } else {
+                            &[]
+                        };
+                        regs.start(self, &rule, kernel, row, domains, &query_facts, &mut found)?;
+                        continue;
+                    }
                     let mut env = if let Some((i, seed)) = supplied {
                         let mut env = QueryEnv::shared(
                             seed.clone(),
@@ -1793,7 +1850,7 @@ impl Executor {
                         )
                     };
                     let live=if scheduled.is_some(){true}else if shared_seeds{self.stage_spine.bind_seed(&self.graph,rid,pivot,row,env.values.owned_mut())}
-                        else{atom.args.iter().zip(&row.values).all(|(a,v)|bind(a,v,&mut env,&self.graph))};
+                        else{atom.args.iter().zip(row.values.iter()).all(|(a,v)|bind(a,v,&mut env,&self.graph))};
                     if live {
                         if self.local_known(rid,&env){self.local_sat.stats.seed_receipts+=1;continue;}
                         self.refutation_depth.begin(rid);
@@ -1912,6 +1969,8 @@ impl Executor {
                         }
                         if self.multistage_enabled && !remaining.iter().any(|v| *v) {
                             found.push(Binding {
+                                #[cfg(feature = "iterative-bake")]
+                                direct: None,
                                 composition: None,
                                 witnesses: env.witnesses.clone(),
                                 known: env.known.clone(),
@@ -1969,40 +2028,46 @@ impl Executor {
                 None,
             )?;
         }
-        let mut unique = BTreeMap::new();
         let key_slots = if self.fd_keys {
             self.graph.program.physical.dedup[rid].as_slice()
         } else {
             rule.inputs.as_slice()
         };
-        for b in found {
-            if probe || !rule.seminaive || b.epoch >= self.watermarks[rid] {
-                self.dedup_rows += 1;
-                self.dedup_full_elements += rule.inputs.len() as u64;
-                self.dedup_elements += key_slots.len() as u64;
-                let key = key_slots
-                    .iter()
-                    .map(|i| b.values.get(i).cloned().ok_or("incomplete binding"))
-                    .collect::<std::result::Result<Vec<_>, _>>()?;
-                match unique.entry(key) {
-                    std::collections::btree_map::Entry::Vacant(e) => {
-                        e.insert(b);
-                    }
-                    std::collections::btree_map::Entry::Occupied(mut e) => {
-                        self.dedup_duplicates += 1;
-                        if e.get().composition.is_none() && b.composition.is_some() {
-                            e.insert(b);
-                        }
-                    }
-                }
-            }
+        found.retain(|b| probe || !rule.seminaive || b.epoch >= self.watermarks[rid]);
+        let n = found.len() as u64;
+        self.dedup_rows += n;
+        self.dedup_full_elements += n * rule.inputs.len() as u64;
+        self.dedup_elements += n * key_slots.len() as u64;
+        if found
+            .iter()
+            .any(|b| key_slots.iter().any(|s| !b.values.contains_key(s)))
+        {
+            return Err("incomplete binding".into());
         }
-        Ok(unique.into_values().collect())
+        let compare = |a: &Binding, b: &Binding| {
+            key_slots
+                .iter()
+                .map(|s| &a.values[s])
+                .cmp(key_slots.iter().map(|s| &b.values[s]))
+        };
+        found.sort_by(compare);
+        found.dedup_by(|later, first| {
+            if compare(first, later).is_ne() {
+                return false;
+            }
+            if first.composition.is_none() && later.composition.is_some() {
+                std::mem::swap(first, later);
+            }
+            true
+        });
+        self.dedup_duplicates += n - found.len() as u64;
+        Ok(found)
+
     }
     fn apply(&mut self, rid: usize, b: Binding) -> Result<Option<Produced>> {
         #[cfg(feature = "slot-transfer-audit")]
         let _rhs = crate::transfer_audit::RhsScope::enter();
-        let stage_cursor=self.stage_spine.begin_step(&self.graph.program,rid,&b.values,&self.current_stage,self.graph.epoch);
+        let stage_cursor=self.stage_spine.begin_step(&self.graph.program,rid,&b.values,&self.current_stage,self.graph.epoch, #[cfg(feature = "iterative-bake")] b.direct);
         let stage_counts=stage_cursor.as_ref().map(|_|(self.graph.stats.constructor_requests,self.graph.stats.function_updates,self.graph.stats.union_requests));
         let template = self.graph.program.rules[rid].template;
         let origin = b.continuation;
@@ -2013,6 +2078,32 @@ impl Executor {
         let updates = self.graph.stats.function_updates;
         let eliminate_static = self.graph.known_mode == "static";
         let observe_static = self.graph.known_mode == "observe";
+        if !self.graph.views_enabled
+            && !self.compositions_enabled
+            && self.local_run.is_none()
+            && origin.is_none()
+            && !self.graph.union_lineage_enabled
+            && (eliminate_static || self.graph.known_mode == "off")
+            && let Some(write) = self.graph.program.writes[rid].clone()
+        {
+            let (cell, index, key, changed) = self
+                .graph
+                .apply_write(template, b.values, b.parent, &write)?;
+            if let Some(step) = stage_cursor {
+                self.stage_spine.effects(0, u64::from(changed), 0);
+                self.stage_spine.capture_write(
+                    step,
+                    rid,
+                    cell,
+                    write.op,
+                    write.table,
+                    key,
+                    Dependency::Function(index),
+                    self.graph.stats.unions,
+                );
+            }
+            return Ok(None);
+        }
         let static_skip = if eliminate_static || observe_static {
             self.graph.program.known_results.static_skip.get(rid).cloned()
         } else {
@@ -2029,7 +2120,7 @@ impl Executor {
             };
             start
         } else {
-            (self.graph.reference_frame(template, b.values, b.parent, &b.witnesses)?, 0)
+            (self.graph.reference_slots(template, b.values, b.parent, &b.witnesses)?, 0)
         };
         if matches!(self.graph.known_mode.as_str(),"observe"|"on") {
             if let Some(plans)=self.graph.program.known_results.rules.get(&rid){
@@ -2148,7 +2239,7 @@ impl Executor {
                         }
                     } else {
                         let key = self.graph.arguments(cell, &aa)?;
-                        let row = self.graph.lookup(*t, &key)?.ok_or_else(|| {
+                        let row = self.graph.lookup_canonical(*t, &key)?.ok_or_else(|| {
                             format!(
                                 "missing function read {}",
                                 self.graph.program.tables[*t].name
@@ -2274,11 +2365,22 @@ impl Executor {
             for atom in &*rule.query {if let Call::Table(t)=atom.call {
                 let expected=atom.args.iter().map(|a|operand(a,&env,&self.graph).ok_or_else(||"unready local audit operand".to_string())).collect::<Result<Vec<_>>>()?;
                 let row=self.graph.lookup(t,&expected[..expected.len()-1])?;
-                if row.is_none_or(|r|r.hidden || r.values!=expected){return Err(format!("local LHS witness missing: rule {} table {}",transfer.consumer,self.graph.program.tables[t].name));}
+                if row.is_none_or(|r|r.hidden || *r.values!=expected){return Err(format!("local LHS witness missing: rule {} table {}",transfer.consumer,self.graph.program.tables[t].name));}
             }}
             self.local_sat.stats.audit_bindings+=1;
         }
-        Ok(Some(Binding{values,witnesses:MatchedFacts::None,known:QueryFacts::None,composition:None,parent:None,continuation:None,compiled:true,epoch:self.graph.epoch}))
+        Ok(Some(Binding {
+            #[cfg(feature = "iterative-bake")]
+            direct: None,
+            values,
+            witnesses: MatchedFacts::None,
+            known: QueryFacts::None,
+            composition: None,
+            parent: None,
+            continuation: None,
+            compiled: true,
+            epoch: self.graph.epoch,
+        }))
     }
     fn probe(&mut self, set: &str) -> Result<bool> {
         let rules = self
@@ -2297,6 +2399,10 @@ impl Executor {
     }
     fn run(&mut self, set: &str, path: &[usize], iterations: &[u64]) -> Result<bool> {
         self.current_stage=set.into();
+        #[cfg(feature = "iterative-bake")]
+        {
+            self.stage_spine.training.run = self.steps.len() + 1;
+        }
         self.graph.receipt_forwards.clear();
         if let Some(survey)=self.graph.union_impact.as_mut() {survey.run_start_cell=self.graph.next_cell;}
         self.graph.epoch = self.graph.epoch.checked_add(1).ok_or("epoch exhausted")?;

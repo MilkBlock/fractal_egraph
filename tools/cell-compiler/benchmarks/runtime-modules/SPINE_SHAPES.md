@@ -80,3 +80,5 @@ cmp ray-trace/rhs.json ray-checked/rhs.json
 cargo run --locked --release --manifest-path "$m" --features spine-blocks -- --program "$ray" --output ray-control
 cargo run --locked --release --manifest-path "$m" --features spine-blocks -- --program ray-baked.json --output ray-treatment
 ```
+
+The [iterative Bake](ITERATIVE_BAKE.md) uses checked consumer blocks as reusable units across training rounds.

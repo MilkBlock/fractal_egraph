@@ -1,18 +1,17 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
-use std::collections::BTreeMap;
 
 #[cfg_attr(not(feature = "slot-transfer-audit"), derive(Clone))]
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Value {
     Eq(u64),
     Int(i64),
-    Text(String),
+    Text(std::sync::Arc<String>),
     Float(i64),
-    Set(Vec<Value>),
+    Set(std::sync::Arc<Vec<Value>>),
     Key(eggfuse_structural_key::Key),
 }
-pub type Parents = BTreeMap<u64, u64>;
+pub type Parents = rustc_hash::FxHashMap<u64, u64>;
 pub fn root(parents: &Parents, mut x: u64) -> u64 {
     while let Some(&y) = parents.get(&x) {
         if x == y {
@@ -29,7 +28,7 @@ pub fn canon(v: &Value, p: &Parents) -> Value {
             let mut xs = xs.iter().map(|x| canon(x, p)).collect::<Vec<_>>();
             xs.sort();
             xs.dedup();
-            Value::Set(xs)
+            Value::Set(xs.into())
         }
         _ => v.clone(),
     }
@@ -170,13 +169,13 @@ pub fn primitive(
             let mut xs = args.to_vec();
             xs.sort();
             xs.dedup();
-            Value::Set(xs)
+            Value::Set(xs.into())
         }
         "set-insert" | "set-remove" => {
             let Value::Set(xs) = &args[0] else {
                 return Err("set expected".into());
             };
-            let mut xs = xs.clone();
+            let mut xs = xs.as_ref().clone();
             if name == "set-insert" {
                 xs.push(args[1].clone());
                 xs.sort();
@@ -184,14 +183,14 @@ pub fn primitive(
             } else {
                 xs.retain(|x| x != &args[1])
             }
-            Value::Set(xs)
+            Value::Set(xs.into())
         }
         "set-union" | "set-intersect" | "set-diff" => {
             let (Value::Set(a), Value::Set(b)) = (&args[0], &args[1]) else {
                 return Err("set expected".into());
             };
             let mut xs = if name == "set-union" {
-                [a.clone(), b.clone()].concat()
+                [a.as_slice(), b.as_slice()].concat()
             } else {
                 a.iter()
                     .filter(|x| b.contains(x) == (name == "set-intersect"))
@@ -200,7 +199,7 @@ pub fn primitive(
             };
             xs.sort();
             xs.dedup();
-            Value::Set(xs)
+            Value::Set(xs.into())
         }
         "set-contains" | "set-not-contains" => {
             let Value::Set(xs) = &args[0] else {
@@ -222,7 +221,7 @@ pub fn literal(j: &J) -> Result<Value, String> {
     let kind = j["sort"]["kind"].as_str().ok_or("literal sort")?;
     let n = &j["literal"];
     Ok(match kind {
-        "String" => Value::Text(n.as_str().ok_or("string literal")?.into()),
+        "String" => Value::Text(n.as_str().ok_or("string literal")?.to_owned().into()),
         "f64" => Value::Float(n.as_i64().ok_or("float bits")?),
         "i64" | "bool" | "Unit" => Value::Int(n.as_i64().ok_or("integer literal")?),
         _ => return Err(format!("unsupported literal {kind}")),

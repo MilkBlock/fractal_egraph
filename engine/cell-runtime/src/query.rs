@@ -1,13 +1,14 @@
 //! Exact queries over compact, incrementally maintained virtual-fact indexes.
 //! Buckets store fingerprints and references, never decoded constructor rows.
 //! Hash collisions only enlarge candidate sets: the matcher checks every column.
+use rustc_hash::FxHashMap as HashMap;
 use crate::{
     graph::{Dependency, Graph, Row},
     program::Result,
     value::Value,
 };
 use std::{
-    collections::{BTreeSet, HashMap},
+    collections::{BTreeSet},
     hash::{Hash, Hasher},
     rc::Rc,
 };
@@ -20,7 +21,7 @@ struct Bucket {
 }
 struct Columns {
     values: Vec<HashMap<u64, Bucket>>,
-    keys: HashMap<Dependency, Vec<u64>>,
+    keys: HashMap<Dependency, smallvec::SmallVec<[u64;4]>>,
     version: u64,
     leased_reads: bool,
 }
@@ -48,7 +49,7 @@ impl Columns {
             .values
             .iter()
             .map(|v| fingerprint(v, bits))
-            .collect::<Vec<_>>();
+            .collect::<smallvec::SmallVec<[u64; 4]>>();
         if self.keys.get(&row.witness) == Some(&keys) {
             // Equal fingerprints do not prove unchanged exact values (including
             // forced collisions). Every changed witness invalidates read leases.
@@ -61,16 +62,34 @@ impl Columns {
             }
             return (0, 0);
         }
-        let removed = self.remove(row.witness);
-        let added = keys.len();
-        for (col, key) in keys.iter().enumerate() {
-            let bucket = self.values[col].entry(*key).or_default();
+        let old = self.keys.insert(row.witness, keys.clone());
+        let mut changed = 0;
+        for (col, &key) in keys.iter().enumerate() {
+            if let Some(prior) = old.as_ref() {
+                let before = prior[col];
+                if before == key {
+                    let bucket = self.values[col].get_mut(&key).unwrap();
+                    bucket.refinements.clear();
+                    if watch_reads {
+                        bucket.view = None;
+                    }
+                    continue;
+                }
+                let bucket = self.values[col].get_mut(&before).unwrap();
+                bucket.facts.remove(&row.witness);
+                bucket.view = None;
+                bucket.refinements.clear();
+                if bucket.facts.is_empty() {
+                    self.values[col].remove(&before);
+                }
+            }
+            let bucket = self.values[col].entry(key).or_default();
             bucket.facts.insert(row.witness);
             bucket.view = None;
             bucket.refinements.clear();
+            changed += 1;
         }
-        self.keys.insert(row.witness, keys);
-        (removed, added)
+        (if old.is_some() { changed } else { 0 }, changed)
     }
     fn best(&self, bound: &[Option<Value>], bits: u32) -> Option<(usize, u64, usize)> {
         let mut best = None;
@@ -87,7 +106,7 @@ impl Columns {
     }
 }
 fn fingerprint(value: &Value, bits: u32) -> u64 {
-    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    let mut hasher = rustc_hash::FxHasher::default();
     value.hash(&mut hasher);
     let hash = hasher.finish();
     if bits == 64 {
@@ -154,10 +173,10 @@ impl ReadStamp {
 impl Default for QueryIndexes {
     fn default() -> Self {
         Self {
-            watch_contexts:false,read_changes:vec![],read_reset:false,watch_context_rows:false,read_rows:HashMap::new(),
+            watch_contexts:false,read_changes:vec![],read_reset:false,watch_context_rows:false,read_rows:HashMap::default(),
             watch_reads: false,
             revision: 0,
-            tables: HashMap::new(),
+            tables: HashMap::default(),
             references: 0,
             intersection: std::env::var("CELL_CPU_JOIN_INTERSECTION").as_deref() == Ok("1"),
             refinements: RefinementStats::default(),
@@ -335,9 +354,9 @@ impl QueryIndexes {
         if !self.tables.contains_key(&table) {
             let mut index = Columns {
                 values: (0..graph.program.tables[table].schema.len())
-                    .map(|_| HashMap::new())
+                    .map(|_| HashMap::default())
                     .collect(),
-                keys: HashMap::new(),
+                keys: HashMap::default(),
                 version: graph.query_versions[table],
                 leased_reads: false,
             };
@@ -510,7 +529,7 @@ impl QueryIndexes {
             .fold((0, 0), |(n, r), v| (n + 1, r + v.len()))
     }
     pub(crate) fn hashes(&self, table: usize, w: Dependency) -> Option<&[u64]> {
-        self.tables.get(&table)?.keys.get(&w).map(Vec::as_slice)
+        self.tables.get(&table)?.keys.get(&w).map(|k|k.as_slice())
     }
     pub(crate) fn indexed_witnesses(&self, table: usize) -> Vec<Dependency> {
         let mut out = self.tables[&table].keys.keys().copied().collect::<Vec<_>>();

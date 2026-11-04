@@ -57,6 +57,8 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[serde(skip)] pub(crate) writes:Vec<Option<Rc<crate::row_kernel::Write>>>,
+    #[serde(skip)] pub(crate) kernels:crate::row_kernel::Kernels,
     #[serde(default)]
     pub(crate) physical: Rc<crate::physical_plan::Plan>,
     #[serde(skip)]
@@ -71,6 +73,9 @@ pub struct Program {
     #[cfg(feature = "spine-blocks")]
     #[serde(skip)]
     pub spine_blocks: crate::spine_blocks::Catalog,
+    #[cfg(feature = "iterative-bake")]
+    #[serde(skip)]
+    pub iterative: crate::iterative::Catalog,
     pub multi_stage: crate::multistage::MultiStage,
     pub entry_schedule: crate::entry_schedule::Plan,
     pub compositions: crate::compositions::Compositions,
@@ -295,7 +300,10 @@ impl Program {
             }
             sets.insert(string(&s["name"])?.into(), ids);
         }
+        let kernels=crate::row_kernel::derive(&rules);
+        if let Some(raw)=j.get("row_kernels") && *raw!=serde_json::json!(kernels){return Err("invalid register join plan".into());}
         let mut p = Self {
+            kernels,writes:vec![],
             physical: Default::default(),
             known_results:Default::default(),
             merge_programs: Default::default(),
@@ -303,6 +311,8 @@ impl Program {
             congruence: crate::congruence::Congruence::default(),
             #[cfg(feature = "spine-blocks")]
             spine_blocks: Default::default(),
+            #[cfg(feature = "iterative-bake")]
+            iterative: Default::default(),
             multi_stage: crate::multistage::MultiStage::default(),
             entry_schedule: crate::entry_schedule::Plan::default(),
             entry_join: None,
@@ -318,6 +328,8 @@ impl Program {
         };
         p.validate()?;
         p.physical = Rc::new(crate::physical_plan::Plan::derive(&p));
+        p.writes=crate::row_kernel::writes(&p);
+        if let Some(raw)=p.artifact.get("single_writes") && *raw!=serde_json::json!(p.writes){return Err("invalid functional write plan".into())}
         if let Some(raw) = p.artifact.get("physical_plan") {
             let emitted: crate::physical_plan::Plan =
                 serde_json::from_value(raw.clone()).map_err(|e| e.to_string())?;
@@ -375,6 +387,10 @@ impl Program {
         #[cfg(feature = "spine-blocks")]
         {
             p.spine_blocks = crate::spine_blocks::Catalog::parse(&p, &p.artifact["spine_blocks"])?;
+        }
+        #[cfg(feature = "iterative-bake")]
+        {
+            p.iterative = crate::iterative::Catalog::parse(&p, &p.artifact["iterative_bake"])?;
         }
         p.congruence = crate::congruence::Congruence::parse(&p, &p.artifact["congruence"])?;
         p.compositions = crate::compositions::Compositions::parse(&p, &p.artifact["compositions"])?;

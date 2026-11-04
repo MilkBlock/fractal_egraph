@@ -7,6 +7,7 @@ edition = "2024"
 slot-transfer-audit = []
 spine-shapes = []
 spine-blocks = []
+iterative-bake = ["spine-blocks"]
 
 [dependencies]
 eggfuse-structural-key = { path = "../structural-key" }
@@ -14,6 +15,8 @@ serde = { version = "1", features = ["derive", "rc"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 sha2 = "0.10"
 smallvec = "1"
+rustc-hash = "2.1"
+mimalloc = { version = "0.1", default-features = false }
 
 [profile.release]
 debug = 1

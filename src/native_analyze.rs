@@ -1429,3 +1429,12 @@ mod incremental_history_tests {
         assert!(!make_c[0].parents.contains(&make_b[0]));
     }
 }
+
+pub fn register_cpu_blocks(
+    plan: &Json,
+    units: &[Json],
+    joins: &[Json],
+    limits: crate::bake_limits::BakeLimits,
+) -> Result<Json> {
+    saturated_rule_composition_pipeline::cpu_block_egraph(plan, units, joins, limits)
+}

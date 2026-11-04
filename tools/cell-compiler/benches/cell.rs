@@ -1,3 +1,5 @@
+#[global_allocator]
+static ALLOCATOR: eggfuse_cell_runtime::RuntimeAllocator = eggfuse_cell_runtime::RuntimeAllocator;
 use std::path::Path;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -39,3 +39,13 @@ pub mod compiler;
 
 mod physical_plan;
 mod range_index;
+
+#[cfg(feature = "iterative-bake")]
+pub mod iterative;
+
+pub mod slots;
+
+mod row_kernel;
+
+/// Common allocator for the standalone CLI and its Cargo benchmark workers.
+pub use mimalloc::MiMalloc as RuntimeAllocator;
