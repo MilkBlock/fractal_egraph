@@ -260,7 +260,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
     };
     if cmd == "help" || args.iter().any(|a| a == "--help") {
         println!(
-            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered] [--verify-stages]"
+            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join] [--verify-stages]"
         );
         return Ok(());
     }

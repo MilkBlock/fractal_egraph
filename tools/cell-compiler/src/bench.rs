@@ -3,6 +3,7 @@ use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::time::Instant;
 fn lane_process(lane: &str) -> Result<Command> {
     let mut cmd = Command::new(std::env::current_exe()?);
+    let filtered = matches!(lane, "filtered" | "free-join");
     for (k, _) in std::env::vars_os() {
         if k.to_string_lossy().starts_with("CELL_CPU_") {
             cmd.env_remove(k);
@@ -12,10 +13,14 @@ fn lane_process(lane: &str) -> Result<Command> {
         "CELL_CPU_SHARED_NODE_SCHEDULE",
         if lane == "baseline" { "0" } else { "1" },
     )
-    .env("CELL_CPU_SIEVE", if lane == "filtered" { "1" } else { "0" })
+    .env(
+        "CELL_CPU_FREE_JOIN",
+        if lane == "free-join" { "1" } else { "0" },
+    )
+    .env("CELL_CPU_SIEVE", if filtered { "1" } else { "0" })
     .env(
         "CELL_CPU_JOIN_INTERSECTION",
-        if lane == "filtered" { "1" } else { "0" },
+        if filtered { "1" } else { "0" },
     );
     Ok(cmd)
 }
@@ -57,7 +62,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
         out.join("program.json")
     };
     let lane = opts.get("--lane").map(String::as_str).unwrap_or("nodes");
-    if !["baseline", "nodes", "filtered"].contains(&lane) {
+    if !["baseline", "nodes", "filtered", "free-join"].contains(&lane) {
         return Err("unknown bench lane".into());
     }
     if verify {
@@ -71,7 +76,12 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             }
             Ok(serde_json::from_slice(&output.stdout)?)
         };
-        let baseline = stages("baseline")?;
+        let control = if lane == "free-join" {
+            "filtered"
+        } else {
+            "baseline"
+        };
+        let baseline = stages(control)?;
         let candidate = stages(lane)?;
         if baseline != candidate {
             let first = baseline
@@ -82,7 +92,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             return Err(format!("graph, schedule or bindings differ at stage {first}").into());
         }
         eprintln!(
-            "verified initial graph and {} Run snapshots against baseline",
+            "verified initial graph and {} Run snapshots against {control}",
             baseline.len() - 1
         );
     }
@@ -147,6 +157,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "empty_join_skips": r["sieve"]["stats"]["empty_join_skips"],
             "cells_created": g.cells_created,
             "rhs_frames_avoided": g.rhs_frames_avoided,
+            "free_join": r["free_join"],
             "runs": e.steps.len()
         });
         if !counts.is_null() && counts != c {
