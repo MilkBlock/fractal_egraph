@@ -348,6 +348,7 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
     let out = tmp.path().join("artifact");
     pass(&[
         "compile",
+        "--emit-free-join-entry",
         "--source",
         source.to_str().unwrap(),
         "--output",
@@ -373,6 +374,48 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
             > 0
     );
 
+    let raw = json_file(&pg);
+    assert!(
+        !raw["free_join_entry"]["projections"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    let mut corrupt = raw.clone();
+    corrupt["free_join_entry"]["projections"][0]["table"] = json!(usize::MAX);
+    assert!(eggfuse_cell_runtime::program::Program::parse(corrupt).is_err());
+    let mut legacy = raw.clone();
+    legacy.as_object_mut().unwrap().remove("free_join_entry");
+    legacy.as_object_mut().unwrap().remove("sha256");
+    legacy["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&legacy));
+    let old = tmp.path().join("old.json");
+    fs::write(&old, serde_json::to_vec(&legacy).unwrap()).unwrap();
+    let run_entry = |path: &Path| {
+        let result = pass(&[
+            "bench",
+            "--program",
+            path.to_str().unwrap(),
+            "--lane",
+            "free-join-entry",
+            "--repeat",
+            "1",
+            "--verify-stages",
+        ]);
+        serde_json::from_slice::<J>(&result.stdout).unwrap()
+    };
+    let compiled = run_entry(&pg);
+    assert!(
+        compiled["counts"]["free_join"]["entry_probes"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    let derived = run_entry(&old);
+    assert_eq!(compiled["counts"], derived["counts"]);
+    assert_eq!(
+        compiled["final_state_sha256"],
+        derived["final_state_sha256"]
+    );
     let stages = |mode| {
         let output = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
             .args(["internal-stages", pg.to_str().unwrap()])
@@ -390,5 +433,7 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
         );
         output.stdout
     };
-    assert_eq!(stages("0"), stages("1"));
+    let expected = stages("0");
+    assert_eq!(expected, stages("1"));
+    assert_eq!(expected, stages("entry"));
 }

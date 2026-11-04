@@ -8,6 +8,7 @@ type Rows = Rc<Vec<Dependency>>;
 pub(super) struct Subtrie {
     pub atom: usize,
     pub rows: Rows,
+    pub projected_columns: usize,
 }
 pub(super) struct Group {
     pub cover: SmallVec<[Dependency; 2]>,
@@ -24,12 +25,24 @@ pub(super) struct Stats {
     bucket_rows_materialized: u64,
     rejected_cover_rows: u64,
     pub subtrie_uses: u64,
+    entry_rows: u64,
+    entry_probes: u64,
+    entry_cache_hits: u64,
+    entry_rejections: u64,
+    entry_delta_rejections: u64,
+    entry_domains: u64,
+    entry_bucket_rows_examined: u64,
+    entry_bucket_rows_materialized: u64,
+    pub entry_point_uses: u64,
 }
 
 pub(super) struct FreeJoin {
     pub enabled: bool,
     pub stats: Stats,
     plans: Vec<Vec<Vec<Subatom>>>,
+    entry: Option<Rc<crate::entry_join::Plan>>,
+    epoch: Option<u64>,
+    results: HashMap<(usize, SmallVec<[u64; 4]>), Option<Rows>>,
 }
 
 struct Subatom {
@@ -79,7 +92,8 @@ fn subatoms(query: &[Atom], cover: usize) -> Vec<Subatom> {
 
 impl FreeJoin {
     pub fn new(p: &Program) -> Self {
-        let enabled = std::env::var("CELL_CPU_FREE_JOIN").as_deref() == Ok("1");
+        let mode = std::env::var("CELL_CPU_FREE_JOIN");
+        let enabled = matches!(mode.as_deref(), Ok("1" | "entry"));
         let plans = if enabled {
             p.rules
                 .iter()
@@ -90,9 +104,110 @@ impl FreeJoin {
         };
         Self {
             enabled,
+            entry: if mode.as_deref() == Ok("entry") {
+                Some(
+                    p.entry_join
+                        .clone()
+                        .unwrap_or_else(|| Rc::new(crate::entry_join::Plan::derive(p))),
+                )
+            } else {
+                None
+            },
+            epoch: None,
+            results: HashMap::new(),
             plans,
             stats: Stats::default(),
         }
+    }
+
+    pub fn entry_mode(&self) -> bool {
+        self.entry.is_some()
+    }
+    pub fn has_entry(&self, rid: usize) -> bool {
+        self.entry
+            .as_ref()
+            .is_some_and(|p| p.entries[rid].iter().any(|steps| !steps.is_empty()))
+    }
+    pub fn admit(
+        &mut self,
+        g: &Graph,
+        index: &mut QueryIndexes,
+        rid: usize,
+        atom: usize,
+        row: &Row,
+    ) -> Result<Option<Vec<Subtrie>>> {
+        let plan = self.entry.as_ref().expect("entry lane");
+        let steps = &plan.entries[rid][atom];
+        if steps.is_empty() {
+            return Ok(Some(vec![]));
+        }
+        if self.epoch != Some(g.epoch) {
+            self.results.clear();
+            self.epoch = Some(g.epoch);
+        }
+        self.stats.entry_rows += 1;
+        let mut domains = vec![];
+        for step in steps {
+            let shape = &plan.projections[step.projection];
+            let hashes = index.hashes(row.table, row.witness);
+            let key = shape
+                .columns
+                .iter()
+                .map(|(_, source)| match source {
+                    crate::entry_join::Source::Literal(v) => {
+                        index.fingerprint(&canon(v, &g.parents))
+                    }
+                    crate::entry_join::Source::Cover(col) => {
+                        hashes.map_or_else(|| index.fingerprint(&row.values[*col]), |h| h[*col])
+                    }
+                })
+                .collect::<SmallVec<[_; 4]>>();
+            let result = match self.results.entry((step.projection, key)) {
+                std::collections::hash_map::Entry::Occupied(hit) => {
+                    self.stats.entry_cache_hits += 1;
+                    hit.into_mut()
+                }
+                std::collections::hash_map::Entry::Vacant(miss) => {
+                    index.ensure(g, shape.table)?;
+                    let selectors = shape
+                        .columns
+                        .iter()
+                        .zip(&miss.key().1)
+                        .map(|((col, _), hash)| (*col, *hash))
+                        .collect::<SmallVec<[_; 4]>>();
+                    self.stats.entry_probes += 1;
+                    let rows = index.probe(
+                        shape.table,
+                        &selectors,
+                        &mut self.stats.entry_bucket_rows_examined,
+                        &mut self.stats.entry_bucket_rows_materialized,
+                    );
+                    miss.insert(rows)
+                }
+            };
+            let Some(rows) = result else {
+                self.stats.entry_rejections += 1;
+                return Ok(None);
+            };
+            if rows.len() == 1 {
+                let w = rows[0];
+                if let Some(epoch) = g.visible_epoch(w) {
+                    if (epoch, w) > (row.epoch, row.witness)
+                        || ((epoch, w) == (row.epoch, row.witness) && step.atom < atom)
+                    {
+                        self.stats.entry_delta_rejections += 1;
+                        return Ok(None);
+                    }
+                }
+            }
+            domains.push(Subtrie {
+                atom: step.atom,
+                rows: rows.clone(),
+                projected_columns: shape.columns.len(),
+            });
+        }
+        self.stats.entry_domains += domains.len() as u64;
+        Ok(Some(domains))
     }
 
     pub fn partition(
@@ -204,6 +319,7 @@ impl FreeJoin {
                     children.push(Subtrie {
                         atom: probe.atom,
                         rows: candidates,
+                        projected_columns: probe.selectors.len(),
                     });
                 }
                 let result = if children.len() == probes.len() {
