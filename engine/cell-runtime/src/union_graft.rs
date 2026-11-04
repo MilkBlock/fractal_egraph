@@ -42,7 +42,7 @@ pub struct Lineage {
     pub parent_causes: BTreeMap<u64, usize>,
 }
 impl Lineage {
-    pub fn validate(&self, parents: &BTreeMap<u64, u64>) -> Result<()> {
+    pub fn validate(&self, parents: &crate::value::Parents) -> Result<()> {
         for (i, e) in self.events.iter().enumerate() {
             if e.left == e.right || e.representative != e.left.min(e.right) {
                 return Err("invalid union lineage endpoints".into());
@@ -101,7 +101,7 @@ impl Lineage {
         a: u64,
         b: u64,
         cause: Cause,
-        uf: &BTreeMap<u64, u64>,
+        uf: &crate::value::Parents,
     ) {
         let mut canonicalization_parents = BTreeSet::new();
         let mut canonicalization_complete = true;
@@ -152,7 +152,7 @@ impl Lineage {
             cause,
         });
     }
-    pub fn explain(&self, a: u64, b: u64, parents: &BTreeMap<u64, u64>) -> Option<Vec<usize>> {
+    pub fn explain(&self, a: u64, b: u64, parents: &crate::value::Parents) -> Option<Vec<usize>> {
         let mut path = vec![];
         let mut seen = BTreeMap::new();
         let mut x = a;
@@ -182,7 +182,7 @@ impl Lineage {
         right: FactRef,
         a: &[Value],
         b: &[Value],
-        parents: &BTreeMap<u64, u64>,
+        parents: &crate::value::Parents,
     ) -> Cause {
         let mut support = BTreeSet::new();
         let mut complete = a.len() == b.len();

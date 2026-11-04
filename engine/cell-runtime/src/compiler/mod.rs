@@ -233,6 +233,8 @@ pub fn compile_with_entry(
     let mut j = json!({"schema":"eggfuse-cell-runtime/v1","initial":core["initial"],"requirements":recipe::requirements(&core),"source_core":core,"recipe":ir,"templates":templates,"contract":{"storage":"shared effect recipes plus instance slots and fact-position masks","native_runtime_dependency":false,"native_free_join":false,"completeness":"exact residual virtual-fact matching; no learned exclusion"}});
     let p = Program::load(j, true)?;
     let plans = [
+        ("single_writes",json!(&p.writes)),
+        ("row_kernels",json!(&p.kernels)),
         ("physical_plan", json!(&p.physical)),
         (
             "merge_contracts",

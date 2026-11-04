@@ -1,5 +1,6 @@
 //! Compiler-owned shared entry nodes. Current parameter packets are maintained
 //! once per changed input; consumers borrow them at their original source Run.
+use rustc_hash::FxHashMap as HashMap;
 use crate::{
     graph::{Dependency, FactRef, Graph, Row},
     program::*,
@@ -8,7 +9,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap},
+    collections::{BTreeMap, BTreeSet},
     ops::{Index, IndexMut},
     rc::Rc,
 };
@@ -212,7 +213,7 @@ impl IndexMut<usize> for Inputs {
 struct State {
     cold: bool,
     pending: BTreeSet<Dependency>,
-    rows: BTreeMap<Dependency, Rc<Packet>>,
+    rows: HashMap<Dependency, Rc<Packet>>,
     epochs: BTreeSet<(u64, Dependency)>,
     epoch_counts: Option<BTreeMap<u64, usize>>,
 }
@@ -324,7 +325,7 @@ impl Scheduler {
             enabled,
             plan,
             states,
-            rows: HashMap::new(),
+            rows: HashMap::default(),
             unions: 0,
             stats: Stats::default(),
         }
@@ -440,7 +441,7 @@ impl Scheduler {
         let mut old = if full {
             std::mem::take(&mut s.rows)
         } else {
-            BTreeMap::new()
+            HashMap::default()
         };
         for w in pending {
             let previous = if full {
@@ -479,7 +480,7 @@ impl Scheduler {
                 continue;
             }
             let mut values = vec![None; n.ports];
-            let valid = n.args.iter().zip(&row.values).all(|(a, v)| match a {
+            let valid = n.args.iter().zip(row.values.iter()).all(|(a, v)| match a {
                 Arg::Literal(l) => canon(l, &g.parents) == *v,
                 Arg::Slot(i) => match &values[*i] {
                     Some(old) => old == v,

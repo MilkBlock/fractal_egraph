@@ -1,3 +1,5 @@
+#[global_allocator]
+static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::{path::PathBuf, time::Instant};
 fn main() -> Result<(), Box<dyn std::error::Error>> {

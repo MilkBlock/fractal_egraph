@@ -1,6 +1,7 @@
 //! Source-scheduled Cell programs. A committed producer supplies the next
 //! stage's complete context; the stage consumes it without a structural join.
 //! Coverage is proved from functional table keys, not from observed frequency.
+use rustc_hash::FxHashMap as HashMap;
 use crate::{
     entry_schedule::{Inputs, Seed},
     graph::{Dependency, Graph, Row},
@@ -12,7 +13,7 @@ use serde::Serialize;
 use serde_json::{Value as J, json};
 use std::{
     cell::{OnceCell, RefCell},
-    collections::{BTreeMap, BTreeSet, HashMap},
+    collections::{BTreeMap, BTreeSet},
     rc::Rc,
     time::Instant,
 };
@@ -238,7 +239,8 @@ pub struct Programs {
     pending_anchors: Vec<(usize, Vec<Value>, Publication)>,
     root_set: Rc<str>,
     capture_unions: Option<u64>,
-    origins: BTreeMap<(usize, Vec<Value>), Cursor>,
+    origins: Vec<HashMap<Vec<Value>,Cursor>>,
+    origin_rules:Vec<usize>,
     next_context: u64,
 
     pub stats: Stats,
@@ -317,7 +319,7 @@ fn read_port(
     };
     if row.is_none() {
         stats.port_refreshes += 1;
-        row = g.lookup(table, &args)?;
+        row = g.lookup_canonical(table, &args)?;
         if let Some(context) = cache {
             let mut context = context.borrow_mut();
             if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
@@ -418,11 +420,11 @@ impl Programs {
                 == Ok("1"),
             cache_epoch: u64::MAX,
             anchor_shapes: BTreeMap::new(),
-            entry_cache: HashMap::new(),
-            row_cache: HashMap::new(),
+            entry_cache: HashMap::default(),
+            row_cache: HashMap::default(),
             consumer_tables: BTreeMap::new(),
             orders: BTreeMap::new(),
-            entries: HashMap::new(),
+            entries: HashMap::default(),
             active_tables: BTreeMap::new(),
             #[cfg(feature = "spine-shapes")]
             shapes: Default::default(),
@@ -434,7 +436,8 @@ impl Programs {
             pending_anchors: vec![],
             root_set: Rc::from(""),
             capture_unions: None,
-            origins: BTreeMap::new(),
+            origins: vec![HashMap::default();p.rules.len()],
+            origin_rules:Vec::new(),
             next_context: 0,
 
             stats: Stats::default(),
@@ -541,7 +544,7 @@ impl Programs {
         &mut self,
         p: &Program,
         rid: usize,
-        values: &BTreeMap<usize, Value>,
+        values: &crate::slots::Slots,
         set: &str,
         epoch: u64,
     ) -> Option<Cursor> {
@@ -562,7 +565,7 @@ impl Programs {
         &mut self,
         p: &Program,
         rid: usize,
-        values: &BTreeMap<usize, Value>,
+        values: &crate::slots::Slots,
         set: &str,
         epoch: u64,
         #[cfg(feature = "iterative-bake")] direct: Option<DirectOrigin>,
@@ -574,17 +577,18 @@ impl Programs {
         let supplied = direct.map(|d| *d.0);
         #[cfg(not(feature = "iterative-bake"))]
         let supplied: Option<Cursor> = None;
-        let key = (supplied.is_none() && !self.origins.is_empty()).then(|| {
-            (
-                rid,
-                p.rules[rid]
-                    .inputs
-                    .iter()
-                    .map(|i| values[i].clone())
-                    .collect(),
-            )
+        let previous = supplied.or_else(|| {
+            let bucket = &mut self.origins[rid];
+            if bucket.is_empty() {
+                return None;
+            }
+            let key: smallvec::SmallVec<[Value; 6]> = p.rules[rid]
+                .inputs
+                .iter()
+                .map(|i| values[i].clone())
+                .collect();
+            bucket.remove(key.as_slice())
         });
-        let previous = supplied.or_else(|| key.and_then(|k| self.origins.remove(&k)));
         if previous.is_none() && self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return None;
         }
@@ -736,6 +740,44 @@ impl Programs {
         self.stats.capture_seconds += clock.elapsed().as_secs_f64();
         Ok(())
     }
+    pub(crate) fn capture_write(
+        &mut self,
+        step: Started,
+        rid: usize,
+        _cell: u32,
+        op: usize,
+        table: usize,
+        key: Vec<Value>,
+        w: Dependency,
+        unions: u64,
+    ) {
+        self.stats.completed_steps += 1;
+        if self.anchor_ops[rid].is_empty() {
+            return;
+        }
+        debug_assert_eq!(self.anchor_ops[rid].len(), 1);
+        debug_assert_eq!(self.anchor_ops[rid][0].0, op);
+        self.capture_unions.get_or_insert(unions);
+        let slot = self.pending_steps.len();
+        self.pending_steps.push(step);
+        self.pending_anchors.push((
+            table,
+            key,
+            Publication {
+                slot,
+                receipt: self.receipts.then_some(w),
+                #[cfg(feature = "iterative-bake")]
+                output: op,
+                #[cfg(feature = "spine-shapes")]
+                source: crate::graph::FactRef {
+                    cell: _cell,
+                    op: op as u32,
+                },
+            },
+        ));
+        self.stats.captured_anchors += 1;
+        self.stats.captured_contexts += 1;
+    }
     pub fn publish(&mut self, g: &mut Graph) -> Result<()> {
         if !self.enabled {
             return Ok(());
@@ -767,7 +809,7 @@ impl Programs {
         }
         // Unions can merge different keys after capture. Preserve the last
         // producer in original RHS order at the post-repair canonical key.
-        let mut anchors = HashMap::new();
+        let mut anchors = HashMap::default();
         let recanonicalize = self
             .capture_unions
             .take()
@@ -848,7 +890,7 @@ impl Programs {
                 .or_default() += hits;
         }
         self.pending_steps.clear();
-        self.origins.clear();
+        for rid in self.origin_rules.drain(..){ self.origins[rid].clear(); }
         self.entry_cache.clear();
         self.row_cache.clear();
         self.stats.publication_seconds += clock.elapsed().as_secs_f64();
@@ -937,7 +979,7 @@ impl Programs {
                     self.stats.pivot_candidates += 1;
                     a.args
                         .iter()
-                        .zip(&row.values)
+                        .zip(row.values.iter())
                         .all(|(a, v)| bind(a, v, &mut input, g))
                 };
                 if !live {
@@ -1226,7 +1268,7 @@ impl Programs {
                         if !a
                             .args
                             .iter()
-                            .zip(&row.values)
+                            .zip(row.values.iter())
                             .all(|(a, v)| bind(a, v, &mut input, g))
                         {
                             valid = false;
@@ -1307,7 +1349,8 @@ impl Programs {
                         answer.direct = Some(DirectOrigin(Box::new(cursor)));
                         return answer;
                     }
-                    self.origins.insert((rid, key), cursor);
+                    if self.origins[rid].is_empty(){self.origin_rules.push(rid);}
+                    self.origins[rid].insert(key,cursor);
                     answer
                 })
                 .collect(),
@@ -1367,7 +1410,7 @@ impl Programs {
             let valid = g.program.rules[rid].query[pivot]
                 .args
                 .iter()
-                .zip(&row.values)
+                .zip(row.values.iter())
                 .all(|(a, v)| match a {
                     Arg::Literal(l) => canon(l, &g.parents) == *v,
                     Arg::Slot(i) => match &input[*i] {

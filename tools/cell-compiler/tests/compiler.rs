@@ -1251,3 +1251,69 @@ fn a_learned_pair_executes_and_becomes_an_operand_in_the_next_round() {
         fs::read(stopped.join("rhs.json")).unwrap()
     );
 }
+
+#[test]
+fn checked_register_plans_join_and_publish_function_writes() {
+    use eggfuse_cell_runtime::{checksum::artifact_digest, program::Program};
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("flow.egg");
+    let out = tmp.path().join("compiled");
+    fs::write(
+        &source,
+        r#"
+(relation Pair (i64 i64))
+(relation Activate (i64))
+(function Weight (i64) i64 :merge (max old new))
+(function Result (i64) i64 :merge (max old new))
+(ruleset join) (ruleset update)
+(rule ((Pair a b) (= w (Weight b))) ((set (Result a) (+ w 1))) :ruleset join)
+(rule ((Activate b)) ((set (Weight b) 12)) :ruleset update)
+(Pair 1 3) (Pair 2 3) (Pair 4 5) (set (Weight 3) 7) (Activate 3)
+(run-schedule (seq (run join) (run update) (run join)))
+(check (= (Result 1) 13) (= (Result 2) 13))
+"#,
+    )
+    .unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--emit-free-join-entry",
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let file = out.join("program.json");
+    let pg = json_file(&file);
+    let run = |path: &Path| {
+        serde_json::from_slice::<J>(
+            &pass(&[
+                "bench",
+                "--program",
+                path.to_str().unwrap(),
+                "--lane",
+                "free-join-planned",
+                "--repeat",
+                "1",
+                "--verify-stages",
+            ])
+            .stdout,
+        )
+        .unwrap()
+    };
+    let fast = run(&file);
+    assert!(fast["counts"]["register_answers"].as_u64().unwrap() > 0);
+    assert!(fast["counts"]["single_writes"].as_u64().unwrap() > 0);
+    for key in ["single_writes", "row_kernels"] {
+        let mut corrupt = pg.clone();
+        corrupt[key] = json!([]);
+        assert!(Program::parse(corrupt).is_err());
+    }
+    let mut old = pg;
+    for key in ["single_writes", "row_kernels", "sha256"] {
+        old.as_object_mut().unwrap().remove(key);
+    }
+    old["sha256"] = json!(artifact_digest(&old));
+    let legacy = tmp.path().join("legacy.json");
+    fs::write(&legacy, serde_json::to_vec(&old).unwrap()).unwrap();
+    assert_eq!(fast["counts"], run(&legacy)["counts"]);
+}

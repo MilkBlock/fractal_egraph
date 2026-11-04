@@ -1,9 +1,10 @@
 //! Rows are temporary views of shared recipes, never a constructor row store.
+use rustc_hash::FxHashMap as HashMap;
 use crate::program::*;
 use crate::value::{self, Parents, Value, canon, exported, root};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet};
 use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -54,6 +55,10 @@ pub struct FactState {
     // from the checked recipe on checkpoint restore; never trusted serialized data.
     #[serde(skip)]
     pub marker_row: Option<MarkerRow>,
+    // Snapshot of the ordinary recipe's fields. The union subscriber clears
+    // it before any access to a changed representative. Never checkpoint it.
+    #[serde(skip)]
+    decoded: Option<(usize, std::rc::Rc<Vec<Value>>)>,
     #[serde(default)]
     pub entry: Option<FactRef>,
     pub hidden: bool,
@@ -81,8 +86,8 @@ pub struct Cell {
     pub composition: Option<crate::compositions::Cursor>,
     pub template: usize,
     pub parent: Option<FactRef>,
-    pub values: BTreeMap<usize, Value>,
-    pub facts: BTreeMap<u32, FactState>,
+    pub values: crate::slots::Slots,
+    pub facts: crate::slots::FrameMap<u32, FactState>,
     #[serde(default)]
     pub recipe_depth: u32,
     #[serde(default)]
@@ -90,6 +95,8 @@ pub struct Cell {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Function {
+    #[serde(skip)]
+    decoded: Option<std::rc::Rc<Vec<Value>>>,
     pub table: usize,
     pub key: Vec<Value>,
     pub value: Value,
@@ -106,7 +113,7 @@ pub enum Dependency {
 #[derive(Clone, Debug)]
 pub struct Row {
     pub table: usize,
-    pub values: Vec<Value>,
+    pub values: std::rc::Rc<Vec<Value>>,
     pub hidden: bool,
     pub epoch: u64,
     pub witness: Dependency,
@@ -143,6 +150,10 @@ pub struct Stats {
     pub decoded_rows: u64,
     pub residual_candidates: u64,
     pub bindings: u64,
+    #[serde(default)] pub register_seeds:u64,
+    #[serde(default)] pub register_answers:u64,
+    #[serde(default)] pub single_writes:u64,
+    #[serde(default)] pub transient_writes:u64,
     pub direct_bindings: u64,
     #[serde(default)]
     pub direct_candidates: u64,
@@ -223,6 +234,8 @@ pub struct Graph {
     pub known_stats:crate::known_results::Stats,
     pub merge_programs_enabled: bool,
     scalar_merge: bool,
+    merge_kinds:Vec<Option<String>>,
+    equal_keeps_old:Vec<bool>,
     pub key_lookup_calls: std::cell::Cell<u64>,
     pub program: Program,
     pub views_enabled: bool,
@@ -233,7 +246,7 @@ pub struct Graph {
     fact_forwards: BTreeMap<FactRef, FactRef>,
     reference_users: BTreeMap<FactRef, usize>,
     absorption_candidates: BTreeSet<(u32, u32)>,
-    pub cells: BTreeMap<u32, Cell>,
+    pub cells: rustc_hash::FxHashMap<u32, Cell>,
     pub functions: Vec<Function>,
     pub parents: Parents,
     pub epoch: u64,
@@ -261,18 +274,18 @@ pub struct Graph {
     operators: Vec<BTreeSet<FactRef>>,
     function_operators: Vec<BTreeSet<usize>>,
     intern: HashMap<u64, BTreeSet<FactRef>>,
-    function_keys: BTreeMap<(usize, Vec<Value>), usize>,
-    uses: BTreeMap<u64, BTreeSet<Dependency>>,
-    dependencies: BTreeMap<Dependency, BTreeSet<u64>>,
+    function_keys: Vec<rustc_hash::FxHashMap<Vec<Value>, usize>>,
+    uses: rustc_hash::FxHashMap<u64, BTreeSet<Dependency>>,
+    dependencies: rustc_hash::FxHashMap<Dependency, BTreeSet<u64>>,
     dirty: BTreeSet<Dependency>,
     dirty_markers: BTreeSet<FactRef>,
     dirty_facts: Vec<BTreeSet<FactRef>>,
     deletion_epochs: Vec<u64>,
-    parent_users: BTreeMap<u32, usize>,
+    parent_users: rustc_hash::FxHashMap<u32, usize>,
     garbage: BTreeSet<u32>,
 }
 fn hashkey(table: usize, key: &[Value]) -> u64 {
-    let mut h = std::collections::hash_map::DefaultHasher::new();
+    let mut h = rustc_hash::FxHasher::default();
     table.hash(&mut h);
     key.hash(&mut h);
     h.finish()
@@ -445,6 +458,9 @@ impl Graph {
         }
         for f in facts {
             let row = g.fact(f)?.ok_or("checkpoint fact missing")?;
+            if !g.views_enabled {
+                g.cells.get_mut(&f.cell).unwrap().facts.get_mut(&f.op).unwrap().decoded=Some((row.table,row.values.clone()));
+            }
             if g.marker_fields_copied && g.program.views.markers.contains(&row.table) {
                 g.cells
                     .get_mut(&f.cell)
@@ -454,7 +470,7 @@ impl Graph {
                     .unwrap()
                     .marker_row = Some(MarkerRow {
                     table: row.table,
-                    values: row.values.clone(),
+                    values: row.values.as_ref().clone(),
                     canonical: true,
                 });
             }
@@ -473,6 +489,7 @@ impl Graph {
         }
         for i in 0..g.functions.len() {
             if let Some(row) = g.function(i) {
+                g.functions[i].decoded=Some(row.values.clone());
                 if let Some(origin) = g.functions[i].origin {
                     let cell = g
                         .cells
@@ -485,8 +502,8 @@ impl Graph {
                     *g.parent_users.entry(origin.cell).or_default() += 1;
                 }
                 g.function_operators[row.table].insert(i);
-                let key = (row.table, row.values[..row.values.len() - 1].to_vec());
-                if g.function_keys.insert(key, i).is_some() {
+                let key = row.values[..row.values.len() - 1].to_vec();
+                if g.function_keys[row.table].insert(key, i).is_some() {
                     return Err("checkpoint duplicate function key".into());
                 }
                 g.subscribe(row.witness, &row.values);
@@ -516,7 +533,30 @@ impl Graph {
         let initial = program.initial.clone();
         let congruence_enabled = std::env::var("CELL_CPU_CONGRUENCE").as_deref() == Ok("1")
             && program.congruence.reorder_safe;
+        let merge_kinds = program
+            .tables
+            .iter()
+            .enumerate()
+            .map(|(t, _)| {
+                program.artifact["merge_contracts"]["tables"][t]["kind"]
+                    .as_str()
+                    .map(str::to_owned)
+            })
+            .collect();
+        let equal_keeps_old = program
+            .tables
+            .iter()
+            .enumerate()
+            .map(|(t, v)| {
+                if program.artifact["merge_contracts"].is_null() {
+                    v.merge["call"]["table"].is_string()
+                } else {
+                    program.artifact["merge_contracts"]["tables"][t]["equal_inputs"] == "return_old"
+                }
+            })
+            .collect();
         let mut g = Self {
+            merge_kinds,equal_keeps_old,
             slot_transfer: std::env::var("CELL_CPU_SLOT_TRANSFER").as_deref().unwrap_or("off").parse()?,
             key_lookup_calls: std::cell::Cell::new(0),
             views_enabled,
@@ -529,9 +569,9 @@ impl Graph {
             reference_users: BTreeMap::new(),
             absorption_candidates: BTreeSet::new(),
             program,
-            cells: BTreeMap::new(),
+            cells: Default::default(),
             functions: vec![],
-            parents: BTreeMap::new(),
+            parents: Default::default(),
             epoch: 0,
             changed: false,
             stats: Stats::default(),
@@ -553,23 +593,23 @@ impl Graph {
             anchors: vec![],
             next_cell: 1,
             query_versions: vec![0; n],
-            query_changes: HashMap::new(),
+            query_changes: HashMap::default(),
             receipt_tracking: false,
-            receipt_forwards: HashMap::new(),
+            receipt_forwards: HashMap::default(),
             congruence_enabled,
             congruence_stats: CongruenceStats::default(),
             congruence_dirty: BTreeSet::new(),
             operators: vec![BTreeSet::new(); n],
             function_operators: vec![BTreeSet::new(); n],
-            intern: HashMap::new(),
-            function_keys: BTreeMap::new(),
-            uses: BTreeMap::new(),
-            dependencies: BTreeMap::new(),
+            intern: HashMap::default(),
+            function_keys: vec![Default::default();n],
+            uses: Default::default(),
+            dependencies: Default::default(),
             dirty: BTreeSet::new(),
             dirty_markers: BTreeSet::new(),
             dirty_facts: vec![BTreeSet::new(); n],
             deletion_epochs:vec![0;n],
-            parent_users: BTreeMap::new(),
+            parent_users: Default::default(),
             garbage: BTreeSet::new(),
         };
         let mut ids = BTreeMap::new();
@@ -635,10 +675,10 @@ impl Graph {
                 .collect::<Result<Vec<_>>>()?;
             xs.sort();
             xs.dedup();
-            return Ok(Value::Set(xs));
+            return Ok(Value::Set(xs.into()));
         }
         Ok(match string(&j["sort"])? {
-            "String" => Value::Text(string(&j["value"])?.into()),
+            "String" => Value::Text(string(&j["value"])?.to_owned().into()),
             "f64" => Value::Float(j["value"].as_i64().ok_or("f64 bits")?),
             _ => Value::Int(
                 j["value"]
@@ -656,7 +696,7 @@ impl Graph {
     fn new_cell(
         &self,
         template: usize,
-        mut values: BTreeMap<usize, Value>,
+        mut values: crate::slots::Slots,
         parent: Option<FactRef>,
     ) -> Cell {
         let columns = &self.program.templates[template].parent_columns;
@@ -681,7 +721,7 @@ impl Graph {
             started_epoch: self.epoch,
             completed: false,
             composition: None,
-            facts: BTreeMap::new(),
+            facts: Default::default(),
             recipe_depth: 0,
             providers: BTreeMap::new(),
         }
@@ -695,7 +735,7 @@ impl Graph {
         self.cells.insert(id, cell);
         self.stats.cells_created += 1;
     }
-    pub fn frame(&mut self, template: usize, values: BTreeMap<usize, Value>) -> Result<u32> {
+    pub fn frame(&mut self, template: usize, values: BTreeMap<usize,Value>) -> Result<u32> {
         self.linked_frame(template, values, None)
     }
     pub fn linked_frame(
@@ -704,18 +744,25 @@ impl Graph {
         values: BTreeMap<usize, Value>,
         parent: Option<FactRef>,
     ) -> Result<u32> {
+        self.linked_slots(template, values.into_iter().collect(), parent)
+    }
+    pub(crate) fn linked_slots(
+        &mut self,
+        template: usize,
+        values: crate::slots::Slots,
+        parent: Option<FactRef>,
+    ) -> Result<u32> {
         let id = self.reserve_cell_id()?;
         let frame = self.new_cell(template, values, parent);
         self.store_cell(id, frame);
         Ok(id)
     }
-
     /// Run the read-only prefix against live canonical constructor rows. Keep
     /// the ID sequence even on a full hit since later eclass IDs encode it.
     pub(crate) fn start_constructor_rhs(
         &mut self,
         template: usize,
-        values: BTreeMap<usize, Value>,
+        values: crate::slots::Slots,
         parent: Option<FactRef>,
         aliases: Option<&[bool]>,
     ) -> Result<Option<(u32, usize)>> {
@@ -739,7 +786,7 @@ impl Graph {
                 .map(|a| self.argument_in(id, &frame, a))
                 .collect::<Result<Vec<_>>>()?;
             self.stats.constructor_requests += 1;
-            if let Some(row) = self.lookup(table, &key)? {
+            if let Some(row) = self.lookup_canonical(table, &key)? {
                 self.stats.constructor_reused += 1;
                 frame.values.insert(dst, row.values.last().unwrap().clone());
             } else {
@@ -750,6 +797,56 @@ impl Graph {
         }
         self.stats.rhs_frames_avoided += 1;
         Ok(None)
+    }
+    pub(crate) fn apply_write(
+        &mut self,
+        template: usize,
+        values: crate::slots::Slots,
+        parent: Option<FactRef>,
+        write: &crate::row_kernel::Write,
+    ) -> Result<(u32, usize, Vec<Value>, bool)> {
+        let id = self.reserve_cell_id()?;
+        self.stats.single_writes += 1;
+        let mut frame = self.new_cell(template, values, parent);
+        for (dst, name, sort, args) in &write.prefix {
+            let args = args
+                .iter()
+                .map(|a| self.argument_in(id, &frame, a))
+                .collect::<Result<smallvec::SmallVec<[Value; 4]>>>()?;
+            let v = value::primitive(
+                name,
+                &args,
+                sort,
+                &self.program.artifact["source_core"]["structural_key"]["nodes"],
+            )?
+            .ok_or_else(|| format!("RHS primitive failed: {name}"))?;
+            frame.values.insert(*dst, v);
+        }
+        let key = write
+            .key
+            .iter()
+            .map(|a| self.argument_in(id, &frame, a))
+            .collect::<Result<Vec<_>>>()?;
+        let value = self.argument_in(id, &frame, &write.value)?;
+        let before = self.stats.function_updates;
+        let i = self.set_function_canonical(write.table, &key, value)?;
+        let changed = self.stats.function_updates != before;
+        if changed {
+            frame.completed = true;
+            frame.completed_prefix = write.op + 1;
+            self.store_cell(id, frame);
+            self.function_origin(
+                i,
+                Some(FactRef {
+                    cell: id,
+                    op: write.op as u32,
+                }),
+            );
+        } else {
+            self.stats.rhs_frames_avoided += 1;
+            self.stats.transient_writes += 1;
+        }
+        Ok((id, i, key, changed))
     }
     pub fn argument(&self, cell: u32, a: &Arg) -> Result<Value> {
         match a {
@@ -861,12 +958,15 @@ impl Graph {
         let Some(s) = c.facts.get(&f.op) else {
             return Ok(None);
         };
+        if let Some((table, values)) = &s.decoded {
+            return Ok(Some(Row { table:*table, values:values.clone(), hidden:s.hidden, epoch:s.epoch,witness:Dependency::Fact(f) }));
+        }
         if let Some(marker) = &s.marker_row {
             #[cfg(feature = "slot-transfer-audit")]
             crate::transfer_audit::row(marker.values.len());
             return Ok(Some(Row {
                 table: marker.table,
-                values: if marker.canonical {
+                values: std::rc::Rc::new(if marker.canonical {
                     marker.values.clone()
                 } else {
                     marker
@@ -874,7 +974,7 @@ impl Graph {
                         .iter()
                         .map(|v| canon(v, &self.parents))
                         .collect()
-                },
+                }),
                 hidden: s.hidden,
                 epoch: s.epoch,
                 witness: Dependency::Fact(f),
@@ -916,23 +1016,29 @@ impl Graph {
         crate::transfer_audit::row(values.len());
         Ok(Some(Row {
             table,
-            values,
+            values:std::rc::Rc::new(values),
             hidden: s.hidden,
             epoch: s.epoch,
             witness: Dependency::Fact(f),
         }))
+    }
+    fn shared_fields(key: &[Value], v: &Value) -> std::rc::Rc<Vec<Value>> {
+        let mut fields = Vec::with_capacity(key.len() + 1);
+        fields.extend_from_slice(key);
+        fields.push(v.clone());
+        std::rc::Rc::new(fields)
     }
     pub fn function(&self, i: usize) -> Option<Row> {
         let f = self.functions.get(i)?;
         if !f.live {
             return None;
         }
-        let mut values = f
-            .key
-            .iter()
-            .map(|v| canon(v, &self.parents))
-            .collect::<Vec<_>>();
-        values.push(canon(&f.value, &self.parents));
+        let values = f.decoded.clone().unwrap_or_else(|| {
+            let mut values = Vec::with_capacity(f.key.len() + 1);
+            values.extend(f.key.iter().map(|v| canon(v, &self.parents)));
+            values.push(canon(&f.value, &self.parents));
+            std::rc::Rc::new(values)
+        });
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::row(values.len());
         Some(Row {
@@ -1095,24 +1201,26 @@ impl Graph {
         self.witnesses(table)
     }
     pub fn lookup(&self, table: usize, key: &[Value]) -> Result<Option<Row>> {
-        self.key_lookup_calls.set(self.key_lookup_calls.get() + 1);
         let key = key
             .iter()
             .map(|v| canon(v, &self.parents))
             .collect::<Vec<_>>();
+        self.lookup_canonical(table, &key)
+    }
+    pub(crate) fn lookup_canonical(&self, table: usize, key: &[Value]) -> Result<Option<Row>> {
+        self.key_lookup_calls.set(self.key_lookup_calls.get() + 1);
         if !self.program.tables[table].virtual_fact {
-            return Ok(self
-                .function_keys
-                .get(&(table, key))
+            return Ok(self.function_keys[table]
+                .get(key)
                 .and_then(|i| self.function(*i)));
         }
-        let h = hashkey(table, &key);
+        let h = hashkey(table, key);
         if self.dirty_facts[table].is_empty() {
             // Matching observes a repaired snapshot. Avoid allocating/copying
             // a set on every keyed read; retain the original FactRef order.
             for &f in self.intern.get(&h).into_iter().flatten() {
                 if let Some(r) = self.fact(f)? {
-                    if r.table == table && r.values[..key.len()] == key {
+                    if r.table == table && r.values[..key.len()] == *key {
                         return Ok(Some(r));
                     }
                 }
@@ -1125,7 +1233,7 @@ impl Graph {
         refs.extend(self.dirty_facts[table].iter().copied());
         for f in refs {
             if let Some(r) = self.fact(f)? {
-                if r.table == table && r.values[..key.len()] == key {
+                if r.table == table && r.values[..key.len()] == *key {
                     return Ok(Some(r));
                 }
             }
@@ -1138,7 +1246,7 @@ impl Graph {
                 out.insert(*i);
             }
             Value::Set(xs) => {
-                for x in xs {
+                for x in xs.iter() {
                     Self::refs(x, out)
                 }
             }
@@ -1150,19 +1258,27 @@ impl Graph {
             self.query_versions[table] += 1;
             self.query_changes.insert(d, table);
         }
-        if let Some(old) = self.dependencies.remove(&d) {
-            for id in old {
-                if let Some(uses) = self.uses.get_mut(&root(&self.parents, id)) {
-                    uses.remove(&d);
-                }
-            }
-        }
         let mut refs = BTreeSet::new();
         for v in values {
-            Self::refs(&canon(v, &self.parents), &mut refs)
+            Self::refs(v, &mut refs);
         }
-        for id in &refs {
-            self.uses.entry(*id).or_default().insert(d);
+        if refs.iter().any(|v| self.parents.contains_key(v)) {
+            refs = refs.into_iter().map(|id| root(&self.parents, id)).collect();
+        }
+        if self.dependencies.get(&d) == Some(&refs) {
+            return;
+        }
+        let old = self.dependencies.remove(&d).unwrap_or_default();
+        for id in old {
+            let id = root(&self.parents, id);
+            if !refs.contains(&id)
+                && let Some(uses) = self.uses.get_mut(&id)
+            {
+                uses.remove(&d);
+            }
+        }
+        for &id in &refs {
+            self.uses.entry(id).or_default().insert(d);
         }
         self.dependencies.insert(d, refs);
     }
@@ -1175,15 +1291,15 @@ impl Graph {
         hidden: bool,
     ) -> Result<()> {
         let h = hashkey(t, key);
-        let mut vs = key.to_vec();
-        vs.push(v);
+        let vs=Self::shared_fields(key,&v);
         self.cells.get_mut(&f.cell).unwrap().facts.insert(
             f.op,
             FactState {
+                decoded: (!self.views_enabled).then(||(t,vs.clone())),
                 marker_row: (self.marker_fields_copied && self.program.views.markers.contains(&t))
                     .then(|| MarkerRow {
                         table: t,
-                        values: vs.clone(),
+                        values: vs.as_ref().clone(),
                         canonical: true,
                     }),
                 entry: None,
@@ -1257,7 +1373,7 @@ impl Graph {
             }
         }
         let skip=self.known_mode=="on" && hint.is_some();
-        let row=if skip {self.known_stats.avoided_lookups+=1;hint.clone()}else{self.lookup(t,&key)?};
+        let row=if skip {self.known_stats.avoided_lookups+=1;hint.clone()}else{self.lookup_canonical(t,&key)?};
         if self.known_mode=="observe" && let Some(value)=known_value {
             if row.as_ref().and_then(|r|r.values.last())==Some(&value){self.known_stats.observed_same_value+=1;}else{self.known_stats.observed_other_value+=1;}
         }
@@ -1433,6 +1549,14 @@ impl Graph {
     fn mark_affected(&mut self, affected: &BTreeSet<Dependency>) {
         for d in affected {
             let table = self.dependency_table(*d);
+            if let Dependency::Function(i) = d {
+                self.functions[*i].decoded = None;
+            }
+            if let Dependency::Fact(f) = d
+                && let Some(state) = self.cells.get_mut(&f.cell).and_then(|c| c.facts.get_mut(&f.op))
+            {
+                state.decoded = None;
+            }
             if let Dependency::Fact(f) = d
                 && self.views_enabled
                 && table.is_some_and(|t| self.program.views.markers.contains(&t))
@@ -1509,7 +1633,7 @@ impl Graph {
         let value = self.argument(cell, v)?;
         if !self.program.tables[t].virtual_fact {
             let before = self.stats.function_updates;
-            let index=self.set_function_inner(t, key, value)?;
+            let index=self.set_function_canonical(t,&key,value)?;
             if let Some(receipt)=receipt { *receipt=Some(Dependency::Function(index)); }
             if self.stats.function_updates != before {
                 self.function_origin(
@@ -1594,12 +1718,8 @@ impl Graph {
     }
     fn merge_value(&mut self, t: usize, old: Value, new: Value) -> Result<Value> {
         self.stats.merge_calls += 1;
-        if let Some(kind) = self.program.artifact["merge_contracts"]["tables"][t]["kind"].as_str() {
-            *self
-                .stats
-                .merge_contract_calls
-                .entry(kind.into())
-                .or_default() += 1;
+        if let Some(kind)=&self.merge_kinds[t] {
+            if let Some(n)=self.stats.merge_contract_calls.get_mut(kind){*n+=1;}else{self.stats.merge_contract_calls.insert(kind.clone(),1);}
         }
         if self.scalar_merge && let Some(plan) = self.program.physical.merges[t] {
             use crate::physical_plan::ScalarMerge;
@@ -1617,16 +1737,7 @@ impl Graph {
             return Ok(if keep_old { old } else { new });
         }
         let expr = &self.program.tables[t].merge;
-        if old == new
-            && if self.program.artifact["merge_contracts"].is_null() {
-                expr["call"]["table"].is_string()
-            } else {
-                self.program.artifact["merge_contracts"]["tables"][t]["equal_inputs"]
-                    == "return_old"
-            }
-        {
-            return Ok(old);
-        }
+        if old == new && self.equal_keeps_old[t] { return Ok(old); }
         if expr.is_null() {
             return if old == new {
                 Ok(old)
@@ -1720,32 +1831,46 @@ impl Graph {
             .map(|v| canon(&v, &self.parents))
             .collect::<Vec<_>>();
         let value = canon(&value, &self.parents);
-        let index = self.function_keys.get(&(t, key.clone())).copied();
+        self.set_function_canonical(t, &key, value)
+    }
+    fn set_function_canonical(&mut self, t: usize, key: &[Value], value: Value) -> Result<usize> {
+        let index = self.function_keys[t].get(key).copied();
         if let Some(i) = index {
             let old = canon(&self.functions[i].value, &self.parents);
             let next = self.merge_value(t, old.clone(), value)?;
             if next != old {
+                self.functions[i].decoded = Some(Self::shared_fields(key, &next));
                 self.functions[i].value = next;
                 self.functions[i].epoch = self.epoch;
                 self.changed = true;
                 self.stats.function_updates += 1;
                 self.events.push(Dependency::Function(i));
-                let row = self.function(i).unwrap();
-                self.subscribe(row.witness, &row.values);
+                // A scalar result change preserves every subscribed eclass.
+                // Publish the row version without rebuilding its reverse uses.
+                if !matches!(old, Value::Eq(_) | Value::Set(_))
+                    && !matches!(self.functions[i].value, Value::Eq(_) | Value::Set(_))
+                {
+                    self.query_versions[t] += 1;
+                    self.query_changes.insert(Dependency::Function(i), t);
+                } else {
+                    let row = self.function(i).unwrap();
+                    self.subscribe(row.witness, &row.values);
+                }
             }
             Ok(i)
         } else {
             let i = self.functions.len();
             self.functions.push(Function {
+                decoded: Some(Self::shared_fields(key, &value)),
                 table: t,
-                key: key.clone(),
+                key: key.to_vec(),
                 value,
                 epoch: self.epoch,
                 live: true,
                 origin: None,
             });
             self.function_operators[t].insert(i);
-            self.function_keys.insert((t, key), i);
+            self.function_keys[t].insert(key.to_vec(), i);
             self.changed = true;
             self.stats.function_updates += 1;
             self.events.push(Dependency::Function(i));
@@ -1821,7 +1946,7 @@ impl Graph {
                 self.query_versions[t] += 1;
                 self.query_changes.insert(row.witness, t);
                 self.function_operators[t].remove(&i);
-                self.function_keys.remove(&(t, key.to_vec()));
+                self.function_keys[t].remove(key);
                 self.subscribe(row.witness, &[]);
                 self.changed = true;
                 Ok(true)
@@ -1939,6 +2064,7 @@ impl Graph {
                             .facts
                             .get_mut(&f.op)
                             .unwrap();
+                        if !self.views_enabled {s.decoded=Some((r.table,r.values.clone()));}
                         s.hash = h;
                         s.epoch = self.epoch;
                         if let Some(marker) = &mut s.marker_row {
@@ -1955,11 +2081,11 @@ impl Graph {
                         continue;
                     };
                     let key = row.values[..row.values.len() - 1].to_vec();
-                    let oldkey = (row.table, self.functions[i].key.clone());
-                    if self.function_keys.get(&oldkey) == Some(&i) {
-                        self.function_keys.remove(&oldkey);
+                    let oldkey = &self.functions[i].key;
+                    if self.function_keys[row.table].get(oldkey) == Some(&i) {
+                        self.function_keys[row.table].remove(oldkey);
                     }
-                    if let Some(j) = self.function_keys.get(&(row.table, key.clone())).copied() {
+                    if let Some(j) = self.function_keys[row.table].get(&key).copied() {
                         if j != i {
                             let old = canon(&self.functions[j].value, &self.parents);
                             let next = self.merge_value(
@@ -1967,6 +2093,7 @@ impl Graph {
                                 old,
                                 row.values.last().unwrap().clone(),
                             )?;
+                            self.functions[j].decoded=None;
                             self.functions[j].value = next;
                             self.functions[j].epoch = self.epoch;
                             self.functions[i].live = false;
@@ -1980,10 +2107,11 @@ impl Graph {
                             continue;
                         }
                     }
+                    self.functions[i].decoded=Some(row.values.clone());
                     self.functions[i].key = key.clone();
                     self.functions[i].value = row.values.last().unwrap().clone();
                     self.functions[i].epoch = self.epoch;
-                    self.function_keys.insert((row.table, key), i);
+                    self.function_keys[row.table].insert(key, i);
                     self.subscribe(d, &row.values);
                     self.events.push(d);
                 }
@@ -2001,7 +2129,7 @@ impl Graph {
         };
         self.congruence_stats.instance_visits += 1;
         let mut pairs = vec![];
-        let mut duplicates = BTreeMap::new();
+        let mut duplicates = Parents::default();
         for group in groups.iter() {
             let mut equal = true;
             for (a, b) in &group.guards {

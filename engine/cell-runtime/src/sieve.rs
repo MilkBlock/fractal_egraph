@@ -1,12 +1,14 @@
 //! Sieve-style semijoin summaries over COMPLETE visible virtual tables.
 //! A filter is a necessary condition, never a proof that a binding exists.
 //! Interned by table/columns/dependencies, not ruleset or source variable names.
+use rustc_hash::FxHashSet as HashSet;
+use rustc_hash::FxHashMap as HashMap;
 use crate::{
     graph::{Dependency, Graph},
     program::{Arg, Call, Program, Result},
     query::QueryIndexes,
 };
-use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, VecDeque};
 use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -35,7 +37,7 @@ fn hash(xs: &[u64]) -> u64 {
     hash_projection(xs.iter().copied(), xs.len())
 }
 fn hash_projection(xs: impl Iterator<Item = u64>, len: usize) -> u64 {
-    let mut h = std::collections::hash_map::DefaultHasher::new();
+    let mut h = rustc_hash::FxHasher::default();
     len.hash(&mut h);
     for x in xs {
         x.hash(&mut h)
@@ -124,7 +126,7 @@ impl Sieve {
                 ..Stats::default()
             },
         };
-        let mut intern = HashMap::new();
+        let mut intern = HashMap::default();
         for rule in &program.rules {
             let q = &rule.query;
             let mut targets = vec![vec![]; q.len()];
@@ -230,7 +232,7 @@ impl Sieve {
                     memo.insert((from, to), (id, receiver.clone()));
                     (id, receiver)
                 }
-                let mut memo = HashMap::new();
+                let mut memo = HashMap::default();
                 for to in 0..q.len() {
                     for from in &tree[to] {
                         let (child, cols) =
@@ -417,7 +419,7 @@ mod tests {
     #[test]
     fn bloom_growth_never_loses_insertions() {
         let mut bloom = Bloom::default();
-        let mut keys = HashSet::new();
+        let mut keys = HashSet::default();
         for i in 0..200 {
             let k = vec![i, i * 17];
             keys.insert(k.clone());
