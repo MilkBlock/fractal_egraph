@@ -1460,3 +1460,172 @@ fn switched_rhs_carries_a_two_run_old_fact_and_restarts_on_a_deleted_sibling() {
     raw["iterative_bake"]["rhs_handoffs"]["max_back"] = 99.into();
     assert!(Program::parse(raw).is_err());
 }
+
+#[test]
+fn keyed_context_tracks_correlated_ports_and_late_terminal_deltas() {
+    use eggfuse_cell_runtime::{checksum::artifact_digest, program::Program};
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("context.egg");
+    let out = tmp.path().join("compiled");
+    let program = out.join("program.json");
+    fs::write(
+        &src,
+        r#"
+(datatype E (N i64) (Hub E E) (End i64 E))
+(relation Edge (E E))
+(function Kind (E) i64 :merge (max old new))
+(relation Hit (E E i64 E))
+(ruleset observe) (ruleset link) (ruleset grow) (ruleset cut) (ruleset fix)
+(rule ((Edge b k) (= e (End i k)) (= typ (Kind a)) (= h (Hub a b)) (Edge a left))
+      ((Hit h left typ e)) :ruleset observe :name "observe-context")
+(rule ((= x (N 2))) ((Edge x (N 7))) :ruleset link)
+(rule ((= x (N 7))) ((End 11 x)) :ruleset grow)
+(rule ((= x (N 2))) ((delete (Edge x (N 7)))) :ruleset cut)
+(rule ((= x (N 2))) ((union (N 7) (N 8)) (Edge x (N 8)) (set (Kind (N 1)) 9)) :ruleset fix)
+(Hub (N 1) (N 2)) (Hub (N 3) (N 4))
+(Edge (N 1) (N 21)) (Edge (N 1) (N 22)) (Edge (N 3) (N 23)) (Edge (N 4) (N 8))
+(set (Kind (N 1)) 4) (set (Kind (N 3)) 5)
+(End 1 (N 7)) (End 2 (N 8)) (End 3 (N 7))
+(run-schedule (seq (run observe) (run link) (run observe) (run grow) (run observe)
+                   (run cut) (run observe) (run fix) (run observe)))
+(check (Hit (Hub (N 1) (N 2)) (N 21) 9 (End 11 (N 7)))
+       (Hit (Hub (N 1) (N 2)) (N 22) 4 (End 1 (N 7)))
+       (Hit (Hub (N 3) (N 4)) (N 23) 5 (End 2 (N 8))))
+"#,
+    )
+    .unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        src.to_str().unwrap(),
+        "--emit-free-join-entry",
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let pg = json_file(&program);
+    let rule = pg["recipe"]["rules"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|r| r["metadata"]["name"] == "observe-context")
+        .unwrap();
+    let plan = &pg["local_contexts"][rule];
+    let atoms = &pg["recipe"]["rules"][rule]["query"];
+    assert_eq!(
+        atoms[plan["root"].as_u64().unwrap() as usize]["call"]["table"],
+        "Hub"
+    );
+    assert_eq!(
+        atoms[plan["tail"].as_u64().unwrap() as usize]["call"]["table"],
+        "End"
+    );
+    let run = |artifact: &Path| -> J {
+        let o = pass(&[
+            "bench",
+            "--program",
+            artifact.to_str().unwrap(),
+            "--lane",
+            "free-join-planned",
+            "--modules",
+            "local-context",
+            "--repeat",
+            "1",
+            "--verify-stages",
+        ]);
+        serde_json::from_slice(&o.stdout).unwrap()
+    };
+    let result = run(&program);
+    let stats = &result["counts"]["local_context"]["rules"][rule.to_string()];
+    for k in [
+        "calls",
+        "root_reuses",
+        "delta_terminal_rows",
+        "full_terminal_rows",
+        "bindings",
+    ] {
+        assert!(stats[k].as_u64().unwrap() > 0, "{k} in {stats}");
+    }
+    assert!(stats["peak_prefix_rows"].as_u64().unwrap() > stats["peak_roots"].as_u64().unwrap());
+    let stages = |on: &str| {
+        let o = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+            .arg("internal-stages")
+            .arg(&program)
+            .env("CELL_CPU_HASH_BITS", "0")
+            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
+            .env("CELL_CPU_LOCAL_CONTEXT", on)
+            .output()
+            .unwrap();
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+        o.stdout
+    };
+    assert_eq!(stages("0"), stages("1"));
+    let mut corrupt = pg.clone();
+    corrupt["local_contexts"][rule]["root"] = corrupt["local_contexts"][rule]["tail"].clone();
+    assert!(Program::parse(corrupt).is_err());
+    let mut legacy = pg;
+    legacy.as_object_mut().unwrap().remove("local_contexts");
+    legacy.as_object_mut().unwrap().remove("sha256");
+    legacy["sha256"] = json!(artifact_digest(&legacy));
+    let old = tmp.path().join("legacy.json");
+    fs::write(&old, serde_json::to_vec(&legacy).unwrap()).unwrap();
+    assert_eq!(result["counts"], run(&old)["counts"]);
+}
+
+#[test]
+fn wide_context_falls_back_and_recovers_after_a_port_shrinks() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("budget.egg");
+    let out = tmp.path().join("compiled");
+    let edges = (0..65)
+        .map(|i| format!("(Side (N 1) {i}) (Side (N 2) {i})"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let trim = (0..8)
+        .map(|i| format!("(delete (Side a {i}))"))
+        .collect::<Vec<_>>()
+        .join(" ");
+    fs::write(
+        &src,
+        format!(
+            r#"
+(datatype E (N i64) (Hub E E) (End i64 i64))
+(relation Side (E i64)) (relation Ready (E)) (relation Hit (E i64 E))
+(ruleset see) (ruleset trim) (ruleset grow)
+(rule ((= h (Hub a b)) (Ready a) (Side a x) (Side b k) (= e (End i k))) ((Hit h x e)) :ruleset see)
+(rule ((= a (N 2))) ({trim}) :ruleset trim)
+(rule ((= a (N 1))) ((End 99 64)) :ruleset grow)
+(Ready (N 1)) (Hub (N 1) (N 2)) (End 1 1) {edges}
+(run-schedule (seq (run see) (run trim) (run see) (run grow) (run see)))
+(check (Hit (Hub (N 1) (N 2)) 64 (End 1 1)) (Hit (Hub (N 1) (N 2)) 0 (End 99 64)))
+"#
+        ),
+    )
+    .unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        src.to_str().unwrap(),
+        "--emit-free-join-entry",
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let program = out.join("program.json");
+    let o = pass(&[
+        "bench",
+        "--program",
+        program.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--modules",
+        "local-context",
+        "--repeat",
+        "1",
+        "--verify-stages",
+    ]);
+    let report: J = serde_json::from_slice(&o.stdout).unwrap();
+    let ctx = &report["counts"]["local_context"];
+    let stats = ctx["rules"].as_object().unwrap().values().next().unwrap();
+    assert_eq!(stats["fallbacks"], 1);
+    assert!(stats["calls"].as_u64().unwrap() > 0);
+    assert_eq!(stats["peak_prefix_rows"], 65 * 57);
+}

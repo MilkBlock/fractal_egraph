@@ -708,13 +708,13 @@ fn storage(n: &Node) -> (usize, usize, usize) {
     }
     result
 }
-fn operand(a: &Arg, input: &[Option<Value>], g: &Graph) -> Option<Value> {
+pub(crate) fn operand(a: &Arg, input: &[Option<Value>], g: &Graph) -> Option<Value> {
     match a {
         Arg::Literal(v) => Some(canon(v, &g.parents)),
         Arg::Slot(i) => input[*i].clone(),
     }
 }
-fn bind(a: &Arg, v: &Value, input: &mut [Option<Value>], g: &Graph) -> bool {
+pub(crate) fn bind(a: &Arg, v: &Value, input: &mut [Option<Value>], g: &Graph) -> bool {
     match a {
         Arg::Literal(x) => canon(x, &g.parents) == *v,
         Arg::Slot(i) => match &input[*i] {

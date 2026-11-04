@@ -93,3 +93,5 @@ The follow-up routes only live, certified rule entries to Spine and restores ear
 The producer slot transfer experiment measures physical Row decodes, binding copies and parent-backed RHS frames. [Slot transfer ablation](SLOT_TRANSFER.md)
 
 The [Spine combination study](SPINE_SHAPES.md) measures applied cursor lineages and transfers precompiled consumer blocks between frozen Pass 3 programs.
+
+For queries with a small constructor root, keyed ports and a wide terminal, the compiler can retain the correlated prefix across Runs. [Local context ablation on Raytrace and sum-bits](LOCAL_CONTEXT.md)

@@ -232,6 +232,8 @@ pub fn compile_with_entry(
     }
     let mut j = json!({"schema":"eggfuse-cell-runtime/v1","initial":core["initial"],"requirements":recipe::requirements(&core),"source_core":core,"recipe":ir,"templates":templates,"contract":{"storage":"shared effect recipes plus instance slots and fact-position masks","native_runtime_dependency":false,"native_free_join":false,"completeness":"exact residual virtual-fact matching; no learned exclusion"}});
     let p = Program::load(j, true)?;
+    let multi = multistage(&p);
+    let contexts = crate::local_context::derive(&p, &multi["stage_entries"]);
     let plans = [
         ("single_writes",json!(&p.writes)),
         ("row_kernels",json!(&p.kernels)),
@@ -243,7 +245,8 @@ pub fn compile_with_entry(
         ("known_results", crate::known_results::Plans::derive(&p)?.1),
         ("entry_schedule", crate::entry_schedule::Plan::derive(&p)?.1),
         ("merge_programs", crate::merge_programs::compile(&p)?),
-        ("multi_stage", multistage(&p)),
+        ("multi_stage", multi),
+        ("local_contexts", json!(contexts)),
         ("reference_views", views(&p, markers)?),
         ("congruence", crate::congruence::compile(&p)?),
     ];
