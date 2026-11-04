@@ -906,7 +906,17 @@ impl Programs {
             let order = &self.orders[&(rid, pivot)];
             // Only the owner of the actual committed pivot can back RHS slots.
             // A different cell may have proposed the same canonical anchor.
-            let source = if g.slot_transfer && !g.views_enabled {
+            let parent = g.slot_transfer.parent_routes() && rule.direct == Some(pivot);
+            let siblings = g.slot_transfer.sibling_routes() && !order.is_empty();
+            #[cfg(feature = "slot-transfer-audit")]
+            let proof_sample = if (parent || siblings) && !g.views_enabled {
+                crate::transfer_audit::Sample::begin(crate::transfer_audit::Region::SpineProof)
+            } else {
+                None
+            };
+            let source = if (parent || siblings) && !g.views_enabled {
+                #[cfg(feature = "slot-transfer-audit")]
+                crate::transfer_audit::count(|c| c.spine_owner_checks += 1);
                 match row.witness {
                     Dependency::Fact(f)
                         if g.cells.get(&f.cell).is_some_and(|c| {
@@ -926,6 +936,8 @@ impl Programs {
             };
             let route = source
                 .and_then(|f| {
+                    #[cfg(feature = "slot-transfer-audit")]
+                    crate::transfer_audit::count(|c| c.spine_route_lookups += 1);
                     g.program.multi_stage.routes.get(&(
                         g.program.rules[cursor.producer].template,
                         f.op as usize,
@@ -934,12 +946,16 @@ impl Programs {
                     ))
                 })
                 .cloned();
-            let parameter_parent = source.filter(|_| route.is_some() && rule.direct == Some(pivot));
-            let local_route = if order.is_empty() {
+            #[cfg(feature = "slot-transfer-audit")]
+            crate::transfer_audit::count(|c| c.spine_route_hits += u64::from(route.is_some()));
+            let parameter_parent = source.filter(|_| parent && route.is_some());
+            let local_route = if !siblings {
                 None
             } else {
                 route.and_then(|r| g.continuation_context(row.witness).map(|c| (c, r)))
             };
+            #[cfg(feature = "slot-transfer-audit")]
+            drop(proof_sample);
             let mut wired = false;
             let mut trail = Vec::new();
             for &i in order {

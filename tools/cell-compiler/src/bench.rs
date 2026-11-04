@@ -1,7 +1,7 @@
 use super::*;
 use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::time::Instant;
-type ModuleFlags<'a> = BTreeMap<&'a str, (&'static str, &'static str)>;
+type ModuleFlags<'a> = BTreeMap<&'a str, (&'static str, &'a str)>;
 
 fn lane_process(lane: &str, modules: &ModuleFlags<'_>) -> Result<Command> {
     let mut cmd = Command::new(std::env::current_exe()?);
@@ -48,6 +48,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             "--repeat",
             "--lane",
             "--modules",
+            "--slot-transfer",
         ],
     )?;
     let mut modules = BTreeMap::new();
@@ -67,6 +68,18 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             if modules.insert(name, flag).is_some() {
                 return Err(format!("duplicate bench module {name:?}").into());
             }
+        }
+    }
+    if let Some(mode) = opts.get("--slot-transfer") {
+        mode.parse::<eggfuse_cell_runtime::graph::SlotTransfer>()?;
+        if modules
+            .insert("slot-transfer", ("CELL_CPU_SLOT_TRANSFER", mode.as_str()))
+            .is_some()
+        {
+            return Err(
+                "select slot transfer using either --slot-transfer or --modules slot-transfer"
+                    .into(),
+            );
         }
     }
     let n = opts
@@ -127,7 +140,12 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
         } else {
             "baseline"
         };
-        let baseline = stages(control, &BTreeMap::new())?;
+        let mut control_modules = BTreeMap::new();
+        if opts.contains_key("--slot-transfer") {
+            control_modules = modules.clone();
+            control_modules.remove("slot-transfer");
+        }
+        let baseline = stages(control, &control_modules)?;
         let candidate = stages(lane, &modules)?;
         if baseline != candidate {
             let first = baseline
@@ -212,6 +230,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "cells_created": g.cells_created,
             "rhs_frames_avoided": g.rhs_frames_avoided,
             "slot_transfer": g.slot_transfer,
+            "slot_transfer_mode": e.graph.slot_transfer,
             "free_join": r["free_join"],
             "runs": e.steps.len()
         });

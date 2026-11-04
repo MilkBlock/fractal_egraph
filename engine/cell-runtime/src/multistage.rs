@@ -140,6 +140,10 @@ impl LocalRead {
         expected: Option<crate::graph::Dependency>,
     ) -> Result<Option<(crate::graph::Dependency, u64)>> {
         use crate::graph::{Dependency, FactRef};
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::count(|c| c.sibling_wire_attempts += 1);
+        #[cfg(feature = "slot-transfer-audit")]
+        let _wire_sample = crate::transfer_audit::Sample::begin(crate::transfer_audit::Region::SiblingWire);
         if g.views_enabled
             || !ctx.completed
             || pivot

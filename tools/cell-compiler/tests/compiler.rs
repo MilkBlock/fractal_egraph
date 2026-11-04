@@ -976,27 +976,74 @@ fn producer_slots_follow_run_order_and_reject_changed_wiring() {
         out.to_str().unwrap(),
     ]);
     let program = out.join("program.json");
-    let bench = |path: &Path| {
-        let output = pass(&[
+    let bench = |path: &Path, mode: &str| {
+        let mut args = vec![
             "bench",
             "--program",
             path.to_str().unwrap(),
             "--lane",
             "free-join-planned",
-            "--modules",
-            "stage-spine,slot-transfer",
             "--verify-stages",
             "--repeat",
             "1",
-        ]);
-        serde_json::from_slice::<J>(&output.stdout).unwrap()
+        ];
+        if mode == "legacy" {
+            args.extend(["--modules", "stage-spine,slot-transfer"]);
+        } else {
+            args.extend(["--modules", "stage-spine", "--slot-transfer", mode]);
+        }
+        serde_json::from_slice::<J>(&pass(&args).stdout).unwrap()
     };
-    let compiled = bench(&program);
+    for (modules, mode) in [("stage-spine", "typo"), ("slot-transfer", "parent")] {
+        assert!(
+            !command(&[
+                "bench",
+                "--program",
+                program.to_str().unwrap(),
+                "--modules",
+                modules,
+                "--slot-transfer",
+                mode
+            ])
+            .status
+            .success()
+        );
+    }
+    let compiled = bench(&program, "legacy");
     let counts = &compiled["counts"]["slot_transfer"];
     assert!(counts["spine_atoms"].as_u64().unwrap() > 0);
     assert!(counts["sealed_moves"].as_u64().unwrap() > 0);
     assert!(counts["rhs_parent_bindings"].as_u64().unwrap() > 0);
 
+    for mode in [
+        "off",
+        "siblings",
+        "parent",
+        "both",
+        "local-only",
+        "parent-check",
+        "parent-owned",
+    ] {
+        let trial = bench(&program, mode);
+        assert_eq!(trial["final_state_sha256"], compiled["final_state_sha256"]);
+        assert_eq!(trial["counts"]["slot_transfer_mode"], mode);
+        let actual = &trial["counts"]["slot_transfer"];
+        let spine_wires = matches!(mode, "siblings" | "both");
+        let eligible_parents = matches!(mode, "parent" | "both" | "parent-check" | "parent-owned");
+        assert_eq!(
+            actual["spine_atoms"].as_u64().unwrap() > 0,
+            spine_wires,
+            "{mode}"
+        );
+        assert_eq!(
+            actual["rhs_parent_bindings"].as_u64().unwrap() > 0,
+            eligible_parents,
+            "{mode}"
+        );
+        if mode == "both" {
+            assert_eq!(trial["counts"], compiled["counts"]);
+        }
+    }
     let mut raw = json_file(&program);
     let mut tampered = raw.clone();
     let corrupt_first_assignment = |plan: &mut J| {
@@ -1030,7 +1077,7 @@ fn producer_slots_follow_run_order_and_reject_changed_wiring() {
     raw["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&raw));
     let legacy = tmp.path().join("legacy.json");
     fs::write(&legacy, serde_json::to_vec(&raw).unwrap()).unwrap();
-    let derived = bench(&legacy);
+    let derived = bench(&legacy, "both");
     assert_eq!(compiled["counts"], derived["counts"]);
     assert_eq!(
         compiled["final_state_sha256"],

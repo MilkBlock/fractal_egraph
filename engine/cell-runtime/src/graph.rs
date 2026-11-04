@@ -182,8 +182,43 @@ pub struct SlotTransferStats {
     pub inputs_moved: u64,
     pub sealed_moves: u64,
 }
+/// All lanes share the same Run barrier. The last three are timing controls.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SlotTransfer {
+    Off,
+    Siblings,
+    Parent,
+    Both,
+    LocalOnly,
+    ParentCheck,
+    ParentOwned,
+}
+impl std::str::FromStr for SlotTransfer {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self> {
+        match s {
+            "0" | "off" => Ok(Self::Off),
+            "siblings" => Ok(Self::Siblings),
+            "parent" => Ok(Self::Parent),
+            "1" | "both" => Ok(Self::Both),
+            "local-only" => Ok(Self::LocalOnly),
+            "parent-check" => Ok(Self::ParentCheck),
+            "parent-owned" => Ok(Self::ParentOwned),
+            _ => Err(format!("unknown slot transfer mode {s:?}")),
+        }
+    }
+}
+impl SlotTransfer {
+    pub(crate) fn sibling_routes(self) -> bool {
+        matches!(self, Self::Siblings | Self::Both)
+    }
+    pub(crate) fn parent_routes(self) -> bool {
+        matches!(self, Self::Parent | Self::Both | Self::ParentCheck | Self::ParentOwned)
+    }
+}
 pub struct Graph {
-    pub(crate) slot_transfer: bool,
+    pub slot_transfer: SlotTransfer,
     pub known_mode:String,
     pub known_stats:crate::known_results::Stats,
     pub merge_programs_enabled: bool,
@@ -482,7 +517,7 @@ impl Graph {
         let congruence_enabled = std::env::var("CELL_CPU_CONGRUENCE").as_deref() == Ok("1")
             && program.congruence.reorder_safe;
         let mut g = Self {
-            slot_transfer: std::env::var("CELL_CPU_SLOT_TRANSFER").as_deref() == Ok("1"),
+            slot_transfer: std::env::var("CELL_CPU_SLOT_TRANSFER").as_deref().unwrap_or("off").parse()?,
             key_lookup_calls: std::cell::Cell::new(0),
             views_enabled,
             marker_fields_copied,
@@ -626,7 +661,9 @@ impl Graph {
     ) -> Cell {
         let columns = &self.program.templates[template].parent_columns;
         let parent = parent.filter(|_| !columns.is_empty());
-        if parent.is_some() {
+        // The owned control retains the very same parents, with a copy of
+        // each projected parameter available in the existing owned slot map.
+        if parent.is_some() && self.slot_transfer != SlotTransfer::ParentOwned {
             for slot in columns.keys() {
                 #[cfg(feature = "slot-transfer-audit")]
                 crate::transfer_audit::count(|c| c.parent_projected_fields += u64::from(values.contains_key(slot)));
@@ -651,6 +688,8 @@ impl Graph {
     }
     fn store_cell(&mut self, id: u32, cell: Cell) {
         if let Some(parent) = cell.parent {
+            #[cfg(feature = "slot-transfer-audit")]
+            crate::transfer_audit::count(|c| c.stored_parent_frames += 1);
             self.retain_reference(parent);
         }
         self.cells.insert(id, cell);
@@ -730,6 +769,20 @@ impl Graph {
     }
     fn slot_in(&self, cell: u32, c: &Cell, i: usize) -> Result<Value> {
         if let Some(v) = c.values.get(&i) {
+            #[cfg(feature = "slot-transfer-audit")]
+            if self.slot_transfer == SlotTransfer::ParentOwned
+                && let Some(parent) = c.parent
+                && let Some(&col) = self.program.templates[c.template].parent_columns.get(&i)
+            {
+                let sample = crate::transfer_audit::Sample::read(true);
+                let compare = sample.as_ref().is_some_and(|s| s.sampled());
+                let value = canon(v, &self.parents);
+                drop(sample);
+                if compare {
+                    crate::transfer_audit::check_parent(&value, || self.fact_column(parent, col))?;
+                }
+                return Ok(value);
+            }
             return Ok(canon(v, &self.parents));
         }
         if let Some(&(atom, col)) = self
@@ -748,6 +801,10 @@ impl Graph {
         }
         let t = &self.program.templates[c.template];
         if let (Some(parent), Some(&col)) = (c.parent, t.parent_columns.get(&i)) {
+            #[cfg(feature = "slot-transfer-audit")]
+            crate::transfer_audit::parent_read();
+            #[cfg(feature = "slot-transfer-audit")]
+            let _read = crate::transfer_audit::Sample::read(false);
             return self.fact_column(parent, col);
         }
         let op = &t.ops[*t.defs.get(&i).ok_or("unready slot")?];

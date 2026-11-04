@@ -1184,7 +1184,8 @@ impl Executor {
             } else {
                 None
             };
-            if self.graph.slot_transfer
+            if (self.graph.slot_transfer.sibling_routes()
+                || self.graph.slot_transfer == SlotTransfer::LocalOnly)
                 && let Some((witness, stamp)) = read.wire(
                     &mut self.graph, context, seed.witness, &mut env.values, &mut env.trail, expected,
                 )?
@@ -1207,6 +1208,8 @@ impl Executor {
             if let Some(op) = read.effect {
                 let f = self.graph.context_fact(context, op);
                 if expected.is_none_or(|w| w == Dependency::Fact(f)) {
+                    #[cfg(feature = "slot-transfer-audit")]
+                    let _row_sample = crate::transfer_audit::Sample::begin(crate::transfer_audit::Region::SiblingFallback);
                     if let Some(row) = self.graph.fact(f)? {
                         if !row.hidden
                             && row.table == read.table
@@ -1592,7 +1595,8 @@ impl Executor {
                     }
                     Binding {
                         values: rule.inputs.iter().copied().zip(a.values).collect(),
-                        witnesses, known, composition: None, parent: a.parameter_parent,
+                        witnesses, known, composition: None,
+                        parent: a.parameter_parent.filter(|_| self.graph.slot_transfer != SlotTransfer::ParentCheck),
                         continuation: None, epoch: a.epoch, compiled: true,
                     }
                 }).collect();
@@ -1989,6 +1993,8 @@ impl Executor {
         Ok(unique.into_values().collect())
     }
     fn apply(&mut self, rid: usize, b: Binding) -> Result<Option<Produced>> {
+        #[cfg(feature = "slot-transfer-audit")]
+        let _rhs = crate::transfer_audit::RhsScope::enter();
         let stage_cursor=self.stage_spine.begin_step(&self.graph.program,rid,&b.values,&self.current_stage,self.graph.epoch);
         let stage_counts=stage_cursor.as_ref().map(|_|(self.graph.stats.constructor_requests,self.graph.stats.function_updates,self.graph.stats.union_requests));
         let template = self.graph.program.rules[rid].template;

@@ -66,3 +66,5 @@ for case_name in sum-bits raytrace; do
   cat "out/audit-$case_name-0/copies.json" "out/audit-$case_name-1/copies.json"
 done
 ```
+
+A follow-up isolates sibling routing, parent qualification and parent-backed frame reads in a seven-lane [cost ablation](SLOT_PATHS.md).

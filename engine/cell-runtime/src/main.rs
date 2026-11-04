@@ -122,6 +122,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         eggfuse_cell_runtime::transfer_audit::set_active(false);
         std::fs::write(
+            out.join("cost-samples.json"),
+            serde_json::to_vec(&eggfuse_cell_runtime::transfer_audit::costs())?,
+        )?;
+        std::fs::write(
             out.join("copies.json"),
             serde_json::to_vec(&eggfuse_cell_runtime::transfer_audit::counts())?,
         )?;
