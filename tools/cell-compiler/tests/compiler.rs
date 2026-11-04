@@ -516,3 +516,95 @@ fn benchmark_modules_report_effective_congruence_and_compose() {
         assert!(!run(invalid).status.success());
     }
 }
+
+#[test]
+fn spine_routes_live_witnesses_and_plans_the_rest_of_the_same_query() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("routed.egg");
+    // A(1) comes from a committed producer. Bootstrap A(2) shares its pivot
+    // but has no cursor. A(99) gains a partner only after A(1) is retired.
+    fs::write(
+        &src,
+        r#"(relation Input (i64))
+(relation A (i64))
+(relation B (i64))
+(relation Hit (i64))
+(ruleset publish)
+(ruleset consume)
+(ruleset later)
+(rule ((Input x)) ((A x)) :ruleset publish)
+(rule ((A x) (B x)) ((Hit x)) :ruleset consume)
+(rule ((Input x)) ((B 99) (delete (A x))) :ruleset later)
+(Input 1)
+(A 2) (A 99)
+(B 1) (B 2)
+(run-schedule (seq (run publish) (run consume) (run later) (run consume)))
+(check (Hit 1) (Hit 2) (Hit 99))
+"#,
+    )
+    .unwrap();
+    let out = tmp.path().join("artifact");
+    pass(&[
+        "compile",
+        "--emit-free-join-entry",
+        "--source",
+        src.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let pg = out.join("program.json");
+    let run = pass(&[
+        "bench",
+        "--program",
+        pg.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--modules",
+        "stage-spine",
+        "--repeat",
+        "2",
+        "--verify-stages",
+    ]);
+    let report: J = serde_json::from_slice(&run.stdout).unwrap();
+    let counts = &report["counts"];
+    let spine = &counts["stage_spine"];
+    assert!(spine["mixed_routed_queries"].as_u64().unwrap() > 0);
+    assert!(spine["resumed_steps"].as_u64().unwrap() > 0);
+    assert!(counts["free_join"]["entry_probes"].as_u64().unwrap() > 0);
+    assert_eq!(
+        counts["consumer_seed_deliveries"].as_u64().unwrap(),
+        spine["routed_spine_seeds"].as_u64().unwrap()
+            + spine["routed_matcher_seeds"].as_u64().unwrap()
+    );
+    let stages = |enabled: &str, join: &str, sieve: &str, shared: &str| {
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"));
+        for (key, _) in std::env::vars_os() {
+            if key.to_string_lossy().starts_with("CELL_CPU_") {
+                cmd.env_remove(key);
+            }
+        }
+        let run = cmd
+            .args(["internal-stages", pg.to_str().unwrap()])
+            .env("CELL_CPU_SHARED_NODE_SCHEDULE", shared)
+            .env("CELL_CPU_SIEVE", sieve)
+            .env("CELL_CPU_JOIN_INTERSECTION", "1")
+            .env("CELL_CPU_FREE_JOIN", join)
+            .env("CELL_CPU_HASH_BITS", "0")
+            .env("CELL_CPU_STAGE_SPINE", enabled)
+            .env("CELL_CPU_STAGE_SPINE_RECEIPTS", "1")
+            .output()
+            .unwrap();
+        assert!(
+            run.status.success(),
+            "{}",
+            String::from_utf8_lossy(&run.stderr)
+        );
+        run.stdout
+    };
+    for (join, sieve, shared) in [("planned", "1", "1"), ("0", "0", "1"), ("1", "1", "0")] {
+        assert_eq!(
+            stages("0", join, sieve, shared),
+            stages("1", join, sieve, shared)
+        );
+    }
+}

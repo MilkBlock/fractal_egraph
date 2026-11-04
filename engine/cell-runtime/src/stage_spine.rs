@@ -57,6 +57,9 @@ pub struct Stats {
     missing_capture_rows: u64,
     anchors_retired: u64,
     query_attempts: u64,
+    routed_spine_seeds: u64,
+    routed_matcher_seeds: u64,
+    mixed_routed_queries: u64,
     query_takeovers: u64,
     partial_queries: u64,
     pivot_candidates: u64,
@@ -555,12 +558,7 @@ impl Programs {
         pending: &BTreeSet<Dependency>,
         watermark: u64,
     ) -> Result<Option<Coverage>> {
-        if !self.enabled
-            || !self
-                .consumer_tables
-                .get(&rid)
-                .is_some_and(|tables| tables.iter().any(|t| self.active_tables.contains_key(t)))
-        {
+        if !self.active_for_rule(rid) {
             return Ok(None);
         }
         let clock = Instant::now();
@@ -596,7 +594,7 @@ impl Programs {
                     if self.entries.contains_key(&w) && self.orders.contains_key(&(rid, pivot)) {
                         eligible.insert(pivot);
                     } else {
-                        self.fallback(rid, pivot);
+                        self.record_fallbacks(rid, pivot, 1);
                         if complete {
                             self.stats.uncovered_queries += 1;
                         }
@@ -648,7 +646,7 @@ impl Programs {
                     .filter(|_| self.orders.contains_key(&(rid, pivot)))
                     .cloned()
                 else {
-                    self.fallback(rid, pivot);
+                    self.record_fallbacks(rid, pivot, 1);
                     self.stats.uncovered_queries += 1;
                     return Ok(None);
                 };
@@ -658,6 +656,28 @@ impl Programs {
         }
         self.finish_answers(g, rid, ready, covered, complete, watermark)
     }
+    pub(crate) fn active_for_rule(&self, rid: usize) -> bool {
+        self.enabled
+            && self
+                .consumer_tables
+                .get(&rid)
+                .is_some_and(|tables| tables.iter().any(|t| self.active_tables.contains_key(t)))
+    }
+
+    /// A live cursor only owns this pivot if the compiler supplied an exhaustive
+    /// functional-key order for it. Other witnesses of the same table can fall back.
+    pub(crate) fn scheduled_cursors(
+        &self,
+        rid: usize,
+        pivot: usize,
+        table: usize,
+    ) -> Option<&HashMap<Dependency, Cursor>> {
+        (self.enabled
+            && self.active_tables.contains_key(&table)
+            && self.orders.contains_key(&(rid, pivot)))
+        .then_some(&self.entries)
+    }
+
     pub fn answers_scheduled(
         &mut self,
         g: &mut Graph,
@@ -665,57 +685,71 @@ impl Programs {
         seeds: &[Seed],
         watermark: u64,
     ) -> Result<Option<Coverage>> {
-        if !self.enabled
-            || !self
-                .consumer_tables
-                .get(&rid)
-                .is_some_and(|tables| tables.iter().any(|t| self.active_tables.contains_key(t)))
-        {
+        if !self.active_for_rule(rid) {
             return Ok(None);
         }
-        let clock = Instant::now();
-        let result = self.scheduled_inner(g, rid, seeds, watermark);
-        self.stats.query_seconds += clock.elapsed().as_secs_f64();
-        result
+        // This API also certifies an externally supplied empty domain. The
+        // scheduler's routed API only reports takeovers for delivered seeds.
+        if seeds.is_empty() {
+            self.stats.query_attempts += 1;
+            return self.finish_answers(g, rid, Vec::new(), BTreeSet::new(), true, watermark);
+        }
+        let mut routes = Vec::new();
+        for (i, seed) in seeds.iter().enumerate() {
+            let row = &seed.packet.row;
+            if let Some(cursor) = self
+                .scheduled_cursors(rid, seed.atom, row.table)
+                .and_then(|c| c.get(&row.witness))
+            {
+                routes.push((i, cursor.clone()));
+            } else {
+                self.record_fallbacks(rid, seed.atom, 1);
+            }
+        }
+        self.answers_routed(g, rid, seeds, routes, watermark)
     }
-    fn scheduled_inner(
+
+    pub(crate) fn answers_routed(
         &mut self,
         g: &mut Graph,
         rid: usize,
         seeds: &[Seed],
+        mut routes: Vec<(usize, Cursor)>,
         watermark: u64,
     ) -> Result<Option<Coverage>> {
-        self.stats.query_attempts += 1;
-        let mut ready = vec![];
-        let mut covered = BTreeSet::new();
-        let mut complete = true;
-        // Preserve the legacy depth tie-break order across different pivots.
-        let mut seeds = seeds.iter().collect::<Vec<_>>();
-        seeds.sort_by_key(|s| (s.packet.row.witness, s.atom));
-        for seed in seeds {
-            let pivot = seed.atom;
-            let w = seed.packet.row.witness;
-            if let Some(cursor) = self
-                .entries
-                .get(&w)
-                .filter(|_| self.orders.contains_key(&(rid, pivot)))
-            {
-                covered.insert((pivot, w));
-                ready.push((
-                    pivot,
-                    seed.packet.row.clone(),
-                    Inputs::shared(seed.clone()),
-                    cursor.clone(),
-                ));
-            } else {
-                self.fallback(rid, pivot);
-                if complete {
-                    self.stats.uncovered_queries += 1;
-                }
-                complete = false;
-            }
+        self.stats.routed_spine_seeds += routes.len() as u64;
+        self.stats.routed_matcher_seeds += (seeds.len() - routes.len()) as u64;
+        if !self.active_for_rule(rid) {
+            return Ok(None);
         }
-        self.finish_answers(g, rid, ready, covered, complete, watermark)
+        self.stats.query_attempts += 1;
+        if routes.is_empty() {
+            self.stats.uncovered_queries += u64::from(!seeds.is_empty());
+            return Ok(None);
+        }
+        let clock = Instant::now();
+        let complete = routes.len() == seeds.len();
+        if !complete {
+            self.stats.mixed_routed_queries += 1;
+            self.stats.uncovered_queries += 1;
+        }
+        // Equal-depth continuations retain the original witness/atom tie break.
+        routes.sort_unstable_by_key(|(i, _)| (seeds[*i].packet.row.witness, seeds[*i].atom));
+        let mut covered = BTreeSet::new();
+        let mut ready = Vec::with_capacity(routes.len());
+        for (i, cursor) in routes {
+            let seed = &seeds[i];
+            covered.insert((seed.atom, seed.packet.row.witness));
+            ready.push((
+                seed.atom,
+                seed.packet.row.clone(),
+                Inputs::shared(seed.clone()),
+                cursor,
+            ));
+        }
+        let result = self.finish_answers(g, rid, ready, covered, complete, watermark);
+        self.stats.query_seconds += clock.elapsed().as_secs_f64();
+        result
     }
     fn finish_answers(
         &mut self,
@@ -937,13 +971,16 @@ impl Programs {
             valid
         }
     }
-    fn fallback(&mut self, rid: usize, pivot: usize) {
-        self.stats.fallback_pivots += 1;
-        *self.stats.fallback_by_rule.entry(rid).or_default() += 1;
+    pub(crate) fn record_fallbacks(&mut self, rid: usize, pivot: usize, count: u64) {
+        if count == 0 {
+            return;
+        }
+        self.stats.fallback_pivots += count;
+        *self.stats.fallback_by_rule.entry(rid).or_default() += count;
         if self.orders.contains_key(&(rid, pivot)) {
-            self.stats.missing_context_pivots += 1;
+            self.stats.missing_context_pivots += count;
         } else {
-            self.stats.unsupported_key_pivots += 1;
+            self.stats.unsupported_key_pivots += count;
         }
     }
     pub fn effects(&mut self, constructors: u64, updates: u64, unions: u64) {

@@ -1415,9 +1415,9 @@ impl Executor {
             return Ok(vec![]);
         }
         let scheduled_entry = !probe && self.entry_schedule.accepts(rid);
-        // Spine coverage and retained matching consume their own complete entry domains.
+        // A necessary join summary can reject an empty domain before either route.
         let early_sieve = scheduled_entry && self.sieve.enabled && self.delta_queries
-            && rule.direct.is_none() && !self.stage_spine.enabled && !self.retained.accepts(rid);
+            && rule.direct.is_none() && !self.retained.accepts(rid);
         if early_sieve {
             self.sieve.prepare(rid, &self.graph, &mut self.query_indexes)?;
             if self.sieve.empty_join(rid) {
@@ -1428,20 +1428,29 @@ impl Executor {
         let early_join = scheduled_entry
             && self.delta_queries
             && rule.direct.is_none()
-            && !self.stage_spine.enabled
             && !self.retained.accepts(rid)
             && self.local_run.is_none()
             && !self.refutation.enabled
             && !self.search_contexts.enabled
             && self.free_join.has_entry(rid);
+        let route_spine = scheduled_entry && self.delta_queries && self.stage_spine.enabled;
+        let active_spine = route_spine && self.stage_spine.active_for_rule(rid);
+        let mut spine_routes = Vec::new();
         let mut entry_domains = Vec::new();
         let scheduled = if scheduled_entry {
             let watermark = self.watermarks[rid];
-            Some(if early_join {
+            Some(if early_join || route_spine {
                 self.entry_schedule
                     .batches(&self.graph, rid, watermark, |batch, out| {
                         let atom = batch.atom();
-                        let inverted = if self.free_join.planned {
+                        let start = out.len();
+                        let claimed = spine_routes.len();
+                        let cursors = if active_spine {
+                            self.stage_spine.scheduled_cursors(rid, atom, batch.table)
+                        } else {
+                            None
+                        };
+                        let inverted = if early_join && self.free_join.planned {
                             self.free_join
                                 .reverse(&self.graph, &mut self.query_indexes, rid, batch)?
                         } else {
@@ -1456,16 +1465,21 @@ impl Executor {
                                 return Ok(());
                             }
                             let packet = batch.packet(w).expect("current delta entry");
-                            if let Some(domains) = self.free_join.admit(
-                                &self.graph,
-                                &mut self.query_indexes,
-                                rid,
-                                atom,
-                                &packet.row,
-                            )? {
+                            if let Some(cursor) = cursors.and_then(|entries| entries.get(&w)) {
+                                spine_routes.push((out.len(), cursor.clone()));
+                                // Keep domain slots aligned with the shared seed vector.
+                                if early_join {
+                                    entry_domains.push(Vec::new());
+                                }
+                            } else if early_join {
+                                let Some(domains) = self.free_join.admit(
+                                    &self.graph, &mut self.query_indexes, rid, atom, &packet.row,
+                                )? else {
+                                    return Ok(());
+                                };
                                 entry_domains.push(domains);
-                                out.push(batch.seed(packet));
                             }
+                            out.push(batch.seed(packet));
                             Ok::<(), String>(())
                         };
                         if let Some(rows) = inverted {
@@ -1476,6 +1490,10 @@ impl Executor {
                             for &(_, w) in batch.delta() {
                                 deliver(w)?
                             }
+                        }
+                        if active_spine {
+                            let ordinary = (out.len() - start) - (spine_routes.len() - claimed);
+                            self.stage_spine.record_fallbacks(rid, atom, ordinary as u64);
                         }
                         Ok(())
                     })?
@@ -1493,8 +1511,14 @@ impl Executor {
         let mut stage_covered = BTreeSet::new();
         let mut found = vec![];
         if !probe && rule.seminaive && self.delta_queries {
-            let coverage=if let Some(seeds)=&scheduled {self.stage_spine.answers_scheduled(&mut self.graph,rid,seeds,self.watermarks[rid])?}
-                else {self.stage_spine.answers(&mut self.graph,rid,&self.pending[rid],self.watermarks[rid])?};
+            let watermark = self.watermarks[rid];
+            let coverage = match &scheduled {
+                Some(seeds) if route_spine => self.stage_spine.answers_routed(
+                    &mut self.graph, rid, seeds, spine_routes, watermark,
+                )?,
+                Some(_) => None,
+                None => self.stage_spine.answers(&mut self.graph, rid, &self.pending[rid], watermark)?,
+            };
             if let Some(coverage)=coverage {
                 found = coverage.answers.into_iter().map(|a| {
                     let receipts=(receipt_atoms>0).then(||a.witnesses.clone());
@@ -1893,7 +1917,7 @@ impl Executor {
         let updates = self.graph.stats.function_updates;
         let (cell, first_op) = if self.graph.program.rules[rid].constructor_only
             && !self.graph.views_enabled && self.graph.known_mode == "off"
-            && !self.compositions_enabled && !self.stage_spine.enabled
+            && !self.compositions_enabled && stage_cursor.is_none()
             && self.local_run.is_none() && origin.is_none() && !self.graph.union_lineage_enabled
         {
             let Some(start) = self.graph.start_constructor_rhs(template, b.values, b.parent)? else {
