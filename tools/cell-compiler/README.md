@@ -51,3 +51,5 @@ cargo test --release --locked --manifest-path tools/cell-compiler/Cargo.toml
 `free-join-planned` 复用目标表版本内的投影结果，并在单列连接中按实际增量规模选择是否从小键域反向枚举。可以用同一产物和 `free-join-entry` 配对。[Raytrace 与 sum-bits 的入口探测、原生规划及计时](benchmarks/free-join/PLANNER.md)
 
 `cargo cell-bench --lane free-join-planned --modules union-graft,stage-spine` 在同一份产物上切换已有运行时模块。`--verify-stages` 将开启模块的执行与同 lane 关闭模块的执行逐阶段对照。局部同余可用 `--modules local-congruence` 请求，并查看输出中的实际启用状态。[两组 Pass 3 消融及局部同余阳性对照](benchmarks/runtime-modules/README.md)
+
+`--modules range-guards,fd-keys,scalar-merge` 可分别选择有序范围索引、保序函数依赖去重键与标量 merge。新产物带有可验证的 `physical_plan`，旧产物从同一 typed recipe 推导计划。[指标、五组消融与 Cargo 命令](benchmarks/physical-plans/README.md)

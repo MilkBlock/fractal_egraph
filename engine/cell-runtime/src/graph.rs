@@ -116,6 +116,12 @@ pub struct Stats {
     #[serde(default)]
     pub merge_program_calls: u64,
     #[serde(default)]
+    pub scalar_merge_calls: u64,
+    #[serde(default)]
+    pub scalar_unchanged: u64,
+    #[serde(default)]
+    pub scalar_old_projection: u64,
+    #[serde(default)]
     pub merge_program_operations: u64,
     #[serde(default)]
     pub merge_program_constructs: u64,
@@ -169,6 +175,7 @@ pub struct Graph {
     pub known_mode:String,
     pub known_stats:crate::known_results::Stats,
     pub merge_programs_enabled: bool,
+    scalar_merge: bool,
     pub key_lookup_calls: std::cell::Cell<u64>,
     pub program: Program,
     pub views_enabled: bool,
@@ -482,6 +489,7 @@ impl Graph {
             stats: Stats::default(),
             known_mode:match std::env::var("CELL_CPU_KNOWN_RESULTS").as_deref(){Ok("on"|"1")=>"on",Ok("observe")=>"observe",Ok("value")=>"value",Ok("static")=>"static",Ok("off"|"0")|Err(_)=>"off",_=>return Err("unknown CELL_CPU_KNOWN_RESULTS mode".into())}.into(),
             known_stats:Default::default(),
+            scalar_merge: std::env::var("CELL_CPU_SCALAR_MERGE").as_deref() == Ok("1"),
             merge_programs_enabled: std::env::var("CELL_CPU_MERGE_PROGRAMS").as_deref()!=Ok("0"),
             pending_unions: vec![],
             union_lineage_enabled: std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
@@ -1512,6 +1520,21 @@ impl Graph {
                 .merge_contract_calls
                 .entry(kind.into())
                 .or_default() += 1;
+        }
+        if self.scalar_merge && let Some(plan) = self.program.physical.merges[t] {
+            use crate::physical_plan::ScalarMerge;
+            let keep_old = match (plan, &old, &new) {
+                (ScalarMerge::Old, _, _) => {
+                    self.stats.scalar_old_projection += 1;
+                    true
+                }
+                (ScalarMerge::Min, Value::Int(a), Value::Int(b)) => a <= b,
+                (ScalarMerge::Max, Value::Int(a), Value::Int(b)) => a >= b,
+                _ => return Err("unexpected scalar merge value".into()),
+            };
+            self.stats.scalar_merge_calls += 1;
+            self.stats.scalar_unchanged += u64::from(keep_old);
+            return Ok(if keep_old { old } else { new });
         }
         let expr = &self.program.tables[t].merge;
         if old == new
