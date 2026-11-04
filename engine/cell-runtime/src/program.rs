@@ -58,6 +58,8 @@ pub struct Rule {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
     #[serde(skip)]
+    pub(crate) context_cuts: crate::local_context::Cuts,
+    #[serde(skip)]
     pub(crate) local_contexts: Vec<Option<Rc<crate::local_context::Plan>>>,
     #[serde(skip)] pub(crate) writes:Vec<Option<Rc<crate::row_kernel::Write>>>,
     #[serde(skip)] pub(crate) kernels:crate::row_kernel::Kernels,
@@ -117,6 +119,9 @@ pub fn call(j: &J, names: &BTreeMap<String, usize>) -> Result<Call> {
     }
 }
 impl Program {
+    pub fn context_cut_counts(&self) -> (usize, usize) {
+        (self.context_cuts.iter().filter(|ps| !ps.is_empty()).count(), self.context_cuts.iter().map(Vec::len).sum())
+    }
     pub fn parse(j: J) -> Result<Self> {
         Self::load(j, false)
     }
@@ -305,6 +310,7 @@ impl Program {
         let kernels=crate::row_kernel::derive(&rules);
         if let Some(raw)=j.get("row_kernels") && *raw!=serde_json::json!(kernels){return Err("invalid register join plan".into());}
         let mut p = Self {
+            context_cuts: vec![],
             local_contexts: vec![],
             kernels,writes:vec![],
             physical: Default::default(),
@@ -387,6 +393,16 @@ impl Program {
         p.merge_programs=crate::merge_programs::Programs::parse(&p,&p.artifact["merge_programs"])?;
         p.known_results=crate::known_results::Plans::parse(&p,&p.artifact["known_results"])?;
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
+        p.context_cuts = crate::local_context::derive_cuts(&p);
+        if let Some(raw) = p.artifact.get("context_cuts") && *raw != serde_json::json!(crate::local_context::layout(&p.context_cuts)) {
+            return Err("invalid connected context cuts".into());
+        }
+        if let Some(raw) = p.artifact.get("context_admission") {
+            let allowed=crate::context_admission::admitted(&p,raw)?;
+            for (plans,keep) in p.context_cuts.iter_mut().zip(allowed) {
+                if !keep { plans.clear(); }
+            }
+        }
         p.local_contexts = crate::local_context::derive(&p, &p.artifact["multi_stage"]["stage_entries"]);
         if let Some(raw) = p.artifact.get("local_contexts") && *raw != serde_json::json!(p.local_contexts) {
             return Err("invalid local context plan".into());

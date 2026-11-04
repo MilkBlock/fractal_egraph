@@ -55,3 +55,5 @@ cmp checked-0/rhs.json checked-1/rhs.json
 ```
 
 To inspect per-rule timing set `CELL_CPU_PROFILE=1` for a separate run. For new sources, `cargo cell-compile --source input.egg --emit-free-join-entry --output compiled` emits the checked plan. A small program can also be compared through `cargo cell-bench --program compiled/program.json --lane free-join-planned --modules local-context --repeat 5 --verify-stages`.
+
+The follow-up extracts connected prefixes across the complete rule set and tests profile-guided admission between workloads. [General context cuts and transfer](CONTEXT_CUTS.md)
