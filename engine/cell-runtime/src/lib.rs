@@ -1,3 +1,5 @@
+#[cfg(feature = "slot-transfer-audit")]
+pub mod transfer_audit;
 pub mod checksum;
 pub mod compositions;
 pub mod congruence;

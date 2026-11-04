@@ -945,3 +945,142 @@ fn physical_plans_preserve_order_and_refresh_range_rows() {
     };
     assert_eq!(stages("0"), stages("1"));
 }
+
+#[test]
+fn producer_slots_follow_run_order_and_reject_changed_wiring() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("slots.egg");
+    // F(1) already belongs to another producer. F(2) is removed before
+    // the second consume Run. Only 3 retains both effects of make-pair.
+    fs::write(
+        &src,
+        r#"(datatype E (N i64) (F E) (G E) (S E E) (One E))
+(ruleset make) (ruleset consume) (ruleset retire)
+(rule ((= x (N i))) ((F x) (G x)) :ruleset make :name "make-pair")
+(rule ((= g (G x)) (= f (F x))) ((S g f)) :ruleset consume :name "consume-pair")
+(rule ((= f (F x))) ((One f)) :ruleset consume :name "consume-one")
+(rule ((= x (N 2))) ((delete (F x))) :ruleset retire)
+(N 1) (N 2) (N 3)
+(F (N 1))
+(run-schedule (seq (run consume) (run make) (run retire) (run consume)))
+(check (= q (S (G (N 3)) (F (N 3)))) (= q2 (One (F (N 1)))))
+"#,
+    )
+    .unwrap();
+    let out = tmp.path().join("artifact");
+    pass(&[
+        "compile",
+        "--source",
+        src.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let program = out.join("program.json");
+    let bench = |path: &Path, mode: &str| {
+        let mut args = vec![
+            "bench",
+            "--program",
+            path.to_str().unwrap(),
+            "--lane",
+            "free-join-planned",
+            "--verify-stages",
+            "--repeat",
+            "1",
+        ];
+        if mode == "legacy" {
+            args.extend(["--modules", "stage-spine,slot-transfer"]);
+        } else {
+            args.extend(["--modules", "stage-spine", "--slot-transfer", mode]);
+        }
+        serde_json::from_slice::<J>(&pass(&args).stdout).unwrap()
+    };
+    for (modules, mode) in [("stage-spine", "typo"), ("slot-transfer", "parent")] {
+        assert!(
+            !command(&[
+                "bench",
+                "--program",
+                program.to_str().unwrap(),
+                "--modules",
+                modules,
+                "--slot-transfer",
+                mode
+            ])
+            .status
+            .success()
+        );
+    }
+    let compiled = bench(&program, "legacy");
+    let counts = &compiled["counts"]["slot_transfer"];
+    assert!(counts["spine_atoms"].as_u64().unwrap() > 0);
+    assert!(counts["sealed_moves"].as_u64().unwrap() > 0);
+    assert!(counts["rhs_parent_bindings"].as_u64().unwrap() > 0);
+
+    for mode in [
+        "off",
+        "siblings",
+        "parent",
+        "both",
+        "local-only",
+        "parent-check",
+        "parent-owned",
+    ] {
+        let trial = bench(&program, mode);
+        assert_eq!(trial["final_state_sha256"], compiled["final_state_sha256"]);
+        assert_eq!(trial["counts"]["slot_transfer_mode"], mode);
+        let actual = &trial["counts"]["slot_transfer"];
+        let spine_wires = matches!(mode, "siblings" | "both");
+        let eligible_parents = matches!(mode, "parent" | "both" | "parent-check" | "parent-owned");
+        assert_eq!(
+            actual["spine_atoms"].as_u64().unwrap() > 0,
+            spine_wires,
+            "{mode}"
+        );
+        assert_eq!(
+            actual["rhs_parent_bindings"].as_u64().unwrap() > 0,
+            eligible_parents,
+            "{mode}"
+        );
+        if mode == "both" {
+            assert_eq!(trial["counts"], compiled["counts"]);
+        }
+    }
+    let mut raw = json_file(&program);
+    let mut tampered = raw.clone();
+    let corrupt_first_assignment = |plan: &mut J| {
+        for route in plan["multi_stage"]["routes"].as_array_mut().unwrap() {
+            for step in route["steps"].as_array_mut().unwrap() {
+                if step["assignments"]
+                    .as_array()
+                    .is_some_and(|xs| !xs.is_empty())
+                {
+                    step["assignments"][0][0] = json!(usize::MAX);
+                    return;
+                }
+            }
+        }
+        panic!("compiler omitted producer slot wiring");
+    };
+    corrupt_first_assignment(&mut tampered);
+    match eggfuse_cell_runtime::program::Program::parse(tampered) {
+        Err(message) => assert!(
+            message.contains("invalid producer slot wiring"),
+            "{message}"
+        ),
+        Ok(_) => panic!("accepted changed producer slot wiring"),
+    }
+    for route in raw["multi_stage"]["routes"].as_array_mut().unwrap() {
+        for step in route["steps"].as_array_mut().unwrap() {
+            step.as_object_mut().unwrap().remove("assignments");
+        }
+    }
+    raw.as_object_mut().unwrap().remove("sha256");
+    raw["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&raw));
+    let legacy = tmp.path().join("legacy.json");
+    fs::write(&legacy, serde_json::to_vec(&raw).unwrap()).unwrap();
+    let derived = bench(&legacy, "both");
+    assert_eq!(compiled["counts"], derived["counts"]);
+    assert_eq!(
+        compiled["final_state_sha256"],
+        derived["final_state_sha256"]
+    );
+}

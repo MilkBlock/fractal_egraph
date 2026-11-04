@@ -91,6 +91,7 @@ struct Context {
     facts: BTreeMap<(usize, Vec<Value>), Dependency>,
 }
 pub struct Answer {
+    pub(crate) parameter_parent: Option<crate::graph::FactRef>,
     pub values: Vec<Value>,
     pub witnesses: Vec<Option<Dependency>>,
     pub epoch: u64,
@@ -204,6 +205,8 @@ fn bind(a: &Arg, v: &Value, input: &mut Inputs, g: &Graph) -> bool {
         Arg::Slot(i) => match &input[*i] {
             Some(x) => x == v,
             None => {
+                #[cfg(feature = "slot-transfer-audit")]
+                crate::transfer_audit::count(|c| c.fresh_bind_copies += 1);
                 input[*i] = Some(v.clone());
                 true
             }
@@ -900,8 +903,77 @@ impl Programs {
             witnesses[pivot] = Some(row.witness);
             let mut epoch = row.epoch;
             let mut valid = true;
-            for &i in &self.orders[&(rid, pivot)] {
+            let order = &self.orders[&(rid, pivot)];
+            // Only the owner of the actual committed pivot can back RHS slots.
+            // A different cell may have proposed the same canonical anchor.
+            let parent = g.slot_transfer.parent_routes() && rule.direct == Some(pivot);
+            let siblings = g.slot_transfer.sibling_routes() && !order.is_empty();
+            #[cfg(feature = "slot-transfer-audit")]
+            let proof_sample = if (parent || siblings) && !g.views_enabled {
+                crate::transfer_audit::Sample::begin(crate::transfer_audit::Region::SpineProof)
+            } else {
+                None
+            };
+            let source = if (parent || siblings) && !g.views_enabled {
+                #[cfg(feature = "slot-transfer-audit")]
+                crate::transfer_audit::count(|c| c.spine_owner_checks += 1);
+                match row.witness {
+                    Dependency::Fact(f)
+                        if g.cells.get(&f.cell).is_some_and(|c| {
+                            c.completed
+                                && c.template == g.program.rules[cursor.producer].template
+                                && c.facts
+                                    .get(&f.op)
+                                    .is_some_and(|s| s.entry.is_none() && s.marker_row.is_none())
+                        }) =>
+                    {
+                        Some(f)
+                    }
+                    _ => None,
+                }
+            } else {
+                None
+            };
+            let route = source
+                .and_then(|f| {
+                    #[cfg(feature = "slot-transfer-audit")]
+                    crate::transfer_audit::count(|c| c.spine_route_lookups += 1);
+                    g.program.multi_stage.routes.get(&(
+                        g.program.rules[cursor.producer].template,
+                        f.op as usize,
+                        rid,
+                        pivot,
+                    ))
+                })
+                .cloned();
+            #[cfg(feature = "slot-transfer-audit")]
+            crate::transfer_audit::count(|c| c.spine_route_hits += u64::from(route.is_some()));
+            let parameter_parent = source.filter(|_| parent && route.is_some());
+            let local_route = if !siblings {
+                None
+            } else {
+                route.and_then(|r| g.continuation_context(row.witness).map(|c| (c, r)))
+            };
+            #[cfg(feature = "slot-transfer-audit")]
+            drop(proof_sample);
+            let mut wired = false;
+            let mut trail = Vec::new();
+            for &i in order {
                 let a = &rule.query[i];
+                if let Some((ctx, route)) = &local_route
+                    && let Some(read) = route
+                        .reads
+                        .iter()
+                        .find(|r| r.atom == i && r.effect.is_some())
+                    && let Some((w, stamp)) =
+                        read.wire(g, *ctx, row.witness, &mut input, &mut trail, None)?
+                {
+                    g.stats.slot_transfer.spine_atoms += 1;
+                    witnesses[i] = Some(w);
+                    epoch = epoch.max(stamp);
+                    wired = true;
+                    continue;
+                }
                 let args = a.args[..a.args.len() - 1]
                     .iter()
                     .map(|a| operand(a, &input, g).ok_or("unbound stage recipe key".into()))
@@ -984,13 +1056,21 @@ impl Programs {
                     .inputs
                     .iter()
                     .map(|i| {
-                        input[*i]
-                            .clone()
-                            .ok_or("incomplete stage recipe input".into())
+                        (if wired {
+                            input.take_slot(*i, &mut g.stats.slot_transfer.sealed_moves)
+                        } else {
+                            #[cfg(feature = "slot-transfer-audit")]
+                            crate::transfer_audit::count(|c| {
+                                c.binding_seal_copies += u64::from(input[*i].is_some())
+                            });
+                            input[*i].clone()
+                        })
+                        .ok_or("incomplete stage recipe input".into())
                     })
                     .collect::<Result<Vec<_>>>()?;
                 let candidate = (
                     Answer {
+                        parameter_parent,
                         values: values.clone(),
                         witnesses,
                         epoch,
@@ -1091,6 +1171,8 @@ impl Programs {
                         Some(old) => old == v,
                         None => {
                             self.stats.entry_parameters_copied += 1;
+                            #[cfg(feature = "slot-transfer-audit")]
+                            crate::transfer_audit::count(|c| c.fresh_bind_copies += 1);
                             input[*i] = Some(v.clone());
                             true
                         }

@@ -3,6 +3,9 @@ name = "eggfuse-cell-runtime"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+slot-transfer-audit = []
+
 [dependencies]
 eggfuse-structural-key = { path = "../structural-key" }
 serde = { version = "1", features = ["derive", "rc"] }

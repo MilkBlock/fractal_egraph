@@ -107,6 +107,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stop = opt("--checkpoint-after")
         .map(|s| s.parse::<usize>())
         .transpose()?;
+    #[cfg(feature = "slot-transfer-audit")]
+    eggfuse_cell_runtime::transfer_audit::set_active(true);
     if let Err(error) = runtime.execute_until(stop) {
         std::fs::write(
             out.join("failure.json"),
@@ -115,6 +117,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )?,
         )?;
         return Err(error.into());
+    }
+    #[cfg(feature = "slot-transfer-audit")]
+    {
+        eggfuse_cell_runtime::transfer_audit::set_active(false);
+        std::fs::write(
+            out.join("cost-samples.json"),
+            serde_json::to_vec(&eggfuse_cell_runtime::transfer_audit::costs())?,
+        )?;
+        std::fs::write(
+            out.join("copies.json"),
+            serde_json::to_vec(&eggfuse_cell_runtime::transfer_audit::counts())?,
+        )?;
+        std::fs::write(
+            out.join("rhs.json"),
+            serde_json::to_vec(&eggfuse_cell_runtime::transfer_audit::take_digests())?,
+        )?;
     }
     let seconds = start.elapsed().as_secs_f64();
     let mut report = runtime.report();
