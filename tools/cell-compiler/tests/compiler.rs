@@ -468,3 +468,51 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
         planned["final_state_sha256"]
     );
 }
+
+#[test]
+fn benchmark_modules_report_effective_congruence_and_compose() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("benchmarks/runtime-modules/congruence-chain.egg");
+    let out = tmp.path().join("chain");
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let program = out.join("program.json");
+    let run = |modules: &str| {
+        command(&[
+            "bench",
+            "--program",
+            program.to_str().unwrap(),
+            "--lane",
+            "free-join-planned",
+            "--modules",
+            modules,
+            "--repeat",
+            "2",
+            "--verify-stages",
+        ])
+    };
+    let enabled = run("union-graft,stage-spine,local-congruence");
+    assert!(
+        enabled.status.success(),
+        "{}",
+        String::from_utf8_lossy(&enabled.stderr)
+    );
+    let report: J = serde_json::from_slice(&enabled.stdout).unwrap();
+    let counts = &report["counts"];
+    assert_eq!(
+        report["modules_requested"],
+        json!(["local-congruence", "stage-spine", "union-graft"])
+    );
+    assert_eq!(counts["local_congruence"]["stats"]["proven_unions"], 32);
+    assert_eq!(counts["union_graft"]["enabled"], true);
+    assert_eq!(counts["stage_spine"]["enabled"], true);
+    for invalid in ["typo", "stage-spine,stage-spine"] {
+        assert!(!run(invalid).status.success());
+    }
+}
