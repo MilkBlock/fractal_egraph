@@ -1,0 +1,871 @@
+{
+  "baseline_commit": "508e1c8",
+  "scope": "Standalone, single-threaded Cell CPU. Same frozen program, source schedule, compiler plans, warmed input files and runtime settings. Fresh release process per lane and block. One excluded warm-up per arm. Balanced four-lane Latin-square order across each four measured blocks. No instrumentation in timed build.",
+  "machine": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "cases": {
+    "sum-bits": {
+      "frozen": {
+        "program_sha256": "bbfa405f5ce73b049f27362826d595655021dad1e5e29a50c138dbf3a7b5846f",
+        "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+        "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+        "ordered_rhs_sha256": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+        "runs": 1428,
+        "resumptions": 3034,
+        "max_depth": 12
+      },
+      "lanes": {
+        "base": {
+          "units": 64,
+          "work": {
+            "bindings": 10226,
+            "cells_created": 8653,
+            "constructor_requests": 11774,
+            "function_updates": 1450,
+            "logical_facts_created": 3739,
+            "union_requests": 3211,
+            "unions": 1039,
+            "direct_origins": 575,
+            "key_lookups": 20088,
+            "candidates": 19221,
+            "port_refreshes": 3914,
+            "block_resumptions": 2146
+          },
+          "warmup_ms": 34.446,
+          "inference_ms": [
+            35.507,
+            33.92,
+            34.537,
+            34.962,
+            33.88,
+            34.048,
+            34.096,
+            33.252
+          ],
+          "cli_ms": [
+            134.925,
+            136.561,
+            134.412,
+            130.648,
+            133.237,
+            130.578,
+            133.051,
+            129.063
+          ],
+          "paired_inference_delta_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "paired_cli_delta_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "dispatch": {
+          "units": 64,
+          "work": {
+            "bindings": 10226,
+            "cells_created": 8653,
+            "constructor_requests": 11774,
+            "function_updates": 1450,
+            "handoff_attempts": 0,
+            "handoff_closed": 0,
+            "handoff_closed_fallback": 0,
+            "handoff_deep": 0,
+            "handoff_lets": 0,
+            "handoff_missing": 0,
+            "handoff_noop_unions": 0,
+            "handoff_sets": 0,
+            "handoff_stale": 0,
+            "logical_facts_created": 3739,
+            "union_requests": 3211,
+            "unions": 1039,
+            "direct_origins": 1828,
+            "key_lookups": 20088,
+            "candidates": 19221,
+            "port_refreshes": 3914,
+            "block_resumptions": 2146
+          },
+          "warmup_ms": 33.573,
+          "inference_ms": [
+            33.84,
+            32.86,
+            36.041,
+            34.859,
+            36.26,
+            33.948,
+            34.364,
+            33.301
+          ],
+          "cli_ms": [
+            133.966,
+            131.791,
+            134.167,
+            131.868,
+            133.31,
+            133.13,
+            131.893,
+            131.093
+          ],
+          "program_sha256": "1c93c188448a06c8e3a96d4851cecc6fd3861c0acf664d4a63e016d8308deed7",
+          "switch_states": 65,
+          "states_with_reuse": 0,
+          "wholly_covered_states": 0,
+          "maximum_donor_distance": 0,
+          "paired_inference_delta_ms": [
+            -1.667,
+            -1.06,
+            1.504,
+            -0.103,
+            2.38,
+            -0.1,
+            0.268,
+            0.049
+          ],
+          "paired_cli_delta_ms": [
+            -0.959,
+            -4.77,
+            -0.245,
+            1.22,
+            0.073,
+            2.552,
+            -1.158,
+            2.03
+          ]
+        },
+        "fixed": {
+          "units": 64,
+          "work": {
+            "bindings": 10226,
+            "cells_created": 8488,
+            "constructor_requests": 11502,
+            "function_updates": 1450,
+            "handoff_attempts": 592,
+            "handoff_closed": 165,
+            "handoff_closed_fallback": 58,
+            "handoff_deep": 0,
+            "handoff_lets": 272,
+            "handoff_missing": 0,
+            "handoff_noop_unions": 165,
+            "handoff_sets": 165,
+            "handoff_stale": 155,
+            "logical_facts_created": 3739,
+            "union_requests": 3046,
+            "unions": 1039,
+            "direct_origins": 1828,
+            "key_lookups": 19651,
+            "candidates": 19221,
+            "port_refreshes": 3914,
+            "block_resumptions": 2146
+          },
+          "warmup_ms": 35.324,
+          "inference_ms": [
+            32.955,
+            35.77,
+            33.838,
+            36.429,
+            33.873,
+            34.492,
+            34.001,
+            33.44
+          ],
+          "cli_ms": [
+            135.421,
+            142.528,
+            132.95,
+            132.742,
+            130.876,
+            132.585,
+            133.761,
+            130.874
+          ],
+          "program_sha256": "fbcdb9155729947be33e9be82cc1fef8641d7f1f39e2eb8c497d64fb9f97e255",
+          "switch_states": 65,
+          "states_with_reuse": 9,
+          "wholly_covered_states": 3,
+          "maximum_donor_distance": 1,
+          "paired_inference_delta_ms": [
+            -2.552,
+            1.85,
+            -0.699,
+            1.467,
+            -0.007,
+            0.444,
+            -0.095,
+            0.188
+          ],
+          "paired_cli_delta_ms": [
+            0.496,
+            5.967,
+            -1.462,
+            2.094,
+            -2.361,
+            2.007,
+            0.71,
+            1.811
+          ]
+        },
+        "ranked": {
+          "units": 37,
+          "work": {
+            "bindings": 10226,
+            "cells_created": 8488,
+            "constructor_requests": 11502,
+            "function_updates": 1450,
+            "handoff_attempts": 592,
+            "handoff_closed": 165,
+            "handoff_closed_fallback": 58,
+            "handoff_deep": 0,
+            "handoff_lets": 272,
+            "handoff_missing": 0,
+            "handoff_noop_unions": 165,
+            "handoff_sets": 165,
+            "handoff_stale": 155,
+            "logical_facts_created": 3739,
+            "union_requests": 3046,
+            "unions": 1039,
+            "direct_origins": 1828,
+            "key_lookups": 19651,
+            "candidates": 19221,
+            "port_refreshes": 3914,
+            "block_resumptions": 2146
+          },
+          "warmup_ms": 33.798,
+          "inference_ms": [
+            33.366,
+            39.215,
+            33.72,
+            35.635,
+            34.48,
+            33.748,
+            33.734,
+            33.315
+          ],
+          "cli_ms": [
+            137.412,
+            139.71,
+            130.311,
+            137.228,
+            131.65,
+            140.338,
+            130.201,
+            129.841
+          ],
+          "program_sha256": "9d7563c9e26e5ce66385f84e1d54456e05bd62189d44e611c9ace6e266fe040e",
+          "switch_states": 38,
+          "states_with_reuse": 5,
+          "wholly_covered_states": 1,
+          "maximum_donor_distance": 1,
+          "paired_inference_delta_ms": [
+            -2.141,
+            5.295,
+            -0.817,
+            0.673,
+            0.6,
+            -0.3,
+            -0.362,
+            0.063
+          ],
+          "paired_cli_delta_ms": [
+            2.487,
+            3.149,
+            -4.101,
+            6.58,
+            -1.587,
+            9.76,
+            -2.85,
+            0.778
+          ]
+        }
+      },
+      "paired_contrasts": {
+        "dispatch minus base": {
+          "inference_ms": [
+            -1.667,
+            -1.06,
+            1.504,
+            -0.103,
+            2.38,
+            -0.1,
+            0.268,
+            0.049
+          ],
+          "cli_ms": [
+            -0.959,
+            -4.77,
+            -0.245,
+            1.22,
+            0.073,
+            2.552,
+            -1.158,
+            2.03
+          ]
+        },
+        "fixed minus dispatch": {
+          "inference_ms": [
+            -0.885,
+            2.91,
+            -2.203,
+            1.57,
+            -2.387,
+            0.544,
+            -0.363,
+            0.139
+          ],
+          "cli_ms": [
+            1.455,
+            10.737,
+            -1.217,
+            0.874,
+            -2.434,
+            -0.545,
+            1.868,
+            -0.219
+          ]
+        },
+        "ranked minus fixed": {
+          "inference_ms": [
+            0.411,
+            3.445,
+            -0.118,
+            -0.794,
+            0.607,
+            -0.744,
+            -0.267,
+            -0.125
+          ],
+          "cli_ms": [
+            1.991,
+            -2.818,
+            -2.639,
+            4.486,
+            0.774,
+            7.753,
+            -3.56,
+            -1.033
+          ]
+        },
+        "fixed minus base": {
+          "inference_ms": [
+            -2.552,
+            1.85,
+            -0.699,
+            1.467,
+            -0.007,
+            0.444,
+            -0.095,
+            0.188
+          ],
+          "cli_ms": [
+            0.496,
+            5.967,
+            -1.462,
+            2.094,
+            -2.361,
+            2.007,
+            0.71,
+            1.811
+          ]
+        },
+        "ranked minus base": {
+          "inference_ms": [
+            -2.141,
+            5.295,
+            -0.817,
+            0.673,
+            0.6,
+            -0.3,
+            -0.362,
+            0.063
+          ],
+          "cli_ms": [
+            2.487,
+            3.149,
+            -4.101,
+            6.58,
+            -1.587,
+            9.76,
+            -2.85,
+            0.778
+          ]
+        }
+      },
+      "training": [
+        {
+          "round": 0,
+          "units": 32,
+          "rhs_completion": {
+            "lets": 0,
+            "sets": 0,
+            "closed": 0,
+            "noop_unions": 0,
+            "deep": 0
+          },
+          "stop": "continue",
+          "ordered_rhs_sha256": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a"
+        },
+        {
+          "round": 1,
+          "units": 36,
+          "rhs_completion": {
+            "lets": 272,
+            "sets": 165,
+            "closed": 165,
+            "noop_unions": 165,
+            "deep": 0
+          },
+          "stop": "continue",
+          "ordered_rhs_sha256": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a"
+        },
+        {
+          "round": 2,
+          "units": 37,
+          "rhs_completion": {
+            "lets": 272,
+            "sets": 165,
+            "closed": 165,
+            "noop_unions": 165,
+            "deep": 0
+          },
+          "stop": "no_profitable_candidate",
+          "ordered_rhs_sha256": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a"
+        }
+      ],
+      "block_order": [
+        [
+          "ranked",
+          "fixed",
+          "dispatch",
+          "base"
+        ],
+        [
+          "base",
+          "dispatch",
+          "ranked",
+          "fixed"
+        ],
+        [
+          "dispatch",
+          "fixed",
+          "base",
+          "ranked"
+        ],
+        [
+          "fixed",
+          "ranked",
+          "dispatch",
+          "base"
+        ],
+        [
+          "ranked",
+          "base",
+          "fixed",
+          "dispatch"
+        ],
+        [
+          "base",
+          "dispatch",
+          "ranked",
+          "fixed"
+        ],
+        [
+          "dispatch",
+          "fixed",
+          "base",
+          "ranked"
+        ],
+        [
+          "fixed",
+          "ranked",
+          "dispatch",
+          "base"
+        ],
+        [
+          "ranked",
+          "base",
+          "fixed",
+          "dispatch"
+        ]
+      ]
+    },
+    "raytrace": {
+      "frozen": {
+        "program_sha256": "3d4a9496cb684481894f982fb77b4a4f36a454a81b9cf12aa366f7df4f4c6fa0",
+        "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+        "schedule_sha256": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5",
+        "ordered_rhs_sha256": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+        "runs": 16883,
+        "resumptions": 663403,
+        "max_depth": 29
+      },
+      "lanes": {
+        "base": {
+          "units": 64,
+          "work": {
+            "bindings": 3785196,
+            "cells_created": 2722813,
+            "constructor_requests": 2096703,
+            "function_updates": 1676336,
+            "logical_facts_created": 820439,
+            "union_requests": 590640,
+            "unions": 226523,
+            "direct_origins": 61407,
+            "key_lookups": 5647088,
+            "candidates": 8647393,
+            "port_refreshes": 1576013,
+            "block_resumptions": 585442
+          },
+          "warmup_ms": 14258.685,
+          "inference_ms": [
+            13962.995,
+            14863.286,
+            16313.455,
+            16058.412
+          ],
+          "cli_ms": [
+            17457.104,
+            19046.52,
+            19722.938,
+            19224.59
+          ],
+          "paired_inference_delta_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "paired_cli_delta_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "dispatch": {
+          "units": 64,
+          "work": {
+            "bindings": 3785196,
+            "cells_created": 2722813,
+            "constructor_requests": 2096703,
+            "function_updates": 1676336,
+            "handoff_attempts": 0,
+            "handoff_closed": 0,
+            "handoff_closed_fallback": 0,
+            "handoff_deep": 0,
+            "handoff_lets": 0,
+            "handoff_missing": 0,
+            "handoff_noop_unions": 0,
+            "handoff_sets": 0,
+            "handoff_stale": 0,
+            "logical_facts_created": 820439,
+            "union_requests": 590640,
+            "unions": 226523,
+            "direct_origins": 538930,
+            "key_lookups": 5647088,
+            "candidates": 8647393,
+            "port_refreshes": 1576013,
+            "block_resumptions": 585442
+          },
+          "warmup_ms": 13787.942,
+          "inference_ms": [
+            15112.941,
+            14293.824,
+            15165.367,
+            15268.973
+          ],
+          "cli_ms": [
+            18769.961,
+            17479.885,
+            18805.946,
+            19649.845
+          ],
+          "program_sha256": "69db80712dee177bfb2401ea3cd321a6dcf309e377be810f6399b268689cf10a",
+          "switch_states": 65,
+          "states_with_reuse": 0,
+          "wholly_covered_states": 0,
+          "maximum_donor_distance": 0,
+          "paired_inference_delta_ms": [
+            1149.946,
+            -569.462,
+            -1148.088,
+            -789.439
+          ],
+          "paired_cli_delta_ms": [
+            1312.857,
+            -1566.635,
+            -916.992,
+            425.255
+          ]
+        },
+        "fixed": {
+          "units": 64,
+          "work": {
+            "bindings": 3785196,
+            "cells_created": 2705661,
+            "constructor_requests": 2065807,
+            "function_updates": 1676336,
+            "handoff_attempts": 61180,
+            "handoff_closed": 17152,
+            "handoff_closed_fallback": 5740,
+            "handoff_deep": 0,
+            "handoff_lets": 30896,
+            "handoff_missing": 0,
+            "handoff_noop_unions": 17338,
+            "handoff_sets": 17338,
+            "handoff_stale": 12946,
+            "logical_facts_created": 820439,
+            "union_requests": 573302,
+            "unions": 226523,
+            "direct_origins": 538930,
+            "key_lookups": 5598854,
+            "candidates": 8647393,
+            "port_refreshes": 1576013,
+            "block_resumptions": 585442
+          },
+          "warmup_ms": 15152.768,
+          "inference_ms": [
+            16016.424,
+            14397.6,
+            15488.462,
+            14609.014
+          ],
+          "cli_ms": [
+            19426.327,
+            25802.124,
+            19051.798,
+            19499.119
+          ],
+          "program_sha256": "edb6bceda3db07dd309c4e4a199a3d5b501764e1f5a353d37a6d9101dae0c535",
+          "switch_states": 65,
+          "states_with_reuse": 10,
+          "wholly_covered_states": 3,
+          "maximum_donor_distance": 1,
+          "paired_inference_delta_ms": [
+            2053.429,
+            -465.686,
+            -824.993,
+            -1449.398
+          ],
+          "paired_cli_delta_ms": [
+            1969.223,
+            6755.604,
+            -671.14,
+            274.529
+          ]
+        },
+        "ranked": {
+          "units": 39,
+          "work": {
+            "bindings": 3785196,
+            "cells_created": 2705661,
+            "constructor_requests": 2065803,
+            "function_updates": 1676336,
+            "handoff_attempts": 61192,
+            "handoff_closed": 17152,
+            "handoff_closed_fallback": 5740,
+            "handoff_deep": 0,
+            "handoff_lets": 30900,
+            "handoff_missing": 0,
+            "handoff_noop_unions": 17346,
+            "handoff_sets": 17346,
+            "handoff_stale": 12946,
+            "logical_facts_created": 820439,
+            "union_requests": 573294,
+            "unions": 226523,
+            "direct_origins": 538930,
+            "key_lookups": 5598842,
+            "candidates": 8647393,
+            "port_refreshes": 1576013,
+            "block_resumptions": 585442
+          },
+          "warmup_ms": 14503.912,
+          "inference_ms": [
+            16589.57,
+            14222.233,
+            15317.378,
+            16282.454
+          ],
+          "cli_ms": [
+            20059.662,
+            18069.189,
+            18783.929,
+            19478.965
+          ],
+          "program_sha256": "253a2fccb391a5739b9982abfbcc5272d050ed91b7bbd5d4577f8ce3e9322bd0",
+          "switch_states": 40,
+          "states_with_reuse": 7,
+          "wholly_covered_states": 1,
+          "maximum_donor_distance": 1,
+          "paired_inference_delta_ms": [
+            2626.575,
+            -641.053,
+            -996.077,
+            224.042
+          ],
+          "paired_cli_delta_ms": [
+            2602.558,
+            -977.331,
+            -939.009,
+            254.375
+          ]
+        }
+      },
+      "paired_contrasts": {
+        "dispatch minus base": {
+          "inference_ms": [
+            1149.946,
+            -569.462,
+            -1148.088,
+            -789.439
+          ],
+          "cli_ms": [
+            1312.857,
+            -1566.635,
+            -916.992,
+            425.255
+          ]
+        },
+        "fixed minus dispatch": {
+          "inference_ms": [
+            903.483,
+            103.776,
+            323.095,
+            -659.959
+          ],
+          "cli_ms": [
+            656.366,
+            8322.239,
+            245.852,
+            -150.726
+          ]
+        },
+        "ranked minus fixed": {
+          "inference_ms": [
+            573.146,
+            -175.367,
+            -171.084,
+            1673.44
+          ],
+          "cli_ms": [
+            633.335,
+            -7732.935,
+            -267.869,
+            -20.154
+          ]
+        },
+        "fixed minus base": {
+          "inference_ms": [
+            2053.429,
+            -465.686,
+            -824.993,
+            -1449.398
+          ],
+          "cli_ms": [
+            1969.223,
+            6755.604,
+            -671.14,
+            274.529
+          ]
+        },
+        "ranked minus base": {
+          "inference_ms": [
+            2626.575,
+            -641.053,
+            -996.077,
+            224.042
+          ],
+          "cli_ms": [
+            2602.558,
+            -977.331,
+            -939.009,
+            254.375
+          ]
+        }
+      },
+      "training": [
+        {
+          "round": 0,
+          "units": 32,
+          "rhs_completion": {
+            "lets": 0,
+            "sets": 0,
+            "closed": 0,
+            "noop_unions": 0,
+            "deep": 0
+          },
+          "stop": "continue",
+          "ordered_rhs_sha256": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e"
+        },
+        {
+          "round": 1,
+          "units": 38,
+          "rhs_completion": {
+            "lets": 30900,
+            "sets": 17338,
+            "closed": 17152,
+            "noop_unions": 17338,
+            "deep": 0
+          },
+          "stop": "continue",
+          "ordered_rhs_sha256": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e"
+        },
+        {
+          "round": 2,
+          "units": 39,
+          "rhs_completion": {
+            "lets": 30900,
+            "sets": 17346,
+            "closed": 17152,
+            "noop_unions": 17346,
+            "deep": 0
+          },
+          "stop": "no_profitable_candidate",
+          "ordered_rhs_sha256": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e"
+        }
+      ],
+      "block_order": [
+        [
+          "ranked",
+          "fixed",
+          "dispatch",
+          "base"
+        ],
+        [
+          "base",
+          "dispatch",
+          "ranked",
+          "fixed"
+        ],
+        [
+          "dispatch",
+          "fixed",
+          "base",
+          "ranked"
+        ],
+        [
+          "fixed",
+          "ranked",
+          "dispatch",
+          "base"
+        ],
+        [
+          "ranked",
+          "base",
+          "fixed",
+          "dispatch"
+        ]
+      ]
+    }
+  }
+}

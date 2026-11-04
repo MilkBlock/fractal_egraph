@@ -274,7 +274,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
     };
     if cmd == "iterate" && args.iter().any(|a| a == "--help") {
         println!(
-            "cargo cell-iterate --program SEED --output NEW_DIR [--rounds N] [--max-depth N] [--max-nodes N] [--new-per-round N] [--max-units N] [--candidate-slots N] [--min-support N]"
+            "cargo cell-iterate --program SEED --output NEW_DIR [--rounds N] [--objective copies|rhs-lookups] [--max-depth N] [--max-nodes N] [--new-per-round N] [--max-units N] [--candidate-slots N] [--min-support N]"
         );
         return Ok(());
     }

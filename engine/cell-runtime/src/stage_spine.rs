@@ -1,7 +1,6 @@
 //! Source-scheduled Cell programs. A committed producer supplies the next
 //! stage's complete context; the stage consumes it without a structural join.
 //! Coverage is proved from functional table keys, not from observed frequency.
-use rustc_hash::FxHashMap as HashMap;
 use crate::{
     entry_schedule::{Inputs, Seed},
     graph::{Dependency, Graph, Row},
@@ -9,6 +8,7 @@ use crate::{
     program::*,
     value::{self, Value, canon},
 };
+use rustc_hash::FxHashMap as HashMap;
 use serde::Serialize;
 use serde_json::{Value as J, json};
 use std::{
@@ -67,6 +67,50 @@ pub(crate) enum Started {
     Live(Cursor),
 }
 impl Started {
+    #[cfg(feature = "iterative-bake")]
+    pub(crate) fn closed(&self, catalog: &crate::iterative::Catalog) -> bool {
+        matches!(self,Self::Live(c) if catalog.closed(&c.state))
+    }
+    #[cfg(feature = "iterative-bake")]
+    pub(crate) fn result_inputs(
+        &self,
+        catalog: &crate::iterative::Catalog,
+    ) -> smallvec::SmallVec<[crate::result_handoff::Input; 4]> {
+        let Self::Live(c) = self else {
+            return smallvec::SmallVec::new();
+        };
+        catalog
+            .program(&c.state)
+            .iter()
+            .map(|r| crate::result_handoff::Input {
+                op: r.op,
+                back: r.back,
+                fact: c.state.history.get(r),
+                equal_output: r.equal_output,
+            })
+            .collect()
+    }
+    #[cfg(feature = "iterative-bake")]
+    fn remember(
+        &mut self,
+        cat: &crate::iterative::Catalog,
+        rid: usize,
+        read: impl Fn(usize) -> Option<Dependency>,
+        effects: Option<&[Option<Dependency>]>,
+    ) {
+        if cat.history_depth() == 0 {
+            return;
+        }
+        if let Self::Live(c) = self {
+            c.state.history.capture(
+                cat.history_depth(),
+                rid,
+                cat.capture_sources(&c.state),
+                read,
+                effects,
+            );
+        }
+    }
     fn cursor(&mut self, stats: &mut Stats) -> &Cursor {
         if let Self::Root {
             id,
@@ -239,8 +283,8 @@ pub struct Programs {
     pending_anchors: Vec<(usize, Vec<Value>, Publication)>,
     root_set: Rc<str>,
     capture_unions: Option<u64>,
-    origins: Vec<HashMap<Vec<Value>,Cursor>>,
-    origin_rules:Vec<usize>,
+    origins: Vec<HashMap<Vec<Value>, Cursor>>,
+    origin_rules: Vec<usize>,
     next_context: u64,
 
     pub stats: Stats,
@@ -436,8 +480,8 @@ impl Programs {
             pending_anchors: vec![],
             root_set: Rc::from(""),
             capture_unions: None,
-            origins: vec![HashMap::default();p.rules.len()],
-            origin_rules:Vec::new(),
+            origins: vec![HashMap::default(); p.rules.len()],
+            origin_rules: Vec::new(),
             next_context: 0,
 
             stats: Stats::default(),
@@ -534,6 +578,18 @@ impl Programs {
                 }
             }
             s.anchor_ops.push(anchors);
+            #[cfg(feature = "iterative-bake")]
+            for src in p.iterative.exports(rid) {
+                if let crate::result_handoff::Donor::Query(i) = *src {
+                    match query_facts {
+                        QueryFacts::None => query_facts = QueryFacts::One(i, None),
+                        QueryFacts::One(j, _) if i != j => {
+                            query_facts = QueryFacts::All(vec![None; r.query.len()])
+                        }
+                        _ => {}
+                    }
+                }
+            }
             s.alias_query_facts.push(query_facts);
         }
         #[cfg(feature = "spine-shapes")]
@@ -690,6 +746,20 @@ impl Programs {
         query_fact: impl Fn(usize) -> Option<Dependency>,
         effects: Option<&[Option<Dependency>]>,
     ) -> Result<()> {
+        self.capture_keys(g, rid, cell, step, query_fact, effects, |_, args| {
+            g.arguments(cell, args)
+        })
+    }
+    pub(crate) fn capture_keys(
+        &mut self,
+        g: &Graph,
+        rid: usize,
+        _cell: u32,
+        step: Started,
+        query_fact: impl Fn(usize) -> Option<Dependency>,
+        effects: Option<&[Option<Dependency>]>,
+        mut key: impl FnMut(usize, &[Arg]) -> Result<Vec<Value>>,
+    ) -> Result<()> {
         self.stats.completed_steps += 1;
         if self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return Ok(());
@@ -699,6 +769,12 @@ impl Programs {
         let template = &g.program.templates[rule.template];
         self.capture_unions.get_or_insert(g.stats.unions);
         let slot = self.pending_steps.len();
+        #[cfg(feature = "iterative-bake")]
+        let step = {
+            let mut s = step;
+            s.remember(&g.program.iterative, rid, &query_fact, effects);
+            s
+        };
         self.pending_steps.push(step);
         for &(i, source) in &self.anchor_ops[rid] {
             let (table, args) = match &template.ops[i] {
@@ -724,14 +800,17 @@ impl Programs {
             });
             self.pending_anchors.push((
                 table,
-                g.arguments(cell, args)?,
+                key(i, args)?,
                 Publication {
                     slot,
                     receipt,
                     #[cfg(feature = "iterative-bake")]
                     output: i,
                     #[cfg(feature = "spine-shapes")]
-                    source: crate::graph::FactRef { cell, op: i as u32 },
+                    source: crate::graph::FactRef {
+                        cell: _cell,
+                        op: i as u32,
+                    },
                 },
             ));
             self.stats.captured_anchors += 1;
@@ -750,6 +829,8 @@ impl Programs {
         key: Vec<Value>,
         w: Dependency,
         unions: u64,
+        #[cfg(feature = "iterative-bake")] catalog: &crate::iterative::Catalog,
+        #[cfg(feature = "iterative-bake")] query: &QueryFacts,
     ) {
         self.stats.completed_steps += 1;
         if self.anchor_ops[rid].is_empty() {
@@ -759,6 +840,12 @@ impl Programs {
         debug_assert_eq!(self.anchor_ops[rid][0].0, op);
         self.capture_unions.get_or_insert(unions);
         let slot = self.pending_steps.len();
+        #[cfg(feature = "iterative-bake")]
+        let step = {
+            let mut s = step;
+            s.remember(catalog, rid, |i| query.get(i).map(Dependency::Fact), None);
+            s
+        };
         self.pending_steps.push(step);
         self.pending_anchors.push((
             table,
@@ -890,7 +977,9 @@ impl Programs {
                 .or_default() += hits;
         }
         self.pending_steps.clear();
-        for rid in self.origin_rules.drain(..){ self.origins[rid].clear(); }
+        for rid in self.origin_rules.drain(..) {
+            self.origins[rid].clear();
+        }
         self.entry_cache.clear();
         self.row_cache.clear();
         self.stats.publication_seconds += clock.elapsed().as_secs_f64();
@@ -1131,6 +1220,7 @@ impl Programs {
                     cursor.state = Default::default();
                     None
                 } else if g.program.iterative.enabled() {
+                    cursor.state.collect_pairs = self.training.collect_pairs;
                     g.program.iterative.dispatch(
                         &mut cursor.state,
                         rid,
@@ -1349,8 +1439,10 @@ impl Programs {
                         answer.direct = Some(DirectOrigin(Box::new(cursor)));
                         return answer;
                     }
-                    if self.origins[rid].is_empty(){self.origin_rules.push(rid);}
-                    self.origins[rid].insert(key,cursor);
+                    if self.origins[rid].is_empty() {
+                        self.origin_rules.push(rid);
+                    }
+                    self.origins[rid].insert(key, cursor);
                     answer
                 })
                 .collect(),

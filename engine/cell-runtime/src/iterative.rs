@@ -67,6 +67,7 @@ pub struct Catalog {
     leaves: BTreeMap<Entry, Id>,
     jumps: BTreeMap<Join, Id>,
     paths: BTreeSet<Vec<(Option<usize>, Entry)>>,
+    switch: crate::result_handoff::Switch,
 }
 #[derive(Clone, Copy, Debug)]
 struct Segment {
@@ -83,12 +84,17 @@ pub(crate) struct State {
     capped: bool,
     last_run: usize,
     witness: Option<crate::graph::Dependency>,
+    pub(crate) history: crate::result_handoff::History,
+    pc: usize,
+    active: Option<Id>,
+    pub(crate) collect_pairs: bool,
+    samples: Option<Rc<Vec<(usize, usize, Option<crate::graph::Dependency>)>>>,
 }
 impl State {
     pub fn fused(&self, catalog: &Catalog) -> bool {
-        self.stack
-            .last()
-            .is_some_and(|u| u.unit >= catalog.leaves.len())
+        self.active
+            .or_else(|| self.stack.last().map(|s| s.unit))
+            .is_some_and(|id| id >= catalog.leaves.len())
     }
 }
 impl Catalog {
@@ -152,7 +158,55 @@ impl Catalog {
             s.jumps.insert(join, s.units.len());
             s.units.push(u);
         }
+        if let Some(raw) = raw.get("rhs_handoffs") {
+            let reuse = raw["reuse_results"]
+                .as_bool()
+                .ok_or("missing result switch policy")?;
+            s.switch = crate::result_handoff::Switch::build(
+                p,
+                s.units.iter().map(|u| u.path.as_slice()),
+                &s.leaves,
+                reuse,
+            );
+            if *raw != s.switch.artifact() {
+                return Err("invalid cross-Run RHS plan".into());
+            }
+        }
         Ok(s)
+    }
+    pub fn emit_handoffs(p: &Program, plan: &mut J) -> Result<()> {
+        Self::emit_switch(p, plan, true)
+    }
+    pub fn emit_switch(p: &Program, plan: &mut J, reuse: bool) -> Result<()> {
+        plan.as_object_mut()
+            .ok_or("missing iterative catalog")?
+            .remove("rhs_handoffs");
+        let cat = Self::parse(p, plan)?;
+        plan["rhs_handoffs"] = crate::result_handoff::Switch::build(
+            p,
+            cat.units.iter().map(|u| u.path.as_slice()),
+            &cat.leaves,
+            reuse,
+        )
+        .artifact();
+        Ok(())
+    }
+    pub(crate) fn exports(&self, rid: usize) -> &[crate::result_handoff::Donor] {
+        self.switch.exports.get(rid).map_or(&[], Vec::as_slice)
+    }
+    pub(crate) fn capture_sources(&self, s: &State) -> &[crate::result_handoff::Donor] {
+        self.switch.supply(s.pc)
+    }
+    pub(crate) fn history_depth(&self) -> usize {
+        self.switch.depth
+    }
+    pub(crate) fn program(&self, s: &State) -> &[crate::result_handoff::Reuse] {
+        self.switch
+            .program(s.pc)
+            .map_or(&[], |t| t.reuse.as_slice())
+    }
+    pub(crate) fn closed(&self, s: &State) -> bool {
+        self.switch.program(s.pc).is_some_and(|p| p.complete)
     }
     fn combine(&self, p: &Program, j: Join) -> Option<Unit> {
         let (l, r) = (self.units.get(j.left)?, self.units.get(j.right)?);
@@ -191,6 +245,64 @@ impl Catalog {
         complete: bool,
         witness: crate::graph::Dependency,
     ) -> Option<Rc<Block>> {
+        if self.switch.enabled() {
+            let Some(leaf) = self.switch.leaf(rule, pivot) else {
+                *state = State::default();
+                return None;
+            };
+            state.pc = self.switch.advance(state.pc, state.output, leaf);
+            let unit = self.switch.active(state.pc);
+            state.active = Some(unit);
+            state.direct = complete;
+            state.complete = complete;
+            state.pending = None;
+            state.capped = false;
+            state.witness = Some(witness);
+            if state.collect_pairs {
+                let size = self.units[unit].path.len();
+                let mut overlap = size - 1;
+                let mut incoming = state.output;
+                while overlap != 0 {
+                    let Some(segment) = state.stack.pop() else {
+                        break;
+                    };
+                    let span = self.units[segment.unit].path.len();
+                    incoming = segment.incoming;
+                    if span > overlap {
+                        state.stack.clear();
+                        break;
+                    }
+                    overlap -= span;
+                }
+                if let Some(left) = state.stack.last() {
+                    let j = Join {
+                        left: left.unit,
+                        output: incoming,
+                        right: unit,
+                    };
+                    if self.units[left.unit].path.len() + size
+                        <= self.limits.depth.min(self.limits.nodes)
+                    {
+                        state.pending = Some(j);
+                    } else {
+                        state.capped = true;
+                    }
+                }
+                state.stack.push(Segment { unit, incoming });
+                let mut expanded = 0;
+                let keep = state
+                    .stack
+                    .iter()
+                    .rev()
+                    .take_while(|s| {
+                        expanded += self.units[s.unit].path.len();
+                        expanded <= self.limits.depth.min(self.limits.nodes)
+                    })
+                    .count();
+                state.stack.drain(..state.stack.len() - keep);
+            }
+            return Some(self.units[unit].terminal.clone());
+        }
         let Some(&id) = self.leaves.get(&(rule, pivot)) else {
             *state = State::default();
             return None;
@@ -243,32 +355,110 @@ impl Catalog {
         Some(self.units[right.unit].terminal.clone())
     }
     pub fn entries(&self) -> Vec<J> {
-        self.units.iter().enumerate().map(|(id,u)|json!({"id":id,"expanded":u.path,"depth":u.path.len(),"nodes":u.path.len()})).collect()
+        self.units
+            .iter()
+            .enumerate()
+            .map(|(id, u)| {
+                let mut entry =
+                    json!({"id":id,"expanded":u.path,"depth":u.path.len(),"nodes":u.path.len()});
+                if self.switch.enabled() {
+                    entry["terminal"] = json!(self.switch.program(self.switch.replay(&u.path)));
+                }
+                entry
+            })
+            .collect()
     }
     pub fn select(&self, p: &Program, profile: &Training) -> Vec<(Join, Evidence)> {
-        let mut choices = profile
-            .pairs
-            .iter()
-            .filter(|(_, e)| e.visits >= self.limits.support && e.avoidable_origin_slots > 0)
-            .collect::<Vec<_>>();
-        choices.sort_by_key(|(j, e)| {
+        let mut choices = vec![];
+        for (&join, e) in &profile.pairs {
+            if e.visits < self.limits.support {
+                continue;
+            }
+            let Some(u) = self.combine(p, join) else {
+                continue;
+            };
+            if self.paths.contains(&u.path) {
+                continue;
+            }
+            let mut e = e.clone();
+            if self.switch.enabled() {
+                let old = &self
+                    .switch
+                    .program(self.switch.replay(&u.path))
+                    .unwrap()
+                    .reuse;
+                let proof = crate::result_handoff::terminal(p, &u.path);
+                let additional = proof
+                    .reuse
+                    .iter()
+                    .filter(|r| !old.iter().any(|s| s.op == r.op))
+                    .count();
+                e.predicted_key_reads = e.visits.saturating_mul(additional as u64);
+            }
+            // A + B can be useful even when B itself has nothing to reuse.
+            // Propose a bounded bridge only if observed B + C and the typed
+            // three-unit path expose a donor in A. This is a ranking estimate;
+            // the next round must witness the joined AB actually followed by C.
+            if self.switch.enabled() && e.predicted_key_reads == 0 {
+                for (next, w) in profile.pairs.range(
+                    Join {
+                        left: join.right,
+                        output: 0,
+                        right: 0,
+                    }..,
+                ) {
+                    if next.left != join.right {
+                        break;
+                    }
+                    if w.visits < self.limits.support {
+                        continue;
+                    }
+                    let tail = &self.units[next.right];
+                    if u.path.len() + tail.path.len() > self.limits.depth.min(self.limits.nodes) {
+                        continue;
+                    }
+                    let Some(_) = self.combine(p, *next) else {
+                        continue;
+                    };
+                    let mut path = u.path.clone();
+                    let mut suffix = tail.path.clone();
+                    suffix[0].0 = Some(next.output);
+                    path.extend(suffix);
+                    let old = &self
+                        .switch
+                        .program(self.switch.replay(&path))
+                        .unwrap()
+                        .reuse;
+                    let start_of_b = self.units[join.left].path.len();
+                    if crate::result_handoff::derive(p, &path).iter().any(|r| {
+                        path.len() - 1 - r.back < start_of_b && !old.iter().any(|x| x.op == r.op)
+                    }) {
+                        e.bridge_support = e.bridge_support.max(w.visits.min(e.visits));
+                    }
+                }
+            }
+            if e.avoidable_origin_slots != 0 || e.predicted_key_reads != 0 || e.bridge_support != 0
+            {
+                choices.push((join, e, u.path));
+            }
+        }
+        choices.sort_by_key(|(j, e, _)| {
             (
+                std::cmp::Reverse(e.predicted_key_reads),
+                std::cmp::Reverse(e.bridge_support),
                 std::cmp::Reverse(e.avoidable_origin_slots),
                 std::cmp::Reverse(e.visits),
-                **j,
+                *j,
             )
         });
-        let mut paths = self.paths.clone();
         let n = self
             .limits
             .per_round
             .min(self.limits.total.saturating_sub(self.units.len()));
+        let mut paths = BTreeSet::new();
         choices
             .into_iter()
-            .filter_map(|(&j, e)| {
-                let u = self.combine(p, j)?;
-                paths.insert(u.path).then_some((j, e.clone()))
-            })
+            .filter_map(|(j, e, path)| paths.insert(path).then_some((j, e)))
             .take(n)
             .collect()
     }
@@ -276,6 +466,8 @@ impl Catalog {
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Evidence {
     pub visits: u64,
+    pub predicted_key_reads: u64,
+    pub bridge_support: u64,
     pub avoidable_origin_slots: u64,
     pub producer_run: usize,
     pub consumer_run: usize,
@@ -284,6 +476,7 @@ pub struct Evidence {
 }
 #[derive(Default)]
 pub struct Training {
+    pub(crate) collect_pairs: bool,
     pairs: BTreeMap<Join, Evidence>,
     hits: BTreeMap<Id, u64>,
     evictions: u64,
@@ -297,11 +490,23 @@ impl Training {
     pub(crate) fn applied(&mut self, c: &Catalog, s: &mut State, inputs: usize) {
         let parent_run = std::mem::replace(&mut s.last_run, self.run);
         self.capped_events += u64::from(s.capped);
-        let Some(last) = s.stack.last() else { return };
-        *self.hits.entry(last.unit).or_default() += 1;
-        if s.fused(c) && s.complete {
+        let Some(id) = s.active.or_else(|| s.stack.last().map(|x| x.unit)) else {
+            return;
+        };
+        *self.hits.entry(id).or_default() += 1;
+        if s.direct {
             self.direct_origins += 1;
             self.saved_key_slots += inputs as u64;
+        }
+        // In training only, retain a bounded witness window. With a multi-step
+        // right operand its *first* Run identifies the sampled join boundary.
+        if s.collect_pairs && s.active.is_some() {
+            let window = Rc::make_mut(s.samples.get_or_insert_with(Default::default));
+            let limit = c.limits.depth.min(c.limits.nodes);
+            if window.len() == limit {
+                window.remove(0);
+            }
+            window.push((parent_run, self.run, s.witness));
         }
         let Some(j) = s.pending else { return };
         // Once a right operand already takes the direct origin, extending its
@@ -309,7 +514,16 @@ impl Training {
         if parent_run == 0 || parent_run >= self.run {
             return;
         }
-        let saves_key = s.complete && !s.fused(c);
+        let sample = if s.collect_pairs && s.active.is_some() {
+            let window = s.samples.as_deref().unwrap();
+            let Some(i) = window.len().checked_sub(c.units[j.right].path.len()) else {
+                return;
+            };
+            window[i]
+        } else {
+            (parent_run, self.run, s.witness)
+        };
+        let saves_key = s.complete && !s.fused(c) && !c.switch.enabled();
         if self.pairs.len() == c.limits.candidates && !self.pairs.contains_key(&j) {
             self.pairs.retain(|_, e| {
                 e.visits -= 1;
@@ -320,18 +534,18 @@ impl Training {
             return;
         }
         let e = self.pairs.entry(j).or_insert(Evidence {
-            producer_run: parent_run,
-            consumer_run: self.run,
-            witness: s.witness,
+            producer_run: sample.0,
+            consumer_run: sample.1,
+            witness: sample.2,
             width: inputs as u64,
             ..Default::default()
         });
         e.visits += 1;
         if saves_key {
             if e.avoidable_origin_slots == 0 {
-                e.producer_run = parent_run;
-                e.consumer_run = self.run;
-                e.witness = s.witness;
+                e.producer_run = sample.0;
+                e.consumer_run = sample.1;
+                e.witness = sample.2;
             }
             e.avoidable_origin_slots += inputs as u64;
         }

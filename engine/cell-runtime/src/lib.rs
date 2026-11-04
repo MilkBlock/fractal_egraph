@@ -49,3 +49,6 @@ mod row_kernel;
 
 /// Common allocator for the standalone CLI and its Cargo benchmark workers.
 pub use mimalloc::MiMalloc as RuntimeAllocator;
+
+#[cfg(feature = "iterative-bake")]
+mod result_handoff;

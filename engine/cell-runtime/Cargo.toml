@@ -28,3 +28,7 @@ required-features = ["spine-blocks"]
 [[example]]
 name = "spine_shape_summary"
 required-features = ["spine-blocks"]
+
+[[example]]
+name = "complete_blocks"
+required-features = ["iterative-bake"]
