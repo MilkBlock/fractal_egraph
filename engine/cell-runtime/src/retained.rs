@@ -267,7 +267,7 @@ impl Signals {
                         .key
                         .bound
                         .iter()
-                        .zip(&r.values)
+                        .zip(r.values.iter())
                         .all(|(b, v)| b.as_ref().is_none_or(|b| b == v))
                     && domain
                         .key
@@ -279,7 +279,7 @@ impl Signals {
                 domain.rows.insert(
                     w,
                     SharedRow {
-                        values: Rc::new(values),
+                        values,
                         epoch,
                     },
                 );
@@ -493,7 +493,7 @@ impl Contexts {
                     decoded = Some((
                         w,
                         row.filter(|r| !r.hidden)
-                            .map(|r| (r.table, Rc::new(r.values), r.epoch)),
+                            .map(|r| (r.table, r.values, r.epoch)),
                     ));
                 }
                 let current = decoded
@@ -1062,7 +1062,7 @@ fn evaluate(
                                 && !r.hidden
                                 && a.args
                                     .iter()
-                                    .zip(&r.values)
+                                    .zip(r.values.iter())
                                     .all(|(a, v)| bind(a, v, &mut next, g))
                         });
                         if let Some(row) = row {
@@ -1072,10 +1072,10 @@ fn evaluate(
                                 epoch: 0,
                                 child: Box::default(),
                             });
-                            if b.child.ready && *b.values != row.values {
+                            if b.child.ready && b.values != row.values {
                                 signals.notify(b.child.id);
                             }
-                            b.values = Rc::new(row.values);
+                            b.values = row.values;
                             b.witness = row.witness;
                             b.epoch = row.epoch;
                             refreshed.insert(w, b);

@@ -57,6 +57,8 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[serde(skip)] pub(crate) writes:Vec<Option<Rc<crate::row_kernel::Write>>>,
+    #[serde(skip)] pub(crate) kernels:crate::row_kernel::Kernels,
     #[serde(default)]
     pub(crate) physical: Rc<crate::physical_plan::Plan>,
     #[serde(skip)]
@@ -298,7 +300,10 @@ impl Program {
             }
             sets.insert(string(&s["name"])?.into(), ids);
         }
+        let kernels=crate::row_kernel::derive(&rules);
+        if let Some(raw)=j.get("row_kernels") && *raw!=serde_json::json!(kernels){return Err("invalid register join plan".into());}
         let mut p = Self {
+            kernels,writes:vec![],
             physical: Default::default(),
             known_results:Default::default(),
             merge_programs: Default::default(),
@@ -323,6 +328,8 @@ impl Program {
         };
         p.validate()?;
         p.physical = Rc::new(crate::physical_plan::Plan::derive(&p));
+        p.writes=crate::row_kernel::writes(&p);
+        if let Some(raw)=p.artifact.get("single_writes") && *raw!=serde_json::json!(p.writes){return Err("invalid functional write plan".into())}
         if let Some(raw) = p.artifact.get("physical_plan") {
             let emitted: crate::physical_plan::Plan =
                 serde_json::from_value(raw.clone()).map_err(|e| e.to_string())?;

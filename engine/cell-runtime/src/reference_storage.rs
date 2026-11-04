@@ -37,8 +37,17 @@ impl Graph {
         parent: Option<FactRef>,
         witnesses: &MatchedFacts,
     ) -> Result<u32> {
+        self.reference_slots(template, values.into_iter().collect(), parent, witnesses)
+    }
+    pub(crate) fn reference_slots(
+        &mut self,
+        template: usize,
+        values: crate::slots::Slots,
+        parent: Option<FactRef>,
+        witnesses: &MatchedFacts,
+    ) -> Result<u32> {
         if !self.views_enabled {
-            return self.linked_frame(template, values, parent);
+            return self.linked_slots(template, values, parent);
         }
         if !self
             .program
@@ -47,7 +56,7 @@ impl Graph {
             .get(&template)
             .is_some_and(|l| l.reference_only)
         {
-            return self.linked_frame(template, values, parent);
+            return self.linked_slots(template, values, parent);
         }
         // Keep the matched, correlated input tuple locally. Fact identity still
         // uses FactRef; only field storage changes. slot() canonicalizes copied
@@ -55,9 +64,9 @@ impl Graph {
         // union/repair just like every other virtual fact. No provider pins are
         // needed to keep a snapshot of immutable matched parameters alive.
         if self.marker_fields_copied {
-            return self.frame(template, values);
+            return self.linked_slots(template,values,None);
         }
-        let id = self.frame(template, values)?;
+        let id = self.linked_slots(template,values,None)?;
         let Some(layout) = self.program.views.layouts.get(&template).cloned() else {
             return Ok(id);
         };
@@ -246,7 +255,7 @@ impl Graph {
                     break;
                 };
                 let vals = if let Some(row) = self.fact(old)? {
-                    row.values
+                    row.values.as_ref().clone()
                 } else {
                     (0..self.program.tables[table].schema.len())
                         .map(|c| self.fact_column(old, c))

@@ -82,7 +82,10 @@ pub fn collect(g: &Graph, a: u64, b: u64) -> Result<(Vec<Hit>, u64, u64)> {
     let mut hits = vec![];
     let mut port_cache: BTreeMap<(usize, Vec<Value>), BTreeSet<Value>> = BTreeMap::new();
     let mut unready = 0;
-    for (&frame, c) in &g.cells {
+    let mut frames=g.cells.keys().copied().collect::<Vec<_>>();
+    frames.sort_unstable();
+    for frame in frames {
+        let c=&g.cells[&frame];
         let template = &g.program.templates[c.template];
         let (slots, kind, defined) = if let Some(rule) = g.program.rules.get(c.template) {
             let set = g.program.artifact["recipe"]["rules"][c.template]["metadata"]["source_set"]
@@ -162,7 +165,7 @@ pub fn collect(g: &Graph, a: u64, b: u64) -> Result<(Vec<Hit>, u64, u64)> {
                 }
             }
         }
-        for (&op, _) in &c.facts {
+        for (&op, _) in c.facts.iter() {
             if let Some(Op::Let(dst, Call::Table(t), _)) = template.ops.get(op as usize)
                 && g.program.tables[*t].constructor
             {

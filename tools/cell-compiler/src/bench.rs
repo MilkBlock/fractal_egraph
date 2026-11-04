@@ -229,6 +229,8 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "lazy_prefix_eliminated": e.graph.known_stats.lazy_prefix_eliminated,
             "cells_created": g.cells_created,
             "rhs_frames_avoided": g.rhs_frames_avoided,
+            "register_seeds":g.register_seeds,"register_answers":g.register_answers,
+            "single_writes":g.single_writes,"transient_writes":g.transient_writes,
             "slot_transfer": g.slot_transfer,
             "slot_transfer_mode": e.graph.slot_transfer,
             "free_join": r["free_join"],
