@@ -57,6 +57,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             let flag = match name {
                 "local-congruence" => ("CELL_CPU_CONGRUENCE", "1"),
                 "union-graft" => ("CELL_CPU_UNION_GRAFT", "1"),
+                "local-context" => ("CELL_CPU_LOCAL_CONTEXT", "1"),
                 "stage-spine" => ("CELL_CPU_STAGE_SPINE", "1"),
                 "slot-transfer" => ("CELL_CPU_SLOT_TRANSFER", "1"),
                 "range-guards" => ("CELL_CPU_RANGE_GUARDS", "1"),
@@ -229,6 +230,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "lazy_prefix_eliminated": e.graph.known_stats.lazy_prefix_eliminated,
             "cells_created": g.cells_created,
             "rhs_frames_avoided": g.rhs_frames_avoided,
+            "local_context":r["local_context"],
             "register_seeds":g.register_seeds,"register_answers":g.register_answers,
             "handoff_attempts":g.handoff_attempts, "handoff_lets":g.handoff_lets,
             "handoff_sets":g.handoff_sets, "handoff_deep":g.handoff_deep,

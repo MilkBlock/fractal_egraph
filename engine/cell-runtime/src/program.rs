@@ -57,6 +57,8 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[serde(skip)]
+    pub(crate) local_contexts: Vec<Option<Rc<crate::local_context::Plan>>>,
     #[serde(skip)] pub(crate) writes:Vec<Option<Rc<crate::row_kernel::Write>>>,
     #[serde(skip)] pub(crate) kernels:crate::row_kernel::Kernels,
     #[serde(default)]
@@ -303,6 +305,7 @@ impl Program {
         let kernels=crate::row_kernel::derive(&rules);
         if let Some(raw)=j.get("row_kernels") && *raw!=serde_json::json!(kernels){return Err("invalid register join plan".into());}
         let mut p = Self {
+            local_contexts: vec![],
             kernels,writes:vec![],
             physical: Default::default(),
             known_results:Default::default(),
@@ -384,6 +387,11 @@ impl Program {
         p.merge_programs=crate::merge_programs::Programs::parse(&p,&p.artifact["merge_programs"])?;
         p.known_results=crate::known_results::Plans::parse(&p,&p.artifact["known_results"])?;
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
+        p.local_contexts = crate::local_context::derive(&p, &p.artifact["multi_stage"]["stage_entries"]);
+        if let Some(raw) = p.artifact.get("local_contexts") && *raw != serde_json::json!(p.local_contexts) {
+            return Err("invalid local context plan".into());
+        }
+
         #[cfg(feature = "spine-blocks")]
         {
             p.spine_blocks = crate::spine_blocks::Catalog::parse(&p, &p.artifact["spine_blocks"])?;

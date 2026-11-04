@@ -389,6 +389,19 @@ impl Scheduler {
             Ok(())
         })
     }
+    pub(crate) fn terminal_delta(
+        &mut self, g: &Graph, rid: usize, atom: usize, watermark: u64, mut visit: impl FnMut(&Row),
+    ) -> Result<()> {
+        let consumer = self.plan.rules[rid].iter().find(|c| c.atom == atom)
+            .cloned().ok_or("missing terminal entry")?;
+        self.refresh(g, consumer.node)?;
+        let state = &self.states[consumer.node];
+        let batch = Batch { state, consumer: &consumer, watermark, table: self.plan.nodes[consumer.node].table };
+        for &(_, witness) in batch.delta() {
+            visit(&state.rows[&witness].row);
+        }
+        Ok(())
+    }
     pub(crate) fn batches(
         &mut self,
         g: &Graph,
