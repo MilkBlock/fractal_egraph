@@ -112,6 +112,48 @@
       "pass_number": 3,
       "capacity": 1048576,
       "match_capacity": 262144
+    },
+    {
+      "name": "deriche",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/deriche.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "b93d070e55594487e9caabf7c0d646233745368aa235f5dc29c338eacf5071c6",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/polybench/medley/deriche.rs",
+      "pass_number": 3,
+      "source_sha256": "3b171c9061179cfc1da3200f888b09c6fb6c8229b60cbb61b791a40141023790",
+      "captured_pass_sha256": "49edcee967162123cfe44bbf8226c359de69c8c424fe5aa0e0f2c40e95e259f6"
+    },
+    {
+      "name": "3mm",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/3mm.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "e390e27aa13096bbcac54df8a42fed18df9145a605f677f645b8aaed40bd0f4b",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/polybench/linear-algebra/kernels/3mm.bril",
+      "pass_number": 3,
+      "source_sha256": "1cfd09d54aa051f8e58a5d65a4391fd25e8bb96f39998e4b5fe8453d90559967",
+      "captured_pass_sha256": "f58d415a056eb8f034a2e386e3fdb5c0e43c5ce3dcf22d6f3e6e537ac69ff7c3"
+    },
+    {
+      "name": "conjugate-gradient",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/conjugate-gradient.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "529b23353ef58c911c06672a0f42a87540d788f8b58fce6da3266251170678a1",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/bril/float/conjugate-gradient.bril",
+      "pass_number": 3,
+      "source_sha256": "af917c7a14d85890b18a0dd6f1cde4e6b6a7cd1f30a96804b61bc949a1b39775",
+      "captured_pass_sha256": "954818741328b7376bbdceb6226af5632263eb2c0667a97f011b64f360572038"
     }
   ],
   "bake": {

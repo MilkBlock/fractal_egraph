@@ -901,6 +901,16 @@ fn physical_plans_preserve_order_and_refresh_range_rows() {
     assert!(p["range"]["builds"].as_u64().unwrap() > 0);
     assert!(p["range"]["changed_entries"].as_u64().unwrap() >= 2);
     assert!(p["range"]["broad_fallbacks"].as_u64().unwrap() > 0);
+    let range = &p["range"];
+    assert!(range["partial_domains"].as_u64().unwrap() > 0);
+    assert!(
+        range["mixed_prefixes"].as_u64().unwrap() >= range["partial_domains"].as_u64().unwrap()
+    );
+    assert!(range["partial_output_rows"].as_u64().unwrap() > 0);
+    assert!(
+        range["partial_output_rows"].as_u64().unwrap()
+            < range["partial_input_rows"].as_u64().unwrap()
+    );
     assert!(
         p["range"]["output_rows"].as_u64().unwrap() < p["range"]["input_rows"].as_u64().unwrap()
     );
