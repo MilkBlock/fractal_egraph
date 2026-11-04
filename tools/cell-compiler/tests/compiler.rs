@@ -669,7 +669,7 @@ fn spine_coalesces_canonical_anchor_keys_after_all_effects() {
     assert_eq!(spine["capture_reads"], 1); // the deleted receipt uses the exact-key fallback
     assert_eq!(spine["resumed_steps"], 3);
     assert_eq!(spine["max_chain"], 2);
-    assert!(spine["port_cache_fills"].as_u64().unwrap() > 0);
+    assert!(spine["pre_resume_port_lookups"].as_u64().unwrap() > 0);
 
     let stages = |receipts| {
         let mut cmd = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"));
@@ -699,11 +699,12 @@ fn spine_coalesces_canonical_anchor_keys_after_all_effects() {
 }
 
 #[test]
-fn only_visible_winners_materialize_a_shared_spine_root() {
+fn only_an_applied_continuation_materializes_a_shared_spine_root() {
     let tmp = tempfile::tempdir().unwrap();
     let src = tmp.path().join("fanout.egg");
     // Two writers propose both anchors of key 7. Neither anchor of key 8
-    // survives repair. Both consumers of key 7 must share one materialization.
+    // survives repair. Key 9 is probed but fails its guard. Only the two
+    // consumers of key 7 resume, sharing a single materialization.
     fs::write(
         &src,
         r#"(relation WriteKey (i64 i64))
@@ -713,14 +714,16 @@ fn only_visible_winners_materialize_a_shared_spine_root() {
 (relation SawWrite (i64))
 (relation SawLeft (i64))
 (relation SawRight (i64))
+(function Threshold (i64) i64 :merge (max old new))
 (ruleset emit)
 (ruleset read)
 (rule ((WriteKey serial key)) ((L key) (R key) (SawWrite serial)) :ruleset emit)
 (rule ((DropKey key)) ((delete (L key))) :ruleset emit)
 (rule ((DropKey key)) ((delete (R key))) :ruleset emit)
-(rule ((L key)) ((SawLeft key)) :ruleset read)
-(rule ((R key)) ((SawRight key)) :ruleset read)
-(WriteKey 1 7) (WriteKey 2 7) (WriteKey 3 8) (DropKey 8)
+(rule ((L key) (= value (Threshold key)) (> value 0)) ((SawLeft key)) :ruleset read)
+(rule ((R key) (= value (Threshold key)) (> value 0)) ((SawRight key)) :ruleset read)
+(WriteKey 1 7) (WriteKey 2 7) (WriteKey 3 8) (DropKey 8) (WriteKey 4 9)
+(set (Threshold 7) 1) (set (Threshold 9) -1)
 (run-schedule (seq (run emit) (run read)))
 "#,
     )
@@ -739,10 +742,13 @@ fn only_visible_winners_materialize_a_shared_spine_root() {
     ]);
     let report: J = serde_json::from_slice(&result.stdout).unwrap();
     let spine = &report["counts"]["stage_spine"];
-    assert_eq!(spine["root_attempts"], 3);
-    assert_eq!(spine["captured_anchors"], 6);
-    assert_eq!(spine["distinct_anchor_keys"], 4);
-    assert_eq!(spine["anchor_publications"], 2);
+    assert_eq!(spine["root_attempts"], 4);
+    assert_eq!(spine["root_handles_created"], 2);
+    assert_eq!(spine["pre_resume_port_lookups"], 4);
+    assert_eq!(spine["port_cache_fills"], 0);
+    assert_eq!(spine["captured_anchors"], 8);
+    assert_eq!(spine["distinct_anchor_keys"], 6);
+    assert_eq!(spine["anchor_publications"], 4);
     assert_eq!(spine["contexts_created"], 1);
     assert_eq!(spine["resumed_steps"], 2);
     assert_eq!(spine["max_chain"], 2);

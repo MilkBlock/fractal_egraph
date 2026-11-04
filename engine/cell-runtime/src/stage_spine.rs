@@ -10,7 +10,7 @@ use crate::{
 use serde::Serialize;
 use serde_json::{Value as J, json};
 use std::{
-    cell::RefCell,
+    cell::{OnceCell, RefCell},
     collections::{BTreeMap, BTreeSet, HashMap},
     rc::Rc,
     time::Instant,
@@ -18,9 +18,31 @@ use std::{
 
 #[derive(Clone)]
 pub struct Cursor {
-    context: Rc<RefCell<Context>>,
+    root: Rc<Root>,
     pub depth: u32,
     pub producer: usize,
+}
+/// Shared by every published anchor of one logical root. The cell stores a
+/// pointer so an unused root never reserves space for the full Context.
+struct Root {
+    id: u64,
+    epoch: u64,
+    set: Rc<str>,
+    context: OnceCell<Box<RefCell<Context>>>,
+}
+impl Root {
+    fn materialize(&self, stats: &mut Stats) -> &RefCell<Context> {
+        self.context.get_or_init(|| {
+            stats.contexts_created += 1;
+            Box::new(RefCell::new(Context {
+                sets: BTreeSet::from([self.set.to_string()]),
+                last_epoch: self.epoch,
+                visits: 1,
+                unions: 0,
+                facts: BTreeMap::new(),
+            }))
+        })
+    }
 }
 /// One RHS application. New roots carry identity and source position until a
 /// visible anchor wins publication; resumed applications already own a context.
@@ -43,18 +65,16 @@ impl Started {
         } = self
         {
             *self = Self::Live(Cursor {
-                context: Rc::new(RefCell::new(Context {
+                root: Rc::new(Root {
                     id: *id,
-                    sets: BTreeSet::from([set.to_string()]),
-                    last_epoch: *epoch,
-                    visits: 1,
-                    unions: 0,
-                    facts: BTreeMap::new(),
-                })),
+                    epoch: *epoch,
+                    set: set.clone(),
+                    context: OnceCell::new(),
+                }),
                 depth: 1,
                 producer: *producer,
             });
-            stats.contexts_created += 1;
+            stats.root_handles_created += 1;
         }
         let Self::Live(cursor) = self else {
             unreachable!()
@@ -63,7 +83,6 @@ impl Started {
     }
 }
 struct Context {
-    id: u64,
     sets: BTreeSet<String>,
     last_epoch: u64,
     visits: u64,
@@ -84,6 +103,7 @@ pub struct Coverage {
 #[derive(Default, Serialize)]
 pub struct Stats {
     root_attempts: u64,
+    root_handles_created: u64,
     contexts_created: u64,
     captured_contexts: u64,
     capture_reads: u64,
@@ -124,6 +144,7 @@ pub struct Stats {
     context_fact_publications: u64,
     completed_steps: u64,
     port_refreshes: u64,
+    pre_resume_port_lookups: u64,
     port_cache_fills: u64,
     guards: u64,
     guard_rejections: u64,
@@ -370,7 +391,9 @@ impl Programs {
         epoch: u64,
     ) -> Option<Cursor> {
         let mut step = self.begin_step(p, rid, values, set, epoch)?;
-        Some(step.cursor(&mut self.stats).clone())
+        let cursor = step.cursor(&mut self.stats).clone();
+        cursor.root.materialize(&mut self.stats);
+        Some(cursor)
     }
     pub(crate) fn begin_step(
         &mut self,
@@ -402,13 +425,13 @@ impl Programs {
         if let Some(mut cursor) = previous {
             self.stats.resumed_steps += 1;
             *self.stats.resumed_by_set.entry(set.into()).or_default() += 1;
-            self.stats.cross_stage_steps += u64::from(!cursor.context.borrow().sets.contains(set));
             cursor.depth = cursor
                 .depth
                 .checked_add(1)
                 .expect("stage recipe depth exhausted");
             cursor.producer = rid;
-            let mut c = cursor.context.borrow_mut();
+            let mut c = cursor.root.materialize(&mut self.stats).borrow_mut();
+            self.stats.cross_stage_steps += u64::from(!c.sets.contains(set));
             c.sets.insert(set.into());
             if c.last_epoch != epoch {
                 c.visits += 1;
@@ -834,11 +857,14 @@ impl Programs {
                         let good = |r: &crate::graph::Row| {
                             r.table == *t && !r.hidden && r.values[..args.len()] == args
                         };
-                        let witness = {
-                            let mut context = cursor.context.borrow_mut();
+                        // A candidate may fail a later port or guard, or lose
+                        // binding deduplication. Only an applied origin promotes the root.
+                        let cache = cursor.root.context.get();
+                        let witness = cache.and_then(|context| {
+                            let mut context = context.borrow_mut();
                             context.canonicalize(g);
                             context.facts.get(&(*t, args.clone())).copied()
-                        };
+                        });
                         let mut row = if let Some(w) = witness {
                             self.stats.context_reads += 1;
                             g.stats.decoded_rows += 1;
@@ -849,12 +875,16 @@ impl Programs {
                         if row.is_none() {
                             self.stats.port_refreshes += 1;
                             row = g.lookup(*t, &args)?;
-                            let mut context = cursor.context.borrow_mut();
-                            if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
-                                context.facts.insert((*t, args), r.witness);
-                                self.stats.port_cache_fills += 1;
+                            if let Some(context) = cache {
+                                let mut context = context.borrow_mut();
+                                if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
+                                    context.facts.insert((*t, args), r.witness);
+                                    self.stats.port_cache_fills += 1;
+                                } else {
+                                    context.facts.remove(&(*t, args));
+                                }
                             } else {
-                                context.facts.remove(&(*t, args));
+                                self.stats.pre_resume_port_lookups += 1;
                             }
                         }
                         let Some(row) = row.filter(|r| !r.hidden) else {
@@ -1039,11 +1069,13 @@ impl Programs {
         let contexts = self
             .entries
             .values()
-            .map(|c| (c.context.borrow().id, c.context.clone()))
+            .map(|c| (c.root.id, &c.root))
             .collect::<BTreeMap<_, _>>();
-        let facts: usize = contexts.values().map(|c| c.borrow().facts.len()).sum();
+        let materialized = contexts.values().filter_map(|root| root.context.get());
+        let live_materialized = materialized.clone().count();
+        let facts: usize = materialized.map(|c| c.borrow().facts.len()).sum();
         json!({"enabled":self.enabled,"receipts_enabled":self.receipts,"partial_enabled":self.partial,"shared_entries_enabled":self.shared_entries,"stats":self.stats,"producer_rules":self.anchor_ops.iter().filter(|ops| !ops.is_empty()).count(),
-            "keyed_entries":self.orders.len(),"live_spines":contexts.len(),
+            "keyed_entries":self.orders.len(),"live_spines":contexts.len(),"live_materialized_contexts":live_materialized,
             "entry_references":self.entries.len(),"context_fact_references":facts,
             "scope":"source-scheduled RHS continuation from committed producer contexts; exhaustive functional-key entries; unknown delta entries use ordinary matching; no early effect visibility"})
     }
