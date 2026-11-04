@@ -39,3 +39,6 @@ pub mod compiler;
 
 mod physical_plan;
 mod range_index;
+
+#[cfg(feature = "iterative-bake")]
+pub mod iterative;

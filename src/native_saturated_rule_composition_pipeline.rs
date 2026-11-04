@@ -81,7 +81,7 @@ impl Pipeline {
                 .build()?,
             out: out.into(),
             source,
-            cs: Default::default(),
+            cs: cs::Store::bounded(crate::bake_limits::BakeLimits::from_env()?),
             cells: cell_egraph::Registry::new()?,
             reuse_census: Default::default(),
             jobs: vec![],
@@ -774,4 +774,57 @@ impl Pipeline {
         )?;
         Ok(())
     }
+}
+
+/// Register already validated finite CPU programs. The expanded layout keeps
+/// native Cell IDs meaningful independently of the round that produced them.
+pub(super) fn cpu_block_egraph(
+    plan: &Json,
+    units: &[Json],
+    joins: &[Json],
+    limits: crate::bake_limits::BakeLimits,
+) -> Result<Json> {
+    if units.len() > limits.max_units || joins.len() > units.len() {
+        return Err("Cell catalog exceeds budget".into());
+    }
+    let base = units.len() - joins.len();
+    let mut reg = cell_egraph::Registry::new()?;
+    for (id, u) in units.iter().enumerate() {
+        let path = u["expanded"]
+            .as_array()
+            .ok_or("missing expanded Cell path")?;
+        if u["id"] != id || path.is_empty() || path.len() > limits.max_nodes.min(limits.max_depth) {
+            return Err("invalid expanded Cell layout".into());
+        }
+        let mut parents = Vec::new();
+        if id >= base {
+            let j = &joins[id - base];
+            let idx = |k: &str| {
+                j[k].as_u64()
+                    .and_then(|x| usize::try_from(x).ok())
+                    .filter(|&p| p < id)
+                    .ok_or("invalid Cell parent")
+            };
+            let (a, b) = (idx("left")?, idx("right")?);
+            let mut expanded = units[a]["expanded"].as_array().unwrap().clone();
+            let mut tail = units[b]["expanded"].as_array().unwrap().clone();
+            tail[0][0] = j["output"].clone();
+            expanded.extend(tail);
+            if expanded != *path {
+                return Err("Cell expansion disagrees with parents".into());
+            }
+            parents.extend([a, b]);
+        } else if path.len() != 1 {
+            return Err("invalid primitive Cell block".into());
+        }
+        reg.register_descriptor(id,&parents,&json!({"kind":"scheduled_cpu_entry","recipe":plan["recipe"],"seed":plan["seed"],"expanded":path}),&Json::Null)?;
+    }
+    let mut report = reg.report();
+    for node in report["nodes"].as_array_mut().unwrap() {
+        node["parent_scope"] = json!("ordered components of a finite block");
+    }
+    report["recipe"] = plan["recipe"].clone();
+    report["seed"] = plan["seed"].clone();
+    report["scope"] = json!("checked finite CPU continuation blocks; source-scheduled activation");
+    Ok(report)
 }

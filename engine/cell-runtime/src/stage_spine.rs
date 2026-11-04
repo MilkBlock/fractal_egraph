@@ -22,6 +22,8 @@ use std::{
 mod shapes;
 #[derive(Clone)]
 pub struct Cursor {
+    #[cfg(feature = "iterative-bake")]
+    state: crate::iterative::State,
     #[cfg(feature = "spine-blocks")]
     via_block: bool,
     #[cfg(feature = "spine-shapes")]
@@ -83,6 +85,8 @@ impl Started {
                 trace: Default::default(),
                 #[cfg(feature = "spine-blocks")]
                 via_block: false,
+                #[cfg(feature = "iterative-bake")]
+                state: Default::default(),
                 depth: 1,
                 producer: *producer,
             });
@@ -101,7 +105,20 @@ struct Context {
     unions: u64,
     facts: BTreeMap<(usize, Vec<Value>), Dependency>,
 }
+#[cfg(feature = "iterative-bake")]
+#[derive(Clone)]
+pub(crate) struct DirectOrigin(pub Box<Cursor>);
+#[cfg(feature = "iterative-bake")]
+impl std::fmt::Debug for DirectOrigin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("DirectOrigin")
+            .field(&self.0.producer)
+            .finish()
+    }
+}
 pub struct Answer {
+    #[cfg(feature = "iterative-bake")]
+    pub(crate) direct: Option<DirectOrigin>,
     pub(crate) parameter_parent: Option<crate::graph::FactRef>,
     pub values: Vec<Value>,
     pub witnesses: Vec<Option<Dependency>>,
@@ -188,12 +205,16 @@ pub struct Stats {
     fallback_by_rule: BTreeMap<usize, u64>,
 }
 struct Publication {
+    #[cfg(feature = "iterative-bake")]
+    output: usize,
     slot: usize,
     receipt: Option<Dependency>,
     #[cfg(feature = "spine-shapes")]
     source: crate::graph::FactRef,
 }
 pub struct Programs {
+    #[cfg(feature = "iterative-bake")]
+    pub(crate) training: crate::iterative::Training,
     #[cfg(feature = "spine-shapes")]
     shapes: shapes::Profile,
     pub enabled: bool,
@@ -244,10 +265,16 @@ fn record_answer(
     parameter_parent: Option<crate::graph::FactRef>,
     cursor: Cursor,
 ) {
+    #[cfg(feature = "iterative-bake")]
+    let direct = cursor.state.direct;
+    #[cfg(not(feature = "iterative-bake"))]
+    let direct = false;
     let candidate = (
         Answer {
+            #[cfg(feature = "iterative-bake")]
+            direct: None,
             parameter_parent,
-            values: values.clone(),
+            values: if direct { Vec::new() } else { values.clone() },
             witnesses,
             epoch,
         },
@@ -399,6 +426,8 @@ impl Programs {
             active_tables: BTreeMap::new(),
             #[cfg(feature = "spine-shapes")]
             shapes: Default::default(),
+            #[cfg(feature = "iterative-bake")]
+            training: Default::default(),
             anchor_ops: vec![],
             alias_query_facts: vec![],
             pending_steps: vec![],
@@ -516,7 +545,15 @@ impl Programs {
         set: &str,
         epoch: u64,
     ) -> Option<Cursor> {
-        let mut step = self.begin_step(p, rid, values, set, epoch)?;
+        let mut step = self.begin_step(
+            p,
+            rid,
+            values,
+            set,
+            epoch,
+            #[cfg(feature = "iterative-bake")]
+            None,
+        )?;
         let cursor = step.cursor(&mut self.stats).clone();
         cursor.root.materialize(&mut self.stats);
         Some(cursor)
@@ -528,11 +565,16 @@ impl Programs {
         values: &BTreeMap<usize, Value>,
         set: &str,
         epoch: u64,
+        #[cfg(feature = "iterative-bake")] direct: Option<DirectOrigin>,
     ) -> Option<Started> {
         if !self.enabled {
             return None;
         }
-        let key = (!self.origins.is_empty()).then(|| {
+        #[cfg(feature = "iterative-bake")]
+        let supplied = direct.map(|d| *d.0);
+        #[cfg(not(feature = "iterative-bake"))]
+        let supplied: Option<Cursor> = None;
+        let key = (supplied.is_none() && !self.origins.is_empty()).then(|| {
             (
                 rid,
                 p.rules[rid]
@@ -542,7 +584,7 @@ impl Programs {
                     .collect(),
             )
         });
-        let previous = key.and_then(|k| self.origins.remove(&k));
+        let previous = supplied.or_else(|| key.and_then(|k| self.origins.remove(&k)));
         if previous.is_none() && self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return None;
         }
@@ -550,6 +592,9 @@ impl Programs {
         *self.stats.by_set.entry(set.into()).or_default() += 1;
         if let Some(mut cursor) = previous {
             self.stats.resumed_steps += 1;
+            #[cfg(feature = "iterative-bake")]
+            self.training
+                .applied(&p.iterative, &mut cursor.state, p.rules[rid].inputs.len());
             #[cfg(feature = "spine-blocks")]
             {
                 self.stats.block_resumptions += u64::from(cursor.via_block);
@@ -679,6 +724,8 @@ impl Programs {
                 Publication {
                     slot,
                     receipt,
+                    #[cfg(feature = "iterative-bake")]
+                    output: i,
                     #[cfg(feature = "spine-shapes")]
                     source: crate::graph::FactRef { cell, op: i as u32 },
                 },
@@ -777,6 +824,12 @@ impl Programs {
                     let mut cursor = cursor;
                     cursor.trace.source = Some(publication.source);
                     cursor
+                };
+                #[cfg(feature = "iterative-bake")]
+                let cursor = {
+                    let mut c = cursor;
+                    c.state.output = publication.output;
+                    c
                 };
                 if self.entries.insert(w, cursor).is_none() {
                     *self.active_tables.entry(table).or_default() += 1;
@@ -1031,9 +1084,28 @@ impl Programs {
             #[cfg(feature = "spine-blocks")]
             {
                 cursor.via_block = false;
-                if g.slot_transfer == crate::graph::SlotTransfer::Off
-                    && let Some(block) = g.program.spine_blocks.get(rid, pivot)
-                {
+                #[cfg(feature = "iterative-bake")]
+                let selected = if g.slot_transfer != crate::graph::SlotTransfer::Off {
+                    cursor.state = Default::default();
+                    None
+                } else if g.program.iterative.enabled() {
+                    g.program.iterative.dispatch(
+                        &mut cursor.state,
+                        rid,
+                        pivot,
+                        complete,
+                        row.witness,
+                    )
+                } else {
+                    g.program.spine_blocks.get(rid, pivot)
+                };
+                #[cfg(not(feature = "iterative-bake"))]
+                let selected = if g.slot_transfer == crate::graph::SlotTransfer::Off {
+                    g.program.spine_blocks.get(rid, pivot)
+                } else {
+                    None
+                };
+                if let Some(block) = selected {
                     self.stats.block_entries += 1;
                     let port = if let Some(p) = &block.port {
                         let args = p.key.iter().map(|v| v.get(g, &row, None)).collect();
@@ -1060,6 +1132,10 @@ impl Programs {
                             .map(|v| v.get(g, &row, port.as_ref()))
                             .collect();
                         cursor.via_block = true;
+                        #[cfg(feature = "iterative-bake")]
+                        if cursor.state.direct {
+                            self.training.seal_moves += block.inputs.len() as u64;
+                        }
                         record_answer(&mut results, values, witnesses, epoch, None, cursor);
                     }
                     continue;
@@ -1223,6 +1299,14 @@ impl Programs {
             answers: results
                 .into_iter()
                 .map(|(key, (answer, cursor))| {
+                    #[cfg(feature = "iterative-bake")]
+                    if cursor.state.direct {
+                        debug_assert!(complete);
+                        let mut answer = answer;
+                        answer.values = key;
+                        answer.direct = Some(DirectOrigin(Box::new(cursor)));
+                        return answer;
+                    }
                     self.origins.insert((rid, key), cursor);
                     answer
                 })
@@ -1333,9 +1417,16 @@ impl Programs {
         let materialized = contexts.values().filter_map(|root| root.context.get());
         let live_materialized = materialized.clone().count();
         let facts: usize = materialized.map(|c| c.borrow().facts.len()).sum();
-        json!({"enabled":self.enabled,"receipts_enabled":self.receipts,"partial_enabled":self.partial,"shared_entries_enabled":self.shared_entries,"stats":self.stats,"producer_rules":self.anchor_ops.iter().filter(|ops| !ops.is_empty()).count(),
+        let report = json!({"enabled":self.enabled,"receipts_enabled":self.receipts,"partial_enabled":self.partial,"shared_entries_enabled":self.shared_entries,"stats":self.stats,"producer_rules":self.anchor_ops.iter().filter(|ops| !ops.is_empty()).count(),
             "keyed_entries":self.orders.len(),"live_spines":contexts.len(),"live_materialized_contexts":live_materialized,
             "entry_references":self.entries.len(),"context_fact_references":facts,
-            "scope":"source-scheduled RHS continuation from committed producer contexts; exhaustive functional-key entries; unknown delta entries use ordinary matching; no early effect visibility"})
+            "scope":"source-scheduled RHS continuation from committed producer contexts; exhaustive functional-key entries; unknown delta entries use ordinary matching; no early effect visibility"});
+        #[cfg(feature = "iterative-bake")]
+        let report = {
+            let mut r = report;
+            r["iterative_bake"] = self.training.report();
+            r
+        };
+        report
     }
 }

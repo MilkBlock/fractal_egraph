@@ -71,6 +71,9 @@ pub struct Program {
     #[cfg(feature = "spine-blocks")]
     #[serde(skip)]
     pub spine_blocks: crate::spine_blocks::Catalog,
+    #[cfg(feature = "iterative-bake")]
+    #[serde(skip)]
+    pub iterative: crate::iterative::Catalog,
     pub multi_stage: crate::multistage::MultiStage,
     pub entry_schedule: crate::entry_schedule::Plan,
     pub compositions: crate::compositions::Compositions,
@@ -303,6 +306,8 @@ impl Program {
             congruence: crate::congruence::Congruence::default(),
             #[cfg(feature = "spine-blocks")]
             spine_blocks: Default::default(),
+            #[cfg(feature = "iterative-bake")]
+            iterative: Default::default(),
             multi_stage: crate::multistage::MultiStage::default(),
             entry_schedule: crate::entry_schedule::Plan::default(),
             entry_join: None,
@@ -375,6 +380,10 @@ impl Program {
         #[cfg(feature = "spine-blocks")]
         {
             p.spine_blocks = crate::spine_blocks::Catalog::parse(&p, &p.artifact["spine_blocks"])?;
+        }
+        #[cfg(feature = "iterative-bake")]
+        {
+            p.iterative = crate::iterative::Catalog::parse(&p, &p.artifact["iterative_bake"])?;
         }
         p.congruence = crate::congruence::Congruence::parse(&p, &p.artifact["congruence"])?;
         p.compositions = crate::compositions::Compositions::parse(&p, &p.artifact["compositions"])?;

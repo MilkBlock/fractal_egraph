@@ -16,6 +16,8 @@ use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct Binding {
+    #[cfg(feature = "iterative-bake")]
+    direct: Option<crate::stage_spine::DirectOrigin>,
     known: QueryFacts,
     composition: Option<(Rc<crate::compositions::Edge>, crate::views::Context)>,
     witnesses: MatchedFacts,
@@ -210,6 +212,11 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     }
 }
 impl Executor {
+    #[cfg(feature = "iterative-bake")]
+    pub fn iterative_training(&self) -> &crate::iterative::Training {
+        &self.stage_spine.training
+    }
+
     #[cfg(feature = "spine-shapes")]
     pub fn spine_shape_report(&self) -> J {
         let mut report = self.stage_spine.shape_report();
@@ -525,7 +532,10 @@ impl Executor {
                     known.record(atom, Some(*w));
                     max_epoch=max_epoch.max(*e);
                 }
-                replay.push(Binding{values,witnesses,known,epoch:max_epoch,parent:None,continuation:None,composition:None,compiled:order.is_some()});
+                replay.push(Binding{
+                    #[cfg(feature = "iterative-bake")]
+                    direct: None,
+                    values,witnesses,known,epoch:max_epoch,parent:None,continuation:None,composition:None,compiled:order.is_some()});
             }
             self.search_contexts.stats.reused_bindings+=replay.len() as u64;
             if !self.search_contexts.observe {out.extend(replay);return Ok(())}
@@ -587,6 +597,8 @@ impl Executor {
         }
         if !remaining.iter().any(|pending| *pending) {
             out.push(Binding {
+                #[cfg(feature = "iterative-bake")]
+                direct: None,
                 composition: None,
                 witnesses: env.witnesses.clone(),
                 known:env.known.clone(),
@@ -1108,6 +1120,8 @@ impl Executor {
             None
         };
         Ok(ComposedMatch::Matched(Binding {
+            #[cfg(feature = "iterative-bake")]
+            direct: None,
             composition: Some((edge.clone(), context)),
             witnesses: env.witnesses.clone(),
                 known:env.known.clone(),
@@ -1354,7 +1368,10 @@ impl Executor {
             return Ok(())
         }
         let Some((&i,tail))=order.split_first() else {
-            out.push(Binding{composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
+            out.push(Binding{
+                #[cfg(feature = "iterative-bake")]
+                direct: None,
+                composition:None,witnesses:env.witnesses.clone(),known:env.known.clone(),values:env.binding(),epoch,parent:None,continuation:None,compiled:true});
             return Ok(())
         };
         let a=&query[i];let mark=env.trail.len();
@@ -1601,6 +1618,8 @@ impl Executor {
                         self.graph.stats.slot_transfer.rhs_parent_bindings += 1;
                     }
                     Binding {
+                        #[cfg(feature = "iterative-bake")]
+                        direct: a.direct,
                         values: rule.inputs.iter().copied().zip(a.values).collect(),
                         witnesses, known, composition: None,
                         parent: a.parameter_parent.filter(|_| self.graph.slot_transfer != SlotTransfer::ParentCheck),
@@ -1624,7 +1643,10 @@ impl Executor {
                     witnesses.record(i,w);
                     known.record(i,w);
                 }
-                Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,
+                Binding{
+                    #[cfg(feature = "iterative-bake")]
+                    direct: None,
+                    values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,
                     composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
             }).collect())
         }
@@ -1705,6 +1727,8 @@ impl Executor {
                     }
                     if self.multistage_enabled && !remaining.iter().any(|v| *v) {
                         found.push(Binding {
+                            #[cfg(feature = "iterative-bake")]
+                            direct: None,
                             composition: None,
                             witnesses: env.witnesses.clone(),
                 known:env.known.clone(),
@@ -1912,6 +1936,8 @@ impl Executor {
                         }
                         if self.multistage_enabled && !remaining.iter().any(|v| *v) {
                             found.push(Binding {
+                                #[cfg(feature = "iterative-bake")]
+                                direct: None,
                                 composition: None,
                                 witnesses: env.witnesses.clone(),
                                 known: env.known.clone(),
@@ -2002,7 +2028,7 @@ impl Executor {
     fn apply(&mut self, rid: usize, b: Binding) -> Result<Option<Produced>> {
         #[cfg(feature = "slot-transfer-audit")]
         let _rhs = crate::transfer_audit::RhsScope::enter();
-        let stage_cursor=self.stage_spine.begin_step(&self.graph.program,rid,&b.values,&self.current_stage,self.graph.epoch);
+        let stage_cursor=self.stage_spine.begin_step(&self.graph.program,rid,&b.values,&self.current_stage,self.graph.epoch, #[cfg(feature = "iterative-bake")] b.direct);
         let stage_counts=stage_cursor.as_ref().map(|_|(self.graph.stats.constructor_requests,self.graph.stats.function_updates,self.graph.stats.union_requests));
         let template = self.graph.program.rules[rid].template;
         let origin = b.continuation;
@@ -2278,7 +2304,18 @@ impl Executor {
             }}
             self.local_sat.stats.audit_bindings+=1;
         }
-        Ok(Some(Binding{values,witnesses:MatchedFacts::None,known:QueryFacts::None,composition:None,parent:None,continuation:None,compiled:true,epoch:self.graph.epoch}))
+        Ok(Some(Binding {
+            #[cfg(feature = "iterative-bake")]
+            direct: None,
+            values,
+            witnesses: MatchedFacts::None,
+            known: QueryFacts::None,
+            composition: None,
+            parent: None,
+            continuation: None,
+            compiled: true,
+            epoch: self.graph.epoch,
+        }))
     }
     fn probe(&mut self, set: &str) -> Result<bool> {
         let rules = self
@@ -2297,6 +2334,10 @@ impl Executor {
     }
     fn run(&mut self, set: &str, path: &[usize], iterations: &[u64]) -> Result<bool> {
         self.current_stage=set.into();
+        #[cfg(feature = "iterative-bake")]
+        {
+            self.stage_spine.training.run = self.steps.len() + 1;
+        }
         self.graph.receipt_forwards.clear();
         if let Some(survey)=self.graph.union_impact.as_mut() {survey.run_start_cell=self.graph.next_cell;}
         self.graph.epoch = self.graph.epoch.checked_add(1).ok_or("epoch exhausted")?;

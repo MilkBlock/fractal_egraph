@@ -15,3 +15,6 @@ microlp = "0.7.0"
 [[bench]]
 name = "cell"
 harness = false
+
+[features]
+iterative-bake = ["eggfuse-cell-runtime/iterative-bake","eggfuse-cell-runtime/slot-transfer-audit"]

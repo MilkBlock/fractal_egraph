@@ -179,6 +179,22 @@ impl Registry {
         } else {
             descriptor
         };
+        self.register_descriptor(unit, parents, &descriptor, &origin["composition"])?;
+        self.consider_graft(unit, parents.to_vec());
+        Ok(())
+    }
+    // Both frontends intern the same parent-linked Cell constructor. CPU blocks
+    // have independently checked entry layouts and carry no saturation claim.
+    pub(super) fn register_descriptor(
+        &mut self,
+        unit: usize,
+        parents: &[usize],
+        descriptor: &Json,
+        composition: &Json,
+    ) -> Result<()> {
+        if self.values.contains_key(&unit) || parents.iter().any(|p| !self.values.contains_key(p)) {
+            return Err("Cell descriptor must extend its registered parents".into());
+        }
         let key = serde_json::to_string(&descriptor)?;
         let next = self.contracts.len();
         let contract = *self.contracts.entry(key).or_insert(next);
@@ -200,10 +216,9 @@ impl Registry {
         self.origins.insert(unit, contract);
         self.nodes
             .push(json!({"unit":unit,"parents":parents,"contract":contract,
-                "history_parents":parents,"producer_parents":origin["composition"]["producer_parts"],
-                "context_parents":origin["composition"]["context_parts"],
+                "history_parents":parents,"producer_parents":composition["producer_parts"],
+                "context_parents":composition["context_parts"],
                 "parent_scope":"observed history; not a necessary execution dependency"}));
-        self.consider_graft(unit, parents.to_vec());
         Ok(())
     }
     fn consider_graft(&mut self, target: usize, mut parents: Vec<usize>) {

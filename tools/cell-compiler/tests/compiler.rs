@@ -1084,3 +1084,170 @@ fn producer_slots_follow_run_order_and_reject_changed_wiring() {
         derived["final_state_sha256"]
     );
 }
+
+const BOUNDED_CHAIN: &str = r#"
+(datatype E (N i64) (A E) (B E) (C E) (D E) (F E))
+(ruleset one) (ruleset two) (ruleset three) (ruleset four)
+(rule ((= a (A x))) ((B a)) :ruleset one :name "ab")
+(rule ((= a (B x))) ((C a)) :ruleset two :name "bc")
+(rule ((= a (C x))) ((D a)) :ruleset three :name "cd")
+(rule ((= a (D x))) ((F a)) :ruleset four :name "df")
+(A (N 1)) (A (N 2))
+(run-schedule (seq (run one) (run two) (run three) (run four)))
+"#;
+#[test]
+fn native_bake_cuts_before_preparation_and_reopens_the_frontier() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("chain.egg");
+    fs::write(&source, BOUNDED_CHAIN).unwrap();
+    let bake = |dir: &str, depth: &str, nodes: &str, budget: &str| {
+        let out = tmp.path().join(dir);
+        let result = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+            .args([
+                "internal-bake",
+                source.to_str().unwrap(),
+                out.to_str().unwrap(),
+            ])
+            .env("EGG_LAYOUT_GRAPHS", "0")
+            .env("EGG_LAYOUT_BAKE_MAX_DEPTH", depth)
+            .env("EGG_LAYOUT_BAKE_MAX_NODES", nodes)
+            .env("EGG_LAYOUT_BAKE_MAX_UNITS", budget)
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        json_file(&out.join("analysis.json"))["saturated_rule_composition"].clone()
+    };
+    let r = bake("depth", "2", "8", "64");
+    let cs = &r["cs"];
+    assert!(cs["depth_cuts"].as_u64().unwrap() > 0);
+    let units = cs["units"].as_array().unwrap();
+    assert!(units.iter().all(|u| u["depth"].as_u64().unwrap() <= 2));
+    assert!(
+        units
+            .iter()
+            .any(|u| u["coarse"] == json!([4]) && u["depth"] == 1)
+    );
+    assert!(
+        units
+            .iter()
+            .any(|u| u["coarse"] == json!([6]) && u["depth"] == 2)
+    );
+    assert!(
+        cs["windows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|w| w["members"].as_array().unwrap().len() > 1)
+            .all(|w| units[w["unit"].as_u64().unwrap() as usize]["depth"] == 2)
+    );
+    let r = bake("width", "9", "1", "64");
+    assert!(r["cs"]["size_cuts"].as_u64().unwrap() > 0);
+    assert!(
+        r["cs"]["units"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|u| u["depth"] == 1)
+    );
+    let r = bake("total", "4", "8", "2");
+    assert_eq!(r["cs"]["units"].as_array().unwrap().len(), 2);
+    assert!(r["cs"]["budget_cuts"].as_u64().unwrap() > 0);
+    assert_eq!(r["jobs"].as_array().unwrap().len(), 2);
+}
+
+#[cfg(feature = "iterative-bake")]
+#[test]
+fn a_learned_pair_executes_and_becomes_an_operand_in_the_next_round() {
+    use eggfuse_cell_runtime::{
+        checksum::artifact_digest, compiler::bake_spine_blocks, program::Program,
+    };
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("chain.egg");
+    let compiled = tmp.path().join("compiled");
+    fs::write(&source, BOUNDED_CHAIN).unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--output",
+        compiled.to_str().unwrap(),
+    ]);
+    let p = Program::parse(json_file(&compiled.join("program.json"))).unwrap();
+    // Seed single-entry recipes. All binary evidence below comes from real Runs.
+    let profile = json!({"schema":"eggfuse-spine-shapes/v1","program_sha256":p.artifact["sha256"],"prefixes":p.multi_stage.stage_entries.iter().map(|(r,a,_)|json!({"edge":[0,0,r,a],"visits":1})).collect::<Vec<_>>()});
+    let leaves = bake_spine_blocks(&p, &profile, &p, 32).unwrap();
+    let base = leaves["entries"].as_array().unwrap().len();
+    let mut raw = p.artifact;
+    raw["spine_blocks"] = leaves;
+    raw.as_object_mut().unwrap().remove("sha256");
+    raw["sha256"] = json!(artifact_digest(&raw));
+    let seed = tmp.path().join("seed.json");
+    fs::write(&seed, serde_json::to_vec(&raw).unwrap()).unwrap();
+    let run = |name: &str, extra: &[&str]| {
+        let out = tmp.path().join(name);
+        let result = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+            .args([
+                "iterate",
+                "--program",
+                seed.to_str().unwrap(),
+                "--output",
+                out.to_str().unwrap(),
+                "--rounds",
+                "4",
+            ])
+            .args(extra)
+            .env("CELL_CPU_STAGE_SPINE", "1")
+            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        out
+    };
+    let out = run("grown", &["--max-depth", "3", "--new-per-round", "1"]);
+    let rounds = json_file(&out.join("rounds.json"));
+    let paths = json_file(&out.join("expanded.json"));
+    let report = rounds.as_array().unwrap().last().unwrap();
+    let path = paths
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["depth"] == 3)
+        .expect("a previously learned pair grows to a triple");
+    assert!(
+        report["work"]["applied_units"][path["id"].to_string()]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    assert!(report["work"]["saved_origin_key_slots"].as_u64().unwrap() > 0);
+    let pg = json_file(&out.join("program.json"));
+    let joins = pg["iterative_bake"]["joins"].as_array().unwrap();
+    assert!(
+        joins
+            .iter()
+            .any(|j| j["left"].as_u64().unwrap() >= base as u64
+                || j["right"].as_u64().unwrap() >= base as u64)
+    );
+    let mut bad = pg.clone();
+    bad["iterative_bake"]["joins"][0]["left"] = json!(base);
+    assert!(Program::parse(bad).is_err());
+    let mut bad = pg;
+    bad["iterative_bake"]["limits"]["depth"] = json!(2);
+    assert!(Program::parse(bad).is_err());
+    let stopped = run("no-growth", &["--max-nodes", "1"]);
+    let history = json_file(&stopped.join("rounds.json"));
+    assert_eq!(history.as_array().unwrap().len(), 1);
+    assert_eq!(history[0]["stop"], "no_profitable_candidate");
+    assert_eq!(
+        fs::read(out.join("rhs.json")).unwrap(),
+        fs::read(stopped.join("rhs.json")).unwrap()
+    );
+}
