@@ -141,7 +141,7 @@ fn compile(
         &names,
         evidence.as_ref(),
         opts.contains_key("--emit-free-join-entry")
-            || opts.get("--lane").is_some_and(|s| s == "free-join-entry"),
+            || opts.get("--lane").is_some_and(|s| matches!(s.as_str(), "free-join-entry" | "free-join-planned")),
     )?;
     p.as_object_mut().unwrap().remove("sha256");
     p["marker_program_sha256"] = marker["sha256"].clone();
@@ -272,7 +272,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
     };
     if cmd == "help" || args.iter().any(|a| a == "--help") {
         println!(
-            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry] [--verify-stages]"
+            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry|free-join-planned] [--verify-stages]"
         );
         return Ok(());
     }

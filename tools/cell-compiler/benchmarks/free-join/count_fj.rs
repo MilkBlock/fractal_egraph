@@ -1,5 +1,9 @@
 use egglog::{EGraph, ast::Command};
-use std::sync::atomic::Ordering;
+use std::{sync::atomic::Ordering, time::Duration};
+
+fn phase_ms<'a>(times: impl Iterator<Item = &'a Duration>) -> f64 {
+    times.sum::<Duration>().as_secs_f64() * 1e3
+}
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     EGraph::set_num_threads(1);
     for path in std::env::args().skip(1) {
@@ -18,6 +22,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let timer = std::time::Instant::now();
         eg.run_program(commands)?;
         let ms = timer.elapsed().as_secs_f64() * 1e3;
+        let report = eg.get_overall_run_report();
+        println!(
+            "PHASE {:.6} {:.6} {:.6}",
+            phase_ms(report.search_and_apply_time_per_ruleset.values()),
+            phase_ms(report.merge_time_per_ruleset.values()),
+            phase_ms(report.rebuild_time_per_ruleset.values())
+        );
         println!(
             "{} {ms:.3} ms {:?}",
             path,

@@ -47,3 +47,5 @@ cargo test --release --locked --manifest-path tools/cell-compiler/Cargo.toml
 实验 lane `free-join` 在 `filtered` 的同一份索引上按共享列探测残余关系，`--verify-stages` 直接与 `filtered` 比较。候选访问与新增的键分组、探测分开计数。[八个 Pass 3 对照](benchmarks/free-join/CELL.md)
 
 `free-join-entry` 会在分发共享 seed 前按完整 LHS 探测相连的表。编译时加 `--emit-free-join-entry` 可将计划写进程序，旧产物在选择这个 lane 时从 typed Recipe 推导相同的计划。[入口计划与八组对照](benchmarks/free-join/ENTRY.md)
+
+`free-join-planned` 复用目标表版本内的投影结果，并在单列连接中按实际增量规模选择是否从小键域反向枚举。可以用同一产物和 `free-join-entry` 配对。[Raytrace 与 sum-bits 的入口探测、原生规划及计时](benchmarks/free-join/PLANNER.md)

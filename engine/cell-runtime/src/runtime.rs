@@ -237,10 +237,14 @@ impl Executor {
         query_indexes.watch_context_rows=retained.shared();
         let mut stage_spine=crate::stage_spine::Programs::new(&graph.program);
         stage_spine.audit_receipts=audit;
-        let entry_schedule=crate::entry_schedule::Scheduler::new(&graph.program,
-            std::env::var("CELL_CPU_SHARED_NODE_SCHEDULE").as_deref()==Ok("1") && !matches!(std::env::var("CELL_CPU_QUERY_MODE").as_deref(),Ok("scan"|"indexed")));
-        graph.receipt_tracking=(stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let free_join = FreeJoin::new(&graph.program);
+        let entry_schedule = crate::entry_schedule::Scheduler::with_epoch_counts(
+            &graph.program,
+            std::env::var("CELL_CPU_SHARED_NODE_SCHEDULE").as_deref() == Ok("1")
+                && !matches!(std::env::var("CELL_CPU_QUERY_MODE").as_deref(), Ok("scan" | "indexed")),
+            free_join.planned,
+        );
+        graph.receipt_tracking=(stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
             free_join,
             stage_spine,entry_schedule,current_stage:String::new(),
@@ -1434,33 +1438,47 @@ impl Executor {
         let scheduled = if scheduled_entry {
             let watermark = self.watermarks[rid];
             Some(if early_join {
-                self.entry_schedule.seeds_checked(
-                    &self.graph,
-                    rid,
-                    watermark,
-                    |_, _, _| true,
-                    |atom, row| {
-                        if early_sieve
-                            && !self
-                                .sieve
-                                .allow(rid, atom, row.table, row.witness, &self.query_indexes)
-                        {
-                            return Ok(false);
-                        }
-                        if let Some(domains) = self.free_join.admit(
-                            &self.graph,
-                            &mut self.query_indexes,
-                            rid,
-                            atom,
-                            row,
-                        )? {
-                            entry_domains.push(domains);
-                            Ok(true)
+                self.entry_schedule
+                    .batches(&self.graph, rid, watermark, |batch, out| {
+                        let atom = batch.atom();
+                        let inverted = if self.free_join.planned {
+                            self.free_join
+                                .reverse(&self.graph, &mut self.query_indexes, rid, batch)?
                         } else {
-                            Ok(false)
+                            None
+                        };
+                        let mut deliver = |w| {
+                            if early_sieve
+                                && !self
+                                    .sieve
+                                    .allow(rid, atom, batch.table, w, &self.query_indexes)
+                            {
+                                return Ok(());
+                            }
+                            let packet = batch.packet(w).expect("current delta entry");
+                            if let Some(domains) = self.free_join.admit(
+                                &self.graph,
+                                &mut self.query_indexes,
+                                rid,
+                                atom,
+                                &packet.row,
+                            )? {
+                                entry_domains.push(domains);
+                                out.push(batch.seed(packet));
+                            }
+                            Ok::<(), String>(())
+                        };
+                        if let Some(rows) = inverted {
+                            for w in rows {
+                                deliver(w)?
+                            }
+                        } else {
+                            for &(_, w) in batch.delta() {
+                                deliver(w)?
+                            }
                         }
-                    },
-                )?
+                        Ok(())
+                    })?
             } else if early_sieve {
                 self.entry_schedule
                     .seeds_where(&self.graph, rid, watermark, |atom, table, w| {

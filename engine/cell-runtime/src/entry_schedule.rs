@@ -203,6 +203,27 @@ struct State {
     pending: BTreeSet<Dependency>,
     rows: BTreeMap<Dependency, Rc<Packet>>,
     epochs: BTreeSet<(u64, Dependency)>,
+    epoch_counts: Option<BTreeMap<u64, usize>>,
+}
+impl State {
+    fn insert_epoch(&mut self, epoch: u64, w: Dependency) {
+        if self.epochs.insert((epoch, w))
+            && let Some(counts) = &mut self.epoch_counts
+        {
+            *counts.entry(epoch).or_default() += 1;
+        }
+    }
+    fn remove_epoch(&mut self, epoch: u64, w: Dependency) {
+        if self.epochs.remove(&(epoch, w))
+            && let Some(counts) = &mut self.epoch_counts
+        {
+            let count = counts.get_mut(&epoch).expect("indexed epoch");
+            *count -= 1;
+            if *count == 0 {
+                counts.remove(&epoch);
+            }
+        }
+    }
 }
 #[derive(Default, Serialize)]
 pub struct Stats {
@@ -227,14 +248,64 @@ pub struct Scheduler {
     unions: u64,
     pub stats: Stats,
 }
+/// Immutable node contents after refresh, plus this consumer's delta frontier.
+#[derive(Clone, Copy)]
+pub(crate) struct Batch<'a> {
+    state: &'a State,
+    consumer: &'a Consumer,
+    watermark: u64,
+    pub table: usize,
+}
+impl Batch<'_> {
+    pub fn atom(&self) -> usize {
+        self.consumer.atom
+    }
+    pub fn len(&self) -> usize {
+        self.state.rows.len()
+    }
+    pub fn delta(&self) -> std::collections::btree_set::Range<'_, (u64, Dependency)> {
+        self.state
+            .epochs
+            .range((self.watermark, Dependency::Fact(FactRef { cell: 0, op: 0 }))..)
+    }
+    pub fn delta_exceeds(&self, budget: usize, bins: &mut u64) -> bool {
+        let counts = self.state.epoch_counts.as_ref().expect("planned entry");
+        let mut total = 0;
+        for (_, n) in counts.range(self.watermark..) {
+            *bins += 1;
+            total += n;
+            if total > budget {
+                return true;
+            }
+        }
+        false
+    }
+    pub fn packet(&self, w: Dependency) -> Option<&Rc<Packet>> {
+        self.state
+            .rows
+            .get(&w)
+            .filter(|p| p.row.epoch >= self.watermark)
+    }
+    pub fn seed(&self, packet: &Rc<Packet>) -> Seed {
+        Seed {
+            atom: self.consumer.atom,
+            packet: packet.clone(),
+            projection: self.consumer.projection.clone(),
+        }
+    }
+}
 impl Scheduler {
     pub fn new(p: &Program, enabled: bool) -> Self {
+        Self::with_epoch_counts(p, enabled, false)
+    }
+    pub(crate) fn with_epoch_counts(p: &Program, enabled: bool, planned: bool) -> Self {
         let plan = p.entry_schedule.clone();
         let states = plan
             .nodes
             .iter()
             .map(|_| State {
                 cold: true,
+                epoch_counts: (enabled && planned).then(BTreeMap::new),
                 ..Default::default()
             })
             .collect();
@@ -295,41 +366,41 @@ impl Scheduler {
         g: &Graph,
         rid: usize,
         watermark: u64,
-        allow: impl FnMut(usize, usize, Dependency) -> bool,
+        mut allow: impl FnMut(usize, usize, Dependency) -> bool,
     ) -> Result<Vec<Seed>> {
-        self.seeds_checked(g, rid, watermark, allow, |_, _| Ok(true))
+        self.batches(g, rid, watermark, |batch, out| {
+            for &(_, w) in batch.delta() {
+                if allow(batch.atom(), batch.table, w) {
+                    out.push(batch.seed(&batch.state.rows[&w]));
+                }
+            }
+            Ok(())
+        })
     }
-    pub(crate) fn seeds_checked(
+    pub(crate) fn batches(
         &mut self,
         g: &Graph,
         rid: usize,
         watermark: u64,
-        mut allow: impl FnMut(usize, usize, Dependency) -> bool,
-        mut admit: impl FnMut(usize, &Row) -> Result<bool>,
+        mut visit: impl FnMut(Batch<'_>, &mut Vec<Seed>) -> Result<()>,
     ) -> Result<Vec<Seed>> {
         self.stats.consumer_calls += 1;
         let mut out = vec![];
         for c in self.plan.rules[rid].clone() {
             self.refresh(g, c.node)?;
-            for &(_, w) in self.states[c.node]
-                .epochs
-                .range((watermark, Dependency::Fact(FactRef { cell: 0, op: 0 }))..)
-            {
-                if !allow(c.atom, self.plan.nodes[c.node].table, w) {
-                    continue;
-                }
-                let packet = &self.states[c.node].rows[&w];
-                if !admit(c.atom, &packet.row)? {
-                    continue;
-                }
-                self.stats.consumer_seed_deliveries += 1;
-                self.stats.borrowed_slots += self.plan.nodes[c.node].ports as u64;
-                out.push(Seed {
-                    atom: c.atom,
-                    packet: packet.clone(),
-                    projection: c.projection.clone(),
-                });
-            }
+            let start = out.len();
+            visit(
+                Batch {
+                    state: &self.states[c.node],
+                    consumer: &c,
+                    watermark,
+                    table: self.plan.nodes[c.node].table,
+                },
+                &mut out,
+            )?;
+            let count = (out.len() - start) as u64;
+            self.stats.consumer_seed_deliveries += count;
+            self.stats.borrowed_slots += count * self.plan.nodes[c.node].ports as u64;
         }
         Ok(out)
     }
@@ -351,6 +422,9 @@ impl Scheduler {
         };
         if full {
             s.epochs.clear();
+            if let Some(counts) = &mut s.epoch_counts {
+                counts.clear();
+            }
         }
         let mut old = if full {
             std::mem::take(&mut s.rows)
@@ -364,7 +438,7 @@ impl Scheduler {
                 s.rows.remove(&w)
             };
             if let Some(p) = &previous {
-                s.epochs.remove(&(p.row.epoch, w));
+                s.remove_epoch(p.row.epoch, w);
             }
             let row = if let Some(row) = self.rows.get(&w) {
                 row.clone()
@@ -383,7 +457,7 @@ impl Scheduler {
                 && let Some(p) = previous.as_ref().filter(|p| p.row.values == row.values)
             {
                 self.stats.parameter_packets_reused += 1;
-                s.epochs.insert((row.epoch, w));
+                s.insert_epoch(row.epoch, w);
                 s.rows.insert(
                     w,
                     Rc::new(Packet {
@@ -413,7 +487,7 @@ impl Scheduler {
                     } else {
                         Rc::new(values)
                     };
-                s.epochs.insert((row.epoch, w));
+                s.insert_epoch(row.epoch, w);
                 s.rows.insert(w, Rc::new(Packet { row, values }));
             } else {
                 self.stats.retired_packets += u64::from(previous.is_some());

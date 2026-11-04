@@ -3,7 +3,10 @@ use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::time::Instant;
 fn lane_process(lane: &str) -> Result<Command> {
     let mut cmd = Command::new(std::env::current_exe()?);
-    let filtered = matches!(lane, "filtered" | "free-join" | "free-join-entry");
+    let filtered = matches!(
+        lane,
+        "filtered" | "free-join" | "free-join-entry" | "free-join-planned"
+    );
     for (k, _) in std::env::vars_os() {
         if k.to_string_lossy().starts_with("CELL_CPU_") {
             cmd.env_remove(k);
@@ -16,6 +19,7 @@ fn lane_process(lane: &str) -> Result<Command> {
     .env(
         "CELL_CPU_FREE_JOIN",
         match lane {
+            "free-join-planned" => "planned",
             "free-join-entry" => "entry",
             "free-join" => "1",
             _ => "0",
@@ -72,6 +76,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
         "filtered",
         "free-join",
         "free-join-entry",
+        "free-join-planned",
     ]
     .contains(&lane)
     {
@@ -88,7 +93,9 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             }
             Ok(serde_json::from_slice(&output.stdout)?)
         };
-        let control = if lane == "free-join-entry" {
+        let control = if lane == "free-join-planned" {
+            "free-join-entry"
+        } else if lane == "free-join-entry" {
             "free-join"
         } else if lane == "free-join" {
             "filtered"
@@ -133,6 +140,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
     let mut times = vec![];
     let mut fingerprint = None;
     let mut counts = J::Null;
+    let mut reverse_keys = Vec::new();
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
         let start = Instant::now();
@@ -159,7 +167,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
         let predicates = r["entry_schedule"]["stats"]["predicate_checks"]
             .as_u64()
             .ok_or("missing predicate counter")?;
-        let c = json!({
+        let mut c = json!({
             "all_candidate_visits": g.residual_candidates + g.direct_candidates + merged + pivots + predicates,
             "merge_candidate_rows": merged,
             "pivot_candidates": pivots,
@@ -174,10 +182,23 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "free_join": r["free_join"],
             "runs": e.steps.len()
         });
+        // Over-budget attempts stop at the first overflowing hash bucket.
+        // Randomized key iteration changes the inspected prefix, but not the plan.
+        if args[2] == "free-join-planned" {
+            let visits = c["free_join"]
+                .as_object_mut()
+                .and_then(|stats| stats.remove("reverse_keys"))
+                .and_then(|value| value.as_u64())
+                .ok_or("missing reverse key counter")?;
+            reverse_keys.push(visits);
+        }
         if !counts.is_null() && counts != c {
             return Err("benchmark work differs between repetitions".into());
         }
         counts = c;
+    }
+    if let (Some(min), Some(max)) = (reverse_keys.iter().min(), reverse_keys.iter().max()) {
+        counts["free_join"]["reverse_keys_range"] = json!([min, max]);
     }
     times.sort_by(f64::total_cmp);
     let median = (times[(n - 1) / 2] + times[n / 2]) / 2.;
