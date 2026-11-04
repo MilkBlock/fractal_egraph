@@ -50,3 +50,5 @@ cargo cell-bench --program out/route-ray/program.json --lane free-join-planned -
 ```
 
 Use the same frozen program and module command at commit `7f0daf9` for the previous Spine. [Raw samples, phase medians, counters and fingerprints](routed-results.json)
+
+A subsequent experiment reduces context capture and post-repair publication while preserving entry routing. [Anchor publication and on-demand ports](PUBLICATION.md)
