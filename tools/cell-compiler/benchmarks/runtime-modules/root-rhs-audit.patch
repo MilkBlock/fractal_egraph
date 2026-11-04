@@ -1,0 +1,16 @@
+--- a/engine/cell-runtime/src/runtime.rs
++++ b/engine/cell-runtime/src/runtime.rs
+@@ -2229,0 +2230,6 @@
++        use sha2::Digest;
++        let mut digest = sha2::Sha256::new();
++        for (rid, binding) in &patch.bindings {
++            serde_json::to_writer(&mut digest, &(rid, &binding.values)).map_err(|e| e.to_string())?;
++        }
++        self.binding_audit.push(json!(format!("{:x}", digest.finalize())));
+--- a/engine/cell-runtime/src/main.rs
++++ b/engine/cell-runtime/src/main.rs
+@@ -118,0 +119,4 @@
++    if std::env::var_os("CHECK_RHS_DIGESTS").is_some() {
++        std::fs::write(out.join("rhs.json"), serde_json::to_vec(&runtime.binding_audit)?)?;
++        return Ok(());
++    }

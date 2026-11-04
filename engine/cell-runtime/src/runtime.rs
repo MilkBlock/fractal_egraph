@@ -1896,7 +1896,7 @@ impl Executor {
         Ok(unique.into_values().collect())
     }
     fn apply(&mut self, rid: usize, b: Binding) -> Result<Option<Produced>> {
-        let stage_cursor=self.stage_spine.begin(&self.graph.program,rid,&b.values,&self.current_stage,self.graph.epoch);
+        let stage_cursor=self.stage_spine.begin_step(&self.graph.program,rid,&b.values,&self.current_stage,self.graph.epoch);
         let stage_counts=stage_cursor.as_ref().map(|_|(self.graph.stats.constructor_requests,self.graph.stats.function_updates,self.graph.stats.union_requests));
         let template = self.graph.program.rules[rid].template;
         let origin = b.continuation;
@@ -2115,7 +2115,7 @@ impl Executor {
             }
         }
         if let Some((c,f,u))=stage_counts {self.stage_spine.effects(self.graph.stats.constructor_requests-c,self.graph.stats.function_updates-f,self.graph.stats.union_requests-u);}
-        if completed {if let Some(cursor)=stage_cursor {self.stage_spine.capture(&self.graph,rid,cell,cursor,None,effect_receipts.as_deref())?;}}
+        if completed {if let Some(cursor)=stage_cursor {self.stage_spine.capture_step(&self.graph,rid,cell,cursor,effect_receipts.as_deref())?;}}
         self.graph.release_empty(cell);
         Ok(produced)
     }
