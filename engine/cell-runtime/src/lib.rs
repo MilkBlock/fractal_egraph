@@ -32,3 +32,6 @@ mod entry_join;
 
 mod merge_contract;
 pub mod compiler;
+
+mod physical_plan;
+mod range_index;

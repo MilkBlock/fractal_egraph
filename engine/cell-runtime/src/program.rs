@@ -57,6 +57,8 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[serde(default)]
+    pub(crate) physical: Rc<crate::physical_plan::Plan>,
     #[serde(skip)]
     pub(crate) entry_join: Option<Rc<crate::entry_join::Plan>>,
     #[serde(default)]
@@ -291,6 +293,7 @@ impl Program {
             sets.insert(string(&s["name"])?.into(), ids);
         }
         let mut p = Self {
+            physical: Default::default(),
             known_results:Default::default(),
             merge_programs: Default::default(),
             views: crate::views::Views::default(),
@@ -309,6 +312,14 @@ impl Program {
             artifact: j,
         };
         p.validate()?;
+        p.physical = Rc::new(crate::physical_plan::Plan::derive(&p));
+        if let Some(raw) = p.artifact.get("physical_plan") {
+            let emitted: crate::physical_plan::Plan =
+                serde_json::from_value(raw.clone()).map_err(|e| e.to_string())?;
+            if emitted != *p.physical {
+                return Err("physical plan differs from typed recipe".into());
+            }
+        }
         if compiling {
             return Ok(p);
         }

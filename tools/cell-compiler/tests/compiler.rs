@@ -831,3 +831,107 @@ fn elided_anchors_use_the_proved_fact_and_recheck_visibility_after_repair() {
     assert_eq!(spine["capture_reads"], 1);
     assert_eq!(spine["resumed_steps"], 2);
 }
+
+#[test]
+fn physical_plans_preserve_order_and_refresh_range_rows() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("plans.egg");
+    let items = (0..80)
+        .map(|i| format!("(set (Item 1 {i}) {i})"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    fs::write(&src,format!(r#"(function Item (i64 i64) i64 :merge new)
+(function Limit (i64) i64 :merge new)
+(function Best (i64) i64 :merge (min new old))
+(function High (i64) i64 :merge (max old new))
+(function First (i64) i64 :merge old)
+(function Total (i64) i64 :merge (+ old new))
+(relation Seen (i64 i64))
+(relation AtMost (i64)) (relation Above (i64)) (relation AtLeast (i64))
+(relation Tick ())
+(ruleset search)
+(ruleset change)
+(rule ((= k (Limit g)) (= x (Item g id)) (< x k)) ((Seen id x)) :ruleset search)
+(rule ((= k (Limit g)) (= x (Item g id)) (<= x k)) ((AtMost id)) :ruleset search)
+(rule ((= k (Limit g)) (= x (Item g id)) (< k x)) ((Above id)) :ruleset search)
+(rule ((= k (Limit g)) (= x (Item g id)) (<= k x)) ((AtLeast id)) :ruleset search)
+(rule ((Tick)) ((set (Item 1 58) -2) (delete (Item 1 2)) (set (Limit 1) 5) (set (Best 0) 1) (set (High 0) 5) (set (First 0) 8) (set (Total 0) 4)) :ruleset change)
+{items}
+(set (Limit 1) 4)
+(set (Best 0) 9) (set (Best 0) 2) (set (Best 0) 7)
+(set (High 0) -8) (set (High 0) 13) (set (High 0) 4)
+(set (First 0) 2) (set (First 0) 3)
+(set (Total 0) 2) (set (Total 0) 3)
+(Tick)
+(run-schedule (seq (run search) (run change) (run search)))
+(check (Seen 0 0) (Seen 58 -2) (Seen 4 4) (= (Best 0) 1) (= (High 0) 13) (= (First 0) 2) (= (Total 0) 9))
+"#)).unwrap();
+    let out = tmp.path().join("artifact");
+    pass(&[
+        "compile",
+        "--emit-free-join-entry",
+        "--source",
+        src.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let program = out.join("program.json");
+    let value = json_file(&program);
+    assert!(value["physical_plan"]["ranges"].is_array());
+    let mut corrupt = value.clone();
+    corrupt["physical_plan"]["dedup"] = json!([]);
+    assert_eq!(
+        eggfuse_cell_runtime::program::Program::parse(corrupt).unwrap_err(),
+        "physical plan differs from typed recipe"
+    );
+    let result = pass(&[
+        "bench",
+        "--program",
+        program.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--modules",
+        "range-guards,fd-keys,scalar-merge",
+        "--repeat",
+        "2",
+        "--verify-stages",
+    ]);
+    let report: J = serde_json::from_slice(&result.stdout).unwrap();
+    let p = &report["counts"]["physical"];
+    assert!(p["range"]["builds"].as_u64().unwrap() > 0);
+    assert!(p["range"]["changed_entries"].as_u64().unwrap() >= 2);
+    assert!(p["range"]["broad_fallbacks"].as_u64().unwrap() > 0);
+    assert!(
+        p["range"]["output_rows"].as_u64().unwrap() < p["range"]["input_rows"].as_u64().unwrap()
+    );
+    assert!(p["dedup_elements"].as_u64().unwrap() < p["dedup_full_elements"].as_u64().unwrap());
+    assert!(p["scalar_old_projection"].as_u64().unwrap() > 0);
+    assert!(p["scalar_merge_calls"].as_u64().unwrap() > p["scalar_unchanged"].as_u64().unwrap());
+    let stages = |flag: &str| {
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"));
+        for (k, _) in std::env::vars_os() {
+            if k.to_string_lossy().starts_with("CELL_CPU_") {
+                cmd.env_remove(k);
+            }
+        }
+        let run = cmd
+            .args(["internal-stages", program.to_str().unwrap()])
+            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
+            .env("CELL_CPU_FREE_JOIN", "planned")
+            .env("CELL_CPU_HASH_BITS", "0")
+            .env("CELL_CPU_SIEVE", "1")
+            .env("CELL_CPU_JOIN_INTERSECTION", "1")
+            .env("CELL_CPU_RANGE_GUARDS", flag)
+            .env("CELL_CPU_FD_KEYS", flag)
+            .env("CELL_CPU_SCALAR_MERGE", flag)
+            .output()
+            .unwrap();
+        assert!(
+            run.status.success(),
+            "{}",
+            String::from_utf8_lossy(&run.stderr)
+        );
+        run.stdout
+    };
+    assert_eq!(stages("0"), stages("1"));
+}

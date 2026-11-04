@@ -57,6 +57,9 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
                 "local-congruence" => ("CELL_CPU_CONGRUENCE", "1"),
                 "union-graft" => ("CELL_CPU_UNION_GRAFT", "1"),
                 "stage-spine" => ("CELL_CPU_STAGE_SPINE", "1"),
+                "range-guards" => ("CELL_CPU_RANGE_GUARDS", "1"),
+                "fd-keys" => ("CELL_CPU_FD_KEYS", "1"),
+                "scalar-merge" => ("CELL_CPU_SCALAR_MERGE", "1"),
                 "static-aliases" => ("CELL_CPU_KNOWN_RESULTS", "static"),
                 _ => return Err(format!("unknown bench module {name:?}").into()),
             };
@@ -163,6 +166,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
     let mut fingerprint = None;
     let mut counts = J::Null;
     let mut reverse_keys = Vec::new();
+    let mut range_maintenance_ms = Vec::new();
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
         let start = Instant::now();
@@ -249,6 +253,20 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
                 "mixed_routed_queries": spine["stats"]["mixed_routed_queries"],
             });
         }
+        let mut physical = r["physical"].clone();
+        if let Some(range) = physical["range"].as_object_mut() {
+            let ns = range
+                .remove("maintenance_ns")
+                .and_then(|v| v.as_u64())
+                .ok_or("missing range timer")?;
+            range_maintenance_ms.push(ns as f64 / 1e6);
+        }
+        physical["scalar_merge_calls"] = json!(g.scalar_merge_calls);
+        physical["scalar_unchanged"] = json!(g.scalar_unchanged);
+        physical["scalar_old_projection"] = json!(g.scalar_old_projection);
+        physical["merge_program_calls"] = json!(g.merge_program_calls);
+        physical["merge_program_operations"] = json!(g.merge_program_operations);
+        c["physical"] = physical;
         // Over-budget attempts stop at the first overflowing hash bucket.
         // Randomized key iteration changes the inspected prefix, but not the plan.
         if args[2] == "free-join-planned" {
@@ -271,7 +289,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
     let median = (times[(n - 1) / 2] + times[n / 2]) / 2.;
     println!(
         "{}",
-        json!({"backend":"standalone-cell-cpu","lane":args[2],"modules_requested":&args[3..],"program_sha256":p.artifact["sha256"],"inference_ms":times,"median_ms":median,"counts":counts,"final_state_sha256":fingerprint})
+        json!({"backend":"standalone-cell-cpu","lane":args[2],"modules_requested":&args[3..],"program_sha256":p.artifact["sha256"],"inference_ms":times,"range_maintenance_ms":range_maintenance_ms,"median_ms":median,"counts":counts,"final_state_sha256":fingerprint})
     );
     Ok(())
 }

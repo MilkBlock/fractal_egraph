@@ -83,6 +83,12 @@ struct StagePatch {
 }
 struct Produced { rule:usize, depth:u32, values:Vec<Value>, routes:Vec<usize> }
 pub struct Executor {
+    range_index: Option<crate::range_index::RangeIndex>,
+    fd_keys: bool,
+    dedup_rows: u64,
+    dedup_full_elements: u64,
+    dedup_elements: u64,
+    dedup_duplicates: u64,
     stage_spine:crate::stage_spine::Programs,
     entry_schedule:crate::entry_schedule::Scheduler,
     current_stage:String,
@@ -243,6 +249,13 @@ impl Executor {
         );
         graph.receipt_tracking=(stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
+            range_index: (std::env::var("CELL_CPU_RANGE_GUARDS").as_deref() == Ok("1"))
+                .then(Default::default),
+            fd_keys: std::env::var("CELL_CPU_FD_KEYS").as_deref() == Ok("1"),
+            dedup_rows: 0,
+            dedup_full_elements: 0,
+            dedup_elements: 0,
+            dedup_duplicates: 0,
             free_join,
             stage_spine,entry_schedule,current_stage:String::new(),
             retained,
@@ -687,6 +700,34 @@ impl Executor {
                         Rc::new(self.graph.candidates(*t, &bound))
                     }
                 };
+                let mut witnesses = witnesses;
+                if !complete_key
+                    && witnesses.len() >= crate::range_index::MIN_DOMAIN
+                    && self.column_queries
+                    && self.indexed_queries
+                    && evidence.is_none()
+                    && !self.refutation.enabled
+                    && !self.search_contexts.enabled
+                    && self.local_run.is_none()
+                    && let Some(index) = &mut self.range_index
+                {
+                    for guard in &self.graph.program.physical.ranges[rid][chosen] {
+                        if !remaining[guard.atom] || operand(&atom.args[guard.column], env, &self.graph).is_some() {
+                            continue;
+                        }
+                        let Some(Value::Int(limit)) = operand(&guard.threshold, env, &self.graph) else {
+                            continue;
+                        };
+                        let prefix = atom.args[..atom.args.len() - 1].iter().enumerate()
+                            .find_map(|(i, a)| operand(a, env, &self.graph).map(|v| (i, v)));
+                        if let Some(prefix) = prefix {
+                            witnesses = index.select(
+                                &self.graph, *t, prefix, guard.column, guard.bound, limit, &witnesses,
+                            )?;
+                            break;
+                        }
+                    }
+                }
                 let groups = if self.free_join.enabled
                     && !complete_key
                     && self.column_queries
@@ -1881,10 +1922,17 @@ impl Executor {
             )?;
         }
         let mut unique = BTreeMap::new();
+        let key_slots = if self.fd_keys {
+            self.graph.program.physical.dedup[rid].as_slice()
+        } else {
+            rule.inputs.as_slice()
+        };
         for b in found {
             if probe || !rule.seminaive || b.epoch >= self.watermarks[rid] {
-                let key = rule
-                    .inputs
+                self.dedup_rows += 1;
+                self.dedup_full_elements += rule.inputs.len() as u64;
+                self.dedup_elements += key_slots.len() as u64;
+                let key = key_slots
                     .iter()
                     .map(|i| b.values.get(i).cloned().ok_or("incomplete binding"))
                     .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -1893,6 +1941,7 @@ impl Executor {
                         e.insert(b);
                     }
                     std::collections::btree_map::Entry::Occupied(mut e) => {
+                        self.dedup_duplicates += 1;
                         if e.get().composition.is_none() && b.composition.is_some() {
                             e.insert(b);
                         }
@@ -2338,6 +2387,9 @@ impl Executor {
         let context_changed_tables=if self.search_contexts.enabled || (self.refutation.enabled && self.refutation.scoped) {
             self.graph.query_changes.iter().map(|(_,t)|*t).collect::<BTreeSet<_>>()
         } else {BTreeSet::new()};
+        if let Some(index) = &mut self.range_index {
+            index.update(&self.graph)?;
+        }
         if std::env::var("CELL_CPU_QUERY_INDEX_SCOPE").as_deref() == Ok("table") {
             self.query_indexes.invalidate(&self.graph);
             self.sieve.invalidate();
@@ -2581,6 +2633,6 @@ impl Executor {
     }
     pub fn take_semantic_audit(&mut self)->Vec<J>{std::mem::take(&mut self.semantic_audit)}
     pub fn report(&self) -> J {
-        json!({"free_join":self.free_join.stats,"entry_schedule":self.entry_schedule.report(),"stage_spine":self.stage_spine.report(),"retained_contexts":self.retained.report(),"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"physical":{"range":self.range_index.as_ref().map(|r| &r.stats),"dedup_rows":self.dedup_rows,"dedup_full_elements":self.dedup_full_elements,"dedup_elements":self.dedup_elements,"dedup_duplicates":self.dedup_duplicates},"free_join":self.free_join.stats,"entry_schedule":self.entry_schedule.report(),"stage_spine":self.stage_spine.report(),"retained_contexts":self.retained.report(),"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }
