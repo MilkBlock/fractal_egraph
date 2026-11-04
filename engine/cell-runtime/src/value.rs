@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
 use std::collections::BTreeMap;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "slot-transfer-audit"), derive(Clone))]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Value {
     Eq(u64),
     Int(i64),

@@ -167,6 +167,17 @@ impl Inputs {
     pub fn iter(&self) -> impl Iterator<Item = &Option<Value>> {
         (0..self.len()).map(move |i| &self[i])
     }
+    /// Move private slot values into the sealed RHS input. Shared entry
+    /// packets remain immutable and supply owned snapshots when needed.
+    pub(crate) fn take_slot(&mut self, i: usize, moved: &mut u64) -> Option<Value> {
+        if let Some(v) = self.own.get_mut(i).and_then(Option::take) {
+            *moved += 1;
+            return Some(v);
+        }
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::count(|c| c.binding_seal_copies += u64::from(self[i].is_some()));
+        self[i].clone()
+    }
     pub fn materialize(&self) -> Vec<Option<Value>> {
         self.iter().cloned().collect()
     }

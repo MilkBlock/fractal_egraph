@@ -174,6 +174,8 @@ impl QueryEnv {
         }
     }
     fn binding(&self) -> BTreeMap<usize, Value> {
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::count(|c| c.binding_seal_copies += self.values.iter().flatten().count() as u64);
         self.values
             .iter()
             .enumerate()
@@ -198,6 +200,8 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
             if let Some(old) = &env.values[*i] {
                 *old == v
             } else {
+                #[cfg(feature = "slot-transfer-audit")]
+                crate::transfer_audit::count(|c| c.fresh_bind_copies += 1);
                 env.values[*i] = Some(v);
                 env.trail.push(*i);
                 true
@@ -1122,7 +1126,7 @@ impl Executor {
         env: &mut QueryEnv,
         remaining: &mut [bool],
         mut epoch: u64,
-        _watermark: u64,
+        wired: &mut bool,
     ) -> Result<(bool, u64, Option<(usize, u32)>)> {
         if !self.multistage_enabled || !self.local_projections {
             return Ok((true, epoch, None));
@@ -1180,6 +1184,23 @@ impl Executor {
             } else {
                 None
             };
+            if self.graph.slot_transfer
+                && let Some((witness, stamp)) = read.wire(
+                    &mut self.graph, context, seed.witness, &mut env.values, &mut env.trail, expected,
+                )?
+            {
+                let owner = (seed.epoch, seed.witness);
+                if (stamp, witness) > owner || ((stamp, witness) == owner && read.atom < pivot) {
+                    return Ok((false, epoch, None));
+                }
+                *wired = true;
+                self.graph.stats.slot_transfer.local_atoms += 1;
+                env.record(read.atom, Some(witness));
+                remaining[read.atom] = false;
+                epoch = epoch.max(stamp);
+                self.continuation_stats.projected_atoms += 1;
+                continue;
+            }
             // A live recipe slot can supply the fields directly, without creating
             // an intermediate Row or rediscovering its constructor in a table.
             let mut local = None;
@@ -1566,7 +1587,14 @@ impl Executor {
                     let mut witnesses=MatchedFacts::new(witness_slots,full_witnesses);
                     let mut known=query_facts.clone();
                     for (i,w) in a.witnesses.into_iter().enumerate() {witnesses.record(i,w);known.record(i,w);}
-                    Binding{values:rule.inputs.iter().copied().zip(a.values).collect(),witnesses,known,composition:None,parent:None,continuation:None,epoch:a.epoch,compiled:true}
+                    if a.parameter_parent.is_some() {
+                        self.graph.stats.slot_transfer.rhs_parent_bindings += 1;
+                    }
+                    Binding {
+                        values: rule.inputs.iter().copied().zip(a.values).collect(),
+                        witnesses, known, composition: None, parent: a.parameter_parent,
+                        continuation: None, epoch: a.epoch, compiled: true,
+                    }
                 }).collect();
                 if coverage.complete {
                     self.pending[rid].clear();
@@ -1806,6 +1834,7 @@ impl Executor {
                                 }
                             }
                         }
+                        let mut wired = false;
                         let (live, mut epoch, origin) = self.continue_local(
                             rid,
                             pivot,
@@ -1813,7 +1842,7 @@ impl Executor {
                             &mut env,
                             &mut remaining,
                             epoch,
-                            watermark,
+                            &mut wired,
                         )?;
                         if !live {
                             return Ok(());
@@ -1874,8 +1903,16 @@ impl Executor {
                             found.push(Binding {
                                 composition: None,
                                 witnesses: env.witnesses.clone(),
-                known:env.known.clone(),
-                                values: env.binding(),
+                                known: env.known.clone(),
+                                values: if wired {
+                                    rule.inputs.iter().map(|&i| {
+                                        env.values.take_slot(i, &mut self.graph.stats.slot_transfer.sealed_moves)
+                                            .map(|v| (i, v))
+                                            .ok_or_else(|| "incomplete wired RHS input".to_owned())
+                                    }).collect::<Result<_>>()?
+                                } else {
+                                    env.binding()
+                                },
                                 epoch,
                                 parent: None,
                                 continuation: None,
@@ -2291,6 +2328,8 @@ impl Executor {
             self.local_sat.stats.idle_runs+=1;self.local_run=None;
         }
         let patch = StagePatch { bindings: work };
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::record_run(patch.bindings.iter().map(|(rid, b)| (rid, &b.values)))?;
         let matches = patch.bindings.len();
         let search_seconds = start.elapsed().as_secs_f64();
         if self.audit {

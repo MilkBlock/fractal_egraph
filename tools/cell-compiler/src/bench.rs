@@ -57,6 +57,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
                 "local-congruence" => ("CELL_CPU_CONGRUENCE", "1"),
                 "union-graft" => ("CELL_CPU_UNION_GRAFT", "1"),
                 "stage-spine" => ("CELL_CPU_STAGE_SPINE", "1"),
+                "slot-transfer" => ("CELL_CPU_SLOT_TRANSFER", "1"),
                 "range-guards" => ("CELL_CPU_RANGE_GUARDS", "1"),
                 "fd-keys" => ("CELL_CPU_FD_KEYS", "1"),
                 "scalar-merge" => ("CELL_CPU_SCALAR_MERGE", "1"),
@@ -210,6 +211,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "lazy_prefix_eliminated": e.graph.known_stats.lazy_prefix_eliminated,
             "cells_created": g.cells_created,
             "rhs_frames_avoided": g.rhs_frames_avoided,
+            "slot_transfer": g.slot_transfer,
             "free_join": r["free_join"],
             "runs": e.steps.len()
         });

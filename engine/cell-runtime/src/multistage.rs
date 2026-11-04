@@ -13,6 +13,8 @@ pub struct LocalRead {
     pub table: usize,
     pub columns: Vec<Arg>,
     pub effect: Option<usize>,
+    #[serde(default)]
+    pub(crate) assignments: Vec<(usize, Arg)>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Continuation {
@@ -104,6 +106,82 @@ pub(crate) fn extend(
         }
     }
     Ok(())
+}
+/// extend() verifies literals, repeated slots and agreement with the pivot.
+/// A physically identical pivot already bound those slots in the shared packet.
+pub(crate) fn assignments(pivot: &Atom, atom: &Atom, columns: &[Arg]) -> Vec<(usize, Arg)> {
+    let mut seen: BTreeSet<_> = pivot
+        .args
+        .iter()
+        .filter_map(|a| match a {
+            Arg::Slot(i) => Some(*i),
+            _ => None,
+        })
+        .collect();
+    atom.args
+        .iter()
+        .zip(columns)
+        .filter_map(|(dst, src)| match dst {
+            Arg::Slot(i) if seen.insert(*i) => Some((*i, src.clone())),
+            _ => None,
+        })
+        .collect()
+}
+impl LocalRead {
+    /// Only use a live, unrelocated effect in the same ordinary producer
+    /// instance as the pivot. Dynamic ports and uncertain keys keep the matcher.
+    pub(crate) fn wire(
+        &self,
+        g: &mut crate::graph::Graph,
+        ctx: crate::views::Context,
+        pivot: crate::graph::Dependency,
+        inputs: &mut crate::entry_schedule::Inputs,
+        trail: &mut Vec<usize>,
+        expected: Option<crate::graph::Dependency>,
+    ) -> Result<Option<(crate::graph::Dependency, u64)>> {
+        use crate::graph::{Dependency, FactRef};
+        if g.views_enabled
+            || !ctx.completed
+            || pivot
+                != Dependency::Fact(FactRef {
+                    cell: ctx.cell,
+                    op: ctx.op as u32,
+                })
+        {
+            return Ok(None);
+        }
+        let Some(op) = self.effect else {
+            return Ok(None);
+        };
+        let w = Dependency::Fact(FactRef {
+            cell: ctx.cell,
+            op: op as u32,
+        });
+        if expected.is_some_and(|other| other != w) {
+            return Ok(None);
+        }
+        let Some(epoch) = g.visible_epoch(w) else {
+            return Ok(None);
+        };
+        let mark = trail.len();
+        for (dst, src) in &self.assignments {
+            let value = g.argument(ctx.cell, src)?;
+            g.stats.slot_transfer.producer_values_read += 1;
+            if let Some(bound) = &inputs[*dst] {
+                if *bound != value {
+                    while trail.len() > mark {
+                        inputs[trail.pop().unwrap()] = None;
+                    }
+                    return Ok(None);
+                }
+            } else {
+                inputs[*dst] = Some(value);
+                trail.push(*dst);
+            }
+        }
+        g.stats.slot_transfer.inputs_moved += (trail.len() - mark) as u64;
+        Ok(Some((w, epoch)))
+    }
 }
 impl MultiStage {
     pub fn parse(program: &Program, raw: &J) -> Result<Self> {
@@ -249,7 +327,18 @@ impl MultiStage {
                     &columns,
                     &mut mapping,
                 )?;
+                let assignments = if kind == "effect" {
+                    assignments(&target.query[anchor], &target.query[atom], &columns)
+                } else {
+                    vec![]
+                };
+                if let Some(raw) = step.get("assignments") {
+                    if *raw != serde_json::json!(assignments) {
+                        return Err("invalid producer slot wiring".into());
+                    }
+                }
                 reads.push(LocalRead {
+                    assignments,
                     atom,
                     table,
                     columns,

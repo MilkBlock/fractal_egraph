@@ -108,9 +108,14 @@ fn multistage(p: &Program) -> J {
                             }
                         }
                         if matches.len() == 1 {
-                            let (kind, idx, m) = matches.into_values().next().unwrap();
+                            let (columns, (kind, idx, m)) = matches.into_iter().next().unwrap();
                             mapping = m;
-                            steps.push(json!({"atom":i,"source_kind":kind,"source_index":idx}));
+                            let mut step = json!({"atom":i,"source_kind":kind,"source_index":idx});
+                            if *kind == "effect" {
+                                step["assignments"] =
+                                    json!(crate::multistage::assignments(&q[anchor], a, columns));
+                            }
+                            steps.push(step);
                             remaining.remove(&i);
                         }
                     }

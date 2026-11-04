@@ -138,6 +138,8 @@ pub struct Stats {
     pub merge_contract_calls: BTreeMap<String, u64>,
     pub unions: u64,
     pub repaired_dependencies: u64,
+    #[serde(default)]
+    pub slot_transfer: SlotTransferStats,
     pub decoded_rows: u64,
     pub residual_candidates: u64,
     pub bindings: u64,
@@ -171,7 +173,17 @@ pub struct CongruenceStats {
     #[serde(default)]
     pub coalesced_facts: u64,
 }
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct SlotTransferStats {
+    pub rhs_parent_bindings: u64,
+    pub local_atoms: u64,
+    pub spine_atoms: u64,
+    pub producer_values_read: u64,
+    pub inputs_moved: u64,
+    pub sealed_moves: u64,
+}
 pub struct Graph {
+    pub(crate) slot_transfer: bool,
     pub known_mode:String,
     pub known_stats:crate::known_results::Stats,
     pub merge_programs_enabled: bool,
@@ -470,6 +482,7 @@ impl Graph {
         let congruence_enabled = std::env::var("CELL_CPU_CONGRUENCE").as_deref() == Ok("1")
             && program.congruence.reorder_safe;
         let mut g = Self {
+            slot_transfer: std::env::var("CELL_CPU_SLOT_TRANSFER").as_deref() == Ok("1"),
             key_lookup_calls: std::cell::Cell::new(0),
             views_enabled,
             marker_fields_copied,
@@ -615,9 +628,13 @@ impl Graph {
         let parent = parent.filter(|_| !columns.is_empty());
         if parent.is_some() {
             for slot in columns.keys() {
+                #[cfg(feature = "slot-transfer-audit")]
+                crate::transfer_audit::count(|c| c.parent_projected_fields += u64::from(values.contains_key(slot)));
                 values.remove(slot);
             }
         }
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::count(|c| c.owned_frame_fields += values.len() as u64);
         Cell {
             template,
             values,
@@ -788,6 +805,8 @@ impl Graph {
             return Ok(None);
         };
         if let Some(marker) = &s.marker_row {
+            #[cfg(feature = "slot-transfer-audit")]
+            crate::transfer_audit::row(marker.values.len());
             return Ok(Some(Row {
                 table: marker.table,
                 values: if marker.canonical {
@@ -836,6 +855,8 @@ impl Graph {
         };
         // Every argument/slot path already returns a canonical value, including
         // recursive provider projections and literal/container arguments.
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::row(values.len());
         Ok(Some(Row {
             table,
             values,
@@ -855,6 +876,8 @@ impl Graph {
             .map(|v| canon(v, &self.parents))
             .collect::<Vec<_>>();
         values.push(canon(&f.value, &self.parents));
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::row(values.len());
         Some(Row {
             table: f.table,
             values,

@@ -272,7 +272,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
     };
     if cmd == "help" || args.iter().any(|a| a == "--help") {
         println!(
-            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry|free-join-planned] [--modules local-congruence,union-graft,stage-spine,static-aliases,range-guards,fd-keys,scalar-merge] [--verify-stages]"
+            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry|free-join-planned] [--modules local-congruence,union-graft,stage-spine,static-aliases,slot-transfer,range-guards,fd-keys,scalar-merge] [--verify-stages]"
         );
         return Ok(());
     }
