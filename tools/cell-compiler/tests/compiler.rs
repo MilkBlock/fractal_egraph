@@ -608,3 +608,92 @@ fn spine_routes_live_witnesses_and_plans_the_rest_of_the_same_query() {
         );
     }
 }
+
+#[test]
+fn spine_coalesces_canonical_anchor_keys_after_all_effects() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("anchors.egg");
+    // The two A anchors acquire one canonical key during repair. The last
+    // producer is the shallower one. A third receipt is deleted before publish.
+    fs::write(
+        &source,
+        r#"(datatype K (I i64))
+(relation Start (K))
+(relation Mid (K))
+(relation A (K))
+(relation Need (K))
+(relation Hit (K))
+(ruleset first)
+(ruleset emit)
+(ruleset read)
+(rule ((Start x)) ((Mid x)) :ruleset first)
+(rule ((Mid x)) ((A x)) :ruleset emit)
+(rule ((= y (I 2))) ((A y)) :ruleset emit)
+(rule ((= a (I 1)) (= b (I 2))) ((union a b)) :ruleset emit)
+(rule ((= dead (I 3))) ((delete (A dead))) :ruleset emit)
+(rule ((A x) (Need x)) ((Hit x)) :ruleset read)
+(Start (I 1)) (Start (I 3)) (Need (I 2)) (Need (I 3))
+(run-schedule (seq (run first) (run emit) (run read)))
+(check (Hit (I 1)))
+"#,
+    )
+    .unwrap();
+    let out = tmp.path().join("artifact");
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let pg = out.join("program.json");
+    let measured = pass(&[
+        "bench",
+        "--program",
+        pg.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--modules",
+        "stage-spine",
+        "--repeat",
+        "2",
+        "--verify-stages",
+    ]);
+    let report: J = serde_json::from_slice(&measured.stdout).unwrap();
+    let spine = &report["counts"]["stage_spine"];
+    assert!(
+        spine["captured_anchors"].as_u64().unwrap()
+            > spine["distinct_anchor_keys"].as_u64().unwrap()
+    );
+    assert_eq!(spine["receipt_redirects"], 1);
+    assert_eq!(spine["capture_reads"], 1); // the deleted receipt uses the exact-key fallback
+    assert_eq!(spine["resumed_steps"], 3);
+    assert_eq!(spine["max_chain"], 2);
+    assert!(spine["port_cache_fills"].as_u64().unwrap() > 0);
+
+    let stages = |receipts| {
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"));
+        for (k, _) in std::env::vars_os() {
+            if k.to_string_lossy().starts_with("CELL_CPU_") {
+                cmd.env_remove(k);
+            }
+        }
+        let run = cmd
+            .args(["internal-stages", pg.to_str().unwrap()])
+            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
+            .env("CELL_CPU_SIEVE", "1")
+            .env("CELL_CPU_FREE_JOIN", "planned")
+            .env("CELL_CPU_JOIN_INTERSECTION", "1")
+            .env("CELL_CPU_STAGE_SPINE", "1")
+            .env("CELL_CPU_STAGE_SPINE_RECEIPTS", receipts)
+            .output()
+            .unwrap();
+        assert!(
+            run.status.success(),
+            "{}",
+            String::from_utf8_lossy(&run.stderr)
+        );
+        run.stdout
+    };
+    assert_eq!(stages("0"), stages("1"));
+}

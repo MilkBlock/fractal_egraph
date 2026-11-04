@@ -78,9 +78,12 @@ pub struct Stats {
     delta_rows_examined: u64,
     dispatch_headers: u64,
     context_reads: u64,
+    captured_anchors: u64,
+    distinct_anchor_keys: u64,
     context_fact_publications: u64,
     completed_steps: u64,
     port_refreshes: u64,
+    port_cache_fills: u64,
     guards: u64,
     guard_rejections: u64,
     bindings: u64,
@@ -113,16 +116,14 @@ pub struct Programs {
     anchor_shapes: BTreeMap<(usize, usize), (usize, Vec<(usize, usize)>)>,
     entry_cache: HashMap<(usize, Dependency), (bool, usize)>,
     row_cache: HashMap<Dependency, Option<Rc<Row>>>,
-    producers: BTreeSet<usize>,
-    anchor_tables: BTreeSet<usize>,
     consumer_tables: BTreeMap<usize, BTreeSet<usize>>,
     orders: BTreeMap<(usize, usize), Vec<usize>>,
     entries: HashMap<Dependency, Cursor>,
     active_tables: BTreeMap<usize, usize>,
-    contexts_pending: Vec<(
-        Cursor,
-        Vec<(usize, Vec<Value>, bool, Option<Dependency>, &'static str)>,
-    )>,
+    // A rule's compiled RHS indices that can supply a consumer pivot.
+    anchor_ops: Vec<Vec<usize>>,
+    pending_anchors: Vec<(usize, Vec<Value>, Cursor, Option<Dependency>)>,
+    capture_unions: Option<u64>,
     origins: BTreeMap<(usize, Vec<Value>), Cursor>,
     next_context: u64,
 
@@ -217,7 +218,9 @@ impl Programs {
         let enabled = std::env::var("CELL_CPU_STAGE_SPINE").as_deref() == Ok("1");
         let mut s = Self {
             enabled,
-            receipts: std::env::var("CELL_CPU_STAGE_SPINE_RECEIPTS").as_deref() == Ok("1"),
+            receipts: enabled
+                && std::env::var("CELL_CPU_STAGE_SPINE_RECEIPTS")
+                    .map_or(true, |value| value == "1"),
             audit_receipts: false,
             partial: std::env::var("CELL_CPU_STAGE_SPINE_PARTIAL").as_deref() == Ok("1"),
             shared_entries: std::env::var("CELL_CPU_STAGE_SPINE_SHARED_ENTRIES").as_deref()
@@ -226,13 +229,13 @@ impl Programs {
             anchor_shapes: BTreeMap::new(),
             entry_cache: HashMap::new(),
             row_cache: HashMap::new(),
-            producers: BTreeSet::new(),
-            anchor_tables: BTreeSet::new(),
             consumer_tables: BTreeMap::new(),
             orders: BTreeMap::new(),
             entries: HashMap::new(),
             active_tables: BTreeMap::new(),
-            contexts_pending: vec![],
+            anchor_ops: vec![],
+            pending_anchors: vec![],
+            capture_unions: None,
             origins: BTreeMap::new(),
             next_context: 0,
 
@@ -241,12 +244,13 @@ impl Programs {
         if !enabled {
             return s;
         }
+        let mut anchor_tables = BTreeSet::new();
         for (rid, pivot, order) in &p.multi_stage.stage_entries {
             s.orders.insert((*rid, *pivot), order.as_ref().clone());
             let Call::Table(t) = p.rules[*rid].query[*pivot].call else {
                 unreachable!()
             };
-            s.anchor_tables.insert(t);
+            anchor_tables.insert(t);
             s.consumer_tables.entry(*rid).or_default().insert(t);
         }
         if std::env::var("CELL_CPU_SHARED_NODE_SCHEDULE").as_deref() != Ok("1") {
@@ -287,17 +291,27 @@ impl Programs {
         // Store one cursor per committed anchor. Consumer programs attach only
         // on their own Run, rather than preparing the entire fanout at publish.
         for (rid, r) in p.rules.iter().enumerate() {
-            if p.templates[r.template]
+            let ops = p.templates[r.template]
                 .ops
                 .iter()
                 .enumerate()
-                .any(|(op, _)| {
-                    crate::multistage::source(p, rid, "effect", op)
-                        .is_ok_and(|(t, _)| s.anchor_tables.contains(&t))
+                .filter_map(|(i, op)| {
+                    // A participating RHS can also read a function whose current
+                    // row is an anchor. Preserve that publication, as with a write.
+                    match op {
+                        Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _)
+                            if anchor_tables.contains(t) =>
+                        {
+                            Some(i)
+                        }
+                        _ => None,
+                    }
                 })
-            {
-                s.producers.insert(rid);
-            }
+                .collect::<Vec<_>>();
+            let is_producer = ops
+                .iter()
+                .any(|&i| crate::multistage::source(p, rid, "effect", i).is_ok());
+            s.anchor_ops.push(if is_producer { ops } else { vec![] });
         }
         s
     }
@@ -323,7 +337,7 @@ impl Programs {
             )
         });
         let previous = key.and_then(|k| self.origins.remove(&k));
-        if previous.is_none() && !self.producers.contains(&rid) {
+        if previous.is_none() && self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return None;
         }
         let cursor = if let Some(mut cursor) = previous {
@@ -379,64 +393,40 @@ impl Programs {
         Some(cursor)
     }
     pub fn capture_receipts(&self, rid: usize) -> bool {
-        self.enabled && self.receipts && self.producers.contains(&rid)
+        self.enabled && self.receipts && self.anchor_ops.get(rid).is_some_and(|ops| !ops.is_empty())
     }
+    /// The query-witness argument is retained for API compatibility. Consumer
+    /// ports populate their checked caches on first demand.
     pub fn capture(
         &mut self,
         g: &Graph,
         rid: usize,
         cell: u32,
         cursor: Cursor,
-        query: Option<&[Option<Dependency>]>,
+        _query: Option<&[Option<Dependency>]>,
         effects: Option<&[Option<Dependency>]>,
     ) -> Result<()> {
         self.stats.completed_steps += 1;
-        if !self.producers.contains(&rid) {
+        if self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return Ok(());
         }
         let clock = Instant::now();
         let rule = &g.program.rules[rid];
         let template = &g.program.templates[rule.template];
-        let mut facts = vec![];
-        for (i, atom) in rule.query.iter().enumerate() {
-            if let Call::Table(t) = atom.call {
-                facts.push((
-                    t,
-                    g.arguments(cell, &atom.args)?,
-                    false,
-                    query.and_then(|w| w[i]),
-                    "query",
-                ));
-            }
+        self.capture_unions.get_or_insert(g.stats.unions);
+        for &i in &self.anchor_ops[rid] {
+            let (table, args) = match &template.ops[i] {
+                Op::Let(_, Call::Table(t), args) | Op::Set(t, args, _) => (*t, args),
+                _ => unreachable!("validated anchor operation"),
+            };
+            self.pending_anchors.push((
+                table,
+                g.arguments(cell, args)?,
+                cursor.clone(),
+                effects.and_then(|w| w[i]),
+            ));
+            self.stats.captured_anchors += 1;
         }
-        for (i, op) in template.ops.iter().enumerate() {
-            match op {
-                Op::Let(dst, Call::Table(t), args) => {
-                    let mut row = g.arguments(cell, args)?;
-                    row.push(g.argument(cell, &Arg::Slot(*dst))?);
-                    facts.push((
-                        *t,
-                        row,
-                        self.anchor_tables.contains(t),
-                        effects.and_then(|w| w[i]),
-                        "effect",
-                    ));
-                }
-                Op::Set(t, args, v) => {
-                    let mut row = g.arguments(cell, args)?;
-                    row.push(g.argument(cell, v)?);
-                    facts.push((
-                        *t,
-                        row,
-                        self.anchor_tables.contains(t),
-                        effects.and_then(|w| w[i]),
-                        "effect",
-                    ));
-                }
-                _ => (),
-            }
-        }
-        self.contexts_pending.push((cursor.clone(), facts));
         self.stats.captured_contexts += 1;
         self.stats.capture_seconds += clock.elapsed().as_secs_f64();
         Ok(())
@@ -470,80 +460,73 @@ impl Programs {
                 }
             }
         }
-        let mut resolved: BTreeMap<(usize, Vec<Value>), Option<Dependency>> = BTreeMap::new();
-        for (cursor, rows) in std::mem::take(&mut self.contexts_pending) {
-            let mut context = cursor.context.borrow_mut();
-            context.canonicalize(g);
-            for (t, values, anchor, receipt, source) in rows {
-                let key = values[..values.len() - 1]
-                    .iter()
-                    .map(|v| canon(v, &g.parents))
-                    .collect::<Vec<_>>();
-                let cache_key = (t, key);
-                let w = if let Some(w) = resolved.get(&cache_key) {
-                    *w
-                } else {
-                    let mut direct = None;
-                    if self.receipts {
-                        if let Some(old) = receipt {
-                            self.stats.receipt_attempts += 1;
-                            let w = g.resolve_receipt(old);
-                            self.stats.receipt_redirects += u64::from(w != old);
-                            let visible = g.receipt_visible(w, t);
-                            if self.audit_receipts && visible {
-                                self.stats.receipt_decodes += 1;
-                                if g.row(w)?.is_none_or(|r| {
-                                    r.table != t
-                                        || r.hidden
-                                        || r.values[..r.values.len() - 1] != cache_key.1
-                                }) {
-                                    return Err(
-                                        "commit receipt does not preserve its source key".into()
-                                    );
-                                }
-                            }
-                            if visible {
-                                self.stats.receipt_hits += 1;
-                                *self
-                                    .stats
-                                    .receipt_hits_by_source
-                                    .entry(source.into())
-                                    .or_default() += 1;
-                                direct = Some(w);
-                            } else {
-                                self.stats.receipt_rejections += 1;
-                            }
-                        } else {
-                            self.stats.receipt_missing += 1;
-                        }
-                    }
-                    let w = if let Some(w) = direct {
-                        Some(w)
-                    } else {
-                        self.stats.capture_reads += 1;
-                        g.lookup(t, &cache_key.1)?
-                            .filter(|r| !r.hidden)
-                            .map(|r| r.witness)
-                    };
-                    resolved.insert(cache_key.clone(), w);
-                    w
-                };
-                if let Some(w) = w {
-                    if anchor {
-                        if self.entries.insert(w, cursor.clone()).is_none() {
-                            *self.active_tables.entry(t).or_default() += 1;
-                        }
-                        self.stats.anchor_publications += 1;
-                    }
-                    context.facts.insert(cache_key, w);
-                    self.stats.context_fact_publications += 1;
-                } else {
-                    if anchor {
-                        self.stats.missing_capture_rows += 1;
-                    }
-                    context.facts.remove(&cache_key);
+        // Unions can merge different keys after capture. Preserve the last
+        // producer in original RHS order at the post-repair canonical key.
+        let mut anchors = HashMap::new();
+        let recanonicalize = self
+            .capture_unions
+            .take()
+            .is_some_and(|before| before != g.stats.unions);
+        for (table, mut key, cursor, receipt) in self.pending_anchors.drain(..) {
+            if recanonicalize {
+                for value in &mut key {
+                    *value = canon(value, &g.parents);
                 }
             }
+            anchors.insert((table, key), (cursor, receipt));
+        }
+        self.stats.distinct_anchor_keys += anchors.len() as u64;
+        let hits_before = self.stats.receipt_hits;
+        for ((table, key), (cursor, receipt)) in anchors {
+            let mut witness = None;
+            if self.receipts {
+                if let Some(old) = receipt {
+                    self.stats.receipt_attempts += 1;
+                    let w = g.resolve_receipt(old);
+                    self.stats.receipt_redirects += u64::from(w != old);
+                    if g.receipt_visible(w, table) {
+                        if self.audit_receipts {
+                            self.stats.receipt_decodes += 1;
+                            if g.row(w)?.is_none_or(|r| {
+                                r.hidden || r.table != table || r.values[..key.len()] != key
+                            }) {
+                                return Err(
+                                    "commit receipt does not preserve its source key".into()
+                                );
+                            }
+                        }
+                        self.stats.receipt_hits += 1;
+                        witness = Some(w);
+                    } else {
+                        self.stats.receipt_rejections += 1;
+                    }
+                } else {
+                    self.stats.receipt_missing += 1;
+                }
+            }
+            if witness.is_none() {
+                self.stats.capture_reads += 1;
+                witness = g
+                    .lookup(table, &key)?
+                    .filter(|r| !r.hidden)
+                    .map(|r| r.witness);
+            }
+            if let Some(w) = witness {
+                if self.entries.insert(w, cursor).is_none() {
+                    *self.active_tables.entry(table).or_default() += 1;
+                }
+                self.stats.anchor_publications += 1;
+            } else {
+                self.stats.missing_capture_rows += 1;
+            }
+        }
+        let hits = self.stats.receipt_hits - hits_before;
+        if hits > 0 {
+            *self
+                .stats
+                .receipt_hits_by_source
+                .entry("effect".into())
+                .or_default() += hits;
         }
         self.origins.clear();
         self.entry_cache.clear();
@@ -796,19 +779,13 @@ impl Programs {
                         if row.is_none() {
                             self.stats.port_refreshes += 1;
                             row = g.lookup(*t, &args)?;
-                        }
-                        if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
-                            cursor
-                                .context
-                                .borrow_mut()
-                                .facts
-                                .insert((*t, args.clone()), r.witness);
-                        } else {
-                            cursor
-                                .context
-                                .borrow_mut()
-                                .facts
-                                .remove(&(*t, args.clone()));
+                            let mut context = cursor.context.borrow_mut();
+                            if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
+                                context.facts.insert((*t, args), r.witness);
+                                self.stats.port_cache_fills += 1;
+                            } else {
+                                context.facts.remove(&(*t, args));
+                            }
                         }
                         let Some(row) = row.filter(|r| !r.hidden) else {
                             valid = false;
@@ -995,7 +972,7 @@ impl Programs {
             .map(|c| (c.context.borrow().id, c.context.clone()))
             .collect::<BTreeMap<_, _>>();
         let facts: usize = contexts.values().map(|c| c.borrow().facts.len()).sum();
-        json!({"enabled":self.enabled,"receipts_enabled":self.receipts,"partial_enabled":self.partial,"shared_entries_enabled":self.shared_entries,"stats":self.stats,"producer_rules":self.producers.len(),
+        json!({"enabled":self.enabled,"receipts_enabled":self.receipts,"partial_enabled":self.partial,"shared_entries_enabled":self.shared_entries,"stats":self.stats,"producer_rules":self.anchor_ops.iter().filter(|ops| !ops.is_empty()).count(),
             "keyed_entries":self.orders.len(),"live_spines":contexts.len(),
             "entry_references":self.entries.len(),"context_fact_references":facts,
             "scope":"source-scheduled RHS continuation from committed producer contexts; exhaustive functional-key entries; unknown delta entries use ordinary matching; no early effect visibility"})
