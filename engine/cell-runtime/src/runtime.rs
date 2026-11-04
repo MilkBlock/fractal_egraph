@@ -210,6 +210,13 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     }
 }
 impl Executor {
+    #[cfg(feature = "spine-shapes")]
+    pub fn spine_shape_report(&self) -> J {
+        let mut report = self.stage_spine.shape_report();
+        report["program_sha256"] = self.graph.program.artifact["sha256"].clone();
+        report
+    }
+
     pub fn new(mut graph: Graph, audit: bool) -> Self {
         let mut readers = vec![vec![]; graph.program.tables.len()];
         for (rid, r) in graph.program.rules.iter().enumerate() {

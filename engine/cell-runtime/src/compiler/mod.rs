@@ -1,5 +1,9 @@
 //! Compile native typed egglog to the standalone Cell CPU instruction format.
 mod compositions;
+#[cfg(feature = "spine-blocks")]
+mod spine_blocks;
+#[cfg(feature = "spine-blocks")]
+pub use spine_blocks::bake_spine_blocks;
 mod recipe;
 use crate::{
     multistage::{extend, source},

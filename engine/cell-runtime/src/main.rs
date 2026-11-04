@@ -135,6 +135,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
     }
     let seconds = start.elapsed().as_secs_f64();
+    #[cfg(feature = "spine-shapes")]
+    std::fs::write(out.join("spine-shapes.json"), serde_json::to_vec(&runtime.spine_shape_report())?)?;
     let mut report = runtime.report();
     report["inference_seconds"] = seconds.into();
     report["setup_seconds"] = setup.into();

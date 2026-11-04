@@ -68,6 +68,9 @@ pub struct Program {
     #[serde(default)]
     pub views: crate::views::Views,
     pub congruence: crate::congruence::Congruence,
+    #[cfg(feature = "spine-blocks")]
+    #[serde(skip)]
+    pub spine_blocks: crate::spine_blocks::Catalog,
     pub multi_stage: crate::multistage::MultiStage,
     pub entry_schedule: crate::entry_schedule::Plan,
     pub compositions: crate::compositions::Compositions,
@@ -298,6 +301,8 @@ impl Program {
             merge_programs: Default::default(),
             views: crate::views::Views::default(),
             congruence: crate::congruence::Congruence::default(),
+            #[cfg(feature = "spine-blocks")]
+            spine_blocks: Default::default(),
             multi_stage: crate::multistage::MultiStage::default(),
             entry_schedule: crate::entry_schedule::Plan::default(),
             entry_join: None,
@@ -367,6 +372,10 @@ impl Program {
         p.merge_programs=crate::merge_programs::Programs::parse(&p,&p.artifact["merge_programs"])?;
         p.known_results=crate::known_results::Plans::parse(&p,&p.artifact["known_results"])?;
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
+        #[cfg(feature = "spine-blocks")]
+        {
+            p.spine_blocks = crate::spine_blocks::Catalog::parse(&p, &p.artifact["spine_blocks"])?;
+        }
         p.congruence = crate::congruence::Congruence::parse(&p, &p.artifact["congruence"])?;
         p.compositions = crate::compositions::Compositions::parse(&p, &p.artifact["compositions"])?;
         Ok(p)
