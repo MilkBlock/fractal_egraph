@@ -1,7 +1,7 @@
 use super::*;
 use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::time::Instant;
-fn lane_process(lane: &str) -> Result<Command> {
+fn lane_process(lane: &str, modules: &BTreeMap<&str, &str>) -> Result<Command> {
     let mut cmd = Command::new(std::env::current_exe()?);
     let filtered = matches!(
         lane,
@@ -30,6 +30,9 @@ fn lane_process(lane: &str) -> Result<Command> {
         "CELL_CPU_JOIN_INTERSECTION",
         if filtered { "1" } else { "0" },
     );
+    for flag in modules.values() {
+        cmd.env(flag, "1");
+    }
     Ok(cmd)
 }
 pub(super) fn run(mut args: Vec<String>) -> Result<()> {
@@ -44,8 +47,23 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             "--program",
             "--repeat",
             "--lane",
+            "--modules",
         ],
     )?;
+    let mut modules = BTreeMap::new();
+    if let Some(requested) = opts.get("--modules") {
+        for name in requested.split(',') {
+            let flag = match name {
+                "local-congruence" => "CELL_CPU_CONGRUENCE",
+                "union-graft" => "CELL_CPU_UNION_GRAFT",
+                "stage-spine" => "CELL_CPU_STAGE_SPINE",
+                _ => return Err(format!("unknown bench module {name:?}").into()),
+            };
+            if modules.insert(name, flag).is_some() {
+                return Err(format!("duplicate bench module {name:?}").into());
+            }
+        }
+    }
     let n = opts
         .get("--repeat")
         .map(|s| s.parse::<usize>())
@@ -83,8 +101,8 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
         return Err("unknown bench lane".into());
     }
     if verify {
-        let stages = |name: &str| -> Result<Vec<String>> {
-            let output = lane_process(name)?
+        let stages = |name: &str, flags: &BTreeMap<&str, &str>| -> Result<Vec<String>> {
+            let output = lane_process(name, flags)?
                 .arg("internal-stages")
                 .arg(&program)
                 .output()?;
@@ -93,7 +111,9 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             }
             Ok(serde_json::from_slice(&output.stdout)?)
         };
-        let control = if lane == "free-join-planned" {
+        let control = if !modules.is_empty() {
+            lane
+        } else if lane == "free-join-planned" {
             "free-join-entry"
         } else if lane == "free-join-entry" {
             "free-join"
@@ -102,8 +122,8 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
         } else {
             "baseline"
         };
-        let baseline = stages(control)?;
-        let candidate = stages(lane)?;
+        let baseline = stages(control, &BTreeMap::new())?;
+        let candidate = stages(lane, &modules)?;
         if baseline != candidate {
             let first = baseline
                 .iter()
@@ -117,11 +137,12 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             baseline.len() - 1
         );
     }
-    let status = lane_process(lane)?
+    let status = lane_process(lane, &modules)?
         .arg("internal-worker")
         .arg(program)
         .arg(n.to_string())
         .arg(lane)
+        .args(modules.keys())
         .status()?;
     if !status.success() {
         return Err(format!("benchmark worker failed ({status})").into());
@@ -129,7 +150,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
     Ok(())
 }
 pub(super) fn worker(args: Vec<String>) -> Result<()> {
-    if args.len() != 3 {
+    if args.len() < 3 {
         return Err("invalid worker arguments".into());
     }
     let p = program(Path::new(&args[0]))?;
@@ -167,8 +188,10 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
         let predicates = r["entry_schedule"]["stats"]["predicate_checks"]
             .as_u64()
             .ok_or("missing predicate counter")?;
+        let candidate_visits =
+            g.residual_candidates + g.direct_candidates + merged + pivots + predicates;
         let mut c = json!({
-            "all_candidate_visits": g.residual_candidates + g.direct_candidates + merged + pivots + predicates,
+            "all_candidate_visits": candidate_visits,
             "merge_candidate_rows": merged,
             "pivot_candidates": pivots,
             "predicate_checks": predicates,
@@ -182,6 +205,30 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "free_join": r["free_join"],
             "runs": e.steps.len()
         });
+        if args.len() > 3 {
+            let graft = &r["union_graft"];
+            let spine = &r["stage_spine"];
+            // The historical visit counter omits the rows checked by the graft matcher.
+            c["candidate_visits_with_graft_pairs"] = json!(
+                candidate_visits
+                    + graft["stats"]["candidate_pairs"]
+                        .as_u64()
+                        .ok_or("missing graft pair counter")?
+            );
+            c["local_congruence"] = r["local_congruence"].clone();
+            c["union_graft"] = json!({
+                "enabled": graft["enabled"], "compiled_entries": graft["compiled_entries"],
+                "context_row_reads": graft["stats"]["context_row_reads"],
+                "routed_seeds": graft["stats"]["routed_seeds"],
+                "candidate_pairs": graft["stats"]["candidate_pairs"],
+                "bindings": graft["stats"]["bindings"],
+            });
+            c["stage_spine"] = json!({
+                "enabled": spine["enabled"], "capture_reads": spine["stats"]["capture_reads"],
+                "resumed_steps": spine["stats"]["resumed_steps"], "cross_stage_steps": spine["stats"]["cross_stage_steps"],
+                "max_chain": spine["stats"]["max_chain"],
+            });
+        }
         // Over-budget attempts stop at the first overflowing hash bucket.
         // Randomized key iteration changes the inspected prefix, but not the plan.
         if args[2] == "free-join-planned" {
@@ -204,7 +251,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
     let median = (times[(n - 1) / 2] + times[n / 2]) / 2.;
     println!(
         "{}",
-        json!({"backend":"standalone-cell-cpu","lane":args[2],"program_sha256":p.artifact["sha256"],"inference_ms":times,"median_ms":median,"counts":counts,"final_state_sha256":fingerprint})
+        json!({"backend":"standalone-cell-cpu","lane":args[2],"modules_requested":&args[3..],"program_sha256":p.artifact["sha256"],"inference_ms":times,"median_ms":median,"counts":counts,"final_state_sha256":fingerprint})
     );
     Ok(())
 }

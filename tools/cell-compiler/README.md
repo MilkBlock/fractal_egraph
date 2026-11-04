@@ -49,3 +49,5 @@ cargo test --release --locked --manifest-path tools/cell-compiler/Cargo.toml
 `free-join-entry` 会在分发共享 seed 前按完整 LHS 探测相连的表。编译时加 `--emit-free-join-entry` 可将计划写进程序，旧产物在选择这个 lane 时从 typed Recipe 推导相同的计划。[入口计划与八组对照](benchmarks/free-join/ENTRY.md)
 
 `free-join-planned` 复用目标表版本内的投影结果，并在单列连接中按实际增量规模选择是否从小键域反向枚举。可以用同一产物和 `free-join-entry` 配对。[Raytrace 与 sum-bits 的入口探测、原生规划及计时](benchmarks/free-join/PLANNER.md)
+
+`cargo cell-bench --lane free-join-planned --modules union-graft,stage-spine` 在同一份产物上切换已有运行时模块。`--verify-stages` 将开启模块的执行与同 lane 关闭模块的执行逐阶段对照。局部同余可用 `--modules local-congruence` 请求，并查看输出中的实际启用状态。[两组 Pass 3 消融及局部同余阳性对照](benchmarks/runtime-modules/README.md)
