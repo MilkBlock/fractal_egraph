@@ -817,7 +817,11 @@ pub(super) fn cpu_block_egraph(
         } else if path.len() != 1 {
             return Err("invalid primitive Cell block".into());
         }
-        reg.register_descriptor(id,&parents,&json!({"kind":"scheduled_cpu_entry","recipe":plan["recipe"],"seed":plan["seed"],"expanded":path}),&Json::Null)?;
+        let mut desc=json!({"kind":"scheduled_cpu_entry","recipe":plan["recipe"],"seed":plan["seed"],"expanded":path});
+        if let Some(terminal) = u.get("terminal") {
+            desc["terminal"] = terminal.clone();
+        }
+        reg.register_descriptor(id, &parents, &desc, &Json::Null)?;
     }
     let mut report = reg.report();
     for node in report["nodes"].as_array_mut().unwrap() {

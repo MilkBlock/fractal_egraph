@@ -44,3 +44,5 @@ cargo run --release --locked --manifest-path engine/cell-runtime/Cargo.toml \
 `rounds.json` records evidence for the next batch and audit hashes. Each `round-N` directory contains the actual frozen catalog and its Cell e-graph. `program.json` is the final executable artifact. `expanded.json` maps each ID to original rule/pivot entries and output-operation links. `rhs.json` contains the final ordered per-Run digests. For native Bake, the corresponding limits are `EGG_LAYOUT_BAKE_MAX_DEPTH`, `EGG_LAYOUT_BAKE_MAX_NODES` and `EGG_LAYOUT_BAKE_MAX_UNITS`. The iterative CLI inherits those defaults and permits explicit command-line overrides.
 
 The [single-threaded inference study](INFERENCE_THROUGHPUT.md) uses these exact frozen artifacts and retains the original Run barriers.
+
+The [cross-Run RHS completion study](RHS_COMPLETION.md) specializes the learned switches using producer postconditions.

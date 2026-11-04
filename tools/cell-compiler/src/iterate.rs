@@ -25,6 +25,7 @@ pub(crate) fn run(args: Vec<String>) -> Result<()> {
             "--program",
             "--output",
             "--rounds",
+            "--objective",
             "--max-depth",
             "--max-nodes",
             "--new-per-round",
@@ -67,12 +68,24 @@ pub(crate) fn run(args: Vec<String>) -> Result<()> {
     if std::env::var("CELL_CPU_STAGE_SPINE").as_deref() != Ok("1") {
         return Err("iterative Bake requires CELL_CPU_STAGE_SPINE=1".into());
     }
+    let handoffs = match opts
+        .get("--objective")
+        .map(String::as_str)
+        .unwrap_or("copies")
+    {
+        "copies" => false,
+        "rhs-lookups" => true,
+        _ => return Err("unknown iterative Bake objective".into()),
+    };
     let mut plan = Catalog::seed(&seed, limits)?;
     let out = Path::new(output);
     fs::create_dir(out)?;
     let mut reference = None;
     let mut history = Vec::new();
     for round in 0..=rounds {
+        if handoffs {
+            Catalog::emit_handoffs(&seed, &mut plan)?;
+        }
         let mut artifact = seed.artifact.clone();
         artifact.as_object_mut().unwrap().remove("sha256");
         artifact["iterative_bake"] = plan.clone();
@@ -90,6 +103,7 @@ pub(crate) fn run(args: Vec<String>) -> Result<()> {
             },
         )?;
         let mut exec = Executor::new(Graph::new(p)?, false);
+        exec.collect_iterative_pairs();
         if exec.graph.slot_transfer != eggfuse_cell_runtime::graph::SlotTransfer::Off {
             return Err("CPU Spine block dispatch requires slot transfer off".into());
         }
@@ -147,7 +161,7 @@ pub(crate) fn run(args: Vec<String>) -> Result<()> {
         } else {
             "continue"
         };
-        history.push(json!({"round":round,"units":units.len(),"source_program":p.artifact["sha256"],"work":train.report(),"admitted":admitted,
+        history.push(json!({"round":round,"units":units.len(),"source_program":p.artifact["sha256"],"work":train.report(),"rhs_completion":{"lets":exec.graph.stats.handoff_lets,"sets":exec.graph.stats.handoff_sets,"closed":exec.graph.stats.handoff_closed,"noop_unions":exec.graph.stats.handoff_noop_unions,"deep":exec.graph.stats.handoff_deep},"admitted":admitted,
             "runs":stamp.2.len(),"final_state_sha256":stamp.0,"schedule_sha256":stamp.1,
             "ordered_rhs_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(&stamp.2)?)),"stop":stopped,"resumed_steps":exec.report()["stage_spine"]["stats"]["resumed_steps"]}));
         // Immutable round checkpoints make an interrupted run inspectable.

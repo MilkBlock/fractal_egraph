@@ -1317,3 +1317,146 @@ fn checked_register_plans_join_and_publish_function_writes() {
     fs::write(&legacy, serde_json::to_vec(&old).unwrap()).unwrap();
     assert_eq!(fast["counts"], run(&legacy)["counts"]);
 }
+
+#[cfg(feature = "iterative-bake")]
+#[test]
+fn switched_rhs_carries_a_two_run_old_fact_and_restarts_on_a_deleted_sibling() {
+    use eggfuse_cell_runtime::{
+        checksum::artifact_digest,
+        compiler::bake_spine_blocks,
+        iterative::{Catalog, Limits},
+        program::Program,
+    };
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("handoff.egg");
+    let out = tmp.path().join("compiled");
+    fs::write(
+        &source,
+        r#"
+(datatype E (N i64) (Start E) (Left E) (Right E) (Gateway E) (Mid E))
+(ruleset init) (ruleset a) (ruleset b) (ruleset c) (ruleset retire)
+(rule ((= x (N i))) ((Start x)) :ruleset init :name "start")
+(rule ((= s (Start x))) ((Left x) (Right x) (Gateway x)) :ruleset a :name "producer")
+(rule ((= g (Gateway x))) ((Mid x)) :ruleset b :name "bridge")
+(rule ((= m (Mid x))) ((Left x) (Right x)) :ruleset c :name "consume")
+(rule ((= x (N 2))) ((delete (Right x))) :ruleset retire)
+(N 1) (N 2)
+(run-schedule (seq (run init) (run a) (run b) (run retire) (run c)))
+"#,
+    )
+    .unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let p = Program::parse(json_file(&out.join("program.json"))).unwrap();
+    let rules = p.artifact["recipe"]["rules"].as_array().unwrap();
+    let id = |name| {
+        rules
+            .iter()
+            .position(|r| r["metadata"]["name"] == name)
+            .unwrap()
+    };
+    let (a, b, c) = (id("producer"), id("bridge"), id("consume"));
+    let op = |r: usize, t: &str| {
+        rules[r]["effects"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .position(|v| v["call"]["table"] == t)
+            .unwrap()
+    };
+    let (gate, mid) = (op(a, "Gateway"), op(b, "Mid"));
+    let prefixes = [a, b, c].map(|r| json!({"edge":[0,0,r,0],"visits":2}));
+    let profile = json!({"schema":"eggfuse-spine-shapes/v1","program_sha256":p.artifact["sha256"],"prefixes":prefixes});
+    let leaves = bake_spine_blocks(&p, &profile, &p, 3).unwrap();
+    let ids = |r| {
+        leaves["entries"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .position(|e| e["consumer"] == r)
+            .unwrap()
+    };
+    let mut raw = p.artifact.clone();
+    raw["spine_blocks"] = leaves.clone();
+    let program = Program::parse(raw.clone()).unwrap();
+    let mut plan = Catalog::seed(&program, Limits::default()).unwrap();
+    plan["joins"] = json!([{"left":ids(a),"output":gate,"right":ids(b)},{"left":3,"output":mid,"right":ids(c)}]);
+    raw["iterative_bake"] = plan.clone();
+    let bench = |mut r: J, label: &str| {
+        r.as_object_mut().unwrap().remove("sha256");
+        r["sha256"] = artifact_digest(&r).into();
+        let file = tmp.path().join(label);
+        fs::write(&file, serde_json::to_vec(&r).unwrap()).unwrap();
+        serde_json::from_slice::<J>(
+            &pass(&[
+                "bench",
+                "--program",
+                file.to_str().unwrap(),
+                "--lane",
+                "free-join-planned",
+                "--modules",
+                "stage-spine,static-aliases",
+                "--repeat",
+                "1",
+                "--verify-stages",
+            ])
+            .stdout,
+        )
+        .unwrap()
+    };
+    let base = bench(raw.clone(), "base.json");
+    Catalog::emit_handoffs(&program, &mut plan).unwrap();
+    raw["iterative_bake"] = plan;
+    let result = bench(raw.clone(), "optimized.json");
+    assert_eq!(base["final_state_sha256"], result["final_state_sha256"]);
+    let counts = &result["counts"];
+    assert_eq!(counts["handoff_closed"], 1);
+    assert_eq!(counts["handoff_closed_fallback"], 1);
+    assert_eq!(counts["handoff_deep"], 3);
+    assert_eq!(counts["handoff_lets"], 3);
+    let mut training_seed = program.artifact.clone();
+    training_seed.as_object_mut().unwrap().remove("sha256");
+    training_seed["sha256"] = artifact_digest(&training_seed).into();
+    let seed_path = tmp.path().join("training-seed.json");
+    fs::write(&seed_path, serde_json::to_vec(&training_seed).unwrap()).unwrap();
+    let learned = tmp.path().join("learned");
+    let run = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+        .args([
+            "iterate",
+            "--program",
+            seed_path.to_str().unwrap(),
+            "--output",
+            learned.to_str().unwrap(),
+            "--rounds",
+            "4",
+            "--objective",
+            "rhs-lookups",
+        ])
+        .env("CELL_CPU_STAGE_SPINE", "1")
+        .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
+        .env("CELL_CPU_KNOWN_RESULTS", "static")
+        .output()
+        .unwrap();
+    assert!(
+        run.status.success(),
+        "{}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+    let rounds = json_file(&learned.join("rounds.json"));
+    let rounds = rounds.as_array().unwrap();
+    assert!(
+        rounds[0]["admitted"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|e| e[1]["bridge_support"].as_u64().unwrap() > 0)
+    );
+    assert_eq!(rounds.last().unwrap()["rhs_completion"]["deep"], 3);
+    raw["iterative_bake"]["rhs_handoffs"]["max_back"] = 99.into();
+    assert!(Program::parse(raw).is_err());
+}

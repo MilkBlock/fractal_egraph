@@ -214,6 +214,10 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
 }
 impl Executor {
     #[cfg(feature = "iterative-bake")]
+    pub fn collect_iterative_pairs(&mut self) {
+        self.stage_spine.training.collect_pairs = true;
+    }
+    #[cfg(feature = "iterative-bake")]
     pub fn iterative_training(&self) -> &crate::iterative::Training {
         &self.stage_spine.training
     }
@@ -2100,9 +2104,50 @@ impl Executor {
                     key,
                     Dependency::Function(index),
                     self.graph.stats.unions,
+                    #[cfg(feature = "iterative-bake")] &self.graph.program.iterative,
+                    #[cfg(feature = "iterative-bake")] &b.known,
                 );
             }
             return Ok(None);
+        }
+        #[cfg(feature = "iterative-bake")]
+        let available = stage_cursor
+            .as_ref()
+            .filter(|_| {
+                eliminate_static
+                    && !self.graph.views_enabled
+                    && !self.compositions_enabled
+                    && self.local_run.is_none()
+                    && !self.graph.union_lineage_enabled
+            })
+            .map(|s| s.result_inputs(&self.graph.program.iterative))
+            .unwrap_or_default();
+        #[cfg(feature = "iterative-bake")]
+        if !available.is_empty()
+            && stage_cursor
+                .as_ref()
+                .is_some_and(|s| s.closed(&self.graph.program.iterative))
+        {
+            if let Some((cell, mut keys, receipts, unions)) =
+                self.graph.finish_handoff(template, &b.values, &available)?
+            {
+                self.stage_spine.effects(0, 0, unions);
+                self.stage_spine.capture_keys(
+                    &self.graph,
+                    rid,
+                    cell,
+                    stage_cursor.unwrap(),
+                    |i| b.known.get(i).map(Dependency::Fact),
+                    Some(&receipts),
+                    |i, _| {
+                        keys[i]
+                            .take()
+                            .ok_or("missing completed publication key".into())
+                    },
+                )?;
+                return Ok(None);
+            }
+            self.graph.stats.handoff_closed_fallback += 1;
         }
         let static_skip = if eliminate_static || observe_static {
             self.graph.program.known_results.static_skip.get(rid).cloned()
@@ -2184,6 +2229,8 @@ impl Executor {
         let known_values=if self.graph.known_mode=="value" {self.graph.program.known_results.values.get(&rid).cloned()}else{None};
         let mut completed = true;
         let mut completed_prefix=first_op;
+        #[cfg(feature = "iterative-bake")]
+        let mut transfers=available.as_slice();
         for (i, op) in ops.iter().enumerate().skip(first_op) {
             if self.graph.known_stats.elide_static(aliases, i) {
                 completed_prefix=i+1;continue;
@@ -2194,6 +2241,50 @@ impl Executor {
                     frame: cell,
                     op: i,
                 });
+            }
+            #[cfg(feature = "iterative-bake")]
+            if let Some((input, tail)) = transfers.split_first().filter(|(r, _)| r.op == i) {
+                transfers = tail;
+                self.graph.stats.handoff_attempts += 1;
+                if let Some(f) = input.fact {
+                    let (t, args) = match op {
+                        Op::Let(_, Call::Table(t), a) | Op::Set(t, a, _) => (*t, a),
+                        _ => unreachable!("validated constructor handoff"),
+                    };
+                    if let Some(row) = self.graph.handoff_row(f, cell, t, args)? {
+                        let value = row.values.last().unwrap().clone();
+                        match op {
+                            Op::Let(dst, ..) => {
+                                self.graph
+                                    .cells
+                                    .get_mut(&cell)
+                                    .unwrap()
+                                    .values
+                                    .insert(*dst, value);
+                                self.graph.stats.handoff_lets += 1;
+                            }
+                            Op::Set(_, _, v) => {
+                                let rhs = self.graph.argument(cell, v)?;
+                                if input.equal_output && value == rhs {
+                                    self.graph.stats.handoff_noop_unions += 1;
+                                } else {
+                                    self.graph.enqueue_union(value, rhs)?;
+                                }
+                                self.graph.stats.handoff_sets += 1;
+                            }
+                            _ => unreachable!(),
+                        }
+                        if let Some(e) = &mut effect_receipts {
+                            e[i] = Some(row.witness);
+                        }
+                        self.graph.stats.handoff_deep += u64::from(input.back > 1);
+                        completed_prefix = i + 1;
+                        continue;
+                    }
+                    self.graph.stats.handoff_stale += 1;
+                } else {
+                    self.graph.stats.handoff_missing += 1;
+                }
             }
             match op {
                 Op::Copy(..) => {}

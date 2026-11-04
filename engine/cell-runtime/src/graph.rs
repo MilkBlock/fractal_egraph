@@ -150,6 +150,24 @@ pub struct Stats {
     pub decoded_rows: u64,
     pub residual_candidates: u64,
     pub bindings: u64,
+    #[serde(default)]
+    pub handoff_attempts: u64,
+    #[serde(default)]
+    pub handoff_missing: u64,
+    #[serde(default)]
+    pub handoff_stale: u64,
+    #[serde(default)]
+    pub handoff_lets: u64,
+    #[serde(default)]
+    pub handoff_sets: u64,
+    #[serde(default)]
+    pub handoff_noop_unions: u64,
+    #[serde(default)]
+    pub handoff_deep: u64,
+    #[serde(default)]
+    pub handoff_closed: u64,
+    #[serde(default)]
+    pub handoff_closed_fallback: u64,
     #[serde(default)] pub register_seeds:u64,
     #[serde(default)] pub register_answers:u64,
     #[serde(default)] pub single_writes:u64,
@@ -1319,6 +1337,132 @@ impl Graph {
         }
         self.changed = true;
         Ok(())
+    }
+    /// Preflight the complete switched RHS on the sealed tuple. Reserve an ID
+    /// and enqueue unions only after every row and its full canonical key pass.
+    #[cfg(feature = "iterative-bake")]
+    pub(crate) fn finish_handoff(
+        &mut self,
+        template: usize,
+        inputs: &crate::slots::Slots,
+        transfers: &[crate::result_handoff::Input],
+    ) -> Result<Option<(u32, Vec<Option<Vec<Value>>>, Vec<Option<Dependency>>, u64)>> {
+        let ops = self.program.templates[template].ops.clone();
+        let mut receipts = vec![None; ops.len()];
+        let mut keys = vec![None; ops.len()];
+        let mut suffix = crate::slots::Slots::default();
+        let mut unions = vec![];
+        let arg = |a: &Arg, s: &crate::slots::Slots| -> Result<Value> {
+            match a {
+                Arg::Slot(i) => s
+                    .get(i)
+                    .or_else(|| inputs.get(i))
+                    .map(|v| canon(v, &self.parents))
+                    .ok_or_else(|| "unbound completed slot".into()),
+                Arg::Literal(v) => Ok(canon(v, &self.parents)),
+            }
+        };
+        let mut transfers_iter = transfers.iter();
+        let mut lets = 0;
+        let mut sets = 0;
+        let mut deep = 0;
+        let mut noop = 0;
+        for (op, instruction) in ops.iter().enumerate() {
+            let (table, aa) = match instruction {
+                Op::Copy(dst, a) => {
+                    let v = arg(a, &suffix)?;
+                    suffix.insert(*dst, v);
+                    continue;
+                }
+                Op::Let(_, Call::Table(t), aa) | Op::Set(t, aa, _) => (*t, aa),
+                _ => return Err("unexpected instruction in completed block".into()),
+            };
+            let Some(input) = transfers_iter.next() else {
+                return Ok(None);
+            };
+            let Some(f) = input.fact else { return Ok(None) };
+            if input.op != op {
+                return Err("invalid completed block order".into());
+            }
+            let key = aa
+                .iter()
+                .map(|a| arg(a, &suffix))
+                .collect::<Result<Vec<_>>>()?;
+            let Some(row) = self.live_handoff(f, table)? else {
+                return Ok(None);
+            };
+            let Some((value, fields)) = row.values.split_last() else {
+                return Ok(None);
+            };
+            if fields != key {
+                return Ok(None);
+            }
+            match instruction {
+                Op::Let(dst, ..) => {
+                    suffix.insert(*dst, value.clone());
+                    lets += 1;
+                }
+                Op::Set(_, _, a) => {
+                    let v = arg(a, &suffix)?;
+                    if !matches!((value, &v), (Value::Eq(_), Value::Eq(_))) {
+                        return Err("non-equality constructor result".into());
+                    }
+                    if input.equal_output && value == &v {
+                        noop += 1;
+                    } else {
+                        unions.push((value.clone(), v));
+                    }
+                    sets += 1;
+                }
+                _ => unreachable!(),
+            }
+            receipts[op] = Some(row.witness);
+            keys[op] = Some(key);
+            deep += u64::from(input.back > 1);
+        }
+        let cell = self.reserve_cell_id()?;
+        let count = unions.len() as u64;
+        for (a, b) in unions {
+            self.enqueue_union(a, b)?
+        }
+        self.stats.rhs_frames_avoided += 1;
+        self.stats.handoff_closed += 1;
+        self.stats.handoff_noop_unions += noop;
+        self.stats.handoff_attempts += lets + sets;
+        self.stats.handoff_lets += lets;
+        self.stats.handoff_sets += sets;
+        self.stats.handoff_deep += deep;
+        Ok(Some((cell, keys, receipts, count)))
+    }
+    #[cfg(feature = "iterative-bake")]
+    fn live_handoff(&self, f: FactRef, table: usize) -> Result<Option<Row>> {
+        if !self.dirty_facts[table].is_empty() {
+            return Ok(None);
+        }
+        Ok(self
+            .row(self.resolve_receipt(Dependency::Fact(f)))?
+            .filter(|r| r.table == table && !r.hidden))
+    }
+    #[cfg(feature = "iterative-bake")]
+    pub(crate) fn handoff_row(
+        &self,
+        f: FactRef,
+        cell: u32,
+        table: usize,
+        args: &[Arg],
+    ) -> Result<Option<Row>> {
+        let Some(row) = self.live_handoff(f, table)? else {
+            return Ok(None);
+        };
+        if row.values.len() != args.len() + 1 {
+            return Ok(None);
+        }
+        for (a, v) in args.iter().zip(row.values.iter()) {
+            if self.argument(cell, a)? != *v {
+                return Ok(None);
+            }
+        }
+        Ok(Some(row))
     }
     pub fn construct(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize)->Result<Value>{self.construct_inner(cell,op,t,aa,dst,None,None)}
     pub fn construct_visible(&mut self,cell:u32,op:usize,t:usize,aa:&[Arg],dst:usize,visible:&mut bool)->Result<Value>{self.construct_inner(cell,op,t,aa,dst,Some(visible),None)}
