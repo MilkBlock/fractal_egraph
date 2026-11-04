@@ -42,3 +42,5 @@ CELL_CPU_FREE_JOIN=planned cargo cell-run --program out/root-ray/program.json --
 ```
 
 [Raw samples, phase medians, work counters and per-Run audit fingerprints](root-results.json)
+
+A further ablation moves the allocation boundary from first publication to first applied resumption. [First-resumption results and allocation audit](FIRST_RESUMPTION.md)

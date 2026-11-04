@@ -1,0 +1,46 @@
+--- /dev/null
++++ b/engine/cell-runtime/src/heap.rs
+@@ -0,0 +1,26 @@
++use std::alloc::{GlobalAlloc, Layout, System};
++use std::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
++
++struct Counter;
++#[global_allocator]
++static ALLOCATOR: Counter = Counter;
++static ACTIVE: AtomicBool = AtomicBool::new(false);
++static ALLOCS: AtomicU64 = AtomicU64::new(0);
++static REALLOCS: AtomicU64 = AtomicU64::new(0);
++pub fn enable(value: bool) { ACTIVE.store(value, Relaxed); }
++pub fn counts() -> [u64; 2] { [ALLOCS.load(Relaxed), REALLOCS.load(Relaxed)] }
++unsafe impl GlobalAlloc for Counter {
++    unsafe fn alloc(&self, l: Layout) -> *mut u8 {
++        if ACTIVE.load(Relaxed) { ALLOCS.fetch_add(1, Relaxed); }
++        unsafe { System.alloc(l) }
++    }
++    unsafe fn alloc_zeroed(&self, l: Layout) -> *mut u8 {
++        if ACTIVE.load(Relaxed) { ALLOCS.fetch_add(1, Relaxed); }
++        unsafe { System.alloc_zeroed(l) }
++    }
++    unsafe fn realloc(&self, p: *mut u8, l: Layout, n: usize) -> *mut u8 {
++        if ACTIVE.load(Relaxed) { REALLOCS.fetch_add(1, Relaxed); }
++        unsafe { System.realloc(p, l, n) }
++    }
++    unsafe fn dealloc(&self, p: *mut u8, l: Layout) { unsafe { System.dealloc(p, l) } }
++}
+--- a/engine/cell-runtime/src/lib.rs
++++ b/engine/cell-runtime/src/lib.rs
+@@ -0,0 +1 @@
++pub mod heap;
+--- a/engine/cell-runtime/src/runtime.rs
++++ b/engine/cell-runtime/src/runtime.rs
+@@ -2229,0 +2230 @@
++        crate::heap::enable(false);
+@@ -2235,0 +2237 @@
++        crate::heap::enable(true);
+--- a/engine/cell-runtime/src/main.rs
++++ b/engine/cell-runtime/src/main.rs
+@@ -109,0 +110 @@
++    eggfuse_cell_runtime::heap::enable(true);
+@@ -118,0 +120,2 @@
++    eggfuse_cell_runtime::heap::enable(false);
++    std::fs::write(out.join("heap.json"), serde_json::to_vec(&eggfuse_cell_runtime::heap::counts())?)?;
