@@ -1,0 +1,2717 @@
+{
+  "base_commit": "70b2910",
+  "scope": "Single-thread standalone Cell CPU with fixed 64-block iterative catalogs and the Raytrace-trained context-cut policy in all arms. The neighbor context is the only execution switch.",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "Apple M3 Max, arm64",
+  "toolchain": "rustc 1.94.0 (4a4ef493e 2026-03-02)",
+  "common_environment": {
+    "CELL_CPU_STAGE_SPINE": "1",
+    "CELL_CPU_STAGE_SPINE_RECEIPTS": "1",
+    "CELL_CPU_SHARED_NODE_SCHEDULE": "1",
+    "CELL_CPU_JOIN_INTERSECTION": "1",
+    "CELL_CPU_SIEVE": "1",
+    "CELL_CPU_FREE_JOIN": "planned",
+    "CELL_CPU_KNOWN_RESULTS": "static",
+    "CELL_CPU_RANGE_GUARDS": "1",
+    "CELL_CPU_FD_KEYS": "0",
+    "CELL_CPU_SCALAR_MERGE": "0",
+    "CELL_CPU_SLOT_TRANSFER": "off",
+    "CELL_CPU_LOCAL_CONTEXT": "general"
+  },
+  "statistic": "One excluded warm-up per arm. Fresh processes with rotated and reversed order, seven measured rounds on sum-bits and four on Raytrace. Separate instrumentation runs have three measured rounds after a warm-up. All durations are milliseconds unless suffixed ns. Rule maintenance is inside query time. Shared publication is outside query time.",
+  "cases": {
+    "sum-bits": {
+      "runs": 1428,
+      "resumptions": 3034,
+      "max_depth": 12,
+      "ordered_rhs_sha256": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+      "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+      "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+      "artifact_sha256": "ff432e76102e6ae9cc031e8cded30d98d1f32cd5354b3c98874494ce6b12b374",
+      "arms": {
+        "0": {
+          "candidate_visits": 19227,
+          "key_lookups": 19651,
+          "inference_ms": [35.523, 35.518, 36.215, 35.01, 35.304, 34.853, 34.446],
+          "cli_ms": [135.983, 136.238, 138.879, 137.14, 137.619, 134.608, 137.64],
+          "paired_inference_delta_ms": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          "phases_ms": [
+            {
+              "search": 15.292,
+              "rhs": 8.301,
+              "repair": 2.383,
+              "query_update": 5.663,
+              "delivery_gc": 0.459
+            },
+            {
+              "search": 15.33,
+              "rhs": 8.298,
+              "repair": 2.304,
+              "query_update": 5.667,
+              "delivery_gc": 0.456
+            },
+            {
+              "search": 15.58,
+              "rhs": 8.508,
+              "repair": 2.407,
+              "query_update": 5.745,
+              "delivery_gc": 0.471
+            },
+            {
+              "search": 15.006,
+              "rhs": 8.239,
+              "repair": 2.304,
+              "query_update": 5.553,
+              "delivery_gc": 0.458
+            },
+            {
+              "search": 15.069,
+              "rhs": 8.28,
+              "repair": 2.357,
+              "query_update": 5.688,
+              "delivery_gc": 0.47
+            },
+            {
+              "search": 14.876,
+              "rhs": 8.177,
+              "repair": 2.332,
+              "query_update": 5.573,
+              "delivery_gc": 0.451
+            },
+            {
+              "search": 14.664,
+              "rhs": 8.137,
+              "repair": 2.331,
+              "query_update": 5.492,
+              "delivery_gc": 0.45
+            }
+          ],
+          "profiled_publication_ms": [0.0, 0.0, 0.0],
+          "profiled_demand_maintenance_ms": [0.0, 0.0, 0.0],
+          "profiled_search_minus_demand_ms": [17.263, 16.886, 16.874],
+          "publication_work": {
+            "checked": 0,
+            "cleared": 0,
+            "refreshed": 0,
+            "retired": 0
+          },
+          "retained_port_keys_at_end": 0,
+          "retained_parent_refs_at_end": 0,
+          "logical_and_committed": {
+            "bindings": 10226,
+            "logical_facts_created": 3739,
+            "unions": 1039,
+            "function_updates": 1450
+          },
+          "work_by_rule": {
+            "148": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "150": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "151": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "152": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "153": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "154": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "155": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "157": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "158": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "160": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "164": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "181": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "215": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "575": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            }
+          },
+          "profiled_rules": {
+            "148": {
+              "visits": 2,
+              "logical_bindings": 2,
+              "spine_entries": 0,
+              "residual_entries": 2,
+              "total_ms": [0.0828, 0.0785, 0.0812],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0828, 0.0785, 0.0812]
+            },
+            "150": {
+              "visits": 0,
+              "logical_bindings": 8,
+              "spine_entries": 8,
+              "residual_entries": 0,
+              "total_ms": [0.022, 0.0237, 0.0214],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.022, 0.0237, 0.0214]
+            },
+            "151": {
+              "visits": 86,
+              "logical_bindings": 56,
+              "spine_entries": 38,
+              "residual_entries": 37,
+              "total_ms": [0.0885, 0.0844, 0.0859],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0885, 0.0844, 0.0859]
+            },
+            "152": {
+              "visits": 2,
+              "logical_bindings": 2,
+              "spine_entries": 1,
+              "residual_entries": 2,
+              "total_ms": [0.0325, 0.0321, 0.033],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0325, 0.0321, 0.033]
+            },
+            "153": {
+              "visits": 117,
+              "logical_bindings": 214,
+              "spine_entries": 293,
+              "residual_entries": 71,
+              "total_ms": [0.1563, 0.1551, 0.1752],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.1563, 0.1551, 0.1752]
+            },
+            "154": {
+              "visits": 182,
+              "logical_bindings": 104,
+              "spine_entries": 95,
+              "residual_entries": 70,
+              "total_ms": [0.1377, 0.1326, 0.1377],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.1377, 0.1326, 0.1377]
+            },
+            "155": {
+              "visits": 0,
+              "logical_bindings": 98,
+              "spine_entries": 292,
+              "residual_entries": 0,
+              "total_ms": [0.1162, 0.1125, 0.116],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.1162, 0.1125, 0.116]
+            },
+            "157": {
+              "visits": 12,
+              "logical_bindings": 6,
+              "spine_entries": 8,
+              "residual_entries": 2,
+              "total_ms": [0.0469, 0.0437, 0.046],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0469, 0.0437, 0.046]
+            },
+            "158": {
+              "visits": 2,
+              "logical_bindings": 1,
+              "spine_entries": 0,
+              "residual_entries": 1,
+              "total_ms": [0.0192, 0.0186, 0.0192],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0192, 0.0186, 0.0192]
+            },
+            "160": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0029, 0.0022, 0.002],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0029, 0.0022, 0.002]
+            },
+            "164": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0021, 0.0023, 0.002],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0021, 0.0023, 0.002]
+            },
+            "181": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0016, 0.0017, 0.0015],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0016, 0.0017, 0.0015]
+            },
+            "215": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0016, 0.0022, 0.002],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0016, 0.0022, 0.002]
+            },
+            "575": {
+              "visits": 8,
+              "logical_bindings": 16,
+              "spine_entries": 15,
+              "residual_entries": 7,
+              "total_ms": [0.0377, 0.0392, 0.0378],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0377, 0.0392, 0.0378]
+            }
+          }
+        },
+        "ports": {
+          "candidate_visits": 19154,
+          "key_lookups": 19578,
+          "inference_ms": [34.872, 35.824, 36.493, 34.448, 34.943, 34.214, 34.396],
+          "cli_ms": [134.605, 139.254, 140.136, 137.602, 135.103, 132.827, 136.203],
+          "paired_inference_delta_ms": [-0.651, 0.306, 0.278, -0.562, -0.361, -0.639, -0.05],
+          "phases_ms": [
+            {
+              "search": 14.844,
+              "rhs": 8.182,
+              "repair": 2.367,
+              "query_update": 5.578,
+              "delivery_gc": 0.457
+            },
+            {
+              "search": 15.328,
+              "rhs": 8.41,
+              "repair": 2.37,
+              "query_update": 5.798,
+              "delivery_gc": 0.464
+            },
+            {
+              "search": 15.653,
+              "rhs": 8.658,
+              "repair": 2.405,
+              "query_update": 5.773,
+              "delivery_gc": 0.465
+            },
+            {
+              "search": 14.786,
+              "rhs": 8.043,
+              "repair": 2.292,
+              "query_update": 5.49,
+              "delivery_gc": 0.451
+            },
+            {
+              "search": 14.946,
+              "rhs": 8.153,
+              "repair": 2.365,
+              "query_update": 5.588,
+              "delivery_gc": 0.46
+            },
+            {
+              "search": 14.677,
+              "rhs": 7.972,
+              "repair": 2.28,
+              "query_update": 5.507,
+              "delivery_gc": 0.452
+            },
+            {
+              "search": 14.716,
+              "rhs": 8.044,
+              "repair": 2.308,
+              "query_update": 5.459,
+              "delivery_gc": 0.457
+            }
+          ],
+          "profiled_publication_ms": [0.043629, 0.033863, 0.034478],
+          "profiled_demand_maintenance_ms": [0.009503, 0.009538, 0.009373],
+          "profiled_search_minus_demand_ms": [16.539497, 16.549462000000002, 16.667627],
+          "publication_work": {
+            "checked": 190,
+            "cleared": 0,
+            "refreshed": 33,
+            "retired": 5
+          },
+          "retained_port_keys_at_end": 71,
+          "retained_parent_refs_at_end": 0,
+          "logical_and_committed": {
+            "bindings": 10226,
+            "logical_facts_created": 3739,
+            "unions": 1039,
+            "function_updates": 1450
+          },
+          "work_by_rule": {
+            "148": {
+              "bindings": 2,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 2,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 2,
+              "seeds": 2,
+              "spine_entries": 0
+            },
+            "150": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 8
+            },
+            "151": {
+              "bindings": 32,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 43,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 24,
+              "point_probes": 19,
+              "resets": 0,
+              "residual_entries": 37,
+              "seeds": 37,
+              "spine_entries": 38
+            },
+            "152": {
+              "bindings": 2,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 2,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 2,
+              "seeds": 2,
+              "spine_entries": 1
+            },
+            "153": {
+              "bindings": 117,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 117,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 71,
+              "seeds": 71,
+              "spine_entries": 293
+            },
+            "154": {
+              "bindings": 70,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 91,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 44,
+              "point_probes": 47,
+              "resets": 0,
+              "residual_entries": 70,
+              "seeds": 70,
+              "spine_entries": 95
+            },
+            "155": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 292
+            },
+            "157": {
+              "bindings": 3,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 3,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 5,
+              "point_probes": 4,
+              "resets": 0,
+              "residual_entries": 2,
+              "seeds": 2,
+              "spine_entries": 8
+            },
+            "158": {
+              "bindings": 1,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 1,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 1,
+              "resets": 0,
+              "residual_entries": 1,
+              "seeds": 1,
+              "spine_entries": 0
+            },
+            "160": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "164": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "181": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "215": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "575": {
+              "bindings": 8,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 8,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 7,
+              "seeds": 7,
+              "spine_entries": 15
+            }
+          },
+          "profiled_rules": {
+            "148": {
+              "visits": 2,
+              "logical_bindings": 2,
+              "spine_entries": 0,
+              "residual_entries": 2,
+              "total_ms": [0.0793, 0.0779, 0.0837],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0793, 0.0779, 0.0837]
+            },
+            "150": {
+              "visits": 0,
+              "logical_bindings": 8,
+              "spine_entries": 8,
+              "residual_entries": 0,
+              "total_ms": [0.0185, 0.0194, 0.0183],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0185, 0.0194, 0.0183]
+            },
+            "151": {
+              "visits": 62,
+              "logical_bindings": 56,
+              "spine_entries": 38,
+              "residual_entries": 37,
+              "total_ms": [0.0897, 0.0871, 0.0895],
+              "maintenance_ms": [0.001835, 0.001873, 0.001958],
+              "search_ms": [0.087865, 0.085227, 0.087542]
+            },
+            "152": {
+              "visits": 2,
+              "logical_bindings": 2,
+              "spine_entries": 1,
+              "residual_entries": 2,
+              "total_ms": [0.0318, 0.0317, 0.0329],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0318, 0.0317, 0.0329]
+            },
+            "153": {
+              "visits": 117,
+              "logical_bindings": 214,
+              "spine_entries": 293,
+              "residual_entries": 71,
+              "total_ms": [0.155, 0.1548, 0.1584],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.155, 0.1548, 0.1584]
+            },
+            "154": {
+              "visits": 138,
+              "logical_bindings": 104,
+              "spine_entries": 95,
+              "residual_entries": 70,
+              "total_ms": [0.1377, 0.1355, 0.139],
+              "maintenance_ms": [0.006042, 0.005957, 0.00554],
+              "search_ms": [0.131658, 0.129543, 0.13346]
+            },
+            "155": {
+              "visits": 0,
+              "logical_bindings": 98,
+              "spine_entries": 292,
+              "residual_entries": 0,
+              "total_ms": [0.1128, 0.1137, 0.1196],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.1128, 0.1137, 0.1196]
+            },
+            "157": {
+              "visits": 7,
+              "logical_bindings": 6,
+              "spine_entries": 8,
+              "residual_entries": 2,
+              "total_ms": [0.0453, 0.0449, 0.0465],
+              "maintenance_ms": [0.000251, 0.000333, 0.000375],
+              "search_ms": [0.045049, 0.044567, 0.046125]
+            },
+            "158": {
+              "visits": 2,
+              "logical_bindings": 1,
+              "spine_entries": 0,
+              "residual_entries": 1,
+              "total_ms": [0.0208, 0.0198, 0.0208],
+              "maintenance_ms": [0.001375, 0.001375, 0.0015],
+              "search_ms": [0.019425, 0.018425, 0.0193]
+            },
+            "160": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0026, 0.0026, 0.0022],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0026, 0.0026, 0.0022]
+            },
+            "164": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0022, 0.0017, 0.0022],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0022, 0.0017, 0.0022]
+            },
+            "181": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0016, 0.0018, 0.0016],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0016, 0.0018, 0.0016]
+            },
+            "215": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0018, 0.0015, 0.0018],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0018, 0.0015, 0.0018]
+            },
+            "575": {
+              "visits": 8,
+              "logical_bindings": 16,
+              "spine_entries": 15,
+              "residual_entries": 7,
+              "total_ms": [0.037, 0.0365, 0.0411],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.037, 0.0365, 0.0411]
+            }
+          }
+        },
+        "1": {
+          "candidate_visits": 19154,
+          "key_lookups": 19578,
+          "inference_ms": [34.778, 34.957, 35.802, 37.214, 37.757, 34.603, 34.529],
+          "cli_ms": [134.964, 136.182, 137.808, 138.732, 140.175, 134.98, 137.122],
+          "paired_inference_delta_ms": [-0.745, -0.561, -0.413, 2.204, 2.453, -0.25, 0.083],
+          "phases_ms": [
+            {
+              "search": 14.931,
+              "rhs": 8.209,
+              "repair": 2.28,
+              "query_update": 5.518,
+              "delivery_gc": 0.448
+            },
+            {
+              "search": 14.958,
+              "rhs": 8.245,
+              "repair": 2.333,
+              "query_update": 5.565,
+              "delivery_gc": 0.46
+            },
+            {
+              "search": 15.351,
+              "rhs": 8.464,
+              "repair": 2.371,
+              "query_update": 5.686,
+              "delivery_gc": 0.463
+            },
+            {
+              "search": 16.095,
+              "rhs": 8.6,
+              "repair": 2.58,
+              "query_update": 5.941,
+              "delivery_gc": 0.48
+            },
+            {
+              "search": 16.267,
+              "rhs": 8.828,
+              "repair": 2.458,
+              "query_update": 6.095,
+              "delivery_gc": 0.48
+            },
+            {
+              "search": 14.799,
+              "rhs": 8.124,
+              "repair": 2.327,
+              "query_update": 5.53,
+              "delivery_gc": 0.454
+            },
+            {
+              "search": 14.82,
+              "rhs": 8.007,
+              "repair": 2.284,
+              "query_update": 5.515,
+              "delivery_gc": 0.452
+            }
+          ],
+          "profiled_publication_ms": [0.035356, 0.034529, 0.035707],
+          "profiled_demand_maintenance_ms": [0.019077, 0.018549, 0.022427],
+          "profiled_search_minus_demand_ms": [16.860923, 16.591451, 18.701573],
+          "publication_work": {
+            "checked": 190,
+            "cleared": 0,
+            "refreshed": 33,
+            "retired": 5
+          },
+          "retained_port_keys_at_end": 71,
+          "retained_parent_refs_at_end": 21,
+          "logical_and_committed": {
+            "bindings": 10226,
+            "logical_facts_created": 3739,
+            "unions": 1039,
+            "function_updates": 1450
+          },
+          "work_by_rule": {
+            "148": {
+              "bindings": 2,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 2,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 2,
+              "seeds": 2,
+              "spine_entries": 0
+            },
+            "150": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 8
+            },
+            "151": {
+              "bindings": 32,
+              "build_visits": 10,
+              "cached_parent_visits": 0,
+              "expansion_visits": 43,
+              "group_builds": 4,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 24,
+              "point_probes": 19,
+              "resets": 3,
+              "residual_entries": 37,
+              "seeds": 37,
+              "spine_entries": 38
+            },
+            "152": {
+              "bindings": 2,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 2,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 2,
+              "seeds": 2,
+              "spine_entries": 1
+            },
+            "153": {
+              "bindings": 117,
+              "build_visits": 61,
+              "cached_parent_visits": 0,
+              "expansion_visits": 117,
+              "group_builds": 15,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 7,
+              "residual_entries": 71,
+              "seeds": 71,
+              "spine_entries": 293
+            },
+            "154": {
+              "bindings": 70,
+              "build_visits": 38,
+              "cached_parent_visits": 0,
+              "expansion_visits": 91,
+              "group_builds": 17,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 44,
+              "point_probes": 47,
+              "resets": 8,
+              "residual_entries": 70,
+              "seeds": 70,
+              "spine_entries": 95
+            },
+            "155": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 292
+            },
+            "157": {
+              "bindings": 3,
+              "build_visits": 2,
+              "cached_parent_visits": 0,
+              "expansion_visits": 3,
+              "group_builds": 1,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 5,
+              "point_probes": 4,
+              "resets": 1,
+              "residual_entries": 2,
+              "seeds": 2,
+              "spine_entries": 8
+            },
+            "158": {
+              "bindings": 1,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 1,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 1,
+              "resets": 0,
+              "residual_entries": 1,
+              "seeds": 1,
+              "spine_entries": 0
+            },
+            "160": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "164": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "181": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "215": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "575": {
+              "bindings": 8,
+              "build_visits": 2,
+              "cached_parent_visits": 0,
+              "expansion_visits": 8,
+              "group_builds": 1,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 1,
+              "residual_entries": 7,
+              "seeds": 7,
+              "spine_entries": 15
+            }
+          },
+          "profiled_rules": {
+            "148": {
+              "visits": 2,
+              "logical_bindings": 2,
+              "spine_entries": 0,
+              "residual_entries": 2,
+              "total_ms": [0.081, 0.0809, 0.0921],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.081, 0.0809, 0.0921]
+            },
+            "150": {
+              "visits": 0,
+              "logical_bindings": 8,
+              "spine_entries": 8,
+              "residual_entries": 0,
+              "total_ms": [0.0214, 0.0192, 0.0223],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0214, 0.0192, 0.0223]
+            },
+            "151": {
+              "visits": 62,
+              "logical_bindings": 56,
+              "spine_entries": 38,
+              "residual_entries": 37,
+              "total_ms": [0.0925, 0.0908, 0.1082],
+              "maintenance_ms": [0.002748, 0.002876, 0.003875],
+              "search_ms": [0.089752, 0.087924, 0.104325]
+            },
+            "152": {
+              "visits": 2,
+              "logical_bindings": 2,
+              "spine_entries": 1,
+              "residual_entries": 2,
+              "total_ms": [0.0327, 0.0332, 0.0371],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0327, 0.0332, 0.0371]
+            },
+            "153": {
+              "visits": 117,
+              "logical_bindings": 214,
+              "spine_entries": 293,
+              "residual_entries": 71,
+              "total_ms": [0.166, 0.163, 0.178],
+              "maintenance_ms": [0.004335, 0.004295, 0.005041],
+              "search_ms": [0.161665, 0.158705, 0.172959]
+            },
+            "154": {
+              "visits": 138,
+              "logical_bindings": 104,
+              "spine_entries": 95,
+              "residual_entries": 70,
+              "total_ms": [0.1463, 0.1428, 0.1575],
+              "maintenance_ms": [0.00966, 0.009, 0.010719],
+              "search_ms": [0.13664, 0.1338, 0.146781]
+            },
+            "155": {
+              "visits": 0,
+              "logical_bindings": 98,
+              "spine_entries": 292,
+              "residual_entries": 0,
+              "total_ms": [0.12, 0.1182, 0.1295],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.12, 0.1182, 0.1295]
+            },
+            "157": {
+              "visits": 7,
+              "logical_bindings": 6,
+              "spine_entries": 8,
+              "residual_entries": 2,
+              "total_ms": [0.0473, 0.0471, 0.0524],
+              "maintenance_ms": [0.0005, 0.000585, 0.000584],
+              "search_ms": [0.0468, 0.046515, 0.051816]
+            },
+            "158": {
+              "visits": 2,
+              "logical_bindings": 1,
+              "spine_entries": 0,
+              "residual_entries": 1,
+              "total_ms": [0.0213, 0.0213, 0.0233],
+              "maintenance_ms": [0.001333, 0.001459, 0.001458],
+              "search_ms": [0.019967, 0.019841, 0.021842]
+            },
+            "160": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0025, 0.0022, 0.0025],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0025, 0.0022, 0.0025]
+            },
+            "164": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.002, 0.0022, 0.0027],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.002, 0.0022, 0.0027]
+            },
+            "181": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.002, 0.0018, 0.0015],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.002, 0.0018, 0.0015]
+            },
+            "215": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0019, 0.0017, 0.0018],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0019, 0.0017, 0.0018]
+            },
+            "575": {
+              "visits": 8,
+              "logical_bindings": 16,
+              "spine_entries": 15,
+              "residual_entries": 7,
+              "total_ms": [0.0394, 0.0377, 0.039],
+              "maintenance_ms": [0.000501, 0.000334, 0.00075],
+              "search_ms": [0.038899, 0.037366, 0.03825]
+            }
+          }
+        }
+      },
+      "plans": {
+        "148": {
+          "attribute": 197,
+          "children": [
+            [1, 3]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "150": {
+          "attribute": 197,
+          "children": [
+            [1, 3],
+            [2, 2],
+            [3, 1]
+          ],
+          "pivots": [0, 1, 2, 3],
+          "structure": 0
+        },
+        "151": {
+          "attribute": 197,
+          "children": [
+            [1, 2],
+            [2, 1]
+          ],
+          "pivots": [0, 1, 2],
+          "structure": 0
+        },
+        "152": {
+          "attribute": 197,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "153": {
+          "attribute": 197,
+          "children": [
+            [1, 0]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "154": {
+          "attribute": 197,
+          "children": [
+            [1, 1],
+            [2, 0]
+          ],
+          "pivots": [0, 1, 2],
+          "structure": 0
+        },
+        "155": {
+          "attribute": 197,
+          "children": [
+            [1, 0]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "157": {
+          "attribute": 197,
+          "children": [
+            [1, 1],
+            [2, 3],
+            [3, 2],
+            [4, 0]
+          ],
+          "pivots": [0, 1, 2, 3, 4],
+          "structure": 0
+        },
+        "158": {
+          "attribute": 197,
+          "children": [
+            [1, 1],
+            [2, 0]
+          ],
+          "pivots": [0, 1, 2],
+          "structure": 0
+        },
+        "160": {
+          "attribute": 197,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "164": {
+          "attribute": 197,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "181": {
+          "attribute": 260,
+          "children": [
+            [1, 2]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "215": {
+          "attribute": 259,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "575": {
+          "attribute": 360,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        }
+      }
+    },
+    "raytrace": {
+      "runs": 16883,
+      "resumptions": 663403,
+      "max_depth": 29,
+      "ordered_rhs_sha256": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+      "schedule_sha256": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5",
+      "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+      "artifact_sha256": "9e96fead3e4fdf6c274f9338c2337853afff23836fc59d3a40a12d194e5f5293",
+      "arms": {
+        "0": {
+          "candidate_visits": 8385832,
+          "key_lookups": 5576452,
+          "inference_ms": [14043.972, 13952.1, 14692.833, 14460.078],
+          "cli_ms": [16817.768, 16833.139, 17455.83, 17299.635],
+          "paired_inference_delta_ms": [0.0, 0.0, 0.0, 0.0],
+          "phases_ms": [
+            {
+              "search": 6131.91,
+              "rhs": 3738.591,
+              "repair": 1027.516,
+              "query_update": 2690.481,
+              "delivery_gc": 407.616
+            },
+            {
+              "search": 6045.318,
+              "rhs": 3757.543,
+              "repair": 1033.787,
+              "query_update": 2662.567,
+              "delivery_gc": 404.683
+            },
+            {
+              "search": 6391.572,
+              "rhs": 3923.647,
+              "repair": 1083.27,
+              "query_update": 2817.491,
+              "delivery_gc": 426.77
+            },
+            {
+              "search": 6270.799,
+              "rhs": 3898.095,
+              "repair": 1063.232,
+              "query_update": 2755.686,
+              "delivery_gc": 422.26
+            }
+          ],
+          "profiled_publication_ms": [0.0, 0.0, 0.0],
+          "profiled_demand_maintenance_ms": [0.0, 0.0, 0.0],
+          "profiled_search_minus_demand_ms": [6117.51, 6300.475, 6584.851],
+          "publication_work": {
+            "checked": 0,
+            "cleared": 0,
+            "refreshed": 0,
+            "retired": 0
+          },
+          "retained_port_keys_at_end": 0,
+          "retained_parent_refs_at_end": 0,
+          "logical_and_committed": {
+            "bindings": 3785196,
+            "logical_facts_created": 820439,
+            "unions": 226523,
+            "function_updates": 1676336
+          },
+          "work_by_rule": {
+            "148": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "150": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "151": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "152": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "153": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "154": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "155": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "157": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "158": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "160": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "164": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "181": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "215": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "575": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            }
+          },
+          "profiled_rules": {
+            "148": {
+              "visits": 1458,
+              "logical_bindings": 1458,
+              "spine_entries": 0,
+              "residual_entries": 1458,
+              "total_ms": [409.7776, 445.9032, 444.8897],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [409.7776, 445.9032, 444.8897]
+            },
+            "150": {
+              "visits": 383592,
+              "logical_bindings": 79986,
+              "spine_entries": 1480,
+              "residual_entries": 99829,
+              "total_ms": [169.0202, 177.1034, 180.0356],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [169.0202, 177.1034, 180.0356]
+            },
+            "151": {
+              "visits": 616646,
+              "logical_bindings": 221686,
+              "spine_entries": 5286,
+              "residual_entries": 221646,
+              "total_ms": [289.4283, 297.6999, 309.4617],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [289.4283, 297.6999, 309.4617]
+            },
+            "152": {
+              "visits": 8,
+              "logical_bindings": 9,
+              "spine_entries": 1,
+              "residual_entries": 8,
+              "total_ms": [1.6231, 1.7301, 1.7493],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [1.6231, 1.7301, 1.7493]
+            },
+            "153": {
+              "visits": 956267,
+              "logical_bindings": 966545,
+              "spine_entries": 26391,
+              "residual_entries": 462230,
+              "total_ms": [635.0218, 647.7597, 679.8888],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [635.0218, 647.7597, 679.8888]
+            },
+            "154": {
+              "visits": 1052080,
+              "logical_bindings": 334264,
+              "spine_entries": 11768,
+              "residual_entries": 422631,
+              "total_ms": [451.5525, 465.3253, 488.7999],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [451.5525, 465.3253, 488.7999]
+            },
+            "155": {
+              "visits": 0,
+              "logical_bindings": 306775,
+              "spine_entries": 1132388,
+              "residual_entries": 0,
+              "total_ms": [594.6216, 622.3092, 646.2525],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [594.6216, 622.3092, 646.2525]
+            },
+            "157": {
+              "visits": 67976,
+              "logical_bindings": 13088,
+              "spine_entries": 170,
+              "residual_entries": 17712,
+              "total_ms": [50.2927, 52.6705, 54.7308],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [50.2927, 52.6705, 54.7308]
+            },
+            "158": {
+              "visits": 15346,
+              "logical_bindings": 7199,
+              "spine_entries": 51,
+              "residual_entries": 6667,
+              "total_ms": [14.7741, 15.7413, 16.7108],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [14.7741, 15.7413, 16.7108]
+            },
+            "160": {
+              "visits": 6909,
+              "logical_bindings": 6960,
+              "spine_entries": 87,
+              "residual_entries": 6904,
+              "total_ms": [22.9837, 24.2901, 24.4771],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [22.9837, 24.2901, 24.4771]
+            },
+            "164": {
+              "visits": 270,
+              "logical_bindings": 460,
+              "spine_entries": 194,
+              "residual_entries": 61,
+              "total_ms": [6.187, 6.4754, 6.6646],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [6.187, 6.4754, 6.6646]
+            },
+            "181": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0378, 0.0387, 0.0379],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0378, 0.0387, 0.0379]
+            },
+            "215": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0389, 0.0401, 0.0366],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0389, 0.0401, 0.0366]
+            },
+            "575": {
+              "visits": 717,
+              "logical_bindings": 2128,
+              "spine_entries": 2931,
+              "residual_entries": 646,
+              "total_ms": [4.7586, 4.8286, 5.5531],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [4.7586, 4.8286, 5.5531]
+            }
+          }
+        },
+        "ports": {
+          "candidate_visits": 7263030,
+          "key_lookups": 4453650,
+          "inference_ms": [13867.514, 14842.179, 14835.776, 14453.043],
+          "cli_ms": [16636.552, 17716.901, 17910.55, 17436.547],
+          "paired_inference_delta_ms": [-176.458, 890.079, 142.943, -7.035],
+          "phases_ms": [
+            {
+              "search": 5953.653,
+              "rhs": 3725.461,
+              "repair": 1041.289,
+              "query_update": 2699.105,
+              "delivery_gc": 400.375
+            },
+            {
+              "search": 6387.682,
+              "rhs": 3964.22,
+              "repair": 1111.182,
+              "query_update": 2896.659,
+              "delivery_gc": 432.57
+            },
+            {
+              "search": 6428.529,
+              "rhs": 3969.124,
+              "repair": 1086.208,
+              "query_update": 2873.228,
+              "delivery_gc": 428.829
+            },
+            {
+              "search": 6239.61,
+              "rhs": 3870.457,
+              "repair": 1054.281,
+              "query_update": 2811.568,
+              "delivery_gc": 427.71
+            }
+          ],
+          "profiled_publication_ms": [89.340793, 85.287138, 106.530637],
+          "profiled_demand_maintenance_ms": [2.725589, 2.714891, 3.062085],
+          "profiled_search_minus_demand_ms": [6177.624411000001, 6122.211109000001, 6800.342915],
+          "publication_work": {
+            "checked": 1126308,
+            "cleared": 0,
+            "refreshed": 624772,
+            "retired": 1138
+          },
+          "retained_port_keys_at_end": 12054,
+          "retained_parent_refs_at_end": 0,
+          "logical_and_committed": {
+            "bindings": 3785196,
+            "logical_facts_created": 820439,
+            "unions": 226523,
+            "function_updates": 1676336
+          },
+          "work_by_rule": {
+            "148": {
+              "bindings": 1458,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 1458,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 1458,
+              "seeds": 1458,
+              "spine_entries": 0
+            },
+            "150": {
+              "bindings": 79298,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 139393,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 242730,
+              "point_probes": 1469,
+              "resets": 0,
+              "residual_entries": 99829,
+              "seeds": 99829,
+              "spine_entries": 1480
+            },
+            "151": {
+              "bindings": 219581,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 308380,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 305324,
+              "point_probes": 2942,
+              "resets": 0,
+              "residual_entries": 221646,
+              "seeds": 221646,
+              "spine_entries": 5286
+            },
+            "152": {
+              "bindings": 8,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 8,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 8,
+              "seeds": 8,
+              "spine_entries": 1
+            },
+            "153": {
+              "bindings": 956267,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 956267,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 462230,
+              "seeds": 462230,
+              "spine_entries": 26391
+            },
+            "154": {
+              "bindings": 330964,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 526040,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 518784,
+              "point_probes": 7256,
+              "resets": 0,
+              "residual_entries": 422631,
+              "seeds": 422631,
+              "spine_entries": 11768
+            },
+            "155": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 1132388
+            },
+            "157": {
+              "bindings": 12976,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 19298,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 48364,
+              "point_probes": 314,
+              "resets": 0,
+              "residual_entries": 17712,
+              "seeds": 17712,
+              "spine_entries": 170
+            },
+            "158": {
+              "bindings": 7149,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 7673,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 7600,
+              "point_probes": 73,
+              "resets": 0,
+              "residual_entries": 6667,
+              "seeds": 6667,
+              "spine_entries": 51
+            },
+            "160": {
+              "bindings": 6909,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 6909,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 6904,
+              "seeds": 6904,
+              "spine_entries": 87
+            },
+            "164": {
+              "bindings": 270,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 270,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 61,
+              "seeds": 61,
+              "spine_entries": 194
+            },
+            "181": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "215": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "575": {
+              "bindings": 717,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 717,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 646,
+              "seeds": 646,
+              "spine_entries": 2931
+            }
+          },
+          "profiled_rules": {
+            "148": {
+              "visits": 1458,
+              "logical_bindings": 1458,
+              "spine_entries": 0,
+              "residual_entries": 1458,
+              "total_ms": [434.2455, 422.2052, 480.0427],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [434.2455, 422.2052, 480.0427]
+            },
+            "150": {
+              "visits": 140862,
+              "logical_bindings": 79986,
+              "spine_entries": 1480,
+              "residual_entries": 99829,
+              "total_ms": [165.8573, 161.7498, 177.0339],
+              "maintenance_ms": [0.407448, 0.397928, 0.481796],
+              "search_ms": [165.449852, 161.351872, 176.552104]
+            },
+            "151": {
+              "visits": 311322,
+              "logical_bindings": 221686,
+              "spine_entries": 5286,
+              "residual_entries": 221646,
+              "total_ms": [288.7405, 283.7423, 309.9616],
+              "maintenance_ms": [0.691407, 0.678553, 0.794297],
+              "search_ms": [288.049093, 283.063747, 309.167303]
+            },
+            "152": {
+              "visits": 8,
+              "logical_bindings": 9,
+              "spine_entries": 1,
+              "residual_entries": 8,
+              "total_ms": [1.6549, 1.6174, 1.9142],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [1.6549, 1.6174, 1.9142]
+            },
+            "153": {
+              "visits": 956267,
+              "logical_bindings": 966545,
+              "spine_entries": 26391,
+              "residual_entries": 462230,
+              "total_ms": [668.4532, 652.7023, 721.6732],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [668.4532, 652.7023, 721.6732]
+            },
+            "154": {
+              "visits": 533296,
+              "logical_bindings": 334264,
+              "spine_entries": 11768,
+              "residual_entries": 422631,
+              "total_ms": [446.3648, 440.7222, 480.9876],
+              "maintenance_ms": [1.513988, 1.514573, 1.654409],
+              "search_ms": [444.850812, 439.207627, 479.333191]
+            },
+            "155": {
+              "visits": 0,
+              "logical_bindings": 306775,
+              "spine_entries": 1132388,
+              "residual_entries": 0,
+              "total_ms": [619.7884, 605.5884, 676.0839],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [619.7884, 605.5884, 676.0839]
+            },
+            "157": {
+              "visits": 19612,
+              "logical_bindings": 13088,
+              "spine_entries": 170,
+              "residual_entries": 17712,
+              "total_ms": [48.8981, 47.8221, 52.8645],
+              "maintenance_ms": [0.089411, 0.100458, 0.107078],
+              "search_ms": [48.808689, 47.721642, 52.757422]
+            },
+            "158": {
+              "visits": 7746,
+              "logical_bindings": 7199,
+              "spine_entries": 51,
+              "residual_entries": 6667,
+              "total_ms": [15.0275, 14.8283, 16.4346],
+              "maintenance_ms": [0.023335, 0.023379, 0.024505],
+              "search_ms": [15.004165, 14.804921, 16.410095]
+            },
+            "160": {
+              "visits": 6909,
+              "logical_bindings": 6960,
+              "spine_entries": 87,
+              "residual_entries": 6904,
+              "total_ms": [23.5148, 23.1174, 25.3053],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [23.5148, 23.1174, 25.3053]
+            },
+            "164": {
+              "visits": 270,
+              "logical_bindings": 460,
+              "spine_entries": 194,
+              "residual_entries": 61,
+              "total_ms": [6.3325, 6.1364, 6.9268],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [6.3325, 6.1364, 6.9268]
+            },
+            "181": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0391, 0.0379, 0.0395],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0391, 0.0379, 0.0395]
+            },
+            "215": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0381, 0.0392, 0.0389],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0381, 0.0392, 0.0389]
+            },
+            "575": {
+              "visits": 717,
+              "logical_bindings": 2128,
+              "spine_entries": 2931,
+              "residual_entries": 646,
+              "total_ms": [4.8346, 5.0501, 5.4255],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [4.8346, 5.0501, 5.4255]
+            }
+          }
+        },
+        "1": {
+          "candidate_visits": 7263030,
+          "key_lookups": 4453650,
+          "inference_ms": [13686.803, 13776.039, 14270.517, 14206.601],
+          "cli_ms": [16546.737, 16623.156, 17262.941, 17220.985],
+          "paired_inference_delta_ms": [-357.169, -176.061, -422.316, -253.477],
+          "phases_ms": [
+            {
+              "search": 5824.685,
+              "rhs": 3717.404,
+              "repair": 1011.572,
+              "query_update": 2686.121,
+              "delivery_gc": 400.029
+            },
+            {
+              "search": 5882.101,
+              "rhs": 3723.351,
+              "repair": 1019.435,
+              "query_update": 2705.44,
+              "delivery_gc": 398.654
+            },
+            {
+              "search": 6088.053,
+              "rhs": 3857.243,
+              "repair": 1065.281,
+              "query_update": 2798.745,
+              "delivery_gc": 413.605
+            },
+            {
+              "search": 6043.082,
+              "rhs": 3852.693,
+              "repair": 1057.058,
+              "query_update": 2786.993,
+              "delivery_gc": 419.036
+            }
+          ],
+          "profiled_publication_ms": [92.655526, 82.670203, 94.794145],
+          "profiled_demand_maintenance_ms": [8.840828, 8.450476, 8.803147],
+          "profiled_search_minus_demand_ms": [6241.479171999999, 5938.376524, 6363.899853000001],
+          "publication_work": {
+            "checked": 1126308,
+            "cleared": 0,
+            "refreshed": 624772,
+            "retired": 1138
+          },
+          "retained_port_keys_at_end": 12054,
+          "retained_parent_refs_at_end": 165,
+          "logical_and_committed": {
+            "bindings": 3785196,
+            "logical_facts_created": 820439,
+            "unions": 226523,
+            "function_updates": 1676336
+          },
+          "work_by_rule": {
+            "148": {
+              "bindings": 1458,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 1458,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 1458,
+              "seeds": 1458,
+              "spine_entries": 0
+            },
+            "150": {
+              "bindings": 79298,
+              "build_visits": 989,
+              "cached_parent_visits": 49709,
+              "expansion_visits": 139393,
+              "group_builds": 280,
+              "group_hits": 10854,
+              "owner_skips": 0,
+              "point_hits": 242730,
+              "point_probes": 1469,
+              "resets": 10,
+              "residual_entries": 99829,
+              "seeds": 99829,
+              "spine_entries": 1480
+            },
+            "151": {
+              "bindings": 219581,
+              "build_visits": 6512,
+              "cached_parent_visits": 126867,
+              "expansion_visits": 308380,
+              "group_builds": 1970,
+              "group_hits": 44675,
+              "owner_skips": 0,
+              "point_hits": 305324,
+              "point_probes": 2942,
+              "resets": 21,
+              "residual_entries": 221646,
+              "seeds": 221646,
+              "spine_entries": 5286
+            },
+            "152": {
+              "bindings": 8,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 8,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 8,
+              "seeds": 8,
+              "spine_entries": 1
+            },
+            "153": {
+              "bindings": 956267,
+              "build_visits": 60044,
+              "cached_parent_visits": 592912,
+              "expansion_visits": 956267,
+              "group_builds": 16799,
+              "group_hits": 142120,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 89,
+              "residual_entries": 462230,
+              "seeds": 462230,
+              "spine_entries": 26391
+            },
+            "154": {
+              "bindings": 330964,
+              "build_visits": 19872,
+              "cached_parent_visits": 139780,
+              "expansion_visits": 526040,
+              "group_builds": 6163,
+              "group_hits": 50080,
+              "owner_skips": 0,
+              "point_hits": 518784,
+              "point_probes": 7256,
+              "resets": 69,
+              "residual_entries": 422631,
+              "seeds": 422631,
+              "spine_entries": 11768
+            },
+            "155": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 1132388
+            },
+            "157": {
+              "bindings": 12976,
+              "build_visits": 201,
+              "cached_parent_visits": 2902,
+              "expansion_visits": 19298,
+              "group_builds": 89,
+              "group_hits": 1428,
+              "owner_skips": 0,
+              "point_hits": 48364,
+              "point_probes": 314,
+              "resets": 7,
+              "residual_entries": 17712,
+              "seeds": 17712,
+              "spine_entries": 170
+            },
+            "158": {
+              "bindings": 7149,
+              "build_visits": 39,
+              "cached_parent_visits": 1734,
+              "expansion_visits": 7673,
+              "group_builds": 18,
+              "group_hits": 749,
+              "owner_skips": 0,
+              "point_hits": 7600,
+              "point_probes": 73,
+              "resets": 4,
+              "residual_entries": 6667,
+              "seeds": 6667,
+              "spine_entries": 51
+            },
+            "160": {
+              "bindings": 6909,
+              "build_visits": 4,
+              "cached_parent_visits": 6,
+              "expansion_visits": 6909,
+              "group_builds": 2,
+              "group_hits": 3,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 2,
+              "residual_entries": 6904,
+              "seeds": 6904,
+              "spine_entries": 87
+            },
+            "164": {
+              "bindings": 270,
+              "build_visits": 199,
+              "cached_parent_visits": 46,
+              "expansion_visits": 270,
+              "group_builds": 31,
+              "group_hits": 5,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 3,
+              "residual_entries": 61,
+              "seeds": 61,
+              "spine_entries": 194
+            },
+            "181": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "215": {
+              "bindings": 0,
+              "build_visits": 0,
+              "cached_parent_visits": 0,
+              "expansion_visits": 0,
+              "group_builds": 0,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 0,
+              "residual_entries": 0,
+              "seeds": 0,
+              "spine_entries": 0
+            },
+            "575": {
+              "bindings": 717,
+              "build_visits": 116,
+              "cached_parent_visits": 0,
+              "expansion_visits": 717,
+              "group_builds": 45,
+              "group_hits": 0,
+              "owner_skips": 0,
+              "point_hits": 0,
+              "point_probes": 0,
+              "resets": 5,
+              "residual_entries": 646,
+              "seeds": 646,
+              "spine_entries": 2931
+            }
+          },
+          "profiled_rules": {
+            "148": {
+              "visits": 1458,
+              "logical_bindings": 1458,
+              "spine_entries": 0,
+              "residual_entries": 1458,
+              "total_ms": [447.2151, 411.4558, 451.5185],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [447.2151, 411.4558, 451.5185]
+            },
+            "150": {
+              "visits": 140862,
+              "logical_bindings": 79986,
+              "spine_entries": 1480,
+              "residual_entries": 99829,
+              "total_ms": [162.7007, 152.0596, 161.6587],
+              "maintenance_ms": [0.519516, 0.478118, 0.498832],
+              "search_ms": [162.181184, 151.581482, 161.159868]
+            },
+            "151": {
+              "visits": 311322,
+              "logical_bindings": 221686,
+              "spine_entries": 5286,
+              "residual_entries": 221646,
+              "total_ms": [285.2365, 268.9661, 285.0323],
+              "maintenance_ms": [1.247277, 1.154725, 1.24799],
+              "search_ms": [283.989223, 267.811375, 283.78431]
+            },
+            "152": {
+              "visits": 8,
+              "logical_bindings": 9,
+              "spine_entries": 1,
+              "residual_entries": 8,
+              "total_ms": [1.6471, 1.509, 1.7612],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [1.6471, 1.509, 1.7612]
+            },
+            "153": {
+              "visits": 956267,
+              "logical_bindings": 966545,
+              "spine_entries": 26391,
+              "residual_entries": 462230,
+              "total_ms": [599.7225, 560.0932, 590.4306],
+              "maintenance_ms": [4.044043, 3.867954, 4.025885],
+              "search_ms": [595.678457, 556.225246, 586.404715]
+            },
+            "154": {
+              "visits": 533296,
+              "logical_bindings": 334264,
+              "spine_entries": 11768,
+              "residual_entries": 422631,
+              "total_ms": [445.8356, 415.4759, 445.7342],
+              "maintenance_ms": [2.843093, 2.76735, 2.847004],
+              "search_ms": [442.992507, 412.70855, 442.887196]
+            },
+            "155": {
+              "visits": 0,
+              "logical_bindings": 306775,
+              "spine_entries": 1132388,
+              "residual_entries": 0,
+              "total_ms": [636.7389, 590.4463, 640.1208],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [636.7389, 590.4463, 640.1208]
+            },
+            "157": {
+              "visits": 19612,
+              "logical_bindings": 13088,
+              "spine_entries": 170,
+              "residual_entries": 17712,
+              "total_ms": [50.0981, 45.5743, 51.0945],
+              "maintenance_ms": [0.122838, 0.125839, 0.126278],
+              "search_ms": [49.975262, 45.448461, 50.968222]
+            },
+            "158": {
+              "visits": 7746,
+              "logical_bindings": 7199,
+              "spine_entries": 51,
+              "residual_entries": 6667,
+              "total_ms": [15.3412, 13.9322, 15.6787],
+              "maintenance_ms": [0.034882, 0.031585, 0.030911],
+              "search_ms": [15.306318, 13.900615, 15.647789]
+            },
+            "160": {
+              "visits": 6909,
+              "logical_bindings": 6960,
+              "spine_entries": 87,
+              "residual_entries": 6904,
+              "total_ms": [24.0927, 22.7247, 24.6825],
+              "maintenance_ms": [0.003417, 0.001084, 0.000874],
+              "search_ms": [24.089283, 22.723616, 24.681626]
+            },
+            "164": {
+              "visits": 270,
+              "logical_bindings": 460,
+              "spine_entries": 194,
+              "residual_entries": 61,
+              "total_ms": [6.4423, 6.0627, 6.791],
+              "maintenance_ms": [0.015343, 0.013495, 0.014041],
+              "search_ms": [6.426957, 6.049205, 6.776959]
+            },
+            "181": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0378, 0.0402, 0.0389],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0378, 0.0402, 0.0389]
+            },
+            "215": {
+              "visits": 0,
+              "logical_bindings": 0,
+              "spine_entries": 0,
+              "residual_entries": 0,
+              "total_ms": [0.0394, 0.037, 0.0403],
+              "maintenance_ms": [0.0, 0.0, 0.0],
+              "search_ms": [0.0394, 0.037, 0.0403]
+            },
+            "575": {
+              "visits": 717,
+              "logical_bindings": 2128,
+              "spine_entries": 2931,
+              "residual_entries": 646,
+              "total_ms": [4.9191, 4.89, 4.9405],
+              "maintenance_ms": [0.010419, 0.010326, 0.011332],
+              "search_ms": [4.908681, 4.879674, 4.929168]
+            }
+          }
+        }
+      },
+      "plans": {
+        "148": {
+          "attribute": 197,
+          "children": [
+            [1, 3]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "150": {
+          "attribute": 197,
+          "children": [
+            [1, 3],
+            [2, 2],
+            [3, 1]
+          ],
+          "pivots": [0, 1, 2, 3],
+          "structure": 0
+        },
+        "151": {
+          "attribute": 197,
+          "children": [
+            [1, 2],
+            [2, 1]
+          ],
+          "pivots": [0, 1, 2],
+          "structure": 0
+        },
+        "152": {
+          "attribute": 197,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "153": {
+          "attribute": 197,
+          "children": [
+            [1, 0]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "154": {
+          "attribute": 197,
+          "children": [
+            [1, 1],
+            [2, 0]
+          ],
+          "pivots": [0, 1, 2],
+          "structure": 0
+        },
+        "155": {
+          "attribute": 197,
+          "children": [
+            [1, 0]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "157": {
+          "attribute": 197,
+          "children": [
+            [1, 1],
+            [2, 3],
+            [3, 2],
+            [4, 0]
+          ],
+          "pivots": [0, 1, 2, 3, 4],
+          "structure": 0
+        },
+        "158": {
+          "attribute": 197,
+          "children": [
+            [1, 1],
+            [2, 0]
+          ],
+          "pivots": [0, 1, 2],
+          "structure": 0
+        },
+        "160": {
+          "attribute": 197,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "164": {
+          "attribute": 197,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "181": {
+          "attribute": 260,
+          "children": [
+            [1, 2]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "215": {
+          "attribute": 259,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        },
+        "575": {
+          "attribute": 360,
+          "children": [
+            [1, 1]
+          ],
+          "pivots": [0, 1],
+          "structure": 0
+        }
+      }
+    }
+  }
+}

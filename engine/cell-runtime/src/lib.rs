@@ -46,6 +46,7 @@ pub mod iterative;
 pub mod slots;
 
 mod row_kernel;
+mod neighbor;
 
 /// Common allocator for the standalone CLI and its Cargo benchmark workers.
 pub use mimalloc::MiMalloc as RuntimeAllocator;

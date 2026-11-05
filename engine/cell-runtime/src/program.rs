@@ -58,6 +58,8 @@ pub struct Rule {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
     #[serde(skip)]
+    pub(crate) neighbor_plans: Vec<Option<crate::neighbor::Plan>>,
+    #[serde(skip)]
     pub(crate) context_cuts: crate::local_context::Cuts,
     #[serde(skip)]
     pub(crate) local_contexts: Vec<Option<Rc<crate::local_context::Plan>>>,
@@ -310,6 +312,7 @@ impl Program {
         let kernels=crate::row_kernel::derive(&rules);
         if let Some(raw)=j.get("row_kernels") && *raw!=serde_json::json!(kernels){return Err("invalid register join plan".into());}
         let mut p = Self {
+            neighbor_plans: vec![],
             context_cuts: vec![],
             local_contexts: vec![],
             kernels,writes:vec![],
@@ -338,6 +341,12 @@ impl Program {
         p.validate()?;
         p.physical = Rc::new(crate::physical_plan::Plan::derive(&p));
         p.writes=crate::row_kernel::writes(&p);
+        p.neighbor_plans = crate::neighbor::derive(&p);
+        if let Some(raw) = p.artifact.get("neighbor_entries")
+            && *raw != serde_json::json!(p.neighbor_plans)
+        {
+            return Err("invalid delta neighbor plan".into());
+        }
         if let Some(raw)=p.artifact.get("single_writes") && *raw!=serde_json::json!(p.writes){return Err("invalid functional write plan".into())}
         if let Some(raw) = p.artifact.get("physical_plan") {
             let emitted: crate::physical_plan::Plan =

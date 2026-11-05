@@ -25,9 +25,10 @@ impl Registers {
             Arg::Literal(l) => canon(l, &g.parents) == *v,
         }
     }
-    pub(super) fn start(
+    pub(super) fn start<const LOCAL: bool>(
         &mut self,
         exec: &mut Executor,
+        rid: usize,
         r: &Rule,
         k: &Kernel,
         seed: &Row,
@@ -40,8 +41,9 @@ impl Registers {
         for &(c, s) in &k.seed {
             self.fields[s] = seed.values[c].clone();
         }
-        self.step(
+        self.step::<LOCAL>(
             exec,
+            rid,
             r,
             k,
             0,
@@ -52,9 +54,10 @@ impl Registers {
             out,
         )
     }
-    fn step(
+    fn step<const LOCAL: bool>(
         &mut self,
         exec: &mut Executor,
+        rid: usize,
         r: &Rule,
         k: &Kernel,
         pc: usize,
@@ -81,18 +84,17 @@ impl Registers {
                     let bound: SmallVec<[Option<Value>; 6]> = bound;
                     exec.query_indexes.candidates(&exec.graph, t, &bound)?
                 };
-                for &w in refs.iter() {
-                    exec.graph.stats.residual_candidates += 1;
-                    let Some(row) = exec.graph.row(w)? else {
-                        continue;
-                    };
-                    if row.hidden
-                        || row.table != t
-                        || (row.epoch, w) > owner
-                        || ((row.epoch, w) == owner && ins.atom < k.pivot)
-                    {
-                        continue;
+                let mut access = if LOCAL {
+                    exec.neighbor.neighborhood(&exec.graph, rid, t, &refs)
+                } else {
+                    crate::neighbor::Access::Direct
+                };
+                let mut visit = |row: &Row, exec: &mut Executor| -> Result<()> {
+                    let w = row.witness;
+                    if LOCAL {
+                        exec.neighbor.stats(rid).expansion_visits += 1;
                     }
+                    exec.graph.stats.residual_candidates += 1;
                     // Repeated fresh variables compare against this row's first column.
                     for &(col, s) in &ins.assign {
                         self.fields[s] = row.values[col].clone();
@@ -102,11 +104,12 @@ impl Registers {
                         .iter()
                         .all(|(col, arg)| self.agrees(arg, &row.values[*col], &exec.graph))
                     {
-                        continue;
+                        return Ok(());
                     }
                     self.witnesses[ins.atom] = Some(w);
-                    self.step(
+                    self.step::<LOCAL>(
                         exec,
+                        rid,
                         r,
                         k,
                         pc + offset + 1,
@@ -115,7 +118,56 @@ impl Registers {
                         domains,
                         known,
                         out,
-                    )?;
+                    )
+                };
+                if let crate::neighbor::Access::Cached(rows) = access {
+                    let count = rows.partition_point(|row| {
+                        let stamp = (row.epoch, row.witness);
+                        stamp < owner || (stamp == owner && ins.atom >= k.pivot)
+                    });
+                    let stats = exec.neighbor.stats(rid);
+                    stats.owner_skips += (rows.len() - count) as u64;
+                    stats.cached_parent_visits += count as u64;
+                    for row in &rows[..count] {
+                        visit(row, exec)?;
+                    }
+                } else {
+                    for &w in refs.iter() {
+                        let Some(row) = exec.graph.row(w)? else {
+                            exec.graph.stats.residual_candidates += 1;
+                            if LOCAL {
+                                exec.neighbor.stats(rid).expansion_visits += 1;
+                            }
+                            continue;
+                        };
+                        if let crate::neighbor::Access::Build(rows) = &mut access
+                            && !row.hidden
+                            && row.table == t
+                        {
+                            let clock = exec.profile_queries.then(Instant::now);
+                            rows.push(row.clone());
+                            if let Some(clock) = clock {
+                                exec.neighbor.stats(rid).maintenance_ns +=
+                                    clock.elapsed().as_nanos() as u64;
+                            }
+                        }
+                        let stamp = (row.epoch, w);
+                        if row.hidden
+                            || row.table != t
+                            || stamp > owner
+                            || (stamp == owner && ins.atom < k.pivot)
+                        {
+                            exec.graph.stats.residual_candidates += 1;
+                            if LOCAL {
+                                exec.neighbor.stats(rid).expansion_visits += 1;
+                            }
+                            continue;
+                        }
+                        visit(&row, exec)?;
+                    }
+                    if let crate::neighbor::Access::Build(rows) = access {
+                        exec.neighbor.finish_group(rid, t, refs, rows);
+                    }
                 }
                 return Ok(());
             }
@@ -123,8 +175,14 @@ impl Registers {
                 keys.iter().map(|arg| self.val(arg, &exec.graph)).collect();
             let result = match &a.call {
                 Call::Table(t) => {
-                    exec.graph.stats.residual_candidates += 1;
-                    let Some(row) = exec.graph.lookup_canonical(*t, &args)? else {
+                    let neighbor = LOCAL && !exec.graph.program.tables[*t].virtual_fact;
+                    let row = if neighbor {
+                        exec.neighbor.point(&mut exec.graph, rid, *t, &args)?
+                    } else {
+                        exec.graph.stats.residual_candidates += 1;
+                        exec.graph.lookup_canonical(*t, &args)?
+                    };
+                    let Some(row) = row else {
                         return Ok(());
                     };
                     let stamp = (row.epoch, row.witness);

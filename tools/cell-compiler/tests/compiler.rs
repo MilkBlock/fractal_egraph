@@ -1752,3 +1752,108 @@ fn connected_cuts_span_chains_and_transfer_evidence_to_renamed_relations() {
     };
     assert_eq!(stages("0"), stages("general"));
 }
+
+#[test]
+fn changed_child_ports_follow_value_replacement_and_key_repair() {
+    use eggfuse_cell_runtime::{checksum::artifact_digest, program::Program};
+    let dir = tempfile::tempdir().unwrap();
+    let src = dir.path().join("propagate.egg");
+    let dest = dir.path().join("compiled");
+    fs::write(
+        &src,
+        r#"
+(datatype Tree (Item i64) (Fork Tree Tree) (One Tree))
+(function score (Tree) i64 :merge (max old new))
+(ruleset calc) (ruleset touch) (ruleset remove) (ruleset restore) (ruleset coalesce)
+(rule ((= t (Fork a b)) (= y (score b)) (= x (score a)) (= total (+ x y)))
+      ((set (score t) total)) :ruleset calc :name "combine")
+(rule ((= t (One a)) (= v (score a))) ((set (score t) v)) :ruleset calc :name "copy-score")
+(rule ((= t (Item 1))) ((set (score t) 7)) :ruleset touch)
+(rule ((= t (Item 2))) ((delete (score t))) :ruleset remove)
+(rule ((= t (Item 2))) ((set (score t) 13)) :ruleset restore)
+(rule ((= t (Item 3))) ((union t (Item 2))) :ruleset coalesce)
+(Fork (Item 1) (Item 2)) (Fork (Item 1) (Item 3)) (Fork (Item 1) (Item 4))
+(Fork (Item 2) (Item 1)) (Fork (Item 2) (Item 2)) (One (Item 1))
+(set (score (Item 1)) 1) (set (score (Item 2)) 2) (set (score (Item 3)) 3)
+(run-schedule (seq (run calc) (run remove) (run touch) (run calc) (run restore)
+                   (run calc) (run coalesce) (run calc)))
+(check (= (score (Fork (Item 1) (Item 2))) 20) (= (score (Fork (Item 2) (Item 2))) 26))
+"#,
+    )
+    .unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        src.to_str().unwrap(),
+        "--output",
+        dest.to_str().unwrap(),
+        "--emit-free-join-entry",
+    ]);
+    let pg = dest.join("program.json");
+    let raw = json_file(&pg);
+    let rid = raw["recipe"]["rules"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|r| r["metadata"]["name"] == "combine")
+        .unwrap();
+    assert_eq!(
+        raw["neighbor_entries"][rid]["children"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    let bench = |path: &Path, mode: &str| -> J {
+        let res = pass(&[
+            "bench",
+            "--program",
+            path.to_str().unwrap(),
+            "--lane",
+            "free-join-planned",
+            "--modules",
+            mode,
+            "--verify-stages",
+            "--repeat",
+            "1",
+        ]);
+        serde_json::from_slice(&res.stdout).unwrap()
+    };
+    let fast = bench(&pg, "neighbor-context");
+    let result = &fast["counts"]["neighbor_context"];
+    let stats = &result["rules"][rid.to_string()]["stats"];
+    assert!(stats["seeds"].as_u64().unwrap() > 0);
+    assert!(stats["point_hits"].as_u64().unwrap() > 0);
+    assert!(result["publication"]["refreshed"].as_u64().unwrap() > 0);
+    assert_eq!(
+        fast["final_state_sha256"],
+        bench(&pg, "neighbor-ports")["final_state_sha256"]
+    );
+    let stages = |mode: &str, scope: &str| {
+        let o = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+            .arg("internal-stages")
+            .arg(&pg)
+            .env("CELL_CPU_FREE_JOIN", "planned")
+            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
+            .env("CELL_CPU_HASH_BITS", "0")
+            .env("CELL_CPU_QUERY_INDEX_SCOPE", scope)
+            .env("CELL_CPU_NEIGHBOR_CONTEXT", mode)
+            .output()
+            .unwrap();
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+        o.stdout
+    };
+    for scope in ["table", "run", "persistent"] {
+        assert_eq!(stages("0", scope), stages("1", scope));
+    }
+    let mut corrupt = raw.clone();
+    corrupt["neighbor_entries"][rid]["pivots"] = json!([]);
+    assert!(Program::parse(corrupt).is_err());
+    let mut legacy = raw;
+    legacy.as_object_mut().unwrap().remove("neighbor_entries");
+    legacy.as_object_mut().unwrap().remove("sha256");
+    legacy["sha256"] = artifact_digest(&legacy).into();
+    let old = dir.path().join("old.json");
+    fs::write(&old, serde_json::to_vec(&legacy).unwrap()).unwrap();
+    assert_eq!(bench(&old, "neighbor-context")["counts"], fast["counts"]);
+}
