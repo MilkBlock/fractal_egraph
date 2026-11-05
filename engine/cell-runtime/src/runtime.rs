@@ -405,30 +405,51 @@ impl Executor {
             });
             return Ok(());
         }
-        let mut best = None;
+        // Primitive and complete-key atoms outrank every partial domain.
+        // Decide those two ranks from slot availability before touching any
+        // index or allocating values for a losing partial atom.
+        let mut exact = None;
         for (i, atom) in query.iter().enumerate().filter(|(i, _)| remaining[*i]) {
-            let bound = atom
-                .args
+            let bound = atom.args[..atom.args.len() - 1]
                 .iter()
-                .map(|a| operand(a, env, &self.graph))
-                .collect::<Vec<_>>();
-            let key_bound = bound[..bound.len() - 1].iter().all(Option::is_some);
-            let cost = match atom.call {
-                Call::Primitive(..) if key_bound => 0,
-                Call::Primitive(..) => continue,
-                Call::Table(_) if key_bound => 1,
-                Call::Table(t) => {
-                    2 + {
-                        let n = self.query_indexes.count(&self.graph, t, &bound)?;
-                        env.domain(i).map_or(n, |d| n.min(d.len()))
-                    }
+                .all(|arg| match arg {
+                    Arg::Literal(_) => true,
+                    Arg::Slot(slot) => env.values.get(*slot).is_some(),
+                });
+            if bound {
+                if matches!(atom.call, Call::Primitive(..)) {
+                    exact = Some(i);
+                    break;
                 }
-            };
-            if best.is_none_or(|b| (cost, i) < b) {
-                best = Some((cost, i));
+                if exact.is_none() {
+                    exact = Some(i);
+                }
             }
         }
-        let chosen = best.ok_or("unbound primitive query cycle")?.1;
+        let chosen = if let Some(i) = exact {
+            i
+        } else {
+            let mut best = None;
+            for (i, atom) in query.iter().enumerate().filter(|(i, _)| remaining[*i]) {
+                let Call::Table(table) = atom.call else {
+                    continue;
+                };
+                let bound: smallvec::SmallVec<[Option<Value>; 6]> = atom
+                    .args
+                    .iter()
+                    .map(|a| operand(a, env, &self.graph))
+                    .collect();
+                let size = self.query_indexes.count(&self.graph, table, &bound)?;
+                let cost = env.domain(i).map_or(size, |rows| size.min(rows.len()));
+                if best.is_none_or(|previous| (cost, i) < previous) {
+                    best = Some((cost, i));
+                }
+                if cost == 0 {
+                    break;
+                }
+            }
+            best.ok_or("unbound primitive query cycle")?.1
+        };
         remaining[chosen] = false;
         let atom = &query[chosen];
         match &atom.call {
@@ -460,13 +481,19 @@ impl Executor {
                     self.free_join.stats.subtrie_uses += 1;
                     child.clone()
                 } else if let Some(key) = key {
-                    Rc::new(
-                        self.graph
-                            .lookup(*t, &key)?
-                            .into_iter()
-                            .map(|r| r.witness)
-                            .collect(),
-                    )
+                    // The keyed lookup already returns the current row. Run the
+                    // ordinary candidate checks against it without a second decode.
+                    if let Some(row) = self.graph.lookup_canonical(*t, &key)?
+                        && self
+                            .sieve
+                            .allow(rid, chosen, *t, row.witness, &self.query_indexes)
+                    {
+                        self.graph.stats.residual_candidates += 1;
+                        self.graph.stats.decoded_rows += 1;
+                        self.scan_row(query, rid, chosen, remaining, env, epoch, out, delta, &row)?;
+                    }
+                    remaining[chosen] = true;
+                    return Ok(());
                 } else {
                     let bound = atom
                         .args
@@ -580,7 +607,6 @@ impl Executor {
         out: &mut Vec<Binding>,
         delta: Option<(usize, u64, Dependency)>,
     ) -> Result<()> {
-        let atom = &query[chosen];
         for w in witnesses.iter().copied() {
             if !self.sieve.allow(rid, chosen, table, w, &self.query_indexes) {
                 continue;
@@ -590,33 +616,50 @@ impl Executor {
             let Some(r) = self.graph.row(w)? else {
                 continue;
             };
-            // Disjoint partition by latest committed witness, then atom.
-            // Within one RHS, later recipe positions (outer constructors)
-            // own the match instead of their earlier constituent leaves.
-            if r.hidden {
-                continue;
-            }
-            if delta.is_some_and(|(pivot, epoch, witness)| {
-                (r.epoch, r.witness) > (epoch, witness)
-                    || ((r.epoch, r.witness) == (epoch, witness) && chosen < pivot)
-            }) {
-                continue;
-            }
-            let mark = env.trail.len();
-            if atom
-                .args
-                .iter()
-                .zip(r.values.iter())
-                .all(|(a, v)| bind(a, v, env, &self.graph))
-            {
-                env.record(chosen, Some(r.witness));
-                {
-                    self.solve(query, rid, remaining, env, epoch.max(r.epoch), out, delta)?;
-                }
-                env.record(chosen, None);
-            }
-            env.rollback(mark);
+            self.scan_row(query,rid,chosen,remaining,env,epoch,out,delta,&r)?;
         }
+        Ok(())
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn scan_row(
+        &mut self,
+        query: &[Atom],
+        rid: usize,
+        chosen: usize,
+        remaining: &mut [bool],
+        env: &mut QueryEnv,
+        epoch: u64,
+        out: &mut Vec<Binding>,
+        delta: Option<(usize, u64, Dependency)>,
+        r: &Row,
+    ) -> Result<()> {
+        let atom = &query[chosen];
+        // Disjoint partition by latest committed witness, then atom.
+        // Within one RHS, later recipe positions (outer constructors)
+        // own the match instead of their earlier constituent leaves.
+        if r.hidden {
+            return Ok(());
+        }
+        if delta.is_some_and(|(pivot, epoch, witness)| {
+            (r.epoch, r.witness) > (epoch, witness)
+                || ((r.epoch, r.witness) == (epoch, witness) && chosen < pivot)
+        }) {
+            return Ok(());
+        }
+        let mark = env.trail.len();
+        if atom
+            .args
+            .iter()
+            .zip(r.values.iter())
+            .all(|(a, v)| bind(a, v, env, &self.graph))
+        {
+            env.record(chosen, Some(r.witness));
+            {
+                self.solve(query, rid, remaining, env, epoch.max(r.epoch), out, delta)?;
+            }
+            env.record(chosen, None);
+        }
+        env.rollback(mark);
         Ok(())
     }
     fn points(

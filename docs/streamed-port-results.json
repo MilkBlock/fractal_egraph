@@ -15518,5 +15518,1059 @@
         "depth": 29
       }
     ]
+  },
+  "point-row": [
+    {
+      "case": "sum-bits",
+      "arm": "cost-base",
+      "i": 0,
+      "ms": 21.453,
+      "rss": 160858112,
+      "cli": 437.455,
+      "visits": 18693,
+      "search": 10.208,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cheap-plan",
+      "i": 0,
+      "ms": 19.443,
+      "rss": 160366592,
+      "cli": 458.83,
+      "visits": 18693,
+      "search": 9.222,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "point-row",
+      "i": 0,
+      "ms": 19.589,
+      "rss": 160366592,
+      "cli": 441.781,
+      "visits": 18693,
+      "search": 9.296,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "point-row",
+      "i": 1,
+      "ms": 21.545,
+      "rss": 160366592,
+      "cli": 120.816,
+      "visits": 18693,
+      "search": 10.199,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cheap-plan",
+      "i": 1,
+      "ms": 20.511,
+      "rss": 160366592,
+      "cli": 115.325,
+      "visits": 18693,
+      "search": 9.799,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cost-base",
+      "i": 1,
+      "ms": 20.418,
+      "rss": 160874496,
+      "cli": 117.933,
+      "visits": 18693,
+      "search": 9.697,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cost-base",
+      "i": 2,
+      "ms": 21.778,
+      "rss": 160858112,
+      "cli": 116.907,
+      "visits": 18693,
+      "search": 10.551,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cheap-plan",
+      "i": 2,
+      "ms": 20.038,
+      "rss": 160366592,
+      "cli": 114.948,
+      "visits": 18693,
+      "search": 9.566,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "point-row",
+      "i": 2,
+      "ms": 19.926,
+      "rss": 160382976,
+      "cli": 116.018,
+      "visits": 18693,
+      "search": 9.525,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "point-row",
+      "i": 3,
+      "ms": 20.043,
+      "rss": 160382976,
+      "cli": 116.9,
+      "visits": 18693,
+      "search": 9.449,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cheap-plan",
+      "i": 3,
+      "ms": 20.114,
+      "rss": 160382976,
+      "cli": 115.026,
+      "visits": 18693,
+      "search": 9.545,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cost-base",
+      "i": 3,
+      "ms": 19.921,
+      "rss": 160858112,
+      "cli": 115.31,
+      "visits": 18693,
+      "search": 9.491,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "raytrace",
+      "arm": "cost-base",
+      "i": 0,
+      "ms": 7126.366,
+      "rss": 2095185920,
+      "cli": 10341.473,
+      "visits": 6798165,
+      "search": 3254.453,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cheap-plan",
+      "i": 0,
+      "ms": 7204.214,
+      "rss": 2088517632,
+      "cli": 10321.812,
+      "visits": 6798165,
+      "search": 3282.377,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "point-row",
+      "i": 0,
+      "ms": 7158.279,
+      "rss": 2083618816,
+      "cli": 10194.977,
+      "visits": 6798165,
+      "search": 3268.22,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "point-row",
+      "i": 1,
+      "ms": 7161.253,
+      "rss": 2091581440,
+      "cli": 10142.744,
+      "visits": 6798165,
+      "search": 3282.281,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cheap-plan",
+      "i": 1,
+      "ms": 7175.354,
+      "rss": 2092007424,
+      "cli": 10213.439,
+      "visits": 6798165,
+      "search": 3264.142,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cost-base",
+      "i": 1,
+      "ms": 7184.369,
+      "rss": 2085650432,
+      "cli": 10117.525,
+      "visits": 6798165,
+      "search": 3285.178,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cost-base",
+      "i": 2,
+      "ms": 7162.822,
+      "rss": 2084093952,
+      "cli": 10295.766,
+      "visits": 6798165,
+      "search": 3268.36,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cheap-plan",
+      "i": 2,
+      "ms": 7163.759,
+      "rss": 2101886976,
+      "cli": 10314.107,
+      "visits": 6798165,
+      "search": 3249.597,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "point-row",
+      "i": 2,
+      "ms": 7186.976,
+      "rss": 2094317568,
+      "cli": 10259.179,
+      "visits": 6798165,
+      "search": 3265.012,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "point-row",
+      "i": 3,
+      "ms": 7156.906,
+      "rss": 2082586624,
+      "cli": 10182.4,
+      "visits": 6798165,
+      "search": 3259.453,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cheap-plan",
+      "i": 3,
+      "ms": 7134.536,
+      "rss": 2095235072,
+      "cli": 10183.311,
+      "visits": 6798165,
+      "search": 3232.311,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cost-base",
+      "i": 3,
+      "ms": 7235.596,
+      "rss": 2086584320,
+      "cli": 10429.049,
+      "visits": 6798165,
+      "search": 3290.144,
+      "resumed": 663403,
+      "depth": 29
+    }
+  ],
+  "allocation_census": {
+    "revision": "18272c10f4c30ac9486e9c129d3b721a17368124",
+    "method": "Diagnostic mimalloc wrapper counts allocation, zeroed allocation and realloc requests inside the innermost labeled inference phase; bins are <=16,32,64,128,256,512, and greater bytes. Not an elapsed-time measurement. Schedule and final graph hashes checked.",
+    "sum-bits": {
+      "column_build": {
+        "calls": 259,
+        "reallocs": 76,
+        "requested_bytes": 105664,
+        "size_bins": [
+          0,
+          19,
+          113,
+          74,
+          37,
+          12,
+          4
+        ]
+      },
+      "column_candidates": {
+        "calls": 239,
+        "reallocs": 3,
+        "requested_bytes": 14180,
+        "size_bins": [
+          0,
+          17,
+          202,
+          2,
+          18,
+          0,
+          0
+        ]
+      },
+      "column_update": {
+        "calls": 4888,
+        "reallocs": 0,
+        "requested_bytes": 1990220,
+        "size_bins": [
+          0,
+          1130,
+          1153,
+          0,
+          1765,
+          353,
+          487
+        ]
+      },
+      "construct": {
+        "calls": 9607,
+        "reallocs": 4679,
+        "requested_bytes": 2258812,
+        "size_bins": [
+          0,
+          57,
+          2054,
+          2809,
+          2886,
+          1738,
+          63
+        ]
+      },
+      "control": {
+        "calls": 15095,
+        "reallocs": 5032,
+        "requested_bytes": 1014440,
+        "size_bins": [
+          1333,
+          4280,
+          3306,
+          4305,
+          1866,
+          1,
+          4
+        ]
+      },
+      "free_join_entry": {
+        "calls": 12880,
+        "reallocs": 288,
+        "requested_bytes": 1031992,
+        "size_bins": [
+          0,
+          0,
+          5662,
+          7105,
+          83,
+          17,
+          13
+        ]
+      },
+      "free_join_groups": {
+        "calls": 1053,
+        "reallocs": 8,
+        "requested_bytes": 138980,
+        "size_bins": [
+          0,
+          0,
+          772,
+          50,
+          0,
+          177,
+          54
+        ]
+      },
+      "function_write": {
+        "calls": 4982,
+        "reallocs": 179,
+        "requested_bytes": 877196,
+        "size_bins": [
+          368,
+          580,
+          1529,
+          2136,
+          150,
+          148,
+          71
+        ]
+      },
+      "gc": {
+        "calls": 0,
+        "reallocs": 0,
+        "requested_bytes": 0,
+        "size_bins": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "generic_join": {
+        "calls": 13786,
+        "reallocs": 3261,
+        "requested_bytes": 1476240,
+        "size_bins": [
+          100,
+          2094,
+          6730,
+          2499,
+          1645,
+          571,
+          147
+        ]
+      },
+      "index_publish": {
+        "calls": 940,
+        "reallocs": 407,
+        "requested_bytes": 284376,
+        "size_bins": [
+          0,
+          41,
+          41,
+          400,
+          207,
+          128,
+          123
+        ]
+      },
+      "matching": {
+        "calls": 11551,
+        "reallocs": 368,
+        "requested_bytes": 1707816,
+        "size_bins": [
+          1448,
+          1918,
+          2322,
+          4097,
+          910,
+          598,
+          258
+        ]
+      },
+      "point_chain": {
+        "calls": 2078,
+        "reallocs": 217,
+        "requested_bytes": 152048,
+        "size_bins": [
+          0,
+          403,
+          1357,
+          128,
+          146,
+          44,
+          0
+        ]
+      },
+      "registers": {
+        "calls": 7719,
+        "reallocs": 682,
+        "requested_bytes": 2651464,
+        "size_bins": [
+          0,
+          9,
+          78,
+          4236,
+          1743,
+          998,
+          655
+        ]
+      },
+      "repair": {
+        "calls": 8858,
+        "reallocs": 8,
+        "requested_bytes": 777148,
+        "size_bins": [
+          283,
+          560,
+          5789,
+          1619,
+          307,
+          200,
+          100
+        ]
+      },
+      "reverse_join": {
+        "calls": 756,
+        "reallocs": 41,
+        "requested_bytes": 38288,
+        "size_bins": [
+          136,
+          383,
+          51,
+          162,
+          20,
+          4,
+          0
+        ]
+      },
+      "rhs": {
+        "calls": 16999,
+        "reallocs": 2803,
+        "requested_bytes": 2279888,
+        "size_bins": [
+          704,
+          2521,
+          5946,
+          5571,
+          988,
+          1173,
+          96
+        ]
+      },
+      "run": {
+        "calls": 2991,
+        "reallocs": 14,
+        "requested_bytes": 1312940,
+        "size_bins": [
+          755,
+          966,
+          50,
+          253,
+          164,
+          670,
+          133
+        ]
+      },
+      "shared_entries": {
+        "calls": 8550,
+        "reallocs": 2957,
+        "requested_bytes": 3580800,
+        "size_bins": [
+          0,
+          0,
+          794,
+          3924,
+          1358,
+          635,
+          1839
+        ]
+      },
+      "shared_refresh": {
+        "calls": 9541,
+        "reallocs": 741,
+        "requested_bytes": 1355056,
+        "size_bins": [
+          0,
+          569,
+          664,
+          6936,
+          639,
+          316,
+          417
+        ]
+      },
+      "sieve_prepare": {
+        "calls": 3923,
+        "reallocs": 0,
+        "requested_bytes": 148524,
+        "size_bins": [
+          2056,
+          827,
+          558,
+          324,
+          100,
+          35,
+          23
+        ]
+      },
+      "sieve_publish": {
+        "calls": 3466,
+        "reallocs": 475,
+        "requested_bytes": 894976,
+        "size_bins": [
+          185,
+          155,
+          1907,
+          195,
+          419,
+          254,
+          351
+        ]
+      },
+      "spine_answers": {
+        "calls": 17097,
+        "reallocs": 994,
+        "requested_bytes": 1828944,
+        "size_bins": [
+          5125,
+          2359,
+          6761,
+          1555,
+          511,
+          125,
+          661
+        ]
+      },
+      "spine_begin": {
+        "calls": 1548,
+        "reallocs": 15,
+        "requested_bytes": 115892,
+        "size_bins": [
+          36,
+          333,
+          62,
+          1100,
+          7,
+          8,
+          2
+        ]
+      },
+      "spine_capture": {
+        "calls": 1805,
+        "reallocs": 22,
+        "requested_bytes": 733868,
+        "size_bins": [
+          0,
+          0,
+          797,
+          974,
+          1,
+          3,
+          30
+        ]
+      },
+      "spine_publish": {
+        "calls": 4445,
+        "reallocs": 0,
+        "requested_bytes": 1135202,
+        "size_bins": [
+          309,
+          49,
+          2180,
+          0,
+          1758,
+          63,
+          86
+        ]
+      },
+      "subscriptions": {
+        "calls": 4924,
+        "reallocs": 223,
+        "requested_bytes": 1685276,
+        "size_bins": [
+          0,
+          2220,
+          223,
+          1191,
+          803,
+          266,
+          221
+        ]
+      }
+    },
+    "raytrace": {
+      "column_build": {
+        "calls": 666,
+        "reallocs": 437,
+        "requested_bytes": 4694224,
+        "size_bins": [
+          0,
+          22,
+          137,
+          120,
+          89,
+          63,
+          235
+        ]
+      },
+      "column_candidates": {
+        "calls": 26725,
+        "reallocs": 1711,
+        "requested_bytes": 2742804,
+        "size_bins": [
+          0,
+          2799,
+          19343,
+          741,
+          3313,
+          252,
+          277
+        ]
+      },
+      "column_update": {
+        "calls": 1178696,
+        "reallocs": 0,
+        "requested_bytes": 545855884,
+        "size_bins": [
+          0,
+          386926,
+          190262,
+          0,
+          552319,
+          47164,
+          2025
+        ]
+      },
+      "construct": {
+        "calls": 1951221,
+        "reallocs": 749769,
+        "requested_bytes": 450641520,
+        "size_bins": [
+          0,
+          74,
+          484128,
+          716936,
+          377508,
+          228909,
+          143666
+        ]
+      },
+      "control": {
+        "calls": 177789,
+        "reallocs": 59260,
+        "requested_bytes": 12666368,
+        "size_bins": [
+          8075,
+          54252,
+          34841,
+          53588,
+          27028,
+          1,
+          4
+        ]
+      },
+      "free_join_entry": {
+        "calls": 3653552,
+        "reallocs": 158500,
+        "requested_bytes": 408251032,
+        "size_bins": [
+          0,
+          0,
+          1102798,
+          2442517,
+          39084,
+          30328,
+          38825
+        ]
+      },
+      "free_join_groups": {
+        "calls": 109269,
+        "reallocs": 7023,
+        "requested_bytes": 30060520,
+        "size_bins": [
+          0,
+          0,
+          71287,
+          7575,
+          574,
+          19376,
+          10457
+        ]
+      },
+      "function_write": {
+        "calls": 3249541,
+        "reallocs": 74336,
+        "requested_bytes": 382315364,
+        "size_bins": [
+          49940,
+          305807,
+          1847534,
+          952783,
+          3511,
+          89260,
+          706
+        ]
+      },
+      "gc": {
+        "calls": 0,
+        "reallocs": 0,
+        "requested_bytes": 0,
+        "size_bins": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "generic_join": {
+        "calls": 2552031,
+        "reallocs": 510847,
+        "requested_bytes": 287219288,
+        "size_bins": [
+          7837,
+          308140,
+          1461423,
+          411289,
+          265797,
+          89478,
+          8067
+        ]
+      },
+      "index_publish": {
+        "calls": 216043,
+        "reallocs": 22984,
+        "requested_bytes": 208112352,
+        "size_bins": [
+          0,
+          4047,
+          4047,
+          104468,
+          75119,
+          14377,
+          13985
+        ]
+      },
+      "matching": {
+        "calls": 2521717,
+        "reallocs": 143343,
+        "requested_bytes": 960506959,
+        "size_bins": [
+          294821,
+          275657,
+          392269,
+          925769,
+          389669,
+          215805,
+          27727
+        ]
+      },
+      "point_chain": {
+        "calls": 618612,
+        "reallocs": 56983,
+        "requested_bytes": 40560528,
+        "size_bins": [
+          0,
+          110478,
+          432142,
+          55253,
+          17159,
+          3580,
+          0
+        ]
+      },
+      "registers": {
+        "calls": 2597522,
+        "reallocs": 49099,
+        "requested_bytes": 1230992376,
+        "size_bins": [
+          0,
+          1664,
+          46938,
+          1652305,
+          810279,
+          35161,
+          51175
+        ]
+      },
+      "repair": {
+        "calls": 2568795,
+        "reallocs": 138,
+        "requested_bytes": 218155152,
+        "size_bins": [
+          99039,
+          108431,
+          1525017,
+          664471,
+          92443,
+          61917,
+          17477
+        ]
+      },
+      "reverse_join": {
+        "calls": 69993,
+        "reallocs": 41727,
+        "requested_bytes": 38197216,
+        "size_bins": [
+          322,
+          12411,
+          10198,
+          13372,
+          10506,
+          9284,
+          13900
+        ]
+      },
+      "rhs": {
+        "calls": 3807419,
+        "reallocs": 871339,
+        "requested_bytes": 696293932,
+        "size_bins": [
+          65647,
+          286017,
+          1188133,
+          1671658,
+          148627,
+          425092,
+          22245
+        ]
+      },
+      "run": {
+        "calls": 34038,
+        "reallocs": 19,
+        "requested_bytes": 28602169,
+        "size_bins": [
+          8049,
+          12195,
+          480,
+          2780,
+          1221,
+          7305,
+          2008
+        ]
+      },
+      "shared_entries": {
+        "calls": 1223043,
+        "reallocs": 172946,
+        "requested_bytes": 1516418928,
+        "size_bins": [
+          0,
+          0,
+          981393,
+          61056,
+          37680,
+          31190,
+          111724
+        ]
+      },
+      "shared_refresh": {
+        "calls": 2297246,
+        "reallocs": 39721,
+        "requested_bytes": 426355616,
+        "size_bins": [
+          0,
+          12716,
+          9071,
+          2227443,
+          11126,
+          9059,
+          27831
+        ]
+      },
+      "sieve_prepare": {
+        "calls": 12464,
+        "reallocs": 0,
+        "requested_bytes": 7470352,
+        "size_bins": [
+          2547,
+          6932,
+          825,
+          638,
+          386,
+          288,
+          848
+        ]
+      },
+      "sieve_publish": {
+        "calls": 243529,
+        "reallocs": 22516,
+        "requested_bytes": 164802764,
+        "size_bins": [
+          275,
+          9546,
+          204565,
+          5484,
+          6723,
+          4664,
+          12272
+        ]
+      },
+      "spine_answers": {
+        "calls": 4014311,
+        "reallocs": 79829,
+        "requested_bytes": 471144456,
+        "size_bins": [
+          2030973,
+          669700,
+          1075197,
+          117273,
+          29257,
+          1324,
+          90587
+        ]
+      },
+      "spine_begin": {
+        "calls": 495077,
+        "reallocs": 412,
+        "requested_bytes": 42343836,
+        "size_bins": [
+          41,
+          21173,
+          937,
+          472906,
+          7,
+          11,
+          2
+        ]
+      },
+      "spine_capture": {
+        "calls": 144057,
+        "reallocs": 40,
+        "requested_bytes": 84130156,
+        "size_bins": [
+          0,
+          0,
+          39941,
+          104057,
+          1,
+          3,
+          55
+        ]
+      },
+      "spine_publish": {
+        "calls": 750810,
+        "reallocs": 0,
+        "requested_bytes": 180743108,
+        "size_bins": [
+          5060,
+          29,
+          269296,
+          0,
+          475011,
+          357,
+          1057
+        ]
+      },
+      "subscriptions": {
+        "calls": 1586848,
+        "reallocs": 16169,
+        "requested_bytes": 469217488,
+        "size_bins": [
+          0,
+          834795,
+          16169,
+          370246,
+          272597,
+          61507,
+          31534
+        ]
+      }
+    }
   }
 }
