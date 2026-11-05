@@ -92,7 +92,10 @@ pub enum Dependency {
 type UseSet = BTreeSet<Dependency>;
 
 #[cfg(feature = "sparse-cells")]
-type UseSet = crate::tiny_set::TinySet<Dependency>;
+#[path = "reverse_uses.rs"]
+mod reverse_uses;
+#[cfg(feature = "sparse-cells")]
+use reverse_uses::UseSet;
 #[derive(Clone, Debug)]
 pub struct Row {
     pub table: usize,
@@ -1090,7 +1093,7 @@ impl Graph {
     pub fn candidates(&self, table: usize, bound: &[Option<Value>]) -> Vec<Dependency> {
         if let Some(uses) = self.bound_uses(bound) {
             if uses.len() < self.witness_count(table) {
-                return uses
+                let rows: Vec<_> = uses
                     .iter()
                     .copied()
                     .filter(|w| match w {
@@ -1107,6 +1110,13 @@ impl Graph {
                         }
                     })
                     .collect();
+                #[cfg(feature = "sparse-cells")]
+                let rows = {
+                    let mut sorted = rows;
+                    sorted.sort_unstable();
+                    sorted
+                };
+                return rows;
             }
         }
         self.witnesses(table)
@@ -1608,7 +1618,7 @@ impl Graph {
             if keep.len() < affected.len() {
                 std::mem::swap(keep, &mut affected);
             }
-            for &dependency in &affected {
+            for &dependency in affected.iter() {
                 keep.insert(dependency);
             }
         }
