@@ -1195,10 +1195,8 @@ impl Graph {
         }
     }
     #[cfg(not(feature = "sparse-cells"))]
-    fn subscribe(&mut self, d: Dependency, values: &[Value]) {
-        if let Some(table) = self.dependency_table(d) {
-            self.query_versions[table] += 1;
-        }
+    fn subscribe(&mut self, table: usize, d: Dependency, values: &[Value]) {
+        self.query_versions[table] += 1;
         let mut refs = BTreeSet::new();
         for v in values {
             Self::refs(v, &mut refs);
@@ -1224,7 +1222,7 @@ impl Graph {
         self.dependencies.insert(d, refs);
     }
     #[cfg(feature = "sparse-cells")]
-    fn subscribe(&mut self, d: Dependency, values: &[Value]) {
+    fn subscribe(&mut self, table: usize, d: Dependency, values: &[Value]) {
         type Refs = smallvec::SmallVec<[u64; 3]>;
         fn collect(v: &Value, p: &Parents, out: &mut Refs) {
             match v {
@@ -1237,19 +1235,27 @@ impl Graph {
                 _ => (),
             }
         }
-        if let Some(t) = self.dependency_table(d) {
-            self.query_versions[t] += 1
-        }
+        self.query_versions[table] += 1;
         let mut refs = Refs::new();
         for v in values {
             collect(v, &self.parents, &mut refs);
         }
         refs.sort_unstable();
         refs.dedup();
-        if self.dependencies.get(&d).is_some_and(|old| *old == refs) {
-            return;
-        }
-        let mut old = self.dependencies.remove(&d).unwrap_or_default();
+        use std::collections::hash_map::Entry;
+        let mut old = match self.dependencies.entry(d) {
+            Entry::Vacant(slot) => {
+                for &id in &refs {
+                    self.uses.entry(id).or_default().insert(d);
+                }
+                if !refs.is_empty() {
+                    slot.insert(refs);
+                }
+                return;
+            }
+            Entry::Occupied(slot) if *slot.get() == refs => return,
+            Entry::Occupied(slot) => slot.remove(),
+        };
         for id in &mut old {
             *id = root(&self.parents, *id);
         }
@@ -1322,7 +1328,7 @@ impl Graph {
         );
         self.operators[t].insert(f);
         self.intern.entry(h).or_default().insert(f);
-        self.subscribe(Dependency::Fact(f), &vs);
+        self.subscribe(t, Dependency::Fact(f), &vs);
         self.changes.touch(t, Dependency::Fact(f));
         self.stats.logical_facts_created += 1;
 
@@ -1987,7 +1993,7 @@ impl Graph {
                     self.query_versions[t] += 1;
                 } else {
                     let row = self.function(i).unwrap();
-                    self.subscribe(row.witness, &row.values);
+                    self.subscribe(row.table, row.witness, &row.values);
                 }
             }
             Ok(i)
@@ -2031,10 +2037,10 @@ impl Graph {
             self.changes.touch(t, Dependency::Function(i));
             if compact {
                 // Unit contributes no equality dependency.
-                self.subscribe(Dependency::Function(i), key);
+                self.subscribe(t, Dependency::Function(i), key);
             } else {
                 let row = self.function(i).unwrap();
-                self.subscribe(row.witness, &row.values);
+                self.subscribe(row.table, row.witness, &row.values);
             }
             Ok(i)
         }
@@ -2063,7 +2069,7 @@ impl Graph {
                     self.intern.remove(&s.hash);
                 }
             }
-            self.subscribe(Dependency::Fact(f), &[]);
+            self.subscribe(r.table, Dependency::Fact(f), &[]);
             self.garbage.insert(f.cell);
         }
         Ok(())
@@ -2141,7 +2147,7 @@ impl Graph {
                 } else {
                     self.function_keys[t].remove(key);
                 }
-                self.subscribe(row.witness, &[]);
+                self.subscribe(row.table, row.witness, &[]);
                 self.changed = true;
                 Ok(true)
             }
@@ -2239,7 +2245,7 @@ impl Graph {
                         s.decoded = Some((r.table, r.values.clone()));
                         s.hash = h;
                         s.epoch = self.epoch;
-                        self.subscribe(d, &r.values);
+                        self.subscribe(r.table, d, &r.values);
                         self.changes.touch(r.table, d);
                     }
                 }
@@ -2309,12 +2315,12 @@ impl Graph {
                             }
                             self.function_origin(i, None);
                             self.function_operators[row.table].remove(&i);
-                            self.subscribe(d, &[]);
+                            self.subscribe(row.table, d, &[]);
                             if shared_unit {
                                 self.query_versions[row.table] += 1;
                             } else {
                                 let target = self.function(j).unwrap();
-                                self.subscribe(target.witness, &target.values);
+                                self.subscribe(target.table, target.witness, &target.values);
                             }
                             self.changes.touch(row.table, Dependency::Function(j));
                             continue;
@@ -2331,7 +2337,7 @@ impl Graph {
                     self.function_keys[row.table].insert(&key, i);
                     #[cfg(not(feature = "sparse-cells"))]
                     self.function_keys[row.table].insert(key, i);
-                    self.subscribe(d, &row.values);
+                    self.subscribe(row.table, d, &row.values);
                     self.changes.touch(row.table, d);
                 }
             }
