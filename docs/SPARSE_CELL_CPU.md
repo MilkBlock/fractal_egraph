@@ -251,4 +251,15 @@ The loader can classify a marker-producing RHS once. Spine's per-ruleset counter
 
 Adjacent Run phases now share their boundary timestamp. Full phase fields are retained; optional binding-audit and replay work keep a separate boundary. This removes redundant clock calls during inference. Three matched pairs on the clean control gave 20.015 / 19.817 ms and 7.210 / 7.170 s inference, 117.838 / 113.525 ms and 10.149 / 10.221 s CLI. RSS was 152.94 / 152.95 MiB and 1,997.53 / 1,989.14 MiB. The audited trace and candidate counts matched. Separately sorting routed cursors only after successful guards regressed sum-bits, and flattening all subtries into one Run vector regressed its inference from 19.549 to 21.065 ms; neither was retained.
 
-Free Join seed admission can keep its first retained subtrie inline until the consumer uses it; larger lists spill, preserving the same witness order and leases. This targets the 12,880 sum-bits and 3,653,552 Raytrace allocation/reallocation calls recorded inside entry admission in the separate 0b5c5a17-family profiling workflow (the allocation census itself used 18272c10). In three paired standard-release processes per workload after warm-up, sum-bits inference was 19.610 / 19.076 ms and Raytrace 6.946 / 6.879 s. CLI was 113.847 / 112.613 ms and 9.730 / 9.747 s; RSS was 152.91 / 152.86 MiB and 1,988.97 / 1,986.52 MiB. Both full audits and visits matched.
+Free Join seed admission can keep its first retained subtrie inline until the consumer uses it; larger lists spill, preserving the same witness order and leases. This targets the 12,880 sum-bits and 3,653,552 Raytrace allocation/reallocation calls recorded inside entry admission by the separate allocation census at 18272c10. In three paired standard-release processes per workload after warm-up, sum-bits inference was 19.610 / 19.076 ms and Raytrace 6.946 / 6.879 s. CLI was 113.847 / 112.613 ms and 9.730 / 9.747 s; RSS was 152.91 / 152.86 MiB and 1,988.97 / 1,986.52 MiB. Both full audits and visits matched.
+
+### Held-out PGO at b113bce0
+
+The clean snapshot passed all 23 all-feature runtime tests and both workload audits. The frozen artifact hashes matched; each contains 32 seed blocks and 32 learned joins. After one warm-up, nine sum-bits and five Raytrace alternating measured pairs gave:
+
+| Case | Inference, original / candidate | CLI, original / candidate | Peak RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits | 30.833 / 17.218 ms | 129.397 / 97.607 ms | 161.17 / 152.94 MiB | 18,730 / 18,693 | 1.956× | 1.791× |
+| Raytrace | 12.220 / 6.210 s | 16.352 / 9.595 s | 2,908.03 / 1,984.52 MiB | 6,916,788 / 6,798,165 | 2.175× | 1.968× |
+
+All measured Raytrace candidate times were 6.202–6.257 s; sum-bits was 17.058–18.039 ms. Its median requires another 0.3805 ms reduction to reach 16.8375 ms. CLI includes loading, reporting and exporting, including the slower complete CLI for both Raytrace arms in this session.
