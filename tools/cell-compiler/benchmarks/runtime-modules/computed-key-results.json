@@ -1,0 +1,1060 @@
+{
+  "control": "f985eb78 with neighbor contexts off; 59 transferred units per input",
+  "scope": "single-thread Apple M3 Max, release inference excludes offline build/load/export; CLI samples are separately reported process wall including engine-specific output. Fresh processes, one warm-up then four rotated rounds. Different iterations can see workstation load.",
+  "cases": {
+    "075-3mm": {
+      "program_sha256": "3270f5e8ac892d85225f00609b87c8a17617fff5ad6cbb51efd74b0cfaa7cbcc",
+      "flat_sha256": "3e6996ffb5a85735e6844ab8ff367706a8dcfbe7fb14fceb9e28ca16ac56e4f9",
+      "gated_sha256": "ef7f1f7ab8aba1670256ae803f2b3000efb6adefd0974bf6a463e4b94d659ae1",
+      "native_marker_admission": {
+        "admitted": false,
+        "pairs": 3,
+        "paired_delta_ms": 155.463393,
+        "paired_rebuild_delta_ms": 224.0745189999999,
+        "profile": {
+          "schema": "eggfuse-native-marker-cost/v1",
+          "source_sha256": "0d93ca32a35d220e94679324656258cb912481f099408a79cea3f57f04b9ab4e",
+          "marked_sha256": "2f8cfb55b6d047c3de4b13a28bf93ab0c55660bbf2ee8dd830357d98cd8cb830",
+          "native_binary_sha256": "d618493c0793cdd358850e34abfd2132a8ccad837c386f028d57a9aa6e72eaf8",
+          "phase_order_ms": [
+            "search_apply",
+            "merge",
+            "rebuild"
+          ],
+          "pairs": [
+            [
+              [
+                1584.633219,
+                34.79946,
+                800.99012
+              ],
+              [
+                1519.426284,
+                34.679502,
+                1029.923004
+              ]
+            ],
+            [
+              [
+                1580.563463,
+                34.161416,
+                800.633496
+              ],
+              [
+                1514.184761,
+                33.59089,
+                1023.046117
+              ]
+            ],
+            [
+              [
+                1606.709939,
+                35.101288,
+                802.990306
+              ],
+              [
+                1526.340398,
+                33.083238,
+                1027.064825
+              ]
+            ]
+          ]
+        }
+      },
+      "projection": {
+        "case": "075-3mm",
+        "rows": [
+          239213,
+          240029
+        ],
+        "delta": {
+          "TermSingle": 7,
+          "TermGet": 7,
+          "TCPair": 242,
+          "Smaller": 332,
+          "TermConcat": 228
+        },
+        "comparison": {
+          "result": [
+            "different cardinality",
+            239213,
+            240029
+          ],
+          "checked_before_stop": 0,
+          "class_pairs": 0,
+          "native_rows": 239213,
+          "cell_rows": 240029
+        }
+      },
+      "arms": {
+        "base": {
+          "state": "53b9e5bc124666bc30c9dca39ae9ada53d89b463c43586dae6fd8f913c90ceab",
+          "runs": 3905,
+          "rhs": "c1f085fcb56ca5e6f811f1f74939ffe81a6180d2399cab524b64123768e80ccd",
+          "schedule": "f43f0fae4c44d09bf1c1ba6e05575ad4639c78311ea9df94d045213aab12d9ee",
+          "tree": "2a8f153b23b735ffe84c473ba003c74f3deaaa61049682e3df43790b94927298",
+          "spine": {
+            "root_attempts": 631030,
+            "root_handles_created": 356951,
+            "anchor_publications": 613253,
+            "captured_anchors": 1269567,
+            "resumed_steps": 158525,
+            "max_chain": 28,
+            "producer_ops_available": 3103,
+            "producer_ops_admitted": 3103,
+            "publication_seconds": 0.2481836700000038
+          },
+          "bindings": 937461,
+          "visits": 3092883,
+          "inference_ms": [
+            3538.655,
+            3693.095,
+            3502.967,
+            3507.166
+          ],
+          "phases_ms": [
+            {
+              "delivery_gc": 47.535,
+              "local_sat": 0.0,
+              "query_update": 651.6,
+              "repair": 420.744,
+              "rhs": 1035.832,
+              "search": 1372.791
+            },
+            {
+              "delivery_gc": 49.944,
+              "local_sat": 0.0,
+              "query_update": 678.639,
+              "repair": 443.78,
+              "rhs": 1095.686,
+              "search": 1414.699
+            },
+            {
+              "delivery_gc": 47.614,
+              "local_sat": 0.0,
+              "query_update": 642.459,
+              "repair": 413.542,
+              "rhs": 1031.385,
+              "search": 1358.453
+            },
+            {
+              "delivery_gc": 47.722,
+              "local_sat": 0.0,
+              "query_update": 642.025,
+              "repair": 415.723,
+              "rhs": 1032.892,
+              "search": 1359.304
+            }
+          ],
+          "median_ms": 3522.91,
+          "profiled_pivots_100": {
+            "0": [
+              626000,
+              12705
+            ],
+            "2": [
+              654494,
+              19144
+            ],
+            "3": [
+              5433,
+              5957
+            ]
+          },
+          "profiled_query_ms": 164.38462400000014,
+          "index": null
+        },
+        "key": {
+          "state": "53b9e5bc124666bc30c9dca39ae9ada53d89b463c43586dae6fd8f913c90ceab",
+          "runs": 3905,
+          "rhs": "c1f085fcb56ca5e6f811f1f74939ffe81a6180d2399cab524b64123768e80ccd",
+          "schedule": "f43f0fae4c44d09bf1c1ba6e05575ad4639c78311ea9df94d045213aab12d9ee",
+          "tree": "2a8f153b23b735ffe84c473ba003c74f3deaaa61049682e3df43790b94927298",
+          "spine": {
+            "root_attempts": 631030,
+            "root_handles_created": 356951,
+            "anchor_publications": 613253,
+            "captured_anchors": 1269567,
+            "resumed_steps": 158525,
+            "max_chain": 28,
+            "producer_ops_available": 3103,
+            "producer_ops_admitted": 3103,
+            "publication_seconds": 0.24468285700000403
+          },
+          "bindings": 937461,
+          "visits": 1897321,
+          "inference_ms": [
+            3441.134,
+            3526.816,
+            3480.091,
+            3501.524
+          ],
+          "phases_ms": [
+            {
+              "delivery_gc": 46.72,
+              "local_sat": 0.0,
+              "query_update": 664.076,
+              "repair": 419.436,
+              "rhs": 1035.804,
+              "search": 1264.786
+            },
+            {
+              "delivery_gc": 49.445,
+              "local_sat": 0.0,
+              "query_update": 682.015,
+              "repair": 422.645,
+              "rhs": 1060.169,
+              "search": 1302.197
+            },
+            {
+              "delivery_gc": 47.087,
+              "local_sat": 0.0,
+              "query_update": 664.717,
+              "repair": 423.676,
+              "rhs": 1057.427,
+              "search": 1277.496
+            },
+            {
+              "delivery_gc": 46.734,
+              "local_sat": 0.0,
+              "query_update": 674.888,
+              "repair": 413.526,
+              "rhs": 1050.7,
+              "search": 1305.601
+            }
+          ],
+          "median_ms": 3490.807,
+          "profiled_pivots_100": {
+            "0": [
+              43372,
+              12705
+            ],
+            "2": [
+              41560,
+              19144
+            ],
+            "3": [
+              5433,
+              5957
+            ]
+          },
+          "profiled_query_ms": 72.28832900000005,
+          "index": {
+            "broad_fallbacks": 0,
+            "build_rows": 1162,
+            "builds": 2,
+            "changed_entries": 39010,
+            "empty_domains": 968,
+            "hits": 19354,
+            "input_rows": 1238013,
+            "invalidated_axes": 0,
+            "maintenance_ns": 18827099,
+            "mixed_prefixes": 0,
+            "output_rows": 42451,
+            "partial_domains": 0,
+            "partial_input_rows": 0,
+            "partial_output_rows": 0,
+            "range_refs": 0,
+            "subset_checks": 42451,
+            "update_rows": 22245,
+            "uses": 19356
+          }
+        },
+        "catalog": {
+          "state": "53b9e5bc124666bc30c9dca39ae9ada53d89b463c43586dae6fd8f913c90ceab",
+          "runs": 3905,
+          "rhs": "c1f085fcb56ca5e6f811f1f74939ffe81a6180d2399cab524b64123768e80ccd",
+          "schedule": "f43f0fae4c44d09bf1c1ba6e05575ad4639c78311ea9df94d045213aab12d9ee",
+          "tree": "ac9dc3e71a8aa2d3a4464f54710707e704897514be81d0749e5cd198c8d645e9",
+          "spine": {
+            "root_attempts": 452939,
+            "root_handles_created": 238176,
+            "anchor_publications": 391260,
+            "captured_anchors": 744336,
+            "resumed_steps": 131590,
+            "max_chain": 28,
+            "producer_ops_available": 3103,
+            "producer_ops_admitted": 1830,
+            "publication_seconds": 0.1568147210000034
+          },
+          "bindings": 937461,
+          "visits": 3115999
+        },
+        "key+catalog": {
+          "state": "53b9e5bc124666bc30c9dca39ae9ada53d89b463c43586dae6fd8f913c90ceab",
+          "runs": 3905,
+          "rhs": "c1f085fcb56ca5e6f811f1f74939ffe81a6180d2399cab524b64123768e80ccd",
+          "schedule": "f43f0fae4c44d09bf1c1ba6e05575ad4639c78311ea9df94d045213aab12d9ee",
+          "tree": "ac9dc3e71a8aa2d3a4464f54710707e704897514be81d0749e5cd198c8d645e9",
+          "spine": {
+            "root_attempts": 452939,
+            "root_handles_created": 238176,
+            "anchor_publications": 391260,
+            "captured_anchors": 744336,
+            "resumed_steps": 131590,
+            "max_chain": 28,
+            "producer_ops_available": 3103,
+            "producer_ops_admitted": 1830,
+            "publication_seconds": 0.15867705500000365
+          },
+          "bindings": 937461,
+          "visits": 1920437,
+          "inference_ms": [
+            3270.989,
+            3300.612,
+            3200.733,
+            3392.252
+          ],
+          "phases_ms": [
+            {
+              "delivery_gc": 47.483,
+              "local_sat": 0.0,
+              "query_update": 588.249,
+              "repair": 427.416,
+              "rhs": 978.327,
+              "search": 1219.501
+            },
+            {
+              "delivery_gc": 49.692,
+              "local_sat": 0.0,
+              "query_update": 585.593,
+              "repair": 418.725,
+              "rhs": 998.974,
+              "search": 1237.623
+            },
+            {
+              "delivery_gc": 47.802,
+              "local_sat": 0.0,
+              "query_update": 567.06,
+              "repair": 400.826,
+              "rhs": 958.727,
+              "search": 1217.033
+            },
+            {
+              "delivery_gc": 50.0,
+              "local_sat": 0.0,
+              "query_update": 610.404,
+              "repair": 430.605,
+              "rhs": 1022.533,
+              "search": 1269.025
+            }
+          ],
+          "median_ms": 3285.801,
+          "profiled_pivots_100": {
+            "0": [
+              43372,
+              12705
+            ],
+            "2": [
+              41560,
+              19144
+            ],
+            "3": [
+              5433,
+              5957
+            ]
+          },
+          "profiled_query_ms": 73.94125800000018,
+          "index": {
+            "broad_fallbacks": 0,
+            "build_rows": 1162,
+            "builds": 2,
+            "changed_entries": 39010,
+            "empty_domains": 968,
+            "hits": 19354,
+            "input_rows": 1238013,
+            "invalidated_axes": 0,
+            "maintenance_ns": 18895953,
+            "mixed_prefixes": 0,
+            "output_rows": 42451,
+            "partial_domains": 0,
+            "partial_input_rows": 0,
+            "partial_output_rows": 0,
+            "range_refs": 0,
+            "subset_checks": 42451,
+            "update_rows": 22245,
+            "uses": 19356
+          }
+        },
+        "key+gate": {
+          "state": "51fb6ab2e68ff47ad1c7e789009733a512397bde8f20126730a8bb6ee4a8884e",
+          "runs": 2593,
+          "rhs": "3f4808c7b29e5e959f06fcc6b4326707aafac9542c8a38f2a24c5647145fcb46",
+          "schedule": "a81a087fa1d9947c18090056e099413f8c1507b59aa2110e9817ccb7248a3a2c",
+          "tree": "f5aea4f709e03f8aa65f83b1d2a2ddf97aaa3bada33a3dea60e44876140c00db",
+          "spine": {
+            "root_attempts": 611805,
+            "root_handles_created": 361075,
+            "anchor_publications": 626255,
+            "captured_anchors": 1293917,
+            "resumed_steps": 158267,
+            "max_chain": 28,
+            "producer_ops_available": 3051,
+            "producer_ops_admitted": 3051,
+            "publication_seconds": 0.25498310500000104
+          },
+          "bindings": 896519,
+          "visits": 1851385
+        },
+        "gate": {
+          "state": "51fb6ab2e68ff47ad1c7e789009733a512397bde8f20126730a8bb6ee4a8884e",
+          "runs": 2593,
+          "rhs": "3f4808c7b29e5e959f06fcc6b4326707aafac9542c8a38f2a24c5647145fcb46",
+          "schedule": "a81a087fa1d9947c18090056e099413f8c1507b59aa2110e9817ccb7248a3a2c",
+          "tree": "1e112162350adc1541aae5e0b69258ca7810514724ad84be03ed79d4b1700098",
+          "spine": {
+            "root_attempts": 452937,
+            "root_handles_created": 238176,
+            "anchor_publications": 391260,
+            "captured_anchors": 743984,
+            "resumed_steps": 131588,
+            "max_chain": 28,
+            "producer_ops_available": 3051,
+            "producer_ops_admitted": 1820,
+            "publication_seconds": 0.16573882900000192
+          },
+          "bindings": 896519,
+          "visits": 1874485,
+          "inference_ms": [
+            3276.473,
+            3171.19,
+            3238.832,
+            3083.907
+          ],
+          "phases_ms": [
+            {
+              "delivery_gc": 48.107,
+              "local_sat": 0.0,
+              "query_update": 584.184,
+              "repair": 419.075,
+              "rhs": 962.601,
+              "search": 1257.209
+            },
+            {
+              "delivery_gc": 46.364,
+              "local_sat": 0.0,
+              "query_update": 580.36,
+              "repair": 392.539,
+              "rhs": 934.93,
+              "search": 1211.952
+            },
+            {
+              "delivery_gc": 47.029,
+              "local_sat": 0.0,
+              "query_update": 579.577,
+              "repair": 415.049,
+              "rhs": 954.586,
+              "search": 1237.338
+            },
+            {
+              "delivery_gc": 44.506,
+              "local_sat": 0.0,
+              "query_update": 556.636,
+              "repair": 384.908,
+              "rhs": 900.025,
+              "search": 1192.933
+            }
+          ],
+          "median_ms": 3205.011
+        }
+      },
+      "native_rows_pre_marker_and_marked": [
+        239278,
+        239557
+      ],
+      "native_table_differences": {
+        "Smaller": [
+          3951,
+          4028
+        ],
+        "TCPair": [
+          5767,
+          5868
+        ],
+        "TermConcat": [
+          5067,
+          5123
+        ],
+        "TermGet": [
+          408,
+          449
+        ],
+        "TermSingle": [
+          132,
+          136
+        ]
+      },
+      "independent_pairs": {
+        "native": {
+          "inference_ms": [
+            2585.06,
+            2591.974,
+            2573.42,
+            2583.407
+          ],
+          "cli_ms": [
+            2679.329,
+            2672.616,
+            2656.496,
+            2683.292
+          ]
+        },
+        "base": {
+          "inference_ms": [
+            3879.231,
+            3839.379,
+            3612.191,
+            3787.771
+          ],
+          "cli_ms": [
+            5494.526,
+            5209.061,
+            6802.642,
+            5777.459
+          ]
+        },
+        "scoped": {
+          "inference_ms": [
+            3400.058,
+            3485.054,
+            3477.257,
+            3566.418
+          ],
+          "cli_ms": [
+            6331.465,
+            5060.699,
+            4849.59,
+            5135.823
+          ]
+        }
+      }
+    },
+    "074-2mm": {
+      "program_sha256": "73310ea16e0351c73422b7569eb2a004d0a4b1f0b59d27826482f7e829d548b3",
+      "flat_sha256": "91a9490d290725e5849f0268933aa2db04066ff8cc5830266311bb05d283c7df",
+      "gated_sha256": "09d555dcb0dc0e4596de4f5f4636c221dcfd82d002e83cd90d2aa1bd562fb8d8",
+      "native_marker_admission": {
+        "admitted": false,
+        "pairs": 3,
+        "paired_delta_ms": 136.18061699999998,
+        "paired_rebuild_delta_ms": 185.33129000000008,
+        "profile": {
+          "schema": "eggfuse-native-marker-cost/v1",
+          "source_sha256": "44179d8961ecc15277cd43c28e33e4e62531229832797d2999891c27ee2b2c78",
+          "marked_sha256": "b0bc34fb2c7d471298d75d956784eed23543343c876bb93321eb12f8b6d07997",
+          "native_binary_sha256": "d618493c0793cdd358850e34abfd2132a8ccad837c386f028d57a9aa6e72eaf8",
+          "phase_order_ms": [
+            "search_apply",
+            "merge",
+            "rebuild"
+          ],
+          "pairs": [
+            [
+              [
+                1206.844162,
+                29.013114,
+                719.827954
+              ],
+              [
+                1151.85877,
+                27.402612,
+                902.598289
+              ]
+            ],
+            [
+              [
+                1207.426678,
+                23.176071,
+                709.144079
+              ],
+              [
+                1174.908117,
+                29.405425,
+                908.731035
+              ]
+            ],
+            [
+              [
+                1223.467948,
+                28.389937,
+                722.618121
+              ],
+              [
+                1174.210638,
+                28.496574,
+                907.949411
+              ]
+            ]
+          ]
+        }
+      },
+      "projection": {
+        "case": "074-2mm",
+        "rows": [
+          191151,
+          191798
+        ],
+        "delta": {
+          "TermSingle": 3,
+          "TermGet": 3,
+          "TCPair": 192,
+          "Smaller": 263,
+          "TermConcat": 186
+        },
+        "comparison": {
+          "result": [
+            "different cardinality",
+            191151,
+            191798
+          ],
+          "checked_before_stop": 0,
+          "class_pairs": 0,
+          "native_rows": 191151,
+          "cell_rows": 191798
+        }
+      },
+      "arms": {
+        "base": {
+          "state": "3bc535cc48a550bb6d5cebc10912395eaee7f77ca3a1fa5fddf16a5a3907d104",
+          "runs": 3658,
+          "rhs": "a4e376bec7506306026cdf970777c8923c7e0f5cfcec1ba014d147d17fdaaef2",
+          "schedule": "184b1f740cf5db974d0e26876de9699f92b9e172c00e3cc91d190e1824ad4a68",
+          "tree": "0187acb997a336f6cfb36c11e931403b50cfad202d739c4d10d4d13e863d7b5e",
+          "spine": {
+            "root_attempts": 486577,
+            "root_handles_created": 283270,
+            "anchor_publications": 491302,
+            "captured_anchors": 985464,
+            "resumed_steps": 127848,
+            "max_chain": 26,
+            "producer_ops_available": 2677,
+            "producer_ops_admitted": 2677,
+            "publication_seconds": 0.19373949000000365
+          },
+          "bindings": 731330,
+          "visits": 2336300,
+          "inference_ms": [
+            4562.746,
+            3890.534,
+            2651.883,
+            2687.534
+          ],
+          "phases_ms": [
+            {
+              "delivery_gc": 69.648,
+              "local_sat": 0.0,
+              "query_update": 875.736,
+              "repair": 503.381,
+              "rhs": 1222.271,
+              "search": 1879.772
+            },
+            {
+              "delivery_gc": 61.415,
+              "local_sat": 0.0,
+              "query_update": 742.405,
+              "repair": 467.734,
+              "rhs": 1079.393,
+              "search": 1524.674
+            },
+            {
+              "delivery_gc": 34.173,
+              "local_sat": 0.0,
+              "query_update": 493.792,
+              "repair": 306.743,
+              "rhs": 771.351,
+              "search": 1036.933
+            },
+            {
+              "delivery_gc": 34.626,
+              "local_sat": 0.0,
+              "query_update": 501.77,
+              "repair": 311.964,
+              "rhs": 781.024,
+              "search": 1049.174
+            }
+          ],
+          "median_ms": 3289.034,
+          "profiled_pivots_100": {
+            "0": [
+              451886,
+              9549
+            ],
+            "2": [
+              473806,
+              14520
+            ],
+            "3": [
+              4487,
+              4737
+            ]
+          },
+          "profiled_query_ms": 117.5552030000002,
+          "index": null
+        },
+        "key": {
+          "state": "3bc535cc48a550bb6d5cebc10912395eaee7f77ca3a1fa5fddf16a5a3907d104",
+          "runs": 3658,
+          "rhs": "a4e376bec7506306026cdf970777c8923c7e0f5cfcec1ba014d147d17fdaaef2",
+          "schedule": "184b1f740cf5db974d0e26876de9699f92b9e172c00e3cc91d190e1824ad4a68",
+          "tree": "0187acb997a336f6cfb36c11e931403b50cfad202d739c4d10d4d13e863d7b5e",
+          "spine": {
+            "root_attempts": 486577,
+            "root_handles_created": 283270,
+            "anchor_publications": 491302,
+            "captured_anchors": 985464,
+            "resumed_steps": 127848,
+            "max_chain": 26,
+            "producer_ops_available": 2677,
+            "producer_ops_admitted": 2677,
+            "publication_seconds": 0.17697326900000318
+          },
+          "bindings": 731330,
+          "visits": 1476117,
+          "inference_ms": [
+            2607.984,
+            2666.094,
+            2779.779,
+            2591.944
+          ],
+          "phases_ms": [
+            {
+              "delivery_gc": 35.712,
+              "local_sat": 0.0,
+              "query_update": 504.804,
+              "repair": 307.319,
+              "rhs": 775.465,
+              "search": 975.678
+            },
+            {
+              "delivery_gc": 34.726,
+              "local_sat": 0.0,
+              "query_update": 519.546,
+              "repair": 314.925,
+              "rhs": 801.944,
+              "search": 985.595
+            },
+            {
+              "delivery_gc": 37.601,
+              "local_sat": 0.0,
+              "query_update": 538.784,
+              "repair": 325.515,
+              "rhs": 832.151,
+              "search": 1036.409
+            },
+            {
+              "delivery_gc": 33.53,
+              "local_sat": 0.0,
+              "query_update": 506.81,
+              "repair": 304.391,
+              "rhs": 770.943,
+              "search": 967.435
+            }
+          ],
+          "median_ms": 2637.039,
+          "profiled_pivots_100": {
+            "0": [
+              33699,
+              9549
+            ],
+            "2": [
+              31810,
+              14520
+            ],
+            "3": [
+              4487,
+              4737
+            ]
+          },
+          "profiled_query_ms": 54.42203499999998,
+          "index": {
+            "broad_fallbacks": 0,
+            "build_rows": 932,
+            "builds": 2,
+            "changed_entries": 31506,
+            "empty_domains": 798,
+            "hits": 15509,
+            "input_rows": 892580,
+            "invalidated_axes": 0,
+            "maintenance_ns": 14864370,
+            "mixed_prefixes": 0,
+            "output_rows": 32397,
+            "partial_domains": 0,
+            "partial_input_rows": 0,
+            "partial_output_rows": 0,
+            "range_refs": 0,
+            "subset_checks": 32397,
+            "update_rows": 17939,
+            "uses": 15511
+          }
+        },
+        "catalog": {
+          "state": "3bc535cc48a550bb6d5cebc10912395eaee7f77ca3a1fa5fddf16a5a3907d104",
+          "runs": 3658,
+          "rhs": "a4e376bec7506306026cdf970777c8923c7e0f5cfcec1ba014d147d17fdaaef2",
+          "schedule": "184b1f740cf5db974d0e26876de9699f92b9e172c00e3cc91d190e1824ad4a68",
+          "tree": "7499fa8451c91f4538f2fa47c562382d7541659ee53dff08a83038875e739650",
+          "spine": {
+            "root_attempts": 355628,
+            "root_handles_created": 192297,
+            "anchor_publications": 316991,
+            "captured_anchors": 589131,
+            "resumed_steps": 106142,
+            "max_chain": 26,
+            "producer_ops_available": 2677,
+            "producer_ops_admitted": 1556,
+            "publication_seconds": 0.11915775300000304
+          },
+          "bindings": 731330,
+          "visits": 2354958
+        },
+        "key+catalog": {
+          "state": "3bc535cc48a550bb6d5cebc10912395eaee7f77ca3a1fa5fddf16a5a3907d104",
+          "runs": 3658,
+          "rhs": "a4e376bec7506306026cdf970777c8923c7e0f5cfcec1ba014d147d17fdaaef2",
+          "schedule": "184b1f740cf5db974d0e26876de9699f92b9e172c00e3cc91d190e1824ad4a68",
+          "tree": "7499fa8451c91f4538f2fa47c562382d7541659ee53dff08a83038875e739650",
+          "spine": {
+            "root_attempts": 355628,
+            "root_handles_created": 192297,
+            "anchor_publications": 316991,
+            "captured_anchors": 589131,
+            "resumed_steps": 106142,
+            "max_chain": 26,
+            "producer_ops_available": 2677,
+            "producer_ops_admitted": 1556,
+            "publication_seconds": 0.12511022600000307
+          },
+          "bindings": 731330,
+          "visits": 1494775,
+          "inference_ms": [
+            2526.053,
+            3205.95,
+            2576.843,
+            2470.8
+          ],
+          "phases_ms": [
+            {
+              "delivery_gc": 35.422,
+              "local_sat": 0.0,
+              "query_update": 453.68,
+              "repair": 310.026,
+              "rhs": 761.392,
+              "search": 956.695
+            },
+            {
+              "delivery_gc": 49.217,
+              "local_sat": 0.0,
+              "query_update": 588.565,
+              "repair": 383.923,
+              "rhs": 924.717,
+              "search": 1246.624
+            },
+            {
+              "delivery_gc": 36.946,
+              "local_sat": 0.0,
+              "query_update": 467.425,
+              "repair": 316.344,
+              "rhs": 766.841,
+              "search": 979.948
+            },
+            {
+              "delivery_gc": 35.047,
+              "local_sat": 0.0,
+              "query_update": 443.268,
+              "repair": 302.584,
+              "rhs": 738.805,
+              "search": 942.142
+            }
+          ],
+          "median_ms": 2551.448,
+          "profiled_pivots_100": {
+            "0": [
+              33699,
+              9549
+            ],
+            "2": [
+              31810,
+              14520
+            ],
+            "3": [
+              4487,
+              4737
+            ]
+          },
+          "profiled_query_ms": 54.29134599999994,
+          "index": {
+            "broad_fallbacks": 0,
+            "build_rows": 932,
+            "builds": 2,
+            "changed_entries": 31506,
+            "empty_domains": 798,
+            "hits": 15509,
+            "input_rows": 892580,
+            "invalidated_axes": 0,
+            "maintenance_ns": 14382822,
+            "mixed_prefixes": 0,
+            "output_rows": 32397,
+            "partial_domains": 0,
+            "partial_input_rows": 0,
+            "partial_output_rows": 0,
+            "range_refs": 0,
+            "subset_checks": 32397,
+            "update_rows": 17939,
+            "uses": 15511
+          }
+        },
+        "key+gate": {
+          "state": "ffa078d75917445ed2099252fb031df74da7242177e7010f19022339e8261b9a",
+          "runs": 2415,
+          "rhs": "d0272531a6cef6229a92300c82e40f01ffa34e785aad2ffcc78a88533bff6007",
+          "schedule": "1f4fd6e828a282ca552f3cad7ae170606e4c82a4f188f6442018f9aac381699d",
+          "tree": "84387d162fd47cba20c058e7f8a2262acf1bfb2084f59cd68c4639dbd6a99432",
+          "spine": {
+            "root_attempts": 471529,
+            "root_handles_created": 286667,
+            "anchor_publications": 501842,
+            "captured_anchors": 1004242,
+            "resumed_steps": 127649,
+            "max_chain": 26,
+            "producer_ops_available": 2628,
+            "producer_ops_admitted": 2628,
+            "publication_seconds": 0.2004595080000018
+          },
+          "bindings": 699223,
+          "visits": 1439161
+        },
+        "gate": {
+          "state": "ffa078d75917445ed2099252fb031df74da7242177e7010f19022339e8261b9a",
+          "runs": 2415,
+          "rhs": "d0272531a6cef6229a92300c82e40f01ffa34e785aad2ffcc78a88533bff6007",
+          "schedule": "1f4fd6e828a282ca552f3cad7ae170606e4c82a4f188f6442018f9aac381699d",
+          "tree": "d0e342270e1d265d8c4b082f157e1b786f49f4981cc5e455d0b5122cc8e5f7c7",
+          "spine": {
+            "root_attempts": 355626,
+            "root_handles_created": 192297,
+            "anchor_publications": 316991,
+            "captured_anchors": 588846,
+            "resumed_steps": 106139,
+            "max_chain": 26,
+            "producer_ops_available": 2628,
+            "producer_ops_admitted": 1546,
+            "publication_seconds": 0.12346686100000122
+          },
+          "bindings": 699223,
+          "visits": 1457803,
+          "inference_ms": [
+            2595.49,
+            4890.981,
+            2415.178,
+            2398.038
+          ],
+          "phases_ms": [
+            {
+              "delivery_gc": 41.753,
+              "local_sat": 0.0,
+              "query_update": 473.098,
+              "repair": 325.796,
+              "rhs": 734.927,
+              "search": 1014.872
+            },
+            {
+              "delivery_gc": 103.29,
+              "local_sat": 0.0,
+              "query_update": 926.912,
+              "repair": 624.895,
+              "rhs": 1350.4,
+              "search": 1878.082
+            },
+            {
+              "delivery_gc": 34.511,
+              "local_sat": 0.0,
+              "query_update": 438.269,
+              "repair": 296.674,
+              "rhs": 704.016,
+              "search": 937.191
+            },
+            {
+              "delivery_gc": 35.104,
+              "local_sat": 0.0,
+              "query_update": 432.484,
+              "repair": 292.99,
+              "rhs": 698.587,
+              "search": 934.119
+            }
+          ],
+          "median_ms": 2505.334
+        }
+      },
+      "native_rows_pre_marker_and_marked": [
+        191168,
+        191460
+      ],
+      "native_table_differences": {
+        "Smaller": [
+          3016,
+          3104
+        ],
+        "TCPair": [
+          4344,
+          4446
+        ],
+        "TermConcat": [
+          3745,
+          3814
+        ],
+        "TermGet": [
+          362,
+          391
+        ],
+        "TermSingle": [
+          113,
+          117
+        ]
+      },
+      "independent_pairs": {
+        "native": {
+          "inference_ms": [
+            2079.783,
+            2052.774,
+            2071.141,
+            2065.549
+          ],
+          "cli_ms": [
+            2158.068,
+            2133.082,
+            2152.526,
+            2144.422
+          ]
+        },
+        "base": {
+          "inference_ms": [
+            2834.995,
+            2787.914,
+            2912.439,
+            2877.137
+          ],
+          "cli_ms": [
+            3857.379,
+            4545.203,
+            3935.45,
+            3895.518
+          ]
+        },
+        "scoped": {
+          "inference_ms": [
+            2793.74,
+            2567.097,
+            2754.722,
+            2562.388
+          ],
+          "cli_ms": [
+            3804.492,
+            4880.532,
+            4214.151,
+            4725.732
+          ]
+        }
+      }
+    }
+  }
+}

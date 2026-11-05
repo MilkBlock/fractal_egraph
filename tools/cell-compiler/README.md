@@ -53,3 +53,9 @@ cargo test --release --locked --manifest-path tools/cell-compiler/Cargo.toml
 `cargo cell-bench --lane free-join-planned --modules union-graft,stage-spine` 在同一份产物上切换已有运行时模块。`--verify-stages` 将开启模块的执行与同 lane 关闭模块的执行逐阶段对照。局部同余可用 `--modules local-congruence` 请求，并查看输出中的实际启用状态。[两组 Pass 3 消融及局部同余阳性对照](benchmarks/runtime-modules/README.md)
 
 `--modules range-guards,fd-keys,scalar-merge` 可分别选择有序范围索引、保序函数依赖去重键与标量 merge。新产物带有可验证的 `physical_plan`，旧产物从同一 typed recipe 推导计划。[指标、五组消融与 Cargo 命令](benchmarks/physical-plans/README.md)
+
+## Computed keys, publication scope and native marker costs
+
+The optional `computed-keys` bench module refines register expansions connected by a checked i64 sum. `catalog-publication` restricts Spine producer captures to tables with certified catalog leaves. For that module supply a populated block artifact, enable `stage-spine`, and build with the `spine-blocks` or `iterative-bake` feature. [Pass 2 measurements, semantics and Cargo commands](benchmarks/runtime-modules/COMPUTED_KEYS.md)
+
+A `marker-cost-profile/v2` fragment specifies `maintenance_ns` excluding rebuild, the signed marginal `native_rebuild_delta_ns`, and `saved_search_ns_by_rule`. The compiler charges their maintenance and rebuild sum once per selected view in the existing overlap-constrained solver. V1 retains its original lifecycle-cost convention. When only a whole-proposal A/B is available, `cargo cell-calibrate-markers` collects a separate bundle profile for `--native-marker-profile`. This compares the same native backend on the structural-key source and the proposed marked source. A nonnegative median paired phase delta rejects the bundle. Because rewriting can change merge and extraction outcomes, check observable equivalence separately.
