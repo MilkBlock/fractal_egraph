@@ -1,0 +1,9 @@
+{
+  "scope": "archived original-source native exporter and current fixed 64 Cell run, projection onto original table names",
+  "original_sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+  "native_state_sha256": "745fbdd3d01eb6cf79c3441470ffc003a453f9d0f44d4c597d56be7a8e4522d2",
+  "cell_state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+  "original_rows": 3206,
+  "cell_rows": 3206,
+  "by_table_diff": {}
+}
