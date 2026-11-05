@@ -180,3 +180,14 @@ The measured candidate ranges were 17.782–18.972 ms and 6.642–6.737 s. Sum-b
 For a compiler-planned unary Free Join projection, the shared column bucket is already its full witness domain. Admission can reuse the bucket's maintained view directly across consumers, avoiding the per-projection copy of the versioned membership cache. Multi-column projections retain ordinary admission. On the experimental stack this changed sum-bits inference from 20.855 to 19.769 ms, CLI from 119.886 to 121.084 ms, and RSS from 153.95 to 153.56 MiB. Raytrace inference fell from 7.395 to 7.207 s, CLI from 9.708 to 9.519 s and RSS from 2,039.78 to 1,997.38 MiB. Candidate visits and both full audits matched.
 
 The compiler also recognizes an expansion immediately followed by a checked i64 sum of two row columns whose result is already bound. On a second request for the identical shared witness domain in the same table version, the executor partitions that domain by checked sum and keeps its original witness order. The original comparison still runs. Only one domain per site is retained, and hidden rows and overflowing sums cannot supply matches. In three standard-release pairs, sum-bits inference fell from 19.552 to 18.738 ms (CLI 116.310 / 116.703 ms, RSS 153.45 / 153.83 MiB) and Raytrace inference changed from 7.158 to 7.230 s (CLI 9.629 / 9.525 s, RSS 1,989.66 / 1,998.33 MiB). Matching visits dropped from 18,645 to 18,619 and from 6,737,948 to 6,657,105 on that stack. Partition-building reads are counted separately and included in timing. Both full audits matched.
+
+### Held-out PGO at dcb66daa
+
+Clean source archive with shared unary column views, rule-owned binding vectors and the checked-sum grouping. All 22 all-feature runtime tests passed. Independent audits matched both cases' ordered RHS, effective writes, winning Spine, schedule and final state. All timing processes checked schedule and final graph.
+
+| Workload | Inference, original / candidate | Full CLI, original / candidate | Peak RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits | 30.472 / 17.544 ms | 128.738 / 99.130 ms | 161.13 / 152.89 MiB | 18,730 / 18,706 | 1.919× | 1.737× |
+| Raytrace | 12.191 / 6.431 s | 15.068 / 8.412 s | 2,907.56 / 1,984.28 MiB | 6,916,788 / 6,798,459 | 2.101× | 1.896× |
+
+Sum-bits needs a further 0.7065 ms reduction for the fixed 16.8375 ms target; its seven measured candidate processes ranged from 17.026 to 18.339 ms. All five Raytrace candidate processes were below 6.754039 s (6.253–6.570 s). Separate stack diagnostics show the cost behind computed-domain pruning: Raytrace scanned 20,416 rows to build arithmetic groups and skipped 80,843 matching visits. Sum-bits scanned 29 to skip 26. These counts are a physical work measure, distinct from the end-to-end timings.
