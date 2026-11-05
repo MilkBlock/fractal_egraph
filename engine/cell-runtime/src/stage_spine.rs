@@ -1021,6 +1021,17 @@ impl Programs {
         self.stats.capture_seconds += clock.elapsed().as_secs_f64();
         Ok(())
     }
+    pub(crate) fn write_needs_key(
+        &self,
+        _table: usize,
+        #[cfg(feature = "sparse-cells")] visibility_changed: bool,
+    ) -> bool {
+        #[cfg(feature = "sparse-cells")]
+        { !(self.compiled_commits && self.permanent[_table] && !visibility_changed
+            && self.receipts && !self.audit_receipts) }
+        #[cfg(not(feature = "sparse-cells"))]
+        { true }
+    }
     pub(crate) fn capture_write(
         &mut self,
         step: Started,
@@ -1028,9 +1039,8 @@ impl Programs {
         _cell: u32,
         op: usize,
         table: usize,
-        key: Vec<Value>,
+        key: Option<Vec<Value>>,
         w: Dependency,
-        #[cfg(feature = "sparse-cells")] visibility_changed: bool,
         unions: u64,
         #[cfg(feature = "iterative-bake")] catalog: &crate::iterative::Catalog,
         #[cfg(feature = "iterative-bake")] query: &QueryFacts,
@@ -1065,21 +1075,13 @@ impl Programs {
                 op: op as u32,
             },
         };
-        #[cfg(feature = "sparse-cells")]
-        let direct = self.compiled_commits
-            && self.permanent[table]
-            && !visibility_changed
-            && self.receipts
-            && !self.audit_receipts;
-        #[cfg(not(feature = "sparse-cells"))]
-        let direct = false;
-        if direct {
-            #[cfg(feature = "sparse-cells")]
-            {
-                self.direct_publications.insert(w, (table, publication));
-            }
-        } else {
+        if let Some(key) = key {
             self.pending_anchors.push((table, key, publication));
+        } else {
+            #[cfg(feature = "sparse-cells")]
+            self.direct_publications.insert(w, (table, publication));
+            #[cfg(not(feature = "sparse-cells"))]
+            unreachable!("ordinary publication needs a key");
         }
         self.stats.captured_anchors += 1;
         self.stats.captured_contexts += 1;

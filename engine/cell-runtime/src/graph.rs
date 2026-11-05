@@ -640,7 +640,8 @@ impl Graph {
         values: crate::slots::Slots,
         parent: Option<FactRef>,
         write: &crate::row_kernel::Write,
-    ) -> Result<(u32, usize, Vec<Value>, bool)> {
+        keep_key: bool,
+    ) -> Result<(u32, usize, Option<Vec<Value>>, bool)> {
         let id = self.reserve_cell_id()?;
         self.stats.single_writes += 1;
         let before = self.stats.function_updates;
@@ -654,7 +655,7 @@ impl Graph {
                 if let Some(dst)=dst{frame.values.insert(dst,Value::Int(value));}
                 self.keep_writer(i,id,write.op,frame);
             }else{self.stats.rhs_frames_avoided+=1;self.stats.transient_writes+=1;}
-            return Ok((id,i,vec![key],changed));
+            return Ok((id, i, keep_key.then(|| vec![key]), changed));
         }
         let mut frame = self.new_cell(template, values, parent);
         for (dst, name, sort, args) in &write.prefix {
@@ -680,7 +681,7 @@ impl Graph {
             self.stats.rhs_frames_avoided += 1;
             self.stats.transient_writes += 1;
         }
-        Ok((id, i, key, changed))
+        Ok((id, i, keep_key.then_some(key), changed))
     }
     fn keep_writer(&mut self,i:usize,id:u32,op:usize,mut frame:Cell){
         frame.completed=true;

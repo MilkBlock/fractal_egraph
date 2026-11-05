@@ -1866,9 +1866,14 @@ impl Executor {
                     &[],
                 )?;
             }
+            let keep_key = stage_cursor.is_some() && self.stage_spine.write_needs_key(
+                write.table,
+                #[cfg(feature = "sparse-cells")]
+                self.graph.has_visibility_changes(write.table),
+            );
             let (cell, index, key, changed) = self
                 .graph
-                .apply_write(template, b.values, b.parent, &write)?;
+                .apply_write(template, b.values, b.parent, &write, keep_key)?;
             #[cfg(feature = "structural-depth")]
             if self.stage_spine.structural.capture_rule(rid) {
                 let mut rs = vec![None; write.op + 1];
@@ -1887,8 +1892,6 @@ impl Executor {
                     write.table,
                     key,
                     Dependency::Function(index),
-                    #[cfg(feature = "sparse-cells")]
-                    self.graph.has_visibility_changes(write.table),
                     self.graph.stats.unions,
                     #[cfg(feature = "iterative-bake")]
                     &self.graph.program.iterative,
