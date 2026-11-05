@@ -46,6 +46,7 @@ pub(super) struct Stats {
     reverse_empty: u64,
     cache_capacity_resets: u64,
     entry_rows: u64,
+    membership_only: u64,
     disjoint_key_reads: u64,
     disjoint_rule_skips: u64,
     shared_column_reads: u64,
@@ -85,6 +86,7 @@ pub(super) struct FreeJoin {
     pub stats: Stats,
     plans: Vec<Vec<Vec<Subatom>>>,
     disjoint: DisjointPlan,
+    expansion: Vec<Vec<Option<usize>>>,
     entry: Option<Rc<crate::entry_join::Plan>>,
     pub planned: bool,
     // A target version guards the membership of positive and negative probe results.
@@ -208,6 +210,11 @@ impl FreeJoin {
             planned,
             by_projection,
             disjoint: DisjointPlan::derive(p, entry.as_ref().unwrap()),
+            expansion: p.kernels.iter().enumerate().map(|(r, ks)| ks.iter().map(|k| {
+                let at = k.as_ref()?.steps.iter()
+                    .find(|s| matches!(s.access,crate::row_kernel::Access::Expand))?.atom;
+                p.physical.ranges.get(r)?.get(at)?.is_empty().then_some(at)
+            }).collect()).collect(),
             epoch: None,
             results: HashMap::default(),
             plans,
@@ -385,6 +392,30 @@ impl FreeJoin {
                     }
                 })
                 .collect::<SmallVec<[_; 4]>>();
+            #[cfg(all(feature = "sparse-cells", not(any(feature = "projection-survey",
+                feature = "projection-stamps", feature = "projection-semijoin", feature = "family-overlap",
+                feature = "family-frontiers"))))]
+            if self.planned && self.expansion[rid][atom].is_some_and(|expanded| expanded != step.atom)
+                && let [(column, _)] = shape.columns.as_slice() {
+                // A later complete-key register read needs support and delta
+                // ownership here, never a materialized expansion subtrie.
+                self.stats.membership_only += 1;
+                self.stats.entry_probes += 1;
+                match index.single_support(g,shape.table,*column,key[0])? {
+                    crate::query::Domain::Empty => {
+                        self.stats.entry_rejections += 1;
+                        return Ok(None);
+                    }
+                    crate::query::Domain::One(w) if g.visible_epoch(w).is_some_and(|epoch| {
+                        (epoch,w) > (row.epoch,row.witness)
+                            || ((epoch,w) == (row.epoch,row.witness) && step.atom < atom)
+                    }) => {
+                        self.stats.entry_delta_rejections += 1;
+                        return Ok(None);
+                    }
+                    _ => continue,
+                }
+            }
             let probe = |stats: &mut Stats,
                          selectors_key: &[u64],
                          index: &mut QueryIndexes|

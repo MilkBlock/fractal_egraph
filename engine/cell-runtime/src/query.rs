@@ -571,6 +571,11 @@ impl QueryIndexes {
     }
     /// A one-column Free Join projection has exactly the same domain as the
     /// maintained column bucket, including in the presence of hash collisions.
+    pub(crate) fn single_support(&mut self, graph: &Graph, table: usize, column:usize, key:u64) -> Result<Domain> {
+        self.ensure(graph,table)?;
+        let Some(bucket) = self.tables[&table].values[column].get(&key) else { return Ok(Domain::Empty); };
+        Ok(if bucket.facts.len() == 1 { Domain::One(*bucket.facts.first().unwrap()) } else { Domain::Many })
+    }
     pub(crate) fn single_projection(
         &mut self, graph: &Graph, table: usize, col: usize, hash: u64,
         materialized: &mut u64,
