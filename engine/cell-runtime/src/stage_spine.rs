@@ -280,6 +280,46 @@ pub struct Coverage {
     pub covered: BTreeSet<(usize, Dependency)>,
     pub complete: bool,
 }
+/// Keep the current source set's counter directly accessible between RHS
+/// applications. Serialization includes both the current and settled counts.
+#[derive(Default)]
+struct SetCounts {
+    settled: BTreeMap<String, u64>,
+    recent: Option<(String, u64)>,
+}
+impl SetCounts {
+    fn add(&mut self, name: &str) {
+        if let Some((current, count)) = &mut self.recent
+            && current == name
+        {
+            *count += 1;
+            return;
+        }
+        if let Some((old, count)) = self.recent.take() {
+            self.settled.insert(old, count);
+        }
+        let (key, count) = self.settled.remove_entry(name).unwrap_or_else(|| (name.to_owned(), 0));
+        self.recent = Some((key, count + 1));
+    }
+}
+impl Serialize for SetCounts {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> {
+        serializer.collect_map(
+            self.settled.iter().map(|(name, count)| (name.as_str(), count))
+                .chain(self.recent.iter().map(|(name, count)| (name.as_str(), count))),
+        )
+    }
+}
+#[cfg(test)]
+mod set_counts_test {
+    use super::*;
+    #[test]
+    fn serialization_includes_current_set_and_prior_occurrences() {
+        let mut counts=SetCounts::default();
+        for set in ["b","b","a","b"] { counts.add(set); }
+        assert_eq!(json!(counts),json!({"a":1,"b":3}));
+    }
+}
 #[derive(Default, Serialize)]
 pub struct Stats {
     root_attempts: u64,
@@ -353,8 +393,8 @@ pub struct Stats {
     capture_seconds: f64,
     publication_seconds: f64,
     query_seconds: f64,
-    by_set: BTreeMap<String, u64>,
-    resumed_by_set: BTreeMap<String, u64>,
+    by_set: SetCounts,
+    resumed_by_set: SetCounts,
     bindings_by_rule: BTreeMap<usize, u64>,
     covered_by_rule: BTreeMap<usize, u64>,
     fallback_by_rule: BTreeMap<usize, u64>,
@@ -407,6 +447,7 @@ pub struct Programs {
     #[cfg(feature = "sparse-cells")]
     direct_publications: HashMap<Dependency, (usize, Publication)>,
     pending_anchors: Vec<(usize, Vec<Value>, Publication)>,
+    marker_root: Vec<bool>,
     root_set: Rc<str>,
     #[cfg(feature = "sparse-cells")]
     stage_names: HashMap<String, usize>,
@@ -659,6 +700,10 @@ impl Programs {
             permanent,
             #[cfg(feature = "sparse-cells")]
             direct_publications: Default::default(),
+            marker_root: p.rules.iter().map(|r| p.templates[r.template].ops.iter().any(|op| match op {
+                Op::Set(t, _, _) | Op::Let(_, Call::Table(t), _) => p.marker_tables.contains(t),
+                _ => false,
+            })).collect(),
             root_set: Rc::from(""),
             #[cfg(feature = "sparse-cells")]
             stage_names: Default::default(),
@@ -821,11 +866,7 @@ impl Programs {
             };
         }
         self.stats.steps_executed += 1;
-        if let Some(n) = self.stats.by_set.get_mut(set) {
-            *n += 1
-        } else {
-            self.stats.by_set.insert(set.into(), 1);
-        }
+        self.stats.by_set.add(set);
         if let Some(mut cursor) = previous {
             self.stats.resumed_steps += 1;
             #[cfg(feature = "slot-transfer-audit")]
@@ -837,11 +878,7 @@ impl Programs {
             {
                 self.stats.block_resumptions += u64::from(cursor.via_block);
             }
-            if let Some(n) = self.stats.resumed_by_set.get_mut(set) {
-                *n += 1
-            } else {
-                self.stats.resumed_by_set.insert(set.into(), 1);
-            }
+            self.stats.resumed_by_set.add(set);
             cursor.depth = cursor
                 .depth
                 .checked_add(1)
@@ -873,20 +910,11 @@ impl Programs {
             let id = self.next_context;
             self.next_context += 1;
             self.stats.root_attempts += 1;
-            self.stats.marker_roots += u64::from(
-                p.templates[p.rules[rid].template]
-                    .ops
-                    .iter()
-                    .any(|o| match o {
-                        Op::Set(t, _, _) | Op::Let(_, Call::Table(t), _) => {
-                            p.marker_tables.contains(t)
-                        }
-                        _ => false,
-                    }),
-            );
+            self.stats.marker_roots += u64::from(self.marker_root[rid]);
             self.stats.max_chain = self.stats.max_chain.max(1);
             self.stats.max_sets_per_spine = self.stats.max_sets_per_spine.max(1);
             self.stats.max_stage_visits = self.stats.max_stage_visits.max(1);
+            #[cfg(not(feature = "sparse-cells"))]
             if self.root_set.as_ref() != set {
                 self.root_set = Rc::from(set);
             }
