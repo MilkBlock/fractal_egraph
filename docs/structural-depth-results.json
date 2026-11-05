@@ -1,0 +1,3669 @@
+{
+  "runtime": "Standalone single-thread Cell CPU, Apple M3 Max, rustc 1.94.0, release --locked; same frozen 64-unit schedule and view-ports in each paired test.",
+  "source": {
+    "base": "bbe7ac3c",
+    "broad": "1e4da24c",
+    "selected": "0b506189"
+  },
+  "max_references_per_anchor": 8,
+  "methods": {
+    "broad": "One fresh CLI and output directory per sample. D0..3 are rotated each round; odd rounds reversed. 7 rounds on sum-bits and 3 on Raytrace. Audit/profile runs excluded from medians.",
+    "selected": "Training uses all D3 resumed LHS survey port reads, summed by direction-sensitive table names and columns. Emit the 8 most frequent paths of each of length 2 and 3 with lexicographic ties. Execute on the opposite workload. 7 and 5 paired rounds alternating D0 and selected. Each packet and all partial suffix states share the eight-reference bound.",
+    "audit": "SHA-256 equals stored baselines on every Run of RHS, effective writes and Spine resume digests and trajectory, plus schedule and exported state. Stages, applied RHS counts and uninterrupted chain lengths are counted separately.",
+    "lanes": [
+      "non-resumed application",
+      "resumed Spine application"
+    ],
+    "histograms": "Within one experiment bins identify structural path length. Cumulative depth coverage uses separate D1/D2/D3 surveys; a downstream port can also depend on fields supplied through another path. Oracle owner reads were zero in both workloads."
+  },
+  "binary_sha256": {
+    "audit": "592fff47638d491accd2a322a59bcdb2a978029fd77a7316b5a179ff72ee76de",
+    "bench": "4748c4491f1904d9175f9cf844fd18bcffbc70b0fea5cf8e47f06b16c76dbe7b",
+    "focus-audit": "68894a4a338f8c7b8a6c29a93421388b83541b9ebbf654533a1f688166ad1fb2",
+    "focus-bench": "c202840cac8e18409f992b3dc36588efb92c50fd2e91d6ae80f3544f8451eb8c"
+  },
+  "cases": {
+    "sum-bits": {
+      "program": "1d6e531e391cd34c56b452124e5c46563f044c1d75aea3776e9e2d0e60a29409",
+      "recipe": "3270d6f77a99b915be0c279e3c0f4f7ec3887804d3767b9ed3581dfd9eb998e7",
+      "audit": {
+        "digests": {
+          "rhs": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+          "writes": "f474604bbae6d87bb1dc7265f2a1ca0d137d35e2be88334c64d5624cbeff8b33",
+          "resumes": "d6766db41e1b164d751ff13054e24dbf84ef89c90d56e9c4faa978260843291e",
+          "spine-shapes": "9b20b382837a2b457f1395da5ecbfeffd1d40bf5a1543a08220ccfc83d730dca"
+        },
+        "modes": [
+          "off",
+          "storage",
+          "consumer",
+          "ports",
+          "head"
+        ],
+        "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+        "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db"
+      },
+      "broad": {
+        "0": {
+          "timing": {
+            "inference_ms": {
+              "raw": [
+                31.604,
+                30.731,
+                30.573,
+                30.858,
+                30.993,
+                30.836,
+                32.121
+              ],
+              "median": 30.858
+            },
+            "cli_ms": {
+              "raw": [
+                471.504,
+                135.037,
+                138.539,
+                136.995,
+                136.915,
+                138.389,
+                141.471
+              ],
+              "median": 138.389
+            }
+          },
+          "execution": {
+            "bindings": [
+              0,
+              0
+            ],
+            "candidates": 0,
+            "capture_ns": 0,
+            "captured": 0,
+            "closed_by_lane": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              0,
+              0
+            ],
+            "eligible_rhs": [
+              0,
+              0
+            ],
+            "first_exports": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              0,
+              0
+            ],
+            "peak_anchors": 0,
+            "peak_refs": 0,
+            "publish_ns": 0,
+            "published": 0,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 0,
+            "spine_reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "stale_exports": 0
+          },
+          "graph": {
+            "constructor_requests": 11502,
+            "cells_created": 8488,
+            "union_requests": 3046,
+            "register_answers": 5940,
+            "repaired_dependencies": 2229,
+            "logical_facts_created": 3739,
+            "residual_candidates": 12303,
+            "unions": 1039
+          },
+          "runs": 1428,
+          "resumptions": 3034,
+          "max_chain": 12,
+          "profile": {
+            "capture_ms": 0.0,
+            "publish_ms": 0.0,
+            "phases_ms": {
+              "delivery_gc": 0.173,
+              "query_update": 5.211,
+              "repair": 2.19,
+              "rhs": 7.684,
+              "search": 16.147
+            }
+          }
+        },
+        "1": {
+          "timing": {
+            "inference_ms": {
+              "raw": [
+                38.622,
+                38.168,
+                37.784,
+                39.065,
+                37.632,
+                40.586,
+                38.915
+              ],
+              "median": 38.622
+            },
+            "cli_ms": {
+              "raw": [
+                145.272,
+                142.836,
+                142.342,
+                147.046,
+                143.144,
+                150.968,
+                143.804
+              ],
+              "median": 143.804
+            }
+          },
+          "execution": {
+            "bindings": [
+              7192,
+              3034
+            ],
+            "candidates": 2,
+            "capture_ns": 0,
+            "captured": 22313,
+            "closed_by_lane": [
+              [
+                0,
+                284,
+                0,
+                0
+              ],
+              [
+                0,
+                97,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              381,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              674,
+              1181
+            ],
+            "eligible_rhs": [
+              5991,
+              2313
+            ],
+            "first_exports": [
+              0,
+              33110,
+              0,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              7190,
+              3034
+            ],
+            "peak_anchors": 3476,
+            "peak_refs": 9215,
+            "publish_ns": 0,
+            "published": 13056,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              881,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 2,
+            "spine_reads": [
+              0,
+              50,
+              0,
+              0
+            ],
+            "stale_exports": 58
+          },
+          "graph": {
+            "constructor_requests": 10898,
+            "cells_created": 8192,
+            "union_requests": 2845,
+            "register_answers": 5940,
+            "repaired_dependencies": 2229,
+            "logical_facts_created": 3739,
+            "residual_candidates": 12303,
+            "unions": 1039
+          },
+          "runs": 1428,
+          "resumptions": 3034,
+          "max_chain": 12,
+          "survey": {
+            "bindings": [
+              7192,
+              3034
+            ],
+            "candidates": 0,
+            "capture_ns": 0,
+            "captured": 22313,
+            "closed_by_lane": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              674,
+              1181
+            ],
+            "eligible_rhs": [
+              5991,
+              2313
+            ],
+            "first_exports": [
+              0,
+              33110,
+              0,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                104,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                11,
+                0,
+                0
+              ],
+              [
+                0,
+                134,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              7190,
+              3034
+            ],
+            "peak_anchors": 3476,
+            "peak_refs": 9215,
+            "publish_ns": 0,
+            "published": 13056,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                287,
+                0,
+                0
+              ],
+              [
+                0,
+                97,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                723,
+                0,
+                0
+              ],
+              [
+                0,
+                164,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 2,
+            "spine_reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "stale_exports": 58
+          }
+        },
+        "2": {
+          "timing": {
+            "inference_ms": {
+              "raw": [
+                45.019,
+                45.962,
+                44.04,
+                43.587,
+                44.844,
+                44.603,
+                44.897
+              ],
+              "median": 44.844
+            },
+            "cli_ms": {
+              "raw": [
+                154.551,
+                150.219,
+                147.045,
+                149.388,
+                153.261,
+                148.785,
+                154.336
+              ],
+              "median": 150.219
+            }
+          },
+          "execution": {
+            "bindings": [
+              7192,
+              3034
+            ],
+            "candidates": 2,
+            "capture_ns": 0,
+            "captured": 22313,
+            "closed_by_lane": [
+              [
+                0,
+                284,
+                155,
+                0
+              ],
+              [
+                0,
+                97,
+                46,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              381,
+              201,
+              0
+            ],
+            "eligible_lhs": [
+              674,
+              1181
+            ],
+            "eligible_rhs": [
+              5991,
+              2313
+            ],
+            "first_exports": [
+              0,
+              33110,
+              46698,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              7190,
+              3034
+            ],
+            "peak_anchors": 3476,
+            "peak_refs": 22066,
+            "publish_ns": 0,
+            "published": 13056,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              881,
+              473,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 9502,
+            "spine_reads": [
+              0,
+              50,
+              142,
+              0
+            ],
+            "stale_exports": 58
+          },
+          "graph": {
+            "constructor_requests": 10465,
+            "cells_created": 8016,
+            "union_requests": 2812,
+            "register_answers": 5940,
+            "repaired_dependencies": 2229,
+            "logical_facts_created": 3739,
+            "residual_candidates": 12303,
+            "unions": 1039
+          },
+          "runs": 1428,
+          "resumptions": 3034,
+          "max_chain": 12,
+          "survey": {
+            "bindings": [
+              7192,
+              3034
+            ],
+            "candidates": 0,
+            "capture_ns": 0,
+            "captured": 22313,
+            "closed_by_lane": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              674,
+              1181
+            ],
+            "eligible_rhs": [
+              5991,
+              2313
+            ],
+            "first_exports": [
+              0,
+              33110,
+              46698,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                104,
+                136,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                14,
+                16,
+                0
+              ],
+              [
+                0,
+                134,
+                143,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              7190,
+              3034
+            ],
+            "peak_anchors": 3476,
+            "peak_refs": 22066,
+            "publish_ns": 0,
+            "published": 13056,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                287,
+                155,
+                0
+              ],
+              [
+                0,
+                97,
+                46,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                726,
+                365,
+                0
+              ],
+              [
+                0,
+                164,
+                248,
+                0
+              ]
+            ],
+            "saturated_packets": 9502,
+            "spine_reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "stale_exports": 58
+          },
+          "profile": {
+            "capture_ms": 5.509,
+            "publish_ms": 4.056,
+            "phases_ms": {
+              "delivery_gc": 0.182,
+              "query_update": 9.652,
+              "repair": 2.243,
+              "rhs": 16.147,
+              "search": 18.889
+            }
+          }
+        },
+        "3": {
+          "timing": {
+            "inference_ms": {
+              "raw": [
+                46.16,
+                45.199,
+                45.231,
+                46.15,
+                45.045,
+                46.686,
+                46.956
+              ],
+              "median": 46.15
+            },
+            "cli_ms": {
+              "raw": [
+                153.704,
+                151.666,
+                147.355,
+                149.725,
+                151.122,
+                151.163,
+                150.911
+              ],
+              "median": 151.122
+            }
+          },
+          "execution": {
+            "bindings": [
+              7192,
+              3034
+            ],
+            "candidates": 2,
+            "capture_ns": 0,
+            "captured": 22313,
+            "closed_by_lane": [
+              [
+                0,
+                284,
+                155,
+                37
+              ],
+              [
+                0,
+                97,
+                46,
+                7
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              381,
+              201,
+              44
+            ],
+            "eligible_lhs": [
+              674,
+              1181
+            ],
+            "eligible_rhs": [
+              5991,
+              2313
+            ],
+            "first_exports": [
+              0,
+              33110,
+              46698,
+              16323
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              7190,
+              3034
+            ],
+            "peak_anchors": 3476,
+            "peak_refs": 26290,
+            "publish_ns": 0,
+            "published": 13056,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              881,
+              473,
+              74
+            ],
+            "rhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 19273,
+            "spine_reads": [
+              0,
+              50,
+              142,
+              29
+            ],
+            "stale_exports": 58
+          },
+          "graph": {
+            "constructor_requests": 10422,
+            "cells_created": 7972,
+            "union_requests": 2784,
+            "register_answers": 5940,
+            "repaired_dependencies": 2229,
+            "logical_facts_created": 3739,
+            "residual_candidates": 12303,
+            "unions": 1039
+          },
+          "runs": 1428,
+          "resumptions": 3034,
+          "max_chain": 12,
+          "survey": {
+            "bindings": [
+              7192,
+              3034
+            ],
+            "candidates": 0,
+            "capture_ns": 0,
+            "captured": 22313,
+            "closed_by_lane": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              674,
+              1181
+            ],
+            "eligible_rhs": [
+              5991,
+              2313
+            ],
+            "first_exports": [
+              0,
+              33110,
+              46698,
+              16323
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                104,
+                136,
+                27
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                14,
+                16,
+                1
+              ],
+              [
+                0,
+                134,
+                143,
+                37
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              7190,
+              3034
+            ],
+            "peak_anchors": 3476,
+            "peak_refs": 26290,
+            "publish_ns": 0,
+            "published": 13056,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                287,
+                155,
+                37
+              ],
+              [
+                0,
+                97,
+                46,
+                7
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                726,
+                365,
+                44
+              ],
+              [
+                0,
+                164,
+                248,
+                30
+              ]
+            ],
+            "saturated_packets": 19273,
+            "spine_reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "stale_exports": 58
+          },
+          "profile": {
+            "capture_ms": 6.346,
+            "publish_ms": 4.356,
+            "phases_ms": {
+              "delivery_gc": 0.186,
+              "query_update": 9.993,
+              "repair": 2.401,
+              "rhs": 16.896,
+              "search": 18.851
+            }
+          }
+        }
+      },
+      "focused": {
+        "control": {
+          "inference_ms": {
+            "raw": [
+              30.568,
+              30.631,
+              31.134,
+              31.467,
+              30.443,
+              30.52,
+              30.86
+            ],
+            "median": 30.631
+          },
+          "cli_ms": {
+            "raw": [
+              519.944,
+              133.635,
+              134.569,
+              140.92,
+              136.528,
+              134.484,
+              131.99
+            ],
+            "median": 134.569
+          }
+        },
+        "selected": {
+          "inference_ms": {
+            "raw": [
+              32.255,
+              32.444,
+              34.118,
+              32.368,
+              33.489,
+              33.007,
+              32.912
+            ],
+            "median": 32.912
+          },
+          "cli_ms": {
+            "raw": [
+              140.173,
+              138.176,
+              141.727,
+              139.634,
+              143.284,
+              140.545,
+              140.743
+            ],
+            "median": 140.545
+          }
+        },
+        "selected_minus_control_inference_ms": [
+          1.687,
+          1.813,
+          2.985,
+          0.901,
+          3.046,
+          2.487,
+          2.051
+        ],
+        "median_paired_delta_ms": 2.051,
+        "requested_and_matched": [
+          16,
+          16
+        ],
+        "execution": {
+          "bindings": [
+            0,
+            0
+          ],
+          "candidates": 0,
+          "capture_ns": 0,
+          "captured": 5312,
+          "closed_by_lane": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "closed_rhs": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "eligible_lhs": [
+            0,
+            0
+          ],
+          "eligible_rhs": [
+            0,
+            0
+          ],
+          "first_exports": [
+            0,
+            1547,
+            1041,
+            254
+          ],
+          "full_lhs_emitted": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lhs_full": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "lhs_ports": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "missing_query_receipts": 0,
+          "oracle_owner_reads": 0,
+          "owner_known": [
+            0,
+            0
+          ],
+          "peak_anchors": 528,
+          "peak_refs": 560,
+          "publish_ns": 0,
+          "published": 2593,
+          "retained_lhs": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "rhs_accepted": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "rhs_full": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "rhs_ports": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "saturated_packets": 0,
+          "spine_reads": [
+            0,
+            0,
+            130,
+            25
+          ],
+          "stale_exports": 0
+        },
+        "graph": {
+          "constructor_requests": 11502,
+          "cells_created": 8488,
+          "union_requests": 3046,
+          "register_answers": 5940,
+          "repaired_dependencies": 2229,
+          "logical_facts_created": 3739,
+          "residual_candidates": 12303,
+          "unions": 1039
+        },
+        "profile": {
+          "capture_ms": 0.341,
+          "publish_ms": 0.709,
+          "phases_ms": {
+            "delivery_gc": 0.166,
+            "query_update": 5.864,
+            "repair": 2.178,
+            "rhs": 8.166,
+            "search": 16.355
+          }
+        },
+        "runs": 1428,
+        "resumptions": 3034,
+        "max_chain": 12
+      },
+      "learned_catalog": {
+        "paths": [
+          [
+            [
+              "ContextOf",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "ExprIsResolved",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "HasArgType",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "TLConcat",
+              0,
+              "TCons",
+              1
+            ],
+            [
+              "TCons",
+              1,
+              "TNil",
+              0
+            ]
+          ],
+          [
+            [
+              "ContextOf",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Single",
+              1
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Single",
+              1
+            ]
+          ],
+          [
+            [
+              "ExprIsPure",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Single",
+              1
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "AddContext",
+              2
+            ],
+            [
+              "AddContext",
+              1,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "Get",
+              0,
+              "SubTuple",
+              0
+            ],
+            [
+              "SubTuple",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              0,
+              "leading-Expr",
+              0
+            ]
+          ],
+          [
+            [
+              "Get",
+              0,
+              "SubTuple",
+              0
+            ],
+            [
+              "SubTuple",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              0,
+              "tuple-length",
+              0
+            ]
+          ],
+          [
+            [
+              "tuple-length",
+              0,
+              "HasType",
+              0
+            ],
+            [
+              "HasType",
+              0,
+              "Single",
+              1
+            ],
+            [
+              "Single",
+              1,
+              "SubTuple",
+              3
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "Add-All-Gets",
+              0,
+              "Add-Gets",
+              0
+            ],
+            [
+              "Add-Gets",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              0,
+              "tuple-length",
+              0
+            ]
+          ],
+          [
+            [
+              "Bop",
+              0,
+              "Bop",
+              0
+            ],
+            [
+              "Bop",
+              0,
+              "Bop",
+              0
+            ],
+            [
+              "Bop",
+              0,
+              "BinaryOpIsPure",
+              0
+            ]
+          ]
+        ],
+        "schema": "eggfuse/structural-spine-ports/v1"
+      },
+      "top_resumed_lhs": [
+        {
+          "rule": 125,
+          "query_atom": 0,
+          "path": [
+            [
+              "ContextOf",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 38
+        },
+        {
+          "rule": 155,
+          "query_atom": 0,
+          "path": [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 25
+        },
+        {
+          "rule": 426,
+          "query_atom": 0,
+          "path": [
+            [
+              "ExprIsResolved",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 23
+        },
+        {
+          "rule": 521,
+          "query_atom": 0,
+          "path": [
+            [
+              "HasArgType",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 12
+        },
+        {
+          "rule": 572,
+          "query_atom": 0,
+          "path": [
+            [
+              "TLConcat",
+              0,
+              "TCons",
+              1
+            ],
+            [
+              "TCons",
+              1,
+              "TNil",
+              0
+            ]
+          ],
+          "occurrences": 12
+        },
+        {
+          "rule": 125,
+          "query_atom": 0,
+          "path": [
+            [
+              "ContextOf",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Single",
+              1
+            ]
+          ],
+          "occurrences": 9
+        },
+        {
+          "rule": 155,
+          "query_atom": 0,
+          "path": [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 5
+        },
+        {
+          "rule": 57,
+          "query_atom": 0,
+          "path": [
+            [
+              "Get",
+              0,
+              "SubTuple",
+              0
+            ],
+            [
+              "SubTuple",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              0,
+              "leading-Expr",
+              0
+            ]
+          ],
+          "occurrences": 4
+        }
+      ],
+      "capped_producer_templates": 1
+    },
+    "raytrace": {
+      "program": "2ea40b3ded80dda4bfbf7e9a67a1ac74ae08ad16568b1a4ea4b5ae3f355b6579",
+      "recipe": "2e395e858371b1a49a7283bf2fbf57d0512aa9d6db6cf4ead29193b1c0032a5a",
+      "audit": {
+        "digests": {
+          "rhs": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+          "writes": "48295f40c16c56c057fffd01757d6be752f5a50d774e02e838adc0cd14fbfab0",
+          "resumes": "49edbeefc5f2e4330b49f82b773694fd7a21f8a6182a14c86392c3fb95e01e9d",
+          "spine-shapes": "fea18e15ddcab8010c487f3314819d22727e313ba7913b360fb0ccb61439cb39"
+        },
+        "modes": [
+          "off",
+          "storage",
+          "consumer",
+          "ports",
+          "head"
+        ],
+        "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+        "schedule_sha256": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5"
+      },
+      "broad": {
+        "0": {
+          "timing": {
+            "inference_ms": {
+              "raw": [
+                12992.302,
+                12907.157,
+                14938.168
+              ],
+              "median": 12992.302
+            },
+            "cli_ms": {
+              "raw": [
+                15424.814,
+                15262.153,
+                17443.369
+              ],
+              "median": 15424.814
+            }
+          },
+          "execution": {
+            "bindings": [
+              0,
+              0
+            ],
+            "candidates": 0,
+            "capture_ns": 0,
+            "captured": 0,
+            "closed_by_lane": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              0,
+              0
+            ],
+            "eligible_rhs": [
+              0,
+              0
+            ],
+            "first_exports": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              0,
+              0
+            ],
+            "peak_anchors": 0,
+            "peak_refs": 0,
+            "publish_ns": 0,
+            "published": 0,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 0,
+            "spine_reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "stale_exports": 0
+          },
+          "graph": {
+            "constructor_requests": 2065807,
+            "cells_created": 2705661,
+            "union_requests": 573302,
+            "register_answers": 2452435,
+            "repaired_dependencies": 643609,
+            "logical_facts_created": 820439,
+            "residual_candidates": 4608955,
+            "unions": 226523
+          },
+          "runs": 16883,
+          "resumptions": 663403,
+          "max_chain": 29,
+          "profile": {
+            "capture_ms": 0.0,
+            "publish_ms": 0.0,
+            "phases_ms": {
+              "delivery_gc": 229.236,
+              "query_update": 2518.062,
+              "repair": 998.634,
+              "rhs": 3599.372,
+              "search": 5603.22
+            }
+          }
+        },
+        "1": {
+          "timing": {
+            "inference_ms": {
+              "raw": [
+                16888.746,
+                16839.536,
+                16862.29
+              ],
+              "median": 16862.29
+            },
+            "cli_ms": {
+              "raw": [
+                19306.27,
+                19268.761,
+                19283.909
+              ],
+              "median": 19283.909
+            }
+          },
+          "execution": {
+            "bindings": [
+              3121793,
+              663403
+            ],
+            "candidates": 2,
+            "capture_ns": 0,
+            "captured": 6535075,
+            "closed_by_lane": [
+              [
+                0,
+                43996,
+                0,
+                0
+              ],
+              [
+                0,
+                7641,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              51637,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              99831,
+              401200
+            ],
+            "eligible_rhs": [
+              1129756,
+              277964
+            ],
+            "first_exports": [
+              0,
+              8704135,
+              0,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              3121791,
+              663403
+            ],
+            "peak_anchors": 832892,
+            "peak_refs": 2439818,
+            "publish_ns": 0,
+            "published": 3893550,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              205198,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 186,
+            "spine_reads": [
+              0,
+              2218,
+              0,
+              0
+            ],
+            "stale_exports": 4856
+          },
+          "graph": {
+            "constructor_requests": 1949540,
+            "cells_created": 2672486,
+            "union_requests": 522186,
+            "register_answers": 2452435,
+            "repaired_dependencies": 643609,
+            "logical_facts_created": 820439,
+            "residual_candidates": 4608955,
+            "unions": 226523
+          },
+          "runs": 16883,
+          "resumptions": 663403,
+          "max_chain": 29,
+          "survey": {
+            "bindings": [
+              3121793,
+              663403
+            ],
+            "candidates": 0,
+            "capture_ns": 0,
+            "captured": 6535075,
+            "closed_by_lane": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              99831,
+              401200
+            ],
+            "eligible_rhs": [
+              1129756,
+              277964
+            ],
+            "first_exports": [
+              0,
+              8704135,
+              0,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                7690,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                13500,
+                0,
+                0
+              ],
+              [
+                0,
+                10498,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              3121791,
+              663403
+            ],
+            "peak_anchors": 832892,
+            "peak_refs": 2439818,
+            "publish_ns": 0,
+            "published": 3893550,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                44480,
+                0,
+                0
+              ],
+              [
+                0,
+                7641,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                192518,
+                0,
+                0
+              ],
+              [
+                0,
+                13406,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 186,
+            "spine_reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "stale_exports": 4856
+          }
+        },
+        "2": {
+          "timing": {
+            "inference_ms": {
+              "raw": [
+                19776.77,
+                20635.571,
+                19645.478
+              ],
+              "median": 19776.77
+            },
+            "cli_ms": {
+              "raw": [
+                22288.85,
+                23107.173,
+                22085.039
+              ],
+              "median": 22288.85
+            }
+          },
+          "execution": {
+            "bindings": [
+              3121793,
+              663403
+            ],
+            "candidates": 2,
+            "capture_ns": 0,
+            "captured": 6535075,
+            "closed_by_lane": [
+              [
+                0,
+                43996,
+                20215,
+                0
+              ],
+              [
+                0,
+                7641,
+                5227,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              51637,
+              25442,
+              0
+            ],
+            "eligible_lhs": [
+              99831,
+              401200
+            ],
+            "eligible_rhs": [
+              1129756,
+              277964
+            ],
+            "first_exports": [
+              0,
+              8704135,
+              14132493,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              3121791,
+              663403
+            ],
+            "peak_anchors": 832896,
+            "peak_refs": 5720173,
+            "publish_ns": 0,
+            "published": 3893557,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              205210,
+              45256,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 2428733,
+            "spine_reads": [
+              0,
+              2218,
+              232187,
+              0
+            ],
+            "stale_exports": 4856
+          },
+          "graph": {
+            "constructor_requests": 1912361,
+            "cells_created": 2649238,
+            "union_requests": 514592,
+            "register_answers": 2452435,
+            "repaired_dependencies": 643609,
+            "logical_facts_created": 820439,
+            "residual_candidates": 4608955,
+            "unions": 226523
+          },
+          "runs": 16883,
+          "resumptions": 663403,
+          "max_chain": 29,
+          "survey": {
+            "bindings": [
+              3121793,
+              663403
+            ],
+            "candidates": 0,
+            "capture_ns": 0,
+            "captured": 6535075,
+            "closed_by_lane": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              99831,
+              401200
+            ],
+            "eligible_rhs": [
+              1129756,
+              277964
+            ],
+            "first_exports": [
+              0,
+              8704135,
+              14132493,
+              0
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                7690,
+                231755,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                13873,
+                1981,
+                0
+              ],
+              [
+                0,
+                10501,
+                231840,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              3121791,
+              663403
+            ],
+            "peak_anchors": 832896,
+            "peak_refs": 5720173,
+            "publish_ns": 0,
+            "published": 3893557,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                44480,
+                20218,
+                0
+              ],
+              [
+                0,
+                7641,
+                5227,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                192532,
+                34347,
+                0
+              ],
+              [
+                0,
+                13406,
+                21540,
+                0
+              ]
+            ],
+            "saturated_packets": 2428733,
+            "spine_reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "stale_exports": 4856
+          },
+          "profile": {
+            "capture_ms": 2046.146,
+            "publish_ms": 2134.261,
+            "phases_ms": {
+              "delivery_gc": 244.778,
+              "query_update": 4857.151,
+              "repair": 1043.949,
+              "rhs": 6732.855,
+              "search": 6823.897
+            }
+          }
+        },
+        "3": {
+          "timing": {
+            "inference_ms": {
+              "raw": [
+                21188.423,
+                22432.494,
+                20700.469
+              ],
+              "median": 21188.423
+            },
+            "cli_ms": {
+              "raw": [
+                23737.956,
+                24947.069,
+                23320.237
+              ],
+              "median": 23737.956
+            }
+          },
+          "execution": {
+            "bindings": [
+              3121793,
+              663403
+            ],
+            "candidates": 2,
+            "capture_ns": 0,
+            "captured": 6535075,
+            "closed_by_lane": [
+              [
+                0,
+                43996,
+                20215,
+                5521
+              ],
+              [
+                0,
+                7641,
+                5227,
+                896
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              51637,
+              25442,
+              6417
+            ],
+            "eligible_lhs": [
+              99831,
+              401200
+            ],
+            "eligible_rhs": [
+              1129756,
+              277964
+            ],
+            "first_exports": [
+              0,
+              8704135,
+              14132493,
+              6193991
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              3121791,
+              663403
+            ],
+            "peak_anchors": 832896,
+            "peak_refs": 6437149,
+            "publish_ns": 0,
+            "published": 3893558,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              205210,
+              45620,
+              8546
+            ],
+            "rhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "saturated_packets": 5586643,
+            "spine_reads": [
+              0,
+              2218,
+              232187,
+              72900
+            ],
+            "stale_exports": 4856
+          },
+          "graph": {
+            "constructor_requests": 1906158,
+            "cells_created": 2642829,
+            "union_requests": 512450,
+            "register_answers": 2452435,
+            "repaired_dependencies": 643609,
+            "logical_facts_created": 820439,
+            "residual_candidates": 4608955,
+            "unions": 226523
+          },
+          "runs": 16883,
+          "resumptions": 663403,
+          "max_chain": 29,
+          "survey": {
+            "bindings": [
+              3121793,
+              663403
+            ],
+            "candidates": 0,
+            "capture_ns": 0,
+            "captured": 6535075,
+            "closed_by_lane": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "closed_rhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "eligible_lhs": [
+              99831,
+              401200
+            ],
+            "eligible_rhs": [
+              1129756,
+              277964
+            ],
+            "first_exports": [
+              0,
+              8704135,
+              14132493,
+              6193991
+            ],
+            "full_lhs_emitted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "lhs_full": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                7690,
+                231755,
+                73348
+              ]
+            ],
+            "lhs_ports": [
+              [
+                0,
+                13873,
+                1981,
+                815
+              ],
+              [
+                0,
+                10501,
+                231840,
+                73744
+              ]
+            ],
+            "missing_query_receipts": 0,
+            "oracle_owner_reads": 0,
+            "owner_known": [
+              3121791,
+              663403
+            ],
+            "peak_anchors": 832896,
+            "peak_refs": 6437149,
+            "publish_ns": 0,
+            "published": 3893558,
+            "retained_lhs": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_accepted": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "rhs_full": [
+              [
+                0,
+                44480,
+                20218,
+                5521
+              ],
+              [
+                0,
+                7641,
+                5227,
+                896
+              ]
+            ],
+            "rhs_ports": [
+              [
+                0,
+                192532,
+                34711,
+                7317
+              ],
+              [
+                0,
+                13406,
+                21540,
+                1231
+              ]
+            ],
+            "saturated_packets": 5586643,
+            "spine_reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "stale_exports": 4856
+          },
+          "profile": {
+            "capture_ms": 2649.235,
+            "publish_ms": 2736.103,
+            "phases_ms": {
+              "delivery_gc": 266.503,
+              "query_update": 5631.318,
+              "repair": 1080.583,
+              "rhs": 7612.746,
+              "search": 7342.166
+            }
+          }
+        }
+      },
+      "focused": {
+        "control": {
+          "inference_ms": {
+            "raw": [
+              14204.678,
+              12630.493,
+              12921.942,
+              12814.388,
+              13048.393
+            ],
+            "median": 12921.942
+          },
+          "cli_ms": {
+            "raw": [
+              16682.782,
+              15068.571,
+              15428.825,
+              15228.057,
+              15528.381
+            ],
+            "median": 15428.825
+          }
+        },
+        "selected": {
+          "inference_ms": {
+            "raw": [
+              13596.435,
+              13132.157,
+              13127.623,
+              13437.831,
+              13591.731
+            ],
+            "median": 13437.831
+          },
+          "cli_ms": {
+            "raw": [
+              16014.451,
+              15536.628,
+              15497.806,
+              15880.995,
+              16055.289
+            ],
+            "median": 15880.995
+          }
+        },
+        "selected_minus_control_inference_ms": [
+          -608.243,
+          501.664,
+          205.681,
+          623.443,
+          543.337
+        ],
+        "median_paired_delta_ms": 501.664,
+        "requested_and_matched": [
+          16,
+          16
+        ],
+        "execution": {
+          "bindings": [
+            0,
+            0
+          ],
+          "candidates": 0,
+          "capture_ns": 0,
+          "captured": 1516143,
+          "closed_by_lane": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "closed_rhs": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "eligible_lhs": [
+            0,
+            0
+          ],
+          "eligible_rhs": [
+            0,
+            0
+          ],
+          "first_exports": [
+            0,
+            129199,
+            407987,
+            111730
+          ],
+          "full_lhs_emitted": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lhs_full": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "lhs_ports": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "missing_query_receipts": 0,
+          "oracle_owner_reads": 0,
+          "owner_known": [
+            0,
+            0
+          ],
+          "peak_anchors": 46104,
+          "peak_refs": 48166,
+          "publish_ns": 0,
+          "published": 609955,
+          "retained_lhs": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "rhs_accepted": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "rhs_full": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "rhs_ports": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "saturated_packets": 0,
+          "spine_reads": [
+            0,
+            0,
+            233145,
+            70210
+          ],
+          "stale_exports": 0
+        },
+        "graph": {
+          "constructor_requests": 2065807,
+          "cells_created": 2705661,
+          "union_requests": 573302,
+          "register_answers": 2452435,
+          "repaired_dependencies": 643609,
+          "logical_facts_created": 820439,
+          "residual_candidates": 4608955,
+          "unions": 226523
+        },
+        "profile": {
+          "capture_ms": 249.295,
+          "publish_ms": 288.966,
+          "phases_ms": {
+            "delivery_gc": 236.857,
+            "query_update": 2855.642,
+            "repair": 989.616,
+            "rhs": 4050.991,
+            "search": 5827.547
+          }
+        },
+        "runs": 16883,
+        "resumptions": 663403,
+        "max_chain": 29
+      },
+      "learned_catalog": {
+        "paths": [
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "ContextOf",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "ExprIsResolved",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "TLConcat",
+              0,
+              "TCons",
+              1
+            ],
+            [
+              "TCons",
+              1,
+              "TNil",
+              0
+            ]
+          ],
+          [
+            [
+              "HasArgType",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "ContextOf",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Single",
+              1
+            ]
+          ],
+          [
+            [
+              "Add-All-Gets",
+              0,
+              "Add-Gets",
+              0
+            ],
+            [
+              "Add-Gets",
+              1,
+              "tuple-length",
+              0
+            ]
+          ],
+          [
+            [
+              "ContextOf",
+              1,
+              "ContextOf",
+              1
+            ],
+            [
+              "ContextOf",
+              0,
+              "Single",
+              1
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "AddContext",
+              2
+            ],
+            [
+              "AddContext",
+              1,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Expr-size",
+              0
+            ],
+            [
+              "Expr-size",
+              0,
+              "Single",
+              1
+            ]
+          ],
+          [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "ExprIsResolved",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "ExprIsResolved",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "AddContext",
+              2
+            ],
+            [
+              "AddContext",
+              1,
+              "Single",
+              0
+            ]
+          ],
+          [
+            [
+              "tuple-length",
+              0,
+              "HasType",
+              0
+            ],
+            [
+              "HasType",
+              0,
+              "Single",
+              1
+            ],
+            [
+              "Single",
+              1,
+              "SubTuple",
+              3
+            ]
+          ],
+          [
+            [
+              "Get",
+              0,
+              "SubTuple",
+              0
+            ],
+            [
+              "SubTuple",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              0,
+              "leading-Expr",
+              0
+            ]
+          ]
+        ],
+        "schema": "eggfuse/structural-spine-ports/v1"
+      },
+      "top_resumed_lhs": [
+        {
+          "rule": 155,
+          "query_atom": 0,
+          "path": [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 220975
+        },
+        {
+          "rule": 155,
+          "query_atom": 0,
+          "path": [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Get",
+              0
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 56952
+        },
+        {
+          "rule": 155,
+          "query_atom": 0,
+          "path": [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "AddContext",
+              2
+            ],
+            [
+              "AddContext",
+              1,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 5137
+        },
+        {
+          "rule": 155,
+          "query_atom": 0,
+          "path": [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              0,
+              "Expr-size",
+              0
+            ],
+            [
+              "Expr-size",
+              0,
+              "Single",
+              1
+            ]
+          ],
+          "occurrences": 4270
+        },
+        {
+          "rule": 125,
+          "query_atom": 0,
+          "path": [
+            [
+              "ContextOf",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 4185
+        },
+        {
+          "rule": 155,
+          "query_atom": 0,
+          "path": [
+            [
+              "Expr-size",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 2800
+        },
+        {
+          "rule": 426,
+          "query_atom": 0,
+          "path": [
+            [
+              "ExprIsResolved",
+              0,
+              "Get",
+              2
+            ],
+            [
+              "Get",
+              2,
+              "Single",
+              0
+            ]
+          ],
+          "occurrences": 2665
+        },
+        {
+          "rule": 572,
+          "query_atom": 0,
+          "path": [
+            [
+              "TLConcat",
+              0,
+              "TCons",
+              1
+            ],
+            [
+              "TCons",
+              1,
+              "TNil",
+              0
+            ]
+          ],
+          "occurrences": 1531
+        }
+      ],
+      "capped_producer_templates": 1
+    }
+  }
+}
