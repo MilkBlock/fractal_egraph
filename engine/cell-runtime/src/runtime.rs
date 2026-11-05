@@ -60,6 +60,7 @@ struct StagePatch {
     bindings: Vec<(usize, Binding)>,
 }
 pub struct Executor {
+    publication: crate::change_batch::Publication,
     range_index: Option<crate::range_index::RangeIndex>,
 
     dedup_rows: u64,
@@ -225,6 +226,7 @@ impl Executor {
         graph.receipt_tracking =
             (stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
+            publication: Default::default(),
             range_index: Some(Default::default()),
 
             dedup_rows: 0,
@@ -1958,22 +1960,16 @@ impl Executor {
         let repair_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.stage_spine.publish(&mut self.graph)?;
-        self.entry_schedule.publish(&self.graph);
+        self.entry_schedule.publish_headers(&self.graph);
         self.graph.receipt_forwards.clear();
-        if let Some(index) = &mut self.range_index {
-            index.update(&self.graph)?;
-        }
-        {
-            {
-                self.query_indexes
-                    .update_with(&self.graph, |table, fact, row| {
-                        self.neighbor.changed(table, fact, row)
-                    })?;
-                self.neighbor
-                    .finish_publication(&self.graph, |t| self.query_indexes.has_table(t));
-            }
-            self.sieve.publish(&mut self.query_indexes);
-        }
+        self.publication.publish(
+            &self.graph,
+            &mut self.query_indexes,
+            self.range_index.as_mut(),
+            &mut self.neighbor,
+            &mut self.entry_schedule,
+        )?;
+        self.sieve.publish(&mut self.query_indexes);
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.deliver();
@@ -2124,7 +2120,7 @@ impl Executor {
     pub fn report(&self) -> J {
         json!({"backend":"cell-cpu","scope":"standalone Cell recipe executor","status":if self.tasks.is_empty(){"complete"}else{"checkpointed"},
             "stats":self.graph.stats,"live_cells":self.graph.cells.len(),"steps":self.steps,"program_sha256":self.graph.program.artifact["sha256"],
-            "publication":{"row_reads":self.query_indexes.publication_reads + self.range_index.as_ref().map_or(0,|index|index.stats.update_rows)},
+            "publication":self.publication,
             "entry_schedule":self.entry_schedule.report(),"free_join":self.free_join.stats,"sieve":self.sieve.report(),"neighbor_context":self.neighbor.report(&self.graph.program),
             "local_context":self.local_context.report(&self.graph.program),"stage_spine":self.stage_spine.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),
             "multi_stage":{"stats":self.continuation_stats},"physical":{"range":self.range_index.as_ref().map(|r|&r.stats)}})

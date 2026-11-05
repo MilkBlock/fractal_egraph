@@ -134,8 +134,35 @@ pub struct QueryIndexes {
     pub peak_references: usize,
     pub decoded_facts: u64,
     pub updated_facts: u64,
-    pub(crate) publication_reads: u64,
     pub builds: u64,
+}
+pub(crate) struct ColumnWriter<'a> {
+    table: usize,
+    index: &'a mut Columns,
+    bits: u32,
+    references: &'a mut usize,
+    updated: &'a mut u64,
+    changes: Option<&'a mut Vec<(Dependency, usize)>>,
+}
+impl ColumnWriter<'_> {
+    pub fn finish(self, version: u64) {
+        self.index.version = version;
+    }
+
+    pub fn update(&mut self, witness: Dependency, row: Option<&Row>) {
+        let (removed, added) = if let Some(row) = row {
+            *self.updated += 1;
+            self.index.put(row, self.bits, self.index.leased_reads)
+        } else {
+            (self.index.remove(witness), 0)
+        };
+        if added > 0
+            && let Some(changes) = &mut self.changes
+        {
+            changes.push((witness, self.table));
+        }
+        *self.references = *self.references - removed + added;
+    }
 }
 pub enum Domain {
     Empty,
@@ -175,7 +202,6 @@ impl Default for QueryIndexes {
             peak_references: 0,
             decoded_facts: 0,
             updated_facts: 0,
-            publication_reads: 0,
             builds: 0,
         }
     }
@@ -276,49 +302,39 @@ impl QueryIndexes {
             }
         });
     }
-    pub(crate) fn has_table(&self, table: usize) -> bool {
-        self.tables.contains_key(&table)
-    }
     pub fn update(&mut self, graph: &mut Graph) -> Result<()> {
-        self.update_with(graph, |_, _, _| {})
-    }
-    pub(crate) fn update_with(
-        &mut self,
-        graph: &Graph,
-        mut publish: impl FnMut(usize, Dependency, Option<&Row>),
-    ) -> Result<()> {
-        if !graph.changes.is_empty() {
-            self.revision += 1;
-        }
-        // Collapse all writes/union repairs within a Run to the final visible row.
+        self.begin_publication(graph);
         for (table, changes) in graph.changes.tables() {
-            if let Some(index) = self.tables.get_mut(&table) {
-                self.publication_reads += changes.len() as u64;
-                for &fact in changes.keys() {
-                    let row = graph.row(fact)?;
-                    publish(table, fact, row.as_ref());
-                    let (removed, added) = if let Some(row) = &row {
-                        self.updated_facts += 1;
-                        index.put(row, self.bits, index.leased_reads)
-                    } else {
-                        (index.remove(fact), 0)
-                    };
-                    // The index already decoded this committed row. Move its payload
-                    // into the publication batch, instead of decoding it again in
-                    // each subscribed context. Cleared after the current publication.
-
-                    if self.track_changes && added > 0 {
-                        self.changes.push((fact, table));
-                    }
-                    self.references = self.references - removed + added;
+            if let Some(mut writer) = self.writer(table) {
+                for (&w, change) in changes {
+                    let row = change.row(graph, w)?;
+                    writer.update(w, row.as_ref());
                 }
+                writer.finish(graph.query_versions[table]);
             }
         }
-        for (table, index) in &mut self.tables {
-            index.version = graph.query_versions[*table];
-        }
-        self.peak_references = self.peak_references.max(self.references);
+        self.finish_publication();
         Ok(())
+    }
+
+    pub(crate) fn begin_publication(&mut self, g: &Graph) {
+        self.revision += u64::from(!g.changes.is_empty());
+    }
+
+    pub(crate) fn writer(&mut self, table: usize) -> Option<ColumnWriter<'_>> {
+        let index = self.tables.get_mut(&table)?;
+        Some(ColumnWriter {
+            table,
+            index,
+            bits: self.bits,
+            references: &mut self.references,
+            updated: &mut self.updated_facts,
+            changes: self.track_changes.then_some(&mut self.changes),
+        })
+    }
+
+    pub(crate) fn finish_publication(&mut self) {
+        self.peak_references = self.peak_references.max(self.references);
     }
     pub(crate) fn ensure(&mut self, graph: &Graph, table: usize) -> Result<()> {
         if self

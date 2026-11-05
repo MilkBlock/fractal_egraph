@@ -211,9 +211,13 @@ impl Context {
         }
         Ok(row)
     }
-    /// Consume the indexer's final committed row. A missing key already in
-    /// the demand set must also see an insertion. Coalesced notifications can
-    /// arrive in either order when a new witness replaces an old one.
+    pub(crate) fn observes(&self, t: usize) -> bool {
+        self.ports[t]
+            .as_ref()
+            .is_some_and(|cache| !cache.rows.is_empty())
+    }
+    /// A demanded but absent key must see an insertion. Replacement and
+    /// retirement can arrive in either order after same-key coalescence.
     pub fn changed(&mut self, t: usize, fact: Dependency, row: Option<&Row>) {
         let Some(cache) = self.ports[t].as_mut() else {
             return;
@@ -251,18 +255,13 @@ impl Context {
             self.published.nanoseconds += clock.elapsed().as_nanos() as u64;
         }
     }
-    pub fn finish_publication(&mut self, g: &Graph, mut observed: impl FnMut(usize) -> bool) {
+    pub fn finish_publication(&mut self, g: &Graph) {
         if self.subscribed.is_empty() {
             return;
         }
         let clock = self.profiling.then(Instant::now);
         for &t in &self.subscribed {
             let cache = self.ports[t].as_mut().unwrap();
-            if !observed(t) && cache.version != g.query_versions[t] {
-                cache.rows.clear();
-                cache.keys.clear();
-                self.published.cleared += 1;
-            }
             cache.version = g.query_versions[t];
         }
         if let Some(clock) = clock {

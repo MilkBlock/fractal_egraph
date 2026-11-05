@@ -94,25 +94,24 @@ pub(crate) struct RangeIndex {
     pub stats: Stats,
 }
 impl RangeIndex {
-    pub fn update(&mut self, g: &Graph) -> Result<()> {
-        if self.tables.is_empty() || g.changes.is_empty() {
-            return Ok(());
-        }
+    pub(crate) fn observes(&self, table: usize) -> bool {
+        self.tables.contains_key(&table)
+    }
+
+    pub(crate) fn update_row(
+        &mut self,
+        t: usize,
+        version: u64,
+        witness: Dependency,
+        row: Option<&Row>,
+    ) -> Result<()> {
         let clock = Instant::now();
-        for (t, changes) in g.changes.tables() {
-            let Some(table) = self.tables.get_mut(&t) else {
-                continue;
-            };
-            for &w in changes.keys() {
-                let row = g.row(w)?;
-                self.stats.update_rows += 1;
-                for (&(prefix, column), axis) in &mut table.axes {
-                    self.stats.changed_entries +=
-                        u64::from(axis.update(w, row.as_ref(), prefix, column)?);
-                }
-            }
-            table.version = g.query_versions[t];
+        let table = self.tables.get_mut(&t).expect("subscribed range table");
+        self.stats.update_rows += 1;
+        for (&(prefix, column), axis) in &mut table.axes {
+            self.stats.changed_entries += u64::from(axis.update(witness, row, prefix, column)?);
         }
+        table.version = version;
         self.stats.maintenance_ns += clock.elapsed().as_nanos() as u64;
         Ok(())
     }

@@ -65,6 +65,78 @@ impl ChangeBatch {
     }
 }
 
+impl Change {
+    pub fn row(
+        &self,
+        graph: &crate::graph::Graph,
+        w: Dependency,
+    ) -> crate::program::Result<Option<crate::graph::Row>> {
+        if *self == Change::Wake {
+            graph.row(w)
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+#[derive(Default, serde::Serialize)]
+pub(crate) struct Publication {
+    row_reads: u64,
+    headers: u64,
+    header_only: u64,
+    column_rows: u64,
+    range_rows: u64,
+    neighbor_rows: u64,
+}
+impl Publication {
+    pub fn publish(
+        &mut self,
+        g: &crate::graph::Graph,
+        columns: &mut crate::query::QueryIndexes,
+        mut ranges: Option<&mut crate::range_index::RangeIndex>,
+        neighbor: &mut crate::neighbor::Context,
+        entry: &mut crate::entry_schedule::Scheduler,
+    ) -> crate::program::Result<()> {
+        columns.begin_publication(g);
+        for (t, changes) in g.changes.tables() {
+            let count = changes.len() as u64;
+            self.headers += count;
+            let version = g.query_versions[t];
+            let mut writer = columns.writer(t);
+            let mut range = ranges.as_deref_mut().filter(|r| r.observes(t));
+            let neighbors = neighbor.observes(t);
+            if writer.is_none() && range.is_none() && !neighbors {
+                self.header_only += count;
+                continue;
+            }
+            self.column_rows += count * u64::from(writer.is_some());
+            self.range_rows += count * u64::from(range.is_some());
+            self.neighbor_rows += count * u64::from(neighbors);
+            for (&w, change) in changes {
+                let row = change.row(g, w)?;
+                self.row_reads += u64::from(*change == Change::Wake);
+                let row = row.as_ref();
+                if let Some(writer) = &mut writer {
+                    writer.update(w, row);
+                }
+                if let Some(range) = &mut range {
+                    range.update_row(t, version, w, row)?;
+                }
+                if neighbors {
+                    neighbor.changed(t, w, row);
+                }
+                entry.offer(w, row);
+            }
+            if let Some(writer) = writer {
+                writer.finish(version);
+            }
+        }
+        columns.finish_publication();
+        neighbor.finish_publication(g);
+        entry.finish_publication();
+        Ok(())
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
