@@ -17,6 +17,7 @@ name = "cell"
 harness = false
 
 [features]
+receipt-slots = ["structural-depth","eggfuse-cell-runtime/receipt-slots"]
 structural-depth = ["eggfuse-cell-runtime/structural-depth"]
 view-storage = ["eggfuse-cell-runtime/view-storage"]
 view-consumers = ["view-storage", "eggfuse-cell-runtime/view-consumers"]

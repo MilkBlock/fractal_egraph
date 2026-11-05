@@ -164,13 +164,13 @@ impl Focus {
     pub fn has_rule(&self, r: usize) -> bool {
         !self.rules[r].is_empty()
     }
-    pub fn capture(
+    pub fn capture<'a>(
         &self,
         g: &Graph,
         r: usize,
         known: &QueryFacts,
         effects: &[Option<Dependency>],
-        live: &Map<Dependency, Packet>,
+        read: impl Fn(Dependency) -> Option<&'a Packet>,
         mut emit: impl FnMut(Dependency, usize, Packet),
     ) {
         let receipt = |s| Depth::source(g, r, s, known, effects);
@@ -195,7 +195,7 @@ impl Focus {
                     packet.ports.len() == BUDGET
                 };
                 if let Some(suffix) = c.suffix {
-                    if let Some(prev) = live.get(&src)
+                    if let Some(prev) = read(src)
                         && prev
                             .ports
                             .iter()

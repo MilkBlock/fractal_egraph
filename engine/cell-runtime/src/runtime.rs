@@ -2361,7 +2361,7 @@ impl Executor {
         let phase = Instant::now();
         self.stage_spine.publish(&mut self.graph)?;
         #[cfg(feature = "structural-depth")]
-        self.stage_spine.structural.publish(&self.graph);
+        self.stage_spine.structural.publish(&mut self.graph)?;
         #[cfg(feature = "view-consumers")]
         self.entry_schedule
             .publish_except(&self.graph, |t| self.blocks.dedicated(t));

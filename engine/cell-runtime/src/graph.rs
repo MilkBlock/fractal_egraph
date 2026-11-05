@@ -17,6 +17,9 @@ pub struct FactRef {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FactState {
+    #[cfg(feature = "receipt-slots")]
+    #[serde(skip)]
+    port_slot: u32,
     // Canonicalized on read, like an explicit Unit-function key. Reconstructed
     // from the checked recipe on checkpoint restore; never trusted serialized data.
 
@@ -50,6 +53,9 @@ pub struct Cell {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Function {
+    #[cfg(feature = "receipt-slots")]
+    #[serde(skip)]
+    port_slot: u32,
     #[serde(skip)]
     decoded: Option<std::rc::Rc<Vec<Value>>>,
     pub table: usize,
@@ -177,6 +183,8 @@ pub struct Graph {
     pub next_cell: u32,
     pub query_versions: Vec<u64>,
     // Transient commit-boundary receipts, never part of a checkpoint.
+    #[cfg(feature = "receipt-slots")]
+    pub(crate) retired_port_slots: HashMap<Dependency, u32>,
     pub receipt_tracking: bool,
     pub receipt_forwards: HashMap<Dependency, Dependency>,
 
@@ -202,6 +210,42 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
     h.finish()
 }
 impl Graph {
+    #[cfg(feature = "receipt-slots")]
+    pub(crate) fn current_port_slot(&self, w: Dependency) -> Option<u32> {
+        match w {
+            Dependency::Fact(f) => self
+                .cells
+                .get(&f.cell)?
+                .facts
+                .get(&f.op)
+                .map(|f| f.port_slot),
+            Dependency::Function(i) => self.functions.get(i).map(|f| f.port_slot),
+        }
+    }
+    #[cfg(feature = "receipt-slots")]
+    pub(crate) fn previous_port_slot(&self, w: Dependency) -> u32 {
+        let id = self.current_port_slot(w).unwrap_or(0);
+        if id == 0 && !self.retired_port_slots.is_empty() {
+            self.retired_port_slots.get(&w).copied().unwrap_or(0)
+        } else {
+            id
+        }
+    }
+    #[cfg(feature = "receipt-slots")]
+    pub(crate) fn set_port_slot(&mut self, w: Dependency, id: u32) {
+        match w {
+            Dependency::Fact(f) => {
+                self.cells
+                    .get_mut(&f.cell)
+                    .unwrap()
+                    .facts
+                    .get_mut(&f.op)
+                    .unwrap()
+                    .port_slot = id
+            }
+            Dependency::Function(i) => self.functions[i].port_slot = id,
+        }
+    }
     /// Follow only storage relocation and proved same-key coalescence in this
     /// commit. Equal result classes alone never establish a row receipt.
     /// A receipt's key was checked by its query/action. Keys only change by
@@ -284,6 +328,8 @@ impl Graph {
             next_cell: 1,
             query_versions: vec![0; n],
             receipt_tracking: false,
+            #[cfg(feature = "receipt-slots")]
+            retired_port_slots: HashMap::default(),
             receipt_forwards: HashMap::default(),
 
             operators: vec![BTreeSet::new(); n],
@@ -978,6 +1024,8 @@ impl Graph {
         self.cells.get_mut(&f.cell).unwrap().facts.insert(
             f.op,
             FactState {
+                #[cfg(feature = "receipt-slots")]
+                port_slot: 0,
                 decoded: Some((t, vs.clone())),
 
                 entry: None,
@@ -1666,6 +1714,8 @@ impl Graph {
                 (key.to_vec(), Some(Self::shared_fields(key, &value)))
             };
             self.functions.push(Function {
+                #[cfg(feature = "receipt-slots")]
+                port_slot: 0,
                 decoded,
                 table: t,
                 key: stored_key,
@@ -1699,6 +1749,11 @@ impl Graph {
                 .facts
                 .remove(&f.op)
                 .unwrap();
+            #[cfg(feature = "receipt-slots")]
+            if s.port_slot != 0 {
+                self.retired_port_slots
+                    .insert(Dependency::Fact(f), s.port_slot);
+            }
             self.operators[r.table].remove(&f);
             if let Some(b) = self.intern.get_mut(&s.hash) {
                 b.remove(&f);
@@ -1739,6 +1794,11 @@ impl Graph {
                         .unwrap();
                     if !s.hidden {
                         self.query_versions[t] += 1;
+                        #[cfg(feature = "receipt-slots")]
+                        if s.port_slot != 0 {
+                            self.retired_port_slots
+                                .insert(row.witness, std::mem::take(&mut s.port_slot));
+                        }
                         s.hidden = true;
                         s.epoch = self.epoch;
                         self.changed = true;
@@ -1750,6 +1810,13 @@ impl Graph {
             Dependency::Function(i) => {
                 if !delete {
                     return Err("function subsume unsupported".into());
+                }
+                #[cfg(feature = "receipt-slots")]
+                if self.functions[i].port_slot != 0 {
+                    self.retired_port_slots.insert(
+                        Dependency::Function(i),
+                        std::mem::take(&mut self.functions[i].port_slot),
+                    );
                 }
                 self.functions[i].live = false;
                 self.changes.retire(t, row.witness);
@@ -1828,6 +1895,11 @@ impl Graph {
                                 .facts
                                 .get_mut(&keep.op)
                                 .unwrap();
+                            #[cfg(feature = "receipt-slots")]
+                            if r.hidden && target.port_slot != 0 {
+                                self.retired_port_slots
+                                    .insert(other.witness, std::mem::take(&mut target.port_slot));
+                            }
                             target.hidden |= r.hidden;
                             target.epoch = self.epoch;
                             self.changes.touch(r.table, other.witness);
@@ -1905,6 +1977,13 @@ impl Graph {
                                 self.functions[j].value = next;
                             }
                             self.functions[j].epoch = self.epoch;
+                            #[cfg(feature = "receipt-slots")]
+                            if self.functions[i].port_slot != 0 {
+                                self.retired_port_slots.insert(
+                                    Dependency::Function(i),
+                                    std::mem::take(&mut self.functions[i].port_slot),
+                                );
+                            }
                             self.functions[i].live = false;
                             self.changes.retire(row.table, d);
                             if self.receipt_tracking {

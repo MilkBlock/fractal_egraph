@@ -11,19 +11,63 @@ use crate::{
 use rustc_hash::FxHashMap as Map;
 #[path = "depth_focus.rs"]
 mod focus;
+#[cfg(feature = "receipt-slots")]
+#[path = "receipt_slots.rs"]
+mod receipt_slots;
 use serde::Serialize;
 use smallvec::SmallVec;
 use std::{collections::BTreeMap, rc::Rc, time::Instant};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Port {
     w: Dependency,
     t: usize,
     path: Path,
 }
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct Packet {
     ports: SmallVec<[Port; 4]>,
+}
+/// Compare the ordered slots proposed by a producer with the previous
+/// proposal for this raw anchor, or its last sealed value. Post-repair
+/// winners have a separate census so neither count implies a graph mutation.
+#[derive(Default, Serialize)]
+struct SlotChanges {
+    empty_again: u64,
+    same_nonempty: u64,
+    install: u64,
+    replace: u64,
+    clear: u64,
+    refs_added: u64,
+    refs_removed: u64,
+    reordered: u64,
+}
+impl SlotChanges {
+    fn observe(&mut self, old: &[Port], new: &[Port]) {
+        match (old.is_empty(), new.is_empty()) {
+            (true, true) => self.empty_again += 1,
+            (true, false) => self.install += 1,
+            (false, true) => self.clear += 1,
+            (false, false) if old == new => self.same_nonempty += 1,
+            _ => self.replace += 1,
+        }
+        if old != new {
+            let added = new.iter().filter(|v| !old.contains(v)).count() as u64;
+            let removed = old.iter().filter(|v| !new.contains(v)).count() as u64;
+            self.refs_added += added;
+            self.refs_removed += removed;
+            self.reordered += u64::from(added == 0 && removed == 0);
+        }
+    }
+}
+#[derive(Default, Serialize)]
+struct PortCensus {
+    proposal: SlotChanges,
+    sealed: SlotChanges,
+    overwritten: u64,
+    redirected: u64,
+    collisions: u64,
+    retired_nonempty: u64,
 }
 #[derive(Default, Serialize)]
 pub(crate) struct Stats {
@@ -51,6 +95,7 @@ pub(crate) struct Stats {
     saturated_packets: u64,
     missing_query_receipts: u64,
     oracle_owner_reads: u64,
+    census: PortCensus,
     capture_ns: u64,
     publish_ns: u64,
 }
@@ -83,6 +128,8 @@ pub(crate) struct Depth {
     plan: Rc<Plan>,
     live: Map<Dependency, Packet>,
     pending: Map<Dependency, (usize, u64, Packet)>,
+    #[cfg(feature = "receipt-slots")]
+    slots: receipt_slots::Slots,
     serial: u64,
     live_refs: usize,
     stats: Stats,
@@ -100,6 +147,8 @@ impl Depth {
             plan: p.depth_plan.clone(),
             live: Default::default(),
             pending: Default::default(),
+            #[cfg(feature = "receipt-slots")]
+            slots: Default::default(),
             serial: 0,
             live_refs: 0,
             stats: Default::default(),
@@ -172,12 +221,32 @@ impl Depth {
         }
         let clock = self.profile.then(Instant::now);
         if let Some(focus) = &self.focus {
-            focus.capture(g, r, known, effect, &self.live, |anchor, table, packet| {
-                self.serial += 1;
-                self.stats.captured += 1;
-                self.stats.saturated_packets += u64::from(packet.ports.len() == BUDGET);
-                self.pending.insert(anchor, (table, self.serial, packet));
-            });
+            #[cfg(feature = "receipt-slots")]
+            self.slots
+                .capture(g, focus, r, known, effect, &mut self.stats, self.profile);
+            #[cfg(not(feature = "receipt-slots"))]
+            focus.capture(
+                g,
+                r,
+                known,
+                effect,
+                |w| self.live.get(&w),
+                |anchor, table, packet| {
+                    self.serial += 1;
+                    self.stats.captured += 1;
+                    self.stats.saturated_packets += u64::from(packet.ports.len() == BUDGET);
+                    if self.profile {
+                        let prior = self.pending.get(&anchor);
+                        self.stats.census.overwritten += u64::from(prior.is_some());
+                        let old = prior.map(|x| &x.2).or_else(|| self.live.get(&anchor));
+                        self.stats
+                            .census
+                            .proposal
+                            .observe(old.map_or(&[], |p| p.ports.as_slice()), &packet.ports);
+                    }
+                    self.pending.insert(anchor, (table, self.serial, packet));
+                },
+            );
             if let Some(t) = clock {
                 self.stats.capture_ns += t.elapsed().as_nanos() as u64;
             }
@@ -244,16 +313,27 @@ impl Depth {
             self.stats.capture_ns += t.elapsed().as_nanos() as u64;
         }
     }
-    pub fn publish(&mut self, g: &Graph) {
+    pub fn publish(&mut self, g: &mut Graph) -> Result<()> {
         if self.depth == 0 {
-            return;
+            return Ok(());
         }
         let clock = self.profile.then(Instant::now);
+        #[cfg(feature = "receipt-slots")]
+        if self.focus.is_some() {
+            self.slots.publish(g, &mut self.stats, self.profile)?;
+            if let Some(t) = clock {
+                self.stats.publish_ns += t.elapsed().as_nanos() as u64;
+            }
+            return Ok(());
+        }
         for (t, changes) in g.changes.tables() {
             for w in changes.keys() {
                 if !g.receipt_visible(*w, t)
                     && let Some(old) = self.live.remove(w)
                 {
+                    if self.profile {
+                        self.stats.census.retired_nonempty += 1;
+                    }
                     self.live_refs -= old.ports.len();
                 }
             }
@@ -271,12 +351,22 @@ impl Depth {
                 port.w = g.resolve_receipt(port.w);
             }
             p.ports.retain(|a| a.w != w && g.receipt_visible(a.w, a.t));
+            if self.profile {
+                self.stats.census.redirected += u64::from(w != raw);
+                self.stats.census.collisions += u64::from(winners.contains_key(&w));
+            }
             let choice = winners.entry(w).or_insert((0, Packet::default()));
             if ordinal > choice.0 {
                 *choice = (ordinal, p);
             }
         }
         for (w, (_, p)) in winners {
+            if self.profile {
+                self.stats.census.sealed.observe(
+                    self.live.get(&w).map_or(&[], |p| p.ports.as_slice()),
+                    &p.ports,
+                );
+            }
             if let Some(old) = self.live.remove(&w) {
                 self.live_refs -= old.ports.len();
             }
@@ -294,6 +384,7 @@ impl Depth {
         if let Some(t) = clock {
             self.stats.publish_ns += t.elapsed().as_nanos() as u64;
         }
+        Ok(())
     }
     fn supplied(
         &self,
@@ -310,7 +401,15 @@ impl Depth {
         } else {
             None
         };
-        if let Some(p) = self.live.get(&anchor) {
+        #[cfg(feature = "receipt-slots")]
+        let packet = if self.focus.is_some() {
+            self.slots.get(g, anchor)
+        } else {
+            self.live.get(&anchor)
+        };
+        #[cfg(not(feature = "receipt-slots"))]
+        let packet = self.live.get(&anchor);
+        if let Some(p) = packet {
             for donor in p
                 .ports
                 .iter()
@@ -785,7 +884,11 @@ impl Depth {
         }
     }
     pub fn report(&self, p: &Program) -> serde_json::Value {
-        serde_json::json!({"depth":self.depth,"budget":BUDGET,"survey":self.survey,"execute":self.execute,"capped_recipes":self.plan.capped_recipes,
+        #[cfg(feature = "receipt-slots")]
+        let slots = serde_json::json!(&self.slots.metrics);
+        #[cfg(not(feature = "receipt-slots"))]
+        let slots = serde_json::Value::Null;
+        serde_json::json!({"receipt_slots":slots,"depth":self.depth,"budget":BUDGET,"survey":self.survey,"execute":self.execute,"capped_recipes":self.plan.capped_recipes,
             "catalog":self.survey.then(||focus::Catalog::rank(self,p)), "catalog_requested_matched":self.focus.as_ref().map(|f|[f.requested,f.matched]),"stats":self.stats,"edges":self.plan.edges,"shapes":self.shapes.iter().map(|(k,n)|(k,n)).collect::<Vec<_>>(),"by_rule":self.by_rule.iter().collect::<Vec<_>>()})
     }
 }

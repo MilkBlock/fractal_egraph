@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+receipt-slots = ["structural-depth"]
 structural-depth = ["iterative-bake"]
 family-survey = []
 family-scan = ["family-survey"]
