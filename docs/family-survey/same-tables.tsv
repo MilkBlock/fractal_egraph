@@ -1,0 +1,133 @@
+case	id	rules	samples	set	tables	whole_search_ceiling_ms	windows
+sum-bits	always-run/[329]	[137,138]	3	always-run	"[""SubTuple""]"	0.320923	45.0
+sum-bits	always-run/[223]	[58,143]	3	always-run	"[""Get""]"	0.214918	26.0
+sum-bits	always-run/[27, 178]	[119,120]	3	always-run	"[""Bop"",""ContextOf""]"	0.154297	36.0
+sum-bits	type-analysis/[170, 227]	[522,523]	3	type-analysis	"[""Concat"",""HasArgType""]"	0.13517	31.0
+sum-bits	always-run/[170, 178]	[123,124]	3	always-run	"[""Concat"",""ContextOf""]"	0.127958	34.0
+sum-bits	type-analysis/[27, 227]	[513,514]	3	type-analysis	"[""Bop"",""HasArgType""]"	0.108248	33.0
+sum-bits	type-helpers/[335, 359]	[576,577]	3	type-helpers	"[""TCons"",""TypeList-ith""]"	0.083415	22.0
+sum-bits	terms-helpers-helpers/[169, 334]	[509,510,511]	3	terms-helpers-helpers	"[""CellSpineView9"",""TCPair""]"	0.069712	84.0
+sum-bits	always-run/[178, 235]	[127,128]	3	always-run	"[""ContextOf"",""If""]"	0.044214	35.0
+sum-bits	drop/[139, 192]	[349,350]	3	drop	"[""CellSpineView11"",""DropAtInternal""]"	0.040039	13.0
+sum-bits	error-checking/[227, 228, 235]	[355,356]	3	error-checking	"[""HasArgType"",""HasType"",""If""]"	0.039456	9.0
+sum-bits	type-analysis/[227, 355]	[515,516,517]	3	type-analysis	"[""HasArgType"",""Top""]"	0.03392	31.0
+sum-bits	always-run/[235]	[51,69,85]	3	always-run	"[""If""]"	0.029665	8.0
+sum-bits	always-run/[178, 355]	[116,117,118]	3	always-run	"[""ContextOf"",""Top""]"	0.029549	34.0
+sum-bits	always-run/[357, 399]	[146,147]	3	always-run	"[""TupleRemoveAt"",""tuple-length""]"	0.02608	13.0
+sum-bits	cell-spine-complete/[177, 244]	[279,297,298,307]	3	cell-spine-complete	"[""Const"",""Int""]"	0.025835	3.0
+sum-bits	all-optimizations/[2, 27, 27, 328]	[21,22]	3	all-optimizations	"[""Add"",""Bop"",""Bop"",""Sub""]"	0.021959	2.0
+sum-bits	always-run/[170, 194]	[134,135]	3	always-run	"[""Concat"",""Empty""]"	0.021464	20.0
+sum-bits	always-run/[15]	[54,63,113,159]	3	always-run	"[""Arg""]"	0.014084	3.0
+sum-bits	error-checking/[18, 189, 228]	[366,368]	3	error-checking	"[""Base"",""DoWhile"",""HasType""]"	0.011457	7.0
+sum-bits	error-checking/[223, 228, 358, 360]	[362,363]	3	error-checking	"[""Get"",""HasType"",""TupleT"",""TypeList-length""]"	0.008249	8.0
+sum-bits	always-run/[177]	[100,114,149]	3	always-run	"[""Const""]"	0.008207	2.0
+sum-bits	type-helpers/[335, 361]	[580,581]	3	type-helpers	"[""TCons"",""TypeListRemoveAt""]"	0.007832	14.0
+sum-bits	always-run/[194]	[110,115,161]	3	always-run	"[""Empty""]"	0.006582	3.0
+sum-bits	interval-analysis/[27, 245, 245, 328, 387, 393]	[388,389]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""Sub"",""hi-bound"",""lo-bound""]"	0.004168	5.0
+sum-bits	cell-spine-complete/[223, 239]	[290,291,292]	3	cell-spine-complete	"[""Get"",""InIf""]"	0.003669	34.0
+sum-bits	always-run/[189]	[50,70,86]	3	always-run	"[""DoWhile""]"	0.003625	1.0
+sum-bits	interval-analysis/[27, 245, 245, 262, 387, 393]	[397,398]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""LessThan"",""hi-bound"",""lo-bound""]"	0.003375	5.0
+sum-bits	interval-analysis/[27, 245, 245, 276, 387, 387]	[391,394]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""Mul"",""hi-bound"",""hi-bound""]"	0.003124	5.0
+sum-bits	interval-analysis/[27, 245, 245, 276, 387, 393]	[392,395]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""Mul"",""hi-bound"",""lo-bound""]"	0.002749	5.0
+sum-bits	all-optimizations/[27, 147, 276]	[25,26]	3	all-optimizations	"[""Bop"",""CellSpineView19"",""Mul""]"	0.002666	2.0
+sum-bits	interval-analysis/[27, 245, 245, 276, 393, 393]	[393,396]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""Mul"",""lo-bound"",""lo-bound""]"	0.002249	5.0
+sum-bits	always-run/[12, 178]	[131,132]	3	always-run	"[""Alloc"",""ContextOf""]"	0.002247	32.0
+sum-bits	all-optimizations/[2, 27, 147]	[29,30]	3	all-optimizations	"[""Add"",""Bop"",""CellSpineView19""]"	0.001418	2.0
+sum-bits	error-checking/[18, 189, 228, 291]	[367,369]	3	error-checking	"[""Base"",""DoWhile"",""HasType"",""PointerT""]"	0.000916	7.0
+sum-bits	cell-spine-complete/[24, 177]	[280,299,300]	3	cell-spine-complete	"[""Bool"",""Const""]"	0.000584	3.0
+sum-bits	all-optimizations/[27, 140, 141, 144, 144, 235, 262]	[2,3]	3	all-optimizations	"[""Bop"",""CellSpineView12"",""CellSpineView13"",""CellSpineView16"",""CellSpineView16"",""If"",""LessThan""]"	0.000541	2.0
+sum-bits	all-optimizations/[27, 151, 289]	[37,38]	3	all-optimizations	"[""Bop"",""CellSpineView22"",""Or""]"	0.0005	2.0
+sum-bits	all-optimizations/[27, 149, 276]	[27,28]	3	all-optimizations	"[""Bop"",""CellSpineView20"",""Mul""]"	0.000459	2.0
+sum-bits	always-run/[333]	[44,52,68]	3	always-run	"[""Switch""]"	0.00025	1.0
+sum-bits	all-optimizations/[27, 150, 289]	[39,40]	3	all-optimizations	"[""Bop"",""CellSpineView21"",""Or""]"	0.000209	2.0
+sum-bits	always-run/[283]	[214,216,224]	3	always-run	"[""Nil-List<PtrPointees>""]"	0.000208	1.0
+sum-bits	all-optimizations/[13, 27, 150]	[33,34]	3	all-optimizations	"[""And"",""Bop"",""CellSpineView21""]"	0.000166	2.0
+sum-bits	mem-simple/[167, 355]	[451,452]	3	mem-simple	"[""CellSpineView7"",""Top""]"	0.000166	2.0
+sum-bits	all-optimizations/[13, 27, 151]	[35,36]	3	all-optimizations	"[""And"",""Bop"",""CellSpineView22""]"	0.000125	2.0
+sum-bits	always-run/[175, 175, 250]	[200,201,202]	3	always-run	"[""Cons-List<i64+IntInterval>"",""Cons-List<i64+IntInterval>"",""IntersectHelper-List<i64+IntInterval>""]"	0.000125	1.0
+sum-bits	always-run/[175, 175, 367]	[194,195,196]	3	always-run	"[""Cons-List<i64+IntInterval>"",""Cons-List<i64+IntInterval>"",""UnionHelper-List<i64+IntInterval>""]"	0.000125	1.0
+sum-bits	always-run/[242, 274]	[172,173]	3	always-run	"[""Infinity"",""MinIntOrInfinity""]"	0.000125	1.0
+sum-bits	always-run/[154, 229, 229]	[257,258]	3	always-run	"[""CellSpineView25"",""I"",""I""]"	8.4e-05	1.0
+sum-bits	always-run/[242, 273]	[165,166]	3	always-run	"[""Infinity"",""MaxIntOrInfinity""]"	8.4e-05	1.0
+sum-bits	always-run/[282]	[112,163]	3	always-run	"[""Nil""]"	8.4e-05	1.0
+sum-bits	cell-spine-complete/[10, 229]	[301,302]	3	cell-spine-complete	"[""AddIntOrInfinity"",""I""]"	8.4e-05	1.0
+sum-bits	always-run/[249, 294]	[210,211]	3	always-run	"[""Intersect-PtrPointees"",""PointsAnywhere""]"	8.3e-05	1.0
+sum-bits	always-run/[250, 284]	[198,199]	3	always-run	"[""IntersectHelper-List<i64+IntInterval>"",""Nil-List<i64+IntInterval>""]"	8.3e-05	1.0
+sum-bits	always-run/[284]	[180,182]	3	always-run	"[""Nil-List<i64+IntInterval>""]"	8.3e-05	1.0
+sum-bits	always-run/[294, 366]	[207,208]	3	always-run	"[""PointsAnywhere"",""Union-PtrPointees""]"	8.3e-05	1.0
+sum-bits	always-run/[175, 284, 367]	[192,193]	3	always-run	"[""Cons-List<i64+IntInterval>"",""Nil-List<i64+IntInterval>"",""UnionHelper-List<i64+IntInterval>""]"	4.2e-05	1.0
+sum-bits	always-run/[273, 281]	[167,168]	3	always-run	"[""MaxIntOrInfinity"",""NegInfinity""]"	4.2e-05	1.0
+sum-bits	always-run/[274, 281]	[170,171]	3	always-run	"[""MinIntOrInfinity"",""NegInfinity""]"	4.2e-05	1.0
+sum-bits	interval-analysis/[180, 385]	[384,385]	3	interval-analysis	"[""Dead"",""bound-min""]"	4.2e-05	1.0
+sum-bits	type-analysis/[136]	[556,570]	3	type-analysis	"[""CellSpineView0""]"	4.2e-05	1.0
+sum-bits	interval-analysis/[180, 384]	[382,383]	3	interval-analysis	"[""Dead"",""bound-max""]"	4.1e-05	1.0
+raytrace	terms-helpers-helpers/[169, 334]	[509,510,511]	3	terms-helpers-helpers	"[""CellSpineView9"",""TCPair""]"	62.723367	1572.0
+raytrace	always-run/[329]	[137,138]	3	always-run	"[""SubTuple""]"	39.161205	199.0
+raytrace	always-run/[223]	[58,143]	3	always-run	"[""Get""]"	31.431385	118.0
+raytrace	type-analysis/[170, 227]	[522,523]	3	type-analysis	"[""Concat"",""HasArgType""]"	30.349503	84.0
+raytrace	always-run/[170, 178]	[123,124]	3	always-run	"[""Concat"",""ContextOf""]"	26.117871	138.0
+raytrace	always-run/[178, 355]	[116,117,118]	3	always-run	"[""ContextOf"",""Top""]"	23.482507	135.0
+raytrace	type-analysis/[27, 227]	[513,514]	3	type-analysis	"[""Bop"",""HasArgType""]"	22.751572	83.0
+raytrace	always-run/[27, 178]	[119,120]	3	always-run	"[""Bop"",""ContextOf""]"	18.543662	140.0
+raytrace	type-helpers/[335, 359]	[576,577]	3	type-helpers	"[""TCons"",""TypeList-ith""]"	15.816576	351.0
+raytrace	type-analysis/[227, 355]	[515,516,517]	3	type-analysis	"[""HasArgType"",""Top""]"	9.010213	79.0
+raytrace	error-checking/[223, 228, 358, 360]	[362,363]	3	error-checking	"[""Get"",""HasType"",""TupleT"",""TypeList-length""]"	7.365083	27.0
+raytrace	error-checking/[18, 189, 228]	[366,368]	3	error-checking	"[""Base"",""DoWhile"",""HasType""]"	6.939174	25.0
+raytrace	cell-spine-complete/[177, 244]	[279,297,298,307]	3	cell-spine-complete	"[""Const"",""Int""]"	2.549922	24.0
+raytrace	always-run/[177]	[100,114,149]	3	always-run	"[""Const""]"	2.438085	18.0
+raytrace	always-run/[178, 235]	[127,128]	3	always-run	"[""ContextOf"",""If""]"	1.972585	136.0
+raytrace	always-run/[12, 178]	[131,132]	3	always-run	"[""Alloc"",""ContextOf""]"	1.899582	134.0
+raytrace	error-checking/[227, 228, 235]	[355,356]	3	error-checking	"[""HasArgType"",""HasType"",""If""]"	1.505449	26.0
+raytrace	error-checking/[18, 189, 228, 291]	[367,369]	3	error-checking	"[""Base"",""DoWhile"",""HasType"",""PointerT""]"	1.491791	25.0
+raytrace	mem-simple/[167, 355]	[451,452]	3	mem-simple	"[""CellSpineView7"",""Top""]"	1.033544	13.0
+raytrace	cell-spine-complete/[24, 177]	[280,299,300]	3	cell-spine-complete	"[""Bool"",""Const""]"	0.930335	24.0
+raytrace	interval-analysis/[27, 245, 245, 328, 387, 393]	[388,389]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""Sub"",""hi-bound"",""lo-bound""]"	0.926582	28.0
+raytrace	all-optimizations/[2, 27, 27, 328]	[21,22]	3	all-optimizations	"[""Add"",""Bop"",""Bop"",""Sub""]"	0.892417	2.0
+raytrace	all-optimizations/[13, 27, 150]	[33,34]	3	all-optimizations	"[""And"",""Bop"",""CellSpineView21""]"	0.83825	2.0
+raytrace	interval-analysis/[27, 245, 245, 262, 387, 393]	[397,398]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""LessThan"",""hi-bound"",""lo-bound""]"	0.744289	28.0
+raytrace	all-optimizations/[2, 27, 147]	[29,30]	3	all-optimizations	"[""Add"",""Bop"",""CellSpineView19""]"	0.731125	2.0
+raytrace	all-optimizations/[13, 27, 151]	[35,36]	3	all-optimizations	"[""And"",""Bop"",""CellSpineView22""]"	0.719583	2.0
+raytrace	all-optimizations/[27, 151, 289]	[37,38]	3	all-optimizations	"[""Bop"",""CellSpineView22"",""Or""]"	0.694708	2.0
+raytrace	all-optimizations/[27, 150, 289]	[39,40]	3	all-optimizations	"[""Bop"",""CellSpineView21"",""Or""]"	0.563833	2.0
+raytrace	always-run/[235]	[51,69,85]	3	always-run	"[""If""]"	0.549247	11.0
+raytrace	cheap-optimizations/[2, 27, 27, 328]	[21,22]	3	cheap-optimizations	"[""Add"",""Bop"",""Bop"",""Sub""]"	0.362085	4.0
+raytrace	all-optimizations/[27, 147, 276]	[25,26]	3	all-optimizations	"[""Bop"",""CellSpineView19"",""Mul""]"	0.229	2.0
+raytrace	cheap-optimizations/[2, 27, 147]	[29,30]	3	cheap-optimizations	"[""Add"",""Bop"",""CellSpineView19""]"	0.215876	4.0
+raytrace	always-run/[189]	[50,70,86]	3	always-run	"[""DoWhile""]"	0.181788	5.0
+raytrace	cheap-optimizations/[13, 27, 150]	[33,34]	3	cheap-optimizations	"[""And"",""Bop"",""CellSpineView21""]"	0.170252	4.0
+raytrace	cheap-optimizations/[27, 151, 289]	[37,38]	3	cheap-optimizations	"[""Bop"",""CellSpineView22"",""Or""]"	0.160709	4.0
+raytrace	always-run/[15]	[54,63,113,159]	3	always-run	"[""Arg""]"	0.160331	6.0
+raytrace	cheap-optimizations/[13, 27, 151]	[35,36]	3	cheap-optimizations	"[""And"",""Bop"",""CellSpineView22""]"	0.155626	4.0
+raytrace	cheap-optimizations/[27, 150, 289]	[39,40]	3	cheap-optimizations	"[""Bop"",""CellSpineView21"",""Or""]"	0.154417	4.0
+raytrace	interval-analysis/[27, 245, 245, 276, 387, 387]	[391,394]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""Mul"",""hi-bound"",""hi-bound""]"	0.144381	28.0
+raytrace	all-optimizations/[27, 149, 276]	[27,28]	3	all-optimizations	"[""Bop"",""CellSpineView20"",""Mul""]"	0.137876	2.0
+raytrace	interval-analysis/[27, 245, 245, 276, 387, 393]	[392,395]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""Mul"",""hi-bound"",""lo-bound""]"	0.084959	28.0
+raytrace	interval-analysis/[27, 245, 245, 276, 393, 393]	[393,396]	3	interval-analysis	"[""Bop"",""IntB"",""IntB"",""Mul"",""lo-bound"",""lo-bound""]"	0.084124	28.0
+raytrace	always-run/[170, 194]	[134,135]	3	always-run	"[""Concat"",""Empty""]"	0.0815	87.0
+raytrace	always-run/[357, 399]	[146,147]	3	always-run	"[""TupleRemoveAt"",""tuple-length""]"	0.052253	39.0
+raytrace	drop/[139, 192]	[349,350]	3	drop	"[""CellSpineView11"",""DropAtInternal""]"	0.040499	14.0
+raytrace	type-helpers/[335, 361]	[580,581]	3	type-helpers	"[""TCons"",""TypeListRemoveAt""]"	0.030744	296.0
+raytrace	cell-spine-complete/[223, 239]	[290,291,292]	3	cell-spine-complete	"[""Get"",""InIf""]"	0.030599	137.0
+raytrace	always-run/[194]	[110,115,161]	3	always-run	"[""Empty""]"	0.011794	3.0
+raytrace	cheap-optimizations/[27, 147, 276]	[25,26]	3	cheap-optimizations	"[""Bop"",""CellSpineView19"",""Mul""]"	0.001876	4.0
+raytrace	cheap-optimizations/[27, 149, 276]	[27,28]	3	cheap-optimizations	"[""Bop"",""CellSpineView20"",""Mul""]"	0.001375	4.0
+raytrace	always-run/[333]	[44,52,68]	3	always-run	"[""Switch""]"	0.001001	1.0
+raytrace	all-optimizations/[27, 140, 141, 144, 144, 235, 262]	[2,3]	3	all-optimizations	"[""Bop"",""CellSpineView12"",""CellSpineView13"",""CellSpineView16"",""CellSpineView16"",""If"",""LessThan""]"	0.000626	2.0
+raytrace	always-run/[175, 175, 367]	[194,195,196]	3	always-run	"[""Cons-List<i64+IntInterval>"",""Cons-List<i64+IntInterval>"",""UnionHelper-List<i64+IntInterval>""]"	0.000375	1.0
+raytrace	always-run/[283]	[214,216,224]	3	always-run	"[""Nil-List<PtrPointees>""]"	0.000333	1.0
+raytrace	always-run/[175, 175, 250]	[200,201,202]	3	always-run	"[""Cons-List<i64+IntInterval>"",""Cons-List<i64+IntInterval>"",""IntersectHelper-List<i64+IntInterval>""]"	0.000291	1.0
+raytrace	always-run/[154, 229, 229]	[257,258]	3	always-run	"[""CellSpineView25"",""I"",""I""]"	0.00025	1.0
+raytrace	always-run/[175, 284, 367]	[192,193]	3	always-run	"[""Cons-List<i64+IntInterval>"",""Nil-List<i64+IntInterval>"",""UnionHelper-List<i64+IntInterval>""]"	0.00025	1.0
+raytrace	always-run/[249, 294]	[210,211]	3	always-run	"[""Intersect-PtrPointees"",""PointsAnywhere""]"	0.00025	1.0
+raytrace	always-run/[274, 281]	[170,171]	3	always-run	"[""MinIntOrInfinity"",""NegInfinity""]"	0.00025	1.0
+raytrace	always-run/[282]	[112,163]	3	always-run	"[""Nil""]"	0.00025	1.0
+raytrace	always-run/[294, 366]	[207,208]	3	always-run	"[""PointsAnywhere"",""Union-PtrPointees""]"	0.00025	1.0
+raytrace	cell-spine-complete/[10, 229]	[301,302]	3	cell-spine-complete	"[""AddIntOrInfinity"",""I""]"	0.00025	1.0
+raytrace	interval-analysis/[180, 384]	[382,383]	3	interval-analysis	"[""Dead"",""bound-max""]"	0.00025	1.0
+raytrace	interval-analysis/[180, 385]	[384,385]	3	interval-analysis	"[""Dead"",""bound-min""]"	0.00025	1.0
+raytrace	always-run/[242, 274]	[172,173]	3	always-run	"[""Infinity"",""MinIntOrInfinity""]"	0.000208	1.0
+raytrace	always-run/[250, 284]	[198,199]	3	always-run	"[""IntersectHelper-List<i64+IntInterval>"",""Nil-List<i64+IntInterval>""]"	0.000208	1.0
+raytrace	always-run/[284]	[180,182]	3	always-run	"[""Nil-List<i64+IntInterval>""]"	0.000208	1.0
+raytrace	type-analysis/[136]	[556,570]	3	type-analysis	"[""CellSpineView0""]"	0.000166	1.0
+raytrace	always-run/[242, 273]	[165,166]	3	always-run	"[""Infinity"",""MaxIntOrInfinity""]"	8.3e-05	1.0
+raytrace	always-run/[273, 281]	[167,168]	3	always-run	"[""MaxIntOrInfinity"",""NegInfinity""]"	4.2e-05	1.0
