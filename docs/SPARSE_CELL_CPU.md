@@ -267,3 +267,18 @@ The clean snapshot passed all 23 all-feature runtime tests and both workload aud
 | Raytrace | 12.220 / 6.210 s | 16.352 / 9.595 s | 2,908.03 / 1,984.52 MiB | 6,916,788 / 6,798,165 | 2.175× | 1.968× |
 
 All measured Raytrace candidate times were 6.202–6.257 s; sum-bits was 17.058–18.039 ms. Its median requires another 0.3805 ms reduction to reach 16.8375 ms. CLI includes loading, reporting and exporting, including the slower complete CLI for both Raytrace arms in this session.
+
+### Recheck with the SHA-verified original binary, b113bce0
+
+The control exactly matched the archived SHA-256 for c8ee1a3f. Comparing its archived runtime source against that commit showed just the CLI RSS/report sampling and dependency declaration, with the inference elapsed time sampled before peak RSS. Both optimized arms used the same source and frozen catalogs. The enriched arm increased LLVM's capacity for value-profile counters during the opposite-workload training build. The training logs went from 20 counter-capacity warnings to zero. The timed executable still runs one CPU thread and does not collect profiles.
+
+| Case and arm | Inference median | CLI median | Peak RSS | Visits | Fixed speedup | Paired verified-original ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits original | 30.715 ms | 127.133 ms | 161.16 MiB | 18,730 | — | — |
+| sum-bits regular PGO | 17.637 ms | 98.464 ms | 152.94 MiB | 18,693 | 1.909× | 1.742× |
+| sum-bits enriched PGO | 17.086 ms | 97.020 ms | 152.94 MiB | 18,693 | 1.971× | 1.798× |
+| Raytrace original | 11.998 s | 14.742 s | 2,907.02 MiB | 6,916,788 | — | — |
+| Raytrace regular PGO | 6.046 s | 8.026 s | 1,990.89 MiB | 6,798,165 | 2.234× | 1.985× |
+| Raytrace enriched PGO | 6.222 s | 8.184 s | 1,989.55 MiB | 6,798,165 | 2.171× | 1.928× |
+
+Each arm had one excluded warm-up and nine / five measured processes. Every time sample matched the frozen schedule and final graph; the source's independent full audits are reported above. The enriched sum-bits candidate range was 16.853–18.385 ms. Its median still needs a 0.2485 ms reduction for the fixed cutoff. The same-case paired control remains a separate test of a twofold improvement on the present machine.
