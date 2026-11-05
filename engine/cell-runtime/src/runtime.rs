@@ -16,6 +16,8 @@ mod view_exec;
 use free_join::{Domains, FreeJoin, Subtrie};
 #[path = "execute_kernel.rs"]
 mod execute_kernel;
+#[path = "ready_sets.rs"]
+mod ready_sets;
 #[cfg(feature="sparse-cells")]
 #[path = "point_ports.rs"]
 mod point_ports;
@@ -126,6 +128,7 @@ pub struct Executor {
     dirty: Vec<bool>,
     pending: Vec<BTreeSet<Dependency>>,
     readers: Vec<Vec<usize>>,
+    ready_sets: Option<ready_sets::ReadySets>,
     pub audit: bool,
     pub snapshots: Vec<J>,
     pub binding_audit: Vec<J>,
@@ -328,6 +331,8 @@ impl Executor {
             local_context: crate::local_context::Contexts::new(&graph.program),
             #[cfg(feature="sparse-cells")]
             point_ports: point_ports::PointPorts::new(&graph.program),
+            ready_sets: (cfg!(feature="sparse-cells") && !cfg!(any(feature="family-survey", feature="family-overlap", feature="structural-depth"))
+                && std::env::var_os("CELL_CPU_PROFILE").is_none()).then(|| ready_sets::ReadySets::new(&graph.program.sets, graph.program.rules.len())),
             graph,
             steps: vec![],
             last_change:0,
@@ -369,7 +374,10 @@ impl Executor {
             for &rid in &self.readers[table] {
                 #[cfg(feature = "rhs-work-audit")]
                 self.ledger.wake();
-                self.dirty[rid] = true;
+                if !self.dirty[rid] {
+                    self.dirty[rid] = true;
+                    if let Some(sets)=&mut self.ready_sets { sets.wake(rid); }
+                }
                 if !self.entry_schedule.accepts(rid) {
                     self.pending[rid].extend(
                         changes
@@ -2454,13 +2462,12 @@ impl Executor {
         if self.progress {
             eprintln!("[cell-cpu] Run {}: {set}", self.steps.len() + 1);
         }
-        let rules = self
-            .graph
-            .program
-            .sets
-            .get(set)
-            .ok_or_else(|| format!("unknown ruleset {set}"))?
-            .clone();
+        let (set_id, rules) = if let Some(sets) = &self.ready_sets {
+            let (id,rules) = sets.select(set)?;
+            (Some(id),rules)
+        } else {
+            (None,self.graph.program.sets.get(set).ok_or_else(||format!("unknown ruleset {set}"))?.clone())
+        };
         #[cfg(feature = "sparse-cells")]
         let mut work = std::mem::take(&mut self.work_scratch);
         #[cfg(not(feature = "sparse-cells"))]
@@ -2481,6 +2488,7 @@ impl Executor {
             // source occurrence still advances its own watermark.
             #[cfg(not(any(feature = "family-survey", feature = "family-overlap")))]
             if !self.dirty[rid] && !self.profile_queries {
+                if let Some(sets) = &mut self.ready_sets { sets.clean(rid); }
                 self.watermarks[rid] = self.graph.epoch;
                 continue;
             }
@@ -2496,6 +2504,9 @@ impl Executor {
                 self.dirty[rid] || !self.graph.program.rules[rid].seminaive,
                 Instant::now(),
             );
+            if let Some(sets) = &self.ready_sets {
+                self.watermarks[rid] = self.watermarks[rid].max(sets.watermark(rid));
+            }
             let bindings = self.matches(rid, false)?;
             #[cfg(feature = "family-survey")]
             self.survey.rule(
@@ -2520,10 +2531,14 @@ impl Executor {
                 self.query_profile[rid].2 += self.graph.stats.residual_candidates - candidates;
             }
             self.watermarks[rid] = self.graph.epoch;
+            if !self.dirty[rid] && let Some(sets) = &mut self.ready_sets { sets.clean(rid); }
             if !bindings.is_empty() {
                 count += bindings.len();
                 work.push((rid, bindings));
             }
+        }
+        if let (Some(id),Some(sets)) = (set_id,&mut self.ready_sets) {
+            sets.finish(id,self.graph.epoch);
         }
         let patch = StagePatch { groups: work, len: count };
         #[cfg(feature = "structural-depth")]
