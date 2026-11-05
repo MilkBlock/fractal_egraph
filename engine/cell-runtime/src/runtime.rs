@@ -2639,24 +2639,25 @@ impl Executor {
                     path,
                     iterations,
                 } => {
-                    if let Some(set) = node["run"].as_str() {
-                        if let Some(probe) = node["until_run"].as_str() {
+                    let source = node.source();
+                    if let Some(set) = source["run"].as_str() {
+                        if let Some(probe) = source["until_run"].as_str() {
                             if self.probe(probe)? {
                                 continue;
                             }
                         }
-                        if node["assert"].as_bool() == Some(true) {
+                        if source["assert"].as_bool() == Some(true) {
                             if !self.probe(set)? {
                                 return Err(format!("source check failed: {set}"));
                             }
                             continue;
                         }
-                        if !node["until"].is_null() || !node["assert_table"].is_null() {
+                        if !source["until"].is_null() || !source["assert_table"].is_null() {
                             return Err("unlowered source probe".into());
                         }
                         self.run(set, &path, &iterations)?;
-                    } else if let Some(seq) = node["sequence"].as_array() {
-                        for (i, child) in seq.iter().enumerate().rev() {
+                    } else if let Some(seq) = source["sequence"].as_array() {
+                        for (i, child) in node.sequence(seq).iter().enumerate().rev() {
                             let mut p = path.clone();
                             p.push(i);
                             self.tasks.push(Task::Eval {
@@ -2665,10 +2666,10 @@ impl Executor {
                                 iterations: iterations.clone(),
                             });
                         }
-                    } else if let Some(count) = node["repeat"].as_u64() {
+                    } else if let Some(count) = source["repeat"].as_u64() {
                         if count > 0 {
                             self.tasks.push(Task::Repeat {
-                                body: node["body"].clone(),
+                                body: node.body("body"),
                                 count,
                                 next: 0,
                                 start: self.steps.len(),
@@ -2676,8 +2677,8 @@ impl Executor {
                                 iterations,
                             });
                         }
-                    } else if !node["saturate"].is_null() {
-                        let body = node["saturate"].clone();
+                    } else if !source["saturate"].is_null() {
+                        let body = node.body("saturate");
                         let mut it = iterations.clone();
                         it.push(0);
                         self.tasks.push(Task::Saturate {

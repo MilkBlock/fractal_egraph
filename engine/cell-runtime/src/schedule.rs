@@ -1,17 +1,53 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value as J;
+use std::{cell::OnceCell, rc::Rc};
+
+/// The checkpoint wire format remains the source JSON. A repeated occurrence
+/// shares the decoded child handles with all later visits to the same body.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Node {
+    source: J,
+    #[serde(skip)]
+    children: OnceCell<Vec<Rc<Node>>>,
+}
+impl Node {
+    fn shared(source: &J) -> Rc<Self> {
+        Rc::new(Self {
+            source: source.clone(),
+            children: OnceCell::new(),
+        })
+    }
+
+    pub fn source(&self) -> &J {
+        &self.source
+    }
+
+    pub fn sequence(&self, nodes: &[J]) -> &[Rc<Node>] {
+        self.children
+            .get_or_init(|| nodes.iter().map(Self::shared).collect())
+    }
+
+    pub fn body(&self, field: &str) -> Rc<Node> {
+        Rc::clone(
+            &self
+                .children
+                .get_or_init(|| vec![Self::shared(&self.source[field])])[0],
+        )
+    }
+}
 
 /// Serializable source-control continuations. Only Run publication boundaries
 /// can be checkpointed; no speculative union or partial RHS crosses a resume.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Task {
     Eval {
-        node: J,
+        node: Rc<Node>,
         path: Vec<usize>,
         iterations: Vec<u64>,
     },
     Repeat {
-        body: J,
+        body: Rc<Node>,
         count: u64,
         next: u64,
         start: usize,
@@ -19,7 +55,7 @@ pub enum Task {
         iterations: Vec<u64>,
     },
     Saturate {
-        body: J,
+        body: Rc<Node>,
         iteration: u64,
         start: usize,
         path: Vec<usize>,
@@ -32,7 +68,7 @@ pub fn initial(control: &[J]) -> Vec<Task> {
         .enumerate()
         .rev()
         .map(|(i, node)| Task::Eval {
-            node: node.clone(),
+            node: Node::shared(node),
             path: vec![i],
             iterations: vec![],
         })
