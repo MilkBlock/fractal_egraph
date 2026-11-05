@@ -28,7 +28,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::rc::Rc;
 use std::time::Instant;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 struct Binding {
     #[cfg(feature = "view-consumers")]
     view_source: Option<usize>,
