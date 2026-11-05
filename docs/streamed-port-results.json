@@ -3950,7 +3950,8 @@
         "resumed": 663403,
         "depth": 29
       }
-    ]
+    ],
+    "paired_control": "development executable named base; see control_identity"
   },
   "grouped": [
     {
@@ -6364,7 +6365,8 @@
         "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db"
       }
     },
-    "method": "Four measured alternating pairs after one warm-up, same fixed programs, separate snapshot full audit, native CPU/fat LTO/one codegen unit, trained exclusively on the other case."
+    "method": "Four measured alternating pairs after one warm-up, same fixed programs, separate snapshot full audit, native CPU/fat LTO/one codegen unit, trained exclusively on the other case.",
+    "paired_control": "development executable named base; see control_identity"
   },
   "quiet": [
     {
@@ -8428,7 +8430,8 @@
         "resumed": 663403,
         "depth": 29
       }
-    ]
+    ],
+    "paired_control": "development executable named base; see control_identity"
   },
   "column-port": [
     {
@@ -9386,7 +9389,8 @@
         "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
         "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db"
       }
-    }
+    },
+    "paired_control": "development executable named base; see control_identity"
   },
   "experimental_projection_counters": [
     {
@@ -11576,7 +11580,8 @@
         "resumed": 663403,
         "depth": 29
       }
-    ]
+    ],
+    "paired_control": "development executable named base; see control_identity"
   },
   "tiny-support": [
     {
@@ -14327,7 +14332,8 @@
         "disjoint_rule_skips": 397,
         "rows_materialized": 3248766
       }
-    ]
+    ],
+    "paired_control": "development executable named base; see control_identity"
   },
   "input-width": [
     {
@@ -15517,7 +15523,8 @@
         "resumed": 663403,
         "depth": 29
       }
-    ]
+    ],
+    "paired_control": "development executable named base; see control_identity"
   },
   "point-row": [
     {
@@ -18875,7 +18882,8 @@
         "resumed": 663403,
         "depth": 29
       }
-    ]
+    ],
+    "paired_control": "development executable named base; see control_identity"
   },
   "compact-domain": [
     {
@@ -19360,5 +19368,11 @@
       "resumed": 663403,
       "depth": 29
     }
-  ]
+  ],
+  "control_identity": {
+    "archived_reference_commit": "c8ee1a3f4a10ef92e8348d3c0ac2d34593e6bc8d",
+    "archived_standard_binary_sha256": "f9eea9786662d6993d3fcd5387f4e99ec0b5b088f788329d84284f1262374466",
+    "development_binary_named_base_sha256": "c23d04db683671a02baaa26ca7af99c1aacecfab2a7aa11b37847dd875a086b9",
+    "correction": "All raw samples with arm exactly base used the development executable, not the original-bin executable that established the fixed thresholds. They cannot support an archived-original paired ratio."
+  }
 }

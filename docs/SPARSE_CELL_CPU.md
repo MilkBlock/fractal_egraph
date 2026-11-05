@@ -2,6 +2,10 @@
 
 The baseline is the standalone single-thread Cell engine at `c8ee1a3f`, with view ports, the frozen 64-unit catalog, and experimental execution routes off. The goal requires at least 2× inference on **each** of sum-bits and Raytrace. The two cases have different size and cost distributions.
 
+## Correction to the interim paired controls
+
+The archived standard reference for commit c8ee1a3f is the binary identified in `sparse-cell-results.json` by SHA-256 `f9eea9786662d6993d3fcd5387f4e99ec0b5b088f788329d84284f1262374466` (`original-bin`). The original 33.675 ms and 13,508.078 ms measurements, and their fixed cutoffs, use that reference. A subsequent script instead used a development executable named `base` (SHA-256 `c23d04db683671a02baaa26ca7af99c1aacecfab2a7aa11b37847dd875a086b9`). It does not match the archived reference hash. The interim paired comparisons of that executable below do not establish a same-session speedup against the archived c8ee1a3f executable. Candidate timings, frozen digests, within-experiment ablations and fixed-cutoff comparisons are unaffected. A paired recheck uses the verified archived binary directly.
+
 ## What is known when the constructor is inserted
 
 The previous experiment identified old-Run keepers by following actual same-key repair forwarding. It excluded intermediates returned by a later canonical table lookup in the same Run. All of the resulting candidates occupy Spine anchor operations. The new diagnostic first records their physical source and target IDs. A second run checks the target table, visibility, epoch and final forwarding, then compares the full key at the exact moment of the attempted insertion. IDs in this oracle never route execution.
@@ -133,7 +137,7 @@ For scalar writes the compiler-certified permanent-table receipt can accompany t
 
 ### Held-out PGO after reverse incidence (0b5c5a17)
 
-Independent clean source snapshot, native CPU, fat LTO, opposite case for training. Four measured pairs after a warm-up. Sum-bits median inference was 18.746 ms, CLI 97.921 ms, RSS through inference 153.72 MiB, 18,735 visits. Raytrace was 6.719 s, 8.689 s, 2,064.41 MiB, 6,915,159 visits. The fixed historical reference gives 1.796× and 2.010×. Raytrace clears its historical cutoff by 35 ms. In the same measurement session the baseline executable was faster than the historical reference: sum-bits 30.425 ms, CLI 126.454 ms, 161.13 MiB, 18,730 visits; Raytrace 12.170 s, CLI 14.901 s, 2,909.26 MiB, 6,916,788 visits. Those paired-arm median ratios are 1.623× and 1.811×. Every timing child matched the frozen schedule and final graph. This run does not establish 2× on both workloads.
+Independent clean source snapshot, native CPU, fat LTO, opposite case for training. Four measured pairs after a warm-up. Sum-bits median inference was 18.746 ms, CLI 97.921 ms, RSS through inference 153.72 MiB, 18,735 visits. Raytrace was 6.719 s, 8.689 s, 2,064.41 MiB, 6,915,159 visits. The fixed historical reference gives 1.796× and 2.010×. Raytrace clears its historical cutoff by 35 ms. In the same measurement session the development control executable was faster than the historical reference: sum-bits 30.425 ms, CLI 126.454 ms, 161.13 MiB, 18,730 visits; Raytrace 12.170 s, CLI 14.901 s, 2,909.26 MiB, 6,916,788 visits. Those development-control median ratios are 1.623× and 1.811×. Every timing child matched the frozen schedule and final graph. This run does not establish 2× on both workloads.
 
 Three-pair standard-release ablations on scheduled residual queries and frame packing gave mixed or negative results. The source-ordered residual seed scan with lazily allocated domain vectors changed sum-bits 21.526 → 21.928 ms and Raytrace 7.616 → 7.794 s (CLI 118.909 → 119.235 ms and 9.908 → 10.106 s). The ordered pair collector on top of that scan gave 22.258 → 22.693 ms and 7.559 → 7.506 s (CLI 117.939 → 117.773 ms and 9.896 → 9.807 s). The register range experiment on its own earlier gave 21.983 → 21.618 ms and 7.691 → 7.739 s. The three experiments are excluded from the next clean build. All audited digests and visits matched; raw samples include per-process RSS.
 
@@ -151,7 +155,7 @@ A repeated-execution sampling profile of sum-bits found 2,239 samples under exec
 
 Four alternating measured pairs after one excluded warm-up, using a clean source archive of the local commit. The same source passed 21 all-feature runtime tests and both full audits. Forced zero-bit column fingerprints and forced Bloom collisions together preserved the full sum-bits audit.
 
-| Case | Inference, baseline / candidate | Full CLI, baseline / candidate | Peak RSS through inference, baseline / candidate | Visits, baseline / candidate | Fixed speedup | Concurrent-session median ratio |
+| Case | Inference, baseline / candidate | Full CLI, baseline / candidate | Peak RSS through inference, baseline / candidate | Visits, baseline / candidate | Fixed speedup | Development-control ratio |
 |---|---:|---:|---:|---:|---:|---:|
 | sum-bits | 32.057 / 18.553 ms | 131.763 / 99.095 ms | 161.14 / 153.02 MiB | 18,730 / 18,732 | 1.815× | 1.728× |
 | Raytrace | 12.146 / 6.626 s | 14.861 / 8.754 s | 2,910.78 / 2,064.81 MiB | 6,916,788 / 6,879,302 | 2.039× | 1.833× |
@@ -170,7 +174,7 @@ Seal a Run as a sequence of rule-owned binding vectors. The original per-rule ve
 
 Clean source archive, 22 all-feature runtime tests, both full audits, one warm-up then seven measured pairs for sum-bits and five for Raytrace. A CPU-bound exploratory analysis overlapped the first Raytrace series; the table uses a fresh complete sequential repeat after stopping that analysis. The excluded series is retained in the raw results.
 
-| Workload | Inference, original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+| Workload | Inference, development control / candidate | CLI, development control / candidate | RSS, development control / candidate | Visits, development control / candidate | Fixed speedup | Development-control ratio |
 |---|---:|---:|---:|---:|---:|---:|
 | sum-bits | 30.731 / 18.343 ms | 128.684 / 100.211 ms | 161.14 / 153.00 MiB | 18,730 / 18,732 | 1.836× | 1.675× |
 | Raytrace | 12.450 / 6.706 s | 15.178 / 8.721 s | 2,909.14 / 2,054.61 MiB | 6,916,788 / 6,879,302 | 2.014× | 1.856× |
@@ -185,7 +189,7 @@ The compiler also recognizes an expansion immediately followed by a checked i64 
 
 Clean source archive with shared unary column views, rule-owned binding vectors and the checked-sum grouping. All 22 all-feature runtime tests passed. Independent audits matched both cases' ordered RHS, effective writes, winning Spine, schedule and final state. All timing processes checked schedule and final graph.
 
-| Workload | Inference, original / candidate | Full CLI, original / candidate | Peak RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+| Workload | Inference, development control / candidate | Full CLI, development control / candidate | Peak RSS, development control / candidate | Visits, development control / candidate | Fixed speedup | Development-control ratio |
 |---|---:|---:|---:|---:|---:|---:|
 | sum-bits | 30.472 / 17.544 ms | 128.738 / 99.130 ms | 161.13 / 152.89 MiB | 18,730 / 18,706 | 1.919× | 1.737× |
 | Raytrace | 12.191 / 6.431 s | 15.068 / 8.412 s | 2,907.56 / 1,984.28 MiB | 6,916,788 / 6,798,459 | 2.101× | 1.896× |
@@ -204,7 +208,7 @@ Building a cold Sieve summary now inserts its certified support first and popula
 
 Both complete Run audits passed at the clean commit, as did the 22 all-feature runtime tests. With native CPU, fat LTO, one codegen unit and opposite-workload training, nine sum-bits / five Raytrace pairs gave the following medians after one warm-up.
 
-| Case | Inference, original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+| Case | Inference, development control / candidate | CLI, development control / candidate | RSS, development control / candidate | Visits, development control / candidate | Fixed speedup | Development-control ratio |
 |---|---:|---:|---:|---:|---:|---:|
 | sum-bits | 30.813 / 17.304 ms | 130.916 / 98.576 ms | 161.14 / 152.97 MiB | 18,730 / 18,706 | 1.946× | 1.781× |
 | Raytrace | 12.436 / 6.517 s | 15.180 / 8.497 s | 2,906.50 / 1,987.16 MiB | 6,916,788 / 6,798,459 | 2.073× | 1.908× |
@@ -223,7 +227,7 @@ A zero-argument table has only one possible key. When its typed directory is emp
 
 The two new join guards retained the full frozen audits, including sum-bits under forced collisions. The all-feature runtime suite passed 22 tests. On 545d3022 the compiler integration suite passed 15 tests with sparse Cells, view ports and iterative Bake.
 
-| Case | Inference, original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+| Case | Inference, development control / candidate | CLI, development control / candidate | RSS, development control / candidate | Visits, development control / candidate | Fixed speedup | Development-control ratio |
 |---|---:|---:|---:|---:|---:|---:|
 | sum-bits | 31.126 / 17.735 ms | 127.771 / 100.406 ms | 161.17 / 153.09 MiB | 18,730 / 18,693 | 1.899× | 1.755× |
 | Raytrace | 12.423 / 6.433 s | 15.214 / 8.440 s | 2,908.23 / 1,988.91 MiB | 6,916,788 / 6,798,165 | 2.100× | 1.931× |
@@ -236,7 +240,7 @@ Fact and function reads now return already-decoded rows through a small inlinabl
 
 This clean snapshot includes sealed partial Spine winners and nullary directory reads. All 22 runtime tests and both full audits passed. Nine sum-bits and five Raytrace pairs after warm-up gave the following medians.
 
-| Case | Inference, original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+| Case | Inference, development control / candidate | CLI, development control / candidate | RSS, development control / candidate | Visits, development control / candidate | Fixed speedup | Development-control ratio |
 |---|---:|---:|---:|---:|---:|---:|
 | sum-bits | 30.465 / 17.442 ms | 129.373 / 98.874 ms | 161.14 / 153.06 MiB | 18,730 / 18,693 | 1.931× | 1.747× |
 | Raytrace | 12.136 / 6.267 s | 14.925 / 8.238 s | 2,914.38 / 1,994.94 MiB | 6,916,788 / 6,798,165 | 2.155× | 1.936× |
@@ -257,7 +261,7 @@ Free Join seed admission can keep its first retained subtrie inline until the co
 
 The clean snapshot passed all 23 all-feature runtime tests and both workload audits. The frozen artifact hashes matched; each contains 32 seed blocks and 32 learned joins. After one warm-up, nine sum-bits and five Raytrace alternating measured pairs gave:
 
-| Case | Inference, original / candidate | CLI, original / candidate | Peak RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+| Case | Inference, development control / candidate | CLI, development control / candidate | Peak RSS, development control / candidate | Visits, development control / candidate | Fixed speedup | Development-control ratio |
 |---|---:|---:|---:|---:|---:|---:|
 | sum-bits | 30.833 / 17.218 ms | 129.397 / 97.607 ms | 161.17 / 152.94 MiB | 18,730 / 18,693 | 1.956× | 1.791× |
 | Raytrace | 12.220 / 6.210 s | 16.352 / 9.595 s | 2,908.03 / 1,984.52 MiB | 6,916,788 / 6,798,165 | 2.175× | 1.968× |
