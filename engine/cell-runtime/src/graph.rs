@@ -1798,7 +1798,7 @@ impl Graph {
             }
         }
         if self.scalar_merge
-            && let Some(plan) = self.program.physical.merges[t]
+            && let Some(plan) = self.program.physical.merges.get(t).copied().flatten()
         {
             use crate::physical_plan::ScalarMerge;
             let keep_old = match (plan, &old, &new) {
