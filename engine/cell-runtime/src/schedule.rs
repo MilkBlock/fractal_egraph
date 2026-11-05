@@ -1,40 +1,77 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value as J;
-use std::{cell::OnceCell, rc::Rc};
+use std::rc::Rc;
 
-/// The checkpoint wire format remains the source JSON. A repeated occurrence
-/// shares the decoded child handles with all later visits to the same body.
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(transparent)]
+/// Decode each control occurrence once at setup. Child JSON is moved out of
+/// its parent. Only checkpoint serialization reconstructs the source tree.
+#[derive(Debug, Deserialize)]
+#[serde(from = "J")]
 pub struct Node {
     source: J,
-    #[serde(skip)]
-    children: OnceCell<Vec<Rc<Node>>>,
+    instruction: Instruction,
 }
 impl Node {
     fn shared(source: &J) -> Rc<Self> {
-        Rc::new(Self {
-            source: source.clone(),
-            children: OnceCell::new(),
-        })
+        Rc::new(Self::from(source.clone()))
     }
 
-    pub fn source(&self) -> &J {
-        &self.source
+    pub fn instruction(&self) -> &Instruction {
+        &self.instruction
     }
+}
+impl From<J> for Node {
+    fn from(mut source: J) -> Self {
+        let instruction = if let Some(set) = source["run"].as_str() {
+            Instruction::Run {
+                set: set.into(),
+                until_run: source["until_run"].as_str().map(Into::into),
+                check: source["assert"].as_bool() == Some(true),
+                unlowered: !source["until"].is_null() || !source["assert_table"].is_null(),
+            }
+        } else if source["sequence"].is_array() {
+            let nodes = std::mem::take(source["sequence"].as_array_mut().unwrap());
+            Instruction::Sequence(nodes.into_iter().map(|n| Rc::new(n.into())).collect())
+        } else if let Some(n) = source["repeat"].as_u64() {
+            let body = source.get_mut("body").map(J::take).unwrap_or_default();
+            Instruction::Repeat(n, Rc::new(body.into()))
+        } else if !source["saturate"].is_null() {
+            Instruction::Saturate(Rc::new(source["saturate"].take().into()))
+        } else {
+            Instruction::Unknown
+        };
+        Self {
+            source,
+            instruction,
+        }
+    }
+}
+impl Serialize for Node {
+    fn serialize<S: serde::Serializer>(&self, ser: S) -> Result<S::Ok, S::Error> {
+        let mut raw = self.source.clone();
+        match &self.instruction {
+            Instruction::Sequence(xs) => raw["sequence"] = serde_json::json!(xs),
+            Instruction::Saturate(x) => raw["saturate"] = serde_json::json!(x),
+            Instruction::Repeat(_, x) if raw.get("body").is_some() => {
+                raw["body"] = serde_json::json!(x)
+            }
+            _ => (),
+        }
+        raw.serialize(ser)
+    }
+}
 
-    pub fn sequence(&self, nodes: &[J]) -> &[Rc<Node>] {
-        self.children
-            .get_or_init(|| nodes.iter().map(Self::shared).collect())
-    }
-
-    pub fn body(&self, field: &str) -> Rc<Node> {
-        Rc::clone(
-            &self
-                .children
-                .get_or_init(|| vec![Self::shared(&self.source[field])])[0],
-        )
-    }
+#[derive(Debug)]
+pub enum Instruction {
+    Run {
+        set: Box<str>,
+        until_run: Option<Box<str>>,
+        check: bool,
+        unlowered: bool,
+    },
+    Sequence(Vec<Rc<Node>>),
+    Repeat(u64, Rc<Node>),
+    Saturate(Rc<Node>),
+    Unknown,
 }
 
 /// Serializable source-control continuations. Only Run publication boundaries
@@ -106,5 +143,20 @@ impl std::ops::Index<&str> for RunStep {
     type Output = J;
     fn index(&self, key: &str) -> &J {
         &self.json.get_or_init(|| serde_json::json!(self))[key]
+    }
+}
+
+#[cfg(test)]
+mod checkpoint_tests {
+    use super::*;
+    #[test]
+    fn nested_control_preserves_checkpoint_shape_and_metadata() {
+        let source = serde_json::json!({"sequence":[{"repeat":0,"note":"no body"},
+            {"repeat":3,"body":{"saturate":{"run":"r","until_run":"p"}}}],"meta":[1,2]});
+        let task = initial(std::slice::from_ref(&source)).pop().unwrap();
+        let wire = serde_json::to_value(task).unwrap();
+        assert_eq!(wire["Eval"]["node"], source);
+        let parsed: Task = serde_json::from_value(wire.clone()).unwrap();
+        assert_eq!(serde_json::to_value(parsed).unwrap(), wire);
     }
 }

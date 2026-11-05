@@ -2374,7 +2374,7 @@ impl Executor {
         }
         Ok(false)
     }
-    fn run(&mut self, set: &str, path: &[usize], iterations: &[u64]) -> Result<bool> {
+    fn run(&mut self, set: &str, path: Vec<usize>, iterations: Vec<u64>) -> Result<bool> {
         self.current_stage = set.into();
         #[cfg(feature = "iterative-bake")]
         {
@@ -2619,7 +2619,7 @@ impl Executor {
         let changed = self.graph.changed;
         let ordinal=self.steps.len()+1;
         if changed {self.last_change=ordinal;}
-        self.steps.push(schedule::RunStep {ordinal,ruleset:set.into(),path:path.to_vec(),iterations:iterations.to_vec(),
+        self.steps.push(schedule::RunStep {ordinal,ruleset:set.into(),path,iterations,
             epoch:self.graph.epoch, logical_matches:matches,local_bindings:0,executed_bindings:executed,
             changed,live_cells:self.graph.cells.len(),elapsed_seconds:start.elapsed().as_secs_f64(),
             phases:schedule::Phases{search:search_seconds,rhs:rhs_seconds,repair:repair_seconds,delivery_gc:delivery_seconds,query_update:query_update_seconds},json:Default::default()});
@@ -2642,62 +2642,70 @@ impl Executor {
                     path,
                     iterations,
                 } => {
-                    let source = node.source();
-                    if let Some(set) = source["run"].as_str() {
-                        if let Some(probe) = source["until_run"].as_str() {
-                            if self.probe(probe)? {
+                    use schedule::Instruction;
+                    match node.instruction() {
+                        Instruction::Run {
+                            set,
+                            until_run,
+                            check,
+                            unlowered,
+                        } => {
+                            if let Some(probe) = until_run {
+                                if self.probe(probe)? {
+                                    continue;
+                                }
+                            }
+                            if *check {
+                                if !self.probe(set)? {
+                                    return Err(format!("source check failed: {set}"));
+                                }
                                 continue;
                             }
-                        }
-                        if source["assert"].as_bool() == Some(true) {
-                            if !self.probe(set)? {
-                                return Err(format!("source check failed: {set}"));
+                            if *unlowered {
+                                return Err("unlowered source probe".into());
                             }
-                            continue;
+                            self.run(set, path, iterations)?;
                         }
-                        if !source["until"].is_null() || !source["assert_table"].is_null() {
-                            return Err("unlowered source probe".into());
+                        Instruction::Sequence(seq) => {
+                            for (i, child) in seq.iter().enumerate().rev() {
+                                let mut p = path.clone();
+                                p.push(i);
+                                self.tasks.push(Task::Eval {
+                                    node: child.clone(),
+                                    path: p,
+                                    iterations: iterations.clone(),
+                                });
+                            }
                         }
-                        self.run(set, &path, &iterations)?;
-                    } else if let Some(seq) = source["sequence"].as_array() {
-                        for (i, child) in node.sequence(seq).iter().enumerate().rev() {
-                            let mut p = path.clone();
-                            p.push(i);
-                            self.tasks.push(Task::Eval {
-                                node: child.clone(),
-                                path: p,
-                                iterations: iterations.clone(),
-                            });
+                        Instruction::Repeat(count, body) => {
+                            if *count > 0 {
+                                self.tasks.push(Task::Repeat {
+                                    body: body.clone(),
+                                    count: *count,
+                                    next: 0,
+                                    start: self.steps.len(),
+                                    path,
+                                    iterations,
+                                });
+                            }
                         }
-                    } else if let Some(count) = source["repeat"].as_u64() {
-                        if count > 0 {
-                            self.tasks.push(Task::Repeat {
-                                body: node.body("body"),
-                                count,
-                                next: 0,
+                        Instruction::Saturate(body) => {
+                            let mut it = iterations.clone();
+                            it.push(0);
+                            self.tasks.push(Task::Saturate {
+                                body: body.clone(),
+                                iteration: 0,
                                 start: self.steps.len(),
-                                path,
+                                path: path.clone(),
                                 iterations,
                             });
+                            self.tasks.push(Task::Eval {
+                                node: body.clone(),
+                                path,
+                                iterations: it,
+                            });
                         }
-                    } else if !source["saturate"].is_null() {
-                        let body = node.body("saturate");
-                        let mut it = iterations.clone();
-                        it.push(0);
-                        self.tasks.push(Task::Saturate {
-                            body: body.clone(),
-                            iteration: 0,
-                            start: self.steps.len(),
-                            path: path.clone(),
-                            iterations,
-                        });
-                        self.tasks.push(Task::Eval {
-                            node: body,
-                            path,
-                            iterations: it,
-                        });
-                    } else {
-                        return Err("unknown schedule instruction".into());
+                        Instruction::Unknown => return Err("unknown schedule instruction".into()),
                     }
                 }
                 Task::Repeat {
