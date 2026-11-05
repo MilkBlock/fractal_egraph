@@ -22,6 +22,9 @@ pub(crate) struct Kernel {
     pub pivot: usize,
     pub seed: Vec<(usize, usize)>,
     pub steps: Vec<Step>,
+    #[cfg(feature = "sparse-cells")]
+    #[serde(skip)]
+    pub sum_filter: Option<(usize, usize, usize, Arg)>,
 }
 pub(crate) type Kernels = Vec<Vec<Option<Rc<Kernel>>>>;
 pub(crate) fn derive(rules: &[Rule]) -> Kernels {
@@ -109,7 +112,28 @@ fn plan(r: &Rule, pivot: usize) -> Option<Kernel> {
         });
         remaining.remove(&atom);
     }
-    Some(Kernel { pivot, seed, steps })
+    #[cfg(feature = "sparse-cells")]
+    let sum_filter = steps.windows(2).find_map(|pair| {
+        let (expand, guard) = (&pair[0], &pair[1]);
+        if !matches!(expand.access, Access::Expand) || !guard.assign.is_empty() {
+            return None;
+        }
+        let table = &r.query[expand.atom];
+        let check = &r.query[guard.atom];
+        if !matches!(&check.call, Call::Primitive(name, sort) if name == "+" && sort == "i64") {
+            return None;
+        }
+        let [left,right,target] = check.args.as_slice() else { return None };
+        if expand.assign.iter().any(|(_,slot)| target == &Arg::Slot(*slot)) {
+            return None;
+        }
+        Some((expand.atom, table.args.iter().position(|a| a == left)?,
+            table.args.iter().position(|a| a == right)?, target.clone()))
+    });
+    Some(Kernel { pivot, seed, steps,
+        #[cfg(feature = "sparse-cells")]
+        sum_filter,
+    })
 }
 
 /// A single functional write with a pure operand prefix. Its committed tuple

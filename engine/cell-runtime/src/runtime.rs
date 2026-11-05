@@ -129,6 +129,8 @@ pub struct Executor {
     pub initial_audit: Option<J>,
     pub tasks: Vec<Task>,
 
+    #[cfg(feature = "sparse-cells")]
+    sum_domains: rustc_hash::FxHashMap<(usize, usize), execute_kernel::SumDomain>,
     query_indexes: QueryIndexes,
     free_join: FreeJoin,
     sieve: crate::sieve::Sieve,
@@ -332,6 +334,8 @@ impl Executor {
             initial_audit,
             tasks,
 
+            #[cfg(feature = "sparse-cells")]
+            sum_domains: Default::default(),
             query_indexes,
             sieve,
             profile_queries: std::env::var_os("CELL_CPU_PROFILE").is_some(),

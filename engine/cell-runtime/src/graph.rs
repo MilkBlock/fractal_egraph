@@ -160,6 +160,10 @@ pub struct Stats {
     #[serde(default)]
     pub register_seeds: u64,
     #[serde(default)]
+    pub sum_index_reads: u64,
+    #[serde(default)]
+    pub sum_index_skips: u64,
+    #[serde(default)]
     pub register_answers: u64,
     #[serde(default)]
     pub single_writes: u64,
