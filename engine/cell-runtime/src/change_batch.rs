@@ -1,12 +1,20 @@
 //! Coalesced notifications for one Run, sealed when graph repair finishes.
 //! Commit order and producer receipts have separate ownership in Spine.
-use crate::graph::Dependency;
+use crate::{
+    graph::{Dependency, Graph, Row},
+    neighbor::Context,
+    program::Result,
+    query::QueryIndexes,
+    range_index::RangeIndex,
+};
 use rustc_hash::FxHashMap;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Change {
+    // Includes a subsumed fact: readers wake and inspect its hidden bit.
     Wake,
     Removed,
+    // Keep the original distinct event count when repair retires an earlier write.
     RemovedAfterWake,
 }
 
@@ -66,11 +74,7 @@ impl ChangeBatch {
 }
 
 impl Change {
-    pub fn row(
-        &self,
-        graph: &crate::graph::Graph,
-        w: Dependency,
-    ) -> crate::program::Result<Option<crate::graph::Row>> {
+    pub fn row(&self, graph: &Graph, w: Dependency) -> Result<Option<Row>> {
         if *self == Change::Wake {
             graph.row(w)
         } else {
@@ -89,14 +93,15 @@ pub(crate) struct Publication {
     neighbor_rows: u64,
 }
 impl Publication {
+    /// Resolve each requested witness once, after repair. Column and range indexes
+    /// retain their own previous keys so a removal needs only the witness.
     pub fn publish(
         &mut self,
-        g: &crate::graph::Graph,
-        columns: &mut crate::query::QueryIndexes,
-        mut ranges: Option<&mut crate::range_index::RangeIndex>,
-        neighbor: &mut crate::neighbor::Context,
-        entry: &mut crate::entry_schedule::Scheduler,
-    ) -> crate::program::Result<()> {
+        g: &Graph,
+        columns: &mut QueryIndexes,
+        mut ranges: Option<&mut RangeIndex>,
+        neighbor: &mut Context,
+    ) -> Result<()> {
         columns.begin_publication(g);
         for (t, changes) in g.changes.tables() {
             let count = changes.len() as u64;
@@ -125,7 +130,6 @@ impl Publication {
                 if neighbors {
                     neighbor.changed(t, w, row);
                 }
-                entry.offer(w, row);
             }
             if let Some(writer) = writer {
                 writer.finish(version);
@@ -133,7 +137,6 @@ impl Publication {
         }
         columns.finish_publication();
         neighbor.finish_publication(g);
-        entry.finish_publication();
         Ok(())
     }
 }

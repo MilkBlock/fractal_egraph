@@ -1960,14 +1960,13 @@ impl Executor {
         let repair_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.stage_spine.publish(&mut self.graph)?;
-        self.entry_schedule.publish_headers(&self.graph);
+        self.entry_schedule.publish(&self.graph);
         self.graph.receipt_forwards.clear();
         self.publication.publish(
             &self.graph,
             &mut self.query_indexes,
             self.range_index.as_mut(),
             &mut self.neighbor,
-            &mut self.entry_schedule,
         )?;
         self.sieve.publish(&mut self.query_indexes);
         let query_update_seconds = phase.elapsed().as_secs_f64();

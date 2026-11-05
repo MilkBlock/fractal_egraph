@@ -235,8 +235,6 @@ pub struct Stats {
     node_notifications: u64,
     cold_rows: u64,
     row_decodes: u64,
-    rows_offered: u64,
-    offers_used: u64,
     parameters_copied: u64,
     parameter_packets_reused: u64,
     consumer_calls: u64,
@@ -249,7 +247,6 @@ pub struct Scheduler {
     plan: Plan,
     states: Vec<State>,
     rows: HashMap<Dependency, Option<Rc<Row>>>,
-    offers: HashMap<Dependency, Option<Rc<Row>>>,
     unions: u64,
     pub stats: Stats,
 }
@@ -329,7 +326,6 @@ impl Scheduler {
             plan,
             states,
             rows: HashMap::default(),
-            offers: HashMap::default(),
             unions: 0,
             stats: Stats::default(),
         }
@@ -340,15 +336,10 @@ impl Scheduler {
     /// Called before query-change records are consumed. Only committed rows and
     /// exact same-key forwarding retirements enter the shared pending domains.
     pub fn publish(&mut self, g: &Graph) {
-        self.rows.clear();
-        self.publish_headers(g);
-    }
-
-    pub(crate) fn publish_headers(&mut self, g: &Graph) {
         if !self.enabled {
             return;
         }
-        self.offers.clear();
+        self.rows.clear();
         // A same-key repair retires the old witness and touches the survivor.
         for (table, changes) in g.changes.tables() {
             self.stats.changed_headers += changes.len() as u64;
@@ -370,19 +361,6 @@ impl Scheduler {
             self.unions = g.stats.unions;
         }
     }
-    // Only a witness read during the preceding snapshot can receive an offer.
-    // Unused offers never train the next snapshot's demand.
-    pub(crate) fn offer(&mut self, w: Dependency, row: Option<&Row>) {
-        if self.rows.contains_key(&w) {
-            self.offers.insert(w, row.map(|r| Rc::new(r.clone())));
-            self.stats.rows_offered += 1;
-        }
-    }
-
-    pub(crate) fn finish_publication(&mut self) {
-        self.rows.clear();
-    }
-
     pub fn seeds(&mut self, g: &Graph, rid: usize, watermark: u64) -> Result<Vec<Seed>> {
         self.seeds_where(g, rid, watermark, |_, _, _| true)
     }
@@ -488,13 +466,8 @@ impl Scheduler {
             let row = if let Some(row) = self.rows.get(&w) {
                 row.clone()
             } else {
-                let row = if let Some(row) = self.offers.remove(&w) {
-                    self.stats.offers_used += 1;
-                    row
-                } else {
-                    self.stats.row_decodes += 1;
-                    g.row(w)?.map(Rc::new)
-                };
+                self.stats.row_decodes += 1;
+                let row = g.row(w)?.map(Rc::new);
                 self.rows.insert(w, row.clone());
                 row
             };
