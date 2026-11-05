@@ -218,3 +218,14 @@ In a checked mixed register kernel, only the expansion atom consumes a witness l
 Partial executor-owned Spine answers now carry the same move-only origin as complete takeovers. The matcher inserts them before residual matches and its stable binding-key dedup retains the Spine answer on ties. The originating cursor therefore arrives at the original RHS ordinal without a second key copy or origin-table probe. The public standalone program retains its keyed route. Full audits matched on sum-bits and Raytrace. In three clean-snapshot standard-release pairs, inference was 20.162 / 19.749 ms and 7.250 / 7.179 s, CLI 115.824 / 114.639 ms and 9.689 / 9.644 s, RSS 153.36 / 152.91 MiB and 1,993.47 / 1,988.64 MiB. Candidate visits matched. The separate bounded two-expansion register-plan trial increased visits on both cases (18,706 → 18,752 and 6,798,459 → 6,801,515) and provided no median inference gain; it is excluded.
 
 A zero-argument table has only one possible key. When its typed directory is empty or has a single witness, a keyed read can report absence or fetch that exact member without hashing the empty key. Row visibility, epoch and receipt still come from the original physical record. In a separate clean three-pair ablation this changed sum-bits inference from 20.209 to 19.821 ms, CLI 118.508 to 120.707 ms and RSS 152.94 to 152.98 MiB. Raytrace changed from 7.135 to 7.029 s, CLI 9.486 to 9.405 s and RSS 1,997.78 to 1,992.11 MiB. Candidate counts and full audits matched.
+
+### Held-out PGO at dbf430f5
+
+The two new join guards retained the full frozen audits, including sum-bits under forced collisions. The all-feature runtime suite passed 22 tests. On 545d3022 the compiler integration suite passed 15 tests with sparse Cells, view ports and iterative Bake.
+
+| Case | Inference, original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits | 31.126 / 17.735 ms | 127.771 / 100.406 ms | 161.17 / 153.09 MiB | 18,730 / 18,693 | 1.899× | 1.755× |
+| Raytrace | 12.423 / 6.433 s | 15.214 / 8.440 s | 2,908.23 / 1,988.91 MiB | 6,916,788 / 6,798,165 | 2.100× | 1.931× |
+
+A second, directly interleaved comparison of the existing 98792cd9 and dbf430f5 optimized executables gave identical sum-bits medians of 17.6625 ms across ten measured pairs. Raytrace was 6.452 / 6.443 s across three pairs. Fewer witnesses and a faster standard-release arm did not establish a tuned inference win here. The new plan performed membership-only probes 1,652 / 206,645 times and rejected whole rules 239 / 397 times. This revision did not satisfy both fixed thresholds.
