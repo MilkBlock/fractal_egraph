@@ -231,3 +231,14 @@ The two new join guards retained the full frozen audits, including sum-bits unde
 A second, directly interleaved comparison of the existing 98792cd9 and dbf430f5 optimized executables gave identical sum-bits medians of 17.6625 ms across ten measured pairs. Raytrace was 6.452 / 6.443 s across three pairs. Fewer witnesses and a faster standard-release arm did not establish a tuned inference win here. The new plan performed membership-only probes 1,652 / 206,645 times and rejected whole rules 239 / 397 times. This revision did not satisfy both fixed thresholds.
 
 Fact and function reads now return already-decoded rows through a small inlinable path. The separate fallback reconstructs the fields from the original Cell or held function key. Constructor reconstruction reserves the result column together with its operands. On the experimental stack, inference medians across three pairs changed from 19.157 to 18.751 ms and 6.923 to 6.867 s. CLI medians increased from 113.652 to 114.658 ms and 9.205 to 9.335 s, RSS was 153.92 / 153.95 MiB and 2,035.25 / 2,031.25 MiB. Both full audits and visits matched. This change is being evaluated for inference speed.
+
+### Held-out PGO at 209583e7
+
+This clean snapshot includes sealed partial Spine winners and nullary directory reads. All 22 runtime tests and both full audits passed. Nine sum-bits and five Raytrace pairs after warm-up gave the following medians.
+
+| Case | Inference, original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits | 30.465 / 17.442 ms | 129.373 / 98.874 ms | 161.14 / 153.06 MiB | 18,730 / 18,693 | 1.931× | 1.747× |
+| Raytrace | 12.136 / 6.267 s | 14.925 / 8.238 s | 2,914.38 / 1,994.94 MiB | 6,916,788 / 6,798,165 | 2.155× | 1.936× |
+
+The sum-bits median is 0.6045 ms above the fixed cutoff. Every Raytrace candidate process passed its fixed cutoff. The high-level two-workload objective remains open.
