@@ -455,7 +455,7 @@ pub fn rewrite(
     {
         return Err("marker profile does not describe the structural-key source".into());
     }
-    let data = egg_layout::source_ast::export(name, source)?;
+    let data = eggfuse_bake::source_ast::export(name, source)?;
     let sig = &data["signatures"];
     let active = active(&data);
     let rules = a(&data["rules"]);

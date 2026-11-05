@@ -1,14 +1,14 @@
 //! Exact queries over compact, incrementally maintained virtual-fact indexes.
 //! Buckets store fingerprints and references, never decoded constructor rows.
 //! Hash collisions only enlarge candidate sets: the matcher checks every column.
-use rustc_hash::FxHashMap as HashMap;
 use crate::{
     graph::{Dependency, Graph, Row},
     program::Result,
     value::Value,
 };
+use rustc_hash::FxHashMap as HashMap;
 use std::{
-    collections::{BTreeSet},
+    collections::BTreeSet,
     hash::{Hash, Hasher},
     rc::Rc,
 };
@@ -21,7 +21,7 @@ struct Bucket {
 }
 struct Columns {
     values: Vec<HashMap<u64, Bucket>>,
-    keys: HashMap<Dependency, smallvec::SmallVec<[u64;4]>>,
+    keys: HashMap<Dependency, smallvec::SmallVec<[u64; 4]>>,
     version: u64,
     leased_reads: bool,
 }
@@ -123,12 +123,6 @@ pub struct RefinementStats {
     pub avoided: u64,
 }
 pub struct QueryIndexes {
-    pub watch_contexts: bool,
-    pub read_changes: Vec<(ReadKey, Dependency)>,
-    pub watch_context_rows: bool,
-    pub read_rows: HashMap<Dependency, Option<Row>>,
-    pub read_reset: bool,
-    pub watch_reads: bool,
     pub revision: u64,
     tables: HashMap<usize, Columns>,
     references: usize,
@@ -162,23 +156,14 @@ pub enum ReadStamp {
         version: u64,
     },
 }
-#[derive(Clone,Copy,Debug,PartialEq,Eq,PartialOrd,Ord,Hash)]
-pub enum ReadKey { Table(usize), Bucket(usize,usize,u64) }
-impl ReadStamp {
-    pub fn key(&self)->ReadKey {match self {
-        Self::Table{table,..}=>ReadKey::Table(*table),
-        Self::Bucket{table,column,hash,..}=>ReadKey::Bucket(*table,*column,*hash),
-    }}
-}
+
 impl Default for QueryIndexes {
     fn default() -> Self {
         Self {
-            watch_contexts:false,read_changes:vec![],read_reset:false,watch_context_rows:false,read_rows:HashMap::default(),
-            watch_reads: false,
             revision: 0,
             tables: HashMap::default(),
             references: 0,
-            intersection: std::env::var("CELL_CPU_JOIN_INTERSECTION").as_deref() == Ok("1"),
+            intersection: true,
             refinements: RefinementStats::default(),
             changes: vec![],
             track_changes: false,
@@ -196,14 +181,7 @@ impl Default for QueryIndexes {
 impl QueryIndexes {
     /// Subscription to a candidate superset without pinning historical bucket
     /// vectors. Contexts consume old+new row notifications at each publication.
-    pub fn read_key(&mut self,graph:&Graph,table:usize,bound:&[Option<Value>])->Result<ReadKey> {
-        self.ensure(graph,table)?;
-        let index=self.tables.get_mut(&table).unwrap();index.leased_reads=true;
-        Ok(match index.best(bound,self.bits) {
-            Some((column,hash,_))=>ReadKey::Bucket(table,column,hash),
-            None=>ReadKey::Table(table),
-        })
-    }
+
     pub fn read_stamp(
         &mut self,
         graph: &Graph,
@@ -281,13 +259,11 @@ impl QueryIndexes {
         }
     }
     pub fn clear(&mut self) {
-        self.read_reset|=self.watch_contexts;
         self.revision += 1;
         self.tables.clear();
         self.references = 0;
     }
     pub fn invalidate(&mut self, graph: &Graph) {
-        self.read_reset|=self.watch_contexts;
         self.revision += 1;
         self.tables.retain(|table, index| {
             if index.version != graph.query_versions[*table] {
@@ -315,35 +291,22 @@ impl QueryIndexes {
         // Collapse all writes/union repairs within a Run to the final visible row.
         for (fact, table) in std::mem::take(&mut graph.query_changes) {
             if let Some(index) = self.tables.get_mut(&table) {
-                let watched = self.watch_contexts && index.leased_reads;
-                let old_keys = watched.then(||index.keys.get(&fact).cloned()).flatten();
-                if watched {
-                    self.read_changes.push((ReadKey::Table(table),fact));
-                    if let Some(keys)=&old_keys {
-                        self.read_changes.extend(keys.iter().enumerate().map(|(i,k)|(ReadKey::Bucket(table,i,*k),fact)));
-                    }
-                }
                 let row = graph.row(fact)?;
                 publish(table, fact, row.as_ref());
                 let (removed, added) = if let Some(row) = &row {
                     self.updated_facts += 1;
-                    index.put(row, self.bits, self.watch_reads || index.leased_reads)
+                    index.put(row, self.bits, index.leased_reads)
                 } else {
                     (index.remove(fact), 0)
                 };
                 // The index already decoded this committed row. Move its payload
                 // into the publication batch, instead of decoding it again in
                 // each subscribed context. Cleared after the current publication.
-                if watched && self.watch_context_rows { self.read_rows.insert(fact,row); }
+
                 if self.track_changes && added > 0 {
                     self.changes.push((fact, table));
                 }
                 self.references = self.references - removed + added;
-                if watched {
-                    if let Some(keys)=index.keys.get(&fact) {
-                        self.read_changes.extend(keys.iter().enumerate().filter(|(i,k)|old_keys.as_ref().and_then(|keys|keys.get(*i))!=Some(*k)).map(|(i,k)|(ReadKey::Bucket(table,i,*k),fact)));
-                    }
-                }
             }
         }
         for (table, index) in &mut self.tables {
@@ -358,7 +321,6 @@ impl QueryIndexes {
             .get(&table)
             .is_some_and(|c| c.version != graph.query_versions[table])
         {
-            self.read_reset|=self.watch_contexts;
             let old = self.tables.remove(&table).unwrap();
             self.references -= old.keys.len() * old.values.len();
         }
@@ -374,7 +336,7 @@ impl QueryIndexes {
             for fact in graph.witnesses(table) {
                 self.decoded_facts += 1;
                 if let Some(row) = graph.row(fact)? {
-                    let (_, added) = index.put(&row, self.bits, self.watch_reads);
+                    let (_, added) = index.put(&row, self.bits, false);
                     self.references += added;
                 }
             }
@@ -540,7 +502,7 @@ impl QueryIndexes {
             .fold((0, 0), |(n, r), v| (n + 1, r + v.len()))
     }
     pub(crate) fn hashes(&self, table: usize, w: Dependency) -> Option<&[u64]> {
-        self.tables.get(&table)?.keys.get(&w).map(|k|k.as_slice())
+        self.tables.get(&table)?.keys.get(&w).map(|k| k.as_slice())
     }
     pub(crate) fn indexed_witnesses(&self, table: usize) -> Vec<Dependency> {
         let mut out = self.tables[&table].keys.keys().copied().collect::<Vec<_>>();

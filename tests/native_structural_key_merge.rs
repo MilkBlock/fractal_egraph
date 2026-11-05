@@ -13,7 +13,7 @@ fn equal_merge_values_do_not_bypass_nested_function_reads() {
 #[test]
 fn equal_candidate_reads_keep_score_and_key_types() {
     let mut eg=egglog::EGraph::default();
-    egg_layout::structural_key::source::install(&mut eg,r#"; cell-structural-key-runtime/v1 {"nodes":[{"primitive":"cell-key-node-N","label":"E:N","arity":1}],"bases":["i64"]}"#).unwrap();
+    eggfuse_bake::structural_key::source::install(&mut eg,r#"; cell-structural-key-runtime/v1 {"nodes":[{"primitive":"cell-key-node-N","label":"E:N","arity":1}],"bases":["i64"]}"#).unwrap();
     let mut src=String::from(r#"
       (datatype E (N i64))
       (function Rank (E) i64 :merge (max old new))

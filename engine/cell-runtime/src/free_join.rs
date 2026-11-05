@@ -101,26 +101,18 @@ fn subatoms(query: &[Atom], cover: usize) -> Vec<Subatom> {
 
 impl FreeJoin {
     pub fn new(p: &Program) -> Self {
-        let mode = std::env::var("CELL_CPU_FREE_JOIN");
-        let enabled = matches!(mode.as_deref(), Ok("1" | "entry" | "planned"));
-        let plans = if enabled {
-            p.rules
-                .iter()
-                .map(|r| (0..r.query.len()).map(|i| subatoms(&r.query, i)).collect())
-                .collect()
-        } else {
-            Vec::new()
-        };
-        let planned = mode.as_deref() == Ok("planned");
-        let entry = if planned || mode.as_deref() == Ok("entry") {
-            Some(
-                p.entry_join
-                    .clone()
-                    .unwrap_or_else(|| Rc::new(crate::entry_join::Plan::derive(p))),
-            )
-        } else {
-            None
-        };
+        let enabled = true;
+        let planned = true;
+        let plans = p
+            .rules
+            .iter()
+            .map(|r| (0..r.query.len()).map(|i| subatoms(&r.query, i)).collect())
+            .collect();
+        let entry = Some(
+            p.entry_join
+                .clone()
+                .unwrap_or_else(|| Rc::new(crate::entry_join::Plan::derive(p))),
+        );
         let by_projection = if planned {
             (0..entry.as_ref().unwrap().projections.len())
                 .map(|_| (0, HashMap::new()))

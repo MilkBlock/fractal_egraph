@@ -1,6 +1,6 @@
+mod bench;
 #[cfg(feature = "iterative-bake")]
 mod iterate;
-mod bench;
 mod keys;
 mod marker_ir;
 mod markers;
@@ -14,7 +14,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-type Result<T> = egg_layout::pipeline::Result<T>;
+type Result<T> = eggfuse_bake::pipeline::Result<T>;
 fn sha(data: &[u8]) -> String {
     format!("{:x}", Sha256::digest(data))
 }
@@ -25,7 +25,7 @@ fn write(path: &Path, j: &J) -> Result<()> {
     Ok(fs::write(path, serde_json::to_vec(j)?)?)
 }
 fn bake(src: &Path, out: &Path) -> Result<()> {
-    let r = egg_layout::native_analyze::run(src, out, None, None, false)?;
+    let r = eggfuse_bake::native_analyze::bake(src, out)?;
     if !matches!(
         r["status"].as_str(),
         Some("complete" | "observed_unfinished")
@@ -69,6 +69,7 @@ fn validate_environment(core: &J, bake: &J) -> Result<()> {
 fn compile(
     source: &str,
     training: Option<&str>,
+    catalog: Option<&J>,
     out: &Path,
     opts: &BTreeMap<String, String>,
 ) -> Result<()> {
@@ -90,8 +91,8 @@ fn compile(
     fs::write(&sk, &keyed)?;
     let train = if let Some(t) = training {
         validate_environment(
-            &egg_layout::device_frontend::core("source_sk.egg", &keyed)?,
-            &egg_layout::device_frontend::core("bake-source.egg", t)?,
+            &eggfuse_bake::device_frontend::core("source_sk.egg", &keyed)?,
+            &eggfuse_bake::device_frontend::core("bake-source.egg", t)?,
         )?;
         let p = dir.join("bake-source.egg");
         fs::write(&p, t)?;
@@ -105,7 +106,6 @@ fn compile(
         .arg("internal-bake")
         .arg(train)
         .arg(&analysis)
-        .env("EGG_LAYOUT_GRAPHS", "0")
         .status()?;
     if !status.success() {
         return Err(format!("native Bake failed ({status})").into());
@@ -130,21 +130,25 @@ fn compile(
         profile.as_ref(),
         locality == "identity",
     )?;
-    let core = egg_layout::device_frontend::core("source_sk_mk.egg", &marked)?;
+    let core = eggfuse_bake::device_frontend::core("source_sk_mk.egg", &marked)?;
     eprintln!("Cell compiler: lower and validate standalone CPU plans");
     let analysis_bytes = fs::read(analysis.join("cell-recipes.json"))?;
     let marker = marker_ir::build(&core, &report, &marked, &analysis_bytes)?;
-    let evidence = opts
-        .get("--composition-evidence")
-        .map(|f| read(Path::new(f)))
-        .transpose()?;
-    let mut p = eggfuse_cell_runtime::compiler::compile_with_entry(
-        core,
-        &names,
-        evidence.as_ref(),
-        opts.contains_key("--emit-free-join-entry")
-            || opts.get("--lane").is_some_and(|s| matches!(s.as_str(), "free-join-entry" | "free-join-planned")),
-    )?;
+    let mut p = eggfuse_cell_runtime::compiler::compile(core, &names)?;
+    if let Some(catalog) = catalog {
+        if catalog["schema"] != "eggfuse-cpu-catalog/v1"
+            || catalog["recipe_sha256"] != p["recipe"]["sha256"]
+        {
+            return Err("catalog does not match the compiled recipe".into());
+        }
+        for key in ["spine_blocks", "iterative_bake", "context_admission"] {
+            p[key] = catalog
+                .get(key)
+                .ok_or_else(|| format!("missing catalog field {key}"))?
+                .clone();
+        }
+        eggfuse_cell_runtime::program::Program::parse(p.clone())?;
+    }
     p.as_object_mut().unwrap().remove("sha256");
     p["marker_program_sha256"] = marker["sha256"].clone();
     p["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&p));
@@ -155,25 +159,11 @@ fn compile(
         ("program.json", &p),
         ("marker-program.json", &marker),
         ("capabilities.json", &caps),
-        ("core.json", &p["source_core"]),
-        ("recipe-program.json", &p["recipe"]),
-        ("reference-views.json", &p["reference_views"]),
-        ("entry-schedule.json", &p["entry_schedule"]),
-        ("multi-stage-program.json", &p["multi_stage"]),
-        ("merge-contracts.json", &p["merge_contracts"]),
-        ("merge-programs.json", &p["merge_programs"]),
-        ("known-results.json", &p["known_results"]),
-        ("local-congruence-program.json", &p["congruence"]),
         ("marker-selection.json", &report),
     ] {
         let path = dir.join(file);
         write(&path, value)?;
         files.insert(file, sha(&fs::read(path)?));
-    }
-    if let Some(plan) = p.get("compositions") {
-        let path = dir.join("composition-program.json");
-        write(&path, plan)?;
-        files.insert("composition-program.json", sha(&fs::read(path)?));
     }
     fs::write(dir.join("source_sk_mk.egg"), &marked)?;
     for file in ["source.egg", "source_sk.egg", "source_sk_mk.egg"] {
@@ -204,12 +194,6 @@ fn options(
         if !allowed.contains(&key.as_str()) {
             return Err(format!("unknown option {key}").into());
         }
-        if key == "--emit-free-join-entry" {
-            if opts.insert(key.clone(), String::new()).is_some() {
-                return Err(format!("duplicate {key}").into());
-            }
-            continue;
-        }
         let v = args
             .next()
             .filter(|v| !v.starts_with("--"))
@@ -220,8 +204,13 @@ fn options(
     }
     Ok(opts)
 }
-fn suite(name: &str) -> Result<(String, String)> {
-    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../experiments/profile_suite");
+struct Inputs {
+    source: String,
+    training: Option<String>,
+    catalog: Option<J>,
+}
+fn suite(name: &str) -> Result<Inputs> {
+    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../workloads/pass3");
     let spec = read(&base.join("suite.json"))?;
     let input = |item: &J| -> Result<String> {
         let mut data = vec![];
@@ -239,24 +228,42 @@ fn suite(name: &str) -> Result<(String, String)> {
         .iter()
         .find(|c| c["name"] == name)
         .ok_or_else(|| format!("unknown case {name}"))?;
-    Ok((input(case)?, input(&spec["bake"])?))
+    let catalog = case
+        .get("catalog")
+        .map(|item| -> Result<J> {
+            let bytes = fs::read(base.join(item["file"].as_str().ok_or("invalid catalog path")?))?;
+            if item["sha256"] != sha(&bytes) {
+                return Err("frozen catalog checksum mismatch".into());
+            }
+            Ok(serde_json::from_slice(&bytes)?)
+        })
+        .transpose()?;
+    Ok(Inputs {
+        source: input(case)?,
+        training: Some(input(&spec["bake"])?),
+        catalog,
+    })
 }
-fn inputs(opts: &BTreeMap<String, String>) -> Result<(String, Option<String>)> {
-    match (
+fn inputs(opts: &BTreeMap<String, String>) -> Result<Inputs> {
+    let mut input = match (
         opts.get("--source"),
         opts.get("--case"),
         opts.get("--bake-source"),
     ) {
-        (Some(src), None, b) => Ok((
-            fs::read_to_string(src)?,
-            b.map(fs::read_to_string).transpose()?,
-        )),
-        (None, Some(c), None) => {
-            let (s, b) = suite(c)?;
-            Ok((s, Some(b)))
+        (Some(src), None, b) => Inputs {
+            source: fs::read_to_string(src)?,
+            training: b.map(fs::read_to_string).transpose()?,
+            catalog: None,
+        },
+        (None, Some(case), None) => suite(case)?,
+        _ => {
+            return Err("use --case NAME, or --source PATH with optional --bake-source PATH".into());
         }
-        _ => Err("use --case NAME, or --source PATH with optional --bake-source PATH".into()),
+    };
+    if let Some(path) = opts.get("--catalog") {
+        input.catalog = Some(read(Path::new(path))?);
     }
+    Ok(input)
 }
 pub fn cli(default_bench: bool) -> Result<()> {
     let mut args = std::env::args().skip(1).collect::<Vec<_>>();
@@ -280,7 +287,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
     }
     if cmd == "help" || args.iter().any(|a| a == "--help") {
         println!(
-            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry|free-join-planned] [--modules local-congruence,union-graft,stage-spine,local-context,context-cuts,neighbor-context,neighbor-ports,static-aliases,slot-transfer,range-guards,fd-keys,scalar-merge] [--slot-transfer off|siblings|parent|both|local-only|parent-check|parent-owned] [--verify-stages]"
+            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--catalog FILE] [--profile FILE] [--marker-locality identity|all]\ncargo cell-bench (--case NAME | --source FILE | --program FILE) [--repeat N] [--reference-program FILE]\ncargo cell-iterate --program SEED --output DIR --rounds N"
         );
         return Ok(());
     }
@@ -297,21 +304,26 @@ pub fn cli(default_bench: bool) -> Result<()> {
                     "--case",
                     "--output",
                     "--bake-source",
+                    "--catalog",
                     "--profile",
                     "--marker-locality",
-                    "--composition-evidence",
-                    "--emit-free-join-entry",
                 ],
             )?;
-            let (s, b) = inputs(&opts)?;
+            let input = inputs(&opts)?;
             let out = Path::new(opts.get("--output").ok_or("missing --output")?);
-            compile(&s, b.as_deref(), out, &opts)?;
+            compile(
+                &input.source,
+                input.training.as_deref(),
+                input.catalog.as_ref(),
+                out,
+                &opts,
+            )?;
             println!("{}", out.join("program.json").display());
             Ok(())
         }
         "internal-stages" if args.len() == 1 => bench::stages(Path::new(&args[0])),
         "bench" => bench::run(args),
-        "internal-worker" => bench::worker(args),
+
         _ => Err(format!("invalid invocation {cmd}").into()),
     }
 }

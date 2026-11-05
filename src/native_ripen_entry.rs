@@ -985,7 +985,7 @@ fn extract(
     }).collect();
     // Typed recipe uses occurrence-local parents, retaining effects and external obligations.
     let selected: Vec<_> = member_ids.iter().map(|i| c.applies[*i].clone()).collect();
-    let recipe = crate::reuse_graph::library::local_recipe(&selected, member_ids)?;
+    let recipe = crate::bake_recipe::local_recipe(&selected, member_ids)?;
     let upper_terms: Vec<_> = c.records[root_member]
         .values
         .iter()

@@ -1,8 +1,8 @@
 [package]
-name = "egg_layout"
+name = "eggfuse-bake"
 version = "0.1.0"
 edition = "2024"
-default-run = "egg_layout"
+description = "Native analysis and bounded Cell Bake frontend for EggFuse"
 autobins = false
 
 [dependencies]
@@ -11,41 +11,9 @@ egglog = { path = "egglog", default-features = false, features = ["graphviz", "s
 serde_json = "1.0"
 serde = { version = "1", features = ["derive", "rc"] }
 rayon = "1"
-slotted-egraphs = "=0.0.36"
 
-# The browser build needs a JS time source and getrandom backend.
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-web-time = "1"
-getrandom = { version = "0.3", features = ["wasm_js"] }
-
-[[bin]]
-name = "egg_layout"
-path = "src/main.rs"
-
-[profile.release]
-lto = "thin"
-codegen-units = 1
-
-[[bench]]
-name = "reuse_graph"
-harness = false
-
-[[bench]]
-name = "native_shared_snapshot"
-harness = false
-
-[features]
-native-read-profile = ["egglog/table-read-profile"]
-native-join-work-profile = ["egglog/join-work-profile"]
-
-[[bench]]
-name = "reuse_features"
-harness = false
-
-[[bench]]
-name = "native_virtual_facts"
-harness = false
-
-[[bench]]
-name = "cell_machine"
-harness = false
+[workspace]
+resolver = "2"
+members = ["engine/cell-runtime", "engine/structural-key", "tools/cell-compiler"]
+default-members = ["tools/cell-compiler", "engine/cell-runtime"]
+exclude = ["egglog"]

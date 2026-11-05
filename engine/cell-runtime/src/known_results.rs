@@ -64,20 +64,11 @@ fn normalize(a: &Arg, copies: &BTreeMap<usize, Arg>) -> Arg {
 }
 impl Plans {
     pub fn parse(p: &Program, raw: &J) -> Result<Self> {
-        if raw.is_null() {
-            if matches!(
-                std::env::var("CELL_CPU_KNOWN_RESULTS").as_deref(),
-                Ok("on" | "observe" | "1" | "value" | "static")
-            ) {
-                return Err("known results require re-emitting the CPU artifact".into());
-            }
-            return Ok(Self::default());
-        }
         let (result, mut expected) = Self::derive(p)?;
+        if raw.is_null() {
+            return Ok(result);
+        }
         if raw.get("static_aliases").is_none() {
-            if std::env::var("CELL_CPU_KNOWN_RESULTS").as_deref() == Ok("static") {
-                return Err("static aliases require re-emitting the CPU artifact".into());
-            }
             expected.as_object_mut().unwrap().remove("static_aliases");
         }
         if *raw != expected {
@@ -87,7 +78,7 @@ impl Plans {
         array(&raw["plans"])?;
         Ok(result)
     }
-    pub(crate) fn derive(p:&Program)->Result<(Self,J)> {
+    pub(crate) fn derive(p: &Program) -> Result<(Self, J)> {
         let mut plans = vec![];
         let mut result = Self::default();
         for (rid, r) in p.rules.iter().enumerate() {
@@ -222,7 +213,10 @@ impl Plans {
                             static_aliases
                                 .push(json!({"rule":rid,"operation":i,"dst":dst,"value":j}));
                         } else {
-                            known.insert(key, (Arg::Slot(*dst), json!({"slot":dst}), Source::Effect(i)));
+                            known.insert(
+                                key,
+                                (Arg::Slot(*dst), json!({"slot":dst}), Source::Effect(i)),
+                            );
                         }
                     }
                     _ => (),
@@ -236,9 +230,8 @@ impl Plans {
         }
         let expected = json!({"schema":"eggfuse-known-results/v1","recipe_sha256":p.artifact["recipe"]["sha256"],"plans":plans,"static_aliases":static_aliases,
             "contract":"live canonical FactRef with identical full constructor key; dirty domains fall back; never skip set/union/guard"});
-        Ok((result,expected))
+        Ok((result, expected))
     }
-
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
@@ -246,8 +239,8 @@ impl Plans {
 pub struct Stats {
     pub static_eliminated: u64,
     pub lazy_prefix_eliminated: u64,
-    pub static_observed_equal:u64,
-    pub static_observed_other:u64,
+    pub static_observed_equal: u64,
+    pub static_observed_other: u64,
     pub value_eligible: u64,
     pub value_reuses: u64,
     pub observed_same_value: u64,

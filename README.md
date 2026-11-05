@@ -1,15 +1,38 @@
-# eggfuse
+# EggFuse · Cell CPU
 
-The Cell CPU compiler turns a flat egglog source program into a checked execution plan. The standalone CPU engine executes that plan and exports the resulting graph. Run these commands from the repository root with a stable Rust toolchain.
+This branch builds the Rust Cell compiler, offline Bake and standalone CPU executor in one Cargo workspace. The compiler uses the vendored egglog frontend for native analysis. The executor runs checked recipe IR, publishes at the original Run boundaries and exports a logical graph.
 
 ```sh
-cargo cell-compile --case sum-bits --output out/cell-sum
-cargo cell-run --program out/cell-sum/program.json --output out/cell-run
-cargo cell-bench --program out/cell-sum/program.json --lane filtered --repeat 5 --verify-stages
+cargo cell-compile --case sum-bits --output out/sum-bits
+cargo cell-run --program out/sum-bits/program.json --output out/run
+cargo cell-bench --program out/sum-bits/program.json --repeat 5
 ```
 
-Use fresh output directories. To compile your own program, replace `--case sum-bits` with `--source my.egg`. The compiler runs structural-key rewriting, native Analyze/Bake, marker selection and Recipe lowering. The runtime writes the final graph to `state.json` and execution counters to `report.json`.
+Use fresh output directories. Substitute `raytrace` for the larger Pass 3. Both named cases load a small frozen optimization catalog after compiling the source. The compiler checks the suite checksum, the recipe digest and the executable plans before publishing the artifact. A clean checkout therefore reproduces the 64-block configuration with these three commands.
 
-For performance comparisons, run the same artifact with `--lane baseline`, `--lane nodes` and `--lane filtered`. The optional stage audit compares the selected CPU lane against the baseline on the initial graph and each Run's graph, bindings and schedule. See the [compiler and benchmark guide](tools/cell-compiler/README.md) for supported inputs and the known native endpoint discrepancy.
+### Implementation priorities
 
-The [research snapshot](https://github.com/MilkBlock/fractal_egraph/tree/bf5b4539d09ad96473e40875868a8f4f02d6add5) contains the Metal engine, Python compiler and experimental benchmarks.
+1. **Preserve source semantics and throughput.** Keep structural-key rewriting, bounded native Bake, marker selection and checked Recipe lowering. Keep ordinary Cell storage, canonical repair, compiled register joins, shared parameter slots, single-write RHS and static constructor aliases. These changes together previously took Raytrace inference from 33.81 to 15.50 s. [Throughput ablation](https://github.com/MilkBlock/eggfuse/blob/508e1c8/tools/cell-compiler/benchmarks/runtime-modules/INFERENCE_THROUGHPUT.md)
+2. **Retain the winning matching and handoff routes.** Shared entries, Sieve, column intersections, planned Free Join and range guards handle residual matching. Live Spine receipts, compiled blocks and learned RHS handoffs execute at scheduled entries. Uncovered attribute entries can reuse demanded sibling slots and decoded parents. Runtime cardinality and coverage checks keep their original fallbacks. General connected cuts require offline admission. Fresh untrained sources use eligible narrow contexts. [Spine handoff study](https://github.com/MilkBlock/eggfuse/blob/4da35ee/tools/cell-compiler/benchmarks/runtime-modules/RHS_COMPLETION.md) · [Neighbor ablation](https://github.com/MilkBlock/eggfuse/blob/f985eb7/tools/cell-compiler/benchmarks/runtime-modules/NEIGHBOR_CONTEXT.md)
+3. **Remove the remaining experiment machinery from the product path.** The branch drops retained-prefix and refutation matchers, presearch surveys, local saturation, union graft, union impact, local congruence, reference-view absorption, composition takeover and experimental slot transfer. It also removes the older CPU driver, Python/UI experiment suite, historical benchmark patches and duplicated plan exports. Those experiments and their measurements are available on the parent research branch. [Research snapshot](https://github.com/MilkBlock/eggfuse/tree/f985eb7)
+
+The normal commands select a single CPU execution strategy. For checkpoint/resume of research snapshots, historical ablation lanes and debugger sessions, use the parent branch. The registered output includes `program.json`, selected markers, the Bake Cell e-graph, source snapshots and a manifest. The branch keeps the whole vendored egglog dependency and native training code needed by Bake. [Measurements for this branch](MINIMAL_CPU.md)
+
+### Custom programs and training
+
+```sh
+cargo cell-compile --source app.egg --output out/app
+cargo cell-compile --source app.egg --bake-source training.egg --catalog catalog.json --output out/trained
+cargo cell-bench --program out/trained/program.json --reference-program out/app/program.json --repeat 3
+```
+
+A reference-program comparison checks the initial graph and every Run's graph, bindings and schedule before timing. It is intended for small regression fixtures. Offline iterative Bake remains available for a seed program containing validated Spine blocks.
+
+```sh
+cargo cell-iterate --program out/sum-bits/program.json --output out/learned --rounds 4 --objective rhs-lookups
+cargo test --release --locked --workspace --all-features
+```
+
+[Compiler and audit commands](tools/cell-compiler/README.md) · [Workload and catalog provenance](workloads/pass3/README.md)
+
+The opt-in single-thread [attribute-family fusion experiment](docs/ATTRIBUTE_FUSION.md) shares delta entry packets and carries ordered scalar lanes through RHS commit and incremental publication. The report compares the entry-only, write and complete Cargo features against the minimal pipeline.

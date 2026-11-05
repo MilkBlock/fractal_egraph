@@ -1,4 +1,4 @@
-use egg_layout::saturated_rule_composition::*;
+use eggfuse_bake::saturated_rule_composition::*;
 use serde_json::json;
 use std::collections::BTreeMap;
 fn state() -> SaturatedRuleComposition {
@@ -84,24 +84,17 @@ fn equal_counts_do_not_hide_different_literals_or_facts() {
 }
 #[test]
 fn different_native_triggers_share_one_state() {
-    use std::{fs, process::Command};
+    use std::fs;
     let base =
         std::env::temp_dir().join(format!("saturated-rule-composition-{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     fs::create_dir_all(&base).unwrap();
     for (name, source) in [
-        ("a", "experiments/saturated-rule-composition/from-a.egg"),
-        ("b", "experiments/saturated-rule-composition/from-b.egg"),
+        ("a", "tests/fixtures/from-a.egg"),
+        ("b", "tests/fixtures/from-b.egg"),
     ] {
-        let output = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
-            .args(["ripen", source, base.join(name).to_str().unwrap()])
-            .output()
+        eggfuse_bake::native_analyze::ripen::run(std::path::Path::new(source), &base.join(name))
             .unwrap();
-        assert!(
-            output.status.success(),
-            "{}",
-            String::from_utf8_lossy(&output.stderr)
-        );
     }
     let a = read(&base.join("a/saturated-rule-composition.json")).unwrap();
     let b = read(&base.join("b/saturated-rule-composition.json")).unwrap();
@@ -152,7 +145,7 @@ fn regular_graphs_need_exact_confirmation_not_just_refinement() {
 
 #[test]
 fn native_export_keeps_literals_and_global_ports() {
-    use std::{fs, process::Command};
+    use std::fs;
     let base = std::env::temp_dir().join(format!("closed-fields-{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     fs::create_dir_all(&base).unwrap();
@@ -160,11 +153,7 @@ fn native_export_keeps_literals_and_global_ports() {
         let file = base.join(format!("{name}.egg"));
         fs::write(&file, source).unwrap();
         let out = base.join(name);
-        let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
-            .args(["ripen", file.to_str().unwrap(), out.to_str().unwrap()])
-            .output()
-            .unwrap();
-        assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
+        eggfuse_bake::native_analyze::ripen::run(&file, &out).unwrap();
         out
     };
     let a = run("one", "(datatype E (N i64) (S String)) (N 1) (S \"x\")");

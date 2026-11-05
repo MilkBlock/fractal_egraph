@@ -1,4 +1,4 @@
-use egg_layout::coarse_smooth::*;
+use eggfuse_bake::coarse_smooth::*;
 fn seed(event: u64, rule: &str, input: usize, output: usize) -> Apply {
     Apply {
         event,

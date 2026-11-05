@@ -1,7 +1,7 @@
 use crate::pipeline::Result;
 use egglog::EGraph;
 use serde_json::{Value, json};
-#[path = "../experiments/device_backend/frontend_control.rs"]
+#[path = "frontend_control.rs"]
 mod control;
 pub fn core(name: &str, text: &str) -> Result<Value> {
     let mut eg = EGraph::default();

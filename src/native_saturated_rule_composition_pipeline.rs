@@ -33,7 +33,7 @@ struct ParentReuse {
 }
 pub(super) struct Pipeline {
     worker_pool: rayon::ThreadPool,
-    learner:Option<crate::reuse_graph::library::Learner>,
+
     out: PathBuf,
     source: String,
     cs: cs::Store,
@@ -63,7 +63,7 @@ impl Pipeline {
         out: &Path,
         source: String,
         observation: crate::ripen_observation::Limits,
-        reuse_library:Option<&Path>,
+
     ) -> Result<Self> {
         let threads = std::env::var("EGG_LAYOUT_ANALYSIS_THREADS")
             .or_else(|_| std::env::var("EGG_LAYOUT_QUERY_THREADS"))
@@ -75,7 +75,7 @@ impl Pipeline {
             return Err("EGG_LAYOUT_ANALYSIS_THREADS must be positive".into());
         }
         Ok(Self {
-            learner:reuse_library.map(crate::reuse_graph::library::Learner::load).transpose()?,
+
             worker_pool: rayon::ThreadPoolBuilder::new()
                 .num_threads(threads)
                 .build()?,
@@ -118,15 +118,8 @@ impl Pipeline {
         self.worker_pool
             .install(|| work.into_par_iter().with_max_len(1).for_each(drop));
     }
-    pub fn remember_grafts(&mut self, keys: BTreeSet<String>) {
-        if let Some(learner) = &mut self.learner {
-            learner.remember_grafts(keys);
-        }
-    }
-    pub fn save_reuse_library(&self)->Result<()> {
-        if let Some(learner)=&self.learner {learner.save(&self.out.join("reuse-library.json"))?;}
-        Ok(())
-    }
+
+
     pub fn take_report(&mut self) -> Json {
         std::mem::take(&mut self.report)
     }
@@ -383,9 +376,7 @@ impl Pipeline {
             });
             Some((result, snapshot))
         };
-        let results: Vec<_> = if crate::graph_render::graphs_enabled() {
-            self.work.iter_mut().map(advance).collect()
-        } else {
+        let results: Vec<_> = {
             self.worker_pool.install(|| {
                 self.work
                     .par_iter_mut()
@@ -446,9 +437,6 @@ impl Pipeline {
                         self.jobs[work.id]["state"] = json!("Saturated");
                         self.jobs[work.id]["export"] = report["saturated_rule_composition"].clone();
                         if report["saturated_rule_composition"]["status"] == "exported" {
-                            if let (Some(learner),Some(state))=(&mut self.learner,&work.session.final_state) {
-                                learner.observe(work.id,state.clone(),&work.session.report,work.session.text.clone());
-                            }
                             self.completed.push(folder);
                             changed = true;
                         }
@@ -479,18 +467,7 @@ impl Pipeline {
                 report["origin"] = self.jobs[id]["origin"].clone();
                 report["source"] = json!(folder.join("source.egg"));
                 std::fs::write(folder.join("ripen.json"), serde_json::to_vec(&report)?)?;
-                for name in [
-                    "native-egraph.dot",
-                    "native-egraph.svg",
-                    "native-egraph-initial.dot",
-                    "native-egraph-initial.svg",
-                ] {
-                    if name.ends_with(".svg") {
-                        crate::graph_render::copy(&source.join(name), &folder.join(name))?;
-                    } else if source.join(name).exists() {
-                        std::fs::copy(source.join(name), folder.join(name))?;
-                    }
-                }
+
                 self.jobs[id]["state"] = json!("Saturated");
                 self.jobs[id]["export"] = report["saturated_rule_composition"].clone();
                 if source.join("saturated-rule-composition.json").exists() {
@@ -516,7 +493,7 @@ impl Pipeline {
                 })
                 .collect::<Result<Vec<_>>>()?;
             self.catalog = Some(
-                json!({"catalog":cat,"states":states,"dot":if crate::graph_render::graphs_enabled() {Some(std::fs::read_to_string(dir.join("catalog.dot"))?)} else {None}}),
+                json!({"catalog":cat,"states":states,"dot":Json::Null}),
             );
         }
         self.cells.connect_windows(&self.cs.windows);
@@ -765,9 +742,6 @@ impl Pipeline {
         }
         mark("weak_queries_and_evidence");
         self.report = json!({"parent_snapshot_reuse":{"enabled":self.parent_reuse_enabled,"stats":self.parent_reuse,"scope":"initialization reuse only; full cold preparation checks retained; no terminal-state cache"},"analysis_threads":self.worker_pool.current_num_threads(),"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"cell_egraph":cell_report,"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"observed state entries (legacy layers optional); fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
-        if let Some(learner) = &self.learner {
-            self.report["reuse_learning"] = learner.report();
-        }
         crate::pipeline::write_json(
             &self.out.join("saturated-rule-composition/queue.json"),
             &self.report,

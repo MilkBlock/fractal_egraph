@@ -241,8 +241,8 @@ impl Session {
         };
         let c = Captured {
             device_source: None,
-            reuse_plan: Json::Null,
-            reuse_signatures: BTreeSet::new(),
+
+
             changes: vec![],
             last_scope: 0,
             preview_source: text.clone(),
@@ -265,7 +265,7 @@ impl Session {
 
         std::fs::create_dir_all(out)?;
         std::fs::write(out.join("entry.egg"), &text)?;
-        write_native_graph(&eg, out, "native-egraph-initial")?;
+
         let initial = export_state(&eg, &c, &port_values, true, out, false).ok();
         if let Some(state) = &initial {
             crate::pipeline::write_json(&out.join("initial-state.json"), state)?;
@@ -504,7 +504,7 @@ pub fn run(source: &Path, out: &Path) -> Result<Json> {
     if out.exists() {
         return Err("ripen output already exists".into());
     }
-    let render_batch = crate::graph_render::Batch::start()?;
+
     let mut task = Session::new(source, out)?;
     let limits = crate::ripen_observation::Limits::from_env()?;
     let started = std::time::Instant::now();
@@ -518,7 +518,7 @@ pub fn run(source: &Path, out: &Path) -> Result<Json> {
             break;
         }
     }
-    render_batch.finish()?;
+
     Ok(task.report)
 }
 fn table_counts(eg: &EGraph, names: &[String]) -> BTreeMap<String, usize> {
@@ -534,20 +534,7 @@ fn table_counts(eg: &EGraph, names: &[String]) -> BTreeMap<String, usize> {
 /// compared across triggers without pretending that it recovered the complete
 /// original e-graph.
 /// Serialize one native EGraph exactly as the kernel sees it, no reconstruction.
-fn write_native_graph(eg: &EGraph, out: &Path, stem: &str) -> Result<()> {
-    if !crate::graph_render::graphs_enabled() {
-        return Ok(());
-    }
-    let serialized = eg.serialize(egglog::SerializeConfig::default());
-    if !serialized.discarded_functions.is_empty() || !serialized.truncated_functions.is_empty() {
-        return Err("truncated engine serialization".into());
-    }
-    serialized
-        .egraph
-        .to_dot_file(out.join(format!("{stem}.dot")))?;
-    crate::graph_render::enqueue(&out.join(format!("{stem}.dot")))?;
-    Ok(())
-}
+
 
 // Container values need structural identity, never an opaque primitive ID.
 // Sets use unordered incidence rows; element order cannot affect comparison.
@@ -692,7 +679,7 @@ fn export_state(
     c: &Captured,
     ports: &[(String, egglog::ArcSort, Value)],
     symbolic: bool,
-    out: &Path,
+    _out: &Path,
     observation_only: bool,
 ) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
     use crate::saturated_rule_composition::{Row, SaturatedRuleComposition};
@@ -708,9 +695,7 @@ fn export_state(
         constructors,
         tables,
     } = export_schema(c, observation_only, &local, declarations)?;
-    if crate::graph_render::graphs_enabled() {
-        write_native_graph(eg, out, "native-egraph")?;
-    }
+
     let mut vertices = StateVertices::default();
     let mut vertex = |ty: &str, v: Value| vertices.intern(eg, ty, v);
     let mut rows = BTreeSet::new();

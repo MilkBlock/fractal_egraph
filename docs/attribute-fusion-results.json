@@ -1,0 +1,1211 @@
+{
+  "base_commit": "d4074488",
+  "scope": "Frozen clean minimal artifacts; same machine, single-thread CPU. Phase samples from unprofiled release processes. Search includes all entry processing, matching and sealing. Publication is steps[].phases.query_update. Effective writes exclude bootstrap and denote committed function inserts/value changes.",
+  "cases": {
+    "sum-bits": {
+      "fresh_program_sha256": "1d6e531e391cd34c56b452124e5c46563f044c1d75aea3776e9e2d0e60a29409",
+      "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+      "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+      "ordered_rhs_sha256": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+      "resumptions": 3034,
+      "max_depth": 12,
+      "runs": 1428,
+      "visits": 19154,
+      "arms": {
+        "base": {
+          "inference_ms": [
+            36.305,
+            36.809,
+            36.062,
+            33.959,
+            35.557,
+            35.648,
+            33.692
+          ],
+          "cli_ms": [
+            135.551,
+            136.902,
+            135.877,
+            136.142,
+            139.117,
+            137.793,
+            130.998
+          ],
+          "phase_ms": [
+            {
+              "delivery_gc": 0.480512,
+              "query_update": 5.844525,
+              "repair": 2.305148,
+              "rhs": 8.433517,
+              "search": 15.700439
+            },
+            {
+              "delivery_gc": 0.488084,
+              "query_update": 6.079068,
+              "repair": 2.457847,
+              "rhs": 8.391473999999999,
+              "search": 15.831498
+            },
+            {
+              "delivery_gc": 0.47059,
+              "query_update": 5.961407,
+              "repair": 2.378092,
+              "rhs": 8.202531,
+              "search": 15.594536000000002
+            },
+            {
+              "delivery_gc": 0.449777,
+              "query_update": 5.627719,
+              "repair": 2.199215,
+              "rhs": 7.745921999999999,
+              "search": 14.674359999999998
+            },
+            {
+              "delivery_gc": 0.46934,
+              "query_update": 5.832104999999999,
+              "repair": 2.3980360000000003,
+              "rhs": 7.9780619999999995,
+              "search": 15.247736
+            },
+            {
+              "delivery_gc": 0.481452,
+              "query_update": 5.843039,
+              "repair": 2.3887650000000002,
+              "rhs": 8.001569,
+              "search": 15.383448
+            },
+            {
+              "delivery_gc": 0.465043,
+              "query_update": 5.544557999999999,
+              "repair": 2.275175,
+              "rhs": 7.792174,
+              "search": 14.29556
+            }
+          ],
+          "fusion": {
+            "changes": 0,
+            "enabled": false,
+            "family_publish_callback_s": 0.0,
+            "family_rhs_s": 0.0,
+            "family_search_s": 0.0,
+            "frontier_builds": 0,
+            "frontier_reuses": 0,
+            "lanes": 0,
+            "members": [
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 150,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 151,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 152,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 153,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 154,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 155,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 157,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 158,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 164,
+                "writes": 0
+              }
+            ],
+            "plans": 9,
+            "published_rows_offered": 0
+          },
+          "paired_vs_off_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "profiled_family_ms": [
+            {
+              "family_search_s": 0.651,
+              "family_rhs_s": 0.25,
+              "family_publish_callback_s": 0.017
+            },
+            {
+              "family_search_s": 0.666,
+              "family_rhs_s": 0.251,
+              "family_publish_callback_s": 0.017
+            }
+          ]
+        },
+        "attribute-entry": {
+          "inference_ms": [
+            35.013,
+            35.177,
+            35.24,
+            40.591,
+            35.898,
+            36.734,
+            36.148
+          ],
+          "cli_ms": [
+            136.895,
+            134.186,
+            135.99,
+            152.588,
+            132.991,
+            135.303,
+            132.573
+          ],
+          "phase_ms": [
+            {
+              "delivery_gc": 0.465713,
+              "query_update": 5.732171999999999,
+              "repair": 2.2923470000000004,
+              "rhs": 7.968236999999999,
+              "search": 15.046497
+            },
+            {
+              "delivery_gc": 0.472876,
+              "query_update": 5.8797179999999996,
+              "repair": 2.3681200000000002,
+              "rhs": 7.854553,
+              "search": 15.061267999999998
+            },
+            {
+              "delivery_gc": 0.453754,
+              "query_update": 5.798996,
+              "repair": 2.391383,
+              "rhs": 7.801867,
+              "search": 15.17018
+            },
+            {
+              "delivery_gc": 0.501376,
+              "query_update": 7.1258349999999995,
+              "repair": 2.972963,
+              "rhs": 9.217181,
+              "search": 16.993018
+            },
+            {
+              "delivery_gc": 0.467432,
+              "query_update": 5.9564580000000005,
+              "repair": 2.424678,
+              "rhs": 7.977053,
+              "search": 15.537533000000002
+            },
+            {
+              "delivery_gc": 0.484142,
+              "query_update": 6.144977,
+              "repair": 2.511829,
+              "rhs": 8.146816,
+              "search": 15.839038
+            },
+            {
+              "delivery_gc": 0.49160299999999996,
+              "query_update": 5.988327,
+              "repair": 2.478498,
+              "rhs": 8.011829,
+              "search": 15.549356
+            }
+          ],
+          "fusion": {
+            "changes": 144,
+            "enabled": true,
+            "family_publish_callback_s": 0.0,
+            "family_rhs_s": 0.0,
+            "family_search_s": 0.0,
+            "frontier_builds": 2,
+            "frontier_reuses": 10,
+            "fused_publish": false,
+            "fused_write": false,
+            "lanes": 489,
+            "members": [
+              {
+                "attribute": "Expr-size",
+                "lanes": 8,
+                "rule": 150,
+                "writes": 4
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 56,
+                "rule": 151,
+                "writes": 16
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 2,
+                "rule": 152,
+                "writes": 2
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 214,
+                "rule": 153,
+                "writes": 37
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 104,
+                "rule": 154,
+                "writes": 33
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 98,
+                "rule": 155,
+                "writes": 48
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 6,
+                "rule": 157,
+                "writes": 3
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 1,
+                "rule": 158,
+                "writes": 1
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 164,
+                "writes": 0
+              }
+            ],
+            "plans": 9,
+            "published_rows_offered": 0
+          },
+          "paired_vs_off_ms": [
+            -1.292,
+            -1.632,
+            -0.822,
+            6.632,
+            0.341,
+            1.086,
+            2.456
+          ]
+        },
+        "attribute-write": {
+          "inference_ms": [
+            35.946,
+            36.723,
+            35.881,
+            37.652,
+            34.362,
+            36.839,
+            35.58
+          ],
+          "cli_ms": [
+            136.986,
+            136.07,
+            135.784,
+            137.642,
+            133.224,
+            134.019,
+            132.515
+          ],
+          "phase_ms": [
+            {
+              "delivery_gc": 0.48040700000000003,
+              "query_update": 6.113175999999999,
+              "repair": 2.438529,
+              "rhs": 8.229597,
+              "search": 15.268829
+            },
+            {
+              "delivery_gc": 0.47622000000000003,
+              "query_update": 6.148639,
+              "repair": 2.434296,
+              "rhs": 8.224038,
+              "search": 15.890156999999999
+            },
+            {
+              "delivery_gc": 0.452123,
+              "query_update": 5.9064570000000005,
+              "repair": 2.37359,
+              "rhs": 8.144964,
+              "search": 15.408563000000001
+            },
+            {
+              "delivery_gc": 0.481715,
+              "query_update": 6.297764,
+              "repair": 2.697442,
+              "rhs": 8.621761000000001,
+              "search": 16.008571
+            },
+            {
+              "delivery_gc": 0.458909,
+              "query_update": 5.6945440000000005,
+              "repair": 2.379784,
+              "rhs": 7.915915000000001,
+              "search": 14.544226
+            },
+            {
+              "delivery_gc": 0.49661400000000006,
+              "query_update": 6.120851,
+              "repair": 2.4608109999999996,
+              "rhs": 8.569476,
+              "search": 15.664287999999999
+            },
+            {
+              "delivery_gc": 0.478644,
+              "query_update": 5.957622,
+              "repair": 2.354047,
+              "rhs": 8.036829000000001,
+              "search": 15.186591
+            }
+          ],
+          "fusion": {
+            "changes": 144,
+            "enabled": true,
+            "family_publish_callback_s": 0.0,
+            "family_rhs_s": 0.0,
+            "family_search_s": 0.0,
+            "frontier_builds": 2,
+            "frontier_reuses": 10,
+            "fused_publish": false,
+            "fused_write": true,
+            "lanes": 489,
+            "members": [
+              {
+                "attribute": "Expr-size",
+                "lanes": 8,
+                "rule": 150,
+                "writes": 4
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 56,
+                "rule": 151,
+                "writes": 16
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 2,
+                "rule": 152,
+                "writes": 2
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 214,
+                "rule": 153,
+                "writes": 37
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 104,
+                "rule": 154,
+                "writes": 33
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 98,
+                "rule": 155,
+                "writes": 48
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 6,
+                "rule": 157,
+                "writes": 3
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 1,
+                "rule": 158,
+                "writes": 1
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 164,
+                "writes": 0
+              }
+            ],
+            "plans": 9,
+            "published_rows_offered": 0
+          },
+          "paired_vs_off_ms": [
+            -0.359,
+            -0.086,
+            -0.181,
+            3.693,
+            -1.195,
+            1.191,
+            1.888
+          ]
+        },
+        "attribute-fusion": {
+          "inference_ms": [
+            36.181,
+            35.4,
+            38.243,
+            32.867,
+            35.15,
+            35.148,
+            36.538
+          ],
+          "cli_ms": [
+            136.948,
+            133.433,
+            139.703,
+            130.944,
+            135.36,
+            131.733,
+            134.927
+          ],
+          "phase_ms": [
+            {
+              "delivery_gc": 0.503221,
+              "query_update": 6.068744,
+              "repair": 2.4217739999999996,
+              "rhs": 8.065703000000001,
+              "search": 15.659688000000001
+            },
+            {
+              "delivery_gc": 0.46672199999999997,
+              "query_update": 5.69579,
+              "repair": 2.333678,
+              "rhs": 7.949167999999999,
+              "search": 15.40644
+            },
+            {
+              "delivery_gc": 0.5174850000000001,
+              "query_update": 6.265887,
+              "repair": 2.470065,
+              "rhs": 8.511862,
+              "search": 16.791252
+            },
+            {
+              "delivery_gc": 0.45430699999999996,
+              "query_update": 5.413523,
+              "repair": 2.194832,
+              "rhs": 7.408016,
+              "search": 14.030605
+            },
+            {
+              "delivery_gc": 0.480142,
+              "query_update": 5.730074,
+              "repair": 2.341837,
+              "rhs": 7.994383000000001,
+              "search": 15.224366
+            },
+            {
+              "delivery_gc": 0.463864,
+              "query_update": 5.548823,
+              "repair": 2.388684,
+              "rhs": 7.9228179999999995,
+              "search": 15.262094000000001
+            },
+            {
+              "delivery_gc": 0.49396599999999996,
+              "query_update": 6.022818,
+              "repair": 2.4440030000000004,
+              "rhs": 8.207484,
+              "search": 15.831973
+            }
+          ],
+          "fusion": {
+            "changes": 144,
+            "enabled": true,
+            "family_publish_callback_s": 0.0,
+            "family_rhs_s": 0.0,
+            "family_search_s": 0.0,
+            "frontier_builds": 2,
+            "frontier_reuses": 10,
+            "fused_publish": true,
+            "fused_write": true,
+            "lanes": 489,
+            "members": [
+              {
+                "attribute": "Expr-size",
+                "lanes": 8,
+                "rule": 150,
+                "writes": 4
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 56,
+                "rule": 151,
+                "writes": 16
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 2,
+                "rule": 152,
+                "writes": 2
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 214,
+                "rule": 153,
+                "writes": 37
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 104,
+                "rule": 154,
+                "writes": 33
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 98,
+                "rule": 155,
+                "writes": 48
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 6,
+                "rule": 157,
+                "writes": 3
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 1,
+                "rule": 158,
+                "writes": 1
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 164,
+                "writes": 0
+              }
+            ],
+            "plans": 9,
+            "published_rows_offered": 202
+          },
+          "paired_vs_off_ms": [
+            -0.124,
+            -1.409,
+            2.181,
+            -1.092,
+            -0.407,
+            -0.5,
+            2.846
+          ],
+          "profiled_family_ms": [
+            {
+              "family_search_s": 0.781,
+              "family_rhs_s": 0.198,
+              "family_publish_callback_s": 0.024
+            },
+            {
+              "family_search_s": 0.634,
+              "family_rhs_s": 0.171,
+              "family_publish_callback_s": 0.022
+            }
+          ]
+        }
+      },
+      "write_digest": "dff9654c5bfe53a52264cd4bb0a03d89879c3f679f1ee0052cb76f01b013b2b0",
+      "effective_writes": 1449,
+      "separate_original_control_ms": {
+        "minimal": [
+          35.178,
+          37.325,
+          34.777,
+          35.983,
+          34.473,
+          34.825,
+          37.884
+        ],
+        "base-timed": [
+          37.557,
+          34.409,
+          34.012,
+          34.193,
+          36.954,
+          33.658,
+          36.737
+        ],
+        "fused-timed": [
+          36.013,
+          37.717,
+          36.299,
+          36.115,
+          33.124,
+          33.453,
+          35.739
+        ]
+      },
+      "minimal_independent_write_digest": "dff9654c5bfe53a52264cd4bb0a03d89879c3f679f1ee0052cb76f01b013b2b0",
+      "minimal_independent_effective_writes": 1449
+    },
+    "raytrace": {
+      "fresh_program_sha256": "2ea40b3ded80dda4bfbf7e9a67a1ac74ae08ad16568b1a4ea4b5ae3f355b6579",
+      "schedule_sha256": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5",
+      "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+      "ordered_rhs_sha256": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+      "resumptions": 663403,
+      "max_depth": 29,
+      "runs": 16883,
+      "visits": 7263030,
+      "arms": {
+        "base": {
+          "inference_ms": [
+            15614.682,
+            15123.169,
+            15435.056,
+            15171.403
+          ],
+          "cli_ms": [
+            18127.075,
+            17607.973,
+            17966.488,
+            17620.385
+          ],
+          "phase_ms": [
+            {
+              "delivery_gc": 405.86927499999996,
+              "query_update": 3153.3003790000002,
+              "repair": 1178.242915,
+              "rhs": 3990.7454000000002,
+              "search": 6832.242666
+            },
+            {
+              "delivery_gc": 388.938907,
+              "query_update": 3064.766048,
+              "repair": 1124.633638,
+              "rhs": 3925.834742,
+              "search": 6567.483926999999
+            },
+            {
+              "delivery_gc": 403.723483,
+              "query_update": 3117.816744,
+              "repair": 1183.915674,
+              "rhs": 3950.334356,
+              "search": 6727.886249
+            },
+            {
+              "delivery_gc": 392.635779,
+              "query_update": 3064.928366,
+              "repair": 1123.816177,
+              "rhs": 3946.357516,
+              "search": 6592.1130029999995
+            }
+          ],
+          "fusion": {
+            "changes": 0,
+            "enabled": false,
+            "family_publish_callback_s": 0.0,
+            "family_rhs_s": 0.0,
+            "family_search_s": 0.0,
+            "frontier_builds": 0,
+            "frontier_reuses": 0,
+            "lanes": 0,
+            "members": [
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 150,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 151,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 152,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 153,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 154,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 155,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 157,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 158,
+                "writes": 0
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 0,
+                "rule": 164,
+                "writes": 0
+              }
+            ],
+            "plans": 9,
+            "published_rows_offered": 0
+          },
+          "paired_vs_off_ms": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "profiled_family_ms": [
+            {
+              "family_search_s": 2204.047,
+              "family_rhs_s": 1063.578,
+              "family_publish_callback_s": 131.73
+            },
+            {
+              "family_search_s": 2083.388,
+              "family_rhs_s": 1007.498,
+              "family_publish_callback_s": 124.863
+            }
+          ]
+        },
+        "attribute-entry": {
+          "inference_ms": [
+            17134.477,
+            14851.149,
+            15094.953,
+            15000.903
+          ],
+          "cli_ms": [
+            20814.634,
+            17324.046,
+            17623.592,
+            17476.449
+          ],
+          "phase_ms": [
+            {
+              "delivery_gc": 472.532849,
+              "query_update": 3568.9204499999996,
+              "repair": 1230.165943,
+              "rhs": 4328.658906000001,
+              "search": 7473.6177880000005
+            },
+            {
+              "delivery_gc": 390.859367,
+              "query_update": 3045.047078,
+              "repair": 1132.263248,
+              "rhs": 3957.124147,
+              "search": 6273.990379
+            },
+            {
+              "delivery_gc": 388.91151099999996,
+              "query_update": 3109.511132,
+              "repair": 1155.471964,
+              "rhs": 4025.103315,
+              "search": 6363.4986610000005
+            },
+            {
+              "delivery_gc": 392.872128,
+              "query_update": 3101.698597,
+              "repair": 1150.767122,
+              "rhs": 3985.569457,
+              "search": 6317.385414
+            }
+          ],
+          "fusion": {
+            "changes": 1118550,
+            "enabled": true,
+            "family_publish_callback_s": 0.0,
+            "family_rhs_s": 0.0,
+            "family_search_s": 0.0,
+            "frontier_builds": 1568,
+            "frontier_reuses": 18274,
+            "fused_publish": false,
+            "fused_write": false,
+            "lanes": 1930012,
+            "members": [
+              {
+                "attribute": "Expr-size",
+                "lanes": 79986,
+                "rule": 150,
+                "writes": 49232
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 221686,
+                "rule": 151,
+                "writes": 208698
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 9,
+                "rule": 152,
+                "writes": 4
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 966545,
+                "rule": 153,
+                "writes": 250442
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 334264,
+                "rule": 154,
+                "writes": 290251
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 306775,
+                "rule": 155,
+                "writes": 302321
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 13088,
+                "rule": 157,
+                "writes": 10282
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 7199,
+                "rule": 158,
+                "writes": 7178
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 460,
+                "rule": 164,
+                "writes": 142
+              }
+            ],
+            "plans": 9,
+            "published_rows_offered": 0
+          },
+          "paired_vs_off_ms": [
+            1519.795,
+            -272.02,
+            -340.103,
+            -170.5
+          ]
+        },
+        "attribute-write": {
+          "inference_ms": [
+            16369.587,
+            15038.515,
+            14562.77,
+            14410.77
+          ],
+          "cli_ms": [
+            18897.267,
+            17742.673,
+            17088.069,
+            16883.768
+          ],
+          "phase_ms": [
+            {
+              "delivery_gc": 415.559486,
+              "query_update": 3417.694296,
+              "repair": 1272.096658,
+              "rhs": 4092.500298,
+              "search": 7117.479135
+            },
+            {
+              "delivery_gc": 404.36314899999996,
+              "query_update": 3129.730449,
+              "repair": 1169.9906250000001,
+              "rhs": 3702.874752,
+              "search": 6576.735919
+            },
+            {
+              "delivery_gc": 386.995223,
+              "query_update": 3040.201787,
+              "repair": 1134.979906,
+              "rhs": 3626.22606,
+              "search": 6322.148443
+            },
+            {
+              "delivery_gc": 384.18068500000004,
+              "query_update": 2982.732655,
+              "repair": 1132.3704269999998,
+              "rhs": 3608.322207,
+              "search": 6252.05815
+            }
+          ],
+          "fusion": {
+            "changes": 1118550,
+            "enabled": true,
+            "family_publish_callback_s": 0.0,
+            "family_rhs_s": 0.0,
+            "family_search_s": 0.0,
+            "frontier_builds": 1568,
+            "frontier_reuses": 18274,
+            "fused_publish": false,
+            "fused_write": true,
+            "lanes": 1930012,
+            "members": [
+              {
+                "attribute": "Expr-size",
+                "lanes": 79986,
+                "rule": 150,
+                "writes": 49232
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 221686,
+                "rule": 151,
+                "writes": 208698
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 9,
+                "rule": 152,
+                "writes": 4
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 966545,
+                "rule": 153,
+                "writes": 250442
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 334264,
+                "rule": 154,
+                "writes": 290251
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 306775,
+                "rule": 155,
+                "writes": 302321
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 13088,
+                "rule": 157,
+                "writes": 10282
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 7199,
+                "rule": 158,
+                "writes": 7178
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 460,
+                "rule": 164,
+                "writes": 142
+              }
+            ],
+            "plans": 9,
+            "published_rows_offered": 0
+          },
+          "paired_vs_off_ms": [
+            754.905,
+            -84.654,
+            -872.286,
+            -760.633
+          ]
+        },
+        "attribute-fusion": {
+          "inference_ms": [
+            14989.932,
+            14860.978,
+            14517.954,
+            14701.548
+          ],
+          "cli_ms": [
+            17456.714,
+            17370.149,
+            16991.967,
+            17169.433
+          ],
+          "phase_ms": [
+            {
+              "delivery_gc": 401.925515,
+              "query_update": 3207.7074319999997,
+              "repair": 1160.7630769999998,
+              "rhs": 3679.5848730000002,
+              "search": 6487.860699
+            },
+            {
+              "delivery_gc": 396.75135900000004,
+              "query_update": 3192.4771029999997,
+              "repair": 1157.838569,
+              "rhs": 3636.636472,
+              "search": 6425.69053
+            },
+            {
+              "delivery_gc": 388.81873900000005,
+              "query_update": 3113.4365119999998,
+              "repair": 1102.754263,
+              "rhs": 3610.294448,
+              "search": 6251.663319
+            },
+            {
+              "delivery_gc": 396.021544,
+              "query_update": 3150.271694,
+              "repair": 1128.7297780000001,
+              "rhs": 3636.6123730000004,
+              "search": 6338.091966
+            }
+          ],
+          "fusion": {
+            "changes": 1118550,
+            "enabled": true,
+            "family_publish_callback_s": 0.0,
+            "family_rhs_s": 0.0,
+            "family_search_s": 0.0,
+            "frontier_builds": 1568,
+            "frontier_reuses": 18274,
+            "fused_publish": true,
+            "fused_write": true,
+            "lanes": 1930012,
+            "members": [
+              {
+                "attribute": "Expr-size",
+                "lanes": 79986,
+                "rule": 150,
+                "writes": 49232
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 221686,
+                "rule": 151,
+                "writes": 208698
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 9,
+                "rule": 152,
+                "writes": 4
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 966545,
+                "rule": 153,
+                "writes": 250442
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 334264,
+                "rule": 154,
+                "writes": 290251
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 306775,
+                "rule": 155,
+                "writes": 302321
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 13088,
+                "rule": 157,
+                "writes": 10282
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 7199,
+                "rule": 158,
+                "writes": 7178
+              },
+              {
+                "attribute": "Expr-size",
+                "lanes": 460,
+                "rule": 164,
+                "writes": 142
+              }
+            ],
+            "plans": 9,
+            "published_rows_offered": 1126308
+          },
+          "paired_vs_off_ms": [
+            -624.75,
+            -262.191,
+            -917.102,
+            -469.855
+          ],
+          "profiled_family_ms": [
+            {
+              "family_search_s": 2093.663,
+              "family_rhs_s": 812.107,
+              "family_publish_callback_s": 214.587
+            },
+            {
+              "family_search_s": 2017.25,
+              "family_rhs_s": 767.403,
+              "family_publish_callback_s": 198.363
+            }
+          ]
+        }
+      },
+      "write_digest": "d5b6390f342c7f67ca9916670376bef2239fc3b4640c6cb2ec036035ad599639",
+      "effective_writes": 1676335,
+      "separate_original_control_ms": {
+        "minimal": [
+          15283.884,
+          15365.038,
+          18057.831,
+          16686.629
+        ],
+        "base-timed": [
+          15350.932,
+          15312.83,
+          15244.956,
+          15511.172
+        ],
+        "fused-timed": [
+          14540.096,
+          14756.266,
+          14620.204,
+          14994.307
+        ]
+      },
+      "minimal_independent_write_digest": "d5b6390f342c7f67ca9916670376bef2239fc3b4640c6cb2ec036035ad599639",
+      "minimal_independent_effective_writes": 1676335
+    }
+  }
+}

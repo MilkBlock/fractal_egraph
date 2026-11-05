@@ -111,7 +111,7 @@ pub struct Sieve {
 }
 impl Sieve {
     pub fn new(program: &Program) -> Self {
-        let enabled = std::env::var("CELL_CPU_SIEVE").as_deref() == Ok("1");
+        let enabled = true;
         let mut s = Self {
             enabled,
             specs: vec![],

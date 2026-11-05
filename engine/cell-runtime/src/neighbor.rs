@@ -75,12 +75,7 @@ pub(crate) fn derive(p: &Program) -> Vec<Option<Plan>> {
         })
         .collect()
 }
-#[derive(Clone, Copy, PartialEq)]
-pub(crate) enum Mode {
-    Off,
-    Ports,
-    Neighbors,
-}
+
 #[derive(Default, Serialize)]
 pub(crate) struct Stats {
     pub spine_entries: u64,
@@ -127,7 +122,6 @@ struct Groups {
 const KEY_LIMIT: usize = 4096;
 const ROW_LIMIT: usize = 65536;
 pub(crate) struct Context {
-    pub mode: Mode,
     ports: Vec<Option<Ports>>,
     subscribed: Vec<usize>,
     published: Publication,
@@ -137,13 +131,7 @@ pub(crate) struct Context {
 }
 impl Context {
     pub fn new(p: &Program, profiling: bool) -> Self {
-        let mode = match std::env::var("CELL_CPU_NEIGHBOR_CONTEXT").as_deref() {
-            Ok("1") => Mode::Neighbors,
-            Ok("ports") => Mode::Ports,
-            _ => Mode::Off,
-        };
         Self {
-            mode,
             ports: (0..p.tables.len()).map(|_| None).collect(),
             subscribed: vec![],
             published: Publication::default(),
@@ -174,7 +162,7 @@ impl Context {
             .map(|cache| cache.rows.len())
             .sum();
         let parent_refs: usize = self.groups.values().map(|cache| cache.rows).sum();
-        serde_json::json!({"demanded_keys":demanded_keys,"parent_refs":parent_refs,"mode":match self.mode{Mode::Off=>"off",Mode::Ports=>"ports",Mode::Neighbors=>"neighbors"},"publication":self.published,"timed_maintenance":self.profiling,"rules":rules})
+        serde_json::json!({"demanded_keys":demanded_keys,"parent_refs":parent_refs,"mode":"neighbors","publication":self.published,"timed_maintenance":self.profiling,"rules":rules})
     }
     pub fn point(
         &mut self,
@@ -288,7 +276,7 @@ impl Context {
         t: usize,
         domain: &Rc<Vec<Dependency>>,
     ) -> Access {
-        if self.mode != Mode::Neighbors || domain.len() < 2 || domain.len() > ROW_LIMIT {
+        if domain.len() < 2 || domain.len() > ROW_LIMIT {
             return Access::Direct;
         }
         let cache = self.groups.entry(t).or_default();
@@ -372,7 +360,6 @@ mod tests {
             cache.rows.insert(7, Some(original.clone()));
             cache.keys.insert(3, 7);
             let mut ctx = Context {
-                mode: Mode::Ports,
                 ports: vec![Some(cache)],
                 subscribed: vec![0],
                 groups: Default::default(),

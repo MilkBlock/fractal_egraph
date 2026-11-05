@@ -26,7 +26,7 @@ pub struct Continuation {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct MultiStage {
     #[serde(default)]
-    pub stage_entries:Vec<(usize,usize,Rc<Vec<usize>>)>,
+    pub stage_entries: Vec<(usize, usize, Rc<Vec<usize>>)>,
     pub routes: HashMap<(usize, usize, usize, usize), Rc<Continuation>>,
     pub entries: HashMap<(usize, usize), Rc<Vec<usize>>>,
     pub finishes: Vec<Rc<Vec<usize>>>,
@@ -127,77 +127,10 @@ pub(crate) fn assignments(pivot: &Atom, atom: &Atom, columns: &[Arg]) -> Vec<(us
         })
         .collect()
 }
-impl LocalRead {
-    /// Only use a live, unrelocated effect in the same ordinary producer
-    /// instance as the pivot. Dynamic ports and uncertain keys keep the matcher.
-    pub(crate) fn wire(
-        &self,
-        g: &mut crate::graph::Graph,
-        ctx: crate::views::Context,
-        pivot: crate::graph::Dependency,
-        inputs: &mut crate::entry_schedule::Inputs,
-        trail: &mut Vec<usize>,
-        expected: Option<crate::graph::Dependency>,
-    ) -> Result<Option<(crate::graph::Dependency, u64)>> {
-        use crate::graph::{Dependency, FactRef};
-        #[cfg(feature = "slot-transfer-audit")]
-        crate::transfer_audit::count(|c| c.sibling_wire_attempts += 1);
-        #[cfg(feature = "slot-transfer-audit")]
-        let _wire_sample = crate::transfer_audit::Sample::begin(crate::transfer_audit::Region::SiblingWire);
-        if g.views_enabled
-            || !ctx.completed
-            || pivot
-                != Dependency::Fact(FactRef {
-                    cell: ctx.cell,
-                    op: ctx.op as u32,
-                })
-        {
-            return Ok(None);
-        }
-        let Some(op) = self.effect else {
-            return Ok(None);
-        };
-        let w = Dependency::Fact(FactRef {
-            cell: ctx.cell,
-            op: op as u32,
-        });
-        if expected.is_some_and(|other| other != w) {
-            return Ok(None);
-        }
-        let Some(epoch) = g.visible_epoch(w) else {
-            return Ok(None);
-        };
-        let mark = trail.len();
-        for (dst, src) in &self.assignments {
-            let value = g.argument(ctx.cell, src)?;
-            g.stats.slot_transfer.producer_values_read += 1;
-            if let Some(bound) = &inputs[*dst] {
-                if *bound != value {
-                    while trail.len() > mark {
-                        inputs[trail.pop().unwrap()] = None;
-                    }
-                    return Ok(None);
-                }
-            } else {
-                inputs[*dst] = Some(value);
-                trail.push(*dst);
-            }
-        }
-        g.stats.slot_transfer.inputs_moved += (trail.len() - mark) as u64;
-        Ok(Some((w, epoch)))
-    }
-}
 impl MultiStage {
     pub fn parse(program: &Program, raw: &J) -> Result<Self> {
         if raw.is_null() {
             return Ok(Self::default());
-        }
-        if !raw["union_entries"].is_null()
-            && raw["union_entries"]
-                != serde_json::to_value(crate::union_graft::compile(program))
-                    .map_err(|e| e.to_string())?
-        {
-            return Err("union Spine entry differs from typed source query".into());
         }
         if raw["schema"] != "eggfuse-multistage/v1"
             || raw["recipe_sha256"] != program.artifact["recipe"]["sha256"]
@@ -215,17 +148,27 @@ impl MultiStage {
             return Err("multi-stage permissions differ".into());
         }
         if raw["stage_entries"].is_null() {
-            if std::env::var("CELL_CPU_STAGE_SPINE").as_deref()==Ok("1") {
+            {
                 return Err("stage Spine programs require compiler stage_entries; recompile source_sk_mk through the Cell CPU target".into());
             }
-        } else if raw["stage_entries"]!=crate::stage_spine::compile_entries(program) {
+        } else if raw["stage_entries"] != crate::stage_spine::compile_entries(program) {
             return Err("stage entry program differs from exhaustive typed key flow".into());
         }
         let mut result = Self::default();
-        if let Some(entries)=raw["stage_entries"].as_array() {
+        if let Some(entries) = raw["stage_entries"].as_array() {
             for e in entries {
-                result.stage_entries.push((e["rule"].as_u64().unwrap() as usize,e["anchor"].as_u64().unwrap() as usize,
-                    Rc::new(e["atoms"].as_array().unwrap().iter().map(|i|i.as_u64().unwrap() as usize).collect())));
+                result.stage_entries.push((
+                    e["rule"].as_u64().unwrap() as usize,
+                    e["anchor"].as_u64().unwrap() as usize,
+                    Rc::new(
+                        e["atoms"]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .map(|i| i.as_u64().unwrap() as usize)
+                            .collect(),
+                    ),
+                ));
             }
         }
         let verify_points = |rid: usize,
