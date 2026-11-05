@@ -1,0 +1,27 @@
+Error: CheckError([Eq(In 3316:8-3322:34 of source_sk_mk-check.egg: (= witness
+  (TermSingle
+    (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2))))))), Var(In 3316:11-17 of source_sk_mk-check.egg: witness, "witness"), Call(In 3317:3-3322:33 of source_sk_mk-check.egg: (TermSingle
+    (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2)))))), "TermSingle", [Call(In 3318:5-3322:32 of source_sk_mk-check.egg: (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2))))), "TermBop", [Call(In 3318:14-18 of source_sk_mk-check.egg: (Add), "Add", []), Call(In 3318:20-40 of source_sk_mk-check.egg: (TermGet (TermArg) 0), "TermGet", [Call(In 3318:29-37 of source_sk_mk-check.egg: (TermArg), "TermArg", []), Lit(In 3318:39-39 of source_sk_mk-check.egg: 0, Int(0))]), Call(In 3319:7-3322:31 of source_sk_mk-check.egg: (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2)))), "TermBop", [Call(In 3319:16-20 of source_sk_mk-check.egg: (Sub), "Sub", []), Call(In 3319:22-42 of source_sk_mk-check.egg: (TermGet (TermArg) 1), "TermGet", [Call(In 3319:31-39 of source_sk_mk-check.egg: (TermArg), "TermArg", []), Lit(In 3319:41-41 of source_sk_mk-check.egg: 1, Int(1))]), Call(In 3320:9-3322:30 of source_sk_mk-check.egg: (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2))), "TermBop", [Call(In 3320:18-22 of source_sk_mk-check.egg: (Mul), "Mul", []), Call(In 3321:11-69 of source_sk_mk-check.egg: (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2)), "TermBop", [Call(In 3321:20-24 of source_sk_mk-check.egg: (Div), "Div", []), Call(In 3321:26-46 of source_sk_mk-check.egg: (TermGet (TermArg) 1), "TermGet", [Call(In 3321:35-43 of source_sk_mk-check.egg: (TermArg), "TermArg", []), Lit(In 3321:45-45 of source_sk_mk-check.egg: 1, Int(1))]), Call(In 3321:48-68 of source_sk_mk-check.egg: (TermGet (TermArg) 2), "TermGet", [Call(In 3321:57-65 of source_sk_mk-check.egg: (TermArg), "TermArg", []), Lit(In 3321:67-67 of source_sk_mk-check.egg: 2, Int(2))])]), Call(In 3322:11-29 of source_sk_mk-check.egg: (TermConst (Int 2)), "TermConst", [Call(In 3322:22-28 of source_sk_mk-check.egg: (Int 2), "Int", [Lit(In 3322:27-27 of source_sk_mk-check.egg: 2, Int(2))])])])])])]))], In 3316:1-3322:35 of source_sk_mk-check.egg: (check (= witness
+  (TermSingle
+    (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2)))))))))

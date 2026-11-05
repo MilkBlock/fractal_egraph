@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="186" viewBox="0 0 750 186"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6a8291"/></marker></defs>
+<rect x="0" y="8" width="211" height="75" rx="7" fill="#eaf2fa" stroke="#b0c4cd"/>
+<text x="11" y="30" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Instance 17</text>
+<text x="11" y="52" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">template T · bound slots</text>
+<text x="11" y="70" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">fact at op 2 · visible at e</text>
+<rect x="265" y="8" width="222" height="75" rx="7" fill="#e0f3ec" stroke="#b0c4cd"/>
+<text x="276" y="30" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">FactRef(17, 2)</text>
+<text x="276" y="52" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Resolve T[2] and operands</text>
+<text x="276" y="70" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Validate owner and visibility</text>
+<rect x="537" y="8" width="211" height="75" rx="7" fill="#e0f3ec" stroke="#b0c4cd"/>
+<text x="548" y="30" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Logical row</text>
+<text x="548" y="52" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">operator, canonical inputs,</text>
+<text x="548" y="70" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">current result, row epoch</text>
+<rect x="265" y="116" width="222" height="63" rx="7" fill="#efeafa" stroke="#b0c4cd"/>
+<text x="276" y="138" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Union / merge</text>
+<text x="276" y="160" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Canonicalize affected uses</text>
+<rect x="537" y="116" width="211" height="63" rx="7" fill="#efeafa" stroke="#b0c4cd"/>
+<text x="548" y="138" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Subscribers</text>
+<text x="548" y="160" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Rekey index and notify seeds</text>
+<polyline points="211,46 264,46" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="487,46 536,46" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="487,146 536,146" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="634,116 634,85" fill="none" stroke="#6a8291" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<text x="0" y="136" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">A row can be decoded lazily.</text>
+<text x="0" y="157" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">A receipt can go stale.</text>
+</svg>

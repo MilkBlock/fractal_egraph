@@ -1,0 +1,2708 @@
+{
+  "schema": "marker-workload-corpus/v1",
+  "complete": true,
+  "finished": true,
+  "scope": "actual production extraction feeds each subsequent pass; count-only replay in target native engine, not production or GPU timing",
+  "identity": {
+    "production_profiler": "e08467acacf50309518c9ef8d9de1c3182266a4cc8e17dfa74cf19c62b219def",
+    "flatten": "716bbe870ce88f94903474f7c31507c060a3520392d1c19d5fb6f97940c17d67",
+    "probe": "f1e64c817e7fe36fec370cfa5572e1b3e8f5de553d0dad664202eedcaeb5ceaf",
+    "production_provenance": {
+      "production_head": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+      "original_driver_sha256": "814dd8c66fe837e2b2964713b83768e1cf61d53a9338156fe41a1f44fdc6cd8d",
+      "profile_driver_sha256": "2cf08b20633928417f0ba79d36e371776168db223471a91ff7236e62ed3becef",
+      "profile_binary_sha256": "e08467acacf50309518c9ef8d9de1c3182266a4cc8e17dfa74cf19c62b219def",
+      "scope": "Only production pass driver instrumented; original native engine/dependencies, actual extraction chain. Saturate remains atomic; no per-match counters, no coverage analysis."
+    }
+  },
+  "cases": [
+    {
+      "source": "/capture/benchmarks/passing/bril/core/ackermann.bril",
+      "directory": "000-ackermann",
+      "source_sha256": "ab29afbf2c3c62c7961e94b25021d6a82123790e6db9c00b92ba975012c7f1ac",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "000-ackermann/pass-1-flat.egg",
+          "input_sha256": "72c2de08829108e5ba643b67a7ba014ef8b6a6a8da70a2aae230b1223c74c1e0",
+          "raw_sha256": "f0a95e8db13bacfe139d1df1651268379fdce9a3601e20a9ce584b3247a9790c",
+          "full_production_report_sha256": "e49bc2c191b1ef18c70aafd3c000f2a678ecaf3f090e08fc1f3d460f2875f9e3"
+        },
+        {
+          "name": "pass-2",
+          "input": "000-ackermann/pass-2-flat.egg",
+          "input_sha256": "6b2a60c800b665387534ce5db26058fff5a2e4faa14684b88cf9ffa54205c598",
+          "raw_sha256": "c3614df7d17e319ee5c1e9a8b2ad09c0c7c9081c68a0a1549343a2e9ed5d1a37",
+          "full_production_report_sha256": "2facbe6157c07a4171776327986d860bfc3f7f8311a1123f3b6e5d4a81097cfa"
+        },
+        {
+          "name": "pass-3",
+          "input": "000-ackermann/pass-3-flat.egg",
+          "input_sha256": "0d85731dc78934b1b552be514f293345114bd4e62a0155ec05cffc8bf81ab53b",
+          "raw_sha256": "d77532e87150f6e26a67eb31b2cc54c074ba6a973ffdda958c55d1abe63d76c8",
+          "full_production_report_sha256": "05d2f0d2850e309a96ee6a4cb2b038d282fc03991dbd4675f045848f845a0cdb"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/armstrong.bril",
+      "directory": "001-armstrong",
+      "source_sha256": "44b6be189e12c18e0f9a50a092144830cf8df64349f0b48d8e245d3ef212fa0b",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "001-armstrong/pass-1-flat.egg",
+          "input_sha256": "1218b05c00099c27044a2152a18efde30d45a92067dc7846d081cd2bb327669e",
+          "raw_sha256": "717d4fb643e384b018758b98a1cf284bece04fea4850c1a5851e54a379fb5f75",
+          "full_production_report_sha256": "a6f2bc1c8bc9b704b0f405accc61a759015e123a9300fa073de49a362ab48cf1"
+        },
+        {
+          "name": "pass-2",
+          "input": "001-armstrong/pass-2-flat.egg",
+          "input_sha256": "90b75556bb145befcc4c9938102a4f875e96461c6a47aa996a5e58f8762fdcd1",
+          "raw_sha256": "24be8f1b25518c7dd47571c71a03ce0c4e6930a1416ec9c2f46730f2355ed7fb",
+          "full_production_report_sha256": "43b12edb32eeb3e1693553c9afa69cdf2bcdecbad3908e29aee085ac9ce7fd21"
+        },
+        {
+          "name": "pass-3",
+          "input": "001-armstrong/pass-3-flat.egg",
+          "input_sha256": "b9716d46668204e91891273bd4b8bc0857646ec3c7e6e2e9234f2e083cec8881",
+          "raw_sha256": "f5536632975a8f5eddd1b4b87b45387d9e286ca6eff943fd1978b8ed4982d18d",
+          "full_production_report_sha256": "f33a08f4d24ba8ce187092e1fb4f9d00470c39c87e18f2594c24e196384d4edf"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/binary-fmt.bril",
+      "directory": "002-binary-fmt",
+      "source_sha256": "f55a9b6a9ee727dd4ce5082d607ae89cd985ac1bb97301208d9386695213d443",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "002-binary-fmt/pass-1-flat.egg",
+          "input_sha256": "10ef1f3496ebd597b06adfd49729e115199fe37c921309db4ba73716b07cffe4",
+          "raw_sha256": "63e4209cb837906422b9679202514a8a654ce87c35c9ff496c43b4b41f087bb3",
+          "full_production_report_sha256": "c237e11a4569dc31c2f4226d43a70d746782cb9e8437f3c4b5693671153af868"
+        },
+        {
+          "name": "pass-2",
+          "input": "002-binary-fmt/pass-2-flat.egg",
+          "input_sha256": "b4d04cbe3ec77a28b7ad50772292c93507eebf7dfdadfa6ddf6e99cffccba36e",
+          "raw_sha256": "8290d5d7104b734348bed52d845f56fe6d020a22332b0b031877dfd9bbf04755",
+          "full_production_report_sha256": "f90a20b431396c7f203d17280f0b3df2ee8abfc4aa36d2dbbcfd66b8ceb848ed"
+        },
+        {
+          "name": "pass-3",
+          "input": "002-binary-fmt/pass-3-flat.egg",
+          "input_sha256": "25d10661d4b37fb34cb920cf3f59341ad82b6c8a5c125db5492e4472449c8f9d",
+          "raw_sha256": "2412e50885ec2a2ecdcd8c27f9346152f7055db90111b026c8d319eb8555487d",
+          "full_production_report_sha256": "274efa5fddb669cfb0a3517b3893db12ed28c6087ff5e98ce146dbdb0bf3dada"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/birthday.bril",
+      "directory": "003-birthday",
+      "source_sha256": "b8026093ca1c69f712184ae19d71cac7428137ed846b64007006e9a7b464f1c1",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "003-birthday/pass-1-flat.egg",
+          "input_sha256": "4c6a2cb947599a0baa6bb168dccecc03782bfe609d2b37abbc9ffe73a7e8436c",
+          "raw_sha256": "4f26e8a5085019f211c0ed2cd834bfad4bd014fdfd09013a26e8fa54267c44a0",
+          "full_production_report_sha256": "5a6007cc365493b74b4916097cbae6ac2490a4df030089783770dd86b5921775"
+        },
+        {
+          "name": "pass-2",
+          "input": "003-birthday/pass-2-flat.egg",
+          "input_sha256": "6700b319bdd4cebdd5ae65290ba62a0a2537babed45e3ff72d99cb4f864e8f28",
+          "raw_sha256": "a64ae19d4a94f1290116bf285abab426a8f08d580f4488d9cc939bdeaa137708",
+          "full_production_report_sha256": "487d8c42f4eeae6e96dcf5235892c112eec5fe14f432619a19a6770c945204d4"
+        },
+        {
+          "name": "pass-3",
+          "input": "003-birthday/pass-3-flat.egg",
+          "input_sha256": "d9e67cc518055d69a01d8065ff1c3095e34ad2d012ee91a1b09aaf90edd53ad1",
+          "raw_sha256": "3eec64c75ee64e3b64b37b952979bd9a6d91103c928871241ea2702ca053959b",
+          "full_production_report_sha256": "c1b0d63ab47f9359e1f4b38f10ec74bbe8c50e9155b095fc652fca34ca48c6ec"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/bitshift.bril",
+      "directory": "004-bitshift",
+      "source_sha256": "37d7f1ae4ae48946011b531bceb86e4c02624b2cefeb36c2c63bcb1cc963e18d",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "004-bitshift/pass-1-flat.egg",
+          "input_sha256": "276548b357a06c355d52e2c2bde4f6524fcee466a90fd5ec361ef26a2e63c51b",
+          "raw_sha256": "3bc46bca8aeca2eb1ac79bec583e894c6a64eb8ede69dfbc4597fc6be223fcea",
+          "full_production_report_sha256": "e9a681d5f49aba204eae4dedc8470c129d9095e56d4c89ab2b35d60572d9ffb2"
+        },
+        {
+          "name": "pass-2",
+          "input": "004-bitshift/pass-2-flat.egg",
+          "input_sha256": "9171da12e24b53db337c1420974b625c7b00e2403cbd921fcbd576c230307108",
+          "raw_sha256": "7d0c72c0bd71dcec70f0b3faa4b3db3080f000c74e98caf41b53b8ed8c39aabb",
+          "full_production_report_sha256": "778efdccc0b28131a742b42012a9b0e853a80f11e1c3409ff83e375510158474"
+        },
+        {
+          "name": "pass-3",
+          "input": "004-bitshift/pass-3-flat.egg",
+          "input_sha256": "1fcf570e97a3957dd5fe6ce2c7c58e46a7d43fe9d51ea0183d17d0f48e3279ff",
+          "raw_sha256": "f85339765a74dd3d2d0d8e8d6f918dd773787de16fb9841d1310a02cb27c61aa",
+          "full_production_report_sha256": "1ae979136fc41e413f798f623adee3c2aac7454d5e7909257a32bcc734f77fb7"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/bitwise-ops.bril",
+      "directory": "005-bitwise-ops",
+      "source_sha256": "4d4c7e6f73833b68bb17aebff214241a7ec3641a13ba1a768e1011c968bb856f",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "005-bitwise-ops/pass-1-flat.egg",
+          "input_sha256": "3e9ab6fa04e935c51b59f43d4abe07f4e438421c878c3bf8add016750dcea900",
+          "raw_sha256": "cf34056bebbd33a53d1331d41b37eb6d3f059e99a71e5c3e1c48e94fbb14c9cb",
+          "full_production_report_sha256": "8b13d691dcdd95e98bb72c5a299c628b4c3d92fdab155a94bef92412b89a6be6"
+        },
+        {
+          "name": "pass-2",
+          "input": "005-bitwise-ops/pass-2-flat.egg",
+          "input_sha256": "379a7bf638e8e7197d54c9a8d6afdb8907eff7948351fba957eebb127a8eb26d",
+          "raw_sha256": "9fd1cb2e2c4624feb735e269aeb1460e7f86c6326968d21f0531a1adcde2006f",
+          "full_production_report_sha256": "cd751200e5500a6ee5ca52e312520ca717e54283b9755b95433186811f9a0184"
+        },
+        {
+          "name": "pass-3",
+          "input": "005-bitwise-ops/pass-3-flat.egg",
+          "input_sha256": "decdd9c4ad1bd967a2916546aad6004c1ee3bd7ed5b202d388d5e148b6f192a7",
+          "raw_sha256": "9d3ad6437a9631d23bb59c2e716917d347b00ef07d449fcf53ebd1292497a9ff",
+          "full_production_report_sha256": "6714a3b70d0c9fe8354a6157b5228cb4cd5d36fcfbe958b8aae10333c0c5ef7c"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/catalan.bril",
+      "directory": "006-catalan",
+      "source_sha256": "9bf62799a1c451a3c9d04c46e031b12d2e471f6d47b6471e2c8b6bd141614291",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "006-catalan/pass-1-flat.egg",
+          "input_sha256": "22a7bdd3895d1fb45fe676e1625c82e08b0669208277c9286b70023c195918fb",
+          "raw_sha256": "1f8d16199ef448f5c90b72f44cc192738df182598b874b0c7ad57111a5f81830",
+          "full_production_report_sha256": "b3607f9ce34a019893fc50c96d7b458c342a04a7013d31c0a28cd942ad258691"
+        },
+        {
+          "name": "pass-2",
+          "input": "006-catalan/pass-2-flat.egg",
+          "input_sha256": "04f8bfc1c2d66f5019d879ccd993f5ee87ecd42b7f9ce4f75fdae278274a4110",
+          "raw_sha256": "a3a44f9c8bcbdeb8a23630ffd66e1f59b9a320a0dd2ac1e652420181c1cb1242",
+          "full_production_report_sha256": "1f6b4b5170c67514afc78a3dc26b65931ac2522135bbd1ab5d8c1ff3e56fb0d1"
+        },
+        {
+          "name": "pass-3",
+          "input": "006-catalan/pass-3-flat.egg",
+          "input_sha256": "e479cca99babb3fba8700f80a2fe8a835bd326cead543557dd48bf7683af94c9",
+          "raw_sha256": "602797ce81cafc9792c85cf8ddfe8b7c5b4e1d534a79c670e40be236683badbb",
+          "full_production_report_sha256": "77ee2b7c86321c37d8b5a06aa4dfd7382cba6e9c2bf7fc6d8b65219beaaa593f"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/check-primes.bril",
+      "directory": "007-check-primes",
+      "source_sha256": "e5d4a456bb0ad3b0c4a415674f9cfeed04e3f7c3550bf03e5895e236eb4a32f8",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "007-check-primes/pass-1-flat.egg",
+          "input_sha256": "5bcc58ce3223c9c1c48c4a5168518dc5d3626d2d51a8a5fdb7fc1a9512d2a3e6",
+          "raw_sha256": "a90326ff0b93d30e453af27cce79b1282e9c1062d45ab5bbbde92313b1da07ce",
+          "full_production_report_sha256": "77283fe39aafc8a816a3759896884bf14e450c090525608e9f92abe990a67f40"
+        },
+        {
+          "name": "pass-2",
+          "input": "007-check-primes/pass-2-flat.egg",
+          "input_sha256": "ec84e6df220fa789f650c20f76872418b98f9a5267b38bfe3edbdc0bb352d7bd",
+          "raw_sha256": "a21094e556f36dd53a3e974f41b9b9ab77f4f40b76be1ca0dfa803b89bd1b1b3",
+          "full_production_report_sha256": "96d6c28f75cf63e24e2e302d6dd12bca1c83ac039b98d62803c4b14dd2a2a356"
+        },
+        {
+          "name": "pass-3",
+          "input": "007-check-primes/pass-3-flat.egg",
+          "input_sha256": "7a2109f7ff8265b8b9b3f6584e733daab845be1448a0de6daf49698c235d6df7",
+          "raw_sha256": "260c4101e027fdb2abfb3a158408362febad8f76f7afc54ae504f7358d38b01f",
+          "full_production_report_sha256": "5963ca484a7194f44da1a89dccff537938ba72456bfa5b6806d6909edce5a2f6"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/collatz.bril",
+      "directory": "008-collatz",
+      "source_sha256": "00bf0f385e2bf40f0b826fb079ab290a64f17d657c99219bc099c28dc7fc4173",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "008-collatz/pass-1-flat.egg",
+          "input_sha256": "12ea1e1c05e0217c5d53aea60977059597bfef1835c108bb152dfc969378977a",
+          "raw_sha256": "095b222a537a88165675d36f2c43c36a649351e10ca5ca0ab2d02fd8b3b8656e",
+          "full_production_report_sha256": "7a9cdcf6da8bbadd231077f8ff3b0c10baf5bf5b32e72065de8d8bc686c030a0"
+        },
+        {
+          "name": "pass-2",
+          "input": "008-collatz/pass-2-flat.egg",
+          "input_sha256": "cd23417886aff8c65385fc55b970c838ed219659456f4c6e370021a2df132fcf",
+          "raw_sha256": "4eae6aa6b599aa71d66b217dff20b665d8641f1c06b40fd073c4cb0d1f3e11af",
+          "full_production_report_sha256": "260b9db9cde95c70cc2cb0c6797892b43d70a7e82499f10702198b3f37dacb7a"
+        },
+        {
+          "name": "pass-3",
+          "input": "008-collatz/pass-3-flat.egg",
+          "input_sha256": "54a2a1f4fd7f952a4f1866ce27095ae7a28996ea406ec03a18d30b13f28424dd",
+          "raw_sha256": "c6e7fc084b6d14823a98bf1b146cf6b0a69c997fb4c033d96df5719aad9174db",
+          "full_production_report_sha256": "aaf45a5cf5a3e3565505699590a8bfbc11536bbe1182bcb14b6523b24d3053da"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/digital-root.bril",
+      "directory": "009-digital-root",
+      "source_sha256": "003ba9262f42422c620d3c69b47f1435e821a6c487225b2fbb86d680755f6ee6",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "009-digital-root/pass-1-flat.egg",
+          "input_sha256": "151d9563deff1dbe8599eb570390818e919404edbff64ed7e6d03f6ff005cb7d",
+          "raw_sha256": "c5c4a06879f463ec87da4fa96cf1b3a850e1726fe4318fd0ee892f5a5e77e999",
+          "full_production_report_sha256": "73e7d9ef64a6e46525dea0f018dc51a1c31e311b4eda7e7316be90d73d9dd783"
+        },
+        {
+          "name": "pass-2",
+          "input": "009-digital-root/pass-2-flat.egg",
+          "input_sha256": "986d257770f2e20994976238a6117f510fe5875faefc5a2e5ff942073589c150",
+          "raw_sha256": "bc574bdefbabd0c063c0eae5b620dc93b5fefb1fcac5030a6d4e6b27cddff210",
+          "full_production_report_sha256": "dc0c8672bcde1858cb9fac51617f656b2e203c8bdf31201bdfe1dda149369dfe"
+        },
+        {
+          "name": "pass-3",
+          "input": "009-digital-root/pass-3-flat.egg",
+          "input_sha256": "e2eda5b2c3fd7c273b4503de3953d6c72511af2ff927fc2e12d221576e6eb167",
+          "raw_sha256": "ad772b6b82f97d70b511725b9307b6fa874505c50ffe347c1e68d98e2eb7a929",
+          "full_production_report_sha256": "b03effdfc76d869e3ebaa678a070bda86ffbc9aa252eef2a1a245de9ec04472f"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/dot-product.bril",
+      "directory": "010-dot-product",
+      "source_sha256": "fb43092b0b8b4be2280c5640c048ef6cceba3d0eab1d86019dfc2096b9209646",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "010-dot-product/pass-1-flat.egg",
+          "input_sha256": "eb53fa7678380bb75d1312ff6ec5d8904b021b8c6b4a19620176db1d3a8985c9",
+          "raw_sha256": "157b37ec88b2b5e59bcc31e6cdab534e81fbc90ded96bee77cee524bdf76c9a6",
+          "full_production_report_sha256": "bf772411d8cc16609d9025e2c5278563f78de39764114cc5ff0045937beb3ab8"
+        },
+        {
+          "name": "pass-2",
+          "input": "010-dot-product/pass-2-flat.egg",
+          "input_sha256": "ea64df33ebb60123e52f3e71b463afad034d29d446317c33c0807d49630500ae",
+          "raw_sha256": "f21397cd9e2e4417bd50617c38ae28255920417c940caf91df2268ddd724c4d1",
+          "full_production_report_sha256": "8cb303973d1a317ed8909cb649ea6132eac300733d0debb1e178123bee822821"
+        },
+        {
+          "name": "pass-3",
+          "input": "010-dot-product/pass-3-flat.egg",
+          "input_sha256": "02f301e6689c2ddfca4c8a01b431d031a3289c6bba98f141deecd71edacded68",
+          "raw_sha256": "19b06fa1f67959018b4ada66912f80bf46bdac982c88825ad5f4a675c0593f6c",
+          "full_production_report_sha256": "b1e65b07a5be29090edafd38aba400560b27cdbd71ea9401d13fe72edfb683bb"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/euclid.bril",
+      "directory": "011-euclid",
+      "source_sha256": "0480a34274827dab3208dc5322fc52be709a355d567b81dc7945e3904c2b6160",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "011-euclid/pass-1-flat.egg",
+          "input_sha256": "5a4a1dac29b03354a72e44d2fee5d33afa184cf962117e3d17e0f45e5fff0654",
+          "raw_sha256": "d44f53822cf43b3934931112f6ba2799fc182238967d178d983f2c05f980319b",
+          "full_production_report_sha256": "ebbdf090b681878a23cd9ff0d2f5a21408fca0da99f8d15fd3cb4613b05ba65f"
+        },
+        {
+          "name": "pass-2",
+          "input": "011-euclid/pass-2-flat.egg",
+          "input_sha256": "694414e7863130223d18d73a0f464e1bb78e5a08e98e9eaffc9ab62fc507daa0",
+          "raw_sha256": "102ed658c88cd8dbd01fae3e4870731ac36d1930a52ac10ac3071dee50735eb1",
+          "full_production_report_sha256": "2cf219b83ffd5a6260a614ff2c3e53002065616a302f3eaeb3a434af0ae4d9de"
+        },
+        {
+          "name": "pass-3",
+          "input": "011-euclid/pass-3-flat.egg",
+          "input_sha256": "b8cdc98c1e8fd6b75f08cce9a8b167008eb1acc85e2109df1c7d2291a46b9438",
+          "raw_sha256": "2dfef119d9c5205eb9c872b1a431dc3b81a441eee6f48dab0c127b526ac7f05b",
+          "full_production_report_sha256": "14298d3ac0f42cd86eed8945a8fd7df62fd249787cae8fc80f53073b19777e2b"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/fact.bril",
+      "directory": "012-fact",
+      "source_sha256": "27ae13958d4af1f3712ade10c9c0ed6e7f110a7e33888f8b845f00b07841c702",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "012-fact/pass-1-flat.egg",
+          "input_sha256": "38e614939ac36e27966b6e9cff94ccc172633303d9d3dc94ab874831cd4f0ad8",
+          "raw_sha256": "b2c5d2a56e817af9b7554a74af5a5ddb46e0afbfd809cd674e6a0f863b4c6a7a",
+          "full_production_report_sha256": "1156f1e7483d5c32458e75d64a791632f1b2138949c98903fd330c56d3b04ab2"
+        },
+        {
+          "name": "pass-2",
+          "input": "012-fact/pass-2-flat.egg",
+          "input_sha256": "2bbed74ddee071617968bd16aed8c6718fc9e5ec6dc9bf38955f1ab10e55f4b3",
+          "raw_sha256": "21c2709b87be4552b6f83a0630b5f34b7961c3805e8ba8aef00b369f156a706f",
+          "full_production_report_sha256": "8867dd1a6792210a84715e0cfae459e4524f8b238399fc016a01370aed64f029"
+        },
+        {
+          "name": "pass-3",
+          "input": "012-fact/pass-3-flat.egg",
+          "input_sha256": "84615f276c5968cadaec53abf228a9acab66dd6c1597e902e9af1a8cab6ed149",
+          "raw_sha256": "fcbfd9be43a1c0d96d025dffca0dd5d9985c656b327586474162b81ddaa2a498",
+          "full_production_report_sha256": "3025b10be55954a6f5f2273334dba3bc7141086f22e13222e85e170ada11d6d6"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/factors.bril",
+      "directory": "013-factors",
+      "source_sha256": "0521593dcc7d60fc3f9e3c851074b5d74822b16fcc38a3f2205f0846e54d2612",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "013-factors/pass-1-flat.egg",
+          "input_sha256": "41635a6dbad9e95879c6b75d80734bf4dc9eb5b10da45ec6bca16ddcf814075c",
+          "raw_sha256": "ca2fd6624261ead89aba9eef4157392a0d4698269d92293a475c1cc8d3f2710b",
+          "full_production_report_sha256": "dbecffc7b28014e2b335d6c39973259047060ce9fc0f9f0ebdc95f5c5a0d74c1"
+        },
+        {
+          "name": "pass-2",
+          "input": "013-factors/pass-2-flat.egg",
+          "input_sha256": "0b6361ca41267c856c6ef0786e35a258d126085211690aca539687970c1191af",
+          "raw_sha256": "cfd11c91d4e7556adfedebd0df2993a73759e60184b2ffe93ae514074274928b",
+          "full_production_report_sha256": "30f8b6d6c17484fc8b02cea8d09f9e649f6b156961dc0a19769086fa27417df7"
+        },
+        {
+          "name": "pass-3",
+          "input": "013-factors/pass-3-flat.egg",
+          "input_sha256": "7d477ba8d59b35009b726883b43f9a774ed512ac8f852707710a0f841fb16f11",
+          "raw_sha256": "cf89c1bd26b8f72d4319b41348020862756866c553468b5edea6c00221c7ba61",
+          "full_production_report_sha256": "74c81fb154312cba8186c79b2ed198502ef1a0674b859344280f959fd577f602"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/fitsinside.bril",
+      "directory": "014-fitsinside",
+      "source_sha256": "ba6c8590bddaaa84e38e00527b8f9c8bf2feb0e8ca0db8eb412cec6dfb17f0c1",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "014-fitsinside/pass-1-flat.egg",
+          "input_sha256": "65b337e23606d4d7ae5c6552b4634e5261e64e897a5b7f9369688493ae25fee7",
+          "raw_sha256": "f3c8c1ba7a723e05df0e3a4d62b084790a5bb28d18132c3081aacc6d4635798a",
+          "full_production_report_sha256": "f364f4682e8923d98a0b467ed0f3af774971ecc30ae6d87bd76c313ec1e16126"
+        },
+        {
+          "name": "pass-2",
+          "input": "014-fitsinside/pass-2-flat.egg",
+          "input_sha256": "65415d08de98417221d91f54254ad61730f5acd8654ab61f165d76f12c701dad",
+          "raw_sha256": "e36d23f1dd974428e65c300a5cc0ba63a0fea821645307f9805e693b6ce8beed",
+          "full_production_report_sha256": "c497d95b40fdc0c69e208649e242899cf63a8b53dbc5624ecea2e4443620a05e"
+        },
+        {
+          "name": "pass-3",
+          "input": "014-fitsinside/pass-3-flat.egg",
+          "input_sha256": "326f05a0f933f2bcfbea654904221d966789179fd1854b51272fb1a5fbbc0fe3",
+          "raw_sha256": "927f6bcf942647bf2fffac507668ec25cc81f2e9c6079b2fc09a1da6b16bf8e5",
+          "full_production_report_sha256": "113db59eb4cb47f406e60c0cf9e84899b2bef3f4cc5b55390f2fa4d75a9d4d32"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/fizz-buzz.bril",
+      "directory": "015-fizz-buzz",
+      "source_sha256": "d779cd2e50cad713b9664944909eee7fbaed6fd5c348f15106f3f896a44a4d68",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "015-fizz-buzz/pass-1-flat.egg",
+          "input_sha256": "02556ff199d5ff4091b67b9ad4ab7fa7bf4d08e0f7368801cca46835ec9282f3",
+          "raw_sha256": "8eb9dbe4b1368a0121627c332297d9086232620b37ea4e3d41cb5aaadb2ec6aa",
+          "full_production_report_sha256": "901b376454c33c760eb11b7d6851ad3c72640da10942b3dba417be679c98e59f"
+        },
+        {
+          "name": "pass-2",
+          "input": "015-fizz-buzz/pass-2-flat.egg",
+          "input_sha256": "bbeae9a40938717396a749bb0cc02711463a8c5d6c819a351aa771ca4d856597",
+          "raw_sha256": "cf2a4c5afc0b1a51e7291b97020c7a3065ba66491ad341c8fd94e7a17fbc5a59",
+          "full_production_report_sha256": "915860c1432baeec520b80ae892f7b8ed5368d898755903e66ae514643b2752a"
+        },
+        {
+          "name": "pass-3",
+          "input": "015-fizz-buzz/pass-3-flat.egg",
+          "input_sha256": "0f9629f1ab568fd04bf8537ee7f6af6bee2d11d1366bc0e357915947a81401eb",
+          "raw_sha256": "eff27cbbf8615837696e6772bc4dda6114ab6186d93ad77e4f4d16ddeae3980e",
+          "full_production_report_sha256": "4eb50ea7aa5241dba6a3f5d95fb14ae756dc743940725c0e62b02303d20abf08"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/gcd.bril",
+      "directory": "016-gcd",
+      "source_sha256": "e495e15ccf100deadfd7bf8e2a485db0f89780421817e96bc422dd1a5dc97857",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "016-gcd/pass-1-flat.egg",
+          "input_sha256": "af4cb5507cca7a833f0397698fd1dd89c9eaae9748a4d4dd9f63aa53dd398b11",
+          "raw_sha256": "facc66109346cfb0d91d6f3ba4d5179067959937d33e5c59c40f398f1c1315d1",
+          "full_production_report_sha256": "97fdece1bd7fcfbeb4973b42aad7208a67a1b9543fa70f2b77d616e69d0d73d1"
+        },
+        {
+          "name": "pass-2",
+          "input": "016-gcd/pass-2-flat.egg",
+          "input_sha256": "926870c4ded65b46cf87fd52e4d18931eab12bf4e80de3e2bd690f10cfce6927",
+          "raw_sha256": "d475fe2272c7f3110bb13cab8ee28c6b3bbb661f72b3fdfeceb28084edac0e94",
+          "full_production_report_sha256": "0bbaddd836953b24b3ded5bfd6fa4ea1adc24c35291804d1c186c1d69c3b49b1"
+        },
+        {
+          "name": "pass-3",
+          "input": "016-gcd/pass-3-flat.egg",
+          "input_sha256": "26dd6a67e431b87f2bac87341a04e7e68ccdd8fd2064a68685c9d99132624271",
+          "raw_sha256": "f64d837c48880c965afd1074537e4fe6e6c65f6b7f36b36e61c3d5edaca9af6f",
+          "full_production_report_sha256": "d6f12b0fa66bbd24de54db003ec771f6f2bb6f2f6d37f2587249ca2a264bd6a1"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/hanoi.bril",
+      "directory": "017-hanoi",
+      "source_sha256": "0e3493635a36193fd9cc2e202e72da61319a92b9ee591d86fa913c1afe4482d9",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "017-hanoi/pass-1-flat.egg",
+          "input_sha256": "de6b7d7377973df04585cf3f4fe1f9a61797133f655652899a2ce67dcf981ffd",
+          "raw_sha256": "cec304d9f42ca5a6509e75fbdeb82deac83e682dcb2ed6daebfd5c9b4e0f2c51",
+          "full_production_report_sha256": "43522fb75c3dea063c70f27e5066adee6379dfad1ca5a4a32fb112199d6963cb"
+        },
+        {
+          "name": "pass-2",
+          "input": "017-hanoi/pass-2-flat.egg",
+          "input_sha256": "437c39c723d25de38ec4cb052cf41805740905b300cf0ddaa6d1ba9091e8659c",
+          "raw_sha256": "2cd5804f96ab8af659c3ecf4f5d6da95d4c33c85be70045bb82a9a53d15e8ecc",
+          "full_production_report_sha256": "031fecaf204b27c5ce83feeeb9a6565a351deab5ca00af941b9317de8dca243c"
+        },
+        {
+          "name": "pass-3",
+          "input": "017-hanoi/pass-3-flat.egg",
+          "input_sha256": "f74056ba24c186bc8f0e337675234e041438c5bbbacf86b6621eb258b38daa5e",
+          "raw_sha256": "ee1603498fe58280a634808c1a2aad89d99f87b7da7f3d920ab147b7f8cac0da",
+          "full_production_report_sha256": "3eb76cee7807674d74c20e7933c6d2d0c0f70d6ad902538586b6cb0fde698171"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/is-decreasing.bril",
+      "directory": "018-is-decreasing",
+      "source_sha256": "fbced05b131a39c3757c8d65f2e08f4137d93616530d7864a982460befbb88a4",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "018-is-decreasing/pass-1-flat.egg",
+          "input_sha256": "ffb1d75d10c8ae05204ada5a1320146ff02fdb8a9f1556d58f6278e93d4e6768",
+          "raw_sha256": "2c4af1477a7218e3b67e550f9375ed43992b69ad5c95ca0dbceed4a252d3b2e8",
+          "full_production_report_sha256": "accc3d2aa7fc3de777b429aa7f61b4f02548a6c23031a8ab0f0f0d652bbc12a7"
+        },
+        {
+          "name": "pass-2",
+          "input": "018-is-decreasing/pass-2-flat.egg",
+          "input_sha256": "26c9ff1d972f2daf7e10c55ff0a3e6f393bff75d4f0413412c99274a1c0046a1",
+          "raw_sha256": "491498925d65bf4f5167ef1a13e84f36f73f9b6fc5af928804d24d4f46578bc5",
+          "full_production_report_sha256": "93001191aa23d143c576a857063cb9b8067d47e32a14ffd9ea5795975c37ef83"
+        },
+        {
+          "name": "pass-3",
+          "input": "018-is-decreasing/pass-3-flat.egg",
+          "input_sha256": "7bf2d2d381f8a0f5379482f2a124dc7d72afa3dc80163b561b0535bead230d6e",
+          "raw_sha256": "9a2040f9f4ef582c2cf88066ce465dd10de34bb377324e9f37451ea7f3cdecee",
+          "full_production_report_sha256": "a67ba6977291027e4a6387873b19262fa293110f5165c02ef08fd644181fd748"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/lcm.bril",
+      "directory": "019-lcm",
+      "source_sha256": "858791f50dd527ec92b0db40cce359ff38625a18270e59eee85534664287d657",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "019-lcm/pass-1-flat.egg",
+          "input_sha256": "52c3b09555bb1a033107a7d7629abcf5e948749067bac804abf5db511c311e47",
+          "raw_sha256": "c77ae89f53b3f439acd7e84e4dda49abb8d6d73df9e5d9f468b8cc2123a23025",
+          "full_production_report_sha256": "1ca25a0b8c98045dc69392834ecf4936ef1eb72f16c951a5c2dc614581b7fdcc"
+        },
+        {
+          "name": "pass-2",
+          "input": "019-lcm/pass-2-flat.egg",
+          "input_sha256": "ebd3268fc3e464ac7e3afd53eb4884061fbf07e79a3ab7eaa6ff97d0e7bf1d58",
+          "raw_sha256": "f415939ad744e016f17d95f57b3f6c92f783f32216285916d46db19cfab08b2c",
+          "full_production_report_sha256": "256d2ea73bb45a7b0f1876028ff644a8872eebc0b182fa1807b2233c933eef32"
+        },
+        {
+          "name": "pass-3",
+          "input": "019-lcm/pass-3-flat.egg",
+          "input_sha256": "0ac6b0735e7c5515ae0e56d95059a326a600955f99ac2b0159cba6d5b9d24c0a",
+          "raw_sha256": "a6b9b4c8ede8623b2764de41c17909624c5a16600c3d95b03f51c024252ace64",
+          "full_production_report_sha256": "21dae6d3430d58653f3652dc71134aadd43992d9d7e243df66b0e040f1745241"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/loopfact.bril",
+      "directory": "020-loopfact",
+      "source_sha256": "8c0a58e3d60d8d750bdc963e8d07fbbc98f6b9182ba9fd128e5406cbc4b20655",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "020-loopfact/pass-1-flat.egg",
+          "input_sha256": "5deb4365bb71b2b9cedfd41b2273c460e9635fbac3ec8043ea620204fc553f6d",
+          "raw_sha256": "67fa8cf4fad74467c078af142b8bcbaf3aa5b337d241acec9af9977b960a4401",
+          "full_production_report_sha256": "236ada14c4533b2d7ad8f0c345ec49c1dda20b3b0353d8d7ef1fee58e6545a29"
+        },
+        {
+          "name": "pass-2",
+          "input": "020-loopfact/pass-2-flat.egg",
+          "input_sha256": "f5a279aef7769377adc2382afe9368774582232302b563bb696e37adc8f6ee60",
+          "raw_sha256": "f1efa880c5cb314273db98eab45908120d967ba94ff0e1bf7b6f44dd39d3ebe8",
+          "full_production_report_sha256": "159275d658d2f2af178f1aea2a85e0ea971a8c590230bbf69ef127fb6bee6c52"
+        },
+        {
+          "name": "pass-3",
+          "input": "020-loopfact/pass-3-flat.egg",
+          "input_sha256": "26c0d368e168673ed0925e10e42651c255cc7068fa33af96ee065371b88b2051",
+          "raw_sha256": "fa27ac1db7320fe58c5b22e715fef23b1a2ebd227ac8184554d4928db3f4dd80",
+          "full_production_report_sha256": "b78691b64ff4d836377e0899272ee90c08f28c0e5b82845b4f2f1cfe561637d5"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/mod_inv.bril",
+      "directory": "021-mod_inv",
+      "source_sha256": "fa42f7eae4f45a2ff60ad097cf41a67bba321366537acba05ca88fbfa28edae3",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "021-mod_inv/pass-1-flat.egg",
+          "input_sha256": "6ae89f5d1ae9ba1d72264b0cac3771585e05b5192a352a75591d3483dd6df9fe",
+          "raw_sha256": "cff2ec0b159fea28576ab154b95fc74b5bc538a7a883d6825e0322a2041879c7",
+          "full_production_report_sha256": "8880e2022ce42d4ec4e5fe5e57d0c25d677f826d0176aaee47ac00850dedd612"
+        },
+        {
+          "name": "pass-2",
+          "input": "021-mod_inv/pass-2-flat.egg",
+          "input_sha256": "afad4bfcfea97d16c4920a90f939b4fc361e7283cc2a30231fc2b38609a74898",
+          "raw_sha256": "19e6d511d60f0f14d9c9050290c539b6e88f8155f1540c170a63d04afe66e013",
+          "full_production_report_sha256": "67c3f0639b1d2e5c8c012eaf9e47be4d3be18c6c548253064b2ef7fb72a633fb"
+        },
+        {
+          "name": "pass-3",
+          "input": "021-mod_inv/pass-3-flat.egg",
+          "input_sha256": "fb265d46e1483103925414e6fc1ed1f080c4af351c2ccb61136a42d578b4564d",
+          "raw_sha256": "8034459610b2bcc87473e451cd4efe123b81cc8c9c615e1d5d1a5ce745d48608",
+          "full_production_report_sha256": "b0b5a25dcd4017b0657c34811b74dcd3478ec0ca7548a9887d4c20ce1ec930f1"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/orders.bril",
+      "directory": "022-orders",
+      "source_sha256": "985d48a7412e5275ed0ed3d5671b13fe9012bd8fbe8d2770eaacf3792dcfea6f",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "022-orders/pass-1-flat.egg",
+          "input_sha256": "307c3c5cb776f1eb33ce7d722290e0478d259061a3b646458374d160d7e1008e",
+          "raw_sha256": "2255a9f93147c2fc5f87dc8077249c9a1f001e965a262a6e55f7afe9b41f90f7",
+          "full_production_report_sha256": "8c14bbec5a5c3003c94173e1effa5d23c43343bdd0da107e3fa78bf5c758a2b5"
+        },
+        {
+          "name": "pass-2",
+          "input": "022-orders/pass-2-flat.egg",
+          "input_sha256": "907d0a7ac38e195a8e2f3d31547a06f7f2a824dce823c8e4461f4bc5f91791a6",
+          "raw_sha256": "d6ebee52834896458b2fae3433345b47277aa6f67235872be733b062588a62b9",
+          "full_production_report_sha256": "00b6914df31c4e5ee79d0a8b5fed8aea749a76591573db7f6dc1ae31a53b9e5e"
+        },
+        {
+          "name": "pass-3",
+          "input": "022-orders/pass-3-flat.egg",
+          "input_sha256": "b45107eb4e49949593c8ae041d46859d05788aaeb2803a239e39b41bc8ffbbfa",
+          "raw_sha256": "8a0847668b7e9853618abbfc08de822a64a1bc949f480dd1d063c05c22bffe09",
+          "full_production_report_sha256": "48a4380f8825ed14d4fe1ef32ef4fefbeb34854027abf94a48ab7e2b5fc4ef41"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/palindrome.bril",
+      "directory": "023-palindrome",
+      "source_sha256": "0b13c07fb6c368e7f04b305cc6d4f2bd574c635e7c3337883477ad4dab8b9c68",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "023-palindrome/pass-1-flat.egg",
+          "input_sha256": "5ad1338d0b683a43087f05ecd703eb7b685efd7b2a5f70ed984e1e4b29d2ddc1",
+          "raw_sha256": "95716f719f8968a3c7b631aa5c9915c64d8d7727f2297bef9a36e0d36043b870",
+          "full_production_report_sha256": "8649a370996fce066250d2d052d4a08c9f441a3c3425522cf45dd497edfb4de6"
+        },
+        {
+          "name": "pass-2",
+          "input": "023-palindrome/pass-2-flat.egg",
+          "input_sha256": "6033ff4bf1d43a8b344cb1b7a2fd1004df7b85d4897a7740b732e15902e9b5f3",
+          "raw_sha256": "45f9b8daf55b09b1a1f2a6e8e1c36238e1643e98cbe39365c3f0fc6a3dcc1088",
+          "full_production_report_sha256": "c75aee722d476ab718696b29dcade82e073b88c2b89ea0f2050a95774d8f3fdf"
+        },
+        {
+          "name": "pass-3",
+          "input": "023-palindrome/pass-3-flat.egg",
+          "input_sha256": "14fb7afa4da2c3fa28029fcf997990fcf9eb51889fbffafffab076482215a4cf",
+          "raw_sha256": "86c9ecb01aea5092249e3f0f2a5336600c184988a7858a793d34ca759c24d96a",
+          "full_production_report_sha256": "59faeefa3715b09da1ab5d59cf5ad54dc2e365e5b83cbd619a0ebdbd08e74da3"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/pascals-row.bril",
+      "directory": "024-pascals-row",
+      "source_sha256": "6edc82d0dd6a55f2274948f3a5ee61da1350b186efb84b33a3cfa79d1ce3298f",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "024-pascals-row/pass-1-flat.egg",
+          "input_sha256": "5b0d903f600349b11b2526a5bca4dc93d21dd5e481814199a407c70c2161a1cf",
+          "raw_sha256": "aee57981cd5ed740d0d6177e48e4bef011886373289a85c6ef24bb74ff500c1c",
+          "full_production_report_sha256": "d2fa84833ceeaf428230011a9913b36cbc55c7b01202afc0b05d0c781ed7d168"
+        },
+        {
+          "name": "pass-2",
+          "input": "024-pascals-row/pass-2-flat.egg",
+          "input_sha256": "4a5687616500b1f42554daf17a226ecdc4bb3c09873e215ab06c322de92f3778",
+          "raw_sha256": "9c891dca0b341289fe3a466c3a8cfbf156dc52c8f7ff365d5dd63c947798bfc2",
+          "full_production_report_sha256": "4b13ddf30c49a75104f6d686eeaafc053a7d0e9664d4e7387cd7507d17673c30"
+        },
+        {
+          "name": "pass-3",
+          "input": "024-pascals-row/pass-3-flat.egg",
+          "input_sha256": "fe99dc029050fd91163240c1bbec37ff8344324e03d90dad7c871fd7033f2613",
+          "raw_sha256": "9d0206f997e92b8de309209235af68208699eefd2a946b51dbf263ca570fc566",
+          "full_production_report_sha256": "54fddc55f60bafdbd1d798e9528e6f6e2f2515c8c040b34bec06fbd24b99465b"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/perfect.bril",
+      "directory": "025-perfect",
+      "source_sha256": "2e53f6d610add5d7e69448f9e8e6e8d410e98aa2e61d539790734b367a1b080f",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "025-perfect/pass-1-flat.egg",
+          "input_sha256": "5c85df5f01e17ee2eb2fd2b9e47716edc34717a98fbb80d766399a9e1b65435a",
+          "raw_sha256": "cff750e57addac6bde64f265d4208fd11b9aa1b683c96d3ee812a1830f9e1021",
+          "full_production_report_sha256": "ebdce8dd6159495956d0a0d65c0c634b0f0c62c18d1daae0291d4c2de1aea14f"
+        },
+        {
+          "name": "pass-2",
+          "input": "025-perfect/pass-2-flat.egg",
+          "input_sha256": "fa426a516b04304d7ab28122de8744fcfe1dfed3b898126cdc6d7b0960ac7250",
+          "raw_sha256": "d9228b1b8e01d5d6f6b6a3a1db452ef65f6e5566f243bfecacafc5a1bd964146",
+          "full_production_report_sha256": "f94da5be0c202d839071940b53c3bc55c3791603fd2a42ef6f4357f67c3d56be"
+        },
+        {
+          "name": "pass-3",
+          "input": "025-perfect/pass-3-flat.egg",
+          "input_sha256": "984fd19b059350025818b7aee11992987c07c83084848a4457b8d6299a287cd8",
+          "raw_sha256": "a4ed2c67c8d0de7a5f5b49a6007b7be7068c0b43528cec85b424a65e15e1aea5",
+          "full_production_report_sha256": "cf7e6f374f26412d556015f16fc18ba85f2fca4188b8856da16b435e34e140ab"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/primes-between.bril",
+      "directory": "026-primes-between",
+      "source_sha256": "aacd943d309029ce8c3381868365db1d57bdac3f3606d24e81e882423118c1e4",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "026-primes-between/pass-1-flat.egg",
+          "input_sha256": "745f00928545a56aff26aaae996cccd065d59055e219fa7648e6566547c39fa5",
+          "raw_sha256": "a52b7553f065ef9daa70c604b1cc02159e598af39788e68a7cf363b962570b3c",
+          "full_production_report_sha256": "cd6de6b6fcf99100eaad992460fa6b049f5e22d32ee953695773d5f06f499bad"
+        },
+        {
+          "name": "pass-2",
+          "input": "026-primes-between/pass-2-flat.egg",
+          "input_sha256": "7c543da052a922b670a41162a87927c65270885fc7e6cd3d97de239b059d7816",
+          "raw_sha256": "bafd5df2085104c8e5b5b0cc8459995cb2f6be3e23335351e7dafa49a629cdf4",
+          "full_production_report_sha256": "c54ebeab1b38437a3e98c6cd8299fd13f4568f21f4d8f6ebcb69ce269712f27c"
+        },
+        {
+          "name": "pass-3",
+          "input": "026-primes-between/pass-3-flat.egg",
+          "input_sha256": "5a318a0f7c6c12497c6e159bd74bee02134c2286947058846800157dd0d63f03",
+          "raw_sha256": "8508ba2f9d5c34da46822b3b0b65ac1ded25e7b38a5b4be87bd46f245bd97c96",
+          "full_production_report_sha256": "a9e05045d0917503df1458247925fbd346fdca9ac953c732054e0852b581c908"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/pythagorean_triple.bril",
+      "directory": "027-pythagorean_triple",
+      "source_sha256": "a439e9330eb37bd5f779e6d99e8744e6c47c8a3bd246a566a6e65e2d4499de43",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "027-pythagorean_triple/pass-1-flat.egg",
+          "input_sha256": "7fb15666e0a985566bddcceb1f57bab649719c53958bdc5ad2a7e41a3c926d03",
+          "raw_sha256": "f2f3d0bc605ce4f829748c3168315f98e74a1a7afc026b2ac5d8d64160da1187",
+          "full_production_report_sha256": "633d4e82cf4d123cd3edec1d7aa94d7ac90ee0c19e0cf77a2ef42b9ae952ad6b"
+        },
+        {
+          "name": "pass-2",
+          "input": "027-pythagorean_triple/pass-2-flat.egg",
+          "input_sha256": "c3cc24498cf6c34c7259fda302a88d510759ec78a899bf96d0abad3a93d2ccb0",
+          "raw_sha256": "6fbc3c22f7c427e315bffc10f696277db14c2e1ef5c126525e41aeb8df9121d4",
+          "full_production_report_sha256": "5be0a8716bc8030332253929d0118178f9ac7ab86ed2e712d2e1c121861c88fe"
+        },
+        {
+          "name": "pass-3",
+          "input": "027-pythagorean_triple/pass-3-flat.egg",
+          "input_sha256": "ca0281f1a73f83dff0c193a0e90c188d54bda8131ea7973338b0243eabfa2936",
+          "raw_sha256": "7d71dd606f4f5cda006411a587fb067b5fff73077327afe45185102ee93985e1",
+          "full_production_report_sha256": "9ed71e172cd4dd4283fa29831cb8784e761d10a088ee83352bda99ad5d611f25"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/quadratic.bril",
+      "directory": "028-quadratic",
+      "source_sha256": "db4d7ce9325e91149bc1e2b7ed86baf8edf4511232140eae077b919c4a9020ec",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "028-quadratic/pass-1-flat.egg",
+          "input_sha256": "8c8e913e091bfb651d79c147e9687a2c7634562bb1ac4bb75793d22f89ddfe62",
+          "raw_sha256": "798a34c81b66a446a313a567cbfa05be4494f0a9bfb183fa5ce3123f1ae36bcb",
+          "full_production_report_sha256": "47c783eaf4d53dfc31794286c07ddf0458917522ca3d5a6a81eda99f3e8084a2"
+        },
+        {
+          "name": "pass-2",
+          "input": "028-quadratic/pass-2-flat.egg",
+          "input_sha256": "a7647a9e8255ed776f4f67039b78d799bfa75f46994b8fc2e3d6ff1d4c6602fa",
+          "raw_sha256": "a25357e55190ac055a90085fb71b299e690cda1d8ea55b77998169de65d4cc16",
+          "full_production_report_sha256": "f2c915ef7fdac8bd64b7a4833b0c0b9e2ce02d19a2bf7228f82a05fd1c58f97e"
+        },
+        {
+          "name": "pass-3",
+          "input": "028-quadratic/pass-3-flat.egg",
+          "input_sha256": "6daed39eefd11d6e3f1c41286d9d66c6d2d084a6f1cb9d4e1ed95de86f643f87",
+          "raw_sha256": "ea6efd9dc0b8602ee0ffe5b76f56828326c352b525f15e2d00fc5f8923cbf884",
+          "full_production_report_sha256": "99d90738395c32ee678328896b4d0625f6168bc2516da1e096051893de385a25"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/recfact.bril",
+      "directory": "029-recfact",
+      "source_sha256": "539e81485bcc7756b462897a7223f6c309eb888179e74b3472fd0c4f3d47a54a",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "029-recfact/pass-1-flat.egg",
+          "input_sha256": "105855e2504854fdd68492a081eeabd08e44fbd7eb4385218916eed793ab03f2",
+          "raw_sha256": "206c2ca43059cf1a6800f2d3a5765dd2f7b23261020496c090c43aefa3a7cd11",
+          "full_production_report_sha256": "9c6cb743f251bee62ae771a5ac235ea04f9ae53b0e89c93b9e0ba3c3e263a9d0"
+        },
+        {
+          "name": "pass-2",
+          "input": "029-recfact/pass-2-flat.egg",
+          "input_sha256": "42f453069c7137822d8cff4dabd50c07379a9440c9920eb955e4e659a4552105",
+          "raw_sha256": "1323b33cf16bf06766d1f6e3a0c6f259632943ab5e25e780b8d35358c0f84e6e",
+          "full_production_report_sha256": "f0c50d379ade953f14bb577a36b155241aa202a8e5d5e60ab7b1d8ab8f573d76"
+        },
+        {
+          "name": "pass-3",
+          "input": "029-recfact/pass-3-flat.egg",
+          "input_sha256": "3fbefc52bb81fd6ea07b8f368169550439c672839417dff659dd314f29b88380",
+          "raw_sha256": "3ac627371a0f8ba9eb4aec6a3e00f5491d85adb318aecd423d88e92afc6b4ea1",
+          "full_production_report_sha256": "03cd45f656f8f56574cdd4a36be5e34e56362f5fbf949d88e0ce66cbb3896966"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/relative-primes.bril",
+      "directory": "030-relative-primes",
+      "source_sha256": "2992be6004bf9f44fa32bab6f67c366b8b250980d6c550f1fd2fc67eca2a8276",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "030-relative-primes/pass-1-flat.egg",
+          "input_sha256": "b6a96bb3debe1d98272fad0d06c26de6e96945be2d09a03ef76944f8473311c4",
+          "raw_sha256": "bdd185eca028d3cab7c7b026385c7cc4de552c8490a2f291defc75c8f043a580",
+          "full_production_report_sha256": "99830c07ca4f42a75e1ef14a0fb0d9b7026232913f0cb7bdf49cb90f3bc05a77"
+        },
+        {
+          "name": "pass-2",
+          "input": "030-relative-primes/pass-2-flat.egg",
+          "input_sha256": "2a07fe22fbf3bc03191464e6d3dd7ce3ac4790626b0df627955f51355e7f3871",
+          "raw_sha256": "90df44c3884b55de343e3afae92b3ecde1cb9928cdd7034e9a10a670fbcd308e",
+          "full_production_report_sha256": "b31b59646585499c5d2538616d6943301bd14ee2d845d4c9544d79e2bda72344"
+        },
+        {
+          "name": "pass-3",
+          "input": "030-relative-primes/pass-3-flat.egg",
+          "input_sha256": "1feec64306b8999de40e50f843fc3e3bf76e3d8192624227f28d4bac9023cc29",
+          "raw_sha256": "d03f2fe19c66ebf269a0f09d96a5670c0bad27e682128bd4cb868765260dd92a",
+          "full_production_report_sha256": "84b8667a91c85ae1c6cce0f51dc6ebcd6dfba73af141fccdace8d59cfa32deee"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/reverse.bril",
+      "directory": "031-reverse",
+      "source_sha256": "c5a5b2e8f6880ba2168e633ca8bc6dfeec219432c2e212b4b64eaae4dc4be201",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "031-reverse/pass-1-flat.egg",
+          "input_sha256": "6c4667274a475e08e494737b38a15f8091da2b23f10f1c48608443ec32e235c9",
+          "raw_sha256": "df372ec4c620dcb4c621ae5553feb2c946b88aa0bc504eddf967c7de20370413",
+          "full_production_report_sha256": "8a5f0abe837896ba427c29eb6eb37a809b59af5eb6ee560e1fef50db3346376b"
+        },
+        {
+          "name": "pass-2",
+          "input": "031-reverse/pass-2-flat.egg",
+          "input_sha256": "f754d92c8edce807b42b5de6a7da3c737fa72eba2d2ab064239471f4826386a1",
+          "raw_sha256": "b5e79ee7a0659adad86f6772057ec5e4ef6b5eca3260cae41d41c79561a147af",
+          "full_production_report_sha256": "9f3677eb615527c97820f970f00d7fed6cab87852e9f5f94b2f17e8335ca6aca"
+        },
+        {
+          "name": "pass-3",
+          "input": "031-reverse/pass-3-flat.egg",
+          "input_sha256": "4ee40ce5bffdf7d82cafa7b94a82cfc92de52948b8908480671223b11a28e876",
+          "raw_sha256": "64e770b6188d5cf336a2c3da54cf5bd7a7070912dae4f5e22f7f4700886284d7",
+          "full_production_report_sha256": "8dc52104f17ee2c751f3330fde3a06b096545aa6004f90d3524607499bc0c851"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/sum-bits.bril",
+      "directory": "032-sum-bits",
+      "source_sha256": "6faf80f228e5d80e1868a9e84a7b73d8779d820aff67d5de5e43616f6111983b",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "032-sum-bits/pass-1-flat.egg",
+          "input_sha256": "f5be3741749d7d8d744d3f8afc90231e5dc03ddd3d460ebc3b2ae48fb85f7eff",
+          "raw_sha256": "ce97d93b5bfa3793851c493ea3e006f875df32ee0ca429c8aad1a4ec2b92f20a",
+          "full_production_report_sha256": "968449496c292bd9ce7635393e28730bb87626db99c470f03b8b1a7a4c7098f5"
+        },
+        {
+          "name": "pass-2",
+          "input": "032-sum-bits/pass-2-flat.egg",
+          "input_sha256": "e4ee13c90a37c7cba3561d5b961c91c58ffb8c506d059dc7e5146570a0a740f5",
+          "raw_sha256": "b3efb4a23c54ec595f4dfceb1c185fa99296c9c8f906bd5cac259889abf6b780",
+          "full_production_report_sha256": "ed50defeec8df76663afea93521a6ddb6ba158856dfc5e090d0f1fc0eb44a147"
+        },
+        {
+          "name": "pass-3",
+          "input": "032-sum-bits/pass-3-flat.egg",
+          "input_sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+          "raw_sha256": "574210c69b4db993e662a0a5a2e2fedee453b320ac54be716e143e45f0da1ffb",
+          "full_production_report_sha256": "c584641c86fb78d1cf58f12b094d10912aeb765d3a8c7a508f53951377635792"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/sum-check.bril",
+      "directory": "033-sum-check",
+      "source_sha256": "3092e6a49ac0ef35bd3074fdfdc7c4a60cfb597cc035dc209a424168d1d53bc0",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "033-sum-check/pass-1-flat.egg",
+          "input_sha256": "d594097c3389184c38a33ff254ee4b74b3760fb331807858d67f66065e1995f3",
+          "raw_sha256": "c86bfffbc76407990ed7bd139d4a8ab37d91b59aa07a9696e92208722b528b84",
+          "full_production_report_sha256": "2c288127785978abf7b43fa907b084639351ddd941b0059b8e83d2dc994f93ad"
+        },
+        {
+          "name": "pass-2",
+          "input": "033-sum-check/pass-2-flat.egg",
+          "input_sha256": "058b288bcb6bfb6bcca7e76814885c2d21fe85f970b71b0b270850426241e9f6",
+          "raw_sha256": "d9317515c0ac1fee5b25d5ff86724d9a217b18070973a3a7f285309e9ff1cf66",
+          "full_production_report_sha256": "fffe37a83392f0e13005763a0461dc7ceee16340b3e4ab9dca8e37df37f92a93"
+        },
+        {
+          "name": "pass-3",
+          "input": "033-sum-check/pass-3-flat.egg",
+          "input_sha256": "f7cccfb87ff2e71ba87eb964c1284b39472c81a17382f359c52d19f7169d647d",
+          "raw_sha256": "c398a0b31f6f99ee58e71c590298fd449986db53ec5b32516386b57782c30b4b",
+          "full_production_report_sha256": "326f94e0ce25abd793a86cd32784a7a49af85f62ed765a85888a3f26d7ae9a8b"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/sum-divisors.bril",
+      "directory": "034-sum-divisors",
+      "source_sha256": "31d42c1277f8990baa2561cddb34c41a94f1bb7bc3caf5e6db5086391b89f085",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "034-sum-divisors/pass-1-flat.egg",
+          "input_sha256": "08c31fab7f3385429487177deec9849fb88892ed6667335cf538d740ddd580c6",
+          "raw_sha256": "c558b102654b7d114a0be6c1dac0d53d3d92327dbaab1e8ace9daceec07482b3",
+          "full_production_report_sha256": "ba6e556faec91ea0f83e227e88c5e5cd3a19860baac181277470ce3149c313a5"
+        },
+        {
+          "name": "pass-2",
+          "input": "034-sum-divisors/pass-2-flat.egg",
+          "input_sha256": "14282d4ec8f91261d0a9c52d35bb8a371a0d2c6ce06f0e6f27608d819e758fd9",
+          "raw_sha256": "9e6de5a102c343549333e68dfca60d60565fa3595f9bf8f4b526300b4e3e7e7b",
+          "full_production_report_sha256": "11dfa0a643c6773ca9cced684e92be3310c0af1a02595d93c4c6a3750d75f337"
+        },
+        {
+          "name": "pass-3",
+          "input": "034-sum-divisors/pass-3-flat.egg",
+          "input_sha256": "9791fb092bc374d176f0534dd9ae4240b1a7de06e4fb2e7bd6d59771d0b6038a",
+          "raw_sha256": "a51359188c2d0e4b78add26ddfe03d371c96c566a72a853476f434918c761217",
+          "full_production_report_sha256": "af987c1ab13bff1ea00f85bf46ef2644efd1989c8c68dd95c91ef4437f26c4fb"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/sum-sq-diff.bril",
+      "directory": "035-sum-sq-diff",
+      "source_sha256": "5d83dfb2b7afd01bd7ba260d41a413ed7d5e5cae26f815c30ef9242219a438f2",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "035-sum-sq-diff/pass-1-flat.egg",
+          "input_sha256": "4c806f792c94bea8baac9a73fc86873d86e360f2edd0a753b5fcfbc91097a1c3",
+          "raw_sha256": "c630bf72ca61986385d6b6d44400c2f44174b9d36d56078cb3bee226801a7cc8",
+          "full_production_report_sha256": "a7f76bfc3931d68aebedaaf24acf57e4a71a096fba9c65ece9685dd4ff215a15"
+        },
+        {
+          "name": "pass-2",
+          "input": "035-sum-sq-diff/pass-2-flat.egg",
+          "input_sha256": "800b6646270e7830bcbc7726df37ffd86b75a6298b809126a8b353a007c40179",
+          "raw_sha256": "daa86810e872d02b74b3bab4f1c5b9306e64d8a50ed8ad521669d66ecaf87970",
+          "full_production_report_sha256": "adb31e7c52942badaeda3379ece407044cb6f08fb9f8a8068f8e9411270ba406"
+        },
+        {
+          "name": "pass-3",
+          "input": "035-sum-sq-diff/pass-3-flat.egg",
+          "input_sha256": "26578df71dd0e540fcaf16ece6c8bc7712e34f53310d6978b8c0c4850ee257bf",
+          "raw_sha256": "f6b629681a621c1a84e3565501f6b304d142c16c5008c08f9ab322737a757c7c",
+          "full_production_report_sha256": "f7dc7f0ac509058efa0b616b8aa3eaf2c3a198bb122089a6bd1e50f176a2ff1e"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/totient.bril",
+      "directory": "036-totient",
+      "source_sha256": "b00c53cf2e04d6c82cbfe4e7ea26d761e301967c9d9e835f4d1378cf6a783871",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "036-totient/pass-1-flat.egg",
+          "input_sha256": "53f2a6308dc3ff4f4e396cdbd57714a290a31d7fff6079db0b6f4ff26de053cb",
+          "raw_sha256": "c19427bd385862f97ef6d6666f5f79395094e9e3d294c0825872c8ffe8e3bc84",
+          "full_production_report_sha256": "6b9c8db29f0e1684d3abb9f5eb1d59c708c1ec8e208152a3f2d6a5aacdc6295f"
+        },
+        {
+          "name": "pass-2",
+          "input": "036-totient/pass-2-flat.egg",
+          "input_sha256": "1cd91e87dec7e47966fb0eb0d0e6b3e041e79d4d8b56c61fd8fe6e9dec3ce1f6",
+          "raw_sha256": "06cced1d80028e85e34e8b797497af53c3801770feea0e1788aafa2dc5498b33",
+          "full_production_report_sha256": "40446e8760645aba2391fdcd77846578f2f4f4fb8d8b6b41b21b8512a82aa66e"
+        },
+        {
+          "name": "pass-3",
+          "input": "036-totient/pass-3-flat.egg",
+          "input_sha256": "b4051811d8de5a43a65c726b5086590cdcf627f60b9fa57b6a73b7a7ecb07cec",
+          "raw_sha256": "2a9a0541401d87bc82ed4bd87e2ed4584731f3beff93e939ed6ca8ef65669107",
+          "full_production_report_sha256": "d503e3dc153d2046440612e0219cb180ae6090078d6a448adf450e03943eadb7"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/core/up-arrow.bril",
+      "directory": "037-up-arrow",
+      "source_sha256": "feb725d8d5b72c64baef435c140a5ca708efda19ba66c53bf8e6c2d18dd6ca6c",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "037-up-arrow/pass-1-flat.egg",
+          "input_sha256": "2ed4b400c8e391f243d3d6d0a6cc10af87ace52aec89fea144840db95c7f50b3",
+          "raw_sha256": "304eeb3e24f0a197f520aa09b0ceab7273152666ec9fd7d306f33efbc6ce3338",
+          "full_production_report_sha256": "bd7c55c1b6c039959aa8fd2a5183f4e78ee655815d74a170b54d650e8f86af22"
+        },
+        {
+          "name": "pass-2",
+          "input": "037-up-arrow/pass-2-flat.egg",
+          "input_sha256": "7d54ba2f3b2e89a707ef30f3ccbc07bd14d735eb848bd4704245f5c8b236f49b",
+          "raw_sha256": "f7f9d6130ac25527cc6652edaacb9ad09b5a4829c3d8dc52d5b60161b0bb0d2f",
+          "full_production_report_sha256": "1fed073a8a254499680ae69136400d6404322605cc3cddae7aaf48b6625a2016"
+        },
+        {
+          "name": "pass-3",
+          "input": "037-up-arrow/pass-3-flat.egg",
+          "input_sha256": "823036e624b8c3090a2eb54852677dcbd1f85e3237e2e8cab21e3f4c5b25f5f9",
+          "raw_sha256": "e432ce1849f24d5a842a31f1787dd5d31cbe3c47bc7b01b125a92eb2124f6ada",
+          "full_production_report_sha256": "7aee918ff3223e0ae2e6cbdb25971a7bcc56ce53223bc19b646a8b2de0bbaea3"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/conjugate-gradient.bril",
+      "directory": "038-conjugate-gradient",
+      "source_sha256": "af917c7a14d85890b18a0dd6f1cde4e6b6a7cd1f30a96804b61bc949a1b39775",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "038-conjugate-gradient/pass-1-flat.egg",
+          "input_sha256": "4868fa03d482132025d13c1daa2bb4a1078842e2e98df88d276ba56b6744e3c6",
+          "raw_sha256": "f138fa6d7b31098d4c512034ad27298fa4eff0f6d6b54d2e8bffaee1244bda59",
+          "full_production_report_sha256": "86bad4d7b355a50d3ec5f667fd1d2289000cfac34f23077d17b85c618da597b4"
+        },
+        {
+          "name": "pass-2",
+          "input": "038-conjugate-gradient/pass-2-flat.egg",
+          "input_sha256": "e48a907c67a1576db134eb2530aa6ca9a70a9f9657daffe59a209aa9bd2e53db",
+          "raw_sha256": "3ba233de2519b6f0025aea9265fa97241d21190a067c523b4e27ec558d246e19",
+          "full_production_report_sha256": "a5e8ba67f369454e66ac30c375ac635c69617cf96759614d476c9a4b497b2e6f"
+        },
+        {
+          "name": "pass-3",
+          "input": "038-conjugate-gradient/pass-3-flat.egg",
+          "input_sha256": "529b23353ef58c911c06672a0f42a87540d788f8b58fce6da3266251170678a1",
+          "raw_sha256": "954818741328b7376bbdceb6226af5632263eb2c0667a97f011b64f360572038",
+          "full_production_report_sha256": "9cf4b8145baab9dfa7e45f3f5c17655c42e24f835aae94393aaff3b1e4752f62"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/cordic.bril",
+      "directory": "039-cordic",
+      "source_sha256": "9614581c0d5e914ccd6927bccc242edfe2fcdb5b5fae0049c935095b795079bd",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "039-cordic/pass-1-flat.egg",
+          "input_sha256": "f2ecb577f7b3db126db618baf9bdfe9899e505b6c163fa699027676eec5b3f49",
+          "raw_sha256": "d4eef085af0a96b649c377b55290fc5495f8ce9282f3c000e800af4392cdcac2",
+          "full_production_report_sha256": "6f4f1a97925ce532039c937e239d0e2b83fae2b862d9dd0af7a2228b33f477d2"
+        },
+        {
+          "name": "pass-2",
+          "input": "039-cordic/pass-2-flat.egg",
+          "input_sha256": "32277d958c84f2d7d041e4bbaeb9aa65b0dc177d7dced5c6ca14b2550713e23c",
+          "raw_sha256": "68f1d2aa776e3be6aae7dc4db0eee4d37a208a7153732df7b2ac82bdef13fc70",
+          "full_production_report_sha256": "11f6c6e705b32f51efd886a7cfc5fb62db32b5681d58ff6daab5142094d9e331"
+        },
+        {
+          "name": "pass-3",
+          "input": "039-cordic/pass-3-flat.egg",
+          "input_sha256": "88c4d57fce2a942392b4555c38e08f7d24b2c3aa484232837fb6b6501ab0e956",
+          "raw_sha256": "0725afe9fc4e44c399ac180772ff833ac5b3a029eafd126d6dfee7631ab44b36",
+          "full_production_report_sha256": "83467bfc03c6871e8855005ff3d12c0e8fe57ecdef57bb694e42cdedfd110ea0"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/euler.bril",
+      "directory": "040-euler",
+      "source_sha256": "06d4be588cd488e95f8a6167f10447648bfabe2c647d419c74cef2666d8a9241",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "040-euler/pass-1-flat.egg",
+          "input_sha256": "d710c16576679830d2930190f25710b7178163926bab8f34f0c7ddf37fd94e43",
+          "raw_sha256": "e9d79df9c88adf0699702af44aaa5a1416131f70e281773fe0be91cd8f625138",
+          "full_production_report_sha256": "6cc56714cc70329e5d550f08c4de9a855a79cd4848002f3ba201e5f4c7893062"
+        },
+        {
+          "name": "pass-2",
+          "input": "040-euler/pass-2-flat.egg",
+          "input_sha256": "e2de1b8367bac425241cf2b58502dea8712e55c6f351e6557c2c4b6e6ff8c9a6",
+          "raw_sha256": "e11ff7738c23434a89d3a253895c540e39de02299122fa832bf15b38f76bdecc",
+          "full_production_report_sha256": "f64b47ccb0d46de12907d15869c8f494f123d4c2eedbb9660c957338281d893f"
+        },
+        {
+          "name": "pass-3",
+          "input": "040-euler/pass-3-flat.egg",
+          "input_sha256": "d453a5b3a2fd68ec5c5f36c2ab28d87da204f10325cb89841f0432d0d7f772db",
+          "raw_sha256": "e9a76e6547f7632fe6086c2393a0b7a43e4d0e8725f233fb996b8f1bf0ad5a29",
+          "full_production_report_sha256": "3bf6fe8e6b479b39f543a34dd27d41a5607f3a66c3df0b2608245f39995d1e71"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/leibniz.bril",
+      "directory": "041-leibniz",
+      "source_sha256": "7374653204cc1316d9bbb97aebaa4c7da8ae22280a0973ad8d758e31f1206658",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "041-leibniz/pass-1-flat.egg",
+          "input_sha256": "ab17c8bd01d0a9521f7792962153816d5cc6112f0b0368068eebca5f85d20fd5",
+          "raw_sha256": "51c4416bdd9f8d5c0aa38a4e51b72da3f442eb9db0f924dc5aecad5f3f2181dc",
+          "full_production_report_sha256": "279880aff027997c3b4ab6953e7d0b2427af1891267c07d8071611a3e32d066e"
+        },
+        {
+          "name": "pass-2",
+          "input": "041-leibniz/pass-2-flat.egg",
+          "input_sha256": "025612eaa42f426d6238b1be353805d59cc71d86fb01870631cf96a580bc4d41",
+          "raw_sha256": "927f1379e6d41fefbfea0526fd1540da8bcada975caa3871677f44fcc5b8a986",
+          "full_production_report_sha256": "4c58d2ff036599faedd104b0ddc53d80a3141d5004b125f2d4d78bb212d826c1"
+        },
+        {
+          "name": "pass-3",
+          "input": "041-leibniz/pass-3-flat.egg",
+          "input_sha256": "d98058874c7f12ebfd2c37f2578d407176fdc9b181fcce33b030ecbd3d4fc9c1",
+          "raw_sha256": "dbcadd5b7ff2daa6088b1b5cf9414e592ddbfdee10348a8200017b9cbb2df700",
+          "full_production_report_sha256": "eded9555fc9c874061f4da625c0c61e33bef5e52a8a4b8c2e42f304f24d82e42"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/mandelbrot.bril",
+      "directory": "042-mandelbrot",
+      "source_sha256": "f5e9581a238762db16d3d05df17a0a7c16757cf47e2075bf091e4ec08c53f989",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "042-mandelbrot/pass-1-flat.egg",
+          "input_sha256": "a191ee400fe5475be10f10d4597bee6266edbdbeb7e6da7789b612cfe3022b1e",
+          "raw_sha256": "9adbebd3c19375f4b218c4c0a99aad725d190738ff406c6aea99bed4439014e4",
+          "full_production_report_sha256": "e44a2ae9314f2894e75662499753568a618b56727982dfcc8d8a07569810cb26"
+        },
+        {
+          "name": "pass-2",
+          "input": "042-mandelbrot/pass-2-flat.egg",
+          "input_sha256": "1ab0afc9d54dbccb2221def779d2d3f647c1cfaa60cfd678b525b5104ec7a68b",
+          "raw_sha256": "89f80adbf99a0b70eb0eee752dafaaad460513eaed4fa11a4001b5d59b355059",
+          "full_production_report_sha256": "327174020c394df17a9f61af24ee61534296768d4f358c5a9031fb8c0bc7a205"
+        },
+        {
+          "name": "pass-3",
+          "input": "042-mandelbrot/pass-3-flat.egg",
+          "input_sha256": "54dbfb63e3892943744e2138c27f5fbbe49d66c9396a256d731b3722c0f4567e",
+          "raw_sha256": "8de668da62e55f2ed805d7950a3b6ef2c8653686460aca446ceee121036f0596",
+          "full_production_report_sha256": "b0997e2c3e5850876e4573b039559c3a6d3551e6383beae99294cf24e3f0cfa6"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/n_root.bril",
+      "directory": "043-n_root",
+      "source_sha256": "3a39352256532c43fd19cc21f2fcd4fb73493966a822233ff74720a263a278c1",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "043-n_root/pass-1-flat.egg",
+          "input_sha256": "ad91a604775914063994d7f9711bf73f35ae53fa7615b283aacee035db7d1f5c",
+          "raw_sha256": "26ee6287cb3c9fa37607f8c480f3592c9744d046e6a42422030f4c66bb016542",
+          "full_production_report_sha256": "652efc57866325dc428605a4a8c863c29dbc988461a0a4b8734cc4d591780150"
+        },
+        {
+          "name": "pass-2",
+          "input": "043-n_root/pass-2-flat.egg",
+          "input_sha256": "382efcd55bb42b2704019b6c4570dbc45fa893e974666094cfdecb4342511124",
+          "raw_sha256": "d64a9b0e33ae5b80157774ad95646cc30a1fb7b4fefae086c7f734f25f7f81b8",
+          "full_production_report_sha256": "1c8bb19373681cf250e3bb753c8eddc60d0c85decdd54e6581b879ac236f9277"
+        },
+        {
+          "name": "pass-3",
+          "input": "043-n_root/pass-3-flat.egg",
+          "input_sha256": "d170055a144e44285e342f489385473605222cd6bc6ee871461228f8a887992f",
+          "raw_sha256": "e9152aec7a3163b2b66db2b0a9768a6b9bb457a330015388b4d4d5b9a1d6db59",
+          "full_production_report_sha256": "e5d8419925dc91c2da5a6ab5b882232eb1cf1a8109c32deff935de81411ac1c0"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/newton.bril",
+      "directory": "044-newton",
+      "source_sha256": "c9085e7e32a3a65ac940acda11a3cceea7d119e0f4ae96b609f4d3447b2da887",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "044-newton/pass-1-flat.egg",
+          "input_sha256": "d749cb9272234ac3d212e320d55244521047e8767054a668e44f80e091ab84a5",
+          "raw_sha256": "4eed705ef0ed091211ac534292d18784f3c1bfd4e5d5700d3475dfba3e1d6493",
+          "full_production_report_sha256": "6dc3ca4fa27a1edea9c70381a3b1df37104df7e5e1c01eb117ab373e8a8c4c65"
+        },
+        {
+          "name": "pass-2",
+          "input": "044-newton/pass-2-flat.egg",
+          "input_sha256": "9b1fc4a62e52c580a691c029b6762cc7bf31bfd26ad44c892d318e38a0ca34ff",
+          "raw_sha256": "b35df02b517bc756dfa92f227a97cd146acbb711d2fb2fda07641fad8bc50aff",
+          "full_production_report_sha256": "a66cb0e871aff3071b7187a4dde2236ce1d754e19aaec6efe8c17742b8e55878"
+        },
+        {
+          "name": "pass-3",
+          "input": "044-newton/pass-3-flat.egg",
+          "input_sha256": "1fd2a52ea890c978eb1669e37f6c80c37c98a0d2b7eaae02276b116e4d1a5828",
+          "raw_sha256": "637d83d47a56dce7e65bdc6cc8f6dce8b3b4b633bd476a954651b9a96c675ddf",
+          "full_production_report_sha256": "7158692ee5570239435b52b57d30f090fcf51eb59800194beb49bce5778d1a46"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/norm.bril",
+      "directory": "045-norm",
+      "source_sha256": "193ff0db0bd5f80346d796a79dceae7f4dad60a89ef14386690d060c6b03abf5",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "045-norm/pass-1-flat.egg",
+          "input_sha256": "ed27e6b2aae7051a9d12c7dff0edf34ed4b06d8dae8ac9e6783c8ccb528c9cde",
+          "raw_sha256": "1d49ce7a90cc9b5fe80c0258b9214065841977378d5b26d9b7efdb33e427d047",
+          "full_production_report_sha256": "9befc364484573dc2b66b8fb872637a133db97a9e62eabdca43523ce40fef31d"
+        },
+        {
+          "name": "pass-2",
+          "input": "045-norm/pass-2-flat.egg",
+          "input_sha256": "f9dbb6f35a1c171a5941c160ba6cc0e71d669c86001ca8d4901f820b305a46e8",
+          "raw_sha256": "a8c91c07c9725afad663935ba874f8d9f5269b25e00b6e09b6c16a2de53b81bb",
+          "full_production_report_sha256": "db268050b6b32266ac9e03d456e3f2a3d5677d44d4a6fd5b03f1c876d778e178"
+        },
+        {
+          "name": "pass-3",
+          "input": "045-norm/pass-3-flat.egg",
+          "input_sha256": "086f6bed450bc8cc87a5b76f59b34d53291a6581304167f7c9eca057abd664b9",
+          "raw_sha256": "816c273050a543588c2704292cd7ff5a2d78b8d15057c9b8543294fac148208d",
+          "full_production_report_sha256": "d86ffe1f9107f41cab923c9741f7450df990e58df2c3ad600ef62d9345c6b30f"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/ray-sphere-intersection.bril",
+      "directory": "046-ray-sphere-intersection",
+      "source_sha256": "da10723cc2e481a29b43a183149b816cdfb296479658985c109b8750befcc837",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "046-ray-sphere-intersection/pass-1-flat.egg",
+          "input_sha256": "4a8a75f56fd6056b4d5acb01a4910615b2cbdde4c6e28fe6dd75bb95d9c6225e",
+          "raw_sha256": "6f8b72f5059eb449cea98d77380a5b709dac4ca8056cca292897fdc9b5fe0628",
+          "full_production_report_sha256": "a909b17a73780356dcb91a5ef4ab8ad8ddceb6c837a90d41feb71144d11ba609"
+        },
+        {
+          "name": "pass-2",
+          "input": "046-ray-sphere-intersection/pass-2-flat.egg",
+          "input_sha256": "3c6c1b029757508f7ab9502aadafae3a2d27a29be056dffe43a07f988d62b074",
+          "raw_sha256": "f76822d302f5c53a484a5508143c9ee2c1e7847b05cf1ca239eb535095caf452",
+          "full_production_report_sha256": "6c5cfa384ebaaa587ae9529e998d6fd1463aa628f61ed8e65f9bd6e7d646ee49"
+        },
+        {
+          "name": "pass-3",
+          "input": "046-ray-sphere-intersection/pass-3-flat.egg",
+          "input_sha256": "422e844a73b58fcbffea165f4e2ee33abe7d463e47d9b6e5bb299b6fde401542",
+          "raw_sha256": "3b2129ece63b26d36509a4e1fef113815a2d2b7d8ebfcd42fd215c62c3d34ccf",
+          "full_production_report_sha256": "1a0f7effc3d60f4e3e60ba01a4aa8d8ff1b9a92e7e249194750cdae6853ee55f"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/riemann.bril",
+      "directory": "047-riemann",
+      "source_sha256": "1b838468114059b1a6895d0c097a4cb602de268abacc83706556c53890b5913d",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "047-riemann/pass-1-flat.egg",
+          "input_sha256": "9ed5df4f369081b2b6ffbf79efa3873ca74dd7a2e16f7ad5f2d4e98441643de5",
+          "raw_sha256": "c9b16be8b7b80b40d28a6fe0c2425bf5028ee395323477e4df645e0816233feb",
+          "full_production_report_sha256": "4d0fe2cee5ae628a83aee8e2d7bb8f3934dcbfad21424f5022488a57062bfddb"
+        },
+        {
+          "name": "pass-2",
+          "input": "047-riemann/pass-2-flat.egg",
+          "input_sha256": "b8299ab19f601dd4e8c3f6816e58b7bc8c6724403e95ee9a7bda4ae43c413c78",
+          "raw_sha256": "be6bdadaf7ced1213bb9573788122830bb1324e2eaa546032eb186225ee840ff",
+          "full_production_report_sha256": "86bc22c5425bde2b27a49e0ade46ec202855f9355c604f86c630c1e5eeeb6eff"
+        },
+        {
+          "name": "pass-3",
+          "input": "047-riemann/pass-3-flat.egg",
+          "input_sha256": "d5c72b837e71101fd27e7a54169168b0550a3801ce68a1d946295e923aaadce3",
+          "raw_sha256": "9bcdf905aa24ff732bb91c8a817b563e49abc971462cec94ad39c7a043ddeec0",
+          "full_production_report_sha256": "8772f5f822e9d1c6bc157c6d0352c784ab1f9fbe8b6b318dbcee592a2fecefb6"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/float/sqrt.bril",
+      "directory": "048-sqrt",
+      "source_sha256": "6f4397f36f5ffe982905974558196f6f623e2f97361f3963b06d0728f26acfa6",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "048-sqrt/pass-1-flat.egg",
+          "input_sha256": "58c7cdb7cdba3fe99d5d2968f3986d262e92edbd50a3c336854c1b5fc5b8e4c6",
+          "raw_sha256": "3a6e7f514ba1dc5901ad5efef87041757f41d86c23115d43930674bcf4f57dd0",
+          "full_production_report_sha256": "b165decb40798b252e0078827b70d33872afad1b64bafa6f02070b387a444193"
+        },
+        {
+          "name": "pass-2",
+          "input": "048-sqrt/pass-2-flat.egg",
+          "input_sha256": "a46b910dce9a3b268c73e57a9d11fb4a5f9f6c94170d661d39adad825d97e827",
+          "raw_sha256": "0daabbdaa334d36618bcf36b40be6a539c2c3df01a6d8a7893976d25b5bd2719",
+          "full_production_report_sha256": "e9d4388fbde4441a4e8ae29237af9593959a354799bc44fd6bc231f7fbfa9594"
+        },
+        {
+          "name": "pass-3",
+          "input": "048-sqrt/pass-3-flat.egg",
+          "input_sha256": "b18b61e74a7e047846713864d06629879ba4246383fa019f4c95261ccd7cb6f1",
+          "raw_sha256": "e486cbdf53e2a1755fb633c1f801f87ca74bd6872a421727357452e173b9d02f",
+          "full_production_report_sha256": "754f85823b94d9572cfa9797ff4fd388ddb6f719724748ed310c04620a2cebc2"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/long/dead-branch.bril",
+      "directory": "049-dead-branch",
+      "source_sha256": "0b1789240d45b1a3db397588e9079ed61628eebf0033c9ce39c72d60a67fee03",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "049-dead-branch/pass-1-flat.egg",
+          "input_sha256": "dee7aad6a2712272dedb55dadbeb026e1a6424757a58cd986d46632769a9d702",
+          "raw_sha256": "a66c4bd12206d8e75b1029fb12d72d4b81973fd1cba096a3b0bf1c05ae5c35f1",
+          "full_production_report_sha256": "fd8286bb85c8b9f549ab7bc461d669cf5f28d8ad4cd24cc61b78d19f8ad1abc4"
+        },
+        {
+          "name": "pass-2",
+          "input": "049-dead-branch/pass-2-flat.egg",
+          "input_sha256": "fe16376f4ca08e638b8babe9402d9bb2147872601324244ab21f7b31d56ea80e",
+          "raw_sha256": "fe1888ac2468fdb13c1b25d4c76957096a8adc023da440c13366b387c5ee8d15",
+          "full_production_report_sha256": "56b695fabe2e4047b676196dca352880ef9f336133667438792ce2581611d70f"
+        },
+        {
+          "name": "pass-3",
+          "input": "049-dead-branch/pass-3-flat.egg",
+          "input_sha256": "898cfadc8617fa9c7b5002f8cba13293a98c6797092b03c82c8c6ed11435fa7d",
+          "raw_sha256": "4a64984fe63a9af449ff540024dafd708567949080563ab2cdbfa2520b71a3d0",
+          "full_production_report_sha256": "1915c0ebd6d011c416ac2fec196358de98f5fa1033b5a8f7666a543ebb531ae1"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/adj2csr.bril",
+      "directory": "050-adj2csr",
+      "source_sha256": "59013758da9908aed3c762ebe5fd20ae1ef501e038af6cd907143b252509ac32",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "050-adj2csr/pass-1-flat.egg",
+          "input_sha256": "d3c6de0579b341cc56310d5471180496c84171f2b2229d2729d50121e1923c29",
+          "raw_sha256": "9a846e760a9d2f230cf25eaa21ec6643b1a242d5a6f6fcd4e2addc7cc7085ed4",
+          "full_production_report_sha256": "9cec77805690f2495b144f4d96924cf4969de8c4a2e93992ad5c9db2305e4812"
+        },
+        {
+          "name": "pass-2",
+          "input": "050-adj2csr/pass-2-flat.egg",
+          "input_sha256": "c303156d130f5695d379b3aa750dd8348a60f09c8f08dbe3a791eb6ac670c2e9",
+          "raw_sha256": "b32208f7b85911528f40ea0bc30ad325431d4ff05cfdbe1b204222c9fde3b9e3",
+          "full_production_report_sha256": "8b17530c37ac1af52a61063bb0767088d82656dd2c46cfc4caf6e53e8e9841d6"
+        },
+        {
+          "name": "pass-3",
+          "input": "050-adj2csr/pass-3-flat.egg",
+          "input_sha256": "08bf9419c367c704d5ca0bc343b3341868441b7f6152fdf76133da82031b149a",
+          "raw_sha256": "3d02c0a42d98b63c20b8bb18c18eac83faebae5e1f34d0b32368e36f65186d57",
+          "full_production_report_sha256": "fc739b0b2435f7d21a240a8fb71c1edb1e2f48802cd9829f4029f7198d8b4375"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/adler32.bril",
+      "directory": "051-adler32",
+      "source_sha256": "e5e2225a71894310936568453a8247cb5ad4aed6c773270762b8b9ab7ef12043",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "051-adler32/pass-1-flat.egg",
+          "input_sha256": "ca8619723c5007239095adc062b740ec9a22ceab3ffa4babc10c9162d1a7c833",
+          "raw_sha256": "6903d64d87d0b514203284281e974520b375e2f665a403e9da5de4c9e2ee8dc6",
+          "full_production_report_sha256": "c2842c14768df21411ca507013c54fdf561160508edcfcc0b62a4b9470af61db"
+        },
+        {
+          "name": "pass-2",
+          "input": "051-adler32/pass-2-flat.egg",
+          "input_sha256": "fbe9a6932294db668dde93ffe187aba6adab092f3f3af74ad8b8f507ced0d613",
+          "raw_sha256": "97adfbcb1ab9a034615cb61e8239bd837870981e476e52b06d4aa45f10a785cd",
+          "full_production_report_sha256": "c1df8874922df14c53473cd512f5ddd6486d5a030f0ca5f035989a902e0e27b6"
+        },
+        {
+          "name": "pass-3",
+          "input": "051-adler32/pass-3-flat.egg",
+          "input_sha256": "eb862cf606b920cf33369eb623d188e5906659f929355a6984b7377c92a94e7a",
+          "raw_sha256": "e9d75ec59c2f91e03c0c2a39275995527c18c0a7d0948a04bebd19e6ca47de7d",
+          "full_production_report_sha256": "11d2ae98d602acb19540c313086cb4c243fbdad20e995288ef6be3efd894f0c6"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/binary-search.bril",
+      "directory": "052-binary-search",
+      "source_sha256": "360857cde5c851270fdf2edfab37811196e9225b68512ed529e386816075042c",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "052-binary-search/pass-1-flat.egg",
+          "input_sha256": "1a764818b1dc7ebc43da6532bc0ddf276badc1da26484d10f12675e3bbeebc30",
+          "raw_sha256": "0225ed947ff124b6450cd588bbe8c228d5dfa277f32ff52e2817e0fe263d1eaa",
+          "full_production_report_sha256": "ee478d50a4e5745ff3e0e56cca86f6429bb54d337cb340facbce42942f3584a6"
+        },
+        {
+          "name": "pass-2",
+          "input": "052-binary-search/pass-2-flat.egg",
+          "input_sha256": "2bfaf37faf8ba89f6d0c67a469565e7b7253e636a05a39ac058b2da4d7d26f25",
+          "raw_sha256": "a2311508318e2d2bf42269f6fea36a73f2688ab1d9cc1875940b32e7e555abb5",
+          "full_production_report_sha256": "7fb1fff805060e3d37188d31dd57457269d06426abd97cd8d954fcfb2e0bd76c"
+        },
+        {
+          "name": "pass-3",
+          "input": "052-binary-search/pass-3-flat.egg",
+          "input_sha256": "60a4b9a8a208ea0ec4636179133da2ab202315a71b9e0bc6af816db282fd6be1",
+          "raw_sha256": "cbccd0695b2d67eb4e35fc3334d76b8beea48862a573f7e3b713f72406e93c86",
+          "full_production_report_sha256": "76f0a644130652ff259c3cd75fe36b9eaeb3e61f67e3df4445c4491a7438d9f0"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/bubblesort.bril",
+      "directory": "053-bubblesort",
+      "source_sha256": "f95aea6374f2098ef056b058aa11f69bb435811918b43bf8750e7d30684876ec",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "053-bubblesort/pass-1-flat.egg",
+          "input_sha256": "22fb3e5cd56828667fc95ec80fc72e02fa4cfdc99fc9e8255583bcf6284e2fd8",
+          "raw_sha256": "53a7026441f42852306008952dfb7bf49c1a616ddb73ad8e17d55b16fa071210",
+          "full_production_report_sha256": "161b05b24b50f15bf45a3dafafda08c8baf21a1779de3df11e34e76ed12756ae"
+        },
+        {
+          "name": "pass-2",
+          "input": "053-bubblesort/pass-2-flat.egg",
+          "input_sha256": "dc4151024485f1839264af456dfb46b99e5a5baf736caeb851b40e5c09e41e0f",
+          "raw_sha256": "54ac6ec9278a1a00594bd25c10df0863edbfa2a32c5cc0ce1e9602bf98a2fc2f",
+          "full_production_report_sha256": "726fc7f24af83e9224f5e3a49b3a518c7584e29aeba4cb7842bbb3e1050b5145"
+        },
+        {
+          "name": "pass-3",
+          "input": "053-bubblesort/pass-3-flat.egg",
+          "input_sha256": "09c5dcff9e6c1402ed37717dcdca0605336fe3b39c5e1150419fdea0cad611d5",
+          "raw_sha256": "245576929e453f3c121ea042ca810df488d618b260cd7bc0acc14aa5354c6f35",
+          "full_production_report_sha256": "6f56420f28126b8c27d87bfec9e7377f82db03b93b66aa990fe1f8d59d21c41a"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/csrmv.bril",
+      "directory": "054-csrmv",
+      "source_sha256": "76cf4d2131c15eceab7e9ebd98240e781bb3b6fb3e5201090d6e617d3b8a32af",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "054-csrmv/pass-1-flat.egg",
+          "input_sha256": "815d902d952de6eaffdc50f3a74faee09ae40abed99b26b6d5e842419bb851de",
+          "raw_sha256": "49a546d6e68d729193f1a5089b00e41084a6e806f034177ebcc663792fd5e0d4",
+          "full_production_report_sha256": "be34ea8a9d379789ea5aa12fb8de24fb85dad19ca48a696bc2c687dc9eed6d8c"
+        },
+        {
+          "name": "pass-2",
+          "input": "054-csrmv/pass-2-flat.egg",
+          "input_sha256": "cc9ef79870dabfe023a081ae4c7e6c1e08db5867918d64c43fe41d7652fae2b3",
+          "raw_sha256": "6fe8ed79ff2de890be003f82102a99fae50b17d431d8340ae55fde33555b1dbf",
+          "full_production_report_sha256": "8e8de85906e2c33433b0e490753ae34c6a058e68f9daa24ca42b8e8c5f119ff1"
+        },
+        {
+          "name": "pass-3",
+          "input": "054-csrmv/pass-3-flat.egg",
+          "input_sha256": "66ea985c4226f29784e815bbe8763a06a6168a6f5ab1e9763b73c230163ec630",
+          "raw_sha256": "c9127ea0e974eb54dc37ec5c4ac66138e8530e3b557d51b8d0304e33041b464e",
+          "full_production_report_sha256": "84d61c9c8634525a42c6c2ae7c31360207509b1c941796a8c6b4e8053398bb6d"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/fib.bril",
+      "directory": "055-fib",
+      "source_sha256": "431a1756c32fd2a7af2afd26197f8ddd910f349916fc609ed6cc02429c2fb187",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "055-fib/pass-1-flat.egg",
+          "input_sha256": "f129026131012893fbfdc5640eb4ec48a23c4028fbb9060b04fe92f2cbf5e981",
+          "raw_sha256": "4568805e028d647ea1427bd60d454ece16d0f55bcb357e7a2cdc21aabd66edef",
+          "full_production_report_sha256": "0433c8bc7578cf7eab0a04371ffc3e0696ac167659ce5f8f2fe2d118fd5d9136"
+        },
+        {
+          "name": "pass-2",
+          "input": "055-fib/pass-2-flat.egg",
+          "input_sha256": "6ae9a6f1d726f091a89ae23e6e9a9bb1acf12b3140d3fce37d65e56b89817c49",
+          "raw_sha256": "f6d04a3392496e9258171b1709924c5c7261670684379aace34a6db69014343c",
+          "full_production_report_sha256": "d315fbaf60624d7a832e32506da75e7abc04ece47f5212e74a380ad2b207a4c6"
+        },
+        {
+          "name": "pass-3",
+          "input": "055-fib/pass-3-flat.egg",
+          "input_sha256": "23d3a389cc19db1b49915ac2ed6df5728b741ee230e7c55940c32335405bc258",
+          "raw_sha256": "dfe7b73237d124225cad53ab78e9e3928688e5feb17416175b59face64a567b6",
+          "full_production_report_sha256": "f8d19b4c855564abb78da0b89ef7166c56bf57a33d742431bb3fd49b4b84d721"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/major-elm.bril",
+      "directory": "056-major-elm",
+      "source_sha256": "48d89418a6944470d62a19bcbcc4d8939a43355f707debaf485cb32f9d706713",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "056-major-elm/pass-1-flat.egg",
+          "input_sha256": "724a35e7dd5ad6ef64aa3cb1a112b437564b177fb83aaf4f9eb89f0365d8158a",
+          "raw_sha256": "93780e167a46ba2806f20a139377df9c0826431913aa54869d58fcae3a47afad",
+          "full_production_report_sha256": "cadd6f1f4dd4deb37af8755275f579892d3dd9bf751fd18df3dc7e92a4ab94d3"
+        },
+        {
+          "name": "pass-2",
+          "input": "056-major-elm/pass-2-flat.egg",
+          "input_sha256": "0d195b227c41c99ee1894b291f47b96f74ef5803f2dc4969142b398366faa231",
+          "raw_sha256": "2854f2ece420f7304361abf73fdef86e1cf0eb2593d0a90dc1c2c8a0426ea697",
+          "full_production_report_sha256": "234fcdf46e56f46f3d4fb36b8bb198da0dd93c4f1af2e27ff8440b66140778f8"
+        },
+        {
+          "name": "pass-3",
+          "input": "056-major-elm/pass-3-flat.egg",
+          "input_sha256": "699e89b05744ffcef7e26be4640b3e2d9f8793bd240b79b139a2c6aad8c05558",
+          "raw_sha256": "455fe58fa8175908aa1c33c62163459a5aec7af3bef02e6dbfba190e293e3a06",
+          "full_production_report_sha256": "037cc004b4bcb0b8afdb5b364e7943f340351fdf32f2c9900b52ff144683418b"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/mat-mul.bril",
+      "directory": "057-mat-mul",
+      "source_sha256": "c17a0761b639544ad5ae31dbd7cc404c3ac0e5f02ce898c99ea5051185de990d",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "057-mat-mul/pass-1-flat.egg",
+          "input_sha256": "dfa3b50672f408922bb79fc4808daa4a23cc32c4577974e5f080b5ed34ae18b1",
+          "raw_sha256": "502fbb2ca3cc671f8f50de462ee630a7a16329d7d5149361aecf9c419bb86d4b",
+          "full_production_report_sha256": "c86cab5f8a957e1433df3176d12ae72ddffcf45ab1177094b77196446508ec92"
+        },
+        {
+          "name": "pass-2",
+          "input": "057-mat-mul/pass-2-flat.egg",
+          "input_sha256": "701232297d5f78626582fdf02f2d11264d989c297a63382112c8dcfc0f55295e",
+          "raw_sha256": "6f4fd2e2c8278967d00f6d9f7e389c56ff56155423c0f82f131840d279b27251",
+          "full_production_report_sha256": "d65e9105075b26ba91c40085418c4e36ee84ad2ec9a6c014752c5d7e8b541177"
+        },
+        {
+          "name": "pass-3",
+          "input": "057-mat-mul/pass-3-flat.egg",
+          "input_sha256": "a106698c8b3b5f143279c130aa1a57389f03f6a5cc6386bf883f1cda1e4f0439",
+          "raw_sha256": "2fba260c6c73167bc4c421e4f79b3f62a53a7f54fd77acfc0429bfd0bef24a49",
+          "full_production_report_sha256": "0e14a102e7e2a39863ba821b4caf1d82404fde2252f64a8cc680dfda43ffcf9a"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/max-subarray.bril",
+      "directory": "058-max-subarray",
+      "source_sha256": "a4ea6cfafeca1f418045e477f05e262ed1cfdf0e5845b59fb86091224529e3f7",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "058-max-subarray/pass-1-flat.egg",
+          "input_sha256": "a535903b8051434a064cf5d12c03e0a6c2c0c8f8705640525b54ab49c6ffa470",
+          "raw_sha256": "8b1d61b4cb419bd3ecb0780a3c663e5ddf8bd55781ea61ef6dfd4fe4c0b6c9ad",
+          "full_production_report_sha256": "c65e76805249d8e75b909a68ebd85b53f3f18fa1fd3599e34851db0296192ea0"
+        },
+        {
+          "name": "pass-2",
+          "input": "058-max-subarray/pass-2-flat.egg",
+          "input_sha256": "f587ad43ff5937bd41c97afef8ce0f930a2e0912a23339f2f37e747ca5b655d5",
+          "raw_sha256": "ed4ebc3e3ba5af1a7c29308b9cdd759144b69c9fd260eaf2f1232e5ce2479a6a",
+          "full_production_report_sha256": "96a5acca4144255b383fdc8841a8d36e77f8d417f1e43815cfde65a32608632d"
+        },
+        {
+          "name": "pass-3",
+          "input": "058-max-subarray/pass-3-flat.egg",
+          "input_sha256": "b94787ff11553a54873c4972b99810d701abc024941db7f998ff588d9899e9cc",
+          "raw_sha256": "674fbbdee92ee23636d81a7ea7a1c2e5637d0747817dce8cc901a6cfb58010bf",
+          "full_production_report_sha256": "2df470909e0adfb6d78fa216ac62a448f2f9cc348798370df499b9acad0a9d17"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/quickselect.bril",
+      "directory": "059-quickselect",
+      "source_sha256": "90c535d6bc246ae42965e57d1ed37fdf6fdcd7f812ca1d43839fc78a251689ee",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "059-quickselect/pass-1-flat.egg",
+          "input_sha256": "4bd394174a3deb9b35b5b870be60a241487ed4ee4c2964b193379bc8b922a07e",
+          "raw_sha256": "29c698f3f48d92d353564bb53b850d1c87fd0cbe94cda00400964c6ab3596648",
+          "full_production_report_sha256": "c6406569a10ddc29b767d81e1b77a3f073c7b4f952975514d9196ed06ddff467"
+        },
+        {
+          "name": "pass-2",
+          "input": "059-quickselect/pass-2-flat.egg",
+          "input_sha256": "7c4dadf9a73812888ac10a5799547fad577b2b5502b64422994b5fcf1f7a06a9",
+          "raw_sha256": "2afd6aaf5b8bd923f0b4efdd50ef991153ad2c5a4c9aaa05d361b9ad9242ce25",
+          "full_production_report_sha256": "b60d6508e764fc7b6b6f8044345426767be819f05043f47cfa5c31da71ff03d1"
+        },
+        {
+          "name": "pass-3",
+          "input": "059-quickselect/pass-3-flat.egg",
+          "input_sha256": "6a2deb8d3419d0b493d341d9168535a8b0cd71741c3519972aa6035b32f95e79",
+          "raw_sha256": "39787666cec163b9f0e658322a2d829624b799a873446ec558c0b4485c222441",
+          "full_production_report_sha256": "d2f97adbfaf5a4d4b740ec6597103143fcd350ade4021e2bfa0d4b1c61056aae"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/quicksort.bril",
+      "directory": "060-quicksort",
+      "source_sha256": "d26daf8217f8b98de1d2745a3bab9ae266d4f483f4d7e32dbc5a11c096c61228",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "060-quicksort/pass-1-flat.egg",
+          "input_sha256": "7524afad305c498cfd63a2c0dbd56152411f7ddfe7fa90fd50f699c26ea57843",
+          "raw_sha256": "56877e7bc4c8abf556a43e7bc39f6d28c2c4a7780d35d598dd120f9572df619c",
+          "full_production_report_sha256": "bfa13eb0b6950108c654c583e644665063dd8499a0eb781fd30fbdc883005020"
+        },
+        {
+          "name": "pass-2",
+          "input": "060-quicksort/pass-2-flat.egg",
+          "input_sha256": "7890d4510267cedfcf435241ce8d54f02e3af5d3605831a687269f0f6500ace0",
+          "raw_sha256": "5a4548d9557f891a497d96bf667faec88b4777c11527935661e9562d8c86bd7e",
+          "full_production_report_sha256": "d38e551d495cc6cdd272c62634771b6e33af2bed49c8478d7a2798881f3a7aec"
+        },
+        {
+          "name": "pass-3",
+          "input": "060-quicksort/pass-3-flat.egg",
+          "input_sha256": "9e32bf3be00e1b8aeffa3df89f8822d3a657732a078b7b66b0e86d08fe4a2e16",
+          "raw_sha256": "d755ff8d62dba0ac61e6fcd916a86135582c1b0c792c8186c211151275c35a0d",
+          "full_production_report_sha256": "9ddd0707b2435bb8b5fd5400fbbc0e6154bcb735d64cae950962fda8aa126935"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mem/vsmul.bril",
+      "directory": "061-vsmul",
+      "source_sha256": "e8ab448a85e9a6f736e1c44cbdc12f96ffedf8b33e16e2bce5ffa974635d96f9",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "061-vsmul/pass-1-flat.egg",
+          "input_sha256": "138be499f14104d93d4ae071db175784d51c4fe3cecc47251369670a3ac37711",
+          "raw_sha256": "1d2dfa4f97e5904e24f5756126c80d16ffa43a062e7c53382f0d0e41dabd8301",
+          "full_production_report_sha256": "7fbe9d66cfda90131d001c2ac953772c95bd17a7862f79462794be71d64450cc"
+        },
+        {
+          "name": "pass-2",
+          "input": "061-vsmul/pass-2-flat.egg",
+          "input_sha256": "85e16b67b0a061650578994068e63fa5a23b77b73110b6afba80ffcd26595b4f",
+          "raw_sha256": "9c3362c80a42581f8f9b9c2598df264a59f873d70ddb32314c569ca43fab8fc5",
+          "full_production_report_sha256": "a14015a7b19d80e85011dfd856fe027e457fdae1fa08c7545ed2711482c89534"
+        },
+        {
+          "name": "pass-3",
+          "input": "061-vsmul/pass-3-flat.egg",
+          "input_sha256": "dceacd1ce784cf71b7a1663d3d68ea1d50e0f9c1671d0a8c1f9520d7a276d7ce",
+          "raw_sha256": "a509e05f8c9d38834436158065e7afaae906f71861cad8b04b300ef3f2a47b6d",
+          "full_production_report_sha256": "4fa8dfd5d66c3201e910ef801224c2b6d78953bad9e2c1e643a10942d7b57258"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mixed/cholesky_decomp.bril",
+      "directory": "062-cholesky_decomp",
+      "source_sha256": "2652a89bdace6323005ed21d0bc90ac7083f50e4397de6881c66d50309078f0c",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "062-cholesky_decomp/pass-1-flat.egg",
+          "input_sha256": "b5b5aa1727f8c8c2a5116bb69916319cf9f48e8e8260ca34c636f857666acf20",
+          "raw_sha256": "b4e4ac5ea970b3d560bcb474f7cf39404dc0c31647539114558fca7b66272a47",
+          "full_production_report_sha256": "c3dedd8687a92a6e98c372170e22750893dce30602145274f88274ef3e730001"
+        },
+        {
+          "name": "pass-2",
+          "input": "062-cholesky_decomp/pass-2-flat.egg",
+          "input_sha256": "6f3b818fde800572686344d06ad35a447251439e63b73b17526adef0346be2b0",
+          "raw_sha256": "ee407adcd49582a4fccc25d31ae58018488f90ca311e74b55aaadb1c90d5b056",
+          "full_production_report_sha256": "6d511b645d7f412a0e1c9012a58ac0e877d0b865f8355435cf237599d981a319"
+        },
+        {
+          "name": "pass-3",
+          "input": "062-cholesky_decomp/pass-3-flat.egg",
+          "input_sha256": "1e426ed63b960bd8c3af5aff918952583aeff1cf1d480d8dc6e52cc40d9a8ded",
+          "raw_sha256": "f31fe34e30953e0ae89c4d48dca5f20f2b4755055773e1c194790f2cdf9b9c26",
+          "full_production_report_sha256": "dcaf3b3e6185faa62f7288ebec53ba4f67315a079cfdc7d7125de61aa48c5c9b"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/bril/mixed/mat-inv.bril",
+      "directory": "063-mat-inv",
+      "source_sha256": "a44bdc9bee53daa5a639156ede626ce61a06f01e2cee85d6be2611001faf7d6d",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "063-mat-inv/pass-1-flat.egg",
+          "input_sha256": "5d115ab94c8f617a48f3d1c51f6e60d26a8927c66d345174b12585da1b8f3d8d",
+          "raw_sha256": "29d5c9221f0be80718e1884f627c7a45d141b4051d52856319c2b245691beb2c",
+          "full_production_report_sha256": "c078864b956b208f53e9c093792e1abb2005bfbe5a5b3806c83ae2c7e30376f4"
+        },
+        {
+          "name": "pass-2",
+          "input": "063-mat-inv/pass-2-flat.egg",
+          "input_sha256": "297846af9e18d92edd05023214f0d9dda234917c8051a69433994f9d7ee8f765",
+          "raw_sha256": "a4cc1e271b149f3b3fc35869054564efbeccee6622d993c78c3794f419c83c32",
+          "full_production_report_sha256": "4ab04a059eb57ca38f90de2facb5bae43c23173de11ab3c0b48638a41469db5a"
+        },
+        {
+          "name": "pass-3",
+          "input": "063-mat-inv/pass-3-flat.egg",
+          "input_sha256": "59af8285b8af191e1b5c68dcbc757e7409237f4e8808bfc40f07b014a54a826a",
+          "raw_sha256": "fef1ea36cc769f4fc4e7cd649b46926bd62f3b56ca8c7b4e47bd45c85f3df371",
+          "full_production_report_sha256": "6116c01b674f1cdc8c689f54b31597aabc2bd6cf70ac37fdbb3052e0f4546c81"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/fenwick/fenwick_tree.rs",
+      "directory": "064-fenwick_tree",
+      "source_sha256": "eeccd2e4ca66f1b3ed2d7e4c73ad19cef55d22c5861b9b9c87a63a55e179309a",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "064-fenwick_tree/pass-1-flat.egg",
+          "input_sha256": "5568aae852d29877038c5b03c652ab0a9aadf88b48a614b1c64ede99bb67ca94",
+          "raw_sha256": "d4cd1eecac466a95aa4ddafb16ee99f17bb7487d27a0b0f3e49e3605c0c90fdd",
+          "full_production_report_sha256": "6f03e07bcbf1d3ca032aad3f3ee7536a03f7eab9d8ae002885d2f1aa96209c3e"
+        },
+        {
+          "name": "pass-2",
+          "input": "064-fenwick_tree/pass-2-flat.egg",
+          "input_sha256": "1e538050fbd5760d8890438a7a5d98ae40181c0855069518539256ad82cc8fd5",
+          "raw_sha256": "bcc1adc4e8f72e3f31b9b0dbd3b80d48d56a5ec6742fc96fee8c530893971398",
+          "full_production_report_sha256": "54ee90413db69a544defc80c92abba336f3906edf20e8fcc88720388a59bfa57"
+        },
+        {
+          "name": "pass-3",
+          "input": "064-fenwick_tree/pass-3-flat.egg",
+          "input_sha256": "4ff35d48f9ec759708f3ee14d1d54c5c67a0782b5b646d1e7bd6d7ac39f81dd5",
+          "raw_sha256": "e8bff45ed52de8d8ba5110d37bb754bd1c58631c974847d4b7a28ff30ef44b5c",
+          "full_production_report_sha256": "4979e94df9853c72a6e5aac9b53af34c7a2f34866a39c41017097eafd01ca6d2"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/datamining/correlation.rs",
+      "directory": "065-correlation",
+      "source_sha256": "ec5de7f01318d9cc0a60586da1cb17415add6375839c86025a2a9a960e866c3c",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "065-correlation/pass-1-flat.egg",
+          "input_sha256": "22015ef76c453e406ef7b6b8f2ababaa86d9f69250b8159a51df9123aa33b091",
+          "raw_sha256": "bb1dfd6c6c76b46905aa56a1b42ec01fd2e5495e7bb8a280b860bdd6a77b5a42",
+          "full_production_report_sha256": "0ede10ece3efd1390aacef8baf25e44cc7f57fd11a7bb97141166ef1c0d86ba1"
+        },
+        {
+          "name": "pass-2",
+          "input": "065-correlation/pass-2-flat.egg",
+          "input_sha256": "7443a9f480d617143b4829b618f0b981da6dbc9e9d79773ee3903f5b18067759",
+          "raw_sha256": "07abd56e22ce7522f6438a2cea085cb568e74d5540449d87f0cc87944ad5b71f",
+          "full_production_report_sha256": "26e6761c754a83d29d5a531d358b642fd769387ed7e782ee1e089e69946c6868"
+        },
+        {
+          "name": "pass-3",
+          "input": "065-correlation/pass-3-flat.egg",
+          "input_sha256": "ac2b4e97fc93d9eb26ccc4439a93e04d7ea4898e5e312076347fa214fd491941",
+          "raw_sha256": "6097375faed162d12daa54625c4d223ecffc6d0c3a2d31df5e06d502336510f6",
+          "full_production_report_sha256": "59122500d2e130a0f29de44b92c58253808125cb73e93492b502d8ae5ac3d5b6"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/datamining/covariance.rs",
+      "directory": "066-covariance",
+      "source_sha256": "5f18b91b817d03839db04439b781bac3ab63698103d27d0b9193540e2ca2ea53",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "066-covariance/pass-1-flat.egg",
+          "input_sha256": "ec23e4af5f6821aaa19d5cb0bdc93f8e32f71929baa1dea036ca169ad297e2c3",
+          "raw_sha256": "af398e52502ff67eff786ecf146a7fb51079dc12a84b4db3be0aa438bb8a447c",
+          "full_production_report_sha256": "8f2617bee5e46a70d6cc7c8484eb2ba898cd162a505e4e010cca34f9e5627109"
+        },
+        {
+          "name": "pass-2",
+          "input": "066-covariance/pass-2-flat.egg",
+          "input_sha256": "4cbc8c4294384d8a8a1595088f41a39f40fac20e1a3d2193f7e8c609645bbdb2",
+          "raw_sha256": "c66361dfff30923d004e977ac74395bd0ec394063c91c4d06b13ce58d44c7225",
+          "full_production_report_sha256": "6f85635a2702c003c01c90ed4b747402196556459aa8aef206458962077d6dea"
+        },
+        {
+          "name": "pass-3",
+          "input": "066-covariance/pass-3-flat.egg",
+          "input_sha256": "ae311ecd2271c364a8b1af19973aa35456a0d1cbdf93086d1723b333709e0330",
+          "raw_sha256": "8fa9fa6cd77d316b69dd49aad70bd51ebf33cc8a79754c405863f61a6be5ed92",
+          "full_production_report_sha256": "6f07677bb02f4da878f42efda61e8626b5c2069cfcfce527ad8744f00096b32c"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/blas/gemm.bril",
+      "directory": "067-gemm",
+      "source_sha256": "b515be1f149beb59bc36a90ce3b1ee7306c1067531efe0d52e1d9d1bb581faf4",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "067-gemm/pass-1-flat.egg",
+          "input_sha256": "5012e642ab9a82f11fdc6af80480ea0fc88238c2f17c6a7a44b3724d45d989db",
+          "raw_sha256": "d1a4cbbf59ecd9ab24687895773e0335e393812bd1c3d5e14e4ea3c4f4be2607",
+          "full_production_report_sha256": "848dbc2a8844c6d72a0945a01b2631044c16b27337477dc348ea21ca7b16f6bc"
+        },
+        {
+          "name": "pass-2",
+          "input": "067-gemm/pass-2-flat.egg",
+          "input_sha256": "1f3877310ceb065465214a4b4c89051ed11f0ccca17b8a885a1e21950d427404",
+          "raw_sha256": "4bb816ffc4995d19f1ce46707a529197c370437bd5574dc6516ff4ca87996516",
+          "full_production_report_sha256": "860d3d78288651f00d9f483684b3b29486e00805485a336bcd85a4503087e24f"
+        },
+        {
+          "name": "pass-3",
+          "input": "067-gemm/pass-3-flat.egg",
+          "input_sha256": "ab8926d46778e75dbf0c1b50e1ad71ab1e77bbbd2e788ed0cf1df6fff9656d54",
+          "raw_sha256": "de1dbe0b278fb2728af9595c0ce802649db9c7ed11e5b09b3bd6c178129d047a",
+          "full_production_report_sha256": "b0f8320bc6489145655e33466cbfa53fa0c29185090e394e37037428ffb88f61"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/blas/gemver.bril",
+      "directory": "068-gemver",
+      "source_sha256": "c87ce858ff941ce287f9ddff4cf6574e2f814ad4ab0d6a62b18e62d3824ee614",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "068-gemver/pass-1-flat.egg",
+          "input_sha256": "6c682114ec5c6b0ace169c9bc74d0054ec689e557448e2d1b1c5f5d78ea34330",
+          "raw_sha256": "344beeef10862a36b3b3f2bcafdbe429845391389d2d898fb041e5e421454d33",
+          "full_production_report_sha256": "55219fe4f1c83d3207c78102cfc0a9f573234b53d048e04a3265f4dd222103a0"
+        },
+        {
+          "name": "pass-2",
+          "input": "068-gemver/pass-2-flat.egg",
+          "input_sha256": "ac374f9a2760a7709b995373d33cf8f6dc947d996d83e1b2114cc1f35b1f8f0a",
+          "raw_sha256": "1c41accb7c140ed571284c52ef06b1af092078e11b070efd48e64caff9afd3ee",
+          "full_production_report_sha256": "d420151600e24f36cd63aaca4eb4f8db0ea20b955148b94cd3e0e16178892f22"
+        },
+        {
+          "name": "pass-3",
+          "input": "068-gemver/pass-3-flat.egg",
+          "input_sha256": "671c3289e913c50a5c6e32e5521e329dfc6872df9d0dc95bd79427491ca10f59",
+          "raw_sha256": "3d7dfe4b73665f64d4d1fca6236e8307dd44a084998d35e6be0f054b58b8e323",
+          "full_production_report_sha256": "0bf28de9d30d477a577e07a92b9d85a9265986736122964259f6a839affcd643"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/blas/gesummv.bril",
+      "directory": "069-gesummv",
+      "source_sha256": "013290bfe41358707e47032fd39adcd13c80a275f6f67bdad6d5e94df9ae371e",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "069-gesummv/pass-1-flat.egg",
+          "input_sha256": "1c1ec267c377641adcc1bf4db4ae22783d080f4f91678953bb87ad64d21b86a4",
+          "raw_sha256": "b2abb1aa9bd20024874dea3c948602ad30592a7505b1aa665f0e994ab7accb9e",
+          "full_production_report_sha256": "49ae3ddec25897824872f603e1c0c49f7bf9c45194fffa26cf4b33a6e457ab1e"
+        },
+        {
+          "name": "pass-2",
+          "input": "069-gesummv/pass-2-flat.egg",
+          "input_sha256": "abf043c1ea9d47f5e9e0e18dcb4e86ff74de0d1abc346b6a955ebbcd3781b11f",
+          "raw_sha256": "d2bd2c03a846e62228a235eee1d1d178013ad477349906e35f00b6ae550dd478",
+          "full_production_report_sha256": "cd3d7fb9ddeeef286726a72607b180fe8596b525ed0878fa77a221c91e23db54"
+        },
+        {
+          "name": "pass-3",
+          "input": "069-gesummv/pass-3-flat.egg",
+          "input_sha256": "015d72746e98795e31f380e296ba92ca153c2053b9d66eb22b962b661736fe63",
+          "raw_sha256": "be2d4c71be9f188b344715c891833d425c35e69f832858be4eaa10368cf4ed59",
+          "full_production_report_sha256": "9daf616f6adb0428b6f0bf1986346d1939bd46abcd63b2f1396741e430dc267a"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/blas/symm.bril",
+      "directory": "070-symm",
+      "source_sha256": "7a0f461583fcc1b5e3f5cfd22a28d9ea6c227bffe464691dd7245da57a3b7bc8",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "070-symm/pass-1-flat.egg",
+          "input_sha256": "3688f208217e2f696ea505cb1a3087effaf0ad53fe32841a95ae95fc4c07720a",
+          "raw_sha256": "3087bbca58d995a49310f49cd0c81ac9c7d1011845362a2a0c8a0c2af38877b2",
+          "full_production_report_sha256": "9ebdf49597f3b1956d3f8ac00868ac72675c8a207b4195a8241e20b7812cf98f"
+        },
+        {
+          "name": "pass-2",
+          "input": "070-symm/pass-2-flat.egg",
+          "input_sha256": "edd2d3086254d97cac6c36276d9bd13f13a20c12d3ef1454c31ed31e33827c59",
+          "raw_sha256": "8c64ee830df4d55b4471b7c13229bd42aab87077dd616f5443651e0a5ff0583e",
+          "full_production_report_sha256": "dc321e57c286e2b937f1ecd72bfedf00fe71f36d01aac9d84d224a6a16a57a9d"
+        },
+        {
+          "name": "pass-3",
+          "input": "070-symm/pass-3-flat.egg",
+          "input_sha256": "5cd409c36ebacafec0a7d48c30a896c223fabab77adf518d3549b0e6416efe3c",
+          "raw_sha256": "177ae764991499f45fe2f763a55e298bece75ad0b96d16f8a042810c138ecd11",
+          "full_production_report_sha256": "861999d9b2c58015a7a3240b61c18798e87d840fee7277e49253fbb67270acb0"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/blas/syr2k.bril",
+      "directory": "071-syr2k",
+      "source_sha256": "0902e856dc8ed8c455ddcdd0e6dafd4e89bb3640ba38249673bdf8af43586ae7",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "071-syr2k/pass-1-flat.egg",
+          "input_sha256": "34c46a82730dda5d42634f8054dc19b80fb07fe199a080e6f6d803be3e723ee4",
+          "raw_sha256": "3128a81289cdaa1fa5e2234f91e1f317985359d3f622b853c9a0fb87eb6b06d4",
+          "full_production_report_sha256": "625037c416b28ee8157b73b4aae141f0c40c6b4ed0b61e4737bd8daa0357bfe4"
+        },
+        {
+          "name": "pass-2",
+          "input": "071-syr2k/pass-2-flat.egg",
+          "input_sha256": "3c9745b52940b3bc72b18e6279ccec52e9a22a562d583c26f891cfe636d9ac36",
+          "raw_sha256": "75fa81a9ee192f58738a9f546639b6bc9db2a0222ec86f458d2edca7507d2ee3",
+          "full_production_report_sha256": "7cb20687420cd6feeeef41252409a6a7fd1cb2d06e5eac48e25b02d6ae599a31"
+        },
+        {
+          "name": "pass-3",
+          "input": "071-syr2k/pass-3-flat.egg",
+          "input_sha256": "ae832c5afccb389127c3693c3f8a296d1ae6b1dec2f76baf00787a69b0b18a2c",
+          "raw_sha256": "271ee03bae8c89dfbce502902ef2c9f9c4cb55c840f184dce3e4a4de01f40084",
+          "full_production_report_sha256": "a27732cb9949b91965957fb44a856a26aad541148bc6caa0bf10ff494a164532"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/blas/syrk.bril",
+      "directory": "072-syrk",
+      "source_sha256": "2d4f1f5f8f3e7edc0ff3024d88a75fe10499c8a23e7e8990ac518c1ab8e59c68",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "072-syrk/pass-1-flat.egg",
+          "input_sha256": "279add06f03a17813c00c520f9861ef93c18ae11b5983999ca0d096c4abb9cc0",
+          "raw_sha256": "92e7813c8887b232ac70f968be751189fae559ad43157d071fb2f5592c4f9678",
+          "full_production_report_sha256": "aad43f147171c7765ce59d8868da065d75bdc209b88883c5dabea3cbfae8d0cc"
+        },
+        {
+          "name": "pass-2",
+          "input": "072-syrk/pass-2-flat.egg",
+          "input_sha256": "646bb81deacbf7c574a344946fb99f784a51c9fc691786c15b1ea677a79b4f4e",
+          "raw_sha256": "77b977b886c8bd69f318d4006eb3ad9d7d45e3df7fa3723ae23c509ee1a6398c",
+          "full_production_report_sha256": "788559d3570f1ee883ea1a70150f2b0e38a6d6aff5b38f65bd1e849a0ca75580"
+        },
+        {
+          "name": "pass-3",
+          "input": "072-syrk/pass-3-flat.egg",
+          "input_sha256": "ffad0481a7c90a4b266a9cc61646aae618fbc165dd8d2470cc13802a93228321",
+          "raw_sha256": "61c9c7b3b3341fbfdb3f785073a00f037ccb2f7b1ff9b156f5547b601e9cbabf",
+          "full_production_report_sha256": "a2c1de697882be2a43c727106a58a22aa0a46f4e68224f5ff05c18e22eb8380b"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/blas/trmm.bril",
+      "directory": "073-trmm",
+      "source_sha256": "4a6c824a6017080143739725327cd95f550b9ca65388864b2b37905e8d7c3ef1",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "073-trmm/pass-1-flat.egg",
+          "input_sha256": "e9964d5ce00aaa781443aee2d5a43e85c5e02843f3d90e095da919ba7c7f27fb",
+          "raw_sha256": "a47452b39f88f4ad4531d9cdee8cd61cd8121429974ecb1fb8bb743b308e9a69",
+          "full_production_report_sha256": "76d634df7698389098165b9a55f2341a509ff86dd705dc86486c84adb9463a85"
+        },
+        {
+          "name": "pass-2",
+          "input": "073-trmm/pass-2-flat.egg",
+          "input_sha256": "2d183c82afc9f5ec274d93c748e7a6b4c2d3005c29634ad702f835f0e8ac5d7f",
+          "raw_sha256": "23d10d061e3e4913697d3710ad1000986fd674540a6f87dda352ccc05734e934",
+          "full_production_report_sha256": "fd4cc62d708a1bf7dfac325d15aedbf177ad898da2dff0417bd3864e0c474ae0"
+        },
+        {
+          "name": "pass-3",
+          "input": "073-trmm/pass-3-flat.egg",
+          "input_sha256": "c78d958a4bf308ec5ce7fb560dbf63379941b7d7024a58f0df4207f74b327c31",
+          "raw_sha256": "589a1d02a579414dc4fb5579f9b672c353dc85e80960cd0289dbb46ad218a299",
+          "full_production_report_sha256": "6dbeb6ad0cf2140699ead005d2870de1442289b9cc9534ac58a0e762c6f98cd2"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/kernels/2mm.bril",
+      "directory": "074-2mm",
+      "source_sha256": "16b45c7612d32bdac652cb41615c5305a10491e3788b5fa36e0f94e8f2d349df",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "074-2mm/pass-1-flat.egg",
+          "input_sha256": "437d4dc34ae695e46117b7ae967bbfb014a2a7726f0c4c74e7cbd8e5720cc1d7",
+          "raw_sha256": "872e67dbe82cd5b3d71a2cc97073d5d371dc3fc05c6074cb4cbf4d6837b68350",
+          "full_production_report_sha256": "503db7291a3d51491d40d1dbe2c3eccf6b6e33b4beca08d0621f6958abdff3e0"
+        },
+        {
+          "name": "pass-2",
+          "input": "074-2mm/pass-2-flat.egg",
+          "input_sha256": "91a9490d290725e5849f0268933aa2db04066ff8cc5830266311bb05d283c7df",
+          "raw_sha256": "1bdb407da4776f13a1feaacc0e7ba7bc3fe278fb7fd458d0df75bab4330ee417",
+          "full_production_report_sha256": "5e7c4a8afc882958901b366b626f08f1baab2fa29f423cfe1148c03ca2bc53ad"
+        },
+        {
+          "name": "pass-3",
+          "input": "074-2mm/pass-3-flat.egg",
+          "input_sha256": "91df20f2c02ab711476a87e9092f17db1e94c0b3e07ec2cec160e01f884617d3",
+          "raw_sha256": "1c7d2c3fde781badaaa4a53e1d5d3513b2262e2cf845df60b975c527e0707d8e",
+          "full_production_report_sha256": "97f4de6bcfa91fce0973599d17b5670b6cce7cc35de91a9f72eb9807fc28972f"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/kernels/3mm.bril",
+      "directory": "075-3mm",
+      "source_sha256": "1cfd09d54aa051f8e58a5d65a4391fd25e8bb96f39998e4b5fe8453d90559967",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "075-3mm/pass-1-flat.egg",
+          "input_sha256": "d3779afb6cbeb9833eda98217a4eca3c84071c90229664641bc714e2fbb6bf67",
+          "raw_sha256": "4c9a859ea5a0a44228a900284b8ae385ba7cad667bd488743e602d96fd230dbd",
+          "full_production_report_sha256": "a87b1d6438bc2c5a926e820cd803eee5e28a9cd466d62720a47709425420796b"
+        },
+        {
+          "name": "pass-2",
+          "input": "075-3mm/pass-2-flat.egg",
+          "input_sha256": "3e6996ffb5a85735e6844ab8ff367706a8dcfbe7fb14fceb9e28ca16ac56e4f9",
+          "raw_sha256": "9d5620a84d85d9666e0a13e971acec08ef3beeaf80ab66fae9f5ec019bf39ba8",
+          "full_production_report_sha256": "ea81063c5ea39b96c39d03423c79e41ef1653ff2e69e7878d41f56517cba44df"
+        },
+        {
+          "name": "pass-3",
+          "input": "075-3mm/pass-3-flat.egg",
+          "input_sha256": "e390e27aa13096bbcac54df8a42fed18df9145a605f677f645b8aaed40bd0f4b",
+          "raw_sha256": "f58d415a056eb8f034a2e386e3fdb5c0e43c5ce3dcf22d6f3e6e537ac69ff7c3",
+          "full_production_report_sha256": "ac9709dab9a00cc0e7d4c1a885cfa86b7e71108d2e6e30a8cc4f0b2170d750a1"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/kernels/atax.bril",
+      "directory": "076-atax",
+      "source_sha256": "25b10ce5cf9923fcc71fcc786c5291420fc8b691d7947fdfc25dad23b9215356",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "076-atax/pass-1-flat.egg",
+          "input_sha256": "e06a6fef2ecb011cdc9917947ad101417a2a8dd7c34dc7a85df03a09e409427f",
+          "raw_sha256": "dd2ee566a3758ef3982a101a40496efd860f1ea29c029ca995015ea305972e40",
+          "full_production_report_sha256": "5b97d2318ca8d4174692ea74a44a7b111efce8ccabc4ee02a21f54fbc8859775"
+        },
+        {
+          "name": "pass-2",
+          "input": "076-atax/pass-2-flat.egg",
+          "input_sha256": "82aafc360f596d2a03aae9c7690271b7feee741979fdfc73057b0657b3827ecc",
+          "raw_sha256": "897aff0efdb599623e0a91b18c61ea51c3a7c6a5f1ee580fc65d1375583e85ab",
+          "full_production_report_sha256": "a94a74f0660a76d14c474c15a6f70932255f4f597b233c38f67a821259622b04"
+        },
+        {
+          "name": "pass-3",
+          "input": "076-atax/pass-3-flat.egg",
+          "input_sha256": "a94fc86b873cd1920bfc852b0f6c7b8274c6d5af7a8cdbe9a83bd67d944be456",
+          "raw_sha256": "9a37b284b34473d34658d77b321ab73f91255cc34cb0a8252e2a4534848ec1c8",
+          "full_production_report_sha256": "77bd665f706e1be10df0e3c27a6765577a2910620798dfaf176a6aec5357d6cb"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/kernels/bicg.bril",
+      "directory": "077-bicg",
+      "source_sha256": "4ded0c3edb336d95d706b2ecec7856f67f2edcf46a966076dcae9d09efe012f4",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "077-bicg/pass-1-flat.egg",
+          "input_sha256": "c8c2880bc7c58a3860c22a0ae314f9f9bb44ce8eac9eae3ba59bb9045fdf826c",
+          "raw_sha256": "d1222e92dff23ac2f9c71cc1d844ea813be17b5816bb6d53352dce20ca548ba5",
+          "full_production_report_sha256": "7442de2fc280df3ea1c3854f7b49f981374219b87a76cf177d62e4c245f9cf7c"
+        },
+        {
+          "name": "pass-2",
+          "input": "077-bicg/pass-2-flat.egg",
+          "input_sha256": "ae4c1bd2eeb1c97c6a07f95dc76a4ab63c57e62cda3138677d580e3f865cda6a",
+          "raw_sha256": "a14259ab29e5eb55b5d20b944679a633437a2ab4a72ca8c8f11e40941b35f1e7",
+          "full_production_report_sha256": "54fd463465586d75aaf6fd1185c256381e2ef4599306d8a843da249468db4013"
+        },
+        {
+          "name": "pass-3",
+          "input": "077-bicg/pass-3-flat.egg",
+          "input_sha256": "e701c03a70afc211793f01e3e3b6a1dc4b03801b719b74ffed5813ca58707f4b",
+          "raw_sha256": "ec21778751754b70d910545a17cc4dccc47265c5ef0dd463ffec9a7da387345b",
+          "full_production_report_sha256": "171c83146f89102c24c15365613c81b338ed828a1b4a6e345c56d315144610f2"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/kernels/doitgen.bril",
+      "directory": "078-doitgen",
+      "source_sha256": "5372ba4854fbf4960802737dc98de7c22a3a706d438b82158a19bed60f2648d6",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "078-doitgen/pass-1-flat.egg",
+          "input_sha256": "2a74a0c4cd0f9db2238398e52e1d225305e7264c035e98bd973e529d1ea21690",
+          "raw_sha256": "cb756038dc69d3c6d3b7132c5bae27057ed4ae0f63ed8171ed6069dfbeea7505",
+          "full_production_report_sha256": "f43e6b44bd1c471ee31f14f0e9dc68ebfddb46e0314bc4c75acf286ea54b0060"
+        },
+        {
+          "name": "pass-2",
+          "input": "078-doitgen/pass-2-flat.egg",
+          "input_sha256": "22becab8fe270d60e2de987882d7c6c1a520576b025626c29fb838c9ea01922d",
+          "raw_sha256": "38d7e6d3176e6d52e5c90c048d42a73fd9aff0c9acc93a549dbfe02d73208649",
+          "full_production_report_sha256": "0308eb39d4c667dee7d33653f926b1c66686aafb9f7abd42c2c0bff50d3ea22b"
+        },
+        {
+          "name": "pass-3",
+          "input": "078-doitgen/pass-3-flat.egg",
+          "input_sha256": "4c1cf74f9acde6cbf8a90992b001b6c82e7274b9b5bb0e8dc16bbecba555e32a",
+          "raw_sha256": "a817c02c5d4749929a2c8b05bc2bd436880b4c9cd5499a4fe66495444bd399e1",
+          "full_production_report_sha256": "1761a2aacf006d2b4005706828a7519e20d1c2f518947e6eb02b4c1b93af35f5"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/kernels/mvt.bril",
+      "directory": "079-mvt",
+      "source_sha256": "d2130b3ff700ffa19b6aa9b8a45aef007fb5ab7b3c6eb36480524295c8cbcd6c",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "079-mvt/pass-1-flat.egg",
+          "input_sha256": "03068d9f10ca7ab6fd798e104590e1591d5461bc0fea80df105399deea61cbaf",
+          "raw_sha256": "a12c44f120a5accb6596264b78949fedf4310559891ffc9ec2bfdefda25d3f7c",
+          "full_production_report_sha256": "489ea245ae49cdab9b2c84a9138f161c3d71a0f3b6a5166f0f637cbf85ae4a39"
+        },
+        {
+          "name": "pass-2",
+          "input": "079-mvt/pass-2-flat.egg",
+          "input_sha256": "5089a0cd14285b4d906cd8950047952e4972262ec0f0857a6e0a494ec9babb75",
+          "raw_sha256": "64543c83ee40792e8a7b2e1b26bfeb6d91f6adea6379cd02fa08c4b047bbb1ec",
+          "full_production_report_sha256": "c4cf307e4d99df4e2d141f95ed8aa6ca983e7f2f3319b940252e64ca3dab3b9a"
+        },
+        {
+          "name": "pass-3",
+          "input": "079-mvt/pass-3-flat.egg",
+          "input_sha256": "c7cb3abfddd42f3ed6161e2925f3939c3edb0c7150769ad404f70d458f7c0602",
+          "raw_sha256": "64615c04f4843583f3d2324f4febd2c2c40a17bd44672c2d77ba83af465d7c7c",
+          "full_production_report_sha256": "511d41a966db512950fccfecf2dc1bd19c7c94323b639b9dfd4a360872a26a1a"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/solvers/cholesky.bril",
+      "directory": "080-cholesky",
+      "source_sha256": "2c4add669376f98e3bf2655b82ba02b642575bdd48d2f0653a80809233f7f979",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "080-cholesky/pass-1-flat.egg",
+          "input_sha256": "37dad18ee1a7d36ce68fe947af1d13d3563322e8db24d6eb52e08e5001ff03a5",
+          "raw_sha256": "1a49eaac21dc20c245771660bc3ae0487f594d6439cbf39cc7219393e5f359f9",
+          "full_production_report_sha256": "d6d62fd8a3367d801c120ae0d86fb28ad82bf46b07974cdc4a345e33dbf984a9"
+        },
+        {
+          "name": "pass-2",
+          "input": "080-cholesky/pass-2-flat.egg",
+          "input_sha256": "069f9c038ca7257544ad3971299fa27e15486918faa11fae17c56b45ae070750",
+          "raw_sha256": "3b41bd69958f78255159d15ca89662fdb5ed7c34032cf33a50eba0eef20ffea1",
+          "full_production_report_sha256": "674aaa0b69f6bfb1b0551bf6515e1dac18d59fd7713de84f45812de794b05db4"
+        },
+        {
+          "name": "pass-3",
+          "input": "080-cholesky/pass-3-flat.egg",
+          "input_sha256": "54afc563bef195cdca57e4df4e4bd58c777e819e4cc400a1b136b20c429aa2d0",
+          "raw_sha256": "dd7fe51c7c441e6f21106e568e750ff9f8d7a620725fca2bc890fe6ed27d9967",
+          "full_production_report_sha256": "e0e6565840cdbd2fb12aac1b5e42e862ff995b9a3439bc8a61483e6c8665008b"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/solvers/durbin.bril",
+      "directory": "081-durbin",
+      "source_sha256": "fbdf902938b69ac97d1c79fb5bb18b082a68b102651f3c5bb3897ec3a7d73415",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "081-durbin/pass-1-flat.egg",
+          "input_sha256": "37f158c3bfb86436dfa011c95e982815fc8193a09774fcce733bff659802a26f",
+          "raw_sha256": "ba324649e5a69db72eece41eec44d47beadea3dd561b627c2702c567b999ceaa",
+          "full_production_report_sha256": "091a313c4bd43ecdea53628d7857e4609ef3c4c40a826e9f0d16195c2853caf1"
+        },
+        {
+          "name": "pass-2",
+          "input": "081-durbin/pass-2-flat.egg",
+          "input_sha256": "e38eb8817c8bd8679ea3c8dd13c6edc1cb7af9693ae17d0889d09d8da6dfffe3",
+          "raw_sha256": "a967588069c960f973e23cb320865d21109727e953123df8ef9631ef9e05f6d4",
+          "full_production_report_sha256": "4b292addd779f1f0cbf26625b69c327d5cc1d59d037f3059120ab1d9dc151457"
+        },
+        {
+          "name": "pass-3",
+          "input": "081-durbin/pass-3-flat.egg",
+          "input_sha256": "0bce7c83e7c02276a52229e88777763b1c3a8bd016931ab2c2f87034abdf6b41",
+          "raw_sha256": "d42010f1a2d1861107b309f3343651e08016018ce94d2b302f1427629701169d",
+          "full_production_report_sha256": "35c68b5e42cc80871351ce218fe162a4ef9eb4a278b90d5e6bfaad5bf60d53a4"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/solvers/gramschmidt.bril",
+      "directory": "082-gramschmidt",
+      "source_sha256": "a7519cb73215ef0b3e7d8f320c3cebcbd486e6b447c9ccbde66f5f425ee13d42",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "082-gramschmidt/pass-1-flat.egg",
+          "input_sha256": "43af8c76415d30872842acb71b266f8d35e35f78f2fe49b1fe250c58c85c90f9",
+          "raw_sha256": "674c63093446fb782a4fb801cf791dae325918f50abbf1495e09d1bfd598cfed",
+          "full_production_report_sha256": "8cffb34444737372545ea298d6af537c81ae6037a0c779ddc59a3977b32019a7"
+        },
+        {
+          "name": "pass-2",
+          "input": "082-gramschmidt/pass-2-flat.egg",
+          "input_sha256": "2a639264a5533c1dc3520faf3ca5d630dd27833d333491273094cd5b93c7f1a0",
+          "raw_sha256": "6b874645e5dc45325b5ca7f09fb4741389d8a6d4aaf7120c046df6456f1aa00c",
+          "full_production_report_sha256": "f4d642dcf869107ce47baa78369181a30493e8d44ed7622073e4f78d84371c15"
+        },
+        {
+          "name": "pass-3",
+          "input": "082-gramschmidt/pass-3-flat.egg",
+          "input_sha256": "95d3be3f0b5e644cfd01d8e092e39c46d7f8280d1eb7918eeba9a8c9c97d4c56",
+          "raw_sha256": "146458850e6f67e0bcdf46ddc7d8dd9ac24359fa26cf33f04c720cad25dc751c",
+          "full_production_report_sha256": "cb435027690deb606dd13cfe6af399f77256bf5b4b8c3b5f0a751d00fd565699"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/solvers/lu.bril",
+      "directory": "083-lu",
+      "source_sha256": "a22cf2c7a412b9e5393f1e70886a5b4d83467fede0e5719fb9f3f0ca9aeda9ee",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "083-lu/pass-1-flat.egg",
+          "input_sha256": "fdec5f0f5af045cd1aa0d8d8b0699ee660b27889b08fabb6f985df0bc0a65c50",
+          "raw_sha256": "08ed630cbf4a4eee2468f7dbb3d02c4ad6adeef8b4529d32fdaef466b09970f3",
+          "full_production_report_sha256": "ea426ad3899ca5486841e3b15c17bcb60cc2f203f72453151a5dabdf48af4d4b"
+        },
+        {
+          "name": "pass-2",
+          "input": "083-lu/pass-2-flat.egg",
+          "input_sha256": "a397731c9f0bca935a47e2b12236c06e84bc3b50c20b1b70a403b3b4c95e1830",
+          "raw_sha256": "6ffe1c75bb1d56e3431925fcac5a4f565a7e7abe0d3f7223bc583d95d3425c33",
+          "full_production_report_sha256": "ed1011e310aa0841819475b8cbbe00aafac17fc3a35f45f15966300ceecf173e"
+        },
+        {
+          "name": "pass-3",
+          "input": "083-lu/pass-3-flat.egg",
+          "input_sha256": "a3c22ca3a4f63d424820d8443259f7e5e439f63d5c3c2f18cd47940f5ef86fb7",
+          "raw_sha256": "d281c6bc582be4edf2bf0da942879e030469f336939f03122307a7cec786e962",
+          "full_production_report_sha256": "0917cd3b0659d332b50e75518d72bca0ab0938dc336ab5ce66b40a68529a5f47"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/solvers/ludcmp.bril",
+      "directory": "084-ludcmp",
+      "source_sha256": "acd0a1e58b8b409fbf173173fb645fc8a79f4e934b7f53057dae6ed90ee5c620",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "084-ludcmp/pass-1-flat.egg",
+          "input_sha256": "f3ae8651c3d8acb924e465f874b69feb38cb7d779233dd513f7971a874b2bf85",
+          "raw_sha256": "783bae4923c322c789ef52b6ced5888f1c46d34fd7687edfac1d27807ee9b9d5",
+          "full_production_report_sha256": "cae45ea59f6d02aa6a79438571e444cc135b8e41f45cd8e94fb6274ef36d561d"
+        },
+        {
+          "name": "pass-2",
+          "input": "084-ludcmp/pass-2-flat.egg",
+          "input_sha256": "6c3d05a403e660f18a0c26c8240bb15a5a42b36de53aaa4452ab83e81c3a798f",
+          "raw_sha256": "3100584775eb5d05b6a4c91da8f591c511e136de4d924981233cf76bc7024aa8",
+          "full_production_report_sha256": "849d0b15f493c8e963627986aeaf0d9d1af58c1baa9e9a75ca61def2660eb063"
+        },
+        {
+          "name": "pass-3",
+          "input": "084-ludcmp/pass-3-flat.egg",
+          "input_sha256": "32d7acfce0d28e77328ffb133d51161fbe59ffc8a21b311a4f61f21b6b9bde1f",
+          "raw_sha256": "00d7a63dd32711a2e66a6eeb21cc4e4d2cfa2042b5cd3640536977d083cdc95e",
+          "full_production_report_sha256": "e963ba91ed1812b73cf5d47f85239a1a4f353c98a6a9da20d5070e0c0ab53793"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/linear-algebra/solvers/trisolv.bril",
+      "directory": "085-trisolv",
+      "source_sha256": "c8d9b6a2f7103d072c5e391c34838f11a19885f2111633c230cabc8049da0591",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "085-trisolv/pass-1-flat.egg",
+          "input_sha256": "d7309e8d8fc98adabb1f1c649f668a5d7c11a0e12a6356cd9bc80ea038796ea3",
+          "raw_sha256": "6783847cb2ba213ad7476da6ea1977b55eca0de3fccce1b540614659ebfb4a16",
+          "full_production_report_sha256": "987ebf404c39dd24f0e474a65ada60de2ee9d284d4a89054bde36e43919bb117"
+        },
+        {
+          "name": "pass-2",
+          "input": "085-trisolv/pass-2-flat.egg",
+          "input_sha256": "f9f1ba052c84ed3b30936229ebf43e4203383b06275918d4f8e981262a68fef2",
+          "raw_sha256": "6ef2e468d4043abd00cee93858737a321a8bb9107ebacadac6095e369a33cead",
+          "full_production_report_sha256": "d4a4e651b3e8836e773ad179426792c6f7b62a369bf4897efe33b142dd182d0c"
+        },
+        {
+          "name": "pass-3",
+          "input": "085-trisolv/pass-3-flat.egg",
+          "input_sha256": "11be88f03bfed68606de64f113c4d3951b0a17d1d51d70680f3980c780189711",
+          "raw_sha256": "1874f91b166bf44ad221974472ef7b3798a6893a7abc9022dcd2188d19157fd8",
+          "full_production_report_sha256": "918c9f23097ec69b86bc22614d2db4d1f6a7ad2dbed52285244a787f5381db3c"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/medley/deriche.rs",
+      "directory": "086-deriche",
+      "source_sha256": "3b171c9061179cfc1da3200f888b09c6fb6c8229b60cbb61b791a40141023790",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "086-deriche/pass-1-flat.egg",
+          "input_sha256": "cc255adbebe7ab1a870b0a6dcf45ed51d1b8293464664e13ec91354ac3c21320",
+          "raw_sha256": "ebd56dc6be70b855f1e6dfbb3bb9db67580dee721a65cc08664204d5000f2b1f",
+          "full_production_report_sha256": "be8d777a55bdbef62d474da8b3b4f3d7647f62b60837d09a889d926791a35b65"
+        },
+        {
+          "name": "pass-2",
+          "input": "086-deriche/pass-2-flat.egg",
+          "input_sha256": "69f8770f100e5fc37960f30f98ad3af191aa9ea92894b36a57e8d02ff63c68e4",
+          "raw_sha256": "8762e46feb86a2162ae4625225a31cd5ef4a9bdd1c67080b8da5e723cd1d6451",
+          "full_production_report_sha256": "499b6e47a4445c9bb4d9b4457754dd0a8380167d2c9a63a15c7db23cd6e192c9"
+        },
+        {
+          "name": "pass-3",
+          "input": "086-deriche/pass-3-flat.egg",
+          "input_sha256": "b93d070e55594487e9caabf7c0d646233745368aa235f5dc29c338eacf5071c6",
+          "raw_sha256": "49edcee967162123cfe44bbf8226c359de69c8c424fe5aa0e0f2c40e95e259f6",
+          "full_production_report_sha256": "366d866e54cb47acabdf9d7a0e2b1b2970ee851579288c96205f6a39dd183fa5"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/medley/floyd-warshall.rs",
+      "directory": "087-floyd-warshall",
+      "source_sha256": "9ccbaa796ba45c31e037b41e21d53834f0f2bd46e0b47f2c623a4231f09bdc5e",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "087-floyd-warshall/pass-1-flat.egg",
+          "input_sha256": "235045edee8df201e48990d6798657de7e87165c0b0a8b70bd044d7d68c22614",
+          "raw_sha256": "247a3cf5336ac2ed2187a1d1d879e6ee858b974bec503468b791d21be2320175",
+          "full_production_report_sha256": "5c261baa6ce6dd5d03e0b4fa2a83aa386fbefaa34c1ea223efbf0f963176c1d5"
+        },
+        {
+          "name": "pass-2",
+          "input": "087-floyd-warshall/pass-2-flat.egg",
+          "input_sha256": "6eb36036cf2aa0b0fdebae160724885ac7fbbcbcb3acc2943c7c668d507466db",
+          "raw_sha256": "2b02dfc66590ad71e13dc8dfd9a29ee4e7fe32d02975fa674b895aab0a2bdf30",
+          "full_production_report_sha256": "15bd901ff4db71da45fe5a8fe288182603e5c9c9a466c2a106a8c006daca4025"
+        },
+        {
+          "name": "pass-3",
+          "input": "087-floyd-warshall/pass-3-flat.egg",
+          "input_sha256": "d11fe32a6d0322f07780f0f680457c9f6da54a7abd316d214acf5443012f7a68",
+          "raw_sha256": "b860499c763a1d54e39d72fdcbe0a1d300b6f040f27e45a426160977bbb44159",
+          "full_production_report_sha256": "94ce4e937e02ae8bf113ed60cbe7e6e6ffd89a7c2e9478992c13a8f559777844"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/medley/nussinov.rs",
+      "directory": "088-nussinov",
+      "source_sha256": "4763e83130f6e38c288007dc33ec12809916e9580eb1a57dd2c52254026b3132",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "088-nussinov/pass-1-flat.egg",
+          "input_sha256": "9a565b942a7af882db6189a4e7061a1e300ea87cd9bb8c9bb2d3a78b0c5d1702",
+          "raw_sha256": "c2ea90147e2483ee762cc8aec7441b560e87023b7b79b690870ab5e01b4286ec",
+          "full_production_report_sha256": "f120433f6aba4494d6c031bd7911ea40dc858a341cb666a5a7d34d0df8237488"
+        },
+        {
+          "name": "pass-2",
+          "input": "088-nussinov/pass-2-flat.egg",
+          "input_sha256": "df4084de0432b8eca311a8279ec893a1429f5c74b153c078a539881367390644",
+          "raw_sha256": "901ab2feb30482df8834c8c976c64fa87f006f76213958549d57cc8df9e65a16",
+          "full_production_report_sha256": "5f7c7f6c593c38dcde98b7e3573a62967635a138fefd0a76398b25ea06eed3b7"
+        },
+        {
+          "name": "pass-3",
+          "input": "088-nussinov/pass-3-flat.egg",
+          "input_sha256": "bac346570b83536028d16611da40bb7bd091d53eba4a98b3af5a253641143304",
+          "raw_sha256": "cb3676ea06e692c50db17959b9f7ec4690fae83d9e2a3bf4bce3a9e922cf789d",
+          "full_production_report_sha256": "ea4fde70ae93a586eba094d07455b5a448c5e2e0bd96673c3d84343e99a8890c"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/stencils/adi.rs",
+      "directory": "089-adi",
+      "source_sha256": "a9a936a319813f1c56255dac1f26f34835494c59d698bce4b0a45a7fdb83d6a5",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "089-adi/pass-1-flat.egg",
+          "input_sha256": "b7fa83ddaa35e9270ca9657d9d71079c20e8f4c756e1e1093a68d1acc2c340e9",
+          "raw_sha256": "c6640f499d8b953ef2d86bb0df39cb7f85f20415d5af94af2c3a3f08063f2427",
+          "full_production_report_sha256": "5b72e1e61b5f04f53e5e3d8bf180a2abcd49944ac0884ab3a842b2bebe602dbb"
+        },
+        {
+          "name": "pass-2",
+          "input": "089-adi/pass-2-flat.egg",
+          "input_sha256": "7f07d2b22c129710dd59bbe5010fa1e2574bf095dcc498e30f81f89cfd012566",
+          "raw_sha256": "578227913e9bb18ba480ee8c818b047c7798e571bd81e189aed6cc1e98224208",
+          "full_production_report_sha256": "bed883d22092b7078bc7a3a479c72bd5eb9f60175bf85d675f15e7d17698ca6a"
+        },
+        {
+          "name": "pass-3",
+          "input": "089-adi/pass-3-flat.egg",
+          "input_sha256": "e6a5a805e2e9627dae9f16e8462570412acbe44e242156f97a35da6238183632",
+          "raw_sha256": "998f8c0174a4a272d89d137e41e0ff4bae3e8d04fed21aa5abf1169ffc618ccf",
+          "full_production_report_sha256": "f41b48fcd720574d2af81dfef8d932596448d0dcee492c3961a794fed5b4ce98"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/stencils/fdtd-2d.rs",
+      "directory": "090-fdtd-2d",
+      "source_sha256": "c2d864f1495da1d4b15c81bb33412eb9366dc2aa76823664dde3725a74844779",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "090-fdtd-2d/pass-1-flat.egg",
+          "input_sha256": "ee2cd4d542d5d3e95d1cfe0eaa66fbcd3623c0f49840b8ecb832e5dda207f8a4",
+          "raw_sha256": "aae5f196efb01290f4656ac1f8ab163072c6752701a83dfd664cbe60fb4c7c59",
+          "full_production_report_sha256": "d5bc56e69f1e8a4cfb0913898bea41cd9738a564f281fa2ee3b8f53347235536"
+        },
+        {
+          "name": "pass-2",
+          "input": "090-fdtd-2d/pass-2-flat.egg",
+          "input_sha256": "b1aac6b37f96df26747e0e2ad585b005f8edb65558228b92f29aa508b6b27b6e",
+          "raw_sha256": "386053d77e289140db2295a52662c8cdda559ac6ac5080b5e1d0b55b4c1f39b2",
+          "full_production_report_sha256": "74cca2e6a6252d089b6aa746f2d258881954cb5d0eee9da78e683573566b79c5"
+        },
+        {
+          "name": "pass-3",
+          "input": "090-fdtd-2d/pass-3-flat.egg",
+          "input_sha256": "21934c6e9a2360ff9c855c34e55128b09809aa1d0fb9a66491298986a5033c45",
+          "raw_sha256": "70e6cd2c131ea1573e0e86835c4dfe53da6962daa4ff826f19562f2b8cef021a",
+          "full_production_report_sha256": "71d2f8d68a2763f444a9a21078946d5d6a29a69046321b52e7af22392718916d"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/stencils/heat-3d.rs",
+      "directory": "091-heat-3d",
+      "source_sha256": "101d09383570c213bff217bd33b4ef6f6afb1a23b1d822181c8fa29c4d22b8fd",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "091-heat-3d/pass-1-flat.egg",
+          "input_sha256": "0dc3293db9b86d4856d78b606f51e0d0303d1b365abe7ff7eac198b525248b50",
+          "raw_sha256": "6afe4a95770942dc5acf5f7971eafef18aaf86af3cef2b23908efb56b7aaa60e",
+          "full_production_report_sha256": "5a8dca4beccbc993b31a5d20a31b4950e6bdc8fa4f764cecd230d43dbd6556b4"
+        },
+        {
+          "name": "pass-2",
+          "input": "091-heat-3d/pass-2-flat.egg",
+          "input_sha256": "04b1a2fead1d07791ab19795c8f6a8bdedffbea0f3f48f4886e98aecc46a2d61",
+          "raw_sha256": "e40d73a3bdd2e808063a37e8d4c4b8ce64f250bf9eeade6e41eb877f12daff63",
+          "full_production_report_sha256": "a83a855468417ef3b01f246cea0cfcd4e82f785c9e3655ff9f8771c1d0499d98"
+        },
+        {
+          "name": "pass-3",
+          "input": "091-heat-3d/pass-3-flat.egg",
+          "input_sha256": "705ea6a50a68087f15d5fe4ca39128fee9dee6902359df205da1ab9ba143c23d",
+          "raw_sha256": "fee75c8350adfbc2c0bcd22aa2a8dbd04a27836e1844d841d82f00ce5a13fad9",
+          "full_production_report_sha256": "78bc023edf97ef4f31311315bc505069d55267ec371eda83bdab637d50e751ab"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/stencils/jacobi-1d.rs",
+      "directory": "092-jacobi-1d",
+      "source_sha256": "a17b36a69951b55cae822ad0fe2677ed731451cb8d283d49490f3582f457b83e",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "092-jacobi-1d/pass-1-flat.egg",
+          "input_sha256": "c00a126b408c124c305b5af041deaed5e39270cf33d45c7a781a1e24f28fbdcc",
+          "raw_sha256": "ff9f46575d232cc89100c9eee22d17f57dd45df0af628fc521ab11a18780388a",
+          "full_production_report_sha256": "16a72b38d749e6fc66d9b14c2c9614f7cdd3a020c85cf5b387c1091959f8a544"
+        },
+        {
+          "name": "pass-2",
+          "input": "092-jacobi-1d/pass-2-flat.egg",
+          "input_sha256": "1eccf2506803da1731dea6cf3ffaaa92514afd693e58deb9e43ba15bd472b4b7",
+          "raw_sha256": "e84202935ea5c8fe3339175e6c2632d032bcac93f99109e0894dacefd920b002",
+          "full_production_report_sha256": "7ad72fe332d91c0e99640f3341ac7e2ef6cffec4817d4bf5b6904b5958349403"
+        },
+        {
+          "name": "pass-3",
+          "input": "092-jacobi-1d/pass-3-flat.egg",
+          "input_sha256": "3ad81c472ad9b461866c166e1569402581d69408f75430a48d3fef08d7fa173e",
+          "raw_sha256": "58f7d5f730132d2d465e32d363280595c7b572fbaf34b67d92e12c660698ec6b",
+          "full_production_report_sha256": "5ed1ce443071523e081c22a0c539f0090bbf8d00b3ef08e56457a222c6d93762"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/stencils/jacobi-2d.rs",
+      "directory": "093-jacobi-2d",
+      "source_sha256": "4542fb66a28b9551690727505e50fd49923ffea1242d7bf37f3b3fb44bd528ad",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "093-jacobi-2d/pass-1-flat.egg",
+          "input_sha256": "e5a2dc26beb2349e745b5b6fce8164d10ccff2816c8410ff244886f0e176c82a",
+          "raw_sha256": "e152b880a93b0c88cc3e6cf37808ffbf6572f06bafa5f381572b486d8e787763",
+          "full_production_report_sha256": "eef26ffb4def5e97674ec8f4d4fb5534aedf23ba72d0fcf531460158ddaa2b5a"
+        },
+        {
+          "name": "pass-2",
+          "input": "093-jacobi-2d/pass-2-flat.egg",
+          "input_sha256": "78905dce17b4f8b3611c37276d177678f0ae4de2c6ab4a1ae5ce79baba8d96df",
+          "raw_sha256": "3d25be08f136c78579386a88c48b80f04f2a70a92a5e8f7c7839cb62f774494d",
+          "full_production_report_sha256": "2834d50863f16a724750c4c5d7e03f4517201075363872e5b8ddcd780dcafae3"
+        },
+        {
+          "name": "pass-3",
+          "input": "093-jacobi-2d/pass-3-flat.egg",
+          "input_sha256": "a01c23032bfc10b68ccec8e1523ca8a6bafd05f14fce7d99c07c151939fd3845",
+          "raw_sha256": "35e957c15d77103b487d016896bf7cead82e5464d0900772a570ac59ce81a0e6",
+          "full_production_report_sha256": "15ae8c234f2ec7f42e45dc35aa9238ddb8e36fa7bbb8fee888408ffe85df3937"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/polybench/stencils/seidel-2d.rs",
+      "directory": "094-seidel-2d",
+      "source_sha256": "8719af9852363c2095627c4da9a07bdd0bbde37a0558ccaa48976d6f54376baa",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "094-seidel-2d/pass-1-flat.egg",
+          "input_sha256": "ed5bc69af4b98af7aeb447c191f4acf5ca506c38e35a053fbaa39fee90c944a3",
+          "raw_sha256": "c2a6e21e6efcb90b585836ddad2443b827e7bc519aa2bee1ee0270c6aa53df88",
+          "full_production_report_sha256": "b5d5c8e7624ea7eed441037c90466f1e9c1d112dd93d646174d7026a753f5ae9"
+        },
+        {
+          "name": "pass-2",
+          "input": "094-seidel-2d/pass-2-flat.egg",
+          "input_sha256": "d29d5312735f9e486c8369d9638f0bc396dafaff4ca261516a636024c841ed89",
+          "raw_sha256": "ef4296c0b79c5780d849466f91300d15b44f39aaf2c1e1cfd5e1363b73b21566",
+          "full_production_report_sha256": "86a298edf1a1a954d2cb43a17a39a50093eb510b8901332642f453bcdeca0319"
+        },
+        {
+          "name": "pass-3",
+          "input": "094-seidel-2d/pass-3-flat.egg",
+          "input_sha256": "dd75cffcb74862b081ddbc28a3d089f7b585744cf6cc9eb9cce4d8faad293946",
+          "raw_sha256": "a5129a5288f5e81ef527a8314f9c3dc51692eaea0d7d436b7db65bce685abc65",
+          "full_production_report_sha256": "a43a23642fde0eebcf72a42c42e80281fb28cdc9a2d4630c005d224e45b5af48"
+        }
+      ]
+    },
+    {
+      "source": "/capture/benchmarks/passing/raytrace/raytrace.rs",
+      "directory": "095-raytrace",
+      "source_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22",
+      "passes": [
+        {
+          "name": "pass-1",
+          "input": "095-raytrace/pass-1-flat.egg",
+          "input_sha256": "772919f15840652752b6ca8d5adce574d63bfa7baa48083cc8d944ab830bdad3",
+          "raw_sha256": "11a636a97b9a4295c792ca830a27e3f4d33e31dddc5297827a1a23546348bf2d",
+          "full_production_report_sha256": "068acd46b1316b53cf58240d40b7f96daa8e7ca38b2f6da9838d4342e1003f96"
+        },
+        {
+          "name": "pass-2",
+          "input": "095-raytrace/pass-2-flat.egg",
+          "input_sha256": "481fc0fff568ca3a91e3149beaaf87d36ed0ff264d68205ed7cc8ef3bd5882b6",
+          "raw_sha256": "539030a9809bfb5518d3b6a0da3a6ad796312359c9ad74a17d0c149538d0545c",
+          "full_production_report_sha256": "df3e235ba37843640d4ec85e6475d1d2c12df6143d7fa51797e104cbf1df231a"
+        },
+        {
+          "name": "pass-3",
+          "input": "095-raytrace/pass-3-flat.egg",
+          "input_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+          "raw_sha256": "146b2c333847e019dd8fd4f3b09fb2aeedb56305bd053cd8c8b02cf13423a0eb",
+          "full_production_report_sha256": "5896ad4907376e10aa97f6ec28cb2d8cfd6bfaef5494bb2a70e9f04fd38ca63f"
+        }
+      ]
+    }
+  ]
+}
