@@ -2434,7 +2434,7 @@ impl Executor {
         }
         Ok(false)
     }
-    fn run(&mut self, set: &str, path: Vec<usize>, iterations: Vec<u64>) -> Result<bool> {
+    fn run(&mut self, set: &str, path: Rc<[usize]>, iterations: Rc<[u64]>) -> Result<bool> {
         if self.current_stage != set {
             self.current_stage.clear();
             self.current_stage.push_str(set);
@@ -2749,8 +2749,11 @@ impl Executor {
                         }
                         Instruction::Sequence(seq) => {
                             for (i, child) in seq.iter().enumerate().rev() {
-                                let mut p = path.clone();
-                                p.push(i);
+                                let p = if node.static_path.as_ref().is_some_and(|base| Rc::ptr_eq(base,&path)) {
+                                    child.static_path.clone().expect("compiled child path")
+                                } else {
+                                    path.iter().copied().chain(std::iter::once(i)).collect()
+                                };
                                 self.tasks.push(Task::Eval {
                                     node: child.clone(),
                                     path: p,
@@ -2771,8 +2774,7 @@ impl Executor {
                             }
                         }
                         Instruction::Saturate(body) => {
-                            let mut it = iterations.clone();
-                            it.push(0);
+                            let it: Rc<[u64]> = iterations.iter().copied().chain(std::iter::once(0)).collect();
                             self.tasks.push(Task::Saturate {
                                 body: body.clone(),
                                 iteration: 0,
@@ -2801,8 +2803,7 @@ impl Executor {
                         continue;
                     }
                     if next < count {
-                        let mut it = iterations.clone();
-                        it.push(next);
+                        let it: Rc<[u64]> = iterations.iter().copied().chain(std::iter::once(next)).collect();
                         self.tasks.push(Task::Repeat {
                             body: body.clone(),
                             count,
@@ -2829,8 +2830,7 @@ impl Executor {
                         let iteration = iteration
                             .checked_add(1)
                             .ok_or("saturation occurrence exhausted")?;
-                        let mut it = iterations.clone();
-                        it.push(iteration);
+                        let it: Rc<[u64]> = iterations.iter().copied().chain(std::iter::once(iteration)).collect();
                         self.tasks.push(Task::Saturate {
                             body: body.clone(),
                             iteration,

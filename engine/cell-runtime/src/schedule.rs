@@ -9,10 +9,11 @@ use std::rc::Rc;
 pub struct Node {
     source: J,
     instruction: Instruction,
+    pub(crate) static_path: Option<Rc<[usize]>>,
 }
 impl Node {
-    fn shared(source: &J) -> Rc<Self> {
-        Rc::new(Self::from(source.clone()))
+    fn shared(source: &J, path: Rc<[usize]>) -> Rc<Self> {
+        Rc::new(Self::decode(source.clone(), Some(path)))
     }
 
     pub fn instruction(&self) -> &Instruction {
@@ -20,7 +21,12 @@ impl Node {
     }
 }
 impl From<J> for Node {
-    fn from(mut source: J) -> Self {
+    fn from(source: J) -> Self {
+        Self::decode(source, None)
+    }
+}
+impl Node {
+    fn decode(mut source: J, path: Option<Rc<[usize]>>) -> Self {
         let instruction = if let Some(set) = source["run"].as_str() {
             Instruction::Run {
                 set: set.into(),
@@ -30,18 +36,33 @@ impl From<J> for Node {
             }
         } else if source["sequence"].is_array() {
             let nodes = std::mem::take(source["sequence"].as_array_mut().unwrap());
-            Instruction::Sequence(nodes.into_iter().map(|n| Rc::new(n.into())).collect())
+            Instruction::Sequence(
+                nodes
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, n)| {
+                        let child = path
+                            .as_ref()
+                            .map(|p| p.iter().copied().chain(std::iter::once(i)).collect());
+                        Rc::new(Self::decode(n, child))
+                    })
+                    .collect(),
+            )
         } else if let Some(n) = source["repeat"].as_u64() {
             let body = source.get_mut("body").map(J::take).unwrap_or_default();
-            Instruction::Repeat(n, Rc::new(body.into()))
+            Instruction::Repeat(n, Rc::new(Self::decode(body, path.clone())))
         } else if !source["saturate"].is_null() {
-            Instruction::Saturate(Rc::new(source["saturate"].take().into()))
+            Instruction::Saturate(Rc::new(Self::decode(
+                source["saturate"].take(),
+                path.clone(),
+            )))
         } else {
             Instruction::Unknown
         };
         Self {
             source,
             instruction,
+            static_path: path,
         }
     }
 }
@@ -80,23 +101,23 @@ pub enum Instruction {
 pub enum Task {
     Eval {
         node: Rc<Node>,
-        path: Vec<usize>,
-        iterations: Vec<u64>,
+        path: Rc<[usize]>,
+        iterations: Rc<[u64]>,
     },
     Repeat {
         body: Rc<Node>,
         count: u64,
         next: u64,
         start: usize,
-        path: Vec<usize>,
-        iterations: Vec<u64>,
+        path: Rc<[usize]>,
+        iterations: Rc<[u64]>,
     },
     Saturate {
         body: Rc<Node>,
         iteration: u64,
         start: usize,
-        path: Vec<usize>,
-        iterations: Vec<u64>,
+        path: Rc<[usize]>,
+        iterations: Rc<[u64]>,
     },
 }
 pub fn initial(control: &[J]) -> Vec<Task> {
@@ -104,10 +125,13 @@ pub fn initial(control: &[J]) -> Vec<Task> {
         .iter()
         .enumerate()
         .rev()
-        .map(|(i, node)| Task::Eval {
-            node: Node::shared(node),
-            path: vec![i],
-            iterations: vec![],
+        .map(|(i, node)| {
+            let path: Rc<[usize]> = Rc::from([i]);
+            Task::Eval {
+                node: Node::shared(node, path.clone()),
+                path,
+                iterations: Rc::from([]),
+            }
         })
         .collect()
 }
@@ -118,8 +142,8 @@ pub fn initial(control: &[J]) -> Vec<Task> {
 pub struct RunStep {
     pub ordinal: usize,
     pub ruleset: String,
-    pub path: Vec<usize>,
-    pub iterations: Vec<u64>,
+    pub path: Rc<[usize]>,
+    pub iterations: Rc<[u64]>,
     pub epoch: u64,
     pub logical_matches: usize,
     pub local_bindings: usize,
