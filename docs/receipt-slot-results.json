@@ -1,0 +1,1003 @@
+{
+  "parent": "4cbcb01f",
+  "eager": "bbe6a63e",
+  "deferred": "048eef7e",
+  "machine": "Apple M3 Max / single-thread standalone Cell CPU / rustc 1.94.0",
+  "bench": "Fresh release --locked CLI, frozen 64-unit artifacts with view-ports. Cross-apply the exact previous catalogs. Wall includes startup and export. Compare within each matrix. No Cargo builds or other experiments from this thread during the clean matrix. The audit profiles, including alternating both orders on identical keys, are separate from uninstrumented timing.",
+  "executables": {
+    "map": "4168e350d54442209a00817b44a6cd72c3195253d9f04a9131e307f0c71ae477",
+    "new": "c855c71a655c467f50ff73e8cb275680f4c9736da6c692e4761acdc18f9e12cb",
+    "win": "5655d6f0db3d22e5503d065d613e43dbdefb7f4cee8f35627fd39d5ef2799606",
+    "final-audit": "b3f0685de6cf7053b667678a42c5bfd360146ea79feb05576b46bfe94c72e754"
+  },
+  "cases": {
+    "sum-bits": {
+      "program": "1d6e531e391cd34c56b452124e5c46563f044c1d75aea3776e9e2d0e60a29409",
+      "cross_catalog_file_sha256": "024f406359f3b86d522f4902f9ce4c32cf47ca0d7c7c1228e1697073b4ded872",
+      "audit": {
+        "digests": {
+          "rhs": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+          "writes": "f474604bbae6d87bb1dc7265f2a1ca0d137d35e2be88334c64d5624cbeff8b33",
+          "resumes": "d6766db41e1b164d751ff13054e24dbf84ef89c90d56e9c4faa978260843291e",
+          "spine-shapes": "9b20b382837a2b457f1395da5ecbfeffd1d40bf5a1543a08220ccfc83d730dca"
+        },
+        "modes": [
+          "off",
+          "storage",
+          "consumer",
+          "ports",
+          "head"
+        ],
+        "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+        "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db"
+      },
+      "runs": 1428,
+      "resumptions": 3034,
+      "max_chain": 12,
+      "replaced_probes": 155,
+      "peak_anchors": 528,
+      "peak_references": 560,
+      "proposals": 5312,
+      "proposal_census": {
+        "clear": 329,
+        "empty_again": 1012,
+        "same_nonempty": 1186,
+        "replace": 1646,
+        "install": 1139
+      },
+      "winning_packet_census": {
+        "clear": 180,
+        "empty_again": 750,
+        "install": 870,
+        "refs_added": 1714,
+        "refs_removed": 982,
+        "reordered": 0,
+        "replace": 829,
+        "same_nonempty": 894
+      },
+      "overwritten": 1735,
+      "redirected": 226,
+      "collisions": 54,
+      "retired": 171,
+      "eager_metrics": {
+        "committed": 1879,
+        "equivalent_proposals": 2198,
+        "repaired_packets": 148,
+        "retired": 171,
+        "scratch_created": 2058,
+        "scratch_rewritten": 727,
+        "unchanged": 1644
+      },
+      "deferred_metrics": {
+        "committed": 1879,
+        "evaluated": 3523,
+        "gathered_sources": 7941,
+        "repaired_packets": 148,
+        "retired": 171,
+        "unchanged": 1644
+      },
+      "profile_by_arm": {
+        "map": {
+          "capture_ms": 0.446,
+          "publish_ms": 0.77,
+          "phase_ms": {
+            "delivery_gc": 0.159,
+            "query_update": 5.762,
+            "repair": 2.165,
+            "rhs": 9.02,
+            "search": 20.206
+          }
+        },
+        "row": {
+          "capture_ms": 0.495,
+          "publish_ms": 0.373,
+          "phase_ms": {
+            "delivery_gc": 0.17,
+            "query_update": 5.676,
+            "repair": 2.236,
+            "rhs": 9.25,
+            "search": 20.685
+          }
+        },
+        "win": {
+          "capture_ms": 0.215,
+          "publish_ms": 0.587,
+          "phase_ms": {
+            "delivery_gc": 0.166,
+            "query_update": 5.776,
+            "repair": 2.176,
+            "rhs": 8.941,
+            "search": 20.659
+          }
+        }
+      },
+      "read_cost_order": "read_cost[hit][canonical table first], nanoseconds, both reads executed on the same sealed key; diagnostic only",
+      "read_cost": [
+        [
+          {
+            "calls": 1871,
+            "canonical_ns": 112379,
+            "port_ns": 89797
+          },
+          {
+            "calls": 1888,
+            "canonical_ns": 134749,
+            "port_ns": 65958
+          }
+        ],
+        [
+          {
+            "calls": 86,
+            "canonical_ns": 7249,
+            "port_ns": 14995
+          },
+          {
+            "calls": 69,
+            "canonical_ns": 14208,
+            "port_ns": 5255
+          }
+        ]
+      ],
+      "prior_read_cost": [
+        [
+          {
+            "calls": 1871,
+            "canonical_ns": 110235,
+            "port_ns": 95626
+          },
+          {
+            "calls": 1888,
+            "canonical_ns": 126228,
+            "port_ns": 67526
+          }
+        ],
+        [
+          {
+            "calls": 86,
+            "canonical_ns": 9207,
+            "port_ns": 12415
+          },
+          {
+            "calls": 69,
+            "canonical_ns": 9415,
+            "port_ns": 5665
+          }
+        ]
+      ],
+      "eager": {
+        "arms": {
+          "mapoff": {
+            "ms": {
+              "samples_ms": [
+                32.123,
+                30.479,
+                31.509,
+                31.364,
+                31.955,
+                34.595,
+                31.308,
+                31.676
+              ],
+              "median_ms": 31.593
+            },
+            "cli": {
+              "samples_ms": [
+                470.576,
+                135.222,
+                140.327,
+                143.317,
+                137.337,
+                141.918,
+                134.177,
+                140.865
+              ],
+              "median_ms": 140.596
+            }
+          },
+          "map": {
+            "ms": {
+              "samples_ms": [
+                33.04,
+                33.476,
+                34.601,
+                32.478,
+                33.615,
+                33.789,
+                34.47,
+                32.51
+              ],
+              "median_ms": 33.545
+            },
+            "cli": {
+              "samples_ms": [
+                148.786,
+                144.61,
+                146.614,
+                146.329,
+                144.433,
+                142.427,
+                147.811,
+                138.604
+              ],
+              "median_ms": 145.469
+            }
+          },
+          "rowoff": {
+            "ms": {
+              "samples_ms": [
+                38.218,
+                31.083,
+                31.998,
+                32.424,
+                31.419,
+                31.092,
+                33.976,
+                32.903
+              ],
+              "median_ms": 32.211
+            },
+            "cli": {
+              "samples_ms": [
+                489.179,
+                140.025,
+                139.229,
+                138.872,
+                135.726,
+                137.18,
+                141.274,
+                138.702
+              ],
+              "median_ms": 139.051
+            }
+          },
+          "row": {
+            "ms": {
+              "samples_ms": [
+                35.701,
+                32.58,
+                33.001,
+                32.568,
+                33.75,
+                32.943,
+                33.498,
+                32.909
+              ],
+              "median_ms": 32.972
+            },
+            "cli": {
+              "samples_ms": [
+                147.334,
+                141.601,
+                142.417,
+                140.468,
+                145.084,
+                140.62,
+                140.47,
+                142.388
+              ],
+              "median_ms": 141.994
+            }
+          }
+        },
+        "paired_with_map": {
+          "delta_ms": [
+            2.66,
+            -0.896,
+            -1.6,
+            0.089,
+            0.135,
+            -0.846,
+            -0.972,
+            0.399
+          ],
+          "median_delta_ms": -0.378,
+          "faster": 4
+        },
+        "paired_with_off": {
+          "delta_ms": [
+            3.578,
+            2.101,
+            1.492,
+            1.204,
+            1.795,
+            -1.652,
+            2.19,
+            1.233
+          ],
+          "median_delta_ms": 1.644,
+          "faster": 1
+        }
+      },
+      "clean_deferred": {
+        "arms": {
+          "mapoff": {
+            "ms": {
+              "samples_ms": [
+                33.15,
+                31.715,
+                34.218,
+                30.611,
+                34.424,
+                33.884,
+                30.8,
+                31.218,
+                32.592
+              ],
+              "median_ms": 32.592
+            },
+            "cli": {
+              "samples_ms": [
+                158.022,
+                137.486,
+                146.533,
+                136.147,
+                139.65,
+                138.221,
+                133.003,
+                135.002,
+                139.563
+              ],
+              "median_ms": 138.221
+            }
+          },
+          "map": {
+            "ms": {
+              "samples_ms": [
+                36.063,
+                32.488,
+                33.33,
+                32.57,
+                36.806,
+                34.295,
+                31.997,
+                33.189,
+                32.558
+              ],
+              "median_ms": 33.189
+            },
+            "cli": {
+              "samples_ms": [
+                148.691,
+                141.006,
+                140.849,
+                142.054,
+                144.143,
+                138.425,
+                139.546,
+                148.664,
+                139.98
+              ],
+              "median_ms": 141.006
+            }
+          },
+          "win": {
+            "ms": {
+              "samples_ms": [
+                37.385,
+                33.964,
+                33.457,
+                32.069,
+                36.364,
+                32.281,
+                34.716,
+                32.037,
+                33.055
+              ],
+              "median_ms": 33.457
+            },
+            "cli": {
+              "samples_ms": [
+                171.026,
+                147.604,
+                142.28,
+                136.692,
+                147.157,
+                137.902,
+                140.866,
+                137.853,
+                144.175
+              ],
+              "median_ms": 142.28
+            }
+          }
+        },
+        "paired_with_map": {
+          "delta_ms": [
+            1.322,
+            1.476,
+            0.127,
+            -0.501,
+            -0.442,
+            -2.014,
+            2.719,
+            -1.152,
+            0.497
+          ],
+          "median_delta_ms": 0.127,
+          "faster": 4
+        },
+        "paired_with_off": {
+          "delta_ms": [
+            4.234,
+            2.249,
+            -0.761,
+            1.458,
+            1.939,
+            -1.604,
+            3.916,
+            0.819,
+            0.464
+          ],
+          "median_delta_ms": 1.458,
+          "faster": 2
+        }
+      },
+      "exploratory_deferred": {
+        "arms": {
+          "mapoff": {
+            "ms": {
+              "samples_ms": [
+                31.463,
+                31.319,
+                30.105,
+                30.922,
+                31.989,
+                30.966,
+                36.068,
+                31.943,
+                33.718
+              ],
+              "median_ms": 31.463
+            },
+            "cli": {
+              "samples_ms": [
+                138.53,
+                143.082,
+                143.774,
+                138.142,
+                138.27,
+                135.115,
+                143.921,
+                138.798,
+                139.428
+              ],
+              "median_ms": 138.798
+            }
+          },
+          "map": {
+            "ms": {
+              "samples_ms": [
+                33.475,
+                32.734,
+                33.216,
+                32.323,
+                32.208,
+                32.868,
+                36.314,
+                32.294,
+                32.839
+              ],
+              "median_ms": 32.839
+            },
+            "cli": {
+              "samples_ms": [
+                146.53,
+                139.373,
+                143.766,
+                138.887,
+                137.836,
+                144.585,
+                155.271,
+                141.932,
+                140.417
+              ],
+              "median_ms": 141.932
+            }
+          },
+          "win": {
+            "ms": {
+              "samples_ms": [
+                32.992,
+                34.048,
+                32.924,
+                32.907,
+                33.819,
+                32.29,
+                33.979,
+                32.518,
+                32.601
+              ],
+              "median_ms": 32.924
+            },
+            "cli": {
+              "samples_ms": [
+                485.453,
+                140.143,
+                141.883,
+                142.179,
+                141.311,
+                140.287,
+                147.577,
+                142.431,
+                138.5
+              ],
+              "median_ms": 141.883
+            }
+          }
+        },
+        "paired_with_map": {
+          "delta_ms": [
+            -0.483,
+            1.314,
+            -0.293,
+            0.585,
+            1.611,
+            -0.578,
+            -2.334,
+            0.224,
+            -0.239
+          ],
+          "median_delta_ms": -0.239,
+          "faster": 5
+        },
+        "paired_with_off": {
+          "delta_ms": [
+            1.529,
+            2.729,
+            2.818,
+            1.985,
+            1.83,
+            1.323,
+            -2.089,
+            0.574,
+            -1.118
+          ],
+          "median_delta_ms": 1.529,
+          "faster": 2
+        }
+      }
+    },
+    "raytrace": {
+      "program": "2ea40b3ded80dda4bfbf7e9a67a1ac74ae08ad16568b1a4ea4b5ae3f355b6579",
+      "cross_catalog_file_sha256": "8849e022affb465e427ed0b35a85d401a4812e551c3610bc6918203ee0c15b5a",
+      "audit": {
+        "digests": {
+          "rhs": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+          "writes": "48295f40c16c56c057fffd01757d6be752f5a50d774e02e838adc0cd14fbfab0",
+          "resumes": "49edbeefc5f2e4330b49f82b773694fd7a21f8a6182a14c86392c3fb95e01e9d",
+          "spine-shapes": "fea18e15ddcab8010c487f3314819d22727e313ba7913b360fb0ccb61439cb39"
+        },
+        "modes": [
+          "off",
+          "storage",
+          "consumer",
+          "ports",
+          "head"
+        ],
+        "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+        "schedule_sha256": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5"
+      },
+      "runs": 16883,
+      "resumptions": 663403,
+      "max_chain": 29,
+      "replaced_probes": 303355,
+      "peak_anchors": 46104,
+      "peak_references": 48166,
+      "proposals": 1516143,
+      "proposal_census": {
+        "clear": 66705,
+        "empty_again": 203248,
+        "same_nonempty": 844972,
+        "replace": 264861,
+        "install": 136357
+      },
+      "winning_packet_census": {
+        "clear": 15951,
+        "empty_again": 153027,
+        "install": 78320,
+        "refs_added": 174331,
+        "refs_removed": 109847,
+        "reordered": 0,
+        "replace": 83118,
+        "same_nonempty": 448517
+      },
+      "overwritten": 727390,
+      "redirected": 25629,
+      "collisions": 9820,
+      "retired": 25095,
+      "eager_metrics": {
+        "committed": 177389,
+        "equivalent_proposals": 1048220,
+        "repaired_packets": 10419,
+        "retired": 25095,
+        "scratch_created": 268752,
+        "scratch_rewritten": 132466,
+        "unchanged": 601544
+      },
+      "deferred_metrics": {
+        "committed": 177389,
+        "evaluated": 778933,
+        "gathered_sources": 1727628,
+        "repaired_packets": 10419,
+        "retired": 25095,
+        "unchanged": 601544
+      },
+      "profile_by_arm": {
+        "map": {
+          "capture_ms": 301.796,
+          "publish_ms": 332.451,
+          "phase_ms": {
+            "delivery_gc": 241.355,
+            "query_update": 2961.953,
+            "repair": 997.526,
+            "rhs": 4786.277,
+            "search": 7467.941
+          }
+        },
+        "row": {
+          "capture_ms": 526.979,
+          "publish_ms": 200.511,
+          "phase_ms": {
+            "delivery_gc": 255.693,
+            "query_update": 3003.693,
+            "repair": 1048.374,
+            "rhs": 5160.825,
+            "search": 7858.768
+          }
+        },
+        "win": {
+          "capture_ms": 139.336,
+          "publish_ms": 384.691,
+          "phase_ms": {
+            "delivery_gc": 244.901,
+            "query_update": 3051.611,
+            "repair": 1017.928,
+            "rhs": 4627.986,
+            "search": 7627.548
+          }
+        }
+      },
+      "read_cost_order": "read_cost[hit][canonical table first], nanoseconds, both reads executed on the same sealed key; diagnostic only",
+      "read_cost": [
+        [
+          {
+            "calls": 636472,
+            "canonical_ns": 59285012,
+            "port_ns": 31985395
+          },
+          {
+            "calls": 636186,
+            "canonical_ns": 66087415,
+            "port_ns": 25955429
+          }
+        ],
+        [
+          {
+            "calls": 151535,
+            "canonical_ns": 42527742,
+            "port_ns": 47542578
+          },
+          {
+            "calls": 151820,
+            "canonical_ns": 78937092,
+            "port_ns": 10623132
+          }
+        ]
+      ],
+      "prior_read_cost": [
+        [
+          {
+            "calls": 636472,
+            "canonical_ns": 63648942,
+            "port_ns": 36749478
+          },
+          {
+            "calls": 636186,
+            "canonical_ns": 73806544,
+            "port_ns": 30002269
+          }
+        ],
+        [
+          {
+            "calls": 151535,
+            "canonical_ns": 47292207,
+            "port_ns": 55278572
+          },
+          {
+            "calls": 151820,
+            "canonical_ns": 90158152,
+            "port_ns": 11340634
+          }
+        ]
+      ],
+      "eager": {
+        "arms": {
+          "mapoff": {
+            "ms": {
+              "samples_ms": [
+                13227.513,
+                13107.944,
+                14470.035,
+                13574.069
+              ],
+              "median_ms": 13400.791
+            },
+            "cli": {
+              "samples_ms": [
+                15687.134,
+                15618.147,
+                16910.936,
+                16078.476
+              ],
+              "median_ms": 15882.805
+            }
+          },
+          "map": {
+            "ms": {
+              "samples_ms": [
+                13980.306,
+                13919.783,
+                15319.25,
+                13978.619
+              ],
+              "median_ms": 13979.463
+            },
+            "cli": {
+              "samples_ms": [
+                16470.611,
+                16379.764,
+                18171.027,
+                16443.895
+              ],
+              "median_ms": 16457.253
+            }
+          },
+          "rowoff": {
+            "ms": {
+              "samples_ms": [
+                13213.18,
+                13227.104,
+                13303.784,
+                12617.784
+              ],
+              "median_ms": 13220.142
+            },
+            "cli": {
+              "samples_ms": [
+                15691.449,
+                15708.691,
+                15831.818,
+                15051.379
+              ],
+              "median_ms": 15700.07
+            }
+          },
+          "row": {
+            "ms": {
+              "samples_ms": [
+                13997.137,
+                14126.606,
+                14150.285,
+                13907.477
+              ],
+              "median_ms": 14061.871
+            },
+            "cli": {
+              "samples_ms": [
+                16412.273,
+                16568.212,
+                16635.43,
+                16329.161
+              ],
+              "median_ms": 16490.243
+            }
+          }
+        },
+        "paired_with_map": {
+          "delta_ms": [
+            16.831,
+            206.823,
+            -1168.965,
+            -71.142
+          ],
+          "median_delta_ms": -27.155,
+          "faster": 2
+        },
+        "paired_with_off": {
+          "delta_ms": [
+            769.624,
+            1018.662,
+            -319.75,
+            333.408
+          ],
+          "median_delta_ms": 551.516,
+          "faster": 1
+        }
+      },
+      "clean_deferred": {
+        "arms": {
+          "mapoff": {
+            "ms": {
+              "samples_ms": [
+                13763.67,
+                12439.121,
+                12334.725,
+                12489.919,
+                12526.388
+              ],
+              "median_ms": 12489.919
+            },
+            "cli": {
+              "samples_ms": [
+                16663.016,
+                14834.018,
+                14783.701,
+                14881.782,
+                14975.318
+              ],
+              "median_ms": 14881.782
+            }
+          },
+          "map": {
+            "ms": {
+              "samples_ms": [
+                13740.83,
+                13343.143,
+                13379.698,
+                13370.299,
+                13239.584
+              ],
+              "median_ms": 13370.299
+            },
+            "cli": {
+              "samples_ms": [
+                16176.787,
+                15724.76,
+                15783.194,
+                15796.587,
+                15671.467
+              ],
+              "median_ms": 15783.194
+            }
+          },
+          "win": {
+            "ms": {
+              "samples_ms": [
+                13525.925,
+                13439.885,
+                13071.936,
+                13197.079,
+                13086.304
+              ],
+              "median_ms": 13197.079
+            },
+            "cli": {
+              "samples_ms": [
+                16145.87,
+                15893.055,
+                15585.081,
+                15563.359,
+                15706.869
+              ],
+              "median_ms": 15706.869
+            }
+          }
+        },
+        "paired_with_map": {
+          "delta_ms": [
+            -214.905,
+            96.742,
+            -307.762,
+            -173.22,
+            -153.279
+          ],
+          "median_delta_ms": -173.22,
+          "faster": 4
+        },
+        "paired_with_off": {
+          "delta_ms": [
+            -237.745,
+            1000.764,
+            737.211,
+            707.16,
+            559.916
+          ],
+          "median_delta_ms": 707.16,
+          "faster": 1
+        }
+      },
+      "exploratory_deferred": {
+        "arms": {
+          "mapoff": {
+            "ms": {
+              "samples_ms": [
+                13330.607,
+                12964.133,
+                13117.012,
+                13365.509,
+                13809.713
+              ],
+              "median_ms": 13330.607
+            },
+            "cli": {
+              "samples_ms": [
+                15742.901,
+                15345.563,
+                15547.072,
+                16006.491,
+                16333.721
+              ],
+              "median_ms": 15742.901
+            }
+          },
+          "map": {
+            "ms": {
+              "samples_ms": [
+                15486.268,
+                13935.591,
+                14422.924,
+                14917.594,
+                14559.351
+              ],
+              "median_ms": 14559.351
+            },
+            "cli": {
+              "samples_ms": [
+                17990.31,
+                16436.689,
+                16830.057,
+                17567.704,
+                17113.322
+              ],
+              "median_ms": 17113.322
+            }
+          },
+          "win": {
+            "ms": {
+              "samples_ms": [
+                14497.882,
+                14920.383,
+                14396.351,
+                15701.598,
+                14353.654
+              ],
+              "median_ms": 14497.882
+            },
+            "cli": {
+              "samples_ms": [
+                17012.727,
+                17517.415,
+                16984.133,
+                18299.194,
+                16916.663
+              ],
+              "median_ms": 17012.727
+            }
+          }
+        },
+        "paired_with_map": {
+          "delta_ms": [
+            -988.386,
+            984.792,
+            -26.573,
+            784.004,
+            -205.697
+          ],
+          "median_delta_ms": -26.573,
+          "faster": 3
+        },
+        "paired_with_off": {
+          "delta_ms": [
+            1167.275,
+            1956.249,
+            1279.339,
+            2336.089,
+            543.941
+          ],
+          "median_delta_ms": 1279.339,
+          "faster": 0
+        }
+      }
+    }
+  }
+}
