@@ -289,6 +289,9 @@ impl Sieve {
         s
     }
     fn admit(&mut self, id: usize, keys: &[u64]) -> Option<Projection> {
+        self.admit_into::<false>(id, keys)
+    }
+    fn admit_into<const COLD: bool>(&mut self, id: usize, keys: &[u64]) -> Option<Projection> {
         let spec = &self.specs[id];
         for g in &spec.guards {
             if !self.states[g.child].allows(keys, &g.cols)
@@ -307,8 +310,10 @@ impl Sieve {
         if !fresh {
             return None;
         }
-        state.bloom.grow(&state.keys, self.collide);
-        state.bloom.insert(&k);
+        if !COLD {
+            state.bloom.grow(&state.keys, self.collide);
+            state.bloom.insert(&k);
+        }
         self.stats.added_keys += 1;
         Some(k)
     }
@@ -326,9 +331,13 @@ impl Sieve {
         // depends only on the set of row projections, not on witness order.
         for hashes in index.fingerprints(spec.table) {
             self.stats.build_rows += 1;
-            self.admit(id, hashes);
+            self.admit_into::<true>(id, hashes);
         }
-        self.states[id].built = true;
+        // No parent consumes this summary until its complete initial support
+        // is installed. Size and populate its Bloom filter just once.
+        let state = &mut self.states[id];
+        if !state.keys.is_empty() { state.bloom.grow(&state.keys, self.collide); }
+        state.built = true;
         self.stats.builds += 1;
         Ok(())
     }
