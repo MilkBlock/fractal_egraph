@@ -95,7 +95,7 @@ impl Trace {
         batch: Batch<'_>,
         join: bool,
         actual: &[Seed],
-        domains: &[Vec<Subtrie>],
+        domains: &[super::free_join::Domains],
         base_ns: u64,
     ) {
         let atom = batch.atom();

@@ -19,6 +19,10 @@ mod semijoin;
 #[path = "shared_frontier.rs"]
 mod shared_frontier;
 type Rows = Rc<Vec<Dependency>>;
+#[cfg(feature = "sparse-cells")]
+pub(super) type Domains = SmallVec<[Subtrie;1]>;
+#[cfg(not(feature = "sparse-cells"))]
+pub(super) type Domains = Vec<Subtrie>;
 pub(super) struct Subtrie {
     pub atom: usize,
     pub rows: Rows,
@@ -59,6 +63,7 @@ pub(super) struct Stats {
     entry_rejections: u64,
     entry_delta_rejections: u64,
     entry_domains: u64,
+    single_domain_seeds: u64,
     entry_bucket_rows_examined: u64,
     entry_bucket_rows_materialized: u64,
     pub entry_point_uses: u64,
@@ -353,18 +358,18 @@ impl FreeJoin {
         atom: usize,
         row: &Row,
         #[cfg(feature = "family-overlap")] overlap: (&mut crate::family_overlap::Overlap, u64),
-    ) -> Result<Option<Vec<Subtrie>>> {
+    ) -> Result<Option<Domains>> {
         let plan = self.entry.as_ref().expect("entry lane");
         let steps = &plan.entries[rid][atom];
         if steps.is_empty() {
-            return Ok(Some(vec![]));
+            return Ok(Some(Domains::new()));
         }
         if !self.planned && self.epoch != Some(g.epoch) {
             self.results.clear();
             self.epoch = Some(g.epoch);
         }
         self.stats.entry_rows += 1;
-        let mut domains = vec![];
+        let mut domains = Domains::new();
         for step in steps {
             #[cfg(feature = "family-overlap")]
             let timer = (Instant::now(), self.stats.entry_probes);
@@ -584,6 +589,7 @@ impl FreeJoin {
             });
         }
         self.stats.entry_domains += domains.len() as u64;
+        self.stats.single_domain_seeds += u64::from(domains.len()==1);
         Ok(Some(domains))
     }
 

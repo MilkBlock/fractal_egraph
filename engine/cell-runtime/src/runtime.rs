@@ -13,7 +13,7 @@ mod free_join;
 #[cfg(feature = "view-consumers")]
 #[path = "view_exec.rs"]
 mod view_exec;
-use free_join::{FreeJoin, Subtrie};
+use free_join::{Domains, FreeJoin, Subtrie};
 #[path = "execute_kernel.rs"]
 mod execute_kernel;
 #[cfg(feature="sparse-cells")]
@@ -167,7 +167,7 @@ struct QueryEnv {
     known: QueryFacts,
     values: crate::entry_schedule::Inputs,
     trail: Vec<usize>,
-    domains: Vec<Subtrie>,
+    domains: Domains,
 }
 impl QueryEnv {
     fn new(slots: usize, known: QueryFacts) -> Self {
@@ -176,7 +176,7 @@ impl QueryEnv {
 
             values: crate::entry_schedule::Inputs::owned(slots),
             trail: vec![],
-            domains: vec![],
+            domains: Domains::new(),
         }
     }
     fn shared(seed: crate::entry_schedule::Seed, known: QueryFacts) -> Self {
@@ -184,7 +184,7 @@ impl QueryEnv {
             known,
             values: crate::entry_schedule::Inputs::shared(seed),
             trail: vec![],
-            domains: vec![],
+            domains: Domains::new(),
         }
     }
     fn domain(&self, atom: usize) -> Option<&Rc<Vec<Dependency>>> {
@@ -1214,12 +1214,12 @@ impl Executor {
                                 spine_routes.push((out.len(), cursor.expand()));
                                 // Keep domain slots aligned with the shared seed vector.
                                 if early_join {
-                                    entry_domains.push(Vec::new());
+                                    entry_domains.push(Domains::new());
                                 }
                             } else if early_join && point_only {
                                 // The residual register block checks every full key and
                                 // its owner. It consumes no expansion domain.
-                                entry_domains.push(Vec::new());
+                                entry_domains.push(Domains::new());
                             } else if early_join {
                                 let Some(domains) = self.free_join.admit(
                                     &self.graph,
