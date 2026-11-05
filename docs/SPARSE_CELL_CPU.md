@@ -290,3 +290,14 @@ A compiled ruleset now has a bit per source position. A publication that transit
 An empty compiled ready set can seal an idle source Run immediately only after checking the graph, entry scheduler, column notifications and Spine's pending publications, origins and leases. It still advances the epoch and ruleset watermark, appends the real Run, and emits all empty RHS/write audit boundaries. Empty graph changes alone do not qualify. Three paired inference medians were 19.610 / 19.129 ms and 7.020 / 7.074 s; CLI was 114.740 / 112.592 ms and 9.577 / 9.607 s, RSS 153.38 / 153.36 MiB and 1,991.56 / 1,995.59 MiB. Visits and both full audits matched. This arm is under clean held-out verification for the sum-bits cutoff.
 
 The shared entry scheduler now appends sparse change headers and coalesces them in witness order at refresh. A dormant node periodically compacts once its pending list exceeds twice the last distinct size or 64 entries, bounding repeated notifications. Run reports include both consumed and still-pending distinct notifications. On three clean pairs, sum-bits inference fell from 19.492 to 19.005 ms, CLI 115.625 to 114.281 ms, RSS 152.55 / 152.61 MiB. Raytrace inference fell from 7.020 to 6.956 s, CLI 10.372 to 10.286 s, RSS 1,986.72 / 1,980.86 MiB. Matching visits and both full audits matched.
+
+### Verified-original pairs at 29d3c5e0
+
+A clean native build with enlarged offline profile counters was trained on the opposite workload for each test. The pinned original was verified by SHA before running eleven measured sum-bits pairs and seven Raytrace pairs after warm-up. The 24 all-feature runtime tests and both full audits passed. On the ordinary configuration a missing hasher type annotation prevented compilation; e5a74879 fixed it. The repaired snapshot passed 12 ordinary runtime tests, nine no-default-feature runtime tests and 15 sparse/view-port/iterative compiler integration tests.
+
+| Case | Inference, archived original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Paired archived-original ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits | 30.777 / 17.117 ms | 127.997 / 98.876 ms | 161.16 / 152.77 MiB | 18,730 / 18,693 | 1.967× | 1.798× |
+| Raytrace | 12.334 / 6.292 s | 15.454 / 8.664 s | 2,907.16 / 1,987.91 MiB | 6,916,788 / 6,798,165 | 2.147× | 1.960× |
+
+The quiescence proof covered 769 / 1,428 and 7,551 / 16,883 source Runs. Each still appeared in the schedule and per-Run audits. Forced collisions on sum-bits also matched all frozen digests. The sum-bits median is 0.2795 ms over the fixed 16.8375 ms cutoff; an individual 16.777 ms process does not satisfy median acceptance.
