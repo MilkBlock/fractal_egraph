@@ -34,3 +34,5 @@ cargo test --release --locked --workspace --all-features
 ```
 
 [Compiler and audit commands](tools/cell-compiler/README.md) · [Workload and catalog provenance](workloads/pass3/README.md)
+
+The [CPU multithreading plan](docs/CPU_PARALLEL_PLAN.md) records the measured Run sizes, proposed ownership boundaries and staged acceptance criteria.
