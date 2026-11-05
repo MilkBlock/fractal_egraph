@@ -3679,5 +3679,251 @@
       "resumed": 663403,
       "depth": 29
     }
-  ]
+  ],
+  "clean_heldout_pgo": {
+    "revision": "0b5c5a17cfa0142ac9992ada8d5b96c913aba654",
+    "method": "Each opposite-case-trained executable alternates with the baseline binary in a fresh process. Sample 0 is excluded. Each process checks final state and ordered schedule digest. The fixed historical reference and the contemporary control are reported separately.",
+    "samples": [
+      {
+        "case": "sum-bits",
+        "arm": "port-pgo-raytrace",
+        "i": 0,
+        "ms": 19.187,
+        "rss": 161185792,
+        "cli": 413.265,
+        "visits": 18735,
+        "search": 9.32,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "base",
+        "i": 0,
+        "ms": 31.21,
+        "rss": 168968192,
+        "cli": 140.339,
+        "visits": 18730,
+        "search": 13.607,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "base",
+        "i": 1,
+        "ms": 29.786,
+        "rss": 168968192,
+        "cli": 125.679,
+        "visits": 18730,
+        "search": 12.901,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "port-pgo-raytrace",
+        "i": 1,
+        "ms": 18.776,
+        "rss": 161185792,
+        "cli": 98.755,
+        "visits": 18735,
+        "search": 8.989,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "port-pgo-raytrace",
+        "i": 2,
+        "ms": 19.079,
+        "rss": 161185792,
+        "cli": 99.034,
+        "visits": 18735,
+        "search": 9.179,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "base",
+        "i": 2,
+        "ms": 30.121,
+        "rss": 168951808,
+        "cli": 124.484,
+        "visits": 18730,
+        "search": 13.045,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "base",
+        "i": 3,
+        "ms": 30.728,
+        "rss": 168951808,
+        "cli": 128.495,
+        "visits": 18730,
+        "search": 13.119,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "port-pgo-raytrace",
+        "i": 3,
+        "ms": 18.716,
+        "rss": 161202176,
+        "cli": 96.742,
+        "visits": 18735,
+        "search": 8.98,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "port-pgo-raytrace",
+        "i": 4,
+        "ms": 18.696,
+        "rss": 161185792,
+        "cli": 97.086,
+        "visits": 18735,
+        "search": 8.969,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "sum-bits",
+        "arm": "base",
+        "i": 4,
+        "ms": 31.629,
+        "rss": 168968192,
+        "cli": 127.229,
+        "visits": 18730,
+        "search": 13.771,
+        "resumed": 3034,
+        "depth": 12
+      },
+      {
+        "case": "raytrace",
+        "arm": "port-pgo-sum-bits",
+        "i": 0,
+        "ms": 6593.392,
+        "rss": 2164113408,
+        "cli": 9270.068,
+        "visits": 6915159,
+        "search": 3056.384,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "base",
+        "i": 0,
+        "ms": 12228.999,
+        "rss": 3052994560,
+        "cli": 15112.537,
+        "visits": 6916788,
+        "search": 5293.407,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "base",
+        "i": 1,
+        "ms": 12153.452,
+        "rss": 3056058368,
+        "cli": 14857.326,
+        "visits": 6916788,
+        "search": 5253.575,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "port-pgo-sum-bits",
+        "i": 1,
+        "ms": 6759.568,
+        "rss": 2163589120,
+        "cli": 8756.31,
+        "visits": 6915159,
+        "search": 3146.039,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "port-pgo-sum-bits",
+        "i": 2,
+        "ms": 6759.195,
+        "rss": 2158002176,
+        "cli": 8674.415,
+        "visits": 6915159,
+        "search": 3138.724,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "base",
+        "i": 2,
+        "ms": 12295.2,
+        "rss": 3053191168,
+        "cli": 14944.111,
+        "visits": 6916788,
+        "search": 5319.482,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "base",
+        "i": 3,
+        "ms": 11914.624,
+        "rss": 3047964672,
+        "cli": 14733.048,
+        "visits": 6916788,
+        "search": 5150.324,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "port-pgo-sum-bits",
+        "i": 3,
+        "ms": 6665.92,
+        "rss": 2165784576,
+        "cli": 8702.941,
+        "visits": 6915159,
+        "search": 3111.212,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "port-pgo-sum-bits",
+        "i": 4,
+        "ms": 6679.559,
+        "rss": 2169815040,
+        "cli": 8625.78,
+        "visits": 6915159,
+        "search": 3097.246,
+        "resumed": 663403,
+        "depth": 29
+      },
+      {
+        "case": "raytrace",
+        "arm": "base",
+        "i": 4,
+        "ms": 12186.009,
+        "rss": 3045228544,
+        "cli": 15083.381,
+        "visits": 6916788,
+        "search": 5305.94,
+        "resumed": 663403,
+        "depth": 29
+      }
+    ]
+  }
 }
