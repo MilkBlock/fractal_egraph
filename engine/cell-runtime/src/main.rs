@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "eggfuse-cell-runtime --program FILE [--inspect-program | --output DIR] [--audit-stages] [--extract-unit-cost OPERATOR]"
         );
         #[cfg(feature = "structural-depth")]
-        println!("  --structural-depth 0..3 [--structural-survey]");
+        println!("  --structural-depth 0..3 [--structural-survey | --structural-catalog FILE]");
         return Ok(());
     }
     let mut seen = std::collections::BTreeSet::new();
@@ -27,11 +27,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .ok_or_else(|| format!("missing value for {flag}"))?;
             }
             #[cfg(feature = "structural-depth")]
-            "--structural-depth" => {
+            "--structural-depth" | "--structural-catalog" => {
                 flags
                     .next()
                     .filter(|v| !v.starts_with("--"))
-                    .ok_or("missing structural depth")?;
+                    .ok_or_else(|| format!("missing value for {flag}"))?;
             }
             #[cfg(feature = "structural-depth")]
             "--structural-survey" => {}
@@ -63,6 +63,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .transpose()?
             .unwrap_or(if survey { 3 } else { 0 });
         runtime.configure_depth(depth, survey)?;
+        if let Some(path) = opt("--structural-catalog") {
+            runtime.use_depth_catalog(serde_json::from_reader(std::fs::File::open(path)?)?)?;
+        }
     }
     let setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
@@ -108,10 +111,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         serde_json::to_vec(&runtime.family_survey())?,
     )?;
     #[cfg(feature = "structural-depth")]
-    std::fs::write(
-        out.join("structural-depth.json"),
-        serde_json::to_vec(&runtime.depth_report())?,
-    )?;
+    {
+        let report = runtime.depth_report();
+        if !report["catalog"].is_null() {
+            std::fs::write(
+                out.join("structural-catalog.json"),
+                serde_json::to_vec_pretty(&report["catalog"])?,
+            )?;
+        }
+        std::fs::write(
+            out.join("structural-depth.json"),
+            serde_json::to_vec(&report)?,
+        )?;
+    }
     let mut report = runtime.report();
     report["inference_seconds"] = seconds.into();
     report["setup_seconds"] = setup.into();

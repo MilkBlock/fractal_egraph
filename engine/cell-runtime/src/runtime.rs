@@ -2240,7 +2240,11 @@ impl Executor {
         #[cfg(feature = "family-replay")]
         let run_start = self.survey.samples.len();
         #[cfg(feature = "structural-depth")]
-        let marks = (self.stage_spine.structural.depth > 0).then(|| self.watermarks.clone());
+        let marks = self
+            .stage_spine
+            .structural
+            .measure_bindings()
+            .then(|| self.watermarks.clone());
         for rid in rules {
             let clock = self.profile_queries.then(Instant::now);
             let candidates = self.graph.stats.residual_candidates;
@@ -2561,7 +2565,11 @@ impl Executor {
     }
     #[cfg(feature = "structural-depth")]
     pub fn configure_depth(&mut self, d: u8, survey: bool) -> Result<()> {
+        if !self.steps.is_empty() {
+            return Err("configure structural ports before execution".into());
+        }
         self.stage_spine.structural.configure(d, survey)?;
+        self.stage_spine.track_ports.fill(0);
         if d > 0 {
             self.stage_spine.track_ports = self
                 .graph
@@ -2574,8 +2582,25 @@ impl Executor {
         Ok(())
     }
     #[cfg(feature = "structural-depth")]
+    pub fn use_depth_catalog(&mut self, catalog: J) -> Result<()> {
+        if !self.steps.is_empty() {
+            return Err("install structural catalog before execution".into());
+        }
+        self.stage_spine
+            .structural
+            .specialize(&self.graph.program, catalog)?;
+        for (r, slots) in self.stage_spine.track_ports.iter_mut().enumerate() {
+            *slots = if self.stage_spine.structural.capture_rule(r) {
+                self.graph.program.rules[r].query.len()
+            } else {
+                0
+            };
+        }
+        Ok(())
+    }
+    #[cfg(feature = "structural-depth")]
     pub fn depth_report(&self) -> J {
-        self.stage_spine.structural.report()
+        self.stage_spine.structural.report(&self.graph.program)
     }
     pub fn report(&self) -> J {
         let view_rule_profile=self.profile_queries.then(||{

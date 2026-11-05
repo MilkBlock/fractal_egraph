@@ -1231,3 +1231,61 @@ fn three_structural_edges_complete_on_the_scheduled_run() {
         .success()
     );
 }
+
+#[cfg(feature = "structural-depth")]
+#[test]
+fn learned_port_program_checks_deleted_and_missing_witnesses() {
+    use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
+    let tmp = tempfile::tempdir().unwrap();
+    let source = include_str!("fixtures/structural-depth.egg");
+    let compile = |name: &str, body: &str| {
+        let input = tmp.path().join(format!("{name}.egg"));
+        let out = tmp.path().join(name);
+        fs::write(&input, body).unwrap();
+        pass(&[
+            "compile",
+            "--source",
+            input.to_str().unwrap(),
+            "--output",
+            out.to_str().unwrap(),
+        ]);
+        out.join("program.json")
+    };
+    let train = compile("training", source);
+    let held=compile("held",&source
+        .replace("(Seed 1) (Seed 2)", "(ruleset retire)\n(rule ((= x (Seed 1))) ((delete (Inner x))) :ruleset retire)\n(Seed 1) (Seed 2)")
+        .replace("(run third) (run consume)","(run third) (run retire) (run consume)")
+        .replace("Seen (Inner (Seed 1))","Seen (Inner (Seed 2))"));
+    let mut e = Executor::new(
+        Graph::new(Program::parse(json_file(&train)).unwrap()).unwrap(),
+        false,
+    );
+    e.configure_depth(3, true).unwrap();
+    e.execute().unwrap();
+    let mut catalog = e.depth_report()["catalog"].clone();
+    let path = tmp.path().join("catalog.json");
+    let count = |source: &Path, catalog: &J| {
+        fs::write(&path, serde_json::to_vec(catalog).unwrap()).unwrap();
+        let o = pass(&[
+            "bench",
+            "--program",
+            source.to_str().unwrap(),
+            "--reference-program",
+            source.to_str().unwrap(),
+            "--repeat",
+            "1",
+            "--structural-depth",
+            "3",
+            "--structural-catalog",
+            path.to_str().unwrap(),
+        ]);
+        serde_json::from_slice::<J>(&o.stdout).unwrap()["counts"]["structural_depth"]["spine_reads"]
+            [3]
+        .as_u64()
+        .unwrap()
+    };
+    assert_eq!(count(&train, &catalog), 2);
+    assert_eq!(count(&held, &catalog), 1);
+    catalog["paths"][0][0][0] = json!("absent-operator");
+    assert_eq!(count(&held, &catalog), 0);
+}

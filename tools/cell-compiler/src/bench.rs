@@ -14,6 +14,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--repeat",
             #[cfg(feature = "structural-depth")]
             "--structural-depth",
+            #[cfg(feature = "structural-depth")]
+            "--structural-catalog",
             "--reference-program",
         ],
     )?;
@@ -23,6 +25,11 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
         .map(|s| s.parse::<u8>())
         .transpose()?
         .unwrap_or(0);
+    #[cfg(feature = "structural-depth")]
+    let catalog = opts
+        .get("--structural-catalog")
+        .map(|path| read(Path::new(path)))
+        .transpose()?;
     let n = opts
         .get("--repeat")
         .map(|s| s.parse::<usize>())
@@ -56,11 +63,11 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
         if stage_digests(
             Path::new(reference),
             #[cfg(feature = "structural-depth")]
-            0,
+            (0, None),
         )? != stage_digests(
             &path,
             #[cfg(feature = "structural-depth")]
-            depth,
+            (depth, catalog.as_ref()),
         )? {
             return Err("per-Run reference mismatch".into());
         }
@@ -72,7 +79,12 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
         #[cfg(feature = "structural-depth")]
-        e.configure_depth(depth, false)?;
+        {
+            e.configure_depth(depth, false)?;
+            if let Some(c) = &catalog {
+                e.use_depth_catalog(c.clone())?;
+            }
+        }
         let start = Instant::now();
         e.execute()?;
         times.push(start.elapsed().as_secs_f64() * 1000.);
@@ -123,18 +135,23 @@ pub(super) fn stages(path: &Path) -> Result<()> {
         serde_json::to_string(&stage_digests(
             path,
             #[cfg(feature = "structural-depth")]
-            0
+            (0, None)
         )?)?
     );
     Ok(())
 }
 fn stage_digests(
     path: &Path,
-    #[cfg(feature = "structural-depth")] depth: u8,
+    #[cfg(feature = "structural-depth")] structural: (u8, Option<&J>),
 ) -> Result<Vec<String>> {
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
     #[cfg(feature = "structural-depth")]
-    e.configure_depth(depth, false)?;
+    {
+        e.configure_depth(structural.0, false)?;
+        if let Some(c) = structural.1 {
+            e.use_depth_catalog(c.clone())?;
+        }
+    }
     let mut hashes = vec![];
     let sorted = |mut state: J| -> J {
         state["rows"]

@@ -9,6 +9,8 @@ use crate::{
     value::{self, Value, canon},
 };
 use rustc_hash::FxHashMap as Map;
+#[path = "depth_focus.rs"]
+mod focus;
 use serde::Serialize;
 use smallvec::SmallVec;
 use std::{collections::BTreeMap, rc::Rc, time::Instant};
@@ -77,6 +79,7 @@ pub(crate) struct Depth {
     pub survey: bool,
     pub execute: bool,
     profile: bool,
+    focus: Option<focus::Focus>,
     plan: Rc<Plan>,
     live: Map<Dependency, Packet>,
     pending: Map<Dependency, (usize, u64, Packet)>,
@@ -93,6 +96,7 @@ impl Depth {
             survey: false,
             execute: false,
             profile: false,
+            focus: None,
             plan: p.depth_plan.clone(),
             live: Default::default(),
             pending: Default::default(),
@@ -107,13 +111,28 @@ impl Depth {
         if depth > MAX_DEPTH as u8 {
             return Err("structural depth must be 0..3".into());
         }
+        self.focus = None;
         self.depth = depth;
         self.survey = survey;
         self.execute = !survey && depth > 0;
         self.profile = std::env::var_os("CELL_CPU_PROFILE").is_some();
         Ok(())
     }
+    pub fn specialize(&mut self, p: &Program, c: serde_json::Value) -> Result<()> {
+        if !self.execute {
+            return Err("a structural catalog needs positive depth in execution mode".into());
+        }
+        let catalog = serde_json::from_value(c).map_err(|e| e.to_string())?;
+        self.focus = Some(focus::Focus::compile(p, catalog, self.depth)?);
+        Ok(())
+    }
+    pub fn measure_bindings(&self) -> bool {
+        self.depth > 0 && self.focus.is_none()
+    }
     pub fn capture_rule(&self, r: usize) -> bool {
+        if let Some(focus) = &self.focus {
+            return focus.has_rule(r);
+        }
         self.depth > 0 && !self.plan.recipes[r].outputs.is_empty()
     }
     fn source(
@@ -152,6 +171,18 @@ impl Depth {
             return;
         }
         let clock = self.profile.then(Instant::now);
+        if let Some(focus) = &self.focus {
+            focus.capture(g, r, known, effect, &self.live, |anchor, table, packet| {
+                self.serial += 1;
+                self.stats.captured += 1;
+                self.stats.saturated_packets += u64::from(packet.ports.len() == BUDGET);
+                self.pending.insert(anchor, (table, self.serial, packet));
+            });
+            if let Some(t) = clock {
+                self.stats.capture_ns += t.elapsed().as_nanos() as u64;
+            }
+            return;
+        }
         for o in &self.plan.recipes[r].outputs {
             let Some(anchor) = Self::source(g, r, Source::Effect(o.op), known, effect) else {
                 continue;
@@ -271,8 +302,20 @@ impl Depth {
         t: usize,
         key: &[Value],
     ) -> Result<Option<(Row, Path)>> {
+        let allowed = if let Some(f) = &self.focus {
+            let Some(paths) = g.live_table(anchor).and_then(|from| f.ports(from, t)) else {
+                return Ok(None);
+            };
+            Some(paths)
+        } else {
+            None
+        };
         if let Some(p) = self.live.get(&anchor) {
-            for donor in p.ports.iter().filter(|p| p.t == t) {
+            for donor in p
+                .ports
+                .iter()
+                .filter(|p| p.t == t && allowed.is_none_or(|set| set.contains(&p.path)))
+            {
                 if let Some(row) = g.row(donor.w)?
                     && !row.hidden
                     && row.table == t
@@ -412,8 +455,7 @@ impl Depth {
                         &key,
                         ty,
                         &g.program.artifact["source_core"]["structural_key"]["nodes"],
-                    )
-                    else {
+                    ) else {
                         complete = false;
                         continue;
                     };
@@ -451,6 +493,7 @@ impl Depth {
         row: &Row,
     ) -> Result<Option<Solution>> {
         if !self.execute
+            || self.focus.is_some()
             || self.plan.recipes[r].orders[pivot].len() + 1 != g.program.rules[r].query.len()
         {
             return Ok(None);
@@ -741,9 +784,9 @@ impl Depth {
             self.stats.retained_lhs[d as usize] += 1
         }
     }
-    pub fn report(&self) -> serde_json::Value {
+    pub fn report(&self, p: &Program) -> serde_json::Value {
         serde_json::json!({"depth":self.depth,"budget":BUDGET,"survey":self.survey,"execute":self.execute,"capped_recipes":self.plan.capped_recipes,
-            "stats":self.stats,"edges":self.plan.edges,"shapes":self.shapes.iter().map(|(k,n)|(k,n)).collect::<Vec<_>>(),"by_rule":self.by_rule.iter().collect::<Vec<_>>()})
+            "catalog":self.survey.then(||focus::Catalog::rank(self,p)), "catalog_requested_matched":self.focus.as_ref().map(|f|[f.requested,f.matched]),"stats":self.stats,"edges":self.plan.edges,"shapes":self.shapes.iter().map(|(k,n)|(k,n)).collect::<Vec<_>>(),"by_rule":self.by_rule.iter().collect::<Vec<_>>()})
     }
 }
 fn operand(a: &Arg, slots: &Slots, g: &Graph) -> Option<Value> {
