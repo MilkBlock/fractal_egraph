@@ -110,6 +110,14 @@ pub struct Sieve {
     pub stats: Stats,
 }
 impl Sieve {
+    #[cfg(feature = "family-frontiers")]
+    pub(crate) fn survey_guards(&self, rule: usize, pivot: usize) -> Vec<(Vec<usize>, usize)> {
+        self.rules[rule][pivot]
+            .iter()
+            .map(|g| (g.cols.clone(), g.child))
+            .collect()
+    }
+
     pub fn new(program: &Program) -> Self {
         let enabled = true;
         let mut s = Self {

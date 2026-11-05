@@ -4,6 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+family-survey = []
+family-scan = ["family-survey"]
+family-port-trial = ["view-ports"]
+family-frontiers = ["family-survey"]
+family-overlap = ["family-survey"]
+family-replay = ["family-survey"]
 view-storage = []
 view-consumers = ["view-storage"]
 view-ports = ["view-consumers"]
@@ -34,3 +40,7 @@ required-features = ["spine-blocks"]
 [[example]]
 name = "complete_blocks"
 required-features = ["iterative-bake"]
+
+[[example]]
+name = "rank_families"
+required-features = ["family-survey"]

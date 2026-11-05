@@ -1054,6 +1054,10 @@ impl Programs {
         }
         self.finish_answers(g, rid, ready, covered, complete, watermark)
     }
+    #[cfg(feature = "family-survey")]
+    pub(crate) fn survey_resumed(&self) -> u64 {
+        self.stats.resumed_steps
+    }
     pub(crate) fn active_for_rule(&self, rid: usize) -> bool {
         self.enabled
             && self

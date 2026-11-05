@@ -103,6 +103,7 @@ impl Publication {
     /// retain their own previous keys so a removal needs only the witness.
     pub fn publish(
         &mut self,
+        #[cfg(feature = "family-survey")] sample: (&mut crate::family_survey::Survey, bool),
         g: &Graph,
         columns: &mut QueryIndexes,
         mut ranges: Option<&mut RangeIndex>,
@@ -114,6 +115,8 @@ impl Publication {
             let count = changes.len() as u64;
             self.headers += count;
             let version = g.query_versions[t];
+            #[cfg(feature = "family-survey")]
+            let clock = std::time::Instant::now();
             let mut writer = columns.writer(t, version);
             publish_ports(t, changes, writer.is_some());
             #[cfg(feature = "view-storage")]
@@ -122,7 +125,20 @@ impl Publication {
             }
             let mut range = ranges.as_deref_mut().filter(|r| r.observes(t));
             let neighbors = neighbor.observes(t);
+            #[cfg(feature = "family-survey")]
+            let observed = (writer.is_some(), range.is_some());
             if writer.is_none() && range.is_none() && !neighbors {
+                #[cfg(feature = "family-survey")]
+                sample.0.table(
+                    clock.elapsed().as_nanos() as u64,
+                    t,
+                    count,
+                    changes.values().filter(|v| **v == Change::Wake).count() as u64,
+                    sample.1,
+                    false,
+                    false,
+                    false,
+                );
                 self.header_only += count;
                 continue;
             }
@@ -146,6 +162,17 @@ impl Publication {
             if let Some(writer) = writer {
                 writer.finish(version);
             }
+            #[cfg(feature = "family-survey")]
+            sample.0.table(
+                clock.elapsed().as_nanos() as u64,
+                t,
+                count,
+                changes.values().filter(|v| **v == Change::Wake).count() as u64,
+                sample.1,
+                observed.0,
+                observed.1,
+                neighbors,
+            );
         }
         columns.finish_publication();
         neighbor.finish_publication(g);

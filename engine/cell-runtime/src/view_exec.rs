@@ -1,5 +1,8 @@
 //! Both input deltas are consumed at each member's original watermark.
 //! The producer and the self-writers still commit at their original RHS ordinal.
+#[cfg(feature = "family-port-trial")]
+#[path = "family_port_trial.rs"]
+mod trial;
 use super::*;
 use crate::{
     entry_schedule::Scheduler,
@@ -64,6 +67,12 @@ struct Group {
 }
 
 pub(super) struct Blocks {
+    #[cfg(feature = "family-port-trial")]
+    trial: Vec<Option<trial::Trial>>,
+    #[cfg(feature = "family-port-trial")]
+    last_unions: u64,
+    #[cfg(feature = "family-port-trial")]
+    union_epoch: Option<u64>,
     groups: Vec<Group>,
     rules: Vec<Option<(usize, usize)>>,
     directories: Vec<Option<(usize, Directory)>>,
@@ -77,6 +86,12 @@ pub(super) struct Blocks {
 impl Blocks {
     pub fn new(g: &Graph) -> Self {
         let mut s = Self {
+            #[cfg(feature = "family-port-trial")]
+            trial: (0..g.program.tables.len()).map(|_| None).collect(),
+            #[cfg(feature = "family-port-trial")]
+            last_unions: g.stats.unions,
+            #[cfg(feature = "family-port-trial")]
+            union_epoch: None,
             groups: vec![],
             rules: vec![None; g.program.rules.len()],
             directories: (0..g.program.tables.len()).map(|_| None).collect(),
@@ -89,6 +104,21 @@ impl Blocks {
         };
         for block in g.program.view_blocks.iter() {
             s.owned[block.view] = true;
+            #[cfg(feature = "family-port-trial")]
+            {
+                let table = block.producer.driver;
+                let only = block.producer.members[0].rule;
+                let exclusive = g.program.rules.iter().enumerate().all(|(rid, r)| {
+                    rid == only
+                        || !r
+                            .query
+                            .iter()
+                            .any(|a| matches!(a.call,Call::Table(t) if t==table))
+                });
+                if usize::BITS >= 64 && exclusive {
+                    s.trial[table] = Some(trial::Trial::new(block.producer.driver_key));
+                }
+            }
             if cfg!(feature = "view-ports") {
                 let col = block.consumers.driver_key;
                 let mut dir = Directory::default();
@@ -121,6 +151,10 @@ impl Blocks {
         s
     }
     pub fn dedicated(&self, t: usize) -> bool {
+        #[cfg(feature = "family-port-trial")]
+        if self.trial[t].is_some() {
+            return true;
+        }
         self.directories[t].is_some()
     }
     pub fn publish_table(
@@ -130,6 +164,17 @@ impl Blocks {
         changes: &FxHashMap<Dependency, crate::change_batch::Change>,
         indexed: bool,
     ) {
+        #[cfg(feature = "family-port-trial")]
+        {
+            if self.last_unions != g.stats.unions {
+                self.last_unions = g.stats.unions;
+                self.union_epoch = Some(g.epoch);
+            }
+            if let Some(trial) = &mut self.trial[t] {
+                trial.published(changes, self.union_epoch == Some(g.epoch), self.profile);
+                trial.stats.generic_columns |= indexed;
+            }
+        }
         if !self.owned[t] {
             return;
         }
@@ -173,6 +218,13 @@ impl Blocks {
         }
         let clock = self.profile.then(Instant::now);
         let dir = self.directories[group.plan.driver].as_ref().map(|(_, d)| d);
+        #[cfg(feature = "family-port-trial")]
+        let dir = if let Some(t) = &mut self.trial[group.plan.driver] {
+            t.refresh(g, group.plan.driver, self.profile)?;
+            Some(&t.directory)
+        } else {
+            dir
+        };
         let before = group.counts.candidate_visits;
         group.build(rid, member, watermark, dir, g, ix, entries, spine)?;
         g.stats.residual_candidates += group.counts.candidate_visits - before;
@@ -181,8 +233,16 @@ impl Blocks {
         }
         Ok(Some(group.streams[member].take().unwrap()))
     }
+    #[cfg(feature = "family-port-trial")]
+    fn trial_report(all: &[Option<trial::Trial>], g: &Graph, ix: &QueryIndexes) -> J {
+        J::Array(all.iter().enumerate().filter_map(|(i,t)|{let t=t.as_ref()?;Some(json!({"table":g.program.tables[i].name,"port_rows":t.directory.rows.len(),"generic_columns":ix.has_columns(i),"cost":t.stats}))}).collect())
+    }
     pub fn report(&self, g: &Graph, ix: &QueryIndexes) -> J {
-        json!({"dedicated_ports":cfg!(feature="view-ports"),"view_change_headers":self.changes,"port_payload_deliveries":self.payloads,
+        #[cfg(feature = "family-port-trial")]
+        let trial = Self::trial_report(&self.trial, g, ix);
+        #[cfg(not(feature = "family-port-trial"))]
+        let trial = J::Null;
+        json!({"producer_port_trial":trial,"dedicated_ports":cfg!(feature="view-ports"),"view_change_headers":self.changes,"port_payload_deliveries":self.payloads,
             "view_generic_column_updates":self.generic_column_updates,"port_maintenance_s":self.maintenance_s,
             "tables":g.program.view_blocks.iter().map(|b|json!({"view":g.program.tables[b.view].name,"generic_columns":ix.has_columns(b.view),"port_rows":self.directories[b.view].as_ref().map_or(0,|(_,d)|d.rows.len())})).collect::<Vec<_>>(),
             "groups":self.groups.iter().map(|v|json!({"driver":g.program.tables[v.plan.driver].name,"peer":g.program.tables[v.plan.peer].name,"rules":v.plan.members.iter().map(|m|m.rule).collect::<Vec<_>>(),"by_rule":v.by_rule,"counts":v.counts,"search_s":v.counts.search_s})).collect::<Vec<_>>()})

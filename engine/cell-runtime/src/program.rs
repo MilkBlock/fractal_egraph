@@ -125,6 +125,14 @@ pub fn call(j: &J, names: &BTreeMap<String, usize>) -> Result<Call> {
     }
 }
 impl Program {
+    #[cfg(feature = "family-survey")]
+    pub fn survey_view_rules(&self) -> std::collections::BTreeSet<usize> {
+        self.view_blocks
+            .iter()
+            .flat_map(|b| b.consumers.members.iter().map(|m| m.rule))
+            .collect()
+    }
+
     pub fn context_cut_counts(&self) -> (usize, usize) {
         (
             self.context_cuts.iter().filter(|ps| !ps.is_empty()).count(),

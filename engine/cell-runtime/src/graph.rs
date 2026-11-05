@@ -869,6 +869,17 @@ impl Graph {
         self.lookup_canonical(table, &key)
     }
     pub(crate) fn lookup_canonical(&self, table: usize, key: &[Value]) -> Result<Option<Row>> {
+        #[cfg(feature = "family-overlap")]
+        let clock = crate::family_overlap::clock();
+        let result = self.lookup_canonical_inner(table, key);
+        #[cfg(feature = "family-overlap")]
+        crate::family_overlap::physical(table, 0, clock, || {
+            key.iter().cloned().enumerate().collect()
+        });
+        result
+    }
+    #[inline]
+    fn lookup_canonical_inner(&self, table: usize, key: &[Value]) -> Result<Option<Row>> {
         self.key_lookup_calls.set(self.key_lookup_calls.get() + 1);
         if !self.program.tables[table].virtual_fact {
             return Ok(self

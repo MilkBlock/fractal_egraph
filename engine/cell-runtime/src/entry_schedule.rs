@@ -41,6 +41,11 @@ fn identity(v: &Value) -> bool {
     }
 }
 impl Plan {
+    #[cfg(any(feature = "family-frontiers", feature = "family-scan"))]
+    pub(crate) fn survey_nodes(&self, r: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
+        self.rules[r].iter().map(|c| (c.atom, c.node))
+    }
+
     pub fn parse(p: &Program, raw: &J) -> Result<Self> {
         if raw.is_null() {
             {
@@ -259,11 +264,21 @@ pub(crate) struct Batch<'a> {
     pub table: usize,
 }
 impl Batch<'_> {
-    #[cfg(feature = "projection-shared")]
+    #[cfg(any(
+        feature = "projection-shared",
+        feature = "family-overlap",
+        feature = "family-frontiers",
+        feature = "family-scan"
+    ))]
     pub fn node(&self) -> usize {
         self.consumer.node
     }
-    #[cfg(any(feature = "projection-semijoin", feature = "projection-shared"))]
+    #[cfg(any(
+        feature = "projection-semijoin",
+        feature = "projection-shared",
+        feature = "family-frontiers",
+        feature = "family-scan"
+    ))]
     pub fn watermark(&self) -> u64 {
         self.watermark
     }

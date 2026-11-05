@@ -1,3 +1,12 @@
+#[cfg(feature = "family-frontiers")]
+#[path = "family_frontier.rs"]
+mod family_frontier;
+#[cfg(feature = "family-replay")]
+#[path = "family_replay.rs"]
+mod family_replay;
+#[cfg(feature = "family-scan")]
+#[path = "family_scan.rs"]
+mod family_scan;
 use crate::query::QueryIndexes;
 #[path = "free_join.rs"]
 mod free_join;
@@ -65,6 +74,18 @@ struct StagePatch {
     bindings: Vec<(usize, Binding)>,
 }
 pub struct Executor {
+    #[cfg(feature = "family-scan")]
+    raw_scan: family_scan::Scan,
+    #[cfg(feature = "family-frontiers")]
+    fronts: family_frontier::Trace,
+    #[cfg(feature = "family-frontiers")]
+    prior_union: bool,
+    #[cfg(feature = "family-survey")]
+    survey: crate::family_survey::Survey,
+    #[cfg(feature = "family-replay")]
+    replay: family_replay::Replay,
+    #[cfg(feature = "family-overlap")]
+    overlap: crate::family_overlap::Overlap,
     #[cfg(feature = "view-consumers")]
     blocks: view_exec::Blocks,
     publication: crate::change_batch::Publication,
@@ -233,6 +254,18 @@ impl Executor {
         graph.receipt_tracking =
             (stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
+            #[cfg(feature = "family-scan")]
+            raw_scan: family_scan::Scan::new(&graph.program),
+            #[cfg(feature = "family-frontiers")]
+            fronts: family_frontier::Trace::new(&graph.program, &sieve),
+            #[cfg(feature = "family-frontiers")]
+            prior_union: false,
+            #[cfg(feature = "family-survey")]
+            survey: crate::family_survey::Survey::new(&graph.program),
+            #[cfg(feature = "family-replay")]
+            replay: family_replay::Replay::new(&graph.program),
+            #[cfg(feature = "family-overlap")]
+            overlap: Default::default(),
             #[cfg(feature = "view-consumers")]
             blocks: view_exec::Blocks::new(&graph),
             publication: Default::default(),
@@ -1022,6 +1055,8 @@ impl Executor {
             Some(if early_join || route_spine {
                 self.entry_schedule
                     .batches(&self.graph, rid, watermark, |batch, out| {
+                        #[cfg(feature = "family-frontiers")]
+                        let gate_clock = Instant::now();
                         let atom = batch.atom();
                         let start = out.len();
                         let claimed = spine_routes.len();
@@ -1062,7 +1097,16 @@ impl Executor {
                         } else {
                             None
                         };
+                        #[cfg(feature = "family-frontiers")]
+                        let mut delivered = 0;
                         let mut deliver = |w| {
+                            #[cfg(feature = "family-frontiers")]
+                            {
+                                delivered += 1;
+                            }
+                            #[cfg(feature = "family-overlap")]
+                            self.overlap
+                                .seed(watermark, rid, batch.node(), batch.table, w);
                             if early_sieve
                                 && !self
                                     .sieve
@@ -1084,6 +1128,8 @@ impl Executor {
                                     rid,
                                     atom,
                                     &packet.row,
+                                    #[cfg(feature = "family-overlap")]
+                                    (&mut self.overlap, watermark),
                                 )?
                                 else {
                                     return Ok(());
@@ -1097,6 +1143,11 @@ impl Executor {
                         let shared_rows = shared.as_deref().map(Vec::as_slice);
                         #[cfg(not(feature = "projection-shared"))]
                         let shared_rows: Option<&[Dependency]> = None;
+                        #[cfg(feature = "family-scan")]
+                        if shared_rows.is_none() && inverted.is_none() {
+                            self.raw_scan
+                                .record(&self.current_stage, self.graph.epoch, rid, batch);
+                        }
                         if let Some(rows) = shared_rows {
                             for &w in rows {
                                 deliver(w)?;
@@ -1108,6 +1159,38 @@ impl Executor {
                         } else {
                             for &(_, w) in batch.delta() {
                                 deliver(w)?
+                            }
+                        }
+                        #[cfg(feature = "family-frontiers")]
+                        {
+                            let ns = gate_clock.elapsed().as_nanos() as u64;
+                            self.fronts.batches.push([
+                                self.graph.epoch,
+                                watermark,
+                                rid as u64,
+                                atom as u64,
+                                batch.node() as u64,
+                                delivered,
+                                (out.len() - start) as u64,
+                                (spine_routes.len() - claimed) as u64,
+                                ns,
+                            ]);
+                            if cursors.is_none() {
+                                self.fronts.observe(
+                                    &self.current_stage,
+                                    self.graph.epoch,
+                                    self.prior_union,
+                                    rid,
+                                    batch,
+                                    early_join,
+                                    &out[start..],
+                                    if early_join {
+                                        &entry_domains[start..]
+                                    } else {
+                                        &[]
+                                    },
+                                    ns,
+                                );
                             }
                         }
                         if active_spine {
@@ -1971,6 +2054,10 @@ impl Executor {
         self.graph.receipt_forwards.clear();
         self.graph.epoch = self.graph.epoch.checked_add(1).ok_or("epoch exhausted")?;
         self.graph.changed = false;
+        #[cfg(feature = "family-survey")]
+        self.survey.start(self.graph.epoch, set);
+        #[cfg(feature = "family-overlap")]
+        self.overlap.start(self.graph.epoch, set);
         let start = Instant::now();
         if self.progress {
             eprintln!("[cell-cpu] Run {}: {set}", self.steps.len() + 1);
@@ -1985,13 +2072,38 @@ impl Executor {
         let mut work = vec![];
         // Every LHS is read before any effect is made visible. Prepared successor
         // recipes therefore cannot leak into this finite Run's matching snapshot.
+        #[cfg(feature = "family-replay")]
+        let run_start = self.survey.samples.len();
         for rid in rules {
             let clock = self.profile_queries.then(Instant::now);
             let candidates = self.graph.stats.residual_candidates;
             if self.progress && self.profile_queries {
                 eprintln!("[cell-cpu] query {rid}");
             }
+            #[cfg(feature = "family-overlap")]
+            crate::family_overlap::begin_reads(rid, self.watermarks[rid]);
+            #[cfg(feature = "family-survey")]
+            let sample = (
+                self.dirty[rid] || !self.graph.program.rules[rid].seminaive,
+                Instant::now(),
+            );
             let bindings = self.matches(rid, false)?;
+            #[cfg(feature = "family-survey")]
+            self.survey.rule(
+                self.graph.epoch,
+                self.watermarks[rid],
+                rid,
+                sample.0,
+                sample.1.elapsed().as_nanos() as u64,
+                bindings.len(),
+                self.graph.stats.residual_candidates - candidates,
+                self.stage_spine.active_for_rule(rid),
+                bindings
+                    .iter()
+                    .any(|b| b.parent.is_some() || b.continuation.is_some()),
+            );
+            #[cfg(feature = "family-overlap")]
+            crate::family_overlap::end_reads();
             if let Some(clock) = clock {
                 self.query_profile[rid].0 += 1;
                 self.query_profile[rid].3 += bindings.len() as u64;
@@ -2006,6 +2118,9 @@ impl Executor {
         crate::transfer_audit::record_run(patch.bindings.iter().map(|(rid, b)| (rid, &b.values)))?;
         let matches = patch.bindings.len();
         let search_seconds = start.elapsed().as_secs_f64();
+        #[cfg(feature = "family-replay")]
+        self.replay
+            .run(&self.graph, set, &patch, &self.survey.samples[run_start..])?;
         if self.audit {
             self.binding_audit.push(json!({"ruleset":set,"bindings":patch.bindings.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
         }
@@ -2013,16 +2128,41 @@ impl Executor {
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::begin_writes();
         let executed = patch.bindings.len();
+        #[cfg(feature = "family-survey")]
+        let mut rhs_clock: Option<(usize, Instant)> = None;
         for (rid, binding) in patch.bindings {
+            #[cfg(feature = "family-survey")]
+            let before = {
+                if rhs_clock.as_ref().is_none_or(|(r, _)| *r != rid) {
+                    if let Some((prev, clock)) = rhs_clock.replace((rid, Instant::now())) {
+                        self.survey.rhs(prev, clock.elapsed().as_nanos() as u64);
+                    }
+                }
+                self.stage_spine.survey_resumed()
+            };
             self.apply(rid, binding)?;
+            #[cfg(feature = "family-survey")]
+            self.survey
+                .resumed(rid, self.stage_spine.survey_resumed() - before);
         }
+        #[cfg(feature = "family-survey")]
+        if let Some((r, clock)) = rhs_clock {
+            self.survey.rhs(r, clock.elapsed().as_nanos() as u64);
+        }
+
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::repaired();
         let rhs_seconds = phase.elapsed().as_secs_f64();
         self.graph.stats.bindings += executed as u64;
         let phase = Instant::now();
+        #[cfg(feature = "family-survey")]
+        let unions_before = self.graph.stats.unions;
         self.graph.repair()?;
         let repair_seconds = phase.elapsed().as_secs_f64();
+        #[cfg(feature = "family-frontiers")]
+        {
+            self.prior_union = unions_before != self.graph.stats.unions;
+        }
         let phase = Instant::now();
         self.stage_spine.publish(&mut self.graph)?;
         #[cfg(feature = "view-consumers")]
@@ -2032,6 +2172,8 @@ impl Executor {
         self.entry_schedule.publish(&self.graph);
         self.graph.receipt_forwards.clear();
         self.publication.publish(
+            #[cfg(feature = "family-survey")]
+            (&mut self.survey, unions_before != self.graph.stats.unions),
             &self.graph,
             &mut self.query_indexes,
             self.range_index.as_mut(),
@@ -2050,6 +2192,9 @@ impl Executor {
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.deliver();
+        #[cfg(feature = "family-replay")]
+        self.replay
+            .publish(&self.graph, unions_before != self.graph.stats.unions)?;
         self.graph.changes.clear();
         self.graph.collect_garbage();
         let delivery_seconds = phase.elapsed().as_secs_f64();
@@ -2193,6 +2338,33 @@ impl Executor {
             }
         }
         Ok(())
+    }
+    #[cfg(feature = "family-survey")]
+    pub fn family_survey(&self) -> J {
+        #[allow(unused_mut)]
+        let mut report = self.survey.report();
+        report["program_sha256"] = self.graph.program.artifact["sha256"].clone();
+        report["schema"] = "eggfuse-family-survey/v1".into();
+        #[cfg(feature = "family-scan")]
+        {
+            report["raw_scan"] = self.raw_scan.report();
+        }
+        report["view_ports"] = cfg!(feature = "view-ports").into();
+        #[cfg(feature = "family-frontiers")]
+        {
+            report["entry_frontiers"] = self.fronts.report();
+            report["entry_batches"] = json!(self.fronts.batches);
+        }
+
+        #[cfg(feature = "family-overlap")]
+        {
+            report["overlap"] = self.overlap.report();
+        }
+        #[cfg(feature = "family-replay")]
+        {
+            report["replay"] = self.replay.report();
+        }
+        report
     }
     pub fn report(&self) -> J {
         let view_rule_profile=self.profile_queries.then(||{

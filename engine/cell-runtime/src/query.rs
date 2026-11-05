@@ -446,6 +446,26 @@ impl QueryIndexes {
         table: usize,
         bound: &[Option<Value>],
     ) -> Result<Rc<Vec<Dependency>>> {
+        #[cfg(feature = "family-overlap")]
+        let clock = crate::family_overlap::clock();
+        let result = self.candidate_domain(graph, table, bound);
+        #[cfg(feature = "family-overlap")]
+        crate::family_overlap::physical(table, 2, clock, || {
+            bound
+                .iter()
+                .enumerate()
+                .filter_map(|(i, v)| Some((i, v.as_ref()?.clone())))
+                .collect()
+        });
+        result
+    }
+    #[inline]
+    fn candidate_domain(
+        &mut self,
+        graph: &Graph,
+        table: usize,
+        bound: &[Option<Value>],
+    ) -> Result<Rc<Vec<Dependency>>> {
         if !bound.iter().any(Option::is_some) {
             return Ok(Rc::new(graph.witnesses(table)));
         }

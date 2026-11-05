@@ -278,6 +278,7 @@ impl FreeJoin {
         rid: usize,
         atom: usize,
         row: &Row,
+        #[cfg(feature = "family-overlap")] overlap: (&mut crate::family_overlap::Overlap, u64),
     ) -> Result<Option<Vec<Subtrie>>> {
         let plan = self.entry.as_ref().expect("entry lane");
         let steps = &plan.entries[rid][atom];
@@ -291,6 +292,8 @@ impl FreeJoin {
         self.stats.entry_rows += 1;
         let mut domains = vec![];
         for step in steps {
+            #[cfg(feature = "family-overlap")]
+            let timer = (Instant::now(), self.stats.entry_probes);
             let shape = &plan.projections[step.projection];
             let hashes = index.hashes(row.table, row.witness);
             let key = shape
@@ -430,6 +433,18 @@ impl FreeJoin {
             if let Some(id) = sample {
                 self.gates.finish_sample(id, result.is_some());
             }
+            #[cfg(feature = "family-overlap")]
+            overlap.0.read(
+                overlap.1,
+                rid,
+                row.table,
+                step.projection,
+                step.atom < atom,
+                row.witness,
+                self.stats.entry_probes != timer.1,
+                timer.0.elapsed().as_nanos() as u64,
+                result,
+            );
             let Some(rows) = result else {
                 self.stats.entry_rejections += 1;
                 return Ok(None);

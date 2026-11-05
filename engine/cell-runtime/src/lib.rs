@@ -1,5 +1,9 @@
 mod change_batch;
 pub mod checksum;
+#[cfg(feature = "family-overlap")]
+mod family_overlap;
+#[cfg(feature = "family-survey")]
+mod family_survey;
 #[cfg(feature = "slot-transfer-audit")]
 pub mod transfer_audit;
 mod view_plan;

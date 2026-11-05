@@ -171,6 +171,8 @@ impl Context {
         t: usize,
         key: &[Value],
     ) -> Result<Option<Row>> {
+        #[cfg(feature = "family-overlap")]
+        let point_clock = crate::family_overlap::clock();
         let [Value::Eq(id)] = key else {
             return Err("expected compiler-proved expression key".into());
         };
@@ -186,6 +188,10 @@ impl Context {
             && let Some(row) = cache.rows.get(id)
         {
             stats.point_hits += 1;
+            #[cfg(feature = "family-overlap")]
+            crate::family_overlap::physical(t, 1, point_clock, || {
+                key.iter().cloned().enumerate().collect()
+            });
             return Ok(row.clone());
         }
         let clock = self.profiling.then(Instant::now);

@@ -82,6 +82,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         out.join("spine-shapes.json"),
         serde_json::to_vec(&runtime.spine_shape_report())?,
     )?;
+    #[cfg(feature = "family-survey")]
+    std::fs::write(
+        out.join("family-survey.json"),
+        serde_json::to_vec(&runtime.family_survey())?,
+    )?;
     let mut report = runtime.report();
     report["inference_seconds"] = seconds.into();
     report["setup_seconds"] = setup.into();
