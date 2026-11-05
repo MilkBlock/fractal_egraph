@@ -332,6 +332,7 @@ pub struct Stats {
     node_notifications: u64,
     cold_rows: u64,
     row_decodes: u64,
+    private_row_reads: u64,
     parameters_copied: u64,
     parameter_packets_reused: u64,
     consumer_calls: u64,
@@ -555,13 +556,15 @@ impl Scheduler {
     ) -> Result<Vec<Seed>> {
         self.stats.consumer_calls += 1;
         let mut out = vec![];
-        for c in self.plan.rules[rid].clone() {
-            self.refresh(g, c.node)?;
+        for i in 0..self.plan.rules[rid].len() {
+            let node = self.plan.rules[rid][i].node;
+            self.refresh(g, node)?;
+            let c = &self.plan.rules[rid][i];
             let start = out.len();
             visit(
                 Batch {
                     state: &self.states[c.node],
-                    consumer: &c,
+                    consumer: c,
                     watermark,
                     table: self.plan.nodes[c.node].table,
                 },
@@ -615,10 +618,16 @@ impl Scheduler {
             } else {
                 s.rows.remove(&w)
             };
-            if let Some(p) = &previous {
+            if !full && let Some(p) = &previous {
                 s.remove_epoch(p.row.epoch, w);
             }
-            let row = if let Some(row) = self.rows.get(&w) {
+            // A table with one compiled entry node has no sibling to consume
+            // a shared decoded row before the next publication clears the cache.
+            let row = if self.plan.tables[n.table].len() == 1 {
+                self.stats.private_row_reads += 1;
+                self.stats.row_decodes += 1;
+                g.row(w)?.map(Rc::new)
+            } else if let Some(row) = self.rows.get(&w) {
                 row.clone()
             } else {
                 self.stats.row_decodes += 1;
