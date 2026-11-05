@@ -298,7 +298,17 @@ impl QueryIndexes {
             }
         });
     }
+    pub(crate) fn has_table(&self, table: usize) -> bool {
+        self.tables.contains_key(&table)
+    }
     pub fn update(&mut self, graph: &mut Graph) -> Result<()> {
+        self.update_with(graph, |_, _, _| {})
+    }
+    pub(crate) fn update_with(
+        &mut self,
+        graph: &mut Graph,
+        mut publish: impl FnMut(usize, Dependency, Option<&Row>),
+    ) -> Result<()> {
         if !graph.query_changes.is_empty() {
             self.revision += 1;
         }
@@ -314,6 +324,7 @@ impl QueryIndexes {
                     }
                 }
                 let row = graph.row(fact)?;
+                publish(table, fact, row.as_ref());
                 let (removed, added) = if let Some(row) = &row {
                     self.updated_facts += 1;
                     index.put(row, self.bits, self.watch_reads || index.leased_reads)

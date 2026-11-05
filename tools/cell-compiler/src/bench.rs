@@ -57,6 +57,8 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             let flag = match name {
                 "local-congruence" => ("CELL_CPU_CONGRUENCE", "1"),
                 "union-graft" => ("CELL_CPU_UNION_GRAFT", "1"),
+                "neighbor-context" => ("CELL_CPU_NEIGHBOR_CONTEXT", "1"),
+                "neighbor-ports" => ("CELL_CPU_NEIGHBOR_CONTEXT", "ports"),
                 "context-cuts" => ("CELL_CPU_LOCAL_CONTEXT", "general"),
                 "local-context" => ("CELL_CPU_LOCAL_CONTEXT", "1"),
                 "stage-spine" => ("CELL_CPU_STAGE_SPINE", "1"),
@@ -235,6 +237,7 @@ pub(super) fn worker(args: Vec<String>) -> Result<()> {
             "cells_created": g.cells_created,
             "rhs_frames_avoided": g.rhs_frames_avoided,
             "local_context":r["local_context"],
+            "neighbor_context":r["neighbor_context"],
             "register_seeds":g.register_seeds,"register_answers":g.register_answers,
             "handoff_attempts":g.handoff_attempts, "handoff_lets":g.handoff_lets,
             "handoff_sets":g.handoff_sets, "handoff_deep":g.handoff_deep,

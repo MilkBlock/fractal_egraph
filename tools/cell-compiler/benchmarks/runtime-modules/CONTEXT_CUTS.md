@@ -70,3 +70,5 @@ CELL_CPU_LOCAL_CONTEXT=general cargo run --release --locked --manifest-path "$m"
 ```
 
 For a new small source, compile with `cargo cell-compile --source input.egg --emit-free-join-entry --output compiled` and run `cargo cell-bench --program compiled/program.json --lane free-join-planned --modules context-cuts --verify-stages`. The ordinary default remains off.
+
+The follow-up starts at a changed expression and keeps the existing Spine coverage for each individual rule entry. [Delta-entry neighbor context ablation](NEIGHBOR_CONTEXT.md)

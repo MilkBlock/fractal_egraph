@@ -236,6 +236,7 @@ pub fn compile_with_entry(
     let contexts = crate::local_context::derive(&p, &multi["stage_entries"]);
     let plans = [
         ("single_writes",json!(&p.writes)),
+        ("neighbor_entries",json!(&p.neighbor_plans)),
         ("row_kernels",json!(&p.kernels)),
         ("physical_plan", json!(&p.physical)),
         (
