@@ -682,6 +682,10 @@ impl QueryIndexes {
     pub(crate) fn hashes(&self, table: usize, w: Dependency) -> Option<&[u64]> {
         self.tables.get(&table)?.keys.get(&w).map(|k| k.as_slice())
     }
+    pub(crate) fn fingerprints(&self, table: usize) -> impl Iterator<Item = &[u64]> {
+        self.tables[&table].keys.values().map(|row| row.as_slice())
+    }
+    #[cfg(feature = "projection-semijoin")]
     pub(crate) fn indexed_witnesses(&self, table: usize) -> Vec<Dependency> {
         let mut out = self.tables[&table].keys.keys().copied().collect::<Vec<_>>();
         out.sort();

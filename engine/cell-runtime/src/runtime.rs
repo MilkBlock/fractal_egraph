@@ -2375,7 +2375,10 @@ impl Executor {
         Ok(false)
     }
     fn run(&mut self, set: &str, path: Vec<usize>, iterations: Vec<u64>) -> Result<bool> {
-        self.current_stage = set.into();
+        if self.current_stage != set {
+            self.current_stage.clear();
+            self.current_stage.push_str(set);
+        }
         #[cfg(feature = "iterative-bake")]
         {
             self.stage_spine.training.run = self.steps.len() + 1;
@@ -2413,6 +2416,13 @@ impl Executor {
             .measure_bindings()
             .then(|| self.watermarks.clone());
         for rid in rules {
+            // Only semi-naive rules clear their dirty flag. An untriggered
+            // source occurrence still advances its own watermark.
+            #[cfg(not(any(feature = "family-survey", feature = "family-overlap")))]
+            if !self.dirty[rid] && !self.profile_queries {
+                self.watermarks[rid] = self.graph.epoch;
+                continue;
+            }
             let clock = self.profile_queries.then(Instant::now);
             let candidates = self.graph.stats.residual_candidates;
             if self.progress && self.profile_queries {

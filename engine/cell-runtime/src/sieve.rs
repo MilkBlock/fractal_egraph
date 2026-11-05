@@ -322,9 +322,11 @@ impl Sieve {
             self.ensure(guard.child, g, index)?
         }
         index.ensure(g, spec.table)?;
-        for w in index.indexed_witnesses(spec.table) {
+        // Child summaries are already complete. Building a support union
+        // depends only on the set of row projections, not on witness order.
+        for hashes in index.fingerprints(spec.table) {
             self.stats.build_rows += 1;
-            self.admit(id, index.hashes(spec.table, w).unwrap());
+            self.admit(id, hashes);
         }
         self.states[id].built = true;
         self.stats.builds += 1;
