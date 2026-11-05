@@ -16572,5 +16572,249 @@
         ]
       }
     }
-  }
+  },
+  "inline-port-key": [
+    {
+      "case": "sum-bits",
+      "arm": "cost-base",
+      "i": 0,
+      "ms": 20.789,
+      "rss": 160874496,
+      "cli": 129.497,
+      "visits": 18693,
+      "search": 10.012,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "inline-port-key",
+      "i": 0,
+      "ms": 20.053,
+      "rss": 160841728,
+      "cli": 458.377,
+      "visits": 18693,
+      "search": 9.51,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "inline-port-key",
+      "i": 1,
+      "ms": 19.557,
+      "rss": 160825344,
+      "cli": 116.899,
+      "visits": 18693,
+      "search": 9.321,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cost-base",
+      "i": 1,
+      "ms": 19.872,
+      "rss": 160858112,
+      "cli": 114.619,
+      "visits": 18693,
+      "search": 9.415,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cost-base",
+      "i": 2,
+      "ms": 20.058,
+      "rss": 160858112,
+      "cli": 114.079,
+      "visits": 18693,
+      "search": 9.536,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "inline-port-key",
+      "i": 2,
+      "ms": 19.509,
+      "rss": 160841728,
+      "cli": 113.253,
+      "visits": 18693,
+      "search": 9.286,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "inline-port-key",
+      "i": 3,
+      "ms": 19.512,
+      "rss": 160841728,
+      "cli": 113.359,
+      "visits": 18693,
+      "search": 9.257,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "cost-base",
+      "i": 3,
+      "ms": 19.731,
+      "rss": 160858112,
+      "cli": 113.809,
+      "visits": 18693,
+      "search": 9.374,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "raytrace",
+      "arm": "cost-base",
+      "i": 0,
+      "ms": 7147.585,
+      "rss": 2086600704,
+      "cli": 10236.249,
+      "visits": 6798165,
+      "search": 3264.013,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "inline-port-key",
+      "i": 0,
+      "ms": 7118.304,
+      "rss": 2085601280,
+      "cli": 10234.853,
+      "visits": 6798165,
+      "search": 3243.195,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "inline-port-key",
+      "i": 1,
+      "ms": 7416.86,
+      "rss": 2083586048,
+      "cli": 10514.104,
+      "visits": 6798165,
+      "search": 3380.743,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cost-base",
+      "i": 1,
+      "ms": 7177.84,
+      "rss": 2079604736,
+      "cli": 10286.72,
+      "visits": 6798165,
+      "search": 3283.004,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cost-base",
+      "i": 2,
+      "ms": 7135.017,
+      "rss": 2088583168,
+      "cli": 10243.167,
+      "visits": 6798165,
+      "search": 3256.794,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "inline-port-key",
+      "i": 2,
+      "ms": 7177.642,
+      "rss": 2085093376,
+      "cli": 10251.363,
+      "visits": 6798165,
+      "search": 3277.523,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "inline-port-key",
+      "i": 3,
+      "ms": 7137.193,
+      "rss": 2084831232,
+      "cli": 10282.485,
+      "visits": 6798165,
+      "search": 3266.841,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "cost-base",
+      "i": 3,
+      "ms": 7226.688,
+      "rss": 2100690944,
+      "cli": 10367.545,
+      "visits": 6798165,
+      "search": 3300.022,
+      "resumed": 663403,
+      "depth": 29
+    }
+  ],
+  "measured_planner_work": [
+    {
+      "arm": "base",
+      "case": "sum-bits",
+      "costed_domains": 4338,
+      "cost_index_reads": 2659,
+      "row_reads": 24412,
+      "key_lookup_calls": 19352
+    },
+    {
+      "arm": "base",
+      "case": "raytrace",
+      "costed_domains": 683918,
+      "cost_index_reads": 427155,
+      "row_reads": 8309629,
+      "key_lookup_calls": 4423918
+    },
+    {
+      "arm": "cheap-plan",
+      "case": "sum-bits",
+      "costed_domains": 3790,
+      "cost_index_reads": 2494,
+      "row_reads": 24412,
+      "key_lookup_calls": 19352
+    },
+    {
+      "arm": "cheap-plan",
+      "case": "raytrace",
+      "costed_domains": 594475,
+      "cost_index_reads": 403863,
+      "row_reads": 8309629,
+      "key_lookup_calls": 4423918
+    },
+    {
+      "arm": "point-row",
+      "case": "sum-bits",
+      "costed_domains": 3790,
+      "cost_index_reads": 2494,
+      "row_reads": 24360,
+      "key_lookup_calls": 19352
+    },
+    {
+      "arm": "point-row",
+      "case": "raytrace",
+      "costed_domains": 594475,
+      "cost_index_reads": 403863,
+      "row_reads": 8305467,
+      "key_lookup_calls": 4423918
+    }
+  ]
 }

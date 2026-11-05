@@ -238,6 +238,10 @@ impl Started {
         cursor
     }
 }
+#[cfg(feature = "sparse-cells")]
+type PortKey = smallvec::SmallVec<[Value; 1]>;
+#[cfg(not(feature = "sparse-cells"))]
+type PortKey = Vec<Value>;
 struct Context {
     #[cfg(not(feature = "sparse-cells"))]
     sets: BTreeSet<String>,
@@ -246,7 +250,7 @@ struct Context {
     last_epoch: u64,
     visits: u64,
     unions: u64,
-    facts: BTreeMap<(usize, Vec<Value>), Dependency>,
+    facts: BTreeMap<(usize, PortKey), Dependency>,
 }
 #[cfg(all(feature = "iterative-bake", feature = "sparse-cells"))]
 #[derive(Debug)]
@@ -481,13 +485,13 @@ fn read_port(
     g: &mut Graph,
     cursor: &Cursor,
     table: usize,
-    args: Vec<Value>,
+    args: PortKey,
     stats: &mut Stats,
     #[cfg(feature = "structural-depth")] structural: (&mut crate::depth_runtime::Depth, Dependency),
 ) -> Result<Option<Row>> {
     let key = (table, args);
     let good = |r: &Row| {
-        r.table == table && !r.hidden && r.values[..key.1.len()] == key.1
+        r.table == table && !r.hidden && r.values[..key.1.len()] == key.1[..]
     };
     // A candidate may fail a later port or guard, or lose
     // binding deduplication. Only an applied origin promotes the root.
@@ -1651,7 +1655,7 @@ impl Programs {
                 let args = a.args[..a.args.len() - 1]
                     .iter()
                     .map(|a| operand(a, &input, g).ok_or_else(|| String::from("unbound stage recipe key")))
-                    .collect::<Result<Vec<_>>>()?;
+                    .collect::<Result<PortKey>>()?;
                 match &a.call {
                     Call::Table(t) => {
                         let Some(row) = read_port(
