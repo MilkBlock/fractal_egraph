@@ -225,7 +225,10 @@ impl Registers {
                         exec.neighbor.point(&mut exec.graph, rid, *t, &args)?
                     } else {
                         exec.graph.stats.residual_candidates += 1;
-                        exec.graph.lookup_canonical(*t, &args)?
+                        #[cfg(feature = "sparse-cells")]
+                        { exec.point_ports.read(&mut exec.graph, *t, &args)? }
+                        #[cfg(not(feature = "sparse-cells"))]
+                        { exec.graph.lookup_canonical(*t, &args)? }
                     };
                     let Some(row) = row else {
                         return Ok(());

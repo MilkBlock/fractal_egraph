@@ -16,6 +16,9 @@ mod view_exec;
 use free_join::{FreeJoin, Subtrie};
 #[path = "execute_kernel.rs"]
 mod execute_kernel;
+#[cfg(feature="sparse-cells")]
+#[path = "point_ports.rs"]
+mod point_ports;
 use crate::known_results::QueryFacts;
 use crate::schedule::{self, Task};
 use crate::{
@@ -131,6 +134,8 @@ pub struct Executor {
 
     #[cfg(feature = "sparse-cells")]
     sum_domains: rustc_hash::FxHashMap<(usize, usize), execute_kernel::SumDomain>,
+    #[cfg(feature="sparse-cells")]
+    point_ports: point_ports::PointPorts,
     query_indexes: QueryIndexes,
     free_join: FreeJoin,
     sieve: crate::sieve::Sieve,
@@ -321,6 +326,8 @@ impl Executor {
                 std::env::var_os("CELL_CPU_PROFILE").is_some(),
             ),
             local_context: crate::local_context::Contexts::new(&graph.program),
+            #[cfg(feature="sparse-cells")]
+            point_ports: point_ports::PointPorts::new(&graph.program),
             graph,
             steps: vec![],
             last_change:0,

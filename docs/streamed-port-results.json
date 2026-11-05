@@ -9376,7 +9376,17 @@
         "resumed": 663403,
         "depth": 29
       }
-    ]
+    ],
+    "forced_collision_audit": {
+      "case": "sum-bits",
+      "runs": 1428,
+      "resumes": 3034,
+      "max_chain": 12,
+      "digests": {
+        "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+        "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db"
+      }
+    }
   },
   "experimental_projection_counters": [
     {
@@ -9648,6 +9658,200 @@
       "cli": 9429.149,
       "visits": 6657105,
       "search": 3249.823,
+      "resumed": 663403,
+      "depth": 29
+    }
+  ],
+  "search-port": [
+    {
+      "case": "sum-bits",
+      "arm": "late-intersect",
+      "i": 0,
+      "ms": 19.699,
+      "rss": 161464320,
+      "cli": 136.143,
+      "visits": 18619,
+      "search": 9.454,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "search-port",
+      "i": 0,
+      "ms": 19.654,
+      "rss": 161529856,
+      "cli": 436.496,
+      "visits": 18619,
+      "search": 9.441,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "search-port",
+      "i": 1,
+      "ms": 18.98,
+      "rss": 161529856,
+      "cli": 117.192,
+      "visits": 18619,
+      "search": 9.084,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "late-intersect",
+      "i": 1,
+      "ms": 19.657,
+      "rss": 161464320,
+      "cli": 118.358,
+      "visits": 18619,
+      "search": 9.409,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "late-intersect",
+      "i": 2,
+      "ms": 19.466,
+      "rss": 161464320,
+      "cli": 118.038,
+      "visits": 18619,
+      "search": 9.293,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "search-port",
+      "i": 2,
+      "ms": 19.161,
+      "rss": 161546240,
+      "cli": 119.289,
+      "visits": 18619,
+      "search": 9.108,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "search-port",
+      "i": 3,
+      "ms": 18.908,
+      "rss": 161529856,
+      "cli": 116.65,
+      "visits": 18619,
+      "search": 9.033,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "late-intersect",
+      "i": 3,
+      "ms": 20.625,
+      "rss": 161480704,
+      "cli": 119.471,
+      "visits": 18619,
+      "search": 9.843,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "raytrace",
+      "arm": "late-intersect",
+      "i": 0,
+      "ms": 7068.459,
+      "rss": 2082095104,
+      "cli": 9462.589,
+      "visits": 6657105,
+      "search": 3210.156,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "search-port",
+      "i": 0,
+      "ms": 7046.949,
+      "rss": 2101936128,
+      "cli": 9384.721,
+      "visits": 6657105,
+      "search": 3199.616,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "search-port",
+      "i": 1,
+      "ms": 7095.846,
+      "rss": 2084929536,
+      "cli": 9396.208,
+      "visits": 6657105,
+      "search": 3269.885,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "late-intersect",
+      "i": 1,
+      "ms": 7031.942,
+      "rss": 2092777472,
+      "cli": 9409.706,
+      "visits": 6657105,
+      "search": 3229.274,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "late-intersect",
+      "i": 2,
+      "ms": 6818.53,
+      "rss": 2077736960,
+      "cli": 9128.175,
+      "visits": 6657105,
+      "search": 3116.343,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "search-port",
+      "i": 2,
+      "ms": 6944.069,
+      "rss": 2082111488,
+      "cli": 10886.222,
+      "visits": 6657105,
+      "search": 3164.592,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "search-port",
+      "i": 3,
+      "ms": 6920.352,
+      "rss": 2101854208,
+      "cli": 9306.653,
+      "visits": 6657105,
+      "search": 3164.746,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "late-intersect",
+      "i": 3,
+      "ms": 7022.806,
+      "rss": 2077671424,
+      "cli": 9312.083,
+      "visits": 6657105,
+      "search": 3203.232,
       "resumed": 663403,
       "depth": 29
     }

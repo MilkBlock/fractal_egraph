@@ -160,6 +160,12 @@ pub struct Stats {
     #[serde(default)]
     pub register_seeds: u64,
     #[serde(default)]
+    pub shared_point_requests: u64,
+    #[serde(default)]
+    pub shared_point_hits: u64,
+    #[serde(default)]
+    pub shared_negative_hits: u64,
+    #[serde(default)]
     pub sum_index_reads: u64,
     #[serde(default)]
     pub sum_index_skips: u64,
