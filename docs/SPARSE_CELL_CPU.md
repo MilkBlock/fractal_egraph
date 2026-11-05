@@ -114,3 +114,7 @@ Four measured pairs after one warm-up gave the following medians for the previou
 | Raytrace | 7.468 → 6.942 s | 9.464 → 8.944 s | 2,199.01 → 2,158.17 MiB | 6,915,159 | 1.95× |
 
 The fixed 2× thresholds are 16.8375 ms and 6.754039 s. Each timing sample validated the schedule and final graph. Ordered RHS, effective writes and Spine were checked with the corresponding separately instrumented build.
+
+### Reverse equality subscriptions
+
+Sparse reverse incidence buckets now reuse the ordered singleton set from the constructor index. The first subscriber is inline, a second distinct witness promotes to a tree, and deletion shrinks a singleton again. Rebuild still visits the displaced representative's subscribers in witness order. In three measured standard-release pairs after warm-up, Raytrace inference changed from 7.954 to 7.943 s, CLI from 10.266 to 10.333 s, and through-inference RSS from 2,158.23 to 2,087.19 MiB. Sum-bits inference was 23.578 / 23.064 ms, CLI 119.959 / 121.011 ms, RSS 153.83 / 153.47 MiB. Visits stayed at 6,915,159 and 18,735. Both full audit runs matched the frozen digests. The reason to keep this change is the Raytrace memory reduction. The earlier separately measured singleton variant in the raw samples used an inline tree header.

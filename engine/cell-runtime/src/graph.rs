@@ -88,6 +88,11 @@ pub enum Dependency {
     Fact(FactRef),
     Function(usize),
 }
+#[cfg(not(feature = "sparse-cells"))]
+type UseSet = BTreeSet<Dependency>;
+
+#[cfg(feature = "sparse-cells")]
+type UseSet = crate::tiny_set::TinySet<Dependency>;
 #[derive(Clone, Debug)]
 pub struct Row {
     pub table: usize,
@@ -239,7 +244,7 @@ pub struct Graph {
     function_keys: Vec<HashMap<Vec<Value>, usize>>,
     #[cfg(feature = "sparse-cells")]
     function_keys: Vec<scalar_keys::FunctionKeys>,
-    uses: rustc_hash::FxHashMap<u64, BTreeSet<Dependency>>,
+    uses: rustc_hash::FxHashMap<u64, UseSet>,
     #[cfg(not(feature = "sparse-cells"))]
     dependencies: HashMap<Dependency, BTreeSet<u64>>,
     #[cfg(feature = "sparse-cells")]
@@ -1062,8 +1067,11 @@ impl Graph {
             self.function_operators[table].len()
         }
     }
-    fn bound_uses(&self, bound: &[Option<Value>]) -> Option<&BTreeSet<Dependency>> {
-        static EMPTY: BTreeSet<Dependency> = BTreeSet::new();
+    fn bound_uses(&self, bound: &[Option<Value>]) -> Option<&UseSet> {
+        #[cfg(feature = "sparse-cells")]
+        static EMPTY: UseSet = UseSet::Empty;
+        #[cfg(not(feature = "sparse-cells"))]
+        static EMPTY: UseSet = UseSet::new();
         bound
             .iter()
             .filter_map(|v| match v {
@@ -1600,7 +1608,9 @@ impl Graph {
             if keep.len() < affected.len() {
                 std::mem::swap(keep, &mut affected);
             }
-            keep.extend(affected);
+            for &dependency in &affected {
+                keep.insert(dependency);
+            }
         }
         self.stats.unions += 1;
         self.changed = true;
@@ -1609,8 +1619,8 @@ impl Graph {
     /// Complete visible scalar equality incidences from the existing reverse
     /// dependency index, including non-root argument positions.
 
-    fn mark_affected(&mut self, affected: &BTreeSet<Dependency>) {
-        for d in affected {
+    fn mark_affected(&mut self, affected: &UseSet) {
+        for d in affected.iter() {
             let table = self.dependency_table(*d);
             if let Dependency::Function(i) = d {
                 self.functions[*i].decoded = None;
