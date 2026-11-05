@@ -14,9 +14,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bytes = std::fs::read(opt("--program").ok_or("--program required")?)?;
     let program = Program::parse(serde_json::from_slice(&bytes)?)?;
     if args.iter().any(|x| x == "--inspect-program") {
+        let (rules, orientations) = program.context_cut_counts();
         println!(
             "{}",
-            serde_json::json!({"backend":"cell-cpu", "validated":true,
+            serde_json::json!({"context_cut_rules":rules,"context_cut_orientations":orientations,"backend":"cell-cpu", "validated":true,
             "congruence_reorder_safe":program.congruence.reorder_safe,
             "congruence_templates":program.congruence.templates.len()})
         );

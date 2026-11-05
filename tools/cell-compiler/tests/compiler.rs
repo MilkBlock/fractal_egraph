@@ -1558,7 +1558,9 @@ fn keyed_context_tracks_correlated_ports_and_late_terminal_deltas() {
         assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
         o.stdout
     };
-    assert_eq!(stages("0"), stages("1"));
+    let ordinary = stages("0");
+    assert_eq!(ordinary, stages("1"));
+    assert_eq!(ordinary, stages("general"));
     let mut corrupt = pg.clone();
     corrupt["local_contexts"][rule]["root"] = corrupt["local_contexts"][rule]["tail"].clone();
     assert!(Program::parse(corrupt).is_err());
@@ -1628,4 +1630,125 @@ fn wide_context_falls_back_and_recovers_after_a_port_shrinks() {
     assert_eq!(stats["fallbacks"], 1);
     assert!(stats["calls"].as_u64().unwrap() > 0);
     assert_eq!(stats["peak_prefix_rows"], 65 * 57);
+}
+
+#[test]
+fn connected_cuts_span_chains_and_transfer_evidence_to_renamed_relations() {
+    use eggfuse_cell_runtime::{
+        checksum::artifact_digest,
+        context_admission::{bake, install},
+        program::Program,
+    };
+    let tmp = tempfile::tempdir().unwrap();
+    let src = r#"
+(relation Start (i64)) (relation Edge (i64 i64)) (relation Tail (i64 i64))
+(relation Hit (i64 i64)) (ruleset apply) (ruleset grow) (ruleset cut)
+(rule ((Start x) (Edge x y) (Tail y z) (= w (+ x z)) (< w 10))
+      ((Hit x w)) :ruleset apply :name "chain")
+(rule ((Start x)) ((Tail 3 4)) :ruleset grow)
+(rule ((Start x)) ((delete (Edge x 3))) :ruleset cut)
+(Start 1) (Edge 1 3) (Edge 1 2) (Tail 2 7) (Tail 3 90)
+(run-schedule (seq (run apply) (run grow) (run apply) (run cut) (run apply)))
+(check (Hit 1 5) (Hit 1 8))
+"#;
+    let compile = |label: &str, text: &str| {
+        let file = tmp.path().join(format!("{label}.egg"));
+        let dir = tmp.path().join(label);
+        fs::write(&file, text).unwrap();
+        pass(&[
+            "compile",
+            "--source",
+            file.to_str().unwrap(),
+            "--output",
+            dir.to_str().unwrap(),
+            "--emit-free-join-entry",
+        ]);
+        json_file(&dir.join("program.json"))
+    };
+    let raw = compile("source", src);
+    let rid = raw["recipe"]["rules"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|r| r["metadata"]["name"] == "chain")
+        .unwrap();
+    assert!(raw["local_contexts"][rid].is_null());
+    let cuts = raw["context_cuts"][rid].as_array().unwrap();
+    assert_eq!(cuts.len(), 3);
+    assert!(cuts.iter().any(|c| !c[3].as_array().unwrap().is_empty()));
+    let mut corrupt = raw.clone();
+    corrupt["context_cuts"][rid] = json!([]);
+    assert!(Program::parse(corrupt).is_err());
+    let p = Program::parse(raw).unwrap();
+    let profile = |on: bool, visits: u64| {
+        json!({"status":"complete","program_sha256":p.artifact["sha256"],
+        "steps":[],"local_context":{"general":on,"enabled":on,"rules":{rid.to_string():{"calls":2,"port_probes":1}}},
+        "query_profile":[{"rule":rid,"candidates":visits,"bindings":3,"calls":2}]})
+    };
+    let base = profile(false, 50);
+    let wide = profile(true, 12);
+    let policy = bake(&p, &base, &wide).unwrap();
+    assert_eq!(policy["families"].as_array().unwrap().len(), 1);
+    let mut bad = wide.clone();
+    bad["query_profile"][0]["bindings"] = 0.into();
+    assert!(bake(&p, &base, &bad).is_err());
+    let renamed = src
+        .replace("Start", "Seed")
+        .replace("Edge", "Link")
+        .replace("Tail", "Leaf")
+        .replace(
+            "(Seed x) (Link x y) (Leaf y z)",
+            "(Leaf y z) (Seed x) (Link x y)",
+        );
+    let mut target = compile("renamed", &renamed);
+    let target_ir = Program::parse(target.clone()).unwrap();
+    let expected = install(&target_ir, policy.clone()).unwrap();
+    let empty = bake(&p, &base, &profile(true, 80)).unwrap();
+    target["context_admission"] = install(&target_ir, empty).unwrap();
+    let filtered = Program::parse(target.clone()).unwrap();
+    assert_eq!(filtered.context_cut_counts(), (0, 0));
+    target["context_admission"] = install(&filtered, policy).unwrap();
+    assert_eq!(target["context_admission"], expected);
+    let mut stale = target.clone();
+    stale["context_admission"]["recipe"] = json!("stale");
+    assert!(Program::parse(stale).is_err());
+    target.as_object_mut().unwrap().remove("sha256");
+    target["sha256"] = artifact_digest(&target).into();
+    let pg = tmp.path().join("learned.json");
+    fs::write(&pg, serde_json::to_vec(&target).unwrap()).unwrap();
+    let r = pass(&[
+        "bench",
+        "--program",
+        pg.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--modules",
+        "context-cuts",
+        "--verify-stages",
+        "--repeat",
+        "1",
+    ]);
+    let report: J = serde_json::from_slice(&r.stdout).unwrap();
+    let ctx = &report["counts"]["local_context"];
+    assert_eq!(ctx["cut_rules"], 1);
+    assert!(
+        ctx["rules"]
+            .as_object()
+            .unwrap()
+            .values()
+            .any(|s| s["bindings"].as_u64().unwrap() > 0)
+    );
+    let stages = |mode: &str| {
+        let o = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+            .arg("internal-stages")
+            .arg(&pg)
+            .env("CELL_CPU_LOCAL_CONTEXT", mode)
+            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
+            .env("CELL_CPU_HASH_BITS", "0")
+            .output()
+            .unwrap();
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+        o.stdout
+    };
+    assert_eq!(stages("0"), stages("general"));
 }

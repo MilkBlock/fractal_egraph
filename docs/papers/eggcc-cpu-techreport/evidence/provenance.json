@@ -1,0 +1,17 @@
+{
+  "eggcc": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+  "production_dependency": "egraphs-good/egglog-experimental@08771f9f69de51cc8cdc58e3760b7f00a03e40d8",
+  "egglog_baseline": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+  "eggfuse": "70b291077252a8a6cfd9a00ebdd98f9599cd0c62",
+  "file_sha256": {
+    "native-time": "e5383775481e5e53319cff70c4692a5642a82f929347a1447804a49f1164c9d3",
+    "standalone": "18b6dd807ba8f6c3083bdd3d7f0940d500d46a2cffb3c362c542cfa04580be6b",
+    "compiler": "03588ed1d65b3a97a9c9c527b6da63d9a4af8e0c0ef0c4af12bb6f229d175826",
+    "transfer": "d7881508c483c467dfa747273cded1be6feffa00196267a75df737c33b22c2ee",
+    "donor": "fa00d0dadcfca9e5195fc7162ff3784b98cd4bf03a7db5d41591c4fa273b593f",
+    "marker_training": "6c40aff2c010c4101afba9cb596275db97811b925748ac8bf1e96e56729ed1ed"
+  },
+  "host": "Apple M3 Max / arm64 / macOS 27.0.1 / rustc 1.94.0",
+  "schedule": "alternating fresh processes by workload index; 1 sample per lane per pass; p3 then p1 then p2; anchored pairs exclude warm-up block 0",
+  "priority": "nice +10, workstation not isolated"
+}

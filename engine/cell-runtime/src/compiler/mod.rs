@@ -247,6 +247,7 @@ pub fn compile_with_entry(
         ("merge_programs", crate::merge_programs::compile(&p)?),
         ("multi_stage", multi),
         ("local_contexts", json!(contexts)),
+        ("context_cuts", json!(crate::local_context::layout(&crate::local_context::derive_cuts(&p)))),
         ("reference_views", views(&p, markers)?),
         ("congruence", crate::congruence::compile(&p)?),
     ];

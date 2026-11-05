@@ -53,4 +53,5 @@ pub use mimalloc::MiMalloc as RuntimeAllocator;
 #[cfg(feature = "iterative-bake")]
 mod result_handoff;
 
+pub mod context_admission;
 mod local_context;

@@ -1,0 +1,7 @@
+(check (= witness
+  (TermSingle
+    (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2))))))))

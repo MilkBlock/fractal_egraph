@@ -280,6 +280,9 @@ impl Batch<'_> {
             .epochs
             .range((self.watermark, Dependency::Fact(FactRef { cell: 0, op: 0 }))..)
     }
+    pub fn delta_len(&self) -> Option<usize> {
+        Some(self.state.epoch_counts.as_ref()?.range(self.watermark..).map(|(_,n)|n).sum())
+    }
     pub fn delta_exceeds(&self, budget: usize, bins: &mut u64) -> bool {
         let counts = self.state.epoch_counts.as_ref().expect("planned entry");
         let mut total = 0;
@@ -389,18 +392,17 @@ impl Scheduler {
             Ok(())
         })
     }
-    pub(crate) fn terminal_delta(
-        &mut self, g: &Graph, rid: usize, atom: usize, watermark: u64, mut visit: impl FnMut(&Row),
-    ) -> Result<()> {
-        let consumer = self.plan.rules[rid].iter().find(|c| c.atom == atom)
-            .cloned().ok_or("missing terminal entry")?;
-        self.refresh(g, consumer.node)?;
-        let state = &self.states[consumer.node];
-        let batch = Batch { state, consumer: &consumer, watermark, table: self.plan.nodes[consumer.node].table };
-        for &(_, witness) in batch.delta() {
-            visit(&state.rows[&witness].row);
-        }
-        Ok(())
+    pub(crate) fn terminal_batch(
+        &mut self, g: &Graph, rid: usize, atom: usize, watermark: u64,
+    ) -> Result<Batch<'_>> {
+        let i = self.plan.rules[rid].iter()
+            .position(|c| c.atom == atom).ok_or("missing terminal entry")?;
+        let node = self.plan.rules[rid][i].node;
+        self.refresh(g, node)?;
+        Ok(Batch {
+            state: &self.states[node], consumer: &self.plan.rules[rid][i],
+            watermark, table: self.plan.nodes[node].table,
+        })
     }
     pub(crate) fn batches(
         &mut self,

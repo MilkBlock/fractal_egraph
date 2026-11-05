@@ -1477,6 +1477,12 @@ impl Executor {
             }
         }).collect()
     }
+    fn empty_by_sieve(&mut self, rid:usize) -> Result<bool> {
+        self.sieve.prepare(rid, &self.graph, &mut self.query_indexes)?;
+        let empty=self.sieve.empty_join(rid);
+        if empty {self.pending[rid].clear();}
+        Ok(empty)
+    }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
         let full_witnesses = !self.graph.marker_fields_copied
@@ -1530,29 +1536,29 @@ impl Executor {
             _ => QueryFacts::None,
         };
         let scheduled_entry = !probe && self.entry_schedule.accepts(rid);
-        if self.local_context.enabled()
-            && self.graph.program.local_contexts[rid].is_some()
+        // A necessary join summary can reject an empty domain before either route.
+        let early_sieve = scheduled_entry && self.sieve.enabled && self.delta_queries
+            && rule.direct.is_none() && !self.retained.accepts(rid);
+        let context = self.local_context.accepts(&self.graph.program,rid);
+        let sieve_first = self.local_context.general() || !context;
+        if early_sieve && sieve_first && self.empty_by_sieve(rid)? {
+            return Ok(vec![]);
+        }
+        if context
             && scheduled_entry && self.delta_queries && self.indexed_queries
             && !self.fd_keys && !self.graph.views_enabled && !self.graph.union_lineage_enabled
             && !self.retained.enabled && self.local_run.is_none() && !self.compositions_enabled
             && !self.refutation.enabled && !self.search_contexts.enabled && !self.union_grafts.enabled
             && let Some(answers) = self.local_context.matches(
-                rid, self.watermarks[rid], !matches!(query_facts, QueryFacts::None),
+                rid, self.watermarks[rid], !matches!(query_facts, QueryFacts::None), self.stage_spine.active_for_rule(rid),
                 &mut self.graph, &mut self.query_indexes, &mut self.entry_schedule,
             )?
         {
             self.pending[rid].clear();
             return Ok(Self::context_bindings(&rule, answers, &query_facts, 0, false));
         }
-        // A necessary join summary can reject an empty domain before either route.
-        let early_sieve = scheduled_entry && self.sieve.enabled && self.delta_queries
-            && rule.direct.is_none() && !self.retained.accepts(rid);
-        if early_sieve {
-            self.sieve.prepare(rid, &self.graph, &mut self.query_indexes)?;
-            if self.sieve.empty_join(rid) {
-                self.pending[rid].clear();
-                return Ok(vec![]);
-            }
+        if early_sieve && !sieve_first && self.empty_by_sieve(rid)? {
+            return Ok(vec![]);
         }
         let early_join = scheduled_entry
             && self.delta_queries
@@ -2905,6 +2911,6 @@ impl Executor {
     }
     pub fn take_semantic_audit(&mut self)->Vec<J>{std::mem::take(&mut self.semantic_audit)}
     pub fn report(&self) -> J {
-        json!({"local_context":self.local_context.report(&self.graph.program),"physical":{"range":self.range_index.as_ref().map(|r| &r.stats),"dedup_rows":self.dedup_rows,"dedup_full_elements":self.dedup_full_elements,"dedup_elements":self.dedup_elements,"dedup_duplicates":self.dedup_duplicates},"free_join":self.free_join.stats,"entry_schedule":self.entry_schedule.report(),"stage_spine":self.stage_spine.report(),"retained_contexts":self.retained.report(),"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2,"bindings":v.3})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
+        json!({"program_sha256":self.graph.program.artifact["sha256"],"local_context":self.local_context.report(&self.graph.program),"physical":{"range":self.range_index.as_ref().map(|r| &r.stats),"dedup_rows":self.dedup_rows,"dedup_full_elements":self.dedup_full_elements,"dedup_elements":self.dedup_elements,"dedup_duplicates":self.dedup_duplicates},"free_join":self.free_join.stats,"entry_schedule":self.entry_schedule.report(),"stage_spine":self.stage_spine.report(),"retained_contexts":self.retained.report(),"local_saturation":self.local_sat.report(),"semantic_audit":self.semantic_audit,"refutation_depth":self.refutation_depth.report(),"search_contexts":self.search_contexts.report(),"presearch_survey":self.search_context_survey.report(&self.graph),"features":{"merge_programs":self.graph.merge_programs_enabled},"known_results":self.graph.known_report(),"union_impact":self.graph.union_impact.as_ref().map(|s|s.report()),"union_graft":self.union_grafts.report(),"union_lineage":{"enabled":self.graph.union_lineage_enabled,"events":self.graph.union_lineage.events,"scope":"effective unions; selected cause-DAG height, not rebuild loop count or shortest distance"},"marker_refutation":self.refutation.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),"compositions":{"enabled":self.compositions_enabled,"programs":self.graph.program.compositions.programs,"edges":self.graph.program.compositions.edges.len(),"stats":self.composition_stats,"live_cursors":self.graph.cells.values().filter(|c|c.composition.is_some()).count()},"reference_views":self.graph.reference_report(),"local_congruence":self.graph.congruence_report(),"sieve":self.sieve.report(),"join_refinements":{"stats":self.query_indexes.refinements,"live_entries_and_references":self.query_indexes.refinement_storage()},"multi_stage":{"enabled":self.multistage_enabled,"entry_programs_enabled":self.point_programs,"local_projections_enabled":self.local_projections,"entry_programs":self.graph.program.multi_stage.entries.len(),"compiled_routes":self.graph.program.multi_stage.routes.len(),"stats":self.continuation_stats,"executed_rule_pairs":self.handoffs,"stage_patches":self.steps.len()},"query_profile": if self.profile_queries {Some(self.query_profile.iter().enumerate().filter(|(_,v)|v.0>0).map(|(rid,v)|json!({"rule":rid,"name":self.graph.program.templates[self.graph.program.rules[rid].template].name,"calls":v.0,"seconds":v.1,"candidates":v.2,"bindings":v.3})).collect::<Vec<_>>())}else{None},"query_indexes":{"builds":self.query_indexes.builds,"decoded_facts":self.query_indexes.decoded_facts,"updated_facts":self.query_indexes.updated_facts,"peak_fact_references":self.query_indexes.peak_references,"scope":"versioned virtual-fact indexes; references only"},"query_mode":std::env::var("CELL_CPU_QUERY_MODE").unwrap_or_else(|_|"delta".into()),"backend":"cell-cpu","scope":"standalone Cell recipe executor; native frontend only; no egglog runtime linked","stats":self.graph.stats,"live_cells":self.graph.cells.len(),"stored_binding_values":self.graph.cells.values().map(|c|c.values.len()).sum::<usize>(),"virtual_constructor_facts":self.graph.cells.values().map(|c|c.facts.len()).sum::<usize>(),"function_ports":self.graph.functions.iter().filter(|f|f.live).count(),"promoted_aliases":self.graph.parents.len(),"steps":self.steps,"status":if self.tasks.is_empty(){"complete"}else{"checkpointed"}})
     }
 }

@@ -57,6 +57,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             let flag = match name {
                 "local-congruence" => ("CELL_CPU_CONGRUENCE", "1"),
                 "union-graft" => ("CELL_CPU_UNION_GRAFT", "1"),
+                "context-cuts" => ("CELL_CPU_LOCAL_CONTEXT", "general"),
                 "local-context" => ("CELL_CPU_LOCAL_CONTEXT", "1"),
                 "stage-spine" => ("CELL_CPU_STAGE_SPINE", "1"),
                 "slot-transfer" => ("CELL_CPU_SLOT_TRANSFER", "1"),
@@ -66,6 +67,9 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
                 "static-aliases" => ("CELL_CPU_KNOWN_RESULTS", "static"),
                 _ => return Err(format!("unknown bench module {name:?}").into()),
             };
+            if modules.iter().any(|(&other, &(key, _))| other != name && key == flag.0) {
+                return Err(format!("conflicting bench module {name:?}").into());
+            }
             if modules.insert(name, flag).is_some() {
                 return Err(format!("duplicate bench module {name:?}").into());
             }
