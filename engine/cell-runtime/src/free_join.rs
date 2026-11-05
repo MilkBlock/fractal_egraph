@@ -658,7 +658,7 @@ impl FreeJoin {
         index.ensure(g, table)?;
         self.stats.stages += 1;
         self.stats.cover_rows += rows.len() as u64;
-        let mut positions = HashMap::default();
+        let mut positions: HashMap<_, _> = HashMap::default();
         let mut groups = SmallVec::<[Group; 2]>::new();
         // If the prefix and the current bindings already determine the cover's
         // functional key, there is no exact group reuse to amortize a hash map.
