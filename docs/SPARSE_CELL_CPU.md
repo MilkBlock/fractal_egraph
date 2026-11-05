@@ -146,3 +146,14 @@ Read the producer frame once per RHS argument list, use inline storage for short
 Sparse Sieve guards with one or two projected fingerprint columns now check the stored support set directly. Wider projections keep Bloom membership and the exact matcher still checks source values. Compared with the same warm-index setup, sum-bits candidates were 18,735 / 18,732, inference 21.525 / 20.673 ms, CLI 117.624 / 119.120 ms and RSS 154.34 / 154.33 MiB. Raytrace was 6,915,159 / 6,879,302 visits, 7.344 / 7.355 s inference, 9.692 / 9.653 s CLI and 2,078.88 / 2,080.78 MiB. Three measured pairs after warm-up. Both Run audits, including the winning Spine trajectory, matched the frozen digests. The separate warm-index feed trial is recorded as its own arm.
 
 A repeated-execution sampling profile of sum-bits found 2,239 samples under execute_until, including allocation and destruction of recursively cloned control JSON. Source schedule instructions are now decoded at setup into a typed tree. Child values move into their executable node once; serialization reconstructs checkpoint JSON including metadata and missing repeat bodies. The new round-trip test passed. With typed control and owned Run path vectors the earlier ablation gave 21.618 / 21.228 ms on sum-bits and 7.402 / 7.416 s on Raytrace. Moving child nodes without subtree clones subsequently changed inference 21.180 / 20.268 ms and 7.417 / 7.317 s; CLI 116.649 / 115.138 ms and 9.670 / 9.547 s; RSS 154.31 / 153.56 MiB and 2,082.61 / 2,075.95 MiB. The setup work is included in CLI. Both audits matched.
+
+### Held-out PGO at d7829e3b
+
+Four alternating measured pairs after one excluded warm-up, using a clean source archive of the local commit. The same source passed 21 all-feature runtime tests and both full audits. Forced zero-bit column fingerprints and forced Bloom collisions together preserved the full sum-bits audit.
+
+| Case | Inference, baseline / candidate | Full CLI, baseline / candidate | Peak RSS through inference, baseline / candidate | Visits, baseline / candidate | Fixed speedup | Concurrent-session median ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits | 32.057 / 18.553 ms | 131.763 / 99.095 ms | 161.14 / 153.02 MiB | 18,730 / 18,732 | 1.815× | 1.728× |
+| Raytrace | 12.146 / 6.626 s | 14.861 / 8.754 s | 2,910.78 / 2,064.81 MiB | 6,916,788 / 6,879,302 | 2.039× | 1.833× |
+
+The paired arms ran sequentially on the same machine. All four measured Raytrace candidate times (6.603–6.736 s) cleared the fixed 6.754039 s cutoff. Sum-bits was 1.715 ms above 16.8375 ms. No simultaneous 2× result.
