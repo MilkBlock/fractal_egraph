@@ -74,7 +74,7 @@ struct StagePatch {
     bindings: Vec<(usize, Binding)>,
 }
 pub struct Executor {
-    #[cfg(feature = "flat-seal")]
+    #[cfg(feature = "sparse-cells")]
     work_scratch: Vec<(usize, Binding)>,
     #[cfg(feature = "rhs-locals")]
     local_width: usize,
@@ -255,11 +255,11 @@ impl Executor {
         query_indexes.track_changes = sieve.enabled;
         let mut stage_spine = crate::stage_spine::Programs::new(&graph.program);
         stage_spine.audit_receipts = audit;
-        #[cfg(feature = "receipt-spine")]
+        #[cfg(feature = "sparse-cells")]
         {
             stage_spine.compiled_commits = true;
         }
-        #[cfg(feature = "sealed-origin")]
+        #[cfg(feature = "sparse-cells")]
         {
             stage_spine.direct_sealed_answers = true;
         }
@@ -272,7 +272,7 @@ impl Executor {
         graph.receipt_tracking =
             (stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
-            #[cfg(feature = "flat-seal")]
+            #[cfg(feature = "sparse-cells")]
             work_scratch: vec![],
             #[cfg(feature = "rhs-locals")]
             local_width: 0,
@@ -1080,7 +1080,7 @@ impl Executor {
                         #[cfg(feature = "family-frontiers")]
                         let gate_clock = Instant::now();
                         let atom = batch.atom();
-                        #[cfg(feature = "point-entries")]
+                        #[cfg(feature = "sparse-cells")]
                         let point_only = rule.direct.is_none()
                             && self.graph.program.kernels[rid][atom]
                                 .as_ref()
@@ -1089,7 +1089,7 @@ impl Executor {
                                         !matches!(s.access, crate::row_kernel::Access::Expand)
                                     })
                                 });
-                        #[cfg(not(feature = "point-entries"))]
+                        #[cfg(not(feature = "sparse-cells"))]
                         let point_only = false;
                         let start = out.len();
                         let claimed = spine_routes.len();
@@ -1107,12 +1107,6 @@ impl Executor {
                             )?
                         } else {
                             None
-                        };
-                        #[cfg(feature = "sieve-frontier")]
-                        let inverted = if inverted.is_none() && early_sieve {
-                            self.sieve.frontier(rid, atom, batch, &self.query_indexes)
-                        } else {
-                            inverted
                         };
                         #[cfg(feature = "projection-semijoin")]
                         let inverted = if inverted.is_none() && early_join && cursors.is_none() {
@@ -1784,22 +1778,7 @@ impl Executor {
         self.dedup_rows += n;
         self.dedup_full_elements += n * rule.inputs.len() as u64;
         self.dedup_elements += n * key_slots.len() as u64;
-        #[cfg(feature = "packed-slots")]
-        if let Some(mask) = crate::slots::Slots::projection_mask(key_slots)
-            && found.iter().all(|b| b.values.slice(mask).is_some())
-        {
-            found.sort_by(|a, b| {
-                a.values
-                    .slice(mask)
-                    .unwrap()
-                    .cmp(b.values.slice(mask).unwrap())
-            });
-            let before = found.len();
-            found.dedup_by(|a, b| a.values.slice(mask) == b.values.slice(mask));
-            self.dedup_duplicates += (before - found.len()) as u64;
-            return Ok(found);
-        }
-        #[cfg(all(feature = "flat-seal", not(feature = "packed-slots")))]
+        #[cfg(feature = "sparse-cells")]
         if found
             .iter()
             .all(|b| b.values.len() == key_slots.len() && b.values.keys().eq(key_slots))
@@ -1906,7 +1885,7 @@ impl Executor {
                     write.table,
                     key,
                     Dependency::Function(index),
-                    #[cfg(feature = "receipt-spine")]
+                    #[cfg(feature = "sparse-cells")]
                     self.graph.has_visibility_changes(write.table),
                     self.graph.stats.unions,
                     #[cfg(feature = "iterative-bake")]
@@ -2082,9 +2061,9 @@ impl Executor {
             } else {
                 Ok(Some((
                     {
-                        #[cfg(feature = "transient-cell")]
+                        #[cfg(feature = "sparse-cells")]
                         let id = me.graph.begin_transient(template, values, b.parent)?;
-                        #[cfg(not(feature = "transient-cell"))]
+                        #[cfg(not(feature = "sparse-cells"))]
                         let id = me.graph.linked_slots(template, values, b.parent)?;
                         id
                     },
@@ -2414,9 +2393,9 @@ impl Executor {
             .get(set)
             .ok_or_else(|| format!("unknown ruleset {set}"))?
             .clone();
-        #[cfg(feature = "flat-seal")]
+        #[cfg(feature = "sparse-cells")]
         let mut work = std::mem::take(&mut self.work_scratch);
-        #[cfg(not(feature = "flat-seal"))]
+        #[cfg(not(feature = "sparse-cells"))]
         let mut work = vec![];
         // Every LHS is read before any effect is made visible. Prepared successor
         // recipes therefore cannot leak into this finite Run's matching snapshot.
@@ -2507,11 +2486,11 @@ impl Executor {
         {
             self.graph.rhs_births.reading = true;
         }
-        #[cfg(feature = "flat-seal")]
+        #[cfg(feature = "sparse-cells")]
         let mut buffer = patch.bindings;
-        #[cfg(feature = "flat-seal")]
+        #[cfg(feature = "sparse-cells")]
         let rows = buffer.drain(..);
-        #[cfg(not(feature = "flat-seal"))]
+        #[cfg(not(feature = "sparse-cells"))]
         let rows = patch.bindings.into_iter();
         for (rid, binding) in rows {
             #[cfg(feature = "family-survey")]
@@ -2536,7 +2515,7 @@ impl Executor {
                 #[cfg(feature = "structural-depth")]
                 evidence.as_mut().and_then(Iterator::next),
             );
-            #[cfg(feature = "transient-cell")]
+            #[cfg(feature = "sparse-cells")]
             if applied.is_err() {
                 self.graph.promote_active();
             }
@@ -2551,7 +2530,7 @@ impl Executor {
             self.survey
                 .resumed(rid, self.stage_spine.survey_resumed() - before);
         }
-        #[cfg(feature = "flat-seal")]
+        #[cfg(feature = "sparse-cells")]
         {
             self.work_scratch = buffer;
         }

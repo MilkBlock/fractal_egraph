@@ -57,7 +57,7 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
-    #[cfg(feature = "scalar-dispatch")]
+    #[cfg(feature = "sparse-cells")]
     #[serde(skip)]
     pub(crate) cached_key_nodes: Rc<J>,
     #[cfg(feature = "rhs-locals")]
@@ -135,11 +135,11 @@ pub fn call(j: &J, names: &BTreeMap<String, usize>) -> Result<Call> {
 impl Program {
     #[inline]
     pub(crate) fn key_nodes(&self) -> &J {
-        #[cfg(feature = "scalar-dispatch")]
+        #[cfg(feature = "sparse-cells")]
         {
             &self.cached_key_nodes
         }
-        #[cfg(not(feature = "scalar-dispatch"))]
+        #[cfg(not(feature = "sparse-cells"))]
         {
             &self.artifact["source_core"]["structural_key"]["nodes"]
         }
@@ -342,7 +342,7 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
-            #[cfg(feature = "scalar-dispatch")]
+            #[cfg(feature = "sparse-cells")]
             cached_key_nodes: Rc::new(j["source_core"]["structural_key"]["nodes"].clone()),
             #[cfg(feature = "rhs-locals")]
             local_rhs: vec![],

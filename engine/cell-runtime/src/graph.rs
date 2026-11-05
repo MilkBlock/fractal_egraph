@@ -7,16 +7,16 @@ use serde_json::{Value as J, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::hash::{Hash, Hasher};
 
-#[cfg(feature = "row-slices")]
+#[cfg(feature = "sparse-cells")]
 pub type RowFields = std::rc::Rc<[Value]>;
-#[cfg(not(feature = "row-slices"))]
+#[cfg(not(feature = "sparse-cells"))]
 pub type RowFields = std::rc::Rc<Vec<Value>>;
 pub(crate) fn row_fields(v: Vec<Value>) -> RowFields {
-    #[cfg(feature = "row-slices")]
+    #[cfg(feature = "sparse-cells")]
     {
         v.into()
     }
-    #[cfg(not(feature = "row-slices"))]
+    #[cfg(not(feature = "sparse-cells"))]
     {
         std::rc::Rc::new(v)
     }
@@ -67,7 +67,7 @@ pub struct Cell {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Function {
-    #[cfg(feature = "embedded-writers")]
+    #[cfg(feature = "sparse-cells")]
     #[serde(skip)]
     writer: Option<Box<writer_frames::Writer>>,
     #[cfg(feature = "receipt-slots")]
@@ -175,25 +175,25 @@ pub struct Stats {
     pub repair_collisions: u64,
 }
 
-#[cfg(feature = "cell-arena")]
+#[cfg(feature = "sparse-cells")]
 #[path = "cell_arena.rs"]
 pub mod arena;
-#[cfg(feature = "scalar-dispatch")]
+#[cfg(feature = "sparse-cells")]
 #[path = "scalar_keys.rs"]
 mod scalar_keys;
 /// All lanes share the same Run barrier. The last three are timing controls.
 
-#[cfg(feature = "embedded-writers")]
+#[cfg(feature = "sparse-cells")]
 #[path = "writer_frames.rs"]
 mod writer_frames;
 pub struct Graph {
-    #[cfg(feature = "receipt-spine")]
+    #[cfg(feature = "sparse-cells")]
     visibility_tainted: Vec<bool>,
-    #[cfg(feature = "inline-completed")]
+    #[cfg(feature = "sparse-cells")]
     active_origin: Option<usize>,
-    #[cfg(feature = "transient-cell")]
+    #[cfg(feature = "sparse-cells")]
     active_rhs: Option<(u32, Cell)>,
-    #[cfg(feature = "embedded-writers")]
+    #[cfg(feature = "sparse-cells")]
     writer_dir: writer_frames::Directory,
     #[cfg(feature = "keeper-proof")]
     pub(crate) proof: crate::prefix_proof::Proof,
@@ -208,9 +208,9 @@ pub struct Graph {
     pub key_lookup_calls: std::cell::Cell<u64>,
     pub program: Program,
 
-    #[cfg(not(feature = "cell-arena"))]
+    #[cfg(not(feature = "sparse-cells"))]
     pub cells: rustc_hash::FxHashMap<u32, Cell>,
-    #[cfg(feature = "cell-arena")]
+    #[cfg(feature = "sparse-cells")]
     pub cells: arena::Cells,
     pub functions: Vec<Function>,
     pub parents: Parents,
@@ -231,18 +231,18 @@ pub struct Graph {
 
     operators: Vec<BTreeSet<FactRef>>,
     function_operators: Vec<BTreeSet<usize>>,
-    #[cfg(not(feature = "sparse-index"))]
+    #[cfg(not(feature = "sparse-cells"))]
     intern: HashMap<u64, BTreeSet<FactRef>>,
-    #[cfg(feature = "sparse-index")]
+    #[cfg(feature = "sparse-cells")]
     intern: HashMap<u64, crate::tiny_set::TinySet<FactRef>>,
-    #[cfg(not(feature = "scalar-dispatch"))]
+    #[cfg(not(feature = "sparse-cells"))]
     function_keys: Vec<HashMap<Vec<Value>, usize>>,
-    #[cfg(feature = "scalar-dispatch")]
+    #[cfg(feature = "sparse-cells")]
     function_keys: Vec<scalar_keys::FunctionKeys>,
     uses: rustc_hash::FxHashMap<u64, BTreeSet<Dependency>>,
-    #[cfg(not(feature = "sparse-index"))]
+    #[cfg(not(feature = "sparse-cells"))]
     dependencies: HashMap<Dependency, BTreeSet<u64>>,
-    #[cfg(feature = "sparse-index")]
+    #[cfg(feature = "sparse-cells")]
     dependencies: HashMap<Dependency, smallvec::SmallVec<[u64; 3]>>,
     dirty: BTreeSet<Dependency>,
     dirty_markers: BTreeSet<FactRef>,
@@ -299,11 +299,6 @@ impl Graph {
             Dependency::Function(i) => self.functions[i].port_slot = id,
         }
     }
-    /// Follow only storage relocation and proved same-key coalescence in this
-    /// commit. Equal result classes alone never establish a row receipt.
-    /// A receipt's key was checked by its query/action. Keys only change by
-    /// canonicalization; receipt forwarding preserves that same-key relation.
-    /// Check liveness/visibility here without decoding the recipe again.
     #[cfg(feature = "storage-metrics")]
     pub fn storage_sample(&self) -> J {
         let mut arity = [0usize; 5];
@@ -314,12 +309,17 @@ impl Graph {
         for set in self.intern.values() {
             buckets[set.len().min(3)] += 1;
         }
-        #[cfg(feature = "embedded-writers")]
+        #[cfg(feature = "sparse-cells")]
         let writers = json!({"live":self.writer_dir.live,"peak":self.writer_dir.peak,"installed":self.writer_dir.installations,"promoted":self.writer_dir.promoted,"from_general_rhs":self.writer_dir.general});
-        #[cfg(not(feature = "embedded-writers"))]
+        #[cfg(not(feature = "sparse-cells"))]
         let writers = J::Null;
         json!({"embedded_writers":writers,"full_cells":self.cells.len(),"cell_fact_arity_0_1_2_3_4plus":arity,"intern_sizes_0_1_2_3plus":buckets,"intern_headers":self.intern.len(),"forward_dependency_headers":self.dependencies.len(),"reverse_dependency_headers":self.uses.len(),"dependency_edges":self.dependencies.values().map(|v|v.len()).sum::<usize>(),"live_functions":self.functions.iter().filter(|f|f.live).count(),"function_slots":self.functions.len(),"cell_id_high_water":self.next_cell})
     }
+    /// Follow only storage relocation and proved same-key coalescence in this
+    /// commit. Equal result classes alone never establish a row receipt.
+    /// A receipt's key was checked by its query/action. Keys only change by
+    /// canonicalization; receipt forwarding preserves that same-key relation.
+    /// Check liveness/visibility here without decoding the recipe again.
     pub fn receipt_visible(&self, w: Dependency, table: usize) -> bool {
         match w {
             Dependency::Fact(f) => {
@@ -372,20 +372,20 @@ impl Graph {
                 }
             })
             .collect();
-        #[cfg(feature = "scalar-dispatch")]
+        #[cfg(feature = "sparse-cells")]
         let typed_keys = program
             .tables
             .iter()
             .map(scalar_keys::FunctionKeys::new)
             .collect();
         let mut g = Self {
-            #[cfg(feature = "receipt-spine")]
+            #[cfg(feature = "sparse-cells")]
             visibility_tainted: vec![false; n],
-            #[cfg(feature = "inline-completed")]
+            #[cfg(feature = "sparse-cells")]
             active_origin: None,
-            #[cfg(feature = "transient-cell")]
+            #[cfg(feature = "sparse-cells")]
             active_rhs: None,
-            #[cfg(feature = "embedded-writers")]
+            #[cfg(feature = "sparse-cells")]
             writer_dir: Default::default(),
             #[cfg(feature = "rhs-work-audit")]
             rhs_births: Default::default(),
@@ -422,9 +422,9 @@ impl Graph {
             operators: vec![BTreeSet::new(); n],
             function_operators: vec![BTreeSet::new(); n],
             intern: HashMap::default(),
-            #[cfg(not(feature = "scalar-dispatch"))]
+            #[cfg(not(feature = "sparse-cells"))]
             function_keys: vec![Default::default(); n],
-            #[cfg(feature = "scalar-dispatch")]
+            #[cfg(feature = "sparse-cells")]
             function_keys: typed_keys,
             uses: Default::default(),
             dependencies: Default::default(),
@@ -655,7 +655,7 @@ impl Graph {
         let i = self.set_function_canonical(write.table, &key, value)?;
         let changed = self.stats.function_updates != before;
         if changed {
-            #[cfg(feature = "embedded-writers")]
+            #[cfg(feature = "sparse-cells")]
             if i < u32::MAX as usize {
                 frame.completed = true;
                 frame.completed_prefix = write.op + 1;
@@ -688,7 +688,7 @@ impl Graph {
         if let Some(c) = self.rhs_frame(cell) {
             return self.slot_in(cell, c, i);
         }
-        #[cfg(feature = "embedded-writers")]
+        #[cfg(feature = "sparse-cells")]
         if let Some(w) = self.writer(cell) {
             return self.slot_fields(cell, w.template, w.parent, &w.values, i);
         }
@@ -696,7 +696,7 @@ impl Graph {
     }
     #[inline]
     pub(crate) fn rhs_frame(&self, id: u32) -> Option<&Cell> {
-        #[cfg(feature = "transient-cell")]
+        #[cfg(feature = "sparse-cells")]
         if let Some((current, c)) = &self.active_rhs
             && *current == id
         {
@@ -706,7 +706,7 @@ impl Graph {
     }
     #[inline]
     pub(crate) fn rhs_frame_mut(&mut self, id: u32) -> Option<&mut Cell> {
-        #[cfg(feature = "transient-cell")]
+        #[cfg(feature = "sparse-cells")]
         if let Some((current, c)) = &mut self.active_rhs
             && *current == id
         {
@@ -714,7 +714,7 @@ impl Graph {
         }
         self.cells.get_mut(&id)
     }
-    #[cfg(feature = "transient-cell")]
+    #[cfg(feature = "sparse-cells")]
     pub(crate) fn begin_transient(
         &mut self,
         template: usize,
@@ -722,7 +722,7 @@ impl Graph {
         parent: Option<FactRef>,
     ) -> Result<u32> {
         debug_assert!(self.active_rhs.is_none());
-        #[cfg(feature = "inline-completed")]
+        #[cfg(feature = "sparse-cells")]
         {
             self.active_origin = None;
         }
@@ -730,13 +730,13 @@ impl Graph {
         self.active_rhs = Some((id, self.new_cell(template, values, parent)));
         Ok(id)
     }
-    #[cfg(feature = "transient-cell")]
+    #[cfg(feature = "sparse-cells")]
     pub(crate) fn promote_active(&mut self) {
         if let Some((id, c)) = self.active_rhs.take() {
             self.store_cell(id, c);
         }
     }
-    #[cfg(feature = "transient-cell")]
+    #[cfg(feature = "sparse-cells")]
     fn promote_owner(&mut self, id: u32) {
         if self
             .active_rhs
@@ -801,7 +801,7 @@ impl Graph {
         // Recipe parameters are immutable even after this fact is hidden/deleted.
         // Derived Cells can keep their binding without copying the parent's fields.
         let template = self.cells.get(&f.cell).map(|c| c.template);
-        #[cfg(feature = "embedded-writers")]
+        #[cfg(feature = "sparse-cells")]
         let template = template.or_else(|| self.writer(f.cell).map(|w| w.template));
         match self.program.templates[template.ok_or("expired parent Cell")?]
             .ops
@@ -882,14 +882,14 @@ impl Graph {
         }))
     }
     fn shared_fields(key: &[Value], v: &Value) -> RowFields {
-        #[cfg(feature = "row-slices")]
+        #[cfg(feature = "sparse-cells")]
         {
             key.iter()
                 .cloned()
                 .chain(std::iter::once(v.clone()))
                 .collect()
         }
-        #[cfg(not(feature = "row-slices"))]
+        #[cfg(not(feature = "sparse-cells"))]
         {
             let mut fields = Vec::with_capacity(key.len() + 1);
             fields.extend_from_slice(key);
@@ -1002,11 +1002,11 @@ impl Graph {
         if self.functions[index].origin == origin {
             return;
         }
-        #[cfg(feature = "embedded-writers")]
+        #[cfg(feature = "sparse-cells")]
         {
             self.detach_origin(index);
         }
-        #[cfg(not(feature = "embedded-writers"))]
+        #[cfg(not(feature = "sparse-cells"))]
         if let Some(old) = self.functions[index].origin.take() {
             *self
                 .parent_users
@@ -1141,9 +1141,9 @@ impl Graph {
             }
             return Ok(None);
         }
-        #[cfg(not(feature = "sparse-index"))]
+        #[cfg(not(feature = "sparse-cells"))]
         let mut refs = self.intern.get(&h).cloned().unwrap_or_default();
-        #[cfg(feature = "sparse-index")]
+        #[cfg(feature = "sparse-cells")]
         let mut refs: BTreeSet<_> = self.intern.get(&h).into_iter().flatten().copied().collect();
         // A merge callback may request a constructor whose old key is dirty. Include
         // only affected references until repair catches up, not all graph rows.
@@ -1157,7 +1157,7 @@ impl Graph {
         }
         Ok(None)
     }
-    #[cfg(not(feature = "sparse-index"))]
+    #[cfg(not(feature = "sparse-cells"))]
     fn refs(v: &Value, out: &mut BTreeSet<u64>) {
         match v {
             Value::Eq(i) => {
@@ -1171,7 +1171,7 @@ impl Graph {
             _ => {}
         }
     }
-    #[cfg(not(feature = "sparse-index"))]
+    #[cfg(not(feature = "sparse-cells"))]
     fn subscribe(&mut self, d: Dependency, values: &[Value]) {
         if let Some(table) = self.dependency_table(d) {
             self.query_versions[table] += 1;
@@ -1200,7 +1200,7 @@ impl Graph {
         }
         self.dependencies.insert(d, refs);
     }
-    #[cfg(feature = "sparse-index")]
+    #[cfg(feature = "sparse-cells")]
     fn subscribe(&mut self, d: Dependency, values: &[Value]) {
         type Refs = smallvec::SmallVec<[u64; 3]>;
         fn collect(v: &Value, p: &Parents, out: &mut Refs) {
@@ -1272,16 +1272,16 @@ impl Graph {
                 &self.pending_unions,
             )?;
         }
-        #[cfg(feature = "receipt-spine")]
+        #[cfg(feature = "sparse-cells")]
         if hidden {
             self.visibility_tainted[t] = true;
         }
         let h = hashkey(t, key);
         let vs = Self::shared_fields(key, &v);
-        #[cfg(feature = "transient-cell")]
+        #[cfg(feature = "sparse-cells")]
         self.promote_owner(f.cell);
         let facts = &mut self.cells.get_mut(&f.cell).unwrap().facts;
-        #[cfg(feature = "lean-buckets")]
+        #[cfg(feature = "sparse-cells")]
         facts.reserve_first();
         facts.insert(
             f.op,
@@ -1585,12 +1585,12 @@ impl Graph {
         // canonical side can re-run an unchanged LHS and create extra custom
         // merge nodes (e.g. a repeated default ExtractedExpr write).
         self.mark_affected(&affected);
-        #[cfg(not(feature = "sparse-index"))]
+        #[cfg(not(feature = "sparse-cells"))]
         {
             affected.extend(self.uses.get(&lo).into_iter().flatten().copied());
             self.uses.insert(lo, affected);
         }
-        #[cfg(feature = "sparse-index")]
+        #[cfg(feature = "sparse-cells")]
         if !affected.is_empty() {
             let keep = self.uses.entry(lo).or_default();
             if keep.len() < affected.len() {
@@ -1676,9 +1676,7 @@ impl Graph {
                 *receipt = Some(Dependency::Function(index));
             }
             if self.stats.function_updates != before {
-                #[cfg(all(feature = "transient-cell", not(feature = "inline-completed")))]
-                self.promote_owner(cell);
-                #[cfg(feature = "inline-completed")]
+                #[cfg(feature = "sparse-cells")]
                 if self.active_rhs.as_ref().is_some_and(|(id, _)| *id == cell) {
                     self.active_origin = Some(index);
                 }
@@ -1983,14 +1981,14 @@ impl Graph {
             let (stored_key, decoded) = if compact {
                 (Vec::new(), None)
             } else {
-                #[cfg(feature = "scalar-dispatch")]
+                #[cfg(feature = "sparse-cells")]
                 self.function_keys[t].insert(key, i);
-                #[cfg(not(feature = "scalar-dispatch"))]
+                #[cfg(not(feature = "sparse-cells"))]
                 self.function_keys[t].insert(key.to_vec(), i);
                 (key.to_vec(), Some(Self::shared_fields(key, &value)))
             };
             self.functions.push(Function {
-                #[cfg(feature = "embedded-writers")]
+                #[cfg(feature = "sparse-cells")]
                 writer: None,
                 #[cfg(feature = "receipt-slots")]
                 port_slot: 0,
@@ -2035,7 +2033,7 @@ impl Graph {
             self.operators[r.table].remove(&f);
             if let Some(b) = self.intern.get_mut(&s.hash) {
                 b.remove(&f);
-                #[cfg(feature = "sparse-index")]
+                #[cfg(feature = "sparse-cells")]
                 if b.is_empty() {
                     self.intern.remove(&s.hash);
                 }
@@ -2045,12 +2043,12 @@ impl Graph {
         }
         Ok(())
     }
-    #[cfg(feature = "receipt-spine")]
+    #[cfg(feature = "sparse-cells")]
     pub(crate) fn has_visibility_changes(&self, t: usize) -> bool {
         self.visibility_tainted[t]
     }
     pub fn hide(&mut self, t: usize, key: &[Value], delete: bool) -> Result<bool> {
-        #[cfg(feature = "receipt-spine")]
+        #[cfg(feature = "sparse-cells")]
         {
             self.visibility_tainted[t] = true;
         }
@@ -2157,7 +2155,7 @@ impl Graph {
                     self.stats.repair_key_hash_changes += u64::from(h != old);
                     if let Some(bucket) = self.intern.get_mut(&old) {
                         bucket.remove(&f);
-                        #[cfg(feature = "sparse-index")]
+                        #[cfg(feature = "sparse-cells")]
                         if bucket.is_empty() {
                             self.intern.remove(&old);
                         }
@@ -2304,9 +2302,9 @@ impl Graph {
                     self.functions[i].key = key.clone();
                     self.functions[i].value = row.values.last().unwrap().clone();
                     self.functions[i].epoch = self.epoch;
-                    #[cfg(feature = "scalar-dispatch")]
+                    #[cfg(feature = "sparse-cells")]
                     self.function_keys[row.table].insert(&key, i);
-                    #[cfg(not(feature = "scalar-dispatch"))]
+                    #[cfg(not(feature = "sparse-cells"))]
                     self.function_keys[row.table].insert(key, i);
                     self.subscribe(d, &row.values);
                     self.changes.touch(row.table, d);
@@ -2318,9 +2316,9 @@ impl Graph {
     }
 
     pub fn release_empty(&mut self, cell: u32) {
-        #[cfg(feature = "transient-cell")]
+        #[cfg(feature = "sparse-cells")]
         if self.active_rhs.as_ref().is_some_and(|(id, _)| *id == cell) {
-            #[cfg(feature = "inline-completed")]
+            #[cfg(feature = "sparse-cells")]
             if let Some(&n) = self.parent_users.get(&cell)
                 && n > 0
             {

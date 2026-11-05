@@ -13,10 +13,10 @@ use std::{
 };
 
 type Refinements = HashMap<Vec<(usize, u64)>, Rc<Vec<Dependency>>>;
-#[cfg(feature = "lean-buckets")]
+#[cfg(feature = "sparse-cells")]
 #[derive(Default)]
 struct SparseRefinements(Option<Box<Refinements>>);
-#[cfg(feature = "lean-buckets")]
+#[cfg(feature = "sparse-cells")]
 impl SparseRefinements {
     fn clear(&mut self) {
         self.0 = None
@@ -31,20 +31,20 @@ impl SparseRefinements {
         self.0.as_ref().into_iter().flat_map(|m| m.values())
     }
 }
-#[cfg(not(feature = "sparse-index"))]
+#[cfg(not(feature = "sparse-cells"))]
 use std::collections::BTreeSet;
 #[derive(Default)]
 struct Bucket {
     #[cfg(feature = "projection-stamps")]
     membership_version: u64,
-    #[cfg(not(feature = "sparse-index"))]
+    #[cfg(not(feature = "sparse-cells"))]
     facts: BTreeSet<Dependency>,
-    #[cfg(feature = "sparse-index")]
+    #[cfg(feature = "sparse-cells")]
     facts: crate::tiny_set::TinySet<Dependency>,
     view: Option<Rc<Vec<Dependency>>>,
-    #[cfg(feature = "lean-buckets")]
+    #[cfg(feature = "sparse-cells")]
     refinements: SparseRefinements,
-    #[cfg(not(feature = "lean-buckets"))]
+    #[cfg(not(feature = "sparse-cells"))]
     refinements: Refinements,
 }
 struct Columns {
@@ -152,7 +152,7 @@ impl Columns {
     }
 }
 fn fingerprint(value: &Value, bits: u32) -> u64 {
-    #[cfg(feature = "scalar-dispatch")]
+    #[cfg(feature = "sparse-cells")]
     let hash = match value {
         Value::Eq(n) => n.wrapping_mul(0x9e3779b185ebca87).rotate_left(29),
         Value::Int(n) => {
@@ -164,7 +164,7 @@ fn fingerprint(value: &Value, bits: u32) -> u64 {
             hasher.finish()
         }
     };
-    #[cfg(not(feature = "scalar-dispatch"))]
+    #[cfg(not(feature = "sparse-cells"))]
     let hash = {
         let mut hasher = rustc_hash::FxHasher::default();
         value.hash(&mut hasher);
@@ -184,14 +184,14 @@ pub struct RefinementStats {
     pub examined: u64,
     pub avoided: u64,
 }
-#[cfg(feature = "scalar-dispatch")]
+#[cfg(feature = "sparse-cells")]
 #[path = "table_directory.rs"]
 mod table_directory;
 pub struct QueryIndexes {
     pub revision: u64,
-    #[cfg(feature = "scalar-dispatch")]
+    #[cfg(feature = "sparse-cells")]
     tables: table_directory::TableDirectory,
-    #[cfg(not(feature = "scalar-dispatch"))]
+    #[cfg(not(feature = "sparse-cells"))]
     tables: HashMap<usize, Columns>,
     references: usize,
     bits: u32,
@@ -686,14 +686,6 @@ impl QueryIndexes {
         let mut out = self.tables[&table].keys.keys().copied().collect::<Vec<_>>();
         out.sort();
         out
-    }
-    #[cfg(feature = "sieve-frontier")]
-    pub(crate) fn min_postings(&self, t: usize, cols: &[usize], keys: &[u64]) -> Option<usize> {
-        let index = self.tables.get(&t)?;
-        cols.iter()
-            .zip(keys)
-            .map(|(c, k)| index.values[*c].get(k).map_or(0, |b| b.facts.len()))
-            .min()
     }
     pub(crate) fn hash_candidates(
         &self,

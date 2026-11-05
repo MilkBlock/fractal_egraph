@@ -9,7 +9,7 @@ use rustc_hash::FxHashMap as HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
 use std::{collections::BTreeMap, rc::Rc};
-#[cfg(not(feature = "epoch-runs"))]
+#[cfg(not(feature = "sparse-cells"))]
 use {crate::graph::FactRef, std::collections::BTreeSet};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -20,7 +20,7 @@ pub struct Plan {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Node {
-    #[cfg(feature = "row-ports")]
+    #[cfg(feature = "sparse-cells")]
     #[serde(skip)]
     checks: Vec<(usize, Arg)>,
     table: usize,
@@ -82,11 +82,11 @@ impl Plan {
                                 let n = slots.len();
                                 let port = *slots.entry(*i).or_insert(n);
                                 if projection[*i].is_none() {
-                                    #[cfg(feature = "row-ports")]
+                                    #[cfg(feature = "sparse-cells")]
                                     {
                                         projection[*i] = Some(col);
                                     }
-                                    #[cfg(not(feature = "row-ports"))]
+                                    #[cfg(not(feature = "sparse-cells"))]
                                     {
                                         projection[*i] = Some(port);
                                     }
@@ -109,7 +109,7 @@ impl Plan {
                     let id = *ids.entry(key).or_insert(n);
                     if id == s.nodes.len() {
                         s.tables[t].push(id);
-                        #[cfg(feature = "row-ports")]
+                        #[cfg(feature = "sparse-cells")]
                         let checks = pattern
                             .iter()
                             .enumerate()
@@ -122,7 +122,7 @@ impl Plan {
                             })
                             .collect();
                         s.nodes.push(Node {
-                            #[cfg(feature = "row-ports")]
+                            #[cfg(feature = "sparse-cells")]
                             checks,
                             table: t,
                             args: pattern,
@@ -155,14 +155,14 @@ impl Plan {
         Ok((s, expected))
     }
 }
-#[cfg(feature = "row-ports")]
+#[cfg(feature = "sparse-cells")]
 type SharedPacket = Packet;
-#[cfg(not(feature = "row-ports"))]
+#[cfg(not(feature = "sparse-cells"))]
 type SharedPacket = Rc<Packet>;
 #[derive(Clone)]
 pub struct Packet {
     pub row: Rc<Row>,
-    #[cfg(not(feature = "row-ports"))]
+    #[cfg(not(feature = "sparse-cells"))]
     values: Rc<Vec<Option<Value>>>,
 }
 #[derive(Clone)]
@@ -175,7 +175,7 @@ pub struct Seed {
 /// No initial full-width parameter array is cloned for a scheduled consumer.
 #[derive(Clone)]
 pub struct Inputs {
-    #[cfg(feature = "row-ports")]
+    #[cfg(feature = "sparse-cells")]
     legacy_base: std::cell::OnceCell<Box<[Option<Value>]>>,
     own: Vec<Option<Value>>,
     base: Option<Seed>,
@@ -183,7 +183,7 @@ pub struct Inputs {
 impl Inputs {
     pub fn owned(n: usize) -> Self {
         Self {
-            #[cfg(feature = "row-ports")]
+            #[cfg(feature = "sparse-cells")]
             legacy_base: Default::default(),
             own: vec![None; n],
             base: None,
@@ -191,7 +191,7 @@ impl Inputs {
     }
     pub fn shared(seed: Seed) -> Self {
         Self {
-            #[cfg(feature = "row-ports")]
+            #[cfg(feature = "sparse-cells")]
             legacy_base: Default::default(),
             own: vec![],
             base: Some(seed),
@@ -226,11 +226,11 @@ impl Inputs {
         }
         let s = self.base.as_ref()?;
         let port = s.projection.get(slot).copied().flatten()?;
-        #[cfg(feature = "row-ports")]
+        #[cfg(feature = "sparse-cells")]
         {
             s.packet.row.values.get(port)
         }
-        #[cfg(not(feature = "row-ports"))]
+        #[cfg(not(feature = "sparse-cells"))]
         {
             s.packet.values[port].as_ref()
         }
@@ -242,7 +242,7 @@ impl Inputs {
         self.own[slot] = v;
     }
 }
-#[cfg(feature = "row-ports")]
+#[cfg(feature = "sparse-cells")]
 impl std::ops::Index<usize> for Inputs {
     type Output = Option<Value>;
     fn index(&self, i: usize) -> &Self::Output {
@@ -261,7 +261,7 @@ impl std::ops::Index<usize> for Inputs {
         })[i]
     }
 }
-#[cfg(not(feature = "row-ports"))]
+#[cfg(not(feature = "sparse-cells"))]
 impl std::ops::Index<usize> for Inputs {
     type Output = Option<Value>;
     fn index(&self, i: usize) -> &Self::Output {
@@ -285,22 +285,22 @@ impl std::ops::IndexMut<usize> for Inputs {
     }
 }
 
-#[cfg(feature = "epoch-runs")]
+#[cfg(feature = "sparse-cells")]
 #[path = "epoch_runs.rs"]
 mod epoch_runs;
 #[derive(Default)]
 struct State {
-    #[cfg(feature = "epoch-runs")]
+    #[cfg(feature = "sparse-cells")]
     planned_counts: bool,
     cold: bool,
-    #[cfg(not(feature = "epoch-runs"))]
+    #[cfg(not(feature = "sparse-cells"))]
     pending: BTreeSet<Dependency>,
-    #[cfg(feature = "epoch-runs")]
+    #[cfg(feature = "sparse-cells")]
     pending: rustc_hash::FxHashSet<Dependency>,
     rows: HashMap<Dependency, SharedPacket>,
-    #[cfg(not(feature = "epoch-runs"))]
+    #[cfg(not(feature = "sparse-cells"))]
     epochs: BTreeSet<(u64, Dependency)>,
-    #[cfg(feature = "epoch-runs")]
+    #[cfg(feature = "sparse-cells")]
     epochs: epoch_runs::Epochs,
     epoch_counts: Option<BTreeMap<u64, usize>>,
 }
@@ -380,23 +380,23 @@ impl Batch<'_> {
     pub fn len(&self) -> usize {
         self.state.rows.len()
     }
-    #[cfg(feature = "epoch-runs")]
+    #[cfg(feature = "sparse-cells")]
     pub fn delta(&self) -> impl Iterator<Item = &(u64, Dependency)> {
         self.state.epochs.range(self.watermark)
     }
-    #[cfg(not(feature = "epoch-runs"))]
+    #[cfg(not(feature = "sparse-cells"))]
     pub fn delta(&self) -> std::collections::btree_set::Range<'_, (u64, Dependency)> {
         self.state
             .epochs
             .range((self.watermark, Dependency::Fact(FactRef { cell: 0, op: 0 }))..)
     }
-    #[cfg(feature = "epoch-runs")]
+    #[cfg(feature = "sparse-cells")]
     pub fn delta_len(&self) -> Option<usize> {
         self.state
             .planned_counts
             .then(|| self.state.epochs.counts(self.watermark).sum())
     }
-    #[cfg(not(feature = "epoch-runs"))]
+    #[cfg(not(feature = "sparse-cells"))]
     pub fn delta_len(&self) -> Option<usize> {
         Some(
             self.state
@@ -407,7 +407,7 @@ impl Batch<'_> {
                 .sum(),
         )
     }
-    #[cfg(feature = "epoch-runs")]
+    #[cfg(feature = "sparse-cells")]
     pub fn delta_exceeds(&self, budget: usize, bins: &mut u64) -> bool {
         let mut total = 0;
         self.state.epochs.counts(self.watermark).any(|n| {
@@ -416,7 +416,7 @@ impl Batch<'_> {
             total > budget
         })
     }
-    #[cfg(not(feature = "epoch-runs"))]
+    #[cfg(not(feature = "sparse-cells"))]
     pub fn delta_exceeds(&self, budget: usize, bins: &mut u64) -> bool {
         let counts = self.state.epoch_counts.as_ref().expect("planned entry");
         let mut total = 0;
@@ -454,9 +454,9 @@ impl Scheduler {
             .iter()
             .map(|_| State {
                 cold: true,
-                #[cfg(feature = "epoch-runs")]
+                #[cfg(feature = "sparse-cells")]
                 planned_counts: enabled && planned,
-                epoch_counts: (enabled && planned && !cfg!(feature = "epoch-runs"))
+                epoch_counts: (enabled && planned && !cfg!(feature = "sparse-cells"))
                     .then(BTreeMap::new),
                 ..Default::default()
             })
@@ -587,13 +587,13 @@ impl Scheduler {
             s.pending.clear();
             g.witnesses(n.table)
         } else {
-            #[cfg(feature = "epoch-runs")]
+            #[cfg(feature = "sparse-cells")]
             {
                 let mut v: Vec<_> = s.pending.drain().collect();
                 v.sort_unstable();
                 v
             }
-            #[cfg(not(feature = "epoch-runs"))]
+            #[cfg(not(feature = "sparse-cells"))]
             {
                 std::mem::take(&mut s.pending).into_iter().collect()
             }
@@ -636,9 +636,9 @@ impl Scheduler {
             {
                 self.stats.parameter_packets_reused += 1;
                 s.insert_epoch(row.epoch, w);
-                #[cfg(feature = "row-ports")]
+                #[cfg(feature = "sparse-cells")]
                 s.rows.insert(w, Packet { row });
-                #[cfg(not(feature = "row-ports"))]
+                #[cfg(not(feature = "sparse-cells"))]
                 s.rows.insert(
                     w,
                     Rc::new(Packet {
@@ -648,7 +648,7 @@ impl Scheduler {
                 );
                 continue;
             }
-            #[cfg(feature = "row-ports")]
+            #[cfg(feature = "sparse-cells")]
             {
                 let valid = n.checks.iter().all(|(col, check)| match check {
                     Arg::Slot(other) => row.values[*other] == row.values[*col],
@@ -661,7 +661,7 @@ impl Scheduler {
                     self.stats.retired_packets += u64::from(previous.is_some());
                 }
             }
-            #[cfg(not(feature = "row-ports"))]
+            #[cfg(not(feature = "sparse-cells"))]
             {
                 let mut values = vec![None; n.ports];
                 let valid = n.args.iter().zip(row.values.iter()).all(|(a, v)| match a {

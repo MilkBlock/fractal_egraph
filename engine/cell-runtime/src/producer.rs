@@ -18,7 +18,7 @@ impl Graph {
     }
     pub fn continuation_context(&self, w: Dependency) -> Option<Context> {
         let actual = self.origin(w)?;
-        #[cfg(feature = "embedded-writers")]
+        #[cfg(feature = "sparse-cells")]
         if let Dependency::Function(i) = w
             && let Some(writer) = self.functions[i].writer.as_ref()
         {

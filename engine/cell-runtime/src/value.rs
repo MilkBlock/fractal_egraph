@@ -10,12 +10,12 @@ pub enum Value {
     Set(std::sync::Arc<Vec<Value>>),
     Key(eggfuse_structural_key::Key),
 }
-#[cfg(feature = "root-directory")]
+#[cfg(feature = "sparse-cells")]
 #[path = "root_directory.rs"]
 mod root_directory;
-#[cfg(feature = "root-directory")]
+#[cfg(feature = "sparse-cells")]
 pub use root_directory::Parents;
-#[cfg(not(feature = "root-directory"))]
+#[cfg(not(feature = "sparse-cells"))]
 pub type Parents = rustc_hash::FxHashMap<u64, u64>;
 pub fn root(parents: &Parents, mut x: u64) -> u64 {
     while let Some(&y) = parents.get(&x) {

@@ -7,7 +7,7 @@ use crate::{
     query::QueryIndexes,
 };
 use rustc_hash::FxHashMap as HashMap;
-#[cfg(not(feature = "compact-support"))]
+#[cfg(not(feature = "sparse-cells"))]
 use rustc_hash::FxHashSet as HashSet;
 use std::collections::{BTreeMap, VecDeque};
 use std::hash::{Hash, Hasher};
@@ -23,16 +23,16 @@ struct Spec {
     cols: Vec<usize>,
     guards: Vec<Guard>,
 }
-#[cfg(feature = "compact-support")]
+#[cfg(feature = "sparse-cells")]
 #[path = "support_keys.rs"]
 mod support_keys;
-#[cfg(feature = "compact-support")]
+#[cfg(feature = "sparse-cells")]
 type Support = support_keys::Support;
-#[cfg(not(feature = "compact-support"))]
+#[cfg(not(feature = "sparse-cells"))]
 type Support = HashSet<Vec<u64>>;
-#[cfg(feature = "compact-support")]
+#[cfg(feature = "sparse-cells")]
 type Projection = smallvec::SmallVec<[u64; 3]>;
-#[cfg(not(feature = "compact-support"))]
+#[cfg(not(feature = "sparse-cells"))]
 type Projection = Vec<u64>;
 #[derive(Default)]
 struct Summary {
@@ -97,12 +97,6 @@ impl Bloom {
 }
 #[derive(Default, serde::Serialize)]
 pub struct Stats {
-    #[cfg(feature = "sieve-frontier")]
-    reverse_frontiers: u64,
-    #[cfg(feature = "sieve-frontier")]
-    reverse_delta_rows: u64,
-    #[cfg(feature = "sieve-frontier")]
-    reverse_rows_returned: u64,
     pub builds: u64,
     pub rule_uses: u64,
     pub reused_summaries: u64,
@@ -295,9 +289,9 @@ impl Sieve {
         let state = &mut self.states[id];
         // Must track keys, NOT whether OR changed any Bloom bit. A new key can
         // collide with old bits and STILL needs upstream propagation.
-        #[cfg(feature = "compact-support")]
+        #[cfg(feature = "sparse-cells")]
         let fresh = state.keys.insert(&k);
-        #[cfg(not(feature = "compact-support"))]
+        #[cfg(not(feature = "sparse-cells"))]
         let fresh = state.keys.insert(k.clone());
         if !fresh {
             return None;
@@ -362,52 +356,6 @@ impl Sieve {
         });
         self.stats.empty_join_skips += u64::from(empty);
         empty
-    }
-    /// Enumerate the small side of a necessary guard before routing any
-    /// covered/uncovered seeds. Fingerprints enlarge domains on collision;
-    /// subsequent guard, ownership, binding and schedule checks still run.
-    #[cfg(feature = "sieve-frontier")]
-    pub(crate) fn frontier(
-        &mut self,
-        r: usize,
-        pivot: usize,
-        batch: crate::entry_schedule::Batch<'_>,
-        index: &QueryIndexes,
-    ) -> Option<Vec<Dependency>> {
-        if !self.enabled || !self.active[r] {
-            return None;
-        }
-        let guard = self.rules[r][pivot]
-            .iter()
-            .filter(|g| self.states[g.child].built && !g.cols.is_empty())
-            .min_by_key(|g| self.states[g.child].keys.len())?;
-        let keys = &self.states[guard.child].keys;
-        let n = batch.delta_len()?;
-        let budget = n / 8;
-        if n < 64 || keys.len() > budget {
-            return None;
-        }
-        let mut work = keys.len();
-        for k in keys {
-            work = work.saturating_add(index.min_postings(batch.table, &guard.cols, k)?);
-            if work > budget {
-                return None;
-            }
-        }
-        let mut winners = Vec::new();
-        for k in keys {
-            for w in index.hash_candidates(batch.table, &guard.cols, k) {
-                if let Some(p) = batch.packet(w) {
-                    winners.push((p.row.epoch, w));
-                }
-            }
-        }
-        winners.sort_unstable();
-        winners.dedup();
-        self.stats.reverse_frontiers += 1;
-        self.stats.reverse_delta_rows += n as u64;
-        self.stats.reverse_rows_returned += winners.len() as u64;
-        Some(winners.into_iter().map(|(_, w)| w).collect())
     }
     pub fn allow(
         &mut self,
@@ -498,9 +446,9 @@ mod tests {
         let mut keys = Support::default();
         for i in 0..200 {
             let k = vec![i, i * 17];
-            #[cfg(feature = "compact-support")]
+            #[cfg(feature = "sparse-cells")]
             keys.insert(&k);
-            #[cfg(not(feature = "compact-support"))]
+            #[cfg(not(feature = "sparse-cells"))]
             keys.insert(k.clone());
             bloom.grow(&keys, false);
             bloom.insert(&k);

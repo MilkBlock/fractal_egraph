@@ -13,7 +13,7 @@ mod local_rhs;
 mod prefix_proof;
 #[cfg(feature = "rhs-work-audit")]
 mod rhs_work;
-#[cfg(feature = "sparse-index")]
+#[cfg(feature = "sparse-cells")]
 mod tiny_set;
 #[cfg(feature = "slot-transfer-audit")]
 pub mod transfer_audit;

@@ -348,7 +348,16 @@ fn spine_routes_live_witnesses_and_plans_the_rest_of_the_same_query() {
     let spine = &counts["stage_spine"];
     assert!(spine["mixed_routed_queries"].as_u64().unwrap() > 0);
     assert!(spine["resumed_steps"].as_u64().unwrap() > 0);
+    #[cfg(not(feature = "sparse-cells"))]
     assert!(counts["free_join"]["entry_probes"].as_u64().unwrap() > 0);
+    #[cfg(feature = "sparse-cells")]
+    {
+        // Both residual atoms have a complete functional key. The register
+        // matcher verifies B(2) and the late B(99) on the normal schedule.
+        assert_eq!(counts["free_join"]["entry_probes"].as_u64(),Some(0));
+        assert!(counts["register_answers"].as_u64().unwrap()>0);
+        assert!(spine["routed_matcher_seeds"].as_u64().unwrap()>0);
+    }
     assert_eq!(
         counts["consumer_seed_deliveries"].as_u64().unwrap(),
         spine["routed_spine_seeds"].as_u64().unwrap()
