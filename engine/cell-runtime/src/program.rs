@@ -58,6 +58,8 @@ pub struct Rule {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
     #[serde(skip)]
+    pub(crate) families: Vec<Option<Rc<crate::family::Plan>>>,
+    #[serde(skip)]
     pub(crate) neighbor_plans: Vec<Option<crate::neighbor::Plan>>,
     #[serde(skip)]
     pub(crate) context_cuts: crate::local_context::Cuts,
@@ -313,6 +315,7 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
+            families: vec![],
             neighbor_plans: vec![],
             context_cuts: vec![],
             local_contexts: vec![],
@@ -344,6 +347,12 @@ impl Program {
         p.physical = Rc::new(crate::physical_plan::Plan::derive(&p));
         p.writes = crate::row_kernel::writes(&p);
         p.neighbor_plans = crate::neighbor::derive(&p);
+        p.families = crate::family::derive(&p);
+        if let Some(raw) = p.artifact.get("attribute_families")
+            && *raw != serde_json::json!(&p.families)
+        {
+            return Err("invalid attribute family plan".into());
+        }
         if let Some(raw) = p.artifact.get("neighbor_entries")
             && *raw != serde_json::json!(p.neighbor_plans)
         {

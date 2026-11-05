@@ -1055,3 +1055,68 @@ fn mismatched_catalog_is_rejected_before_publication() {
     assert!(String::from_utf8_lossy(&res.stderr).contains("catalog does not match"));
     assert!(!dest.exists());
 }
+
+#[test]
+fn attribute_families_are_checked_against_the_typed_source() {
+    use eggfuse_cell_runtime::program::Program;
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("family.egg");
+    fs::write(&source, include_str!("fixtures/attribute-family.egg")).unwrap();
+    let out = dir.path().join("artifact");
+    pass(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let path = out.join("program.json");
+    let pg = json_file(&path);
+    let rule = |name: &str| {
+        pg["recipe"]["rules"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .position(|r| r["metadata"]["name"] == name)
+            .unwrap()
+    };
+    for name in ["wrap-weight", "pair-weight", "wrap-height"] {
+        assert!(pg["attribute_families"][rule(name)].is_object());
+    }
+    assert!(pg["attribute_families"][rule("two-writes")].is_null());
+    #[cfg(feature = "iterative-bake")]
+    {
+        use eggfuse_cell_runtime::{
+            checksum::digest, executor::Executor, graph::Graph, transfer_audit,
+        };
+        let mut exec = Executor::new(
+            Graph::new(Program::parse(pg.clone()).unwrap()).unwrap(),
+            false,
+        );
+        transfer_audit::take_digests();
+        transfer_audit::take_write_digests();
+        transfer_audit::set_active(true);
+        transfer_audit::enable_write_audit();
+        exec.execute().unwrap();
+        transfer_audit::set_active(false);
+        let writes = transfer_audit::take_write_digests();
+        assert_eq!(
+            writes.iter().map(|(n, _)| *n).collect::<Vec<_>>(),
+            [8, 0, 1, 1, 1, 3]
+        );
+        // Golden order from the ordinary minimal commit path. Includes the
+        // per-Run RHS ordinal and both the old and new function values.
+        assert_eq!(
+            digest(&json!(writes)),
+            "34cd1aa99d4ab8262b180e0492c9a396d57c4f070159d1fe262a64d44482f3de"
+        );
+        assert_eq!(
+            digest(&json!(transfer_audit::take_digests())),
+            "385709611d12cd720abc4c8f40e17a6e4c62a505c6fd17a8cbdbcf5a702b0d62"
+        );
+    }
+    let mut invalid = pg.clone();
+    invalid["attribute_families"][rule("pair-weight")]["key"] = json!(999);
+    assert!(Program::parse(invalid).is_err());
+    assert_eq!(stage_output(&path, "64"), stage_output(&path, "0"));
+}

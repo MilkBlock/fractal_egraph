@@ -34,3 +34,5 @@ cargo test --release --locked --workspace --all-features
 ```
 
 [Compiler and audit commands](tools/cell-compiler/README.md) · [Workload and catalog provenance](workloads/pass3/README.md)
+
+The opt-in single-thread [attribute-family fusion experiment](docs/ATTRIBUTE_FUSION.md) shares delta entry packets and carries ordered scalar lanes through RHS commit and incremental publication. The report compares the entry-only, write and complete Cargo features against the minimal pipeline.
