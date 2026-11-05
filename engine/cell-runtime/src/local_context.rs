@@ -709,13 +709,7 @@ fn finish_guards(
         if name.starts_with("cell-key-") {
             g.stats.key_operations += 1;
         }
-        let Some(v) = crate::value::primitive(
-            name,
-            &inputs,
-            sort,
-            &g.program.artifact["source_core"]["structural_key"]["nodes"],
-        )?
-        else {
+        let Some(v) = crate::value::primitive(name, &inputs, sort, g.program.key_nodes())? else {
             return Ok(false);
         };
         if !bind(dst, &v, values, g) {

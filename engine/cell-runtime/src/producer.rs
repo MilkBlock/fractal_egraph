@@ -18,6 +18,18 @@ impl Graph {
     }
     pub fn continuation_context(&self, w: Dependency) -> Option<Context> {
         let actual = self.origin(w)?;
+        #[cfg(feature = "embedded-writers")]
+        if let Dependency::Function(i) = w
+            && let Some(writer) = self.functions[i].writer.as_ref()
+        {
+            return Some(Context {
+                completed: writer.completed,
+                cell: actual.cell,
+                template: writer.template,
+                depth: writer.depth,
+                op: actual.op as usize,
+            });
+        }
         let f = if let Dependency::Fact(f) = w {
             self.cells
                 .get(&f.cell)?

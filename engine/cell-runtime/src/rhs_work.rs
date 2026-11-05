@@ -204,7 +204,7 @@ impl Ledger {
         }
         Ok(())
     }
-    pub fn observe_births(&mut self, g: &Graph, b: &mut Births) {
+    pub fn observe_births(&mut self, g: &mut Graph, b: &mut Births) -> Result<()> {
         for (
             f,
             Birth {
@@ -231,6 +231,15 @@ impl Ledger {
                     if let Dependency::Fact(keep) = target
                         && g.cells[&keep.cell].facts[&keep.op].born < g.epoch
                     {
+                        #[cfg(feature = "keeper-proof")]
+                        if !seen.get() {
+                            g.proof.winner(crate::prefix_proof::Pair {
+                                epoch: g.epoch,
+                                rule: r,
+                                source: f,
+                                keeper: keep,
+                            })?;
+                        }
                         life.forwarded_to_older += 1;
                         life.older_without_later_lookup += u64::from(!seen.get());
                         life.older_without_later_lookup_or_anchor +=
@@ -244,6 +253,7 @@ impl Ledger {
                 life.absent += 1;
             }
         }
+        Ok(())
     }
     pub fn wake(&mut self) {
         self.wakes += 1;

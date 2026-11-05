@@ -14,7 +14,7 @@ use std::{
 pub(crate) struct Tuple {
     pub witness: crate::graph::Dependency,
     pub epoch: u64,
-    pub fields: Rc<Vec<Value>>,
+    pub fields: crate::graph::RowFields,
     pub columns: Option<Rc<Vec<usize>>>,
 }
 #[cfg(feature = "view-consumers")]

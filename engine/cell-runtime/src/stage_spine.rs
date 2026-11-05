@@ -33,12 +33,104 @@ pub struct Cursor {
     pub depth: u32,
     pub producer: usize,
 }
+#[cfg(feature = "shared-cursors")]
+#[derive(Clone)]
+enum PublishedBase {
+    Root(Rc<Root>, usize),
+    Active(Rc<Cursor>),
+    #[cfg(feature = "solo-spine")]
+    Solo {
+        id: u64,
+        epoch: u64,
+        stage: usize,
+        producer: usize,
+        root: OnceCell<Rc<Root>>,
+    },
+}
+#[cfg(feature = "shared-cursors")]
+pub(crate) struct Published {
+    base: PublishedBase,
+    output: usize,
+    #[cfg(feature = "spine-shapes")]
+    source: crate::graph::FactRef,
+}
+#[cfg(feature = "shared-cursors")]
+impl Published {
+    fn root_info(&self) -> (u64, Option<&Root>) {
+        match &self.base {
+            PublishedBase::Root(r, _) => (r.id, Some(r)),
+            PublishedBase::Active(c) => (c.root.id, Some(&c.root)),
+            #[cfg(feature = "solo-spine")]
+            PublishedBase::Solo { id, root, .. } => (*id, root.get().map(Rc::as_ref)),
+        }
+    }
+    pub(crate) fn expand(&self) -> Cursor {
+        let mut c = match &self.base {
+            PublishedBase::Root(r, p) => Cursor::fresh(r.clone(), *p),
+            PublishedBase::Active(c) => (**c).clone(),
+            #[cfg(feature = "solo-spine")]
+            PublishedBase::Solo {
+                id,
+                epoch,
+                stage,
+                producer,
+                root,
+            } => Cursor::fresh(
+                root.get_or_init(|| {
+                    Rc::new(Root {
+                        id: *id,
+                        epoch: *epoch,
+                        set: *stage,
+                        context: OnceCell::new(),
+                    })
+                })
+                .clone(),
+                *producer,
+            ),
+        };
+        c.state.output = self.output;
+        #[cfg(feature = "spine-shapes")]
+        {
+            c.trace.source = Some(self.source);
+        }
+        c
+    }
+}
+#[cfg(not(feature = "shared-cursors"))]
+pub(crate) type Published = Cursor;
+#[cfg(not(feature = "shared-cursors"))]
+impl Cursor {
+    pub(crate) fn expand(&self) -> Self {
+        self.clone()
+    }
+    fn root_info(&self) -> (u64, Option<&Root>) {
+        (self.root.id, Some(&self.root))
+    }
+}
+#[cfg(feature = "shared-cursors")]
+impl Cursor {
+    fn fresh(root: Rc<Root>, producer: usize) -> Self {
+        Self {
+            root,
+            producer,
+            depth: 1,
+            state: Default::default(),
+            via_block: false,
+            #[cfg(feature = "spine-shapes")]
+            trace: Default::default(),
+        }
+    }
+}
+#[cfg(feature = "solo-spine")]
+type StageTag = usize;
+#[cfg(not(feature = "solo-spine"))]
+type StageTag = Rc<str>;
 /// Shared by every published anchor of one logical root. The cell stores a
 /// pointer so an unused root never reserves space for the full Context.
 struct Root {
     id: u64,
     epoch: u64,
-    set: Rc<str>,
+    set: StageTag,
     context: OnceCell<Box<RefCell<Context>>>,
 }
 impl Root {
@@ -46,7 +138,10 @@ impl Root {
         self.context.get_or_init(|| {
             stats.contexts_created += 1;
             Box::new(RefCell::new(Context {
+                #[cfg(not(feature = "solo-spine"))]
                 sets: BTreeSet::from([self.set.to_string()]),
+                #[cfg(feature = "solo-spine")]
+                sets: smallvec::smallvec![self.set],
                 last_epoch: self.epoch,
                 visits: 1,
                 unions: 0,
@@ -62,7 +157,7 @@ pub(crate) enum Started {
         id: u64,
         producer: usize,
         epoch: u64,
-        set: Rc<str>,
+        set: StageTag,
     },
     Live(Cursor),
 }
@@ -144,7 +239,10 @@ impl Started {
     }
 }
 struct Context {
+    #[cfg(not(feature = "solo-spine"))]
     sets: BTreeSet<String>,
+    #[cfg(feature = "solo-spine")]
+    sets: smallvec::SmallVec<[usize; 2]>,
     last_epoch: u64,
     visits: u64,
     unions: u64,
@@ -179,6 +277,8 @@ pub struct Coverage {
 pub struct Stats {
     root_attempts: u64,
     root_handles_created: u64,
+    #[cfg(feature = "solo-spine")]
+    deferred_single_roots: u64,
     contexts_created: u64,
     captured_contexts: u64,
     capture_reads: u64,
@@ -215,6 +315,8 @@ pub struct Stats {
     dispatch_headers: u64,
     context_reads: u64,
     captured_anchors: u64,
+    #[cfg(feature = "receipt-spine")]
+    unmaterialized_anchor_keys: u64,
     alias_query_forwards: u64,
     alias_effect_forwards: u64,
     distinct_anchor_keys: u64,
@@ -250,6 +352,8 @@ pub struct Stats {
     fallback_by_rule: BTreeMap<usize, u64>,
 }
 struct Publication {
+    #[cfg(feature = "receipt-spine")]
+    ordinal: u64,
     #[cfg(feature = "iterative-bake")]
     output: usize,
     slot: usize,
@@ -258,6 +362,8 @@ struct Publication {
     source: crate::graph::FactRef,
 }
 pub struct Programs {
+    #[cfg(feature = "sealed-origin")]
+    pub(crate) direct_sealed_answers: bool,
     #[cfg(feature = "structural-depth")]
     pub(crate) structural: crate::depth_runtime::Depth,
     #[cfg(feature = "structural-depth")]
@@ -277,36 +383,54 @@ pub struct Programs {
     row_cache: HashMap<Dependency, Option<Rc<Row>>>,
     consumer_tables: BTreeMap<usize, BTreeSet<usize>>,
     orders: BTreeMap<(usize, usize), Vec<usize>>,
-    entries: HashMap<Dependency, Cursor>,
+    entries: HashMap<Dependency, Published>,
+    #[cfg(feature = "shared-cursors")]
+    published_bases: Vec<Option<PublishedBase>>,
     active_tables: BTreeMap<usize, usize>,
     // Anchor-producing operations and their optional proven receipt sources.
     anchor_ops: Vec<Vec<(usize, Option<Source>)>>,
     alias_query_facts: Vec<QueryFacts>,
     // All anchors of one application share this slot, including after key coalescence.
     pending_steps: Vec<Started>,
+    #[cfg(feature = "receipt-spine")]
+    pub(crate) compiled_commits: bool,
+    #[cfg(feature = "receipt-spine")]
+    permanent: Vec<bool>,
+    #[cfg(feature = "receipt-spine")]
+    direct_publications: HashMap<Dependency, (usize, Publication)>,
     pending_anchors: Vec<(usize, Vec<Value>, Publication)>,
     root_set: Rc<str>,
+    #[cfg(feature = "solo-spine")]
+    stage_names: HashMap<String, usize>,
+    #[cfg(feature = "solo-spine")]
+    stage_number: usize,
     capture_unions: Option<u64>,
     origins: Vec<HashMap<Vec<Value>, Cursor>>,
     origin_rules: Vec<usize>,
     next_context: u64,
 
+    #[cfg(feature = "flat-seal")]
+    answer_scratch: Winners,
     pub stats: Stats,
 }
 fn bind(a: &Arg, v: &Value, input: &mut Inputs, g: &Graph) -> bool {
     match a {
         Arg::Literal(x) => canon(x, &g.parents) == *v,
-        Arg::Slot(i) => match &input[*i] {
+        Arg::Slot(i) => match input.get(*i) {
             Some(x) => x == v,
             None => {
-                input[*i] = Some(v.clone());
+                input.set(*i, Some(v.clone()));
                 true
             }
         },
     }
 }
+#[cfg(feature = "flat-seal")]
+type Winners = Vec<(Vec<Value>, (Answer, Cursor))>;
+#[cfg(not(feature = "flat-seal"))]
+type Winners = BTreeMap<Vec<Value>, (Answer, Cursor)>;
 fn record_answer(
-    results: &mut BTreeMap<Vec<Value>, (Answer, Cursor)>,
+    results: &mut Winners,
     values: Vec<Value>,
     witnesses: Vec<Option<Dependency>>,
     epoch: u64,
@@ -322,12 +446,19 @@ fn record_answer(
             #[cfg(feature = "iterative-bake")]
             direct: None,
 
-            values: if direct { Vec::new() } else { values.clone() },
+            values: if direct || cfg!(feature = "sealed-origin") {
+                Vec::new()
+            } else {
+                values.clone()
+            },
             witnesses,
             epoch,
         },
         cursor,
     );
+    #[cfg(feature = "flat-seal")]
+    results.push((values, candidate));
+    #[cfg(not(feature = "flat-seal"))]
     match results.entry(values) {
         std::collections::btree_map::Entry::Vacant(e) => {
             e.insert(candidate);
@@ -392,7 +523,7 @@ fn read_port(
 fn operand(a: &Arg, input: &Inputs, g: &Graph) -> Option<Value> {
     match a {
         Arg::Literal(v) => Some(canon(v, &g.parents)),
-        Arg::Slot(i) => input[*i].clone(),
+        Arg::Slot(i) => input.get(*i).cloned(),
     }
 }
 fn order(rule: &Rule, pivot: usize) -> Option<Vec<usize>> {
@@ -464,7 +595,28 @@ impl Context {
 impl Programs {
     pub fn new(p: &Program) -> Self {
         let enabled = true;
+        #[cfg(feature = "receipt-spine")]
+        let permanent = {
+            let mut v = vec![true; p.tables.len()];
+            for t in &p.templates {
+                for op in t.ops.iter() {
+                    if let Op::Hide(table, ..) = op {
+                        v[*table] = false;
+                    }
+                }
+            }
+            for init in &p.initial {
+                if init["subsumed"].as_bool() == Some(true)
+                    && let Some(t) = p.tables.iter().position(|t| init["table"] == t.name)
+                {
+                    v[t] = false;
+                }
+            }
+            v
+        };
         let mut s = Self {
+            #[cfg(feature = "sealed-origin")]
+            direct_sealed_answers: false,
             enabled,
             receipts: true,
             audit_receipts: false,
@@ -477,6 +629,8 @@ impl Programs {
             consumer_tables: BTreeMap::new(),
             orders: BTreeMap::new(),
             entries: HashMap::default(),
+            #[cfg(feature = "shared-cursors")]
+            published_bases: vec![],
             active_tables: BTreeMap::new(),
             #[cfg(feature = "spine-shapes")]
             shapes: Default::default(),
@@ -486,7 +640,17 @@ impl Programs {
             alias_query_facts: vec![],
             pending_steps: vec![],
             pending_anchors: vec![],
+            #[cfg(feature = "receipt-spine")]
+            compiled_commits: false,
+            #[cfg(feature = "receipt-spine")]
+            permanent,
+            #[cfg(feature = "receipt-spine")]
+            direct_publications: Default::default(),
             root_set: Rc::from(""),
+            #[cfg(feature = "solo-spine")]
+            stage_names: Default::default(),
+            #[cfg(feature = "solo-spine")]
+            stage_number: usize::MAX,
             capture_unions: None,
             #[cfg(feature = "structural-depth")]
             structural: crate::depth_runtime::Depth::new(p),
@@ -496,6 +660,8 @@ impl Programs {
             origin_rules: Vec::new(),
             next_context: 0,
 
+            #[cfg(feature = "flat-seal")]
+            answer_scratch: vec![],
             stats: Stats::default(),
         };
         if !enabled {
@@ -626,8 +792,23 @@ impl Programs {
         if previous.is_none() && self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return None;
         }
+        #[cfg(feature = "solo-spine")]
+        if self.root_set.as_ref() != set || self.stage_number == usize::MAX {
+            self.root_set = Rc::from(set);
+            self.stage_number = if let Some(&n) = self.stage_names.get(set) {
+                n
+            } else {
+                let n = self.stage_names.len();
+                self.stage_names.insert(set.into(), n);
+                n
+            };
+        }
         self.stats.steps_executed += 1;
-        *self.stats.by_set.entry(set.into()).or_default() += 1;
+        if let Some(n) = self.stats.by_set.get_mut(set) {
+            *n += 1
+        } else {
+            self.stats.by_set.insert(set.into(), 1);
+        }
         if let Some(mut cursor) = previous {
             self.stats.resumed_steps += 1;
             #[cfg(feature = "slot-transfer-audit")]
@@ -639,7 +820,11 @@ impl Programs {
             {
                 self.stats.block_resumptions += u64::from(cursor.via_block);
             }
-            *self.stats.resumed_by_set.entry(set.into()).or_default() += 1;
+            if let Some(n) = self.stats.resumed_by_set.get_mut(set) {
+                *n += 1
+            } else {
+                self.stats.resumed_by_set.insert(set.into(), 1);
+            }
             cursor.depth = cursor
                 .depth
                 .checked_add(1)
@@ -648,8 +833,16 @@ impl Programs {
             self.shapes.resume(&mut cursor.trace, cursor.producer, rid);
             cursor.producer = rid;
             let mut c = cursor.root.materialize(&mut self.stats).borrow_mut();
-            self.stats.cross_stage_steps += u64::from(!c.sets.contains(set));
-            c.sets.insert(set.into());
+            #[cfg(not(feature = "solo-spine"))]
+            if !c.sets.contains(set) {
+                self.stats.cross_stage_steps += 1;
+                c.sets.insert(set.into());
+            }
+            #[cfg(feature = "solo-spine")]
+            if !c.sets.contains(&self.stage_number) {
+                self.stats.cross_stage_steps += 1;
+                c.sets.push(self.stage_number);
+            }
             if c.last_epoch != epoch {
                 c.visits += 1;
                 c.last_epoch = epoch;
@@ -684,7 +877,10 @@ impl Programs {
                 id,
                 producer: rid,
                 epoch,
+                #[cfg(not(feature = "solo-spine"))]
                 set: self.root_set.clone(),
+                #[cfg(feature = "solo-spine")]
+                set: self.stage_number,
             })
         }
     }
@@ -765,6 +961,8 @@ impl Programs {
             s
         };
         self.pending_steps.push(step);
+        #[cfg(feature = "shared-cursors")]
+        self.published_bases.push(None);
         for &(i, source) in &self.anchor_ops[rid] {
             let (table, args) = match &template.ops[i] {
                 Op::Let(_, Call::Table(t), args) | Op::Set(t, args, _) => (*t, args),
@@ -787,21 +985,34 @@ impl Programs {
                     }
                 }
             });
-            self.pending_anchors.push((
-                table,
-                key(i, args)?,
-                Publication {
-                    slot,
-                    receipt,
-                    #[cfg(feature = "iterative-bake")]
-                    output: i,
-                    #[cfg(feature = "spine-shapes")]
-                    source: crate::graph::FactRef {
-                        cell: _cell,
-                        op: i as u32,
-                    },
+            let publication = Publication {
+                #[cfg(feature = "receipt-spine")]
+                ordinal: self.stats.captured_anchors,
+                slot,
+                receipt,
+                #[cfg(feature = "iterative-bake")]
+                output: i,
+                #[cfg(feature = "spine-shapes")]
+                source: crate::graph::FactRef {
+                    cell: _cell,
+                    op: i as u32,
                 },
-            ));
+            };
+            #[cfg(feature = "receipt-spine")]
+            if self.compiled_commits
+                && self.permanent[table]
+                && !g.has_visibility_changes(table)
+                && self.receipts
+                && !self.audit_receipts
+                && let Some(w) = receipt
+            {
+                self.direct_publications.insert(w, (table, publication));
+                self.stats.unmaterialized_anchor_keys += 1;
+                self.stats.captured_anchors += 1;
+                continue;
+            }
+            self.pending_anchors
+                .push((table, key(i, args)?, publication));
             self.stats.captured_anchors += 1;
         }
         self.stats.captured_contexts += 1;
@@ -817,6 +1028,7 @@ impl Programs {
         table: usize,
         key: Vec<Value>,
         w: Dependency,
+        #[cfg(feature = "receipt-spine")] visibility_changed: bool,
         unions: u64,
         #[cfg(feature = "iterative-bake")] catalog: &crate::iterative::Catalog,
         #[cfg(feature = "iterative-bake")] query: &QueryFacts,
@@ -836,23 +1048,109 @@ impl Programs {
             s
         };
         self.pending_steps.push(step);
-        self.pending_anchors.push((
-            table,
-            key,
-            Publication {
-                slot,
-                receipt: self.receipts.then_some(w),
-                #[cfg(feature = "iterative-bake")]
-                output: op,
-                #[cfg(feature = "spine-shapes")]
-                source: crate::graph::FactRef {
-                    cell: _cell,
-                    op: op as u32,
-                },
+        #[cfg(feature = "shared-cursors")]
+        self.published_bases.push(None);
+        let publication = Publication {
+            #[cfg(feature = "receipt-spine")]
+            ordinal: self.stats.captured_anchors,
+            slot,
+            receipt: self.receipts.then_some(w),
+            #[cfg(feature = "iterative-bake")]
+            output: op,
+            #[cfg(feature = "spine-shapes")]
+            source: crate::graph::FactRef {
+                cell: _cell,
+                op: op as u32,
             },
-        ));
+        };
+        #[cfg(feature = "receipt-spine")]
+        let direct = self.compiled_commits
+            && self.permanent[table]
+            && !visibility_changed
+            && self.receipts
+            && !self.audit_receipts;
+        #[cfg(not(feature = "receipt-spine"))]
+        let direct = false;
+        if direct {
+            #[cfg(feature = "receipt-spine")]
+            {
+                self.direct_publications.insert(w, (table, publication));
+            }
+        } else {
+            self.pending_anchors.push((table, key, publication));
+        }
         self.stats.captured_anchors += 1;
         self.stats.captured_contexts += 1;
+    }
+    fn install_anchor(&mut self, w: Dependency, table: usize, publication: Publication) {
+        let slot = publication.slot;
+        #[cfg(feature = "shared-cursors")]
+        let cursor = {
+            let base =
+                self.published_bases[slot].get_or_insert_with(|| match &self.pending_steps[slot] {
+                    #[cfg(feature = "solo-spine")]
+                    Started::Root {
+                        id,
+                        producer,
+                        epoch,
+                        set,
+                    } if self.anchor_ops[*producer].len() == 1 => {
+                        self.stats.deferred_single_roots += 1;
+                        PublishedBase::Solo {
+                            id: *id,
+                            producer: *producer,
+                            epoch: *epoch,
+                            stage: *set,
+                            root: OnceCell::new(),
+                        }
+                    }
+                    Started::Root {
+                        id,
+                        producer,
+                        epoch,
+                        set,
+                    } => {
+                        self.stats.root_handles_created += 1;
+                        PublishedBase::Root(
+                            Rc::new(Root {
+                                id: *id,
+                                epoch: *epoch,
+                                set: set.clone(),
+                                context: OnceCell::new(),
+                            }),
+                            *producer,
+                        )
+                    }
+                    Started::Live(c) => PublishedBase::Active(Rc::new(c.clone())),
+                });
+            Published {
+                base: base.clone(),
+                output: publication.output,
+                #[cfg(feature = "spine-shapes")]
+                source: publication.source,
+            }
+        };
+        #[cfg(not(feature = "shared-cursors"))]
+        let cursor = {
+            let cursor = self.pending_steps[slot].cursor(&mut self.stats).clone();
+            #[cfg(feature = "spine-shapes")]
+            let cursor = {
+                let mut cursor = cursor;
+                cursor.trace.source = Some(publication.source);
+                cursor
+            };
+            #[cfg(feature = "iterative-bake")]
+            let cursor = {
+                let mut c = cursor;
+                c.state.output = publication.output;
+                c
+            };
+            cursor
+        };
+        if self.entries.insert(w, cursor).is_none() {
+            *self.active_tables.entry(table).or_default() += 1;
+        }
+        self.stats.anchor_publications += 1;
     }
     pub fn publish(&mut self, g: &mut Graph) -> Result<()> {
         if !self.enabled {
@@ -900,9 +1198,29 @@ impl Programs {
             anchors.insert((table, key), publication);
         }
         self.stats.distinct_anchor_keys += anchors.len() as u64;
+        #[cfg(feature = "receipt-spine")]
+        for &old in g.receipt_forwards.keys() {
+            if let Some(incoming) = self.direct_publications.remove(&old) {
+                let target = g.resolve_receipt(old);
+                match self.direct_publications.entry(target) {
+                    std::collections::hash_map::Entry::Vacant(e) => {
+                        e.insert(incoming);
+                    }
+                    std::collections::hash_map::Entry::Occupied(mut e) => {
+                        if incoming.1.ordinal > e.get().1.ordinal {
+                            e.insert(incoming);
+                        }
+                    }
+                }
+            }
+        }
+        #[cfg(feature = "receipt-spine")]
+        {
+            self.stats.distinct_anchor_keys += self.direct_publications.len() as u64;
+        }
         let hits_before = self.stats.receipt_hits;
         for ((table, key), publication) in anchors {
-            let Publication { slot, receipt, .. } = publication;
+            let receipt = publication.receipt;
             let mut witness = None;
             if self.receipts {
                 if let Some(old) = receipt {
@@ -937,26 +1255,34 @@ impl Programs {
                     .map(|r| r.witness);
             }
             if let Some(w) = witness {
-                let cursor = self.pending_steps[slot].cursor(&mut self.stats).clone();
-                #[cfg(feature = "spine-shapes")]
-                let cursor = {
-                    let mut cursor = cursor;
-                    cursor.trace.source = Some(publication.source);
-                    cursor
-                };
-                #[cfg(feature = "iterative-bake")]
-                let cursor = {
-                    let mut c = cursor;
-                    c.state.output = publication.output;
-                    c
-                };
-                if self.entries.insert(w, cursor).is_none() {
-                    *self.active_tables.entry(table).or_default() += 1;
+                #[cfg(feature = "receipt-spine")]
+                if let Some((_, direct)) = self.direct_publications.get(&w) {
+                    self.stats.distinct_anchor_keys -= 1;
+                    if direct.ordinal > publication.ordinal {
+                        continue;
+                    }
+                    self.direct_publications.remove(&w);
                 }
-                self.stats.anchor_publications += 1;
+                self.install_anchor(w, table, publication);
             } else {
                 self.stats.missing_capture_rows += 1;
             }
+        }
+        #[cfg(feature = "receipt-spine")]
+        {
+            let mut resolved = std::mem::take(&mut self.direct_publications);
+            for (w, (table, p)) in resolved.drain() {
+                // All subsume/delete producers and initially hidden rows were
+                // excluded. Only same-key repair forwarding can move a receipt.
+                if !g.receipt_visible(w, table) {
+                    return Err("permanent producer receipt lost visibility".into());
+                }
+                self.stats.receipt_attempts += 1;
+                self.stats.receipt_hits += 1;
+                self.stats.receipt_redirects += u64::from(p.receipt != Some(w));
+                self.install_anchor(w, table, p);
+            }
+            self.direct_publications = resolved;
         }
         let hits = self.stats.receipt_hits - hits_before;
         if hits > 0 {
@@ -967,6 +1293,8 @@ impl Programs {
                 .or_default() += hits;
         }
         self.pending_steps.clear();
+        #[cfg(feature = "shared-cursors")]
+        self.published_bases.clear();
         for rid in self.origin_rules.drain(..) {
             self.origins[rid].clear();
         }
@@ -1068,7 +1396,7 @@ impl Programs {
                     .entries
                     .get(&w)
                     .filter(|_| self.orders.contains_key(&(rid, pivot)))
-                    .cloned()
+                    .map(Published::expand)
                 else {
                     self.record_fallbacks(rid, pivot, 1);
                     self.stats.uncovered_queries += 1;
@@ -1099,7 +1427,7 @@ impl Programs {
         rid: usize,
         pivot: usize,
         table: usize,
-    ) -> Option<&HashMap<Dependency, Cursor>> {
+    ) -> Option<&HashMap<Dependency, Published>> {
         (self.enabled
             && self.active_tables.contains_key(&table)
             && self.orders.contains_key(&(rid, pivot)))
@@ -1129,7 +1457,7 @@ impl Programs {
                 .scheduled_cursors(rid, seed.atom, row.table)
                 .and_then(|c| c.get(&row.witness))
             {
-                routes.push((i, cursor.clone()));
+                routes.push((i, cursor.expand()));
             } else {
                 self.record_fallbacks(rid, seed.atom, 1);
             }
@@ -1192,7 +1520,10 @@ impl Programs {
             return Ok(None);
         }
         let rule = g.program.rules[rid].clone();
-        let mut results: BTreeMap<Vec<Value>, (Answer, Cursor)> = BTreeMap::new();
+        #[cfg(feature = "flat-seal")]
+        let mut results = std::mem::take(&mut self.answer_scratch);
+        #[cfg(not(feature = "flat-seal"))]
+        let mut results = Winners::new();
         for (pivot, row, mut input, cursor) in ready {
             let mut witnesses = vec![None; rule.query.len()];
             witnesses[pivot] = Some(row.witness);
@@ -1308,12 +1639,7 @@ impl Programs {
                         if name.starts_with("cell-key-") {
                             g.stats.key_operations += 1;
                         }
-                        let value = value::primitive(
-                            name,
-                            &args,
-                            output,
-                            &g.program.artifact["source_core"]["structural_key"]["nodes"],
-                        )?;
+                        let value = value::primitive(name, &args, output, g.program.key_nodes())?;
                         if value
                             .as_ref()
                             .is_none_or(|v| !bind(a.args.last().unwrap(), v, &mut input, g))
@@ -1329,10 +1655,21 @@ impl Programs {
                 let values = rule
                     .inputs
                     .iter()
-                    .map(|i| ({ input[*i].clone() }).ok_or("incomplete stage recipe input".into()))
+                    .map(|i| {
+                        ({ input.get(*i).cloned() }).ok_or("incomplete stage recipe input".into())
+                    })
                     .collect::<Result<Vec<_>>>()?;
                 record_answer(&mut results, values, witnesses, epoch, cursor);
             }
+        }
+        #[cfg(feature = "flat-seal")]
+        {
+            // Stable ordering retains the first producer when duplicate
+            // bindings have the same depth, as in the ordered-map route.
+            results.sort_by(|(ka, (_, ca)), (kb, (_, cb))| {
+                ka.cmp(kb).then_with(|| cb.depth.cmp(&ca.depth))
+            });
+            results.dedup_by(|a, b| a.0 == b.0);
         }
         if complete {
             self.stats.query_takeovers += 1;
@@ -1343,27 +1680,50 @@ impl Programs {
         *self.stats.covered_by_rule.entry(rid).or_default() += covered.len() as u64;
         self.stats.bindings += results.len() as u64;
         *self.stats.bindings_by_rule.entry(rid).or_default() += results.len() as u64;
+        #[cfg(feature = "flat-seal")]
+        let rows = results.drain(..);
+        #[cfg(not(feature = "flat-seal"))]
+        let rows = results.into_iter();
+        let answers = rows
+            .map(|(key, (answer, cursor))| {
+                #[cfg(feature = "iterative-bake")]
+                if cursor.state.direct || {
+                    #[cfg(feature = "sealed-origin")]
+                    {
+                        self.direct_sealed_answers && complete
+                    }
+                    #[cfg(not(feature = "sealed-origin"))]
+                    {
+                        false
+                    }
+                } {
+                    debug_assert!(complete);
+                    let mut answer = answer;
+                    answer.values = key;
+                    answer.direct = Some(DirectOrigin(Box::new(cursor)));
+                    return answer;
+                }
+                if self.origins[rid].is_empty() {
+                    self.origin_rules.push(rid);
+                }
+                #[cfg(feature = "sealed-origin")]
+                let answer = {
+                    let mut a = answer;
+                    a.values = key.clone();
+                    a
+                };
+                self.origins[rid].insert(key, cursor);
+                answer
+            })
+            .collect();
+        #[cfg(feature = "flat-seal")]
+        {
+            self.answer_scratch = results;
+        }
         Ok(Some(Coverage {
             complete,
             covered,
-            answers: results
-                .into_iter()
-                .map(|(key, (answer, cursor))| {
-                    #[cfg(feature = "iterative-bake")]
-                    if cursor.state.direct {
-                        debug_assert!(complete);
-                        let mut answer = answer;
-                        answer.values = key;
-                        answer.direct = Some(DirectOrigin(Box::new(cursor)));
-                        return answer;
-                    }
-                    if self.origins[rid].is_empty() {
-                        self.origin_rules.push(rid);
-                    }
-                    self.origins[rid].insert(key, cursor);
-                    answer
-                })
-                .collect(),
+            answers,
         }))
     }
     pub fn shared(&self) -> bool {
@@ -1464,9 +1824,11 @@ impl Programs {
         let contexts = self
             .entries
             .values()
-            .map(|c| (c.root.id, &c.root))
+            .map(Published::root_info)
             .collect::<BTreeMap<_, _>>();
-        let materialized = contexts.values().filter_map(|root| root.context.get());
+        let materialized = contexts
+            .values()
+            .filter_map(|root| root.and_then(|r| r.context.get()));
         let live_materialized = materialized.clone().count();
         let facts: usize = materialized.map(|c| c.borrow().facts.len()).sum();
         let report = json!({"enabled":self.enabled,"receipts_enabled":self.receipts,"partial_enabled":self.partial,"shared_entries_enabled":self.shared_entries,"stats":self.stats,"producer_rules":self.anchor_ops.iter().filter(|ops| !ops.is_empty()).count(),

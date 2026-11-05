@@ -4,6 +4,29 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+flat-seal=["sealed-origin"]
+sparse-cells = ["sparse-index","embedded-writers","row-ports","lean-buckets","cell-arena","scalar-dispatch","epoch-runs","receipt-spine","solo-spine","sealed-origin","root-directory","point-entries","transient-cell","row-slices","compact-support","inline-completed"]
+inline-completed=["embedded-writers","transient-cell"]
+compact-support=[]
+solo-spine=["shared-cursors"]
+row-slices=[]
+transient-cell=[]
+root-directory=[]
+point-entries=[]
+sealed-origin=["iterative-bake"]
+sieve-frontier=[]
+shared-cursors=["iterative-bake"]
+receipt-spine=[]
+epoch-runs=[]
+scalar-dispatch=[]
+packed-slots=[]
+cell-arena=[]
+lean-buckets=["sparse-index"]
+row-ports=[]
+embedded-writers=[]
+sparse-index=[]
+storage-metrics=["dep:libc"]
+keeper-proof=["rhs-work-audit","rhs-locals"]
 rhs-locals = ["iterative-bake"]
 rhs-work-audit = ["structural-depth"]
 receipt-slots = ["structural-depth"]
@@ -28,6 +51,7 @@ spine-blocks = []
 iterative-bake = ["spine-blocks"]
 
 [dependencies]
+libc={version="0.2",optional=true}
 eggfuse-structural-key = { path = "../structural-key" }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }

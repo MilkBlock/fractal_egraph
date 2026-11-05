@@ -57,6 +57,9 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[cfg(feature = "scalar-dispatch")]
+    #[serde(skip)]
+    pub(crate) cached_key_nodes: Rc<J>,
     #[cfg(feature = "rhs-locals")]
     #[serde(skip)]
     pub(crate) local_rhs: Vec<Option<Rc<crate::local_rhs::Block>>>,
@@ -130,6 +133,17 @@ pub fn call(j: &J, names: &BTreeMap<String, usize>) -> Result<Call> {
     }
 }
 impl Program {
+    #[inline]
+    pub(crate) fn key_nodes(&self) -> &J {
+        #[cfg(feature = "scalar-dispatch")]
+        {
+            &self.cached_key_nodes
+        }
+        #[cfg(not(feature = "scalar-dispatch"))]
+        {
+            &self.artifact["source_core"]["structural_key"]["nodes"]
+        }
+    }
     #[cfg(feature = "family-survey")]
     pub fn survey_view_rules(&self) -> std::collections::BTreeSet<usize> {
         self.view_blocks
@@ -328,6 +342,8 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
+            #[cfg(feature = "scalar-dispatch")]
+            cached_key_nodes: Rc::new(j["source_core"]["structural_key"]["nodes"].clone()),
             #[cfg(feature = "rhs-locals")]
             local_rhs: vec![],
             neighbor_plans: vec![],

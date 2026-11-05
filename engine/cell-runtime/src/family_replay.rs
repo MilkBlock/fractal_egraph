@@ -802,7 +802,7 @@ mod tests {
             witness: Dependency::Function(i),
             epoch: e,
             hidden: false,
-            values: std::rc::Rc::new(vec![Value::Int(7)]),
+            values: crate::graph::row_fields(vec![Value::Int(7)]),
         };
         for mask in 0..8 {
             let mut dirs: Vec<_> = (0..3).map(|_| Directory::default()).collect();
@@ -844,7 +844,7 @@ mod tests {
                 witness: w,
                 epoch: n,
                 hidden: false,
-                values: std::rc::Rc::new(vec![Value::Int(n as i64)]),
+                values: crate::graph::row_fields(vec![Value::Int(n as i64)]),
             };
             d.put(Some(0), w, Some(row));
         }

@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
 
-#[derive(Clone)]
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Value {
     Eq(u64),
     Int(i64),
@@ -11,6 +10,12 @@ pub enum Value {
     Set(std::sync::Arc<Vec<Value>>),
     Key(eggfuse_structural_key::Key),
 }
+#[cfg(feature = "root-directory")]
+#[path = "root_directory.rs"]
+mod root_directory;
+#[cfg(feature = "root-directory")]
+pub use root_directory::Parents;
+#[cfg(not(feature = "root-directory"))]
 pub type Parents = rustc_hash::FxHashMap<u64, u64>;
 pub fn root(parents: &Parents, mut x: u64) -> u64 {
     while let Some(&y) = parents.get(&x) {

@@ -9,8 +9,12 @@ mod family_overlap;
 mod family_survey;
 #[cfg(feature = "rhs-locals")]
 mod local_rhs;
+#[cfg(feature = "keeper-proof")]
+mod prefix_proof;
 #[cfg(feature = "rhs-work-audit")]
 mod rhs_work;
+#[cfg(feature = "sparse-index")]
+mod tiny_set;
 #[cfg(feature = "slot-transfer-audit")]
 pub mod transfer_audit;
 mod view_plan;

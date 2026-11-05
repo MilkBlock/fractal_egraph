@@ -8,18 +8,44 @@ use crate::{
 };
 use rustc_hash::FxHashMap as HashMap;
 use std::{
-    collections::BTreeSet,
     hash::{Hash, Hasher},
     rc::Rc,
 };
 
+type Refinements = HashMap<Vec<(usize, u64)>, Rc<Vec<Dependency>>>;
+#[cfg(feature = "lean-buckets")]
+#[derive(Default)]
+struct SparseRefinements(Option<Box<Refinements>>);
+#[cfg(feature = "lean-buckets")]
+impl SparseRefinements {
+    fn clear(&mut self) {
+        self.0 = None
+    }
+    fn get(&self, k: &Vec<(usize, u64)>) -> Option<&Rc<Vec<Dependency>>> {
+        self.0.as_ref()?.get(k)
+    }
+    fn insert(&mut self, k: Vec<(usize, u64)>, v: Rc<Vec<Dependency>>) {
+        self.0.get_or_insert_with(Default::default).insert(k, v);
+    }
+    fn values(&self) -> impl Iterator<Item = &Rc<Vec<Dependency>>> {
+        self.0.as_ref().into_iter().flat_map(|m| m.values())
+    }
+}
+#[cfg(not(feature = "sparse-index"))]
+use std::collections::BTreeSet;
 #[derive(Default)]
 struct Bucket {
     #[cfg(feature = "projection-stamps")]
     membership_version: u64,
+    #[cfg(not(feature = "sparse-index"))]
     facts: BTreeSet<Dependency>,
+    #[cfg(feature = "sparse-index")]
+    facts: crate::tiny_set::TinySet<Dependency>,
     view: Option<Rc<Vec<Dependency>>>,
-    refinements: HashMap<Vec<(usize, u64)>, Rc<Vec<Dependency>>>,
+    #[cfg(feature = "lean-buckets")]
+    refinements: SparseRefinements,
+    #[cfg(not(feature = "lean-buckets"))]
+    refinements: Refinements,
 }
 struct Columns {
     #[cfg(feature = "projection-stamps")]
@@ -126,9 +152,25 @@ impl Columns {
     }
 }
 fn fingerprint(value: &Value, bits: u32) -> u64 {
-    let mut hasher = rustc_hash::FxHasher::default();
-    value.hash(&mut hasher);
-    let hash = hasher.finish();
+    #[cfg(feature = "scalar-dispatch")]
+    let hash = match value {
+        Value::Eq(n) => n.wrapping_mul(0x9e3779b185ebca87).rotate_left(29),
+        Value::Int(n) => {
+            (*n as u64).wrapping_mul(0x9e3779b185ebca87).rotate_left(29) ^ 0xa0761d6478bd642f
+        }
+        _ => {
+            let mut hasher = rustc_hash::FxHasher::default();
+            value.hash(&mut hasher);
+            hasher.finish()
+        }
+    };
+    #[cfg(not(feature = "scalar-dispatch"))]
+    let hash = {
+        let mut hasher = rustc_hash::FxHasher::default();
+        value.hash(&mut hasher);
+        let hash = hasher.finish();
+        hash
+    };
     if bits == 64 {
         hash
     } else {
@@ -142,8 +184,14 @@ pub struct RefinementStats {
     pub examined: u64,
     pub avoided: u64,
 }
+#[cfg(feature = "scalar-dispatch")]
+#[path = "table_directory.rs"]
+mod table_directory;
 pub struct QueryIndexes {
     pub revision: u64,
+    #[cfg(feature = "scalar-dispatch")]
+    tables: table_directory::TableDirectory,
+    #[cfg(not(feature = "scalar-dispatch"))]
     tables: HashMap<usize, Columns>,
     references: usize,
     bits: u32,
@@ -216,7 +264,7 @@ impl Default for QueryIndexes {
     fn default() -> Self {
         Self {
             revision: 0,
-            tables: HashMap::default(),
+            tables: Default::default(),
             references: 0,
             intersection: true,
             refinements: RefinementStats::default(),
@@ -638,6 +686,14 @@ impl QueryIndexes {
         let mut out = self.tables[&table].keys.keys().copied().collect::<Vec<_>>();
         out.sort();
         out
+    }
+    #[cfg(feature = "sieve-frontier")]
+    pub(crate) fn min_postings(&self, t: usize, cols: &[usize], keys: &[u64]) -> Option<usize> {
+        let index = self.tables.get(&t)?;
+        cols.iter()
+            .zip(keys)
+            .map(|(c, k)| index.values[*c].get(k).map_or(0, |b| b.facts.len()))
+            .min()
     }
     pub(crate) fn hash_candidates(
         &self,

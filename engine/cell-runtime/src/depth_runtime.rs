@@ -612,12 +612,8 @@ impl Depth {
                 Call::Primitive(name, ty) => {
                     // An optional route can visit guards in a different order.
                     // Defer a partial primitive to the original plan.
-                    let Ok(Some(v)) = value::primitive(
-                        name,
-                        &key,
-                        ty,
-                        &g.program.artifact["source_core"]["structural_key"]["nodes"],
-                    ) else {
+                    let Ok(Some(v)) = value::primitive(name, &key, ty, g.program.key_nodes())
+                    else {
                         complete = false;
                         continue;
                     };

@@ -496,7 +496,7 @@ impl FreeJoin {
             }
             let mut projection = SmallVec::new();
             for &(slot, col, pos) in &sub.links {
-                if env.values[slot].is_some() {
+                if env.values.get(slot).is_some() {
                     continue;
                 }
                 let key_col = if let Some(i) = columns.iter().position(|&c| c == pos) {
@@ -545,7 +545,7 @@ impl FreeJoin {
                 .iter()
                 .enumerate()
                 .any(|(col, a)| {
-                    matches!(a,Arg::Slot(slot) if env.values[*slot].is_none())
+                    matches!(a,Arg::Slot(slot) if env.values.get(*slot).is_none())
                         && !columns.contains(&col)
                 });
         for &row in rows {

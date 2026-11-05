@@ -17,6 +17,7 @@ name = "cell"
 harness = false
 
 [features]
+sparse-cells = ["eggfuse-cell-runtime/sparse-cells"]
 rhs-locals = ["eggfuse-cell-runtime/rhs-locals"]
 receipt-slots = ["structural-depth","eggfuse-cell-runtime/receipt-slots"]
 structural-depth = ["eggfuse-cell-runtime/structural-depth"]

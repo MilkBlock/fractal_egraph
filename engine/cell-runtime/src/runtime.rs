@@ -74,6 +74,8 @@ struct StagePatch {
     bindings: Vec<(usize, Binding)>,
 }
 pub struct Executor {
+    #[cfg(feature = "flat-seal")]
+    work_scratch: Vec<(usize, Binding)>,
     #[cfg(feature = "rhs-locals")]
     local_width: usize,
     #[cfg(feature = "rhs-locals")]
@@ -183,21 +185,21 @@ impl QueryEnv {
     }
     fn rollback(&mut self, mark: usize) {
         while self.trail.len() > mark {
-            self.values[self.trail.pop().unwrap()] = None;
+            self.values.set(self.trail.pop().unwrap(), None);
         }
     }
     fn binding(&self) -> crate::slots::Slots {
         self.values
-            .iter()
+            .refs()
             .enumerate()
-            .filter_map(|(i, v)| v.clone().map(|v| (i, v)))
+            .filter_map(|(i, v)| v.cloned().map(|v| (i, v)))
             .collect()
     }
 }
 fn operand(a: &Arg, env: &QueryEnv, g: &Graph) -> Option<Value> {
     match a {
         Arg::Literal(v) => Some(canon(v, &g.parents)),
-        Arg::Slot(i) => env.values[*i].clone(),
+        Arg::Slot(i) => env.values.get(*i).cloned(),
     }
 }
 fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
@@ -207,10 +209,10 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     match a {
         Arg::Literal(l) => canon(l, &g.parents) == *v,
         Arg::Slot(i) => {
-            if let Some(old) = &env.values[*i] {
+            if let Some(old) = env.values.get(*i) {
                 old == v
             } else {
-                env.values[*i] = Some(v.clone());
+                env.values.set(*i, Some(v.clone()));
                 env.trail.push(*i);
                 true
             }
@@ -253,6 +255,14 @@ impl Executor {
         query_indexes.track_changes = sieve.enabled;
         let mut stage_spine = crate::stage_spine::Programs::new(&graph.program);
         stage_spine.audit_receipts = audit;
+        #[cfg(feature = "receipt-spine")]
+        {
+            stage_spine.compiled_commits = true;
+        }
+        #[cfg(feature = "sealed-origin")]
+        {
+            stage_spine.direct_sealed_answers = true;
+        }
         let free_join = FreeJoin::new(&graph.program);
         let entry_schedule = crate::entry_schedule::Scheduler::with_epoch_counts(
             &graph.program,
@@ -262,6 +272,8 @@ impl Executor {
         graph.receipt_tracking =
             (stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
+            #[cfg(feature = "flat-seal")]
+            work_scratch: vec![],
             #[cfg(feature = "rhs-locals")]
             local_width: 0,
             #[cfg(feature = "rhs-locals")]
@@ -409,12 +421,9 @@ impl Executor {
                 if name.starts_with("cell-key-") {
                     self.graph.stats.key_operations += 1;
                 }
-                if let Some(v) = value::primitive(
-                    name,
-                    &vals,
-                    output,
-                    &self.graph.program.artifact["source_core"]["structural_key"]["nodes"],
-                )? {
+                if let Some(v) =
+                    value::primitive(name, &vals, output, self.graph.program.key_nodes())?
+                {
                     let mark = env.trail.len();
                     if bind(atom.args.last().unwrap(), &v, env, &self.graph) {
                         self.solve(query, rid, remaining, env, epoch, out, delta)?;
@@ -621,12 +630,8 @@ impl Executor {
                     if name.starts_with("cell-key-") {
                         self.graph.stats.key_operations += 1;
                     }
-                    let Some(value) = value::primitive(
-                        name,
-                        &args,
-                        output,
-                        &self.graph.program.artifact["source_core"]["structural_key"]["nodes"],
-                    )?
+                    let Some(value) =
+                        value::primitive(name, &args, output, self.graph.program.key_nodes())?
                     else {
                         return Ok(false);
                     };
@@ -862,12 +867,9 @@ impl Executor {
                 if name.starts_with("cell-key-") {
                     self.graph.stats.key_operations += 1;
                 }
-                if let Some(v) = value::primitive(
-                    name,
-                    &args,
-                    sort,
-                    &self.graph.program.artifact["source_core"]["structural_key"]["nodes"],
-                )? {
+                if let Some(v) =
+                    value::primitive(name, &args, sort, self.graph.program.key_nodes())?
+                {
                     if bind(a.args.last().unwrap(), &v, env, &self.graph) {
                         self.merge_points(rid, query, tail, env, epoch, delta, out)?;
                     }
@@ -1002,11 +1004,13 @@ impl Executor {
         Ok(empty)
     }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
-        let rule = self.graph.program.rules[rid].clone();
-
-        if !probe && rule.seminaive && !std::mem::replace(&mut self.dirty[rid], false) {
+        if !probe
+            && self.graph.program.rules[rid].seminaive
+            && !std::mem::replace(&mut self.dirty[rid], false)
+        {
             return Ok(vec![]);
         }
+        let rule = self.graph.program.rules[rid].clone();
         // No join can succeed if a required relation is empty. This is a query
         // property, not a Cell proof or a prediction about future stages.
         if rule.query.iter().any(|a| match a.call {
@@ -1076,6 +1080,17 @@ impl Executor {
                         #[cfg(feature = "family-frontiers")]
                         let gate_clock = Instant::now();
                         let atom = batch.atom();
+                        #[cfg(feature = "point-entries")]
+                        let point_only = rule.direct.is_none()
+                            && self.graph.program.kernels[rid][atom]
+                                .as_ref()
+                                .is_some_and(|k| {
+                                    k.steps.iter().all(|s| {
+                                        !matches!(s.access, crate::row_kernel::Access::Expand)
+                                    })
+                                });
+                        #[cfg(not(feature = "point-entries"))]
+                        let point_only = false;
                         let start = out.len();
                         let claimed = spine_routes.len();
                         let cursors = if active_spine {
@@ -1092,6 +1107,12 @@ impl Executor {
                             )?
                         } else {
                             None
+                        };
+                        #[cfg(feature = "sieve-frontier")]
+                        let inverted = if inverted.is_none() && early_sieve {
+                            self.sieve.frontier(rid, atom, batch, &self.query_indexes)
+                        } else {
+                            inverted
                         };
                         #[cfg(feature = "projection-semijoin")]
                         let inverted = if inverted.is_none() && early_join && cursors.is_none() {
@@ -1134,11 +1155,15 @@ impl Executor {
                             }
                             let packet = batch.packet(w).expect("current delta entry");
                             if let Some(cursor) = cursors.and_then(|entries| entries.get(&w)) {
-                                spine_routes.push((out.len(), cursor.clone()));
+                                spine_routes.push((out.len(), cursor.expand()));
                                 // Keep domain slots aligned with the shared seed vector.
                                 if early_join {
                                     entry_domains.push(Vec::new());
                                 }
+                            } else if early_join && point_only {
+                                // The residual register block checks every full key and
+                                // its owner. It consumes no expansion domain.
+                                entry_domains.push(Vec::new());
                             } else if early_join {
                                 let Some(domains) = self.free_join.admit(
                                     &self.graph,
@@ -1759,6 +1784,32 @@ impl Executor {
         self.dedup_rows += n;
         self.dedup_full_elements += n * rule.inputs.len() as u64;
         self.dedup_elements += n * key_slots.len() as u64;
+        #[cfg(feature = "packed-slots")]
+        if let Some(mask) = crate::slots::Slots::projection_mask(key_slots)
+            && found.iter().all(|b| b.values.slice(mask).is_some())
+        {
+            found.sort_by(|a, b| {
+                a.values
+                    .slice(mask)
+                    .unwrap()
+                    .cmp(b.values.slice(mask).unwrap())
+            });
+            let before = found.len();
+            found.dedup_by(|a, b| a.values.slice(mask) == b.values.slice(mask));
+            self.dedup_duplicates += (before - found.len()) as u64;
+            return Ok(found);
+        }
+        #[cfg(all(feature = "flat-seal", not(feature = "packed-slots")))]
+        if found
+            .iter()
+            .all(|b| b.values.len() == key_slots.len() && b.values.keys().eq(key_slots))
+        {
+            found.sort_by(|a, b| a.values.cmp(&b.values));
+            let before = found.len();
+            found.dedup_by(|a, b| a.values == b.values);
+            self.dedup_duplicates += (before - found.len()) as u64;
+            return Ok(found);
+        }
         if found
             .iter()
             .any(|b| key_slots.iter().any(|s| !b.values.contains_key(s)))
@@ -1855,6 +1906,8 @@ impl Executor {
                     write.table,
                     key,
                     Dependency::Function(index),
+                    #[cfg(feature = "receipt-spine")]
+                    self.graph.has_visibility_changes(write.table),
                     self.graph.stats.unions,
                     #[cfg(feature = "iterative-bake")]
                     &self.graph.program.iterative,
@@ -2028,7 +2081,13 @@ impl Executor {
                 )
             } else {
                 Ok(Some((
-                    me.graph.linked_slots(template, values, b.parent)?,
+                    {
+                        #[cfg(feature = "transient-cell")]
+                        let id = me.graph.begin_transient(template, values, b.parent)?;
+                        #[cfg(not(feature = "transient-cell"))]
+                        let id = me.graph.linked_slots(template, values, b.parent)?;
+                        id
+                    },
                     0,
                 )))
             }
@@ -2096,7 +2155,7 @@ impl Executor {
         };
 
         if let Some((producer, depth, residual)) = origin {
-            self.graph.cells.get_mut(&cell).unwrap().recipe_depth = depth;
+            self.graph.rhs_frame_mut(cell).unwrap().recipe_depth = depth;
             self.handoffs.insert((producer, rid));
             if residual {
                 self.continuation_stats.residual_bindings += 1;
@@ -2135,8 +2194,7 @@ impl Executor {
                         match op {
                             Op::Let(dst, ..) => {
                                 self.graph
-                                    .cells
-                                    .get_mut(&cell)
+                                    .rhs_frame_mut(cell)
                                     .unwrap()
                                     .values
                                     .insert(*dst, value);
@@ -2202,8 +2260,7 @@ impl Executor {
                             receipts[i] = Some(row.witness);
                         }
                         self.graph
-                            .cells
-                            .get_mut(&cell)
+                            .rhs_frame_mut(cell)
                             .unwrap()
                             .values
                             .insert(*dst, row.values.last().unwrap().clone());
@@ -2214,16 +2271,11 @@ impl Executor {
                     if name.starts_with("cell-key-") {
                         self.graph.stats.key_operations += 1;
                     }
-                    let v = value::primitive(
-                        &name,
-                        &args,
-                        &output,
-                        &self.graph.program.artifact["source_core"]["structural_key"]["nodes"],
-                    )?
-                    .ok_or_else(|| format!("RHS primitive failed: {name}"))?;
+                    let v =
+                        value::primitive(&name, &args, &output, self.graph.program.key_nodes())?
+                            .ok_or_else(|| format!("RHS primitive failed: {name}"))?;
                     self.graph
-                        .cells
-                        .get_mut(&cell)
+                        .rhs_frame_mut(cell)
                         .unwrap()
                         .values
                         .insert(*dst, v);
@@ -2266,7 +2318,7 @@ impl Executor {
                 self.graph.stats.logical_facts_created - facts;
             self.continuation_stats.function_updates += self.graph.stats.function_updates - updates;
         }
-        let state = self.graph.cells.get_mut(&cell).unwrap();
+        let state = self.graph.rhs_frame_mut(cell).unwrap();
         state.completed = completed;
         state.completed_prefix = completed_prefix;
         if let Some((c, f, u)) = stage_counts {
@@ -2298,7 +2350,13 @@ impl Executor {
         #[cfg(all(feature = "rhs-work-audit", feature = "rhs-locals"))]
         if let (Some(block), root) = inspect_births {
             for &op in &block.intermediate_ops {
-                if self.graph.cells[&cell].facts.contains_key(&(op as u32)) {
+                if self
+                    .graph
+                    .rhs_frame(cell)
+                    .unwrap()
+                    .facts
+                    .contains_key(&(op as u32))
+                {
                     let f = FactRef {
                         cell,
                         op: op as u32,
@@ -2356,6 +2414,9 @@ impl Executor {
             .get(set)
             .ok_or_else(|| format!("unknown ruleset {set}"))?
             .clone();
+        #[cfg(feature = "flat-seal")]
+        let mut work = std::mem::take(&mut self.work_scratch);
+        #[cfg(not(feature = "flat-seal"))]
         let mut work = vec![];
         // Every LHS is read before any effect is made visible. Prepared successor
         // recipes therefore cannot leak into this finite Run's matching snapshot.
@@ -2446,7 +2507,13 @@ impl Executor {
         {
             self.graph.rhs_births.reading = true;
         }
-        for (rid, binding) in patch.bindings {
+        #[cfg(feature = "flat-seal")]
+        let mut buffer = patch.bindings;
+        #[cfg(feature = "flat-seal")]
+        let rows = buffer.drain(..);
+        #[cfg(not(feature = "flat-seal"))]
+        let rows = patch.bindings.into_iter();
+        for (rid, binding) in rows {
             #[cfg(feature = "family-survey")]
             let before = {
                 if rhs_clock.as_ref().is_none_or(|(r, _)| *r != rid) {
@@ -2463,12 +2530,17 @@ impl Executor {
                 self.local_counts.block_local_intermediates,
                 self.local_counts.local_complete,
             );
-            self.apply(
+            let applied = self.apply(
                 rid,
                 binding,
                 #[cfg(feature = "structural-depth")]
                 evidence.as_mut().and_then(Iterator::next),
-            )?;
+            );
+            #[cfg(feature = "transient-cell")]
+            if applied.is_err() {
+                self.graph.promote_active();
+            }
+            applied?;
             #[cfg(feature = "rhs-work-audit")]
             {
                 #[cfg(feature = "rhs-locals")]
@@ -2478,6 +2550,10 @@ impl Executor {
             #[cfg(feature = "family-survey")]
             self.survey
                 .resumed(rid, self.stage_spine.survey_resumed() - before);
+        }
+        #[cfg(feature = "flat-seal")]
+        {
+            self.work_scratch = buffer;
         }
         #[cfg(feature = "family-survey")]
         if let Some((r, clock)) = rhs_clock {
@@ -2495,11 +2571,15 @@ impl Executor {
         {
             self.graph.rhs_births.reading = false;
         }
+        #[cfg(feature = "keeper-proof")]
+        self.graph
+            .proof
+            .before_repair(&self.graph.parents, &self.graph.pending_unions);
         self.graph.repair()?;
         #[cfg(feature = "rhs-work-audit")]
         {
             let mut births = std::mem::take(&mut self.graph.rhs_births);
-            self.ledger.observe_births(&self.graph, &mut births);
+            self.ledger.observe_births(&mut self.graph, &mut births)?;
             self.graph.rhs_births = births;
         }
         let repair_seconds = phase.elapsed().as_secs_f64();
@@ -2802,6 +2882,17 @@ impl Executor {
     #[cfg(feature = "rhs-locals")]
     pub fn rhs_local_report(&self) -> J {
         serde_json::json!({"width":self.local_width,"admitted_rules":self.local_selection.as_ref().map(|v|v.iter().filter(|x|**x).count()),"stats":self.local_counts})
+    }
+    #[cfg(feature = "keeper-proof")]
+    pub fn read_keepers(&mut self, path: &std::path::Path) -> Result<()> {
+        let mut proof = crate::prefix_proof::Proof::default();
+        proof.load(&self.graph, path)?;
+        self.graph.proof = proof;
+        Ok(())
+    }
+    #[cfg(feature = "keeper-proof")]
+    pub fn write_keepers(&self, path: &std::path::Path) -> Result<()> {
+        self.graph.proof.write(&self.graph, path)
     }
     pub fn report(&self) -> J {
         let view_rule_profile=self.profile_queries.then(||{

@@ -197,12 +197,8 @@ impl Registers {
                     if name.starts_with("cell-key-") {
                         exec.graph.stats.key_operations += 1;
                     }
-                    let Some(v) = value::primitive(
-                        name,
-                        &args,
-                        sort,
-                        &exec.graph.program.artifact["source_core"]["structural_key"]["nodes"],
-                    )?
+                    let Some(v) =
+                        value::primitive(name, &args, sort, exec.graph.program.key_nodes())?
                     else {
                         return Ok(());
                     };

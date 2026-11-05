@@ -1,13 +1,14 @@
 //! Sieve-style semijoin summaries over COMPLETE visible virtual tables.
 //! A filter is a necessary condition, never a proof that a binding exists.
 //! Interned by table/columns/dependencies, not ruleset or source variable names.
-use rustc_hash::FxHashSet as HashSet;
-use rustc_hash::FxHashMap as HashMap;
 use crate::{
     graph::{Dependency, Graph},
     program::{Arg, Call, Program, Result},
     query::QueryIndexes,
 };
+use rustc_hash::FxHashMap as HashMap;
+#[cfg(not(feature = "compact-support"))]
+use rustc_hash::FxHashSet as HashSet;
 use std::collections::{BTreeMap, VecDeque};
 use std::hash::{Hash, Hasher};
 
@@ -22,10 +23,21 @@ struct Spec {
     cols: Vec<usize>,
     guards: Vec<Guard>,
 }
+#[cfg(feature = "compact-support")]
+#[path = "support_keys.rs"]
+mod support_keys;
+#[cfg(feature = "compact-support")]
+type Support = support_keys::Support;
+#[cfg(not(feature = "compact-support"))]
+type Support = HashSet<Vec<u64>>;
+#[cfg(feature = "compact-support")]
+type Projection = smallvec::SmallVec<[u64; 3]>;
+#[cfg(not(feature = "compact-support"))]
+type Projection = Vec<u64>;
 #[derive(Default)]
 struct Summary {
     built: bool,
-    keys: HashSet<Vec<u64>>,
+    keys: Support,
     bloom: Bloom,
 }
 #[derive(Default)]
@@ -69,7 +81,7 @@ impl Bloom {
         let (i, m) = self.location_hash(hash(xs));
         self.words[i] |= m;
     }
-    fn grow(&mut self, keys: &HashSet<Vec<u64>>, collide: bool) {
+    fn grow(&mut self, keys: &Support, collide: bool) {
         self.collide = collide;
         let size = (keys.len().saturating_mul(16).div_ceil(64))
             .max(1)
@@ -85,6 +97,12 @@ impl Bloom {
 }
 #[derive(Default, serde::Serialize)]
 pub struct Stats {
+    #[cfg(feature = "sieve-frontier")]
+    reverse_frontiers: u64,
+    #[cfg(feature = "sieve-frontier")]
+    reverse_delta_rows: u64,
+    #[cfg(feature = "sieve-frontier")]
+    reverse_rows_returned: u64,
     pub builds: u64,
     pub rule_uses: u64,
     pub reused_summaries: u64,
@@ -263,7 +281,7 @@ impl Sieve {
         s.active = vec![false; s.rules.len()];
         s
     }
-    fn admit(&mut self, id: usize, keys: &[u64]) -> Option<Vec<u64>> {
+    fn admit(&mut self, id: usize, keys: &[u64]) -> Option<Projection> {
         let spec = &self.specs[id];
         for g in &spec.guards {
             if !self.states[g.child]
@@ -273,11 +291,15 @@ impl Sieve {
                 return None;
             }
         }
-        let k = spec.cols.iter().map(|c| keys[*c]).collect::<Vec<_>>();
+        let k: Projection = spec.cols.iter().map(|c| keys[*c]).collect();
         let state = &mut self.states[id];
         // Must track keys, NOT whether OR changed any Bloom bit. A new key can
         // collide with old bits and STILL needs upstream propagation.
-        if !state.keys.insert(k.clone()) {
+        #[cfg(feature = "compact-support")]
+        let fresh = state.keys.insert(&k);
+        #[cfg(not(feature = "compact-support"))]
+        let fresh = state.keys.insert(k.clone());
+        if !fresh {
             return None;
         }
         state.bloom.grow(&state.keys, self.collide);
@@ -340,6 +362,52 @@ impl Sieve {
         });
         self.stats.empty_join_skips += u64::from(empty);
         empty
+    }
+    /// Enumerate the small side of a necessary guard before routing any
+    /// covered/uncovered seeds. Fingerprints enlarge domains on collision;
+    /// subsequent guard, ownership, binding and schedule checks still run.
+    #[cfg(feature = "sieve-frontier")]
+    pub(crate) fn frontier(
+        &mut self,
+        r: usize,
+        pivot: usize,
+        batch: crate::entry_schedule::Batch<'_>,
+        index: &QueryIndexes,
+    ) -> Option<Vec<Dependency>> {
+        if !self.enabled || !self.active[r] {
+            return None;
+        }
+        let guard = self.rules[r][pivot]
+            .iter()
+            .filter(|g| self.states[g.child].built && !g.cols.is_empty())
+            .min_by_key(|g| self.states[g.child].keys.len())?;
+        let keys = &self.states[guard.child].keys;
+        let n = batch.delta_len()?;
+        let budget = n / 8;
+        if n < 64 || keys.len() > budget {
+            return None;
+        }
+        let mut work = keys.len();
+        for k in keys {
+            work = work.saturating_add(index.min_postings(batch.table, &guard.cols, k)?);
+            if work > budget {
+                return None;
+            }
+        }
+        let mut winners = Vec::new();
+        for k in keys {
+            for w in index.hash_candidates(batch.table, &guard.cols, k) {
+                if let Some(p) = batch.packet(w) {
+                    winners.push((p.row.epoch, w));
+                }
+            }
+        }
+        winners.sort_unstable();
+        winners.dedup();
+        self.stats.reverse_frontiers += 1;
+        self.stats.reverse_delta_rows += n as u64;
+        self.stats.reverse_rows_returned += winners.len() as u64;
+        Some(winners.into_iter().map(|(_, w)| w).collect())
     }
     pub fn allow(
         &mut self,
@@ -427,9 +495,12 @@ mod tests {
     #[test]
     fn bloom_growth_never_loses_insertions() {
         let mut bloom = Bloom::default();
-        let mut keys = HashSet::default();
+        let mut keys = Support::default();
         for i in 0..200 {
             let k = vec![i, i * 17];
+            #[cfg(feature = "compact-support")]
+            keys.insert(&k);
+            #[cfg(not(feature = "compact-support"))]
             keys.insert(k.clone());
             bloom.grow(&keys, false);
             bloom.insert(&k);
@@ -456,9 +527,9 @@ mod tests {
             collide: true,
             stats: Stats::default(),
         };
-        assert_eq!(s.admit(0, &[7]), Some(vec![7]));
+        assert_eq!(s.admit(0, &[7]).as_deref(), Some(&[7][..]));
         let bits = s.states[0].bloom.words.clone();
-        assert_eq!(s.admit(0, &[8]), Some(vec![8]));
+        assert_eq!(s.admit(0, &[8]).as_deref(), Some(&[8][..]));
         assert_eq!(bits, s.states[0].bloom.words);
         assert_eq!(s.admit(0, &[8]), None);
     }

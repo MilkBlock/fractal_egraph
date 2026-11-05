@@ -4,6 +4,12 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{collections::BTreeMap, ops::Index};
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FrameMap<K, V>(Vec<(K, V)>);
+#[cfg(feature = "packed-slots")]
+#[path = "packed_slots.rs"]
+mod packed;
+#[cfg(feature = "packed-slots")]
+pub use packed::Slots;
+#[cfg(not(feature = "packed-slots"))]
 pub type Slots = FrameMap<usize, crate::value::Value>;
 impl<K, V> Default for FrameMap<K, V> {
     fn default() -> Self {
@@ -33,6 +39,12 @@ impl<K: Ord + Copy + TryInto<usize>, V> FrameMap<K, V> {
     }
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+    #[cfg(feature = "lean-buckets")]
+    pub(crate) fn reserve_first(&mut self) {
+        if self.0.capacity() == 0 {
+            self.0.reserve_exact(1);
+        }
     }
     pub fn insert(&mut self, k: K, v: V) -> Option<V> {
         if self.0.last().is_none_or(|x| x.0 < k) {

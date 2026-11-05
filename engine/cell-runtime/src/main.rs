@@ -2,6 +2,21 @@
 static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::{path::PathBuf, time::Instant};
+#[cfg(all(unix, feature = "storage-metrics"))]
+fn peak_rss_bytes() -> Result<u64, Box<dyn std::error::Error>> {
+    let mut usage = std::mem::MaybeUninit::<libc::rusage>::uninit();
+    // getrusage initializes the output on success. Darwin reports bytes;
+    // Linux reports KiB. Sample before building any export or report.
+    if unsafe { libc::getrusage(libc::RUSAGE_SELF, usage.as_mut_ptr()) } != 0 {
+        return Err(std::io::Error::last_os_error().into());
+    }
+    let peak = unsafe { usage.assume_init() }.ru_maxrss as u64;
+    Ok(if cfg!(target_os = "macos") {
+        peak
+    } else {
+        peak * 1024
+    })
+}
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     let opt = |k: &str| args.windows(2).find(|w| w[0] == k).map(|w| w[1].clone());
@@ -53,6 +68,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .filter(|s| !s.starts_with("--"))
                     .ok_or("missing block width")?;
             }
+            #[cfg(feature = "keeper-proof")]
+            "--keeper-pairs" => {
+                flags
+                    .next()
+                    .filter(|v| !v.starts_with("--"))
+                    .ok_or("missing keeper pairs")?;
+            }
             "--audit-stages" | "--inspect-program" => {}
             _ => return Err(format!("unknown option {flag}").into()),
         }
@@ -100,6 +122,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(path) = opt("--rhs-local-profile") {
         runtime.use_rhs_local_profile(&serde_json::from_reader(std::fs::File::open(path)?)?)?;
     }
+    #[cfg(feature = "keeper-proof")]
+    if let Some(path) = opt("--keeper-pairs") {
+        runtime.read_keepers(std::path::Path::new(&path))?;
+    }
+    #[cfg(all(unix, feature = "storage-metrics"))]
+    let setup_peak_rss_bytes = peak_rss_bytes()?;
     let setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
     #[cfg(feature = "slot-transfer-audit")]
@@ -133,6 +161,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
     }
     let seconds = start.elapsed().as_secs_f64();
+    #[cfg(all(unix, feature = "storage-metrics"))]
+    let inference_peak_rss_bytes = peak_rss_bytes()?;
     #[cfg(feature = "spine-shapes")]
     std::fs::write(
         out.join("spine-shapes.json"),
@@ -159,7 +189,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     #[cfg(feature = "rhs-work-audit")]
     runtime.write_rhs_work(&out)?;
+    #[cfg(feature = "keeper-proof")]
+    runtime.write_keepers(&out)?;
     let mut report = runtime.report();
+    #[cfg(all(unix, feature = "storage-metrics"))]
+    {
+        report["peak_rss_through_setup_bytes"] = setup_peak_rss_bytes.into();
+        report["peak_rss_through_inference_bytes"] = inference_peak_rss_bytes.into();
+        report["storage"] = runtime.graph.storage_sample();
+    }
     #[cfg(feature = "rhs-locals")]
     {
         report["rhs_locals"] = runtime.rhs_local_report();

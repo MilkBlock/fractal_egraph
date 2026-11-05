@@ -1,18 +1,16 @@
 //! Compiler-owned shared entry nodes. Current parameter packets are maintained
 //! once per changed input; consumers borrow them at their original source Run.
 use crate::{
-    graph::{Dependency, FactRef, Graph, Row},
+    graph::{Dependency, Graph, Row},
     program::*,
     value::{Value, canon},
 };
 use rustc_hash::FxHashMap as HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    ops::{Index, IndexMut},
-    rc::Rc,
-};
+use std::{collections::BTreeMap, rc::Rc};
+#[cfg(not(feature = "epoch-runs"))]
+use {crate::graph::FactRef, std::collections::BTreeSet};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Plan {
@@ -22,6 +20,9 @@ pub struct Plan {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Node {
+    #[cfg(feature = "row-ports")]
+    #[serde(skip)]
+    checks: Vec<(usize, Arg)>,
     table: usize,
     args: Vec<Arg>,
     ports: usize,
@@ -81,7 +82,14 @@ impl Plan {
                                 let n = slots.len();
                                 let port = *slots.entry(*i).or_insert(n);
                                 if projection[*i].is_none() {
-                                    projection[*i] = Some(port);
+                                    #[cfg(feature = "row-ports")]
+                                    {
+                                        projection[*i] = Some(col);
+                                    }
+                                    #[cfg(not(feature = "row-ports"))]
+                                    {
+                                        projection[*i] = Some(port);
+                                    }
                                     pairs.push(json!({"slot":i,"port":port}));
                                 }
                                 pattern.push(Arg::Slot(port));
@@ -101,7 +109,21 @@ impl Plan {
                     let id = *ids.entry(key).or_insert(n);
                     if id == s.nodes.len() {
                         s.tables[t].push(id);
+                        #[cfg(feature = "row-ports")]
+                        let checks = pattern
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(col, a)| match a {
+                                Arg::Literal(_) => Some((col, a.clone())),
+                                Arg::Slot(_) => {
+                                    let previous = pattern[..col].iter().position(|x| x == a)?;
+                                    Some((col, Arg::Slot(previous)))
+                                }
+                            })
+                            .collect();
                         s.nodes.push(Node {
+                            #[cfg(feature = "row-ports")]
+                            checks,
                             table: t,
                             args: pattern,
                             ports: slots.len(),
@@ -133,32 +155,44 @@ impl Plan {
         Ok((s, expected))
     }
 }
+#[cfg(feature = "row-ports")]
+type SharedPacket = Packet;
+#[cfg(not(feature = "row-ports"))]
+type SharedPacket = Rc<Packet>;
+#[derive(Clone)]
 pub struct Packet {
     pub row: Rc<Row>,
+    #[cfg(not(feature = "row-ports"))]
     values: Rc<Vec<Option<Value>>>,
 }
 #[derive(Clone)]
 pub struct Seed {
     pub atom: usize,
-    pub packet: Rc<Packet>,
+    pub packet: SharedPacket,
     projection: Rc<Vec<Option<usize>>>,
 }
 /// Sparse private suffix writes over immutable compiled parameter projections.
 /// No initial full-width parameter array is cloned for a scheduled consumer.
 #[derive(Clone)]
 pub struct Inputs {
+    #[cfg(feature = "row-ports")]
+    legacy_base: std::cell::OnceCell<Box<[Option<Value>]>>,
     own: Vec<Option<Value>>,
     base: Option<Seed>,
 }
 impl Inputs {
     pub fn owned(n: usize) -> Self {
         Self {
+            #[cfg(feature = "row-ports")]
+            legacy_base: Default::default(),
             own: vec![None; n],
             base: None,
         }
     }
     pub fn shared(seed: Seed) -> Self {
         Self {
+            #[cfg(feature = "row-ports")]
+            legacy_base: Default::default(),
             own: vec![],
             base: Some(seed),
         }
@@ -171,18 +205,64 @@ impl Inputs {
     pub fn iter(&self) -> impl Iterator<Item = &Option<Value>> {
         (0..self.len()).map(move |i| &self[i])
     }
+    pub fn refs(&self) -> impl Iterator<Item = Option<&Value>> {
+        (0..self.len()).map(move |i| self.get(i))
+    }
     /// Move private slot values into the sealed RHS input. Shared entry
     /// packets remain immutable and supply owned snapshots when needed.
 
     pub fn materialize(&self) -> Vec<Option<Value>> {
-        self.iter().cloned().collect()
+        self.refs().map(|v| v.cloned()).collect()
     }
     pub fn owned_mut(&mut self) -> &mut [Option<Value>] {
         assert!(self.base.is_none());
         &mut self.own
     }
 }
-impl Index<usize> for Inputs {
+impl Inputs {
+    pub fn get(&self, slot: usize) -> Option<&Value> {
+        if let Some(v) = self.own.get(slot).and_then(Option::as_ref) {
+            return Some(v);
+        }
+        let s = self.base.as_ref()?;
+        let port = s.projection.get(slot).copied().flatten()?;
+        #[cfg(feature = "row-ports")]
+        {
+            s.packet.row.values.get(port)
+        }
+        #[cfg(not(feature = "row-ports"))]
+        {
+            s.packet.values[port].as_ref()
+        }
+    }
+    pub fn set(&mut self, slot: usize, v: Option<Value>) {
+        if self.own.len() <= slot {
+            self.own.resize(slot + 1, None)
+        }
+        self.own[slot] = v;
+    }
+}
+#[cfg(feature = "row-ports")]
+impl std::ops::Index<usize> for Inputs {
+    type Output = Option<Value>;
+    fn index(&self, i: usize) -> &Self::Output {
+        if let Some(v) = self.own.get(i).filter(|v| v.is_some()) {
+            return v;
+        }
+        let Some(s) = &self.base else { return &None };
+        if s.projection.get(i).is_none_or(Option::is_none) {
+            return &None;
+        }
+        &self.legacy_base.get_or_init(|| {
+            s.projection
+                .iter()
+                .map(|port| port.map(|c| s.packet.row.values[c].clone()))
+                .collect()
+        })[i]
+    }
+}
+#[cfg(not(feature = "row-ports"))]
+impl std::ops::Index<usize> for Inputs {
     type Output = Option<Value>;
     fn index(&self, i: usize) -> &Self::Output {
         if let Some(v) = self.own.get(i).filter(|v| v.is_some()) {
@@ -196,7 +276,7 @@ impl Index<usize> for Inputs {
         &None
     }
 }
-impl IndexMut<usize> for Inputs {
+impl std::ops::IndexMut<usize> for Inputs {
     fn index_mut(&mut self, i: usize) -> &mut Self::Output {
         if self.own.len() <= i {
             self.own.resize(i + 1, None)
@@ -204,12 +284,24 @@ impl IndexMut<usize> for Inputs {
         &mut self.own[i]
     }
 }
+
+#[cfg(feature = "epoch-runs")]
+#[path = "epoch_runs.rs"]
+mod epoch_runs;
 #[derive(Default)]
 struct State {
+    #[cfg(feature = "epoch-runs")]
+    planned_counts: bool,
     cold: bool,
+    #[cfg(not(feature = "epoch-runs"))]
     pending: BTreeSet<Dependency>,
-    rows: HashMap<Dependency, Rc<Packet>>,
+    #[cfg(feature = "epoch-runs")]
+    pending: rustc_hash::FxHashSet<Dependency>,
+    rows: HashMap<Dependency, SharedPacket>,
+    #[cfg(not(feature = "epoch-runs"))]
     epochs: BTreeSet<(u64, Dependency)>,
+    #[cfg(feature = "epoch-runs")]
+    epochs: epoch_runs::Epochs,
     epoch_counts: Option<BTreeMap<u64, usize>>,
 }
 impl State {
@@ -288,11 +380,23 @@ impl Batch<'_> {
     pub fn len(&self) -> usize {
         self.state.rows.len()
     }
+    #[cfg(feature = "epoch-runs")]
+    pub fn delta(&self) -> impl Iterator<Item = &(u64, Dependency)> {
+        self.state.epochs.range(self.watermark)
+    }
+    #[cfg(not(feature = "epoch-runs"))]
     pub fn delta(&self) -> std::collections::btree_set::Range<'_, (u64, Dependency)> {
         self.state
             .epochs
             .range((self.watermark, Dependency::Fact(FactRef { cell: 0, op: 0 }))..)
     }
+    #[cfg(feature = "epoch-runs")]
+    pub fn delta_len(&self) -> Option<usize> {
+        self.state
+            .planned_counts
+            .then(|| self.state.epochs.counts(self.watermark).sum())
+    }
+    #[cfg(not(feature = "epoch-runs"))]
     pub fn delta_len(&self) -> Option<usize> {
         Some(
             self.state
@@ -303,6 +407,16 @@ impl Batch<'_> {
                 .sum(),
         )
     }
+    #[cfg(feature = "epoch-runs")]
+    pub fn delta_exceeds(&self, budget: usize, bins: &mut u64) -> bool {
+        let mut total = 0;
+        self.state.epochs.counts(self.watermark).any(|n| {
+            *bins += 1;
+            total += n;
+            total > budget
+        })
+    }
+    #[cfg(not(feature = "epoch-runs"))]
     pub fn delta_exceeds(&self, budget: usize, bins: &mut u64) -> bool {
         let counts = self.state.epoch_counts.as_ref().expect("planned entry");
         let mut total = 0;
@@ -315,13 +429,13 @@ impl Batch<'_> {
         }
         false
     }
-    pub fn packet(&self, w: Dependency) -> Option<&Rc<Packet>> {
+    pub fn packet(&self, w: Dependency) -> Option<&SharedPacket> {
         self.state
             .rows
             .get(&w)
             .filter(|p| p.row.epoch >= self.watermark)
     }
-    pub fn seed(&self, packet: &Rc<Packet>) -> Seed {
+    pub fn seed(&self, packet: &SharedPacket) -> Seed {
         Seed {
             atom: self.consumer.atom,
             packet: packet.clone(),
@@ -340,7 +454,10 @@ impl Scheduler {
             .iter()
             .map(|_| State {
                 cold: true,
-                epoch_counts: (enabled && planned).then(BTreeMap::new),
+                #[cfg(feature = "epoch-runs")]
+                planned_counts: enabled && planned,
+                epoch_counts: (enabled && planned && !cfg!(feature = "epoch-runs"))
+                    .then(BTreeMap::new),
                 ..Default::default()
             })
             .collect();
@@ -470,7 +587,16 @@ impl Scheduler {
             s.pending.clear();
             g.witnesses(n.table)
         } else {
-            std::mem::take(&mut s.pending).into_iter().collect()
+            #[cfg(feature = "epoch-runs")]
+            {
+                let mut v: Vec<_> = s.pending.drain().collect();
+                v.sort_unstable();
+                v
+            }
+            #[cfg(not(feature = "epoch-runs"))]
+            {
+                std::mem::take(&mut s.pending).into_iter().collect()
+            }
         };
         if full {
             s.epochs.clear();
@@ -506,43 +632,63 @@ impl Scheduler {
             };
             self.stats.predicate_checks += 1;
             if !n.literal_identity
-                && let Some(p) = previous.as_ref().filter(|p| p.row.values == row.values)
+                && let Some(_previous) = previous.as_ref().filter(|p| p.row.values == row.values)
             {
                 self.stats.parameter_packets_reused += 1;
                 s.insert_epoch(row.epoch, w);
+                #[cfg(feature = "row-ports")]
+                s.rows.insert(w, Packet { row });
+                #[cfg(not(feature = "row-ports"))]
                 s.rows.insert(
                     w,
                     Rc::new(Packet {
                         row,
-                        values: p.values.clone(),
+                        values: _previous.values.clone(),
                     }),
                 );
                 continue;
             }
-            let mut values = vec![None; n.ports];
-            let valid = n.args.iter().zip(row.values.iter()).all(|(a, v)| match a {
-                Arg::Literal(l) => canon(l, &g.parents) == *v,
-                Arg::Slot(i) => match &values[*i] {
-                    Some(old) => old == v,
-                    None => {
-                        self.stats.parameters_copied += 1;
-                        values[*i] = Some(v.clone());
-                        true
-                    }
-                },
-            });
-            if valid {
-                let values =
-                    if let Some(p) = previous.as_ref().filter(|p| p.values.as_ref() == &values) {
+            #[cfg(feature = "row-ports")]
+            {
+                let valid = n.checks.iter().all(|(col, check)| match check {
+                    Arg::Slot(other) => row.values[*other] == row.values[*col],
+                    Arg::Literal(v) => canon(v, &g.parents) == row.values[*col],
+                });
+                if valid {
+                    s.insert_epoch(row.epoch, w);
+                    s.rows.insert(w, Packet { row });
+                } else {
+                    self.stats.retired_packets += u64::from(previous.is_some());
+                }
+            }
+            #[cfg(not(feature = "row-ports"))]
+            {
+                let mut values = vec![None; n.ports];
+                let valid = n.args.iter().zip(row.values.iter()).all(|(a, v)| match a {
+                    Arg::Literal(l) => canon(l, &g.parents) == *v,
+                    Arg::Slot(i) => match &values[*i] {
+                        Some(old) => old == v,
+                        None => {
+                            self.stats.parameters_copied += 1;
+                            values[*i] = Some(v.clone());
+                            true
+                        }
+                    },
+                });
+                if valid {
+                    let values = if let Some(p) =
+                        previous.as_ref().filter(|p| p.values.as_ref() == &values)
+                    {
                         self.stats.parameter_packets_reused += 1;
                         p.values.clone()
                     } else {
                         Rc::new(values)
                     };
-                s.insert_epoch(row.epoch, w);
-                s.rows.insert(w, Rc::new(Packet { row, values }));
-            } else {
-                self.stats.retired_packets += u64::from(previous.is_some());
+                    s.insert_epoch(row.epoch, w);
+                    s.rows.insert(w, Rc::new(Packet { row, values }));
+                } else {
+                    self.stats.retired_packets += u64::from(previous.is_some());
+                }
             }
         }
         self.stats.retired_packets += old.len() as u64;

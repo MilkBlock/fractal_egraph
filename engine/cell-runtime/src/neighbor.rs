@@ -349,13 +349,13 @@ mod tests {
     fn replacement_and_retirement_commute_for_a_subscribed_key() {
         let original = Row {
             table: 0,
-            values: Rc::new(vec![Value::Eq(7), Value::Int(1)]),
+            values: crate::graph::row_fields(vec![Value::Eq(7), Value::Int(1)]),
             epoch: 1,
             witness: Dependency::Function(3),
             hidden: false,
         };
         let replacement = Row {
-            values: Rc::new(vec![Value::Eq(7), Value::Int(9)]),
+            values: crate::graph::row_fields(vec![Value::Eq(7), Value::Int(9)]),
             epoch: 2,
             witness: Dependency::Function(4),
             ..original.clone()

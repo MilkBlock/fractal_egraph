@@ -21,7 +21,7 @@ pub(super) struct Stats {
 struct Alias {
     table: usize,
     hash: u64,
-    source: Rc<Vec<Value>>,
+    source: crate::graph::RowFields,
     columns: Rc<Vec<usize>>,
     identity: bool,
 }
@@ -97,19 +97,24 @@ impl Units {
             columns: (!a.identity).then(|| a.columns.clone()),
         })
     }
-    pub fn values(&self, i: usize, parents: &Parents, value: &Value) -> Option<Rc<Vec<Value>>> {
+    pub fn values(
+        &self,
+        i: usize,
+        parents: &Parents,
+        value: &Value,
+    ) -> Option<crate::graph::RowFields> {
         let a = self.aliases.get(&i)?;
         let mut out = Vec::with_capacity(a.columns.len() + 1);
         out.extend((0..a.columns.len()).map(|col| canon(a.field(col), parents)));
         out.push(canon(value, parents));
-        Some(Rc::new(out))
+        Some(crate::graph::row_fields(out))
     }
     pub fn install(
         &mut self,
         t: usize,
         key: &[Value],
         i: usize,
-        source: Rc<Vec<Value>>,
+        source: crate::graph::RowFields,
         columns: Rc<Vec<usize>>,
     ) {
         let hash = hashkey(t, key);
@@ -140,7 +145,7 @@ impl Units {
         }
         true
     }
-    pub fn change_block(&mut self, j: usize, row: &Rc<Vec<Value>>) -> bool {
+    pub fn change_block(&mut self, j: usize, row: &crate::graph::RowFields) -> bool {
         let Some(a) = self.aliases.get_mut(&j) else {
             return false;
         };
@@ -169,7 +174,10 @@ impl Graph {
         let Some((cell, op, source)) = site else {
             return Ok(false);
         };
-        let Some(plan) = self.units.plans[self.cells[&cell].template]
+        let Some(plan) = self.units.plans[self
+            .rhs_frame(cell)
+            .expect("current producer frame")
+            .template]
             .get(&op)
             .cloned()
         else {
