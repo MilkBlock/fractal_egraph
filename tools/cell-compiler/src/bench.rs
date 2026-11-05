@@ -117,7 +117,12 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "handoff_closed":g.handoff_closed,"handoff_closed_fallback":g.handoff_closed_fallback,"handoff_deep":g.handoff_deep,"handoff_lets":g.handoff_lets});
         #[cfg(feature = "structural-depth")]
         {
-            counts["structural_depth"] = e.depth_report()["stats"].clone();
+            let mut depth = e.depth_report();
+            counts["structural_depth"] = depth["stats"].take();
+            #[cfg(feature = "receipt-slots")]
+            {
+                counts["receipt_slots"] = depth["receipt_slots"].take();
+            }
         }
     }
     let mut sorted = times.clone();

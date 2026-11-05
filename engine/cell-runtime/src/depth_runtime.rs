@@ -52,8 +52,22 @@ impl SlotChanges {
             _ => self.replace += 1,
         }
         if old != new {
-            let added = new.iter().filter(|v| !old.contains(v)).count() as u64;
-            let removed = old.iter().filter(|v| !new.contains(v)).count() as u64;
+            // Forwarding can map two different donors onto the same slot.
+            // Count copies with multiplicity, retaining each old slot at most once.
+            let mut used = [false; BUDGET];
+            let mut shared = 0;
+            for port in new {
+                if let Some(i) = old
+                    .iter()
+                    .enumerate()
+                    .position(|(i, v)| !used[i] && v == port)
+                {
+                    used[i] = true;
+                    shared += 1;
+                }
+            }
+            let added = (new.len() - shared) as u64;
+            let removed = (old.len() - shared) as u64;
             self.refs_added += added;
             self.refs_removed += removed;
             self.reordered += u64::from(added == 0 && removed == 0);
@@ -68,6 +82,13 @@ struct PortCensus {
     redirected: u64,
     collisions: u64,
     retired_nonempty: u64,
+}
+#[cfg(feature = "slot-transfer-audit")]
+#[derive(Default, Serialize)]
+struct ReadCost {
+    calls: u64,
+    port_ns: u64,
+    canonical_ns: u64,
 }
 #[derive(Default, Serialize)]
 pub(crate) struct Stats {
@@ -96,6 +117,11 @@ pub(crate) struct Stats {
     missing_query_receipts: u64,
     oracle_owner_reads: u64,
     census: PortCensus,
+    #[cfg(feature = "slot-transfer-audit")]
+    probe_pairs: u64,
+    // [port hit][ordinary probe first]. Only populated by profiling the audit binary.
+    #[cfg(feature = "slot-transfer-audit")]
+    read_cost: [[ReadCost; 2]; 2],
     capture_ns: u64,
     publish_ns: u64,
 }
@@ -319,8 +345,9 @@ impl Depth {
         }
         let clock = self.profile.then(Instant::now);
         #[cfg(feature = "receipt-slots")]
-        if self.focus.is_some() {
-            self.slots.publish(g, &mut self.stats, self.profile)?;
+        if let Some(focus) = &self.focus {
+            self.slots
+                .publish(g, focus, &mut self.stats, self.profile)?;
             if let Some(t) = clock {
                 self.stats.publish_ns += t.elapsed().as_nanos() as u64;
             }
@@ -436,6 +463,42 @@ impl Depth {
         if !self.execute {
             return Ok(None);
         }
+        #[cfg(feature = "slot-transfer-audit")]
+        let row = if self.profile && self.focus.is_some() {
+            let first = (self.stats.probe_pairs % 2) as usize;
+            self.stats.probe_pairs += 1;
+            let canonical = || -> Result<_> {
+                let clock = Instant::now();
+                let row = g.lookup_canonical(t, key)?;
+                Ok((row, clock.elapsed().as_nanos() as u64))
+            };
+            let port = || -> Result<_> {
+                let clock = Instant::now();
+                let row = self.supplied(g, anchor, t, key)?;
+                Ok((row, clock.elapsed().as_nanos() as u64))
+            };
+            let ((candidate, port_ns), (ordinary, canonical_ns)) = if first == 1 {
+                let b: (_, u64) = canonical()?;
+                (port()?, b)
+            } else {
+                (port()?, canonical()?)
+            };
+            if let Some((row, _)) = &candidate
+                && !ordinary.as_ref().is_some_and(|o| {
+                    !o.hidden && o.witness == row.witness && o.values == row.values
+                })
+            {
+                return Err("selected port disagrees with canonical table lookup".into());
+            }
+            let cost = &mut self.stats.read_cost[candidate.is_some() as usize][first];
+            cost.calls += 1;
+            cost.port_ns += port_ns;
+            cost.canonical_ns += canonical_ns;
+            candidate
+        } else {
+            self.supplied(g, anchor, t, key)?
+        };
+        #[cfg(not(feature = "slot-transfer-audit"))]
         let row = self.supplied(g, anchor, t, key)?;
         if let Some((_, path)) = &row {
             self.stats.spine_reads[path.len as usize] += 1;
@@ -896,5 +959,34 @@ fn operand(a: &Arg, slots: &Slots, g: &Graph) -> Option<Value> {
     match a {
         Arg::Slot(i) => slots.get(i).map(|v| canon(v, &g.parents)),
         Arg::Literal(v) => Some(canon(v, &g.parents)),
+    }
+}
+
+#[cfg(test)]
+mod depth_census_tests {
+    use super::*;
+    #[test]
+    fn forwarded_duplicates_are_individual_slots() {
+        let a = Port {
+            w: Dependency::Function(1),
+            t: 0,
+            path: Path::default(),
+        };
+        let b = Port {
+            w: Dependency::Function(2),
+            ..a
+        };
+        let mut counts = SlotChanges::default();
+        counts.observe(&[a, a, b], &[b, a]);
+        counts.observe(&[a, b], &[b, a]);
+        assert_eq!(
+            (
+                counts.replace,
+                counts.refs_added,
+                counts.refs_removed,
+                counts.reordered
+            ),
+            (2, 0, 1, 1)
+        );
     }
 }

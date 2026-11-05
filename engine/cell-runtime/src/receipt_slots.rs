@@ -2,37 +2,25 @@
 //! canonical receipt can change its bundle, including a last empty proposal.
 use super::*;
 
-#[derive(Clone, Copy)]
-enum ValueRef {
-    Empty,
-    Sealed(u32),
-    Scratch(usize),
-}
-#[derive(Clone, Copy)]
 struct Proposed {
+    rule: usize,
+    emitter: usize,
     table: usize,
+    raw: Dependency,
     ordinal: u64,
-    value: ValueRef,
+    sources: SmallVec<[Option<Dependency>; 2]>,
 }
 #[derive(Default)]
 struct Bundles {
     // Receipt handle zero denotes the empty bundle.
     sealed: Vec<Packet>,
     free: Vec<u32>,
-    scratch: Vec<Packet>,
     anchors: usize,
     references: usize,
 }
 impl Bundles {
     fn sealed(&self, id: u32) -> Option<&Packet> {
         id.checked_sub(1).map(|i| &self.sealed[i as usize])
-    }
-    fn ports(&self, v: ValueRef) -> &[Port] {
-        match v {
-            ValueRef::Empty => &[],
-            ValueRef::Sealed(id) => self.sealed(id).map_or(&[], |p| p.ports.as_slice()),
-            ValueRef::Scratch(i) => &self.scratch[i].ports,
-        }
     }
     fn release(&mut self, id: u32) {
         let old = &mut self.sealed[id as usize - 1];
@@ -48,29 +36,34 @@ impl Bundles {
             }
             return Ok(0);
         }
-        self.references += p.ports.len();
+        let count = p.ports.len();
         if old != 0 {
             let slot = &mut self.sealed[old as usize - 1];
-            self.references -= slot.ports.len();
+            self.references = self.references - slot.ports.len() + count;
             *slot = p;
             return Ok(old);
         }
+        let id = match self.free.pop() {
+            Some(id) => {
+                self.sealed[id as usize - 1] = p;
+                id
+            }
+            None => {
+                let id = u32::try_from(self.sealed.len() + 1)
+                    .map_err(|_| "structural slot handles exhausted")?;
+                self.sealed.push(p);
+                id
+            }
+        };
         self.anchors += 1;
-        if let Some(id) = self.free.pop() {
-            self.sealed[id as usize - 1] = p;
-            return Ok(id);
-        }
-        let id = u32::try_from(self.sealed.len() + 1)
-            .map_err(|_| "structural slot handles exhausted")?;
-        self.sealed.push(p);
+        self.references += count;
         Ok(id)
     }
 }
 #[derive(Default, Serialize)]
 pub(super) struct Metrics {
-    pub scratch_created: u64,
-    pub scratch_rewritten: u64,
-    pub equivalent_proposals: u64,
+    pub gathered_sources: u64,
+    pub evaluated: u64,
     pub committed: u64,
     pub unchanged: u64,
     pub retired: u64,
@@ -80,6 +73,7 @@ pub(super) struct Metrics {
 pub(super) struct Slots {
     bundles: Bundles,
     proposals: Map<Dependency, Proposed>,
+    changes: Vec<(Dependency, u32, Packet)>,
     pub metrics: Metrics,
 }
 impl Slots {
@@ -96,75 +90,40 @@ impl Slots {
         stats: &mut Stats,
         profile: bool,
     ) {
-        // Suffix reads see only sealed bundles. The writes below target
-        // disjoint scratch storage until the original Run's repair barrier.
-        let Bundles {
-            sealed, scratch, ..
-        } = &mut self.bundles;
-        let read = |w| {
-            g.previous_port_slot(w)
-                .checked_sub(1)
-                .map(|i| &sealed[i as usize])
-        };
-        focus.capture(g, r, known, effects, read, |w, table, p| {
+        let receipt = |s| Depth::source(g, r, s, known, effects);
+        for (emitter, op, table, sources) in focus.outputs(r) {
+            let Some(anchor) = receipt(Source::Effect(op)) else {
+                continue;
+            };
             stats.captured += 1;
-            stats.saturated_packets += u64::from(p.ports.len() == BUDGET);
-            let ordinal = stats.captured;
-            let entry = self.proposals.entry(w);
-            let (old, was_pending) = match &entry {
-                std::collections::hash_map::Entry::Occupied(e) => (e.get().value, true),
-                _ => {
-                    let id = g.previous_port_slot(w);
-                    (
-                        if id == 0 {
-                            ValueRef::Empty
-                        } else {
-                            ValueRef::Sealed(id)
-                        },
-                        false,
-                    )
-                }
-            };
-            let prior = match old {
-                ValueRef::Empty => &[][..],
-                ValueRef::Sealed(i) => sealed[i as usize - 1].ports.as_slice(),
-                ValueRef::Scratch(i) => scratch[i].ports.as_slice(),
-            };
+            let p = self.proposals.entry(anchor).or_insert_with(|| Proposed {
+                rule: r,
+                emitter,
+                table,
+                raw: anchor,
+                ordinal: 0,
+                sources: SmallVec::new(),
+            });
             if profile {
-                stats.census.proposal.observe(prior, &p.ports);
-                stats.census.overwritten += u64::from(was_pending);
+                stats.census.overwritten += u64::from(p.ordinal != 0);
             }
-            let next = if prior == p.ports.as_slice() {
-                self.metrics.equivalent_proposals += 1;
-                old
-            } else if p.ports.is_empty() {
-                ValueRef::Empty
-            } else if let ValueRef::Scratch(i) = old {
-                self.metrics.scratch_rewritten += 1;
-                scratch[i] = p;
-                old
-            } else {
-                self.metrics.scratch_created += 1;
-                let i = scratch.len();
-                scratch.push(p);
-                ValueRef::Scratch(i)
-            };
-            // Even an unchanged or empty write can beat an earlier redirected write.
-            entry
-                .and_modify(|e| {
-                    e.ordinal = ordinal;
-                    e.value = next;
-                })
-                .or_insert(Proposed {
-                    table,
-                    ordinal,
-                    value: next,
-                });
-        });
+            p.ordinal = stats.captured;
+            p.rule = r;
+            p.table = table;
+            p.emitter = emitter;
+            p.sources.clear();
+            p.sources.extend(sources.iter().map(|s| receipt(*s)));
+            self.metrics.gathered_sources += sources.len() as u64;
+        }
     }
-    pub fn publish(&mut self, g: &mut Graph, stats: &mut Stats, profile: bool) -> Result<()> {
-        // Only forwarded sources can compete with another raw receipt. Move
-        // them directly into the existing pending table before committing.
+    pub fn publish(
+        &mut self,
+        g: &mut Graph,
+        focus: &focus::Focus,
+        stats: &mut Stats,
+        profile: bool,
+    ) -> Result<()> {
+        // Preserve last RHS order even when its proposal will turn out empty.
         for &source in g.receipt_forwards.keys() {
             if let Some(p) = self.proposals.remove(&source) {
                 let target = g.resolve_receipt(source);
@@ -176,64 +135,65 @@ impl Slots {
                         std::collections::hash_map::Entry::Occupied(_)
                     ));
                 }
-                entry
-                    .and_modify(|other| {
-                        if p.ordinal > other.ordinal {
-                            *other = p
+                match entry {
+                    std::collections::hash_map::Entry::Vacant(v) => {
+                        v.insert(p);
+                    }
+                    std::collections::hash_map::Entry::Occupied(mut o) => {
+                        if p.ordinal > o.get().ordinal {
+                            o.insert(p);
                         }
-                    })
-                    .or_insert(p);
+                    }
+                }
             }
         }
+        // Evaluate all surviving programs against the same previous Run.
+        // A winner cannot read another winner's future suffix.
         for (w, p) in self.proposals.drain() {
             if !g.receipt_visible(w, p.table) {
                 stats.stale_exports += 1;
                 continue;
             }
+            self.metrics.evaluated += 1;
+            let mut next = focus.assemble(p.rule, p.emitter, p.raw, &p.sources, |src| {
+                self.bundles.sealed(g.previous_port_slot(src))
+            });
+            stats.saturated_packets += u64::from(next.ports.len() == BUDGET);
+            let mut repaired = false;
+            for x in &mut next.ports {
+                let resolved = g.resolve_receipt(x.w);
+                repaired |= resolved != x.w;
+                x.w = resolved;
+            }
+            let before = next.ports.len();
+            next.ports
+                .retain(|x| x.w != w && g.receipt_visible(x.w, x.t));
+            self.metrics.repaired_packets += u64::from(repaired || before != next.ports.len());
             let old = g.current_port_slot(w).unwrap();
-            let raw = self.bundles.ports(p.value);
-            let repair = |donor: &Port| {
-                let mut port = *donor;
-                port.w = g.resolve_receipt(port.w);
-                (port.w != w && g.receipt_visible(port.w, port.t)).then_some(port)
-            };
-            let adjusted = if raw.iter().any(|x| repair(x) != Some(*x)) {
-                self.metrics.repaired_packets += 1;
-                Some(Packet {
-                    ports: raw.iter().filter_map(repair).collect(),
-                })
-            } else {
-                None
-            };
-            let next = adjusted.as_ref().map_or(raw, |p| p.ports.as_slice());
             let prior = self
                 .bundles
                 .sealed(old)
                 .map_or(&[][..], |p| p.ports.as_slice());
             if profile {
-                stats.census.sealed.observe(prior, next);
+                stats.census.sealed.observe(prior, &next.ports);
             }
-            stats.published += u64::from(!next.is_empty());
-            for x in next {
-                stats.first_exports[x.path.len as usize] += 1;
+            stats.published += u64::from(!next.ports.is_empty());
+            for port in &next.ports {
+                stats.first_exports[port.path.len as usize] += 1;
             }
-            if prior == next {
+            if prior == next.ports.as_slice() {
                 self.metrics.unchanged += 1;
                 continue;
             }
-            self.metrics.committed += 1;
-            let value = adjusted.unwrap_or_else(|| match p.value {
-                ValueRef::Empty => Packet::default(),
-                ValueRef::Sealed(id) => self.bundles.sealed(id).unwrap().clone(),
-                ValueRef::Scratch(i) => std::mem::take(&mut self.bundles.scratch[i]),
-            });
-            let handle = self.bundles.set(old, value)?;
+            self.changes.push((w, old, next));
+        }
+        for (w, old, next) in self.changes.drain(..) {
+            let handle = self.bundles.set(old, next)?;
             if handle != old {
                 g.set_port_slot(w, handle);
             }
+            self.metrics.committed += 1;
         }
-        // Keep detached slots alive until every forwarded winner has read its
-        // old bundle. Retire the slot itself together with its physical row.
         for (_, id) in g.retired_port_slots.drain() {
             self.bundles.release(id);
             self.metrics.retired += 1;
@@ -241,7 +201,6 @@ impl Slots {
                 stats.census.retired_nonempty += 1;
             }
         }
-        self.bundles.scratch.clear();
         stats.peak_anchors = stats.peak_anchors.max(self.bundles.anchors);
         stats.peak_refs = stats.peak_refs.max(self.bundles.references);
         Ok(())

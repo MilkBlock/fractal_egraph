@@ -1286,6 +1286,16 @@ fn learned_port_program_checks_deleted_and_missing_witnesses() {
     };
     assert_eq!(count(&train, &catalog), 2);
     assert_eq!(count(&held, &catalog), 1);
+    // The two Tail publications collide at repair. The later writer either
+    // clears or supplies the slot, depending on the input allocation order.
+    let forward = include_str!("fixtures/structural-slot-forward.egg");
+    let empty_last = compile("empty-last", forward);
+    let full_last = compile(
+        "full-last",
+        &forward.replace("(Seed 1) (Seed 2)", "(Seed 2) (Seed 1)"),
+    );
+    assert_eq!(count(&empty_last, &catalog), 0);
+    assert_eq!(count(&full_last, &catalog), 1);
     catalog["paths"][0][0][0] = json!("absent-operator");
     assert_eq!(count(&held, &catalog), 0);
 }

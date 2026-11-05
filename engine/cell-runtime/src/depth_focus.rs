@@ -59,9 +59,9 @@ fn from_edges(edges: &[u32]) -> Path {
     path.edges[..edges.len()].copy_from_slice(edges);
     path
 }
-struct CopyPort {
-    src: Source,
-    via: Vec<Source>,
+struct CopyPort<S> {
+    src: S,
+    via: Vec<S>,
     suffix: Option<Path>,
     target: Path,
     table: usize,
@@ -69,7 +69,12 @@ struct CopyPort {
 struct Emitter {
     op: usize,
     table: usize,
-    copies: Vec<CopyPort>,
+    #[cfg(not(feature = "receipt-slots"))]
+    copies: Vec<CopyPort<Source>>,
+    #[cfg(feature = "receipt-slots")]
+    sources: Vec<Source>,
+    #[cfg(feature = "receipt-slots")]
+    copies: Vec<CopyPort<usize>>,
 }
 pub(super) struct Focus {
     rules: Vec<Vec<Emitter>>,
@@ -145,7 +150,30 @@ impl Focus {
                     }
                 }
                 if !copies.is_empty() {
+                    #[cfg(feature = "receipt-slots")]
+                    let (sources, copies) = {
+                        let mut sources = Vec::new();
+                        let mut index = |s: Source| {
+                            sources.iter().position(|x| *x == s).unwrap_or_else(|| {
+                                sources.push(s);
+                                sources.len() - 1
+                            })
+                        };
+                        let copies = copies
+                            .into_iter()
+                            .map(|c| CopyPort {
+                                src: index(c.src),
+                                via: c.via.into_iter().map(&mut index).collect(),
+                                target: c.target,
+                                suffix: c.suffix,
+                                table: c.table,
+                            })
+                            .collect();
+                        (sources, copies)
+                    };
                     emitters.push(Emitter {
+                        #[cfg(feature = "receipt-slots")]
+                        sources,
                         op: o.op,
                         table: o.table,
                         copies,
@@ -164,6 +192,25 @@ impl Focus {
     pub fn has_rule(&self, r: usize) -> bool {
         !self.rules[r].is_empty()
     }
+    #[cfg(feature = "receipt-slots")]
+    pub fn outputs(&self, r: usize) -> impl Iterator<Item = (usize, usize, usize, &[Source])> {
+        self.rules[r]
+            .iter()
+            .enumerate()
+            .map(|(i, e)| (i, e.op, e.table, e.sources.as_slice()))
+    }
+    #[cfg(feature = "receipt-slots")]
+    pub fn assemble<'a>(
+        &self,
+        r: usize,
+        i: usize,
+        anchor: Dependency,
+        sources: &[Option<Dependency>],
+        read: impl Fn(Dependency) -> Option<&'a Packet>,
+    ) -> Packet {
+        assemble(&self.rules[r][i].copies, anchor, |slot| sources[slot], read)
+    }
+    #[cfg(not(feature = "receipt-slots"))]
     pub fn capture<'a>(
         &self,
         g: &Graph,
@@ -178,40 +225,50 @@ impl Focus {
             let Some(anchor) = receipt(Source::Effect(out.op)) else {
                 continue;
             };
-            let mut packet = Packet::default();
-            for c in &out.copies {
-                let Some(src) = receipt(c.src) else { continue };
-                if !c.via.iter().all(|s| receipt(*s).is_some()) {
-                    continue;
-                }
-                let mut add = |w| {
-                    if w != anchor && !packet.ports.iter().any(|x| x.path == c.target && x.w == w) {
-                        packet.ports.push(Port {
-                            path: c.target,
-                            w,
-                            t: c.table,
-                        });
-                    }
-                    packet.ports.len() == BUDGET
-                };
-                if let Some(suffix) = c.suffix {
-                    if let Some(prev) = read(src)
-                        && prev
-                            .ports
-                            .iter()
-                            .filter(|p| p.path == suffix)
-                            .any(|p| add(p.w))
-                    {
-                        break;
-                    }
-                } else if add(src) {
-                    break;
-                }
-            }
+            let packet = assemble(&out.copies, anchor, receipt, &read);
             emit(anchor, out.table, packet);
         }
     }
     pub fn ports(&self, from: usize, to: usize) -> Option<&BTreeSet<Path>> {
         self.sinks.get(&(from, to))
     }
+}
+
+fn assemble<'a, S: Copy>(
+    copies: &[CopyPort<S>],
+    anchor: Dependency,
+    receipt: impl Fn(S) -> Option<Dependency>,
+    read: impl Fn(Dependency) -> Option<&'a Packet>,
+) -> Packet {
+    let mut packet = Packet::default();
+    for c in copies {
+        let Some(src) = receipt(c.src) else { continue };
+        if !c.via.iter().all(|s| receipt(*s).is_some()) {
+            continue;
+        }
+        let mut add = |w| {
+            if w != anchor && !packet.ports.iter().any(|x| x.path == c.target && x.w == w) {
+                packet.ports.push(Port {
+                    path: c.target,
+                    w,
+                    t: c.table,
+                });
+            }
+            packet.ports.len() == BUDGET
+        };
+        if let Some(suffix) = c.suffix {
+            if let Some(prev) = read(src)
+                && prev
+                    .ports
+                    .iter()
+                    .filter(|p| p.path == suffix)
+                    .any(|p| add(p.w))
+            {
+                break;
+            }
+        } else if add(src) {
+            break;
+        }
+    }
+    packet
 }
