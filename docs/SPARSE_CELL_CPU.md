@@ -165,3 +165,14 @@ Sparse table directories now reuse the ordered-run representation used by epoch 
 The preceding residual-domain refinement narrowed candidates from 18,732 to 18,645 and 6,879,302 to 6,737,948 after additional keys became available. Its paired times were 20.226 / 20.505 ms and 7.315 / 7.321 s. Index work remains inside inference. Refining stored domains and projecting dedup keys are still experimental; these candidate counts are not attributed to the table-directory change.
 
 Seal a Run as a sequence of rule-owned binding vectors. The original per-rule vectors now transfer to their commit positions directly. Flattening is only requested by diagnostics that need it. On the ordered-table prototype, inference medians for three pairs were 20.234 / 19.752 ms on sum-bits and 7.236 / 7.212 s on Raytrace. CLI was 117.753 / 117.259 ms and 9.544 / 9.563 s and RSS 153.98 / 153.94 MiB and 2,061.05 / 2,043.73 MiB. The per-Run RHS and effective write order, Spine audit, schedule and final graph matched.
+
+### Held-out PGO at 76d688f0
+
+Clean source archive, 22 all-feature runtime tests, both full audits, one warm-up then seven measured pairs for sum-bits and five for Raytrace. A CPU-bound exploratory analysis overlapped the first Raytrace series; the table uses a fresh complete sequential repeat after stopping that analysis. The excluded series is retained in the raw results.
+
+| Workload | Inference, original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits | 30.731 / 18.343 ms | 128.684 / 100.211 ms | 161.14 / 153.00 MiB | 18,730 / 18,732 | 1.836× | 1.675× |
+| Raytrace | 12.450 / 6.706 s | 15.178 / 8.721 s | 2,909.14 / 2,054.61 MiB | 6,916,788 / 6,879,302 | 2.014× | 1.856× |
+
+The measured candidate ranges were 17.782–18.972 ms and 6.642–6.737 s. Sum-bits needs 1.5055 ms less than this median to reach its fixed cutoff. These results predate the later rule-owned binding-vector change.
