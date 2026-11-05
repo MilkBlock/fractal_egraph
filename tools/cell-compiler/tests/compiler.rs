@@ -1171,3 +1171,63 @@ fn producer_and_consumers_share_a_checked_port_on_the_original_schedule() {
             .is_empty()
     );
 }
+
+#[cfg(feature = "structural-depth")]
+#[test]
+fn three_structural_edges_complete_on_the_scheduled_run() {
+    use eggfuse_cell_runtime::program::Program;
+    let tmp = tempfile::tempdir().unwrap();
+    let input = tmp.path().join("input.egg");
+    let output = tmp.path().join("compiled");
+    fs::write(&input, include_str!("fixtures/structural-depth.egg")).unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        input.to_str().unwrap(),
+        "--output",
+        output.to_str().unwrap(),
+    ]);
+    let pg = output.join("program.json");
+    let mut bad = json_file(&pg);
+    bad["structural_ports"]["edges"][0][1] = json!(999);
+    bad["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&bad));
+    assert!(
+        Program::parse(bad)
+            .unwrap_err()
+            .contains("structural port plan")
+    );
+    for d in 0..=3 {
+        let o = pass(&[
+            "bench",
+            "--program",
+            pg.to_str().unwrap(),
+            "--reference-program",
+            pg.to_str().unwrap(),
+            "--repeat",
+            "1",
+            "--structural-depth",
+            &d.to_string(),
+        ]);
+        let result: J = serde_json::from_slice(&o.stdout).unwrap();
+        let stats = &result["counts"]["structural_depth"];
+        assert_eq!(
+            stats["closed_rhs"][3].as_u64(),
+            Some(if d == 3 { 2 } else { 0 })
+        );
+        assert_eq!(
+            stats["spine_reads"][3].as_u64(),
+            Some(if d == 3 { 2 } else { 0 })
+        );
+    }
+    assert!(
+        !command(&[
+            "bench",
+            "--program",
+            pg.to_str().unwrap(),
+            "--structural-depth",
+            "4"
+        ])
+        .status
+        .success()
+    );
+}

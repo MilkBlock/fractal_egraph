@@ -9,6 +9,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!(
             "eggfuse-cell-runtime --program FILE [--inspect-program | --output DIR] [--audit-stages] [--extract-unit-cost OPERATOR]"
         );
+        #[cfg(feature = "structural-depth")]
+        println!("  --structural-depth 0..3 [--structural-survey]");
         return Ok(());
     }
     let mut seen = std::collections::BTreeSet::new();
@@ -24,6 +26,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .filter(|v| !v.starts_with("--"))
                     .ok_or_else(|| format!("missing value for {flag}"))?;
             }
+            #[cfg(feature = "structural-depth")]
+            "--structural-depth" => {
+                flags
+                    .next()
+                    .filter(|v| !v.starts_with("--"))
+                    .ok_or("missing structural depth")?;
+            }
+            #[cfg(feature = "structural-depth")]
+            "--structural-survey" => {}
             "--audit-stages" | "--inspect-program" => {}
             _ => return Err(format!("unknown option {flag}").into()),
         }
@@ -44,6 +55,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     let audit = args.iter().any(|x| x == "--audit-stages");
     let mut runtime = Executor::new(Graph::new(program)?, audit);
+    #[cfg(feature = "structural-depth")]
+    {
+        let survey = args.iter().any(|x| x == "--structural-survey");
+        let depth = opt("--structural-depth")
+            .map(|s| s.parse())
+            .transpose()?
+            .unwrap_or(if survey { 3 } else { 0 });
+        runtime.configure_depth(depth, survey)?;
+    }
     let setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
     #[cfg(feature = "slot-transfer-audit")]
@@ -86,6 +106,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::write(
         out.join("family-survey.json"),
         serde_json::to_vec(&runtime.family_survey())?,
+    )?;
+    #[cfg(feature = "structural-depth")]
+    std::fs::write(
+        out.join("structural-depth.json"),
+        serde_json::to_vec(&runtime.depth_report())?,
     )?;
     let mut report = runtime.report();
     report["inference_seconds"] = seconds.into();

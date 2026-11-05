@@ -258,6 +258,10 @@ struct Publication {
     source: crate::graph::FactRef,
 }
 pub struct Programs {
+    #[cfg(feature = "structural-depth")]
+    pub(crate) structural: crate::depth_runtime::Depth,
+    #[cfg(feature = "structural-depth")]
+    pub(crate) track_ports: Vec<usize>,
     #[cfg(feature = "iterative-bake")]
     pub(crate) training: crate::iterative::Training,
     #[cfg(feature = "spine-shapes")]
@@ -341,6 +345,7 @@ fn read_port(
     table: usize,
     args: Vec<Value>,
     stats: &mut Stats,
+    #[cfg(feature = "structural-depth")] structural: (&mut crate::depth_runtime::Depth, Dependency),
 ) -> Result<Option<Row>> {
     let good =
         |r: &crate::graph::Row| r.table == table && !r.hidden && r.values[..args.len()] == args;
@@ -361,7 +366,15 @@ fn read_port(
     };
     if row.is_none() {
         stats.port_refreshes += 1;
-        row = g.lookup_canonical(table, &args)?;
+        #[cfg(feature = "structural-depth")]
+        let forwarded = structural.0.spine_read(g, structural.1, table, &args)?;
+        #[cfg(not(feature = "structural-depth"))]
+        let forwarded: Option<Row> = None;
+        let probed = forwarded.is_none();
+        row = match forwarded {
+            Some(row) => Some(row),
+            None => g.lookup_canonical(table, &args)?,
+        };
         if let Some(context) = cache {
             let mut context = context.borrow_mut();
             if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
@@ -370,7 +383,7 @@ fn read_port(
             } else {
                 context.facts.remove(&(table, args));
             }
-        } else {
+        } else if probed {
             stats.pre_resume_port_lookups += 1;
         }
     }
@@ -475,6 +488,10 @@ impl Programs {
             pending_anchors: vec![],
             root_set: Rc::from(""),
             capture_unions: None,
+            #[cfg(feature = "structural-depth")]
+            structural: crate::depth_runtime::Depth::new(p),
+            #[cfg(feature = "structural-depth")]
+            track_ports: vec![0; p.rules.len()],
             origins: vec![HashMap::default(); p.rules.len()],
             origin_rules: Vec::new(),
             next_context: 0,
@@ -675,11 +692,16 @@ impl Programs {
         self.enabled && self.receipts && self.anchor_ops.get(rid).is_some_and(|ops| !ops.is_empty())
     }
     pub(crate) fn alias_query_facts(&self, rid: usize) -> QueryFacts {
-        if self.receipts {
+        let base = if self.receipts {
             self.alias_query_facts.get(rid).cloned().unwrap_or_default()
         } else {
             QueryFacts::None
+        };
+        #[cfg(feature = "structural-depth")]
+        if self.track_ports[rid] > 0 {
+            return QueryFacts::Tracked(Box::new(base), vec![None; self.track_ports[rid]], 0);
         }
+        base
     }
     /// Query witnesses are used only as receipts for proved RHS aliases.
     pub fn capture(
@@ -1202,7 +1224,15 @@ impl Programs {
                     self.stats.block_entries += 1;
                     let port = if let Some(p) = &block.port {
                         let args = p.key.iter().map(|v| v.get(g, &row, None)).collect();
-                        let Some(found) = read_port(g, &cursor, p.table, args, &mut self.stats)?
+                        let Some(found) = read_port(
+                            g,
+                            &cursor,
+                            p.table,
+                            args,
+                            &mut self.stats,
+                            #[cfg(feature = "structural-depth")]
+                            (&mut self.structural, row.witness),
+                        )?
                         else {
                             continue;
                         };
@@ -1244,7 +1274,16 @@ impl Programs {
                     .collect::<Result<Vec<_>>>()?;
                 match &a.call {
                     Call::Table(t) => {
-                        let Some(row) = read_port(g, &cursor, *t, args, &mut self.stats)? else {
+                        let Some(row) = read_port(
+                            g,
+                            &cursor,
+                            *t,
+                            args,
+                            &mut self.stats,
+                            #[cfg(feature = "structural-depth")]
+                            (&mut self.structural, row.witness),
+                        )?
+                        else {
                             valid = false;
                             break;
                         };

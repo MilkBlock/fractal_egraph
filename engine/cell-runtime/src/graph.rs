@@ -445,6 +445,7 @@ impl Graph {
         values: crate::slots::Slots,
         parent: Option<FactRef>,
         aliases: Option<&[bool]>,
+        #[cfg(feature = "structural-depth")] mut receipts: Option<&mut [Option<Dependency>]>,
     ) -> Result<Option<(u32, usize)>> {
         let id = self.reserve_cell_id()?;
         let mut frame = self.new_cell(template, values, parent);
@@ -468,10 +469,21 @@ impl Graph {
             self.stats.constructor_requests += 1;
             if let Some(row) = self.lookup_canonical(table, &key)? {
                 self.stats.constructor_reused += 1;
+                #[cfg(feature = "structural-depth")]
+                if let Some(ref mut rs) = receipts {
+                    rs[op] = Some(row.witness);
+                }
                 frame.values.insert(dst, row.values.last().unwrap().clone());
             } else {
                 self.store_cell(id, frame);
                 self.insert_constructor(id, op, table, &key, dst)?;
+                #[cfg(feature = "structural-depth")]
+                if let Some(ref mut rs) = receipts {
+                    rs[op] = Some(Dependency::Fact(FactRef {
+                        cell: id,
+                        op: op as u32,
+                    }));
+                }
                 return Ok(Some((id, op + 1)));
             }
         }
@@ -1020,6 +1032,11 @@ impl Graph {
                     suffix.insert(*dst, v);
                     continue;
                 }
+                #[cfg(feature = "structural-depth")]
+                Op::Union(a, b) => {
+                    unions.push((arg(a, &suffix)?, arg(b, &suffix)?));
+                    continue;
+                }
                 Op::Let(_, Call::Table(t), aa) | Op::Set(t, aa, _) => (*t, aa),
                 _ => return Err("unexpected instruction in completed block".into()),
             };
@@ -1079,6 +1096,17 @@ impl Graph {
         self.stats.handoff_sets += sets;
         self.stats.handoff_deep += deep;
         Ok(Some((cell, keys, receipts, count)))
+    }
+    #[cfg(feature = "structural-depth")]
+    pub(crate) fn checked_constructor(
+        &self,
+        f: FactRef,
+        table: usize,
+        key: &[Value],
+    ) -> Result<Option<Row>> {
+        Ok(self
+            .live_handoff(f, table)?
+            .filter(|r| r.values.split_last().is_some_and(|(_, k)| k == key)))
     }
     #[cfg(feature = "iterative-bake")]
     fn live_handoff(&self, f: FactRef, table: usize) -> Result<Option<Row>> {

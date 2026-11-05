@@ -12,9 +12,17 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--catalog",
             "--program",
             "--repeat",
+            #[cfg(feature = "structural-depth")]
+            "--structural-depth",
             "--reference-program",
         ],
     )?;
+    #[cfg(feature = "structural-depth")]
+    let depth = opts
+        .get("--structural-depth")
+        .map(|s| s.parse::<u8>())
+        .transpose()?
+        .unwrap_or(0);
     let n = opts
         .get("--repeat")
         .map(|s| s.parse::<usize>())
@@ -45,7 +53,15 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
         path.join("program.json")
     };
     if let Some(reference) = opts.get("--reference-program") {
-        if stage_digests(Path::new(reference))? != stage_digests(&path)? {
+        if stage_digests(
+            Path::new(reference),
+            #[cfg(feature = "structural-depth")]
+            0,
+        )? != stage_digests(
+            &path,
+            #[cfg(feature = "structural-depth")]
+            depth,
+        )? {
             return Err("per-Run reference mismatch".into());
         }
     }
@@ -55,6 +71,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     let mut counts = J::Null;
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
+        #[cfg(feature = "structural-depth")]
+        e.configure_depth(depth, false)?;
         let start = Instant::now();
         e.execute()?;
         times.push(start.elapsed().as_secs_f64() * 1000.);
@@ -85,6 +103,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "semijoin":r["semijoin"],"view_consumers":r["view_consumers"],"view_storage":r["view_storage"],"publication":r["publication"],"entry_row_reads":r["entry_schedule"]["stats"]["row_decodes"],
             "stage_spine":r["stage_spine"]["stats"],"neighbor_context":r["neighbor_context"],"local_context":r["local_context"],
             "handoff_closed":g.handoff_closed,"handoff_closed_fallback":g.handoff_closed_fallback,"handoff_deep":g.handoff_deep,"handoff_lets":g.handoff_lets});
+        #[cfg(feature = "structural-depth")]
+        {
+            counts["structural_depth"] = e.depth_report()["stats"].clone();
+        }
     }
     let mut sorted = times.clone();
     sorted.sort_by(f64::total_cmp);
@@ -96,11 +118,23 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 pub(super) fn stages(path: &Path) -> Result<()> {
-    println!("{}", serde_json::to_string(&stage_digests(path)?)?);
+    println!(
+        "{}",
+        serde_json::to_string(&stage_digests(
+            path,
+            #[cfg(feature = "structural-depth")]
+            0
+        )?)?
+    );
     Ok(())
 }
-fn stage_digests(path: &Path) -> Result<Vec<String>> {
+fn stage_digests(
+    path: &Path,
+    #[cfg(feature = "structural-depth")] depth: u8,
+) -> Result<Vec<String>> {
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
+    #[cfg(feature = "structural-depth")]
+    e.configure_depth(depth, false)?;
     let mut hashes = vec![];
     let sorted = |mut state: J| -> J {
         state["rows"]

@@ -26,18 +26,46 @@ pub struct Plans {
 /// Keep a single requested query witness inline.
 #[derive(Clone, Debug, Default)]
 pub(crate) enum QueryFacts {
+    #[cfg(feature = "structural-depth")]
+    Tracked(Box<QueryFacts>, Vec<Option<Dependency>>, u8),
     #[default]
     None,
     One(usize, Option<FactRef>),
     All(Vec<Option<FactRef>>),
 }
 impl QueryFacts {
+    #[cfg(feature = "structural-depth")]
+    pub fn tracked(&self, atom: usize) -> Option<Dependency> {
+        match self {
+            Self::Tracked(_, rows, _) => rows.get(atom).copied().flatten(),
+            _ => self.get(atom).map(Dependency::Fact),
+        }
+    }
+    #[cfg(feature = "structural-depth")]
+    pub fn mark(&mut self, depth: u8) {
+        if let Self::Tracked(_, _, d) = self {
+            *d = depth
+        }
+    }
+    #[cfg(feature = "structural-depth")]
+    pub fn depth(&self) -> u8 {
+        if let Self::Tracked(_, _, d) = self {
+            *d
+        } else {
+            0
+        }
+    }
     pub fn record(&mut self, atom: usize, witness: Option<Dependency>) {
         let fact = match witness {
             Some(Dependency::Fact(f)) => Some(f),
             _ => None,
         };
         match self {
+            #[cfg(feature = "structural-depth")]
+            Self::Tracked(original, rows, _) => {
+                original.record(atom, witness);
+                rows[atom] = witness;
+            }
             Self::One(source, slot) if *source == atom => *slot = fact,
             Self::All(rows) => rows[atom] = fact,
             _ => {}
@@ -45,6 +73,8 @@ impl QueryFacts {
     }
     pub fn get(&self, atom: usize) -> Option<FactRef> {
         match self {
+            #[cfg(feature = "structural-depth")]
+            Self::Tracked(original, _, _) => original.get(atom),
             Self::One(source, fact) if *source == atom => *fact,
             Self::All(rows) => rows[atom],
             _ => None,

@@ -1,5 +1,8 @@
 mod change_batch;
 pub mod checksum;
+mod depth_plan;
+#[cfg(feature = "structural-depth")]
+mod depth_runtime;
 #[cfg(feature = "family-overlap")]
 mod family_overlap;
 #[cfg(feature = "family-survey")]

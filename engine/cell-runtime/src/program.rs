@@ -58,6 +58,8 @@ pub struct Rule {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
     #[serde(skip)]
+    pub(crate) depth_plan: Rc<crate::depth_plan::Plan>,
+    #[serde(skip)]
     pub(crate) view_blocks: Rc<Vec<crate::view_plan::Block>>,
     #[serde(skip)]
     pub(crate) neighbor_plans: Vec<Option<crate::neighbor::Plan>>,
@@ -336,6 +338,7 @@ impl Program {
             spine_blocks: Default::default(),
             #[cfg(feature = "iterative-bake")]
             iterative: Default::default(),
+            depth_plan: Default::default(),
             view_blocks: Default::default(),
             marker_tables: Default::default(),
             multi_stage: crate::multistage::MultiStage::default(),
@@ -458,6 +461,15 @@ impl Program {
             return Err("view consumer block differs from typed recipe".into());
         }
         p.view_blocks = Rc::new(blocks);
+        if cfg!(feature = "structural-depth") || p.artifact.get("structural_ports").is_some() {
+            let plan = crate::depth_plan::Plan::derive(&p);
+            if let Some(raw) = p.artifact.get("structural_ports")
+                && *raw != serde_json::json!(&plan)
+            {
+                return Err("structural port plan differs from typed producer".into());
+            }
+            p.depth_plan = Rc::new(plan);
+        }
         p.context_cuts = crate::local_context::derive_cuts(&p);
         if let Some(raw) = p.artifact.get("context_cuts")
             && *raw != serde_json::json!(crate::local_context::layout(&p.context_cuts))

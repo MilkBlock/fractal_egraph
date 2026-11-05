@@ -193,7 +193,13 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
         ("marker_tables", json!(markers)),
     ];
     let entry = crate::entry_join::Plan::derive(&p);
+    #[cfg(feature = "structural-depth")]
+    let structural = json!(crate::depth_plan::Plan::derive(&p));
     j = p.artifact;
+    #[cfg(feature = "structural-depth")]
+    {
+        j["structural_ports"] = structural;
+    }
     j["free_join_entry"] = json!(entry);
     for (k, v) in plans {
         j[k] = v;
