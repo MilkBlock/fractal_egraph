@@ -161,6 +161,8 @@ pub struct Stats {
 /// All lanes share the same Run barrier. The last three are timing controls.
 
 pub struct Graph {
+    #[cfg(feature = "rhs-work-audit")]
+    pub(crate) rhs_births: crate::rhs_work::Births,
     units: unit_ports::Units,
     pub known_stats: crate::known_results::Stats,
     pub merge_programs_enabled: bool,
@@ -201,6 +203,9 @@ pub struct Graph {
     parent_users: rustc_hash::FxHashMap<u32, usize>,
     garbage: BTreeSet<u32>,
 }
+#[cfg(feature = "rhs-locals")]
+#[path = "local_rhs_exec.rs"]
+pub(crate) mod local_rhs_exec;
 #[path = "unit_ports.rs"]
 mod unit_ports;
 fn hashkey(table: usize, key: &[Value]) -> u64 {
@@ -304,6 +309,8 @@ impl Graph {
             })
             .collect();
         let mut g = Self {
+            #[cfg(feature = "rhs-work-audit")]
+            rhs_births: Default::default(),
             units: unit_ports::Units::new(&program),
             merge_kinds,
             equal_keeps_old,
@@ -930,6 +937,10 @@ impl Graph {
         #[cfg(feature = "family-overlap")]
         let clock = crate::family_overlap::clock();
         let result = self.lookup_canonical_inner(table, key);
+        #[cfg(feature = "rhs-work-audit")]
+        if let Ok(Some(r)) = &result {
+            self.rhs_births.read(r.witness);
+        }
         #[cfg(feature = "family-overlap")]
         crate::family_overlap::physical(table, 0, clock, || {
             key.iter().cloned().enumerate().collect()

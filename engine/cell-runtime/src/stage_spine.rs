@@ -688,6 +688,10 @@ impl Programs {
             })
         }
     }
+    #[cfg(all(feature = "rhs-work-audit", feature = "rhs-locals"))]
+    pub(crate) fn anchor_at(&self, r: usize, op: usize) -> bool {
+        self.anchor_ops[r].iter().any(|&(i, _)| i == op)
+    }
     pub fn capture_receipts(&self, rid: usize) -> bool {
         self.enabled && self.receipts && self.anchor_ops.get(rid).is_some_and(|ops| !ops.is_empty())
     }

@@ -99,6 +99,10 @@ pub(crate) struct Publication {
     neighbor_rows: u64,
 }
 impl Publication {
+    #[cfg(feature = "rhs-work-audit")]
+    pub fn index_writes(&self) -> [u64; 3] {
+        [self.column_rows, self.range_rows, self.neighbor_rows]
+    }
     /// Resolve each requested witness once, after repair. Column and range indexes
     /// retain their own previous keys so a removal needs only the witness.
     pub fn publish(

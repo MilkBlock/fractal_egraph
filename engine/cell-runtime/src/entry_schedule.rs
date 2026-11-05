@@ -548,6 +548,10 @@ impl Scheduler {
         self.stats.retired_packets += old.len() as u64;
         Ok(())
     }
+    #[cfg(feature = "rhs-work-audit")]
+    pub fn seed_deliveries(&self) -> u64 {
+        self.stats.consumer_seed_deliveries
+    }
     pub fn report(&self) -> J {
         json!({"enabled":self.enabled,"nodes":self.plan.nodes.len(),"stats":self.stats,"live_packets":self.states.iter().map(|s|s.rows.len()).sum::<usize>(),"scope":"compiled shared entry predicates; consumer watermarks and complete residual/RHS remain source scheduled"})
     }

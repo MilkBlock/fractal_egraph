@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+rhs-locals = ["iterative-bake"]
+rhs-work-audit = ["structural-depth"]
 receipt-slots = ["structural-depth"]
 structural-depth = ["iterative-bake"]
 family-survey = []
@@ -46,3 +48,7 @@ required-features = ["iterative-bake"]
 [[example]]
 name = "rank_families"
 required-features = ["family-survey"]
+
+[[example]]
+name = "rank_rhs_work"
+required-features = ["rhs-work-audit", "rhs-locals"]

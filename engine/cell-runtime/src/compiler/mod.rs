@@ -166,6 +166,9 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
         .iter()
         .map(|x| x["rule"].as_u64().unwrap() as usize)
         .collect();
+    let (known_results, known_json) = crate::known_results::Plans::derive(&p)?;
+    #[cfg(not(feature = "rhs-locals"))]
+    let _ = known_results;
     let plans = [
         (
             "view_consumer_blocks",
@@ -179,7 +182,7 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
             "merge_contracts",
             json!({"schema":"eggfuse-merge-contracts/v1","tables":p.tables.iter().map(|t|crate::merge_contract::table(&p,t)).collect::<Result<Vec<_>>>()?}),
         ),
-        ("known_results", crate::known_results::Plans::derive(&p)?.1),
+        ("known_results", known_json),
         ("entry_schedule", crate::entry_schedule::Plan::derive(&p)?.1),
         ("merge_programs", crate::merge_programs::compile(&p)?),
         ("multi_stage", multi),
@@ -195,7 +198,13 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     let entry = crate::entry_join::Plan::derive(&p);
     #[cfg(feature = "structural-depth")]
     let structural = json!(crate::depth_plan::Plan::derive(&p));
+    #[cfg(feature = "rhs-locals")]
+    let local_blocks = json!(crate::local_rhs::derive(&p, &known_results));
     j = p.artifact;
+    #[cfg(feature = "rhs-locals")]
+    {
+        j["local_rhs_blocks"] = local_blocks;
+    }
     #[cfg(feature = "structural-depth")]
     {
         j["structural_ports"] = structural;

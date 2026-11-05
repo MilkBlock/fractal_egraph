@@ -7,6 +7,10 @@ mod depth_runtime;
 mod family_overlap;
 #[cfg(feature = "family-survey")]
 mod family_survey;
+#[cfg(feature = "rhs-locals")]
+mod local_rhs;
+#[cfg(feature = "rhs-work-audit")]
+mod rhs_work;
 #[cfg(feature = "slot-transfer-audit")]
 pub mod transfer_audit;
 mod view_plan;

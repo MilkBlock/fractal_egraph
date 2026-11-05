@@ -12,6 +12,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--catalog",
             "--program",
             "--repeat",
+            #[cfg(feature = "rhs-locals")]
+            "--rhs-local-width",
+            #[cfg(feature = "rhs-locals")]
+            "--rhs-local-profile",
             #[cfg(feature = "structural-depth")]
             "--structural-depth",
             #[cfg(feature = "structural-depth")]
@@ -28,6 +32,17 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     #[cfg(feature = "structural-depth")]
     let catalog = opts
         .get("--structural-catalog")
+        .map(|path| read(Path::new(path)))
+        .transpose()?;
+    #[cfg(feature = "rhs-locals")]
+    let width = opts
+        .get("--rhs-local-width")
+        .map(|s| s.parse::<usize>())
+        .transpose()?
+        .unwrap_or(0);
+    #[cfg(feature = "rhs-locals")]
+    let local_profile = opts
+        .get("--rhs-local-profile")
         .map(|path| read(Path::new(path)))
         .transpose()?;
     let n = opts
@@ -62,10 +77,14 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     if let Some(reference) = opts.get("--reference-program") {
         if stage_digests(
             Path::new(reference),
+            #[cfg(feature = "rhs-locals")]
+            (0, None),
             #[cfg(feature = "structural-depth")]
             (0, None),
         )? != stage_digests(
             &path,
+            #[cfg(feature = "rhs-locals")]
+            (width, local_profile.as_ref()),
             #[cfg(feature = "structural-depth")]
             (depth, catalog.as_ref()),
         )? {
@@ -83,6 +102,13 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             e.configure_depth(depth, false)?;
             if let Some(c) = &catalog {
                 e.use_depth_catalog(c.clone())?;
+            }
+        }
+        #[cfg(feature = "rhs-locals")]
+        {
+            e.configure_rhs_locals(width)?;
+            if let Some(p) = &local_profile {
+                e.use_rhs_local_profile(p)?;
             }
         }
         let start = Instant::now();
@@ -115,6 +141,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "semijoin":r["semijoin"],"view_consumers":r["view_consumers"],"view_storage":r["view_storage"],"publication":r["publication"],"entry_row_reads":r["entry_schedule"]["stats"]["row_decodes"],
             "stage_spine":r["stage_spine"]["stats"],"neighbor_context":r["neighbor_context"],"local_context":r["local_context"],
             "handoff_closed":g.handoff_closed,"handoff_closed_fallback":g.handoff_closed_fallback,"handoff_deep":g.handoff_deep,"handoff_lets":g.handoff_lets});
+        #[cfg(feature = "rhs-locals")]
+        {
+            counts["rhs_locals"] = e.rhs_local_report();
+        }
         #[cfg(feature = "structural-depth")]
         {
             let mut depth = e.depth_report();
@@ -139,6 +169,8 @@ pub(super) fn stages(path: &Path) -> Result<()> {
         "{}",
         serde_json::to_string(&stage_digests(
             path,
+            #[cfg(feature = "rhs-locals")]
+            (0, None),
             #[cfg(feature = "structural-depth")]
             (0, None)
         )?)?
@@ -147,6 +179,7 @@ pub(super) fn stages(path: &Path) -> Result<()> {
 }
 fn stage_digests(
     path: &Path,
+    #[cfg(feature = "rhs-locals")] local: (usize, Option<&J>),
     #[cfg(feature = "structural-depth")] structural: (u8, Option<&J>),
 ) -> Result<Vec<String>> {
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
@@ -155,6 +188,13 @@ fn stage_digests(
         e.configure_depth(structural.0, false)?;
         if let Some(c) = structural.1 {
             e.use_depth_catalog(c.clone())?;
+        }
+    }
+    #[cfg(feature = "rhs-locals")]
+    {
+        e.configure_rhs_locals(local.0)?;
+        if let Some(p) = local.1 {
+            e.use_rhs_local_profile(p)?;
         }
     }
     let mut hashes = vec![];

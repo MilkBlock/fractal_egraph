@@ -11,6 +11,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         #[cfg(feature = "structural-depth")]
         println!("  --structural-depth 0..3 [--structural-survey | --structural-catalog FILE]");
+        #[cfg(feature = "rhs-locals")]
+        println!("  --rhs-local-width N [--rhs-local-profile FILE] (0 disables local RHS blocks)");
+        #[cfg(feature = "rhs-work-audit")]
+        println!("  --rhs-cohort FILE (replay the recorded RHS work cohort)");
         return Ok(());
     }
     let mut seen = std::collections::BTreeSet::new();
@@ -35,6 +39,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             #[cfg(feature = "structural-depth")]
             "--structural-survey" => {}
+            #[cfg(feature = "rhs-work-audit")]
+            "--rhs-cohort" => {
+                flags
+                    .next()
+                    .filter(|s| !s.starts_with("--"))
+                    .ok_or("missing cohort path")?;
+            }
+            #[cfg(feature = "rhs-locals")]
+            "--rhs-local-width" | "--rhs-local-profile" => {
+                flags
+                    .next()
+                    .filter(|s| !s.starts_with("--"))
+                    .ok_or("missing block width")?;
+            }
             "--audit-stages" | "--inspect-program" => {}
             _ => return Err(format!("unknown option {flag}").into()),
         }
@@ -66,6 +84,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(path) = opt("--structural-catalog") {
             runtime.use_depth_catalog(serde_json::from_reader(std::fs::File::open(path)?)?)?;
         }
+    }
+    #[cfg(feature = "rhs-work-audit")]
+    if let Some(path) = opt("--rhs-cohort") {
+        runtime.rhs_cohort(std::path::Path::new(&path))?;
+    }
+    #[cfg(feature = "rhs-locals")]
+    runtime.configure_rhs_locals(
+        opt("--rhs-local-width")
+            .map(|v| v.parse())
+            .transpose()?
+            .unwrap_or(0),
+    )?;
+    #[cfg(feature = "rhs-locals")]
+    if let Some(path) = opt("--rhs-local-profile") {
+        runtime.use_rhs_local_profile(&serde_json::from_reader(std::fs::File::open(path)?)?)?;
     }
     let setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
@@ -124,7 +157,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             serde_json::to_vec(&report)?,
         )?;
     }
+    #[cfg(feature = "rhs-work-audit")]
+    runtime.write_rhs_work(&out)?;
     let mut report = runtime.report();
+    #[cfg(feature = "rhs-locals")]
+    {
+        report["rhs_locals"] = runtime.rhs_local_report();
+    }
     report["inference_seconds"] = seconds.into();
     report["setup_seconds"] = setup.into();
     let export_start = Instant::now();

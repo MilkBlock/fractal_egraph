@@ -57,6 +57,9 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[cfg(feature = "rhs-locals")]
+    #[serde(skip)]
+    pub(crate) local_rhs: Vec<Option<Rc<crate::local_rhs::Block>>>,
     #[serde(skip)]
     pub(crate) depth_plan: Rc<crate::depth_plan::Plan>,
     #[serde(skip)]
@@ -325,6 +328,8 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
+            #[cfg(feature = "rhs-locals")]
+            local_rhs: vec![],
             neighbor_plans: vec![],
             context_cuts: vec![],
             local_contexts: vec![],
@@ -447,6 +452,15 @@ impl Program {
         p.merge_programs =
             crate::merge_programs::Programs::parse(&p, &p.artifact["merge_programs"])?;
         p.known_results = crate::known_results::Plans::parse(&p, &p.artifact["known_results"])?;
+        #[cfg(feature = "rhs-locals")]
+        {
+            p.local_rhs = crate::local_rhs::derive(&p, &p.known_results);
+            if let Some(raw) = p.artifact.get("local_rhs_blocks")
+                && *raw != serde_json::json!(p.local_rhs)
+            {
+                return Err("local RHS blocks differ from typed rules".into());
+            }
+        }
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
         let spine = p
             .multi_stage

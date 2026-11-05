@@ -74,6 +74,14 @@ struct StagePatch {
     bindings: Vec<(usize, Binding)>,
 }
 pub struct Executor {
+    #[cfg(feature = "rhs-locals")]
+    local_width: usize,
+    #[cfg(feature = "rhs-locals")]
+    local_selection: Option<Vec<bool>>,
+    #[cfg(feature = "rhs-locals")]
+    local_counts: crate::local_rhs::Counts,
+    #[cfg(feature = "rhs-work-audit")]
+    ledger: crate::rhs_work::Ledger,
     #[cfg(feature = "family-scan")]
     raw_scan: family_scan::Scan,
     #[cfg(feature = "family-frontiers")]
@@ -254,6 +262,14 @@ impl Executor {
         graph.receipt_tracking =
             (stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
+            #[cfg(feature = "rhs-locals")]
+            local_width: 0,
+            #[cfg(feature = "rhs-locals")]
+            local_selection: None,
+            #[cfg(feature = "rhs-locals")]
+            local_counts: Default::default(),
+            #[cfg(feature = "rhs-work-audit")]
+            ledger: Default::default(),
             #[cfg(feature = "family-scan")]
             raw_scan: family_scan::Scan::new(&graph.program),
             #[cfg(feature = "family-frontiers")]
@@ -320,6 +336,8 @@ impl Executor {
                 continue;
             }
             for &rid in &self.readers[table] {
+                #[cfg(feature = "rhs-work-audit")]
+                self.ledger.wake();
                 self.dirty[rid] = true;
                 if !self.entry_schedule.accepts(rid) {
                     self.pending[rid].extend(
@@ -1780,6 +1798,11 @@ impl Executor {
             #[cfg(feature = "iterative-bake")]
             b.direct,
         );
+        #[cfg(feature = "rhs-work-audit")]
+        self.ledger.resumed(matches!(
+            &stage_cursor,
+            Some(crate::stage_spine::Started::Live(_))
+        ))?;
         let stage_counts = stage_cursor.as_ref().map(|_| {
             (
                 self.graph.stats.constructor_requests,
@@ -1900,6 +1923,10 @@ impl Executor {
             && let Some((cell, mut keys, receipts, unions)) =
                 self.graph.finish_handoff(template, &b.values, &ports)?
         {
+            #[cfg(feature = "rhs-work-audit")]
+            if !matches!(&stage_cursor, Some(crate::stage_spine::Started::Live(_))) {
+                self.ledger.closed(&self.graph, rid, &b.values);
+            }
             self.stage_spine.structural.closed(
                 d,
                 matches!(&stage_cursor, Some(crate::stage_spine::Started::Live(_))),
@@ -1958,36 +1985,114 @@ impl Executor {
         };
         let aliases = static_skip.as_deref().map(Vec::as_slice).filter(|_| true);
         #[cfg(feature = "structural-depth")]
-        let mut capture = self
+        let capture = self
             .stage_spine
             .structural
             .capture_rule(rid)
             .then(|| vec![None; self.graph.program.templates[template].ops.len()]);
-        let (cell, first_op) = if self.graph.program.rules[rid].constructor_only
-            && stage_cursor.is_none()
+        #[cfg(not(feature = "structural-depth"))]
+        let capture: Option<Vec<Option<Dependency>>> = None;
+        let mut effect_receipts = capture;
+        #[cfg(feature = "rhs-locals")]
+        let local = if self.local_width > 0
+            && self.local_selection.as_ref().is_none_or(|s| s[rid])
             && origin.is_none()
+            && !matches!(&stage_cursor, Some(crate::stage_spine::Started::Live(_)))
         {
-            let Some(start) = self.graph.start_constructor_rhs(
+            self.graph.program.local_rhs[rid]
+                .as_ref()
+                .filter(|p| p.steps.len() <= self.local_width)
+                .cloned()
+        } else {
+            None
+        };
+        #[cfg(all(feature = "rhs-work-audit", feature = "rhs-locals"))]
+        let inspect_births = (local.clone(), stage_cursor.is_some());
+        // Move the binding exactly once. All hits leave only a temporary
+        // frame; on the first miss the original suffix resumes after it.
+        let ordinary = |me: &mut Self,
+                        values: crate::slots::Slots,
+                        _receipts: &mut Option<Vec<Option<Dependency>>>|
+         -> Result<Option<(u32, usize)>> {
+            if me.graph.program.rules[rid].constructor_only
+                && stage_cursor.is_none()
+                && origin.is_none()
+            {
+                me.graph.start_constructor_rhs(
+                    template,
+                    values,
+                    b.parent,
+                    aliases,
+                    #[cfg(feature = "structural-depth")]
+                    _receipts.as_deref_mut(),
+                )
+            } else {
+                Ok(Some((
+                    me.graph.linked_slots(template, values, b.parent)?,
+                    0,
+                )))
+            }
+        };
+        #[cfg(feature = "rhs-locals")]
+        let start = if let Some(block) = local {
+            if effect_receipts.is_none() && self.stage_spine.capture_receipts(rid) {
+                effect_receipts =
+                    Some(vec![None; self.graph.program.templates[template].ops.len()]);
+            }
+            match self.graph.local_rhs(
                 template,
                 b.values,
                 b.parent,
-                aliases,
-                #[cfg(feature = "structural-depth")]
-                capture.as_deref_mut(),
-            )?
-            else {
-                #[cfg(feature = "structural-depth")]
-                self.stage_spine.structural.capture(
-                    &self.graph,
-                    rid,
-                    &b.known,
-                    capture.as_deref().unwrap_or(&[]),
-                );
-                return Ok(());
-            };
-            start
+                &block,
+                effect_receipts.as_deref_mut(),
+                &mut self.local_counts,
+            )? {
+                crate::graph::local_rhs_exec::Start::Promoted { cell, next_op } => {
+                    Some((cell, next_op))
+                }
+                crate::graph::local_rhs_exec::Start::Complete { cell, frame } => {
+                    #[cfg(feature = "structural-depth")]
+                    self.stage_spine.structural.capture(
+                        &self.graph,
+                        rid,
+                        &b.known,
+                        effect_receipts.as_deref().unwrap_or(&[]),
+                    );
+                    if let Some(cursor) = stage_cursor {
+                        let (c, f, u) = stage_counts.unwrap();
+                        self.stage_spine.effects(
+                            self.graph.stats.constructor_requests - c,
+                            self.graph.stats.function_updates - f,
+                            self.graph.stats.union_requests - u,
+                        );
+                        let g = &self.graph;
+                        self.stage_spine.capture_keys(
+                            g,
+                            rid,
+                            cell,
+                            cursor,
+                            |i| b.known.get(i).map(Dependency::Fact),
+                            effect_receipts.as_deref(),
+                            |_, args| g.local_key(cell, &frame, args),
+                        )?;
+                    }
+                    return Ok(());
+                }
+            }
         } else {
-            (self.graph.linked_slots(template, b.values, b.parent)?, 0)
+            ordinary(self, b.values, &mut effect_receipts)?
+        };
+        #[cfg(not(feature = "rhs-locals"))]
+        let start = ordinary(self, b.values, &mut effect_receipts)?;
+        let Some((cell, first_op)) = start else {
+            #[cfg(feature = "structural-depth")]
+            self.stage_spine.structural.capture(
+                &self.graph,
+                rid,
+                &b.known,
+                effect_receipts.as_deref().unwrap_or(&[]),
+            );
+            return Ok(());
         };
 
         if let Some((producer, depth, residual)) = origin {
@@ -2001,9 +2106,7 @@ impl Executor {
             self.continuation_stats.max_depth = self.continuation_stats.max_depth.max(depth);
         }
         let ops = self.graph.program.templates[template].ops.clone();
-        #[cfg(not(feature = "structural-depth"))]
-        let capture = None;
-        let mut effect_receipts = capture.or_else(|| {
+        let mut effect_receipts = effect_receipts.or_else(|| {
             self.stage_spine
                 .capture_receipts(rid)
                 .then(|| vec![None; ops.len()])
@@ -2192,6 +2295,25 @@ impl Executor {
                 effect_receipts.as_deref(),
             )?;
         }
+        #[cfg(all(feature = "rhs-work-audit", feature = "rhs-locals"))]
+        if let (Some(block), root) = inspect_births {
+            for &op in &block.intermediate_ops {
+                if self.graph.cells[&cell].facts.contains_key(&(op as u32)) {
+                    let f = FactRef {
+                        cell,
+                        op: op as u32,
+                    };
+                    let table = self.graph.live_table(Dependency::Fact(f)).unwrap();
+                    self.graph.rhs_births.insert(
+                        f,
+                        rid,
+                        table,
+                        root,
+                        root && self.stage_spine.anchor_at(rid, op),
+                    );
+                }
+            }
+        }
         self.graph.release_empty(cell);
         Ok(())
     }
@@ -2320,6 +2442,10 @@ impl Executor {
         let executed = patch.bindings.len();
         #[cfg(feature = "family-survey")]
         let mut rhs_clock: Option<(usize, Instant)> = None;
+        #[cfg(feature = "rhs-work-audit")]
+        {
+            self.graph.rhs_births.reading = true;
+        }
         for (rid, binding) in patch.bindings {
             #[cfg(feature = "family-survey")]
             let before = {
@@ -2330,12 +2456,25 @@ impl Executor {
                 }
                 self.stage_spine.survey_resumed()
             };
+            #[cfg(feature = "rhs-work-audit")]
+            let sample = self.ledger.begin(&self.graph, rid, &binding.values)?;
+            #[cfg(all(feature = "rhs-work-audit", feature = "rhs-locals"))]
+            let local_sample = (
+                self.local_counts.block_local_intermediates,
+                self.local_counts.local_complete,
+            );
             self.apply(
                 rid,
                 binding,
                 #[cfg(feature = "structural-depth")]
                 evidence.as_mut().and_then(Iterator::next),
             )?;
+            #[cfg(feature = "rhs-work-audit")]
+            {
+                #[cfg(feature = "rhs-locals")]
+                self.ledger.locals(local_sample, &self.local_counts);
+                self.ledger.end(&self.graph, sample)?;
+            }
             #[cfg(feature = "family-survey")]
             self.survey
                 .resumed(rid, self.stage_spine.survey_resumed() - before);
@@ -2352,7 +2491,17 @@ impl Executor {
         let phase = Instant::now();
         #[cfg(feature = "family-survey")]
         let unions_before = self.graph.stats.unions;
+        #[cfg(feature = "rhs-work-audit")]
+        {
+            self.graph.rhs_births.reading = false;
+        }
         self.graph.repair()?;
+        #[cfg(feature = "rhs-work-audit")]
+        {
+            let mut births = std::mem::take(&mut self.graph.rhs_births);
+            self.ledger.observe_births(&self.graph, &mut births);
+            self.graph.rhs_births = births;
+        }
         let repair_seconds = phase.elapsed().as_secs_f64();
         #[cfg(feature = "family-frontiers")]
         {
@@ -2389,6 +2538,12 @@ impl Executor {
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.deliver();
+        #[cfg(feature = "rhs-work-audit")]
+        self.ledger.barrier(
+            &self.graph,
+            self.publication.index_writes(),
+            self.entry_schedule.seed_deliveries(),
+        );
         #[cfg(feature = "family-replay")]
         self.replay
             .publish(&self.graph, unions_before != self.graph.stats.unions)?;
@@ -2601,6 +2756,52 @@ impl Executor {
     #[cfg(feature = "structural-depth")]
     pub fn depth_report(&self) -> J {
         self.stage_spine.structural.report(&self.graph.program)
+    }
+    #[cfg(feature = "rhs-work-audit")]
+    pub fn rhs_cohort(&mut self, path: &std::path::Path) -> Result<()> {
+        let f = std::fs::File::open(path).map_err(|e| e.to_string())?;
+        self.ledger.load(
+            &self.graph.program,
+            serde_json::from_reader(std::io::BufReader::new(f)).map_err(|e| e.to_string())?,
+        )
+    }
+    #[cfg(feature = "rhs-work-audit")]
+    pub fn write_rhs_work(&self, out: &std::path::Path) -> Result<()> {
+        self.ledger.write(&self.graph, out)
+    }
+    #[cfg(feature = "rhs-locals")]
+    pub fn configure_rhs_locals(&mut self, width: usize) -> Result<()> {
+        if !self.steps.is_empty() {
+            return Err("configure RHS blocks before execution".into());
+        }
+        self.local_width = width;
+        Ok(())
+    }
+    #[cfg(feature = "rhs-locals")]
+    pub fn use_rhs_local_profile(&mut self, profile: &J) -> Result<()> {
+        if !self.steps.is_empty() || self.local_width == 0 {
+            return Err("a local RHS profile requires positive width before execution".into());
+        }
+        if profile["schema"] != "eggfuse/rhs-work-admission/v1" {
+            return Err("unknown local RHS profile".into());
+        }
+        let shapes: BTreeSet<Vec<[String; 2]>> =
+            serde_json::from_value(profile["shapes"].clone()).map_err(|e| e.to_string())?;
+        self.local_selection = Some(
+            (0..self.graph.program.rules.len())
+                .map(|r| {
+                    self.graph
+                        .program
+                        .rhs_operator_shape(r)
+                        .is_some_and(|s| shapes.contains(&s))
+                })
+                .collect(),
+        );
+        Ok(())
+    }
+    #[cfg(feature = "rhs-locals")]
+    pub fn rhs_local_report(&self) -> J {
+        serde_json::json!({"width":self.local_width,"admitted_rules":self.local_selection.as_ref().map(|v|v.iter().filter(|x|**x).count()),"stats":self.local_counts})
     }
     pub fn report(&self) -> J {
         let view_rule_profile=self.profile_queries.then(||{

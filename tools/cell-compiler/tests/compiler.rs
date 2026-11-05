@@ -1299,3 +1299,96 @@ fn learned_port_program_checks_deleted_and_missing_witnesses() {
     catalog["paths"][0][0][0] = json!("absent-operator");
     assert_eq!(count(&held, &catalog), 0);
 }
+
+#[cfg(feature = "rhs-locals")]
+#[test]
+fn local_rhs_keeps_existing_intermediates_and_promotes_at_the_first_new_fact() {
+    use eggfuse_cell_runtime::program::Program;
+    let tmp = tempfile::tempdir().unwrap();
+    let input = tmp.path().join("sample.egg");
+    fs::write(&input, include_str!("fixtures/local-rhs.egg")).unwrap();
+    let dir = tmp.path().join("compiled");
+    pass(&[
+        "compile",
+        "--source",
+        input.to_str().unwrap(),
+        "--output",
+        dir.to_str().unwrap(),
+    ]);
+    let pg = dir.join("program.json");
+    let file = pg.to_str().unwrap();
+    let mut bad = json_file(&pg);
+    let block = bad["local_rhs_blocks"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|b| b["steps"].as_array().is_some_and(|v| v.len() == 2))
+        .unwrap();
+    block["intermediate_ops"] = json!([999]);
+    bad["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&bad));
+    assert!(
+        Program::parse(bad)
+            .unwrap_err()
+            .contains("local RHS blocks differ")
+    );
+    let run = |width| {
+        let o = pass(&[
+            "bench",
+            "--program",
+            file,
+            "--reference-program",
+            file,
+            "--repeat",
+            "1",
+            "--rhs-local-width",
+            width,
+        ]);
+        serde_json::from_slice::<J>(&o.stdout).unwrap()["counts"]["rhs_locals"]["stats"].clone()
+    };
+    let catalog = tmp.path().join("profile.json");
+    let program = Program::parse(json_file(&pg)).unwrap();
+    let shape = (0..program.rules.len())
+        .filter_map(|r| program.rhs_operator_shape(r))
+        .find(|s| s.len() == 2)
+        .unwrap();
+    let selected = |shapes: J| {
+        fs::write(
+            &catalog,
+            serde_json::to_vec(&json!({"schema":"eggfuse/rhs-work-admission/v1","shapes":shapes}))
+                .unwrap(),
+        )
+        .unwrap();
+        let o = pass(&[
+            "bench",
+            "--program",
+            file,
+            "--reference-program",
+            file,
+            "--repeat",
+            "1",
+            "--rhs-local-width",
+            "8",
+            "--rhs-local-profile",
+            catalog.to_str().unwrap(),
+        ]);
+        serde_json::from_slice::<J>(&o.stdout).unwrap()["counts"]["rhs_locals"].clone()
+    };
+    assert_eq!(selected(json!([[["Let", "absent"]]]))["stats"]["enter"], 0);
+    assert!(
+        selected(json!([shape]))["stats"]["block_local_intermediates"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    let single = run("1");
+    let full = run("8");
+    assert_eq!(single["block_local_intermediates"], 0);
+    for field in [
+        "block_local_intermediates",
+        "promoted",
+        "prefix_lets_on_promotion",
+        "ordered_unions",
+    ] {
+        assert!(full[field].as_u64().unwrap() > 0, "{field}: {full}");
+    }
+}
