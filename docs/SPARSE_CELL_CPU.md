@@ -103,3 +103,14 @@ Recording the same Run fields as typed values and using the last changed ordinal
 For a single unary write on an expression key, the loader can also prove that the proposed i64 comes from an input/literal or one checked addition. The sparse executor reads these ports directly and constructs the producer snapshot only on an effective write. It reserves the same logical ID for every application. The existing scalar merge proof handles min/max/old, including successive improvements to the same key. The final value, actual indexed function and its ordinary publication receipt remain authoritative.
 
 On its own, delaying frame construction was neutral in these samples (24.139 / 24.586 ms and 8.064 / 8.054 s). Enabling the checked merge alongside it changed the paired standard-release medians from 23.904 / 8,121.161 ms to 23.749 / 7,969.169 ms. CLI medians were 119.245 / 10,191.948 ms versus 118.447 / 10,071.665 ms. Through-inference RSS was 153.80 / 2,158.09 MiB versus 153.84 / 2,156.02 MiB. Both audits and the visit counts matched; these samples do not establish a gain from the write projection alone.
+
+### Opposite-workload PGO at fcbb121e
+
+Four measured pairs after one warm-up gave the following medians for the previous tuned sparse build and the new tuned build. RSS is process peak through inference. Both used the frozen 64-block workloads; code generation and training policy matched.
+
+| Pass 3 | Inference, before → after | CLI, before → after | RSS, before → after | Visits | Speedup vs fixed c8ee1a3f |
+|---|---:|---:|---:|---:|---:|
+| sum-bits | 22.311 → 20.197 ms | 102.917 → 100.122 ms | 157.39 → 153.87 MiB | 18,735 | 1.67× |
+| Raytrace | 7.468 → 6.942 s | 9.464 → 8.944 s | 2,198.05 → 2,157.22 MiB | 6,915,159 | 1.95× |
+
+The fixed 2× thresholds are 16.8375 ms and 6.754039 s. Each timing sample validated the schedule and final graph. Ordered RHS, effective writes and Spine were checked with the corresponding separately instrumented build.
