@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+attribute-entry = []
+attribute-write = ["attribute-entry"]
+attribute-fusion = ["attribute-write"]
 default = ["iterative-bake"]
 slot-transfer-audit = []
 spine-shapes = []

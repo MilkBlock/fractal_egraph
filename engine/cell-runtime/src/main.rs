@@ -47,7 +47,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
     #[cfg(feature = "slot-transfer-audit")]
-    eggfuse_cell_runtime::transfer_audit::set_active(true);
+    {
+        eggfuse_cell_runtime::transfer_audit::set_active(true);
+        eggfuse_cell_runtime::transfer_audit::enable_write_audit();
+    }
     if let Err(error) = runtime.execute() {
         std::fs::write(
             out.join("failure.json"),
@@ -60,6 +63,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "slot-transfer-audit")]
     {
         eggfuse_cell_runtime::transfer_audit::set_active(false);
+        std::fs::write(
+            out.join("writes.json"),
+            serde_json::to_vec(&eggfuse_cell_runtime::transfer_audit::take_write_digests())?,
+        )?;
         std::fs::write(
             out.join("rhs.json"),
             serde_json::to_vec(&eggfuse_cell_runtime::transfer_audit::take_digests())?,

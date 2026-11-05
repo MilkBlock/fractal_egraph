@@ -163,6 +163,7 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     let plans = [
         ("single_writes", json!(&p.writes)),
         ("neighbor_entries", json!(&p.neighbor_plans)),
+        ("attribute_families",json!(&p.families)),
         ("row_kernels", json!(&p.kernels)),
         ("physical_plan", json!(&p.physical)),
         (

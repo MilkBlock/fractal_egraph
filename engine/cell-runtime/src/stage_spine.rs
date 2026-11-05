@@ -587,6 +587,31 @@ impl Programs {
         epoch: u64,
         #[cfg(feature = "iterative-bake")] direct: Option<DirectOrigin>,
     ) -> Option<Started> {
+        self.begin_inputs(
+            p,
+            rid,
+            set,
+            epoch,
+            #[cfg(feature = "iterative-bake")]
+            direct,
+            || {
+                p.rules[rid]
+                    .inputs
+                    .iter()
+                    .map(|i| values[i].clone())
+                    .collect()
+            },
+        )
+    }
+    pub(crate) fn begin_inputs(
+        &mut self,
+        p: &Program,
+        rid: usize,
+        set: &str,
+        epoch: u64,
+        #[cfg(feature = "iterative-bake")] direct: Option<DirectOrigin>,
+        input_key: impl FnOnce() -> smallvec::SmallVec<[Value; 6]>,
+    ) -> Option<Started> {
         if !self.enabled {
             return None;
         }
@@ -599,11 +624,7 @@ impl Programs {
             if bucket.is_empty() {
                 return None;
             }
-            let key: smallvec::SmallVec<[Value; 6]> = p.rules[rid]
-                .inputs
-                .iter()
-                .map(|i| values[i].clone())
-                .collect();
+            let key = input_key();
             bucket.remove(key.as_slice())
         });
         if previous.is_none() && self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {

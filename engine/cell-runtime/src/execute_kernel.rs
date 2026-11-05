@@ -34,7 +34,7 @@ impl Registers {
         seed: &Row,
         domains: &[Subtrie],
         known: &QueryFacts,
-        out: &mut Vec<Binding>,
+        out: &mut impl Answers,
     ) -> Result<()> {
         exec.graph.stats.register_seeds += 1;
         self.witnesses[k.pivot] = Some(seed.witness);
@@ -65,7 +65,7 @@ impl Registers {
         mut epoch: u64,
         domains: &[Subtrie],
         known: &QueryFacts,
-        out: &mut Vec<Binding>,
+        out: &mut impl Answers,
     ) -> Result<()> {
         for (offset, ins) in k.steps[pc..].iter().enumerate() {
             let a = &r.query[ins.atom];
@@ -225,20 +225,35 @@ impl Registers {
             }
         }
         exec.graph.stats.register_answers += 1;
-        out.push(Binding {
+        out.answer(r, &self.fields, epoch, facts);
+        Ok(())
+    }
+}
+
+pub(super) trait Answers {
+    fn answer(&mut self, r: &Rule, fields: &[Value], epoch: u64, facts: QueryFacts);
+}
+impl Answers for Vec<Binding> {
+    fn answer(&mut self, r: &Rule, fields: &[Value], epoch: u64, facts: QueryFacts) {
+        self.push(Binding {
             #[cfg(feature = "iterative-bake")]
             direct: None,
             known: facts,
-            values: r
-                .inputs
-                .iter()
-                .map(|s| (*s, self.fields[*s].clone()))
-                .collect(),
+            values: r.inputs.iter().map(|s| (*s, fields[*s].clone())).collect(),
             epoch,
             parent: None,
             continuation: None,
             compiled: true,
         });
-        Ok(())
+    }
+}
+impl Answers for crate::family::Batch {
+    fn answer(&mut self, r: &Rule, fields: &[Value], _epoch: u64, facts: QueryFacts) {
+        self.push(
+            r.inputs.iter().map(|&s| &fields[s]),
+            facts,
+            #[cfg(feature = "iterative-bake")]
+            None,
+        );
     }
 }

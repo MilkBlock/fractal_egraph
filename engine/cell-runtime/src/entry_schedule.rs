@@ -259,6 +259,9 @@ pub(crate) struct Batch<'a> {
     pub table: usize,
 }
 impl Batch<'_> {
+    pub fn frontier_key(&self) -> (usize, u64) {
+        (self.consumer.node, self.watermark)
+    }
     pub fn atom(&self) -> usize {
         self.consumer.atom
     }
@@ -340,8 +343,17 @@ impl Scheduler {
             return;
         }
         self.rows.clear();
-        let mut changed = g.query_changes.clone();
+        // In the fusion build the sealed commit feed is already coalesced by
+        // witness. Borrow it, retaining just additional/overriding headers.
+        let mut changed = if cfg!(feature = "attribute-fusion") {
+            HashMap::default()
+        } else {
+            g.query_changes.clone()
+        };
         for &w in &g.events {
+            if cfg!(feature = "attribute-fusion") && g.query_changes.contains_key(&w) {
+                continue;
+            }
             if let Some(t) = g.live_table(w) {
                 changed.insert(w, t);
             }
@@ -349,17 +361,20 @@ impl Scheduler {
         for (&old, &new) in &g.receipt_forwards {
             let new = g.resolve_receipt(new);
             if let Some(t) = g.live_table(new) {
-                changed.insert(old, t);
-                changed.insert(new, t);
-            }
-        }
-        self.stats.changed_headers += changed.len() as u64;
-        for (w, t) in changed {
-            for &id in &self.plan.tables[t] {
-                if !self.states[id].cold && self.states[id].pending.insert(w) {
-                    self.stats.node_notifications += 1;
+                for w in [old, new] {
+                    if !cfg!(feature = "attribute-fusion") || g.query_changes.get(&w) != Some(&t) {
+                        changed.insert(w, t);
+                    }
                 }
             }
+        }
+        if cfg!(feature = "attribute-fusion") {
+            for (&w, &t) in &g.query_changes {
+                self.notify(w, changed.remove(&w).unwrap_or(t));
+            }
+        }
+        for (w, t) in changed {
+            self.notify(w, t);
         }
         if self.unions != g.stats.unions {
             for (id, n) in self.plan.nodes.iter().enumerate() {
@@ -370,8 +385,35 @@ impl Scheduler {
             self.unions = g.stats.unions;
         }
     }
+    fn notify(&mut self, w: Dependency, t: usize) {
+        self.stats.changed_headers += 1;
+        for &id in &self.plan.tables[t] {
+            if !self.states[id].cold && self.states[id].pending.insert(w) {
+                self.stats.node_notifications += 1;
+            }
+        }
+    }
     pub fn seeds(&mut self, g: &Graph, rid: usize, watermark: u64) -> Result<Vec<Seed>> {
         self.seeds_where(g, rid, watermark, |_, _, _| true)
+    }
+    /// The index updater has already decoded this final committed row. Warm
+    /// nodes can consume its packet on the next refresh; a later publication
+    /// clears the snapshot cache before installing any newer values.
+    pub(crate) fn offer_family_row(
+        &mut self,
+        table: usize,
+        w: Dependency,
+        row: Option<&Row>,
+    ) -> bool {
+        if self.plan.tables[table]
+            .iter()
+            .any(|&id| !self.states[id].cold && self.states[id].pending.contains(&w))
+        {
+            self.rows.insert(w, row.map(|r| Rc::new(r.clone())));
+            true
+        } else {
+            false
+        }
     }
     pub(crate) fn seeds_where(
         &mut self,

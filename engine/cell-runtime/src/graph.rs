@@ -526,6 +526,44 @@ impl Graph {
         }
         Ok((id, i, key, changed))
     }
+    pub(crate) fn apply_family_write(
+        &mut self,
+        template: usize,
+        plan: &crate::family::Plan,
+        lane: &crate::family::Lane,
+    ) -> Result<(u32, usize, Value, bool)> {
+        let id = self.reserve_cell_id()?;
+        self.stats.single_writes += 1;
+        let (value, temps) = plan.eval(lane)?;
+        let key = Value::Eq(crate::value::root(&self.parents, plan.key(lane)));
+        let before = self.stats.function_updates;
+        let i = self.set_function_using(
+            plan.table,
+            std::slice::from_ref(&key),
+            Value::Int(value),
+            Some(plan.merge),
+        )?;
+        let changed = self.stats.function_updates != before;
+        if changed {
+            let mut slots = plan.slots(lane);
+            slots.extend(temps.into_iter().map(|(dst, v)| (dst, Value::Int(v))));
+            let mut frame = self.new_cell(template, slots, None);
+            frame.completed = true;
+            frame.completed_prefix = plan.op + 1;
+            self.store_cell(id, frame);
+            self.function_origin(
+                i,
+                Some(FactRef {
+                    cell: id,
+                    op: plan.op as u32,
+                }),
+            );
+        } else {
+            self.stats.rhs_frames_avoided += 1;
+            self.stats.transient_writes += 1;
+        }
+        Ok((id, i, key, changed))
+    }
     pub fn argument(&self, cell: u32, a: &Arg) -> Result<Value> {
         match a {
             Arg::Literal(v) => Ok(canon(v, &self.parents)),
@@ -1371,7 +1409,7 @@ impl Graph {
             .ok_or("merge arithmetic failed".into())
         }
     }
-    fn merge_value(&mut self, t: usize, old: Value, new: Value) -> Result<Value> {
+    fn count_merge(&mut self, t: usize) {
         self.stats.merge_calls += 1;
         if let Some(kind) = &self.merge_kinds[t] {
             if let Some(n) = self.stats.merge_contract_calls.get_mut(kind) {
@@ -1380,6 +1418,9 @@ impl Graph {
                 self.stats.merge_contract_calls.insert(kind.clone(), 1);
             }
         }
+    }
+    fn merge_value(&mut self, t: usize, old: Value, new: Value) -> Result<Value> {
+        self.count_merge(t);
         if self.scalar_merge
             && let Some(plan) = self.program.physical.merges[t]
         {
@@ -1534,12 +1575,35 @@ impl Graph {
         self.set_function_canonical(t, &key, value)
     }
     fn set_function_canonical(&mut self, t: usize, key: &[Value], value: Value) -> Result<usize> {
+        self.set_function_using(t, key, value, None)
+    }
+    fn set_function_using(
+        &mut self,
+        t: usize,
+        key: &[Value],
+        value: Value,
+        family: Option<crate::physical_plan::ScalarMerge>,
+    ) -> Result<usize> {
         let index = self.function_keys[t].get(key).copied();
         if let Some(i) = index {
             let old = canon(&self.functions[i].value, &self.parents);
-            let next = self.merge_value(t, old.clone(), value)?;
+            let next = if let Some(merge) = family {
+                self.count_merge(t);
+                let (Value::Int(a), Value::Int(b)) = (&old, value) else {
+                    return Err("invalid scalar attribute write".into());
+                };
+                Value::Int(match merge {
+                    crate::physical_plan::ScalarMerge::Min => (*a).min(b),
+                    crate::physical_plan::ScalarMerge::Max => (*a).max(b),
+                    _ => unreachable!(),
+                })
+            } else {
+                self.merge_value(t, old.clone(), value)?
+            };
             if next != old {
                 self.functions[i].decoded = Some(Self::shared_fields(key, &next));
+                #[cfg(feature = "slot-transfer-audit")]
+                crate::transfer_audit::effective(self.epoch, t, i, key, Some(&old), &next)?;
                 self.functions[i].value = next;
                 self.functions[i].epoch = self.epoch;
                 self.changed = true;
@@ -1560,6 +1624,8 @@ impl Graph {
             Ok(i)
         } else {
             let i = self.functions.len();
+            #[cfg(feature = "slot-transfer-audit")]
+            crate::transfer_audit::effective(self.epoch, t, i, key, None, &value)?;
             self.functions.push(Function {
                 decoded: Some(Self::shared_fields(key, &value)),
                 table: t,

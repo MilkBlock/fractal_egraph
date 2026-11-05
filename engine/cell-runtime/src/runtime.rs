@@ -56,10 +56,34 @@ struct ContinuationStats {
 }
 /// All bindings belong to this exact source Run occurrence. The patch is sealed
 /// before publication, so no sibling rule can observe its future effects.
-struct StagePatch {
-    bindings: Vec<(usize, Binding)>,
+enum RulePatch {
+    Ordinary(usize, Vec<Binding>),
+    Family(usize, Rc<crate::family::Plan>, crate::family::Batch),
+}
+impl RulePatch {
+    fn len(&self) -> usize {
+        match self {
+            Self::Ordinary(_, bs) => bs.len(),
+            Self::Family(_, _, b) => b.lanes.len(),
+        }
+    }
+    fn inputs(&self) -> impl Iterator<Item = (usize, crate::slots::Slots)> + '_ {
+        (0..self.len()).map(|i| match self {
+            Self::Ordinary(r, bs) => (*r, bs[i].values.clone()),
+            Self::Family(r, p, b) => (*r, p.slots(&b.lanes[i])),
+        })
+    }
 }
 pub struct Executor {
+    family_tables: Vec<bool>,
+    family_frontiers: crate::family::Frontiers,
+    family_offered: u64,
+    family_lanes: u64,
+    family_by_rule: Vec<(u64, u64)>,
+    family_changes: u64,
+    family_search: f64,
+    family_rhs: f64,
+    family_publish: f64,
     range_index: Option<crate::range_index::RangeIndex>,
 
     dedup_rows: u64,
@@ -224,7 +248,20 @@ impl Executor {
         );
         graph.receipt_tracking =
             (stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
+        let mut family_tables = vec![false; graph.program.tables.len()];
+        for p in graph.program.families.iter().flatten() {
+            family_tables[p.table] = true;
+        }
         let mut e = Self {
+            family_by_rule: vec![(0, 0); n],
+            family_tables,
+            family_frontiers: Default::default(),
+            family_offered: 0,
+            family_lanes: 0,
+            family_changes: 0,
+            family_search: 0.,
+            family_rhs: 0.,
+            family_publish: 0.,
             range_index: Some(Default::default()),
 
             dedup_rows: 0,
@@ -931,7 +968,12 @@ impl Executor {
         }
         Ok(empty)
     }
-    fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
+    fn matches(
+        &mut self,
+        rid: usize,
+        probe: bool,
+        mut compact: Option<&mut crate::family::Batch>,
+    ) -> Result<Vec<Binding>> {
         let rule = self.graph.program.rules[rid].clone();
 
         if !probe && rule.seminaive && !std::mem::replace(&mut self.dirty[rid], false) {
@@ -1007,44 +1049,63 @@ impl Executor {
                         } else {
                             None
                         };
-                        let mut deliver = |w| {
-                            if early_sieve
-                                && !self
-                                    .sieve
-                                    .allow(rid, atom, batch.table, w, &self.query_indexes)
-                            {
-                                return Ok(());
-                            }
-                            let packet = batch.packet(w).expect("current delta entry");
-                            if let Some(cursor) = cursors.and_then(|entries| entries.get(&w)) {
-                                spine_routes.push((out.len(), cursor.clone()));
-                                // Keep domain slots aligned with the shared seed vector.
-                                if early_join {
-                                    entry_domains.push(Vec::new());
-                                }
-                            } else if early_join {
-                                let Some(domains) = self.free_join.admit(
-                                    &self.graph,
-                                    &mut self.query_indexes,
-                                    rid,
-                                    atom,
-                                    &packet.row,
-                                )?
-                                else {
-                                    return Ok(());
-                                };
-                                entry_domains.push(domains);
-                            }
-                            out.push(batch.seed(packet));
-                            Ok::<(), String>(())
+                        let shared = if compact.is_some()
+                            && inverted.is_none()
+                            && self.family_tables[batch.table]
+                        {
+                            self.family_frontiers.get(batch)
+                        } else {
+                            None
                         };
+                        let mut deliver =
+                            |w, supplied: Option<&Rc<crate::entry_schedule::Packet>>| {
+                                if early_sieve
+                                    && !self.sieve.allow(
+                                        rid,
+                                        atom,
+                                        batch.table,
+                                        w,
+                                        &self.query_indexes,
+                                    )
+                                {
+                                    return Ok(());
+                                }
+                                let packet = supplied
+                                    .or_else(|| batch.packet(w))
+                                    .expect("current delta entry");
+                                if let Some(cursor) = cursors.and_then(|entries| entries.get(&w)) {
+                                    spine_routes.push((out.len(), cursor.clone()));
+                                    // Keep domain slots aligned with the shared seed vector.
+                                    if early_join {
+                                        entry_domains.push(Vec::new());
+                                    }
+                                } else if early_join {
+                                    let Some(domains) = self.free_join.admit(
+                                        &self.graph,
+                                        &mut self.query_indexes,
+                                        rid,
+                                        atom,
+                                        &packet.row,
+                                    )?
+                                    else {
+                                        return Ok(());
+                                    };
+                                    entry_domains.push(domains);
+                                }
+                                out.push(batch.seed(packet));
+                                Ok::<(), String>(())
+                            };
                         if let Some(rows) = inverted {
                             for w in rows {
-                                deliver(w)?
+                                deliver(w, None)?
+                            }
+                        } else if let Some(packets) = shared {
+                            for p in packets.iter() {
+                                deliver(p.row.witness, Some(p))?;
                             }
                         } else {
                             for &(_, w) in batch.delta() {
-                                deliver(w)?
+                                deliver(w, None)?
                             }
                         }
                         if active_spine {
@@ -1098,16 +1159,20 @@ impl Executor {
                 stats.residual_entries += (seeds.len() - claimed) as u64;
             }
             if let Some(coverage) = coverage {
-                found = coverage
-                    .answers
-                    .into_iter()
-                    .map(|a| {
-                        let mut known = query_facts.clone();
-                        for (i, w) in a.witnesses.into_iter().enumerate() {
-                            known.record(i, w);
-                        }
-
-                        Binding {
+                for a in coverage.answers {
+                    let mut known = query_facts.clone();
+                    for (i, w) in a.witnesses.into_iter().enumerate() {
+                        known.record(i, w);
+                    }
+                    if let Some(batch) = compact.as_deref_mut() {
+                        batch.push(
+                            a.values.iter(),
+                            known,
+                            #[cfg(feature = "iterative-bake")]
+                            a.direct,
+                        );
+                    } else {
+                        found.push(Binding {
                             #[cfg(feature = "iterative-bake")]
                             direct: a.direct,
                             values: rule.inputs.iter().copied().zip(a.values).collect(),
@@ -1116,9 +1181,9 @@ impl Executor {
                             continuation: None,
                             epoch: a.epoch,
                             compiled: true,
-                        }
-                    })
-                    .collect();
+                        });
+                    }
+                }
                 if coverage.complete {
                     self.pending[rid].clear();
                     return Ok(found);
@@ -1357,7 +1422,22 @@ impl Executor {
                         } else {
                             &[]
                         };
-                        if use_neighbors {
+                        if let Some(batch) = compact.as_deref_mut() {
+                            let before = batch.lanes.len();
+                            regs.start::<true>(
+                                self,
+                                rid,
+                                &rule,
+                                kernel,
+                                row,
+                                domains,
+                                &query_facts,
+                                batch,
+                            )?;
+                            let stats = self.neighbor.stats(rid);
+                            stats.seeds += 1;
+                            stats.bindings += (batch.lanes.len() - before) as u64;
+                        } else if use_neighbors {
                             let before = found.len();
                             regs.start::<true>(
                                 self,
@@ -1555,6 +1635,11 @@ impl Executor {
                 None,
             )?;
         }
+        if let Some(batch) = compact {
+            debug_assert!(found.is_empty());
+            batch.seal();
+            return Ok(found);
+        }
         let key_slots = { rule.inputs.as_slice() };
         found.retain(|b| probe || !rule.seminaive || b.epoch >= self.watermarks[rid]);
         let n = found.len() as u64;
@@ -1584,6 +1669,8 @@ impl Executor {
         Ok(found)
     }
     fn apply(&mut self, rid: usize, b: Binding) -> Result<()> {
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::rhs(rid);
         let stage_cursor = self.stage_spine.begin_step(
             &self.graph.program,
             rid,
@@ -1885,7 +1972,7 @@ impl Executor {
             .ok_or("unknown probe ruleset")?
             .clone();
         for r in rules {
-            if !self.matches(r, true)?.is_empty() {
+            if !self.matches(r, true, None)?.is_empty() {
                 return Ok(true);
             }
         }
@@ -1911,6 +1998,7 @@ impl Executor {
             .get(set)
             .ok_or_else(|| format!("unknown ruleset {set}"))?
             .clone();
+        self.family_frontiers.reset();
         let mut work = vec![];
         // Every LHS is read before any effect is made visible. Prepared successor
         // recipes therefore cannot leak into this finite Run's matching snapshot.
@@ -1920,29 +2008,138 @@ impl Executor {
             if self.progress && self.profile_queries {
                 eprintln!("[cell-cpu] query {rid}");
             }
-            let bindings = self.matches(rid, false)?;
+            let plan = if cfg!(feature = "attribute-entry")
+                && self.entry_schedule.accepts(rid)
+                && !self.local_context.accepts(&self.graph.program, rid)
+            {
+                self.graph.program.families[rid].clone()
+            } else {
+                None
+            };
+            let patch = if let Some(plan) = plan {
+                let mut batch = crate::family::Batch::default();
+                let rest = self.matches(rid, false, Some(&mut batch))?;
+                if !rest.is_empty() {
+                    return Err("unhandled attribute family entry".into());
+                }
+                RulePatch::Family(rid, plan, batch)
+            } else {
+                RulePatch::Ordinary(rid, self.matches(rid, false, None)?)
+            };
             if let Some(clock) = clock {
+                if self.graph.program.families[rid].is_some() {
+                    self.family_search += clock.elapsed().as_secs_f64();
+                }
                 self.query_profile[rid].0 += 1;
-                self.query_profile[rid].3 += bindings.len() as u64;
                 self.query_profile[rid].1 += clock.elapsed().as_secs_f64();
                 self.query_profile[rid].2 += self.graph.stats.residual_candidates - candidates;
+                self.query_profile[rid].3 += patch.len() as u64;
             }
             self.watermarks[rid] = self.graph.epoch;
-            work.extend(bindings.into_iter().map(|b| (rid, b)));
+            if patch.len() > 0 {
+                work.push(patch);
+            }
         }
-        let patch = StagePatch { bindings: work };
         #[cfg(feature = "slot-transfer-audit")]
-        crate::transfer_audit::record_run(patch.bindings.iter().map(|(rid, b)| (rid, &b.values)))?;
-        let matches = patch.bindings.len();
+        crate::transfer_audit::record_run(work.iter().flat_map(RulePatch::inputs))?;
+        let matches = work.iter().map(RulePatch::len).sum::<usize>();
+        self.family_frontiers.reset();
         let search_seconds = start.elapsed().as_secs_f64();
         if self.audit {
-            self.binding_audit.push(json!({"ruleset":set,"bindings":patch.bindings.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
+            self.binding_audit.push(json!({"ruleset":set,"bindings":work.iter().flat_map(RulePatch::inputs).map(|(rid,values)|{let template=&self.graph.program.templates[self.graph.program.rules[rid].template];json!({"rule":rid,"values":values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
         }
         let phase = Instant::now();
-        let executed = patch.bindings.len();
-        for (rid, binding) in patch.bindings {
-            self.apply(rid, binding)?;
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::begin_writes();
+        let executed = matches;
+        for patch in work {
+            match patch {
+                RulePatch::Ordinary(rid, bs) => {
+                    let clock = (self.profile_queries
+                        && self.graph.program.families[rid].is_some())
+                    .then(Instant::now);
+                    for b in bs {
+                        self.apply(rid, b)?;
+                    }
+                    if let Some(c) = clock {
+                        self.family_rhs += c.elapsed().as_secs_f64();
+                    }
+                }
+                RulePatch::Family(rid, plan, batch) => {
+                    let clock = self.profile_queries.then(Instant::now);
+                    self.family_lanes += batch.lanes.len() as u64;
+                    self.family_by_rule[rid].0 += batch.lanes.len() as u64;
+                    for lane in batch.lanes {
+                        #[cfg(feature = "iterative-bake")]
+                        let mut lane = lane;
+                        if !cfg!(feature = "attribute-write") {
+                            let values = plan.slots(&lane);
+                            let before = self.graph.stats.function_updates;
+                            self.apply(
+                                rid,
+                                Binding {
+                                    values,
+                                    known: lane.facts,
+                                    #[cfg(feature = "iterative-bake")]
+                                    direct: lane.direct,
+                                    continuation: None,
+                                    parent: None,
+                                    epoch: self.graph.epoch,
+                                    compiled: true,
+                                },
+                            )?;
+                            let changed = self.graph.stats.function_updates - before;
+                            self.family_changes += changed;
+                            self.family_by_rule[rid].1 += changed;
+                            continue;
+                        }
+                        #[cfg(feature = "slot-transfer-audit")]
+                        crate::transfer_audit::rhs(rid);
+                        #[cfg(feature = "iterative-bake")]
+                        let direct = lane.direct.take();
+                        let step = self.stage_spine.begin_inputs(
+                            &self.graph.program,
+                            rid,
+                            &self.current_stage,
+                            self.graph.epoch,
+                            #[cfg(feature = "iterative-bake")]
+                            direct,
+                            || plan.values(&lane).collect(),
+                        );
+                        self.continuation_stats.compiled_bindings += 1;
+                        let (cell, i, key, changed) = self.graph.apply_family_write(
+                            self.graph.program.rules[rid].template,
+                            &plan,
+                            &lane,
+                        )?;
+                        self.family_changes += u64::from(changed);
+                        self.family_by_rule[rid].1 += u64::from(changed);
+                        if let Some(step) = step {
+                            self.stage_spine.effects(0, u64::from(changed), 0);
+                            self.stage_spine.capture_write(
+                                step,
+                                rid,
+                                cell,
+                                plan.op,
+                                plan.table,
+                                vec![key],
+                                Dependency::Function(i),
+                                self.graph.stats.unions,
+                                #[cfg(feature = "iterative-bake")]
+                                &self.graph.program.iterative,
+                                #[cfg(feature = "iterative-bake")]
+                                &lane.facts,
+                            );
+                        }
+                    }
+                    if let Some(c) = clock {
+                        self.family_rhs += c.elapsed().as_secs_f64();
+                    }
+                }
+            }
         }
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::repaired();
         let rhs_seconds = phase.elapsed().as_secs_f64();
         self.graph.stats.bindings += executed as u64;
         let phase = Instant::now();
@@ -1957,9 +2154,19 @@ impl Executor {
         }
         {
             {
+                let family_tables = &self.family_tables;
                 self.query_indexes
                     .update_with(&mut self.graph, |table, fact, row| {
-                        self.neighbor.changed(table, fact, row)
+                        let clock =
+                            (self.profile_queries && family_tables[table]).then(Instant::now);
+                        if cfg!(feature = "attribute-fusion") && family_tables[table] {
+                            self.family_offered +=
+                                u64::from(self.entry_schedule.offer_family_row(table, fact, row));
+                        }
+                        self.neighbor.changed(table, fact, row);
+                        if let Some(c) = clock {
+                            self.family_publish += c.elapsed().as_secs_f64();
+                        }
                     })?;
                 self.neighbor
                     .finish_publication(&self.graph, |t| self.query_indexes.has_table(t));
@@ -1971,6 +2178,8 @@ impl Executor {
         self.deliver();
         self.graph.collect_garbage();
         let delivery_seconds = phase.elapsed().as_secs_f64();
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::end_writes();
         let changed = self.graph.changed;
         self.steps.push(json!({"ordinal":self.steps.len()+1,"ruleset":set,"path":path,"iterations":iterations,"epoch":self.graph.epoch,"logical_matches":matches,"local_bindings":0,"executed_bindings":executed,"changed":changed,"live_cells":self.graph.cells.len(),"elapsed_seconds":start.elapsed().as_secs_f64(),"phases":{"search":search_seconds,"rhs":rhs_seconds,"repair":repair_seconds,"delivery_gc":delivery_seconds,"query_update":query_update_seconds}}));
         if self.audit {
@@ -2112,6 +2321,7 @@ impl Executor {
     }
     pub fn report(&self) -> J {
         json!({"backend":"cell-cpu","scope":"standalone Cell recipe executor","status":if self.tasks.is_empty(){"complete"}else{"checkpointed"},
+            "attribute_fusion":{"enabled":cfg!(feature="attribute-entry"),"fused_write":cfg!(feature="attribute-write"),"fused_publish":cfg!(feature="attribute-fusion"),"plans":self.graph.program.families.iter().flatten().count(),"members": self.graph.program.families.iter().enumerate().filter_map(|(r,p)|p.as_ref().map(|p|json!({"rule":r,"attribute":self.graph.program.tables[p.table].name,"lanes":self.family_by_rule[r].0,"writes":self.family_by_rule[r].1}))).collect::<Vec<_>>(),"lanes":self.family_lanes,"changes":self.family_changes,"frontier_builds":self.family_frontiers.builds,"frontier_reuses":self.family_frontiers.reuses,"published_rows_offered":self.family_offered,"family_search_s":self.family_search,"family_rhs_s":self.family_rhs,"family_publish_callback_s":self.family_publish},
             "stats":self.graph.stats,"live_cells":self.graph.cells.len(),"steps":self.steps,"program_sha256":self.graph.program.artifact["sha256"],
             "entry_schedule":self.entry_schedule.report(),"free_join":self.free_join.stats,"sieve":self.sieve.report(),"neighbor_context":self.neighbor.report(&self.graph.program),
             "local_context":self.local_context.report(&self.graph.program),"stage_spine":self.stage_spine.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),
