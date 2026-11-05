@@ -478,15 +478,17 @@ fn read_port(
     stats: &mut Stats,
     #[cfg(feature = "structural-depth")] structural: (&mut crate::depth_runtime::Depth, Dependency),
 ) -> Result<Option<Row>> {
-    let good =
-        |r: &crate::graph::Row| r.table == table && !r.hidden && r.values[..args.len()] == args;
+    let key = (table, args);
+    let good = |r: &Row| {
+        r.table == table && !r.hidden && r.values[..key.1.len()] == key.1
+    };
     // A candidate may fail a later port or guard, or lose
     // binding deduplication. Only an applied origin promotes the root.
     let cache = cursor.root.context.get();
     let witness = cache.and_then(|context| {
         let mut context = context.borrow_mut();
         context.canonicalize(g);
-        context.facts.get(&(table, args.clone())).copied()
+        context.facts.get(&key).copied()
     });
     let mut row = if let Some(w) = witness {
         stats.context_reads += 1;
@@ -498,21 +500,21 @@ fn read_port(
     if row.is_none() {
         stats.port_refreshes += 1;
         #[cfg(feature = "structural-depth")]
-        let forwarded = structural.0.spine_read(g, structural.1, table, &args)?;
+        let forwarded = structural.0.spine_read(g, structural.1, table, &key.1)?;
         #[cfg(not(feature = "structural-depth"))]
         let forwarded: Option<Row> = None;
         let probed = forwarded.is_none();
         row = match forwarded {
             Some(row) => Some(row),
-            None => g.lookup_canonical(table, &args)?,
+            None => g.lookup_canonical(table, &key.1)?,
         };
         if let Some(context) = cache {
             let mut context = context.borrow_mut();
             if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
-                context.facts.insert((table, args), r.witness);
+                context.facts.insert(key, r.witness);
                 stats.port_cache_fills += 1;
             } else {
-                context.facts.remove(&(table, args));
+                context.facts.remove(&key);
             }
         } else if probed {
             stats.pre_resume_port_lookups += 1;
@@ -1633,7 +1635,7 @@ impl Programs {
                 let a = &rule.query[i];
                 let args = a.args[..a.args.len() - 1]
                     .iter()
-                    .map(|a| operand(a, &input, g).ok_or("unbound stage recipe key".into()))
+                    .map(|a| operand(a, &input, g).ok_or_else(|| String::from("unbound stage recipe key")))
                     .collect::<Result<Vec<_>>>()?;
                 match &a.call {
                     Call::Table(t) => {
@@ -1684,7 +1686,7 @@ impl Programs {
                     .inputs
                     .iter()
                     .map(|i| {
-                        ({ input.get(*i).cloned() }).ok_or("incomplete stage recipe input".into())
+                        input.get(*i).cloned().ok_or_else(|| String::from("incomplete stage recipe input"))
                     })
                     .collect::<Result<Vec<_>>>()?;
                 record_answer(&mut results, values, witnesses, epoch, cursor);
