@@ -644,12 +644,13 @@ impl Replay {
             return Ok(());
         };
         let active: Map<usize, u64> = samples.iter().map(|a| (a[2] as usize, a[1])).collect();
+        let flat: Vec<_> = patch.iter().map(|(&rid, binding)| (rid, binding)).collect();
         let mut ranges = Map::default();
         let mut i = 0;
-        while i < patch.bindings.len() {
-            let rid = patch.bindings[i].0;
+        while i < flat.len() {
+            let rid = flat[i].0;
             let start = i;
-            while i < patch.bindings.len() && patch.bindings[i].0 == rid {
+            while i < flat.len() && flat[i].0 == rid {
                 i += 1
             }
             ranges.insert(rid, start..i);
@@ -724,7 +725,7 @@ impl Replay {
                 }
                 let correct = members.iter().zip(&out).all(|(&m, o)| {
                     let rr = ranges.get(&f.members[m].rule).cloned().unwrap_or(0..0);
-                    let ordinary: &[(usize, Binding)] = &patch.bindings[rr];
+                    let ordinary: &[(usize, &Binding)] = &flat[rr];
                     o.len() == ordinary.len()
                         && o.iter().zip(ordinary).all(|(v, (_, b))| *v == b.values)
                 });

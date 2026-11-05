@@ -71,11 +71,17 @@ struct ContinuationStats {
 /// All bindings belong to this exact source Run occurrence. The patch is sealed
 /// before publication, so no sibling rule can observe its future effects.
 struct StagePatch {
-    bindings: Vec<(usize, Binding)>,
+    groups: Vec<(usize, Vec<Binding>)>,
+    len: usize,
+}
+impl StagePatch {
+    fn iter(&self) -> impl Iterator<Item = (&usize, &Binding)> {
+        self.groups.iter().flat_map(|(rid, rows)| rows.iter().map(move |row| (rid, row)))
+    }
 }
 pub struct Executor {
     #[cfg(feature = "sparse-cells")]
-    work_scratch: Vec<(usize, Binding)>,
+    work_scratch: Vec<(usize, Vec<Binding>)>,
     #[cfg(feature = "rhs-locals")]
     local_width: usize,
     #[cfg(feature = "rhs-locals")]
@@ -2415,6 +2421,7 @@ impl Executor {
             .structural
             .measure_bindings()
             .then(|| self.watermarks.clone());
+        let mut count = 0;
         for rid in rules {
             // Only semi-naive rules clear their dirty flag. An untriggered
             // source occurrence still advances its own watermark.
@@ -2459,12 +2466,16 @@ impl Executor {
                 self.query_profile[rid].2 += self.graph.stats.residual_candidates - candidates;
             }
             self.watermarks[rid] = self.graph.epoch;
-            work.extend(bindings.into_iter().map(|b| (rid, b)));
+            if !bindings.is_empty() {
+                count += bindings.len();
+                work.push((rid, bindings));
+            }
         }
+        let patch = StagePatch { groups: work, len: count };
         #[cfg(feature = "structural-depth")]
         let mut evidence = if let Some(marks) = marks {
             Some(
-                work.iter()
+                patch.iter()
                     .map(|(r, b)| {
                         self.stage_spine.structural.prepare(
                             &self.graph,
@@ -2480,21 +2491,20 @@ impl Executor {
         } else {
             None
         };
-        let patch = StagePatch { bindings: work };
         #[cfg(feature = "slot-transfer-audit")]
-        crate::transfer_audit::record_run(patch.bindings.iter().map(|(rid, b)| (rid, &b.values)))?;
-        let matches = patch.bindings.len();
+        crate::transfer_audit::record_run(patch.iter().map(|(rid, b)| (rid, &b.values)))?;
+        let matches = patch.len;
         let search_seconds = start.elapsed().as_secs_f64();
         #[cfg(feature = "family-replay")]
         self.replay
             .run(&self.graph, set, &patch, &self.survey.samples[run_start..])?;
         if self.audit {
-            self.binding_audit.push(json!({"ruleset":set,"bindings":patch.bindings.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
+            self.binding_audit.push(json!({"ruleset":set,"bindings":patch.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
         }
         let phase = Instant::now();
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::begin_writes();
-        let executed = patch.bindings.len();
+        let executed = patch.len;
         #[cfg(feature = "family-survey")]
         let mut rhs_clock: Option<(usize, Instant)> = None;
         #[cfg(feature = "rhs-work-audit")]
@@ -2502,12 +2512,12 @@ impl Executor {
             self.graph.rhs_births.reading = true;
         }
         #[cfg(feature = "sparse-cells")]
-        let mut buffer = patch.bindings;
+        let mut buffer = patch.groups;
         #[cfg(feature = "sparse-cells")]
-        let rows = buffer.drain(..);
+        let groups = buffer.drain(..);
         #[cfg(not(feature = "sparse-cells"))]
-        let rows = patch.bindings.into_iter();
-        for (rid, binding) in rows {
+        let groups = patch.groups.into_iter();
+        for (rid, binding) in groups.flat_map(|(rid, rows)| rows.into_iter().map(move |b| (rid, b))) {
             #[cfg(feature = "family-survey")]
             let before = {
                 if rhs_clock.as_ref().is_none_or(|(r, _)| *r != rid) {
