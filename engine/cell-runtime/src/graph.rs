@@ -873,6 +873,7 @@ impl Graph {
     pub(crate) fn inline_arguments(&self, cell: u32, args: &[Arg]) -> Result<smallvec::SmallVec<[Value; 4]>> {
         self.collect_arguments(cell, args)
     }
+    #[inline]
     pub fn fact(&self, f: FactRef) -> Result<Option<Row>> {
         let Some(c) = self.cells.get(&f.cell) else {
             return Ok(None);
@@ -890,40 +891,32 @@ impl Graph {
             }));
         }
 
-        let arguments = |aa: &[Arg]| {
-            aa.iter()
-                .map(|a| self.argument_in(f.cell, c, a))
-                .collect::<Result<Vec<_>>>()
-        };
-        let (table, values) = {
-            match self.program.templates[c.template]
-                .ops
-                .get(f.op as usize)
-                .ok_or("invalid live fact position")?
-            {
-                Op::Let(dst, Call::Table(t), aa) => {
-                    let mut vals = arguments(aa)?;
-                    vals.push(self.slot_in(f.cell, c, *dst)?);
-                    (*t, vals)
-                }
-                Op::Set(t, aa, v) => {
-                    let mut vals = arguments(aa)?;
-                    vals.push(self.argument_in(f.cell, c, v)?);
-                    (*t, vals)
-                }
-                _ => return Err("invalid fact recipe position".into()),
-            }
-        };
-        // Every argument/slot path already returns a canonical value, including
-        // recursive provider projections and literal/container arguments.
+        self.decode_fact(f, c, s).map(Some)
+    }
 
-        Ok(Some(Row {
+    #[inline(never)]
+    fn decode_fact(&self, f: FactRef, c: &Cell, s: &FactState) -> Result<Row> {
+        let op = self.program.templates[c.template]
+            .ops
+            .get(f.op as usize)
+            .ok_or("invalid live fact position")?;
+        let (table, args, result) = match op {
+            Op::Let(dst, Call::Table(t), args) => (*t, args, Arg::Slot(*dst)),
+            Op::Set(t, args, value) => (*t, args, value.clone()),
+            _ => return Err("invalid fact recipe position".into()),
+        };
+        let mut values = Vec::with_capacity(args.len() + 1);
+        for arg in args {
+            values.push(self.argument_in(f.cell, c, arg)?);
+        }
+        values.push(self.argument_in(f.cell, c, &result)?);
+        Ok(Row {
             table,
             values: row_fields(values),
             hidden: s.hidden,
             epoch: s.epoch,
             witness: Dependency::Fact(f),
-        }))
+        })
     }
     fn shared_fields(key: &[Value], v: &Value) -> RowFields {
         #[cfg(feature = "sparse-cells")]
@@ -969,28 +962,13 @@ impl Graph {
     pub(crate) fn unit_stats(&self) -> serde_json::Value {
         self.units.report()
     }
+    #[inline]
     pub fn function(&self, i: usize) -> Option<Row> {
         let f = self.functions.get(i)?;
         if !f.live {
             return None;
         }
-        let values = f
-            .decoded
-            .clone()
-            .or_else(|| {
-                if f.key.is_empty() && self.units.counts[f.table] > 0 {
-                    self.units.values(i, &self.parents, &f.value)
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_else(|| {
-                let mut values = Vec::with_capacity(f.key.len() + 1);
-                values.extend(f.key.iter().map(|v| canon(v, &self.parents)));
-                values.push(canon(&f.value, &self.parents));
-                row_fields(values)
-            });
-
+        let values = f.decoded.clone().unwrap_or_else(|| self.decode_function(i, f));
         Some(Row {
             table: f.table,
             values,
@@ -999,6 +977,20 @@ impl Graph {
             witness: Dependency::Function(i),
         })
     }
+    #[inline(never)]
+    fn decode_function(&self, i: usize, f: &Function) -> RowFields {
+        if f.key.is_empty()
+            && self.units.counts[f.table] > 0
+            && let Some(values) = self.units.values(i, &self.parents, &f.value)
+        {
+            return values;
+        }
+        let mut values = Vec::with_capacity(f.key.len() + 1);
+        values.extend(f.key.iter().map(|v| canon(v, &self.parents)));
+        values.push(canon(&f.value, &self.parents));
+        row_fields(values)
+    }
+    #[inline]
     pub fn row(&self, w: Dependency) -> Result<Option<Row>> {
         match w {
             Dependency::Fact(f) => self.fact(f),
