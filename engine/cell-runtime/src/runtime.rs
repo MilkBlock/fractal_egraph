@@ -2548,14 +2548,17 @@ impl Executor {
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::record_run(patch.iter().map(|(rid, b)| (rid, &b.values)))?;
         let matches = patch.len;
-        let search_seconds = start.elapsed().as_secs_f64();
+        let search_end = Instant::now();
+        let search_seconds = search_end.duration_since(start).as_secs_f64();
         #[cfg(feature = "family-replay")]
         self.replay
             .run(&self.graph, set, &patch, &self.survey.samples[run_start..])?;
         if self.audit {
             self.binding_audit.push(json!({"ruleset":set,"bindings":patch.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
         }
-        let phase = Instant::now();
+        let phase = if self.audit || cfg!(feature = "family-replay") {
+            Instant::now()
+        } else { search_end };
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::begin_writes();
         let executed = patch.len;
@@ -2620,9 +2623,10 @@ impl Executor {
 
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::repaired();
-        let rhs_seconds = phase.elapsed().as_secs_f64();
+        let rhs_end = Instant::now();
+        let rhs_seconds = rhs_end.duration_since(phase).as_secs_f64();
         self.graph.stats.bindings += executed as u64;
-        let phase = Instant::now();
+        let phase = rhs_end;
         #[cfg(feature = "family-survey")]
         let unions_before = self.graph.stats.unions;
         #[cfg(feature = "rhs-work-audit")]
@@ -2640,12 +2644,13 @@ impl Executor {
             self.ledger.observe_births(&mut self.graph, &mut births)?;
             self.graph.rhs_births = births;
         }
-        let repair_seconds = phase.elapsed().as_secs_f64();
+        let repair_end = Instant::now();
+        let repair_seconds = repair_end.duration_since(phase).as_secs_f64();
         #[cfg(feature = "family-frontiers")]
         {
             self.prior_union = unions_before != self.graph.stats.unions;
         }
-        let phase = Instant::now();
+        let phase = repair_end;
         self.stage_spine.publish(&mut self.graph)?;
         #[cfg(feature = "structural-depth")]
         self.stage_spine.structural.publish(&mut self.graph)?;
@@ -2673,8 +2678,9 @@ impl Executor {
             .gates
             .publish(&self.graph, &self.query_indexes);
         self.sieve.publish(&mut self.query_indexes);
-        let query_update_seconds = phase.elapsed().as_secs_f64();
-        let phase = Instant::now();
+        let publication_end = Instant::now();
+        let query_update_seconds = publication_end.duration_since(phase).as_secs_f64();
+        let phase = publication_end;
         self.deliver();
         #[cfg(feature = "rhs-work-audit")]
         self.ledger.barrier(
@@ -2687,7 +2693,8 @@ impl Executor {
             .publish(&self.graph, unions_before != self.graph.stats.unions)?;
         self.graph.changes.clear();
         self.graph.collect_garbage();
-        let delivery_seconds = phase.elapsed().as_secs_f64();
+        let end = Instant::now();
+        let delivery_seconds = end.duration_since(phase).as_secs_f64();
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::end_writes();
         let changed = self.graph.changed;
@@ -2695,7 +2702,7 @@ impl Executor {
         if changed {self.last_change=ordinal;}
         self.steps.push(schedule::RunStep {ordinal,ruleset:set.into(),path,iterations,
             epoch:self.graph.epoch, logical_matches:matches,local_bindings:0,executed_bindings:executed,
-            changed,live_cells:self.graph.cells.len(),elapsed_seconds:start.elapsed().as_secs_f64(),
+            changed,live_cells:self.graph.cells.len(),elapsed_seconds:if cfg!(feature="slot-transfer-audit") { start.elapsed() } else { end.duration_since(start) }.as_secs_f64(),
             phases:schedule::Phases{search:search_seconds,rhs:rhs_seconds,repair:repair_seconds,delivery_gc:delivery_seconds,query_update:query_update_seconds},json:Default::default()});
         if self.audit {
             self.snapshots.push(self.graph.export()?);
