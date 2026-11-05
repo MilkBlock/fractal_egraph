@@ -1,0 +1,169 @@
+{
+  "base": "d4074488",
+  "scope": "Standalone minimal release, archived acceptance binary, frozen named cases. Three fresh measured processes per case after one excluded warm-up. Times in ms except fields marked us. No competing benchmark jobs.",
+  "binary_sha256": "2c261702dfca89dd807e25d6f76724e9b1a17965e296a532a3fb19db9ffe4cf7",
+  "machine": "Apple M3 Max (12 performance / 4 efficiency cores), arm64",
+  "cases": {
+    "sum-bits": {
+      "program_sha256": "1d6e531e391cd34c56b452124e5c46563f044c1d75aea3776e9e2d0e60a29409",
+      "samples": [
+        {
+          "inference_ms": 31.839708,
+          "phases_ms": {
+            "delivery_gc": 0.43625,
+            "query_update": 5.13013,
+            "repair": 2.162209,
+            "rhs": 7.038153,
+            "search": 13.674781000000001
+          },
+          "empty_runs": 896,
+          "p50_search_us": 0.5205,
+          "p95_search_us": 43.541999999999994,
+          "runs_over_1ms_search": 0,
+          "fraction_search_over_1ms": 0.0
+        },
+        {
+          "inference_ms": 30.608916999999998,
+          "phases_ms": {
+            "delivery_gc": 0.426062,
+            "query_update": 4.95345,
+            "repair": 2.130936,
+            "rhs": 6.819001,
+            "search": 13.045821
+          },
+          "empty_runs": 896,
+          "p50_search_us": 0.459,
+          "p95_search_us": 41.458999999999996,
+          "runs_over_1ms_search": 0,
+          "fraction_search_over_1ms": 0.0
+        },
+        {
+          "inference_ms": 30.605667,
+          "phases_ms": {
+            "delivery_gc": 0.42759800000000003,
+            "query_update": 4.979692,
+            "repair": 2.092958,
+            "rhs": 6.840375,
+            "search": 12.970946000000001
+          },
+          "empty_runs": 896,
+          "p50_search_us": 0.459,
+          "p95_search_us": 42.583000000000006,
+          "runs_over_1ms_search": 0,
+          "fraction_search_over_1ms": 0.0
+        }
+      ]
+    },
+    "raytrace": {
+      "program_sha256": "2ea40b3ded80dda4bfbf7e9a67a1ac74ae08ad16568b1a4ea4b5ae3f355b6579",
+      "samples": [
+        {
+          "inference_ms": 12071.521499999999,
+          "phases_ms": {
+            "delivery_gc": 289.808626,
+            "query_update": 2480.376919,
+            "repair": 936.5158799999999,
+            "rhs": 3178.970515,
+            "search": 5143.1618610000005
+          },
+          "empty_runs": 8361,
+          "p50_search_us": 2.708,
+          "p95_search_us": 1175.9170000000001,
+          "runs_over_1ms_search": 982,
+          "fraction_search_over_1ms": 0.8008903760612172
+        },
+        {
+          "inference_ms": 12086.563833,
+          "phases_ms": {
+            "delivery_gc": 294.19568200000003,
+            "query_update": 2476.2935239999997,
+            "repair": 927.1371670000001,
+            "rhs": 3169.12493,
+            "search": 5176.8936109999995
+          },
+          "empty_runs": 8361,
+          "p50_search_us": 2.7089999999999996,
+          "p95_search_us": 1227.5420000000001,
+          "runs_over_1ms_search": 987,
+          "fraction_search_over_1ms": 0.8077114017014325
+        },
+        {
+          "inference_ms": 12010.103209,
+          "phases_ms": {
+            "delivery_gc": 290.89016000000004,
+            "query_update": 2475.709589,
+            "repair": 901.316224,
+            "rhs": 3119.263834,
+            "search": 5179.4423289999995
+          },
+          "empty_runs": 8361,
+          "p50_search_us": 2.6670000000000003,
+          "p95_search_us": 1245.9170000000001,
+          "runs_over_1ms_search": 1005,
+          "fraction_search_over_1ms": 0.8083877290334436
+        }
+      ]
+    }
+  },
+  "temporary_probe": {
+    "sum-bits": {
+      "inference_ms": 32.832667,
+      "search_ms": 14.296254,
+      "segment_ms": {
+        "scheduled_entry": 6.095296,
+        "spine_coverage_and_sealing": 2.019406,
+        "kernel_capable_pivot_loops": 1.187522,
+        "other_pivot_loops": 1.901298,
+        "final_filter_sort_dedup": 0.485338,
+        "kernel_loop_subset_at_least_250us": 0.0
+      }
+    },
+    "raytrace": {
+      "inference_ms": 12490.972333,
+      "search_ms": 5398.871467,
+      "segment_ms": {
+        "scheduled_entry": 2790.019051,
+        "spine_coverage_and_sealing": 730.629717,
+        "kernel_capable_pivot_loops": 753.760468,
+        "other_pivot_loops": 584.928053,
+        "final_filter_sort_dedup": 286.640572,
+        "kernel_loop_subset_at_least_250us": 314.477969
+      }
+    }
+  },
+  "native_sum_bits": {
+    "core_commit": "ebba7bb902bdc1b0f377b6bb22c06ac305912674",
+    "source_sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+    "pool_check": "EGraph::set_num_threads(n) before creating EGraph, assert eg.num_threads()==n; one release process per sample",
+    "timer": "parse and execute prefix before first RunSchedule, then time run_program on the remaining original commands",
+    "endpoint_sizes": {
+      "Get": 148,
+      "Single": 35,
+      "Concat": 52,
+      "Expr-size": 113
+    },
+    "samples_after_first_warmup_per_arm": {
+      "1": [
+        41.0912,
+        41.6929,
+        41.265,
+        42.0114,
+        41.5423
+      ],
+      "4": [
+        47.0149,
+        49.6483,
+        47.1825,
+        47.2297,
+        47.8855
+      ],
+      "16": [
+        62.9449,
+        57.5665,
+        57.4924,
+        57.6687,
+        57.5187
+      ]
+    }
+  }
+}
