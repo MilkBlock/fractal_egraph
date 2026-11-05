@@ -1,9 +1,6 @@
 # Repository workflow
 
-- Default to the local debugger workflow: `python3 tools/egglog_debugger/server.py --port 8080`.
-  Do not push `gh-pages`, rebuild the published site, or fetch the published URL for
-  verification unless the user explicitly asks for a release; the network budget is limited
-  and each deploy/verify ships and downloads tens of MB.
+- Validate the minimal CPU branch using the local Cargo compile, run and bench commands in README.md. The debugger and historical experiments live on the research branch. Published site releases require explicit user instruction.
 
 - Maintain Git history as part of completing implementation work: after a coherent change passes its relevant checks, create a focused Conventional Commit with a scope. Report its short commit ID.
 - Preserve the immutable `egglog-baseline` tag. Keep local kernel changes, experiment infrastructure, and experiment results distinguishable from the pristine upstream import.

@@ -1,4 +1,4 @@
-use egg_layout::{
+use eggfuse_bake::{
     reentry_bucket::Buckets,
     saturated_rule_composition::{Row, SaturatedRuleComposition as State, Vertex},
 };

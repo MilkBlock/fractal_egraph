@@ -3,7 +3,7 @@ use serde_json::{Value as J, json};
 use std::collections::{BTreeMap, BTreeSet};
 const H: &str = "cell-stable-keys";
 const CHECK: &str = "cell-key-ready-check";
-pub use egg_layout::structural_key::source::HEADER;
+pub use eggfuse_bake::structural_key::source::HEADER;
 fn fun(n: &str, inputs: &[String], out: &str, merge: &str) -> String {
     format!(
         "(function {n} ({}) {out} :merge {merge} :unextractable)",
@@ -218,7 +218,7 @@ pub fn rewrite(name: &str, original: &str) -> Result<String> {
     let specs=sig.iter().filter(|(_,v)|v["kind"]=="constructor"&&live.contains(s(&v["output"]))).map(|(n,v)|json!({"primitive":format!("cell-key-node-{n}"),"label":format!("{}:{n}",s(&v["output"])),"arity":a(&v["input"]).len()})).collect::<Vec<_>>();
     let header = json!({"storage":"shared-native-dag","policy":"automatic","native_rulesets":sets,"choices":selected,"bases":bases,"nodes":specs,"key_semantics":"first complete constructor witness is anchored; union merges established keys by min; not an eclass canonical form"});
     if choices.is_empty() {
-        let orig = egg_layout::source_ast::export(name, original)?;
+        let orig = eggfuse_bake::source_ast::export(name, original)?;
         let body = if a(&orig["rewrites"]).is_empty() {
             original
         } else {

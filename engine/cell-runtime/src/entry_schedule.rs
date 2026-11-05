@@ -1,11 +1,11 @@
 //! Compiler-owned shared entry nodes. Current parameter packets are maintained
 //! once per changed input; consumers borrow them at their original source Run.
-use rustc_hash::FxHashMap as HashMap;
 use crate::{
     graph::{Dependency, FactRef, Graph, Row},
     program::*,
     value::{Value, canon},
 };
+use rustc_hash::FxHashMap as HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as J, json};
 use std::{
@@ -43,10 +43,9 @@ fn identity(v: &Value) -> bool {
 impl Plan {
     pub fn parse(p: &Program, raw: &J) -> Result<Self> {
         if raw.is_null() {
-            if std::env::var("CELL_CPU_SHARED_NODE_SCHEDULE").as_deref() == Ok("1") {
+            {
                 return Err("shared node schedule requires compiler entry_schedule; re-emit the Cell CPU artifact".into());
             }
-            return Ok(Self::default());
         }
         let (s, expected) = Self::derive(p)?;
         if *raw != expected {
@@ -54,7 +53,7 @@ impl Plan {
         }
         Ok(s)
     }
-    pub(crate) fn derive(p:&Program)->Result<(Self,J)> {
+    pub(crate) fn derive(p: &Program) -> Result<(Self, J)> {
         let mut s = Self {
             nodes: vec![],
             rules: vec![vec![]; p.rules.len()],
@@ -126,9 +125,8 @@ impl Plan {
             "delivery":"independent consumer watermarks; original RHS publication",
             "invalidation":"old/new witnesses, visibility, canonical identities and same-key forwarding",
             "scope":"table entry nodes; residual queries and guards remain exact"}});
-        Ok((s,expected))
+        Ok((s, expected))
     }
-
 }
 pub struct Packet {
     pub row: Rc<Row>,
@@ -170,15 +168,7 @@ impl Inputs {
     }
     /// Move private slot values into the sealed RHS input. Shared entry
     /// packets remain immutable and supply owned snapshots when needed.
-    pub(crate) fn take_slot(&mut self, i: usize, moved: &mut u64) -> Option<Value> {
-        if let Some(v) = self.own.get_mut(i).and_then(Option::take) {
-            *moved += 1;
-            return Some(v);
-        }
-        #[cfg(feature = "slot-transfer-audit")]
-        crate::transfer_audit::count(|c| c.binding_seal_copies += u64::from(self[i].is_some()));
-        self[i].clone()
-    }
+
     pub fn materialize(&self) -> Vec<Option<Value>> {
         self.iter().cloned().collect()
     }
@@ -281,7 +271,14 @@ impl Batch<'_> {
             .range((self.watermark, Dependency::Fact(FactRef { cell: 0, op: 0 }))..)
     }
     pub fn delta_len(&self) -> Option<usize> {
-        Some(self.state.epoch_counts.as_ref()?.range(self.watermark..).map(|(_,n)|n).sum())
+        Some(
+            self.state
+                .epoch_counts
+                .as_ref()?
+                .range(self.watermark..)
+                .map(|(_, n)| n)
+                .sum(),
+        )
     }
     pub fn delta_exceeds(&self, budget: usize, bins: &mut u64) -> bool {
         let counts = self.state.epoch_counts.as_ref().expect("planned entry");
@@ -393,15 +390,23 @@ impl Scheduler {
         })
     }
     pub(crate) fn terminal_batch(
-        &mut self, g: &Graph, rid: usize, atom: usize, watermark: u64,
+        &mut self,
+        g: &Graph,
+        rid: usize,
+        atom: usize,
+        watermark: u64,
     ) -> Result<Batch<'_>> {
-        let i = self.plan.rules[rid].iter()
-            .position(|c| c.atom == atom).ok_or("missing terminal entry")?;
+        let i = self.plan.rules[rid]
+            .iter()
+            .position(|c| c.atom == atom)
+            .ok_or("missing terminal entry")?;
         let node = self.plan.rules[rid][i].node;
         self.refresh(g, node)?;
         Ok(Batch {
-            state: &self.states[node], consumer: &self.plan.rules[rid][i],
-            watermark, table: self.plan.nodes[node].table,
+            state: &self.states[node],
+            consumer: &self.plan.rules[rid][i],
+            watermark,
+            table: self.plan.nodes[node].table,
         })
     }
     pub(crate) fn batches(

@@ -335,7 +335,7 @@ impl Library {
                 .transpose()?;
             if certified {
                 let report: J = serde_json::from_slice(&std::fs::read(folder.join("ripen.json"))?)?;
-                crate::reuse_graph::RipSatEgraph::from_native_export(
+                crate::bake_recipe::RipSatEgraph::from_native_export(
                     serde_json::from_value(state.clone())?,
                     &report,
                 )?;

@@ -11,7 +11,7 @@ use eggfuse_cell_runtime::{
 use serde_json::{Value as J, json};
 use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
-type Result<T> = egg_layout::pipeline::Result<T>;
+type Result<T> = eggfuse_bake::pipeline::Result<T>;
 fn save(path: &Path, value: &J) -> Result<()> {
     let mut f = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
     serde_json::to_writer(&mut f, value)?;
@@ -44,7 +44,7 @@ pub(crate) fn run(args: Vec<String>) -> Result<()> {
         .map(|s| s.parse())
         .transpose()?
         .unwrap_or(4usize);
-    let native = egg_layout::bake_limits::BakeLimits::from_env()?;
+    let native = eggfuse_bake::bake_limits::BakeLimits::from_env()?;
     let mut limits = Limits {
         depth: native.max_depth,
         nodes: native.max_nodes,
@@ -64,9 +64,6 @@ pub(crate) fn run(args: Vec<String>) -> Result<()> {
     }
     if let Some(s) = opts.get("--min-support") {
         limits.support = s.parse()?
-    }
-    if std::env::var("CELL_CPU_STAGE_SPINE").as_deref() != Ok("1") {
-        return Err("iterative Bake requires CELL_CPU_STAGE_SPINE=1".into());
     }
     let handoffs = match opts
         .get("--objective")
@@ -92,11 +89,11 @@ pub(crate) fn run(args: Vec<String>) -> Result<()> {
         artifact["sha256"] = artifact_digest(&artifact).into();
         let p = Program::parse(artifact)?;
         let units = p.iterative.entries();
-        let registry = egg_layout::native_analyze::register_cpu_blocks(
+        let registry = eggfuse_bake::native_analyze::register_cpu_blocks(
             &plan,
             &units,
             plan["joins"].as_array().unwrap(),
-            egg_layout::bake_limits::BakeLimits {
+            eggfuse_bake::bake_limits::BakeLimits {
                 max_depth: limits.depth,
                 max_nodes: limits.nodes,
                 max_units: limits.total,
@@ -104,9 +101,6 @@ pub(crate) fn run(args: Vec<String>) -> Result<()> {
         )?;
         let mut exec = Executor::new(Graph::new(p)?, false);
         exec.collect_iterative_pairs();
-        if exec.graph.slot_transfer != eggfuse_cell_runtime::graph::SlotTransfer::Off {
-            return Err("CPU Spine block dispatch requires slot transfer off".into());
-        }
         transfer_audit::take_digests();
         transfer_audit::set_active(true);
         let run = exec.execute_until(None);

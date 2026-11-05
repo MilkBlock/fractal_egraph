@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+default = ["iterative-bake"]
 slot-transfer-audit = []
 spine-shapes = []
 spine-blocks = []
@@ -18,16 +19,10 @@ smallvec = "1"
 rustc-hash = "2.1"
 mimalloc = { version = "0.1", default-features = false }
 
-[profile.release]
-debug = 1
-
 [[example]]
 name = "bake_spine_blocks"
 required-features = ["spine-blocks"]
 
-[[example]]
-name = "spine_shape_summary"
-required-features = ["spine-blocks"]
 
 [[example]]
 name = "complete_blocks"

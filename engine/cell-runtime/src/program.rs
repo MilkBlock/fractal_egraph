@@ -63,8 +63,10 @@ pub struct Program {
     pub(crate) context_cuts: crate::local_context::Cuts,
     #[serde(skip)]
     pub(crate) local_contexts: Vec<Option<Rc<crate::local_context::Plan>>>,
-    #[serde(skip)] pub(crate) writes:Vec<Option<Rc<crate::row_kernel::Write>>>,
-    #[serde(skip)] pub(crate) kernels:crate::row_kernel::Kernels,
+    #[serde(skip)]
+    pub(crate) writes: Vec<Option<Rc<crate::row_kernel::Write>>>,
+    #[serde(skip)]
+    pub(crate) kernels: crate::row_kernel::Kernels,
     #[serde(default)]
     pub(crate) physical: Rc<crate::physical_plan::Plan>,
     #[serde(skip)]
@@ -73,18 +75,18 @@ pub struct Program {
     pub known_results: crate::known_results::Plans,
     #[serde(default)]
     pub merge_programs: crate::merge_programs::Programs,
-    #[serde(default)]
-    pub views: crate::views::Views,
-    pub congruence: crate::congruence::Congruence,
+
     #[cfg(feature = "spine-blocks")]
     #[serde(skip)]
     pub spine_blocks: crate::spine_blocks::Catalog,
     #[cfg(feature = "iterative-bake")]
     #[serde(skip)]
     pub iterative: crate::iterative::Catalog,
+    #[serde(default)]
+    pub marker_tables: std::collections::BTreeSet<usize>,
     pub multi_stage: crate::multistage::MultiStage,
     pub entry_schedule: crate::entry_schedule::Plan,
-    pub compositions: crate::compositions::Compositions,
+
     pub tables: Vec<Table>,
     pub templates: Vec<Template>,
     pub rules: Vec<Rule>,
@@ -122,7 +124,10 @@ pub fn call(j: &J, names: &BTreeMap<String, usize>) -> Result<Call> {
 }
 impl Program {
     pub fn context_cut_counts(&self) -> (usize, usize) {
-        (self.context_cuts.iter().filter(|ps| !ps.is_empty()).count(), self.context_cuts.iter().map(Vec::len).sum())
+        (
+            self.context_cuts.iter().filter(|ps| !ps.is_empty()).count(),
+            self.context_cuts.iter().map(Vec::len).sum(),
+        )
     }
     pub fn parse(j: J) -> Result<Self> {
         Self::load(j, false)
@@ -130,14 +135,6 @@ impl Program {
     pub(crate) fn load(j: J, compiling: bool) -> Result<Self> {
         if j["schema"] != "eggfuse-cell-runtime/v1" {
             return Err("unsupported Cell runtime artifact".into());
-        }
-        if !compiling && std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
-            && j["multi_stage"]["union_entries"].is_null()
-        {
-            return Err(
-                "union graft requires compiler union_entries; re-emit the CPU device artifact"
-                    .into(),
-            );
         }
         let ir = &j["recipe"];
         if ir["schema"] != "eggfuse-recipe/v1" || ir["scope"] != "original_program" {
@@ -309,26 +306,31 @@ impl Program {
             }
             sets.insert(string(&s["name"])?.into(), ids);
         }
-        let kernels=crate::row_kernel::derive(&rules);
-        if let Some(raw)=j.get("row_kernels") && *raw!=serde_json::json!(kernels){return Err("invalid register join plan".into());}
+        let kernels = crate::row_kernel::derive(&rules);
+        if let Some(raw) = j.get("row_kernels")
+            && *raw != serde_json::json!(kernels)
+        {
+            return Err("invalid register join plan".into());
+        }
         let mut p = Self {
             neighbor_plans: vec![],
             context_cuts: vec![],
             local_contexts: vec![],
-            kernels,writes:vec![],
+            kernels,
+            writes: vec![],
             physical: Default::default(),
-            known_results:Default::default(),
+            known_results: Default::default(),
             merge_programs: Default::default(),
-            views: crate::views::Views::default(),
-            congruence: crate::congruence::Congruence::default(),
+
             #[cfg(feature = "spine-blocks")]
             spine_blocks: Default::default(),
             #[cfg(feature = "iterative-bake")]
             iterative: Default::default(),
+            marker_tables: Default::default(),
             multi_stage: crate::multistage::MultiStage::default(),
             entry_schedule: crate::entry_schedule::Plan::default(),
             entry_join: None,
-            compositions: crate::compositions::Compositions::default(),
+
             tables,
             templates,
             rules,
@@ -340,14 +342,18 @@ impl Program {
         };
         p.validate()?;
         p.physical = Rc::new(crate::physical_plan::Plan::derive(&p));
-        p.writes=crate::row_kernel::writes(&p);
+        p.writes = crate::row_kernel::writes(&p);
         p.neighbor_plans = crate::neighbor::derive(&p);
         if let Some(raw) = p.artifact.get("neighbor_entries")
             && *raw != serde_json::json!(p.neighbor_plans)
         {
             return Err("invalid delta neighbor plan".into());
         }
-        if let Some(raw)=p.artifact.get("single_writes") && *raw!=serde_json::json!(p.writes){return Err("invalid functional write plan".into())}
+        if let Some(raw) = p.artifact.get("single_writes")
+            && *raw != serde_json::json!(p.writes)
+        {
+            return Err("invalid functional write plan".into());
+        }
         if let Some(raw) = p.artifact.get("physical_plan") {
             let emitted: crate::physical_plan::Plan =
                 serde_json::from_value(raw.clone()).map_err(|e| e.to_string())?;
@@ -378,42 +384,72 @@ impl Program {
                 return Err("merge contract schema".into());
             }
             for (t, c) in p.tables.iter().zip(cs) {
-                let expected=crate::merge_contract::table(&p,t)?;
-                if ["reads","constructs"].iter().any(|k|c[k]!=expected[k]){
+                let expected = crate::merge_contract::table(&p, t)?;
+                if ["reads", "constructs"].iter().any(|k| c[k] != expected[k]) {
                     return Err("merge contract footprint differs".into());
                 }
-                if ["table","expression","kind","equal_inputs"].iter().any(|k|c[k]!=expected[k]){
+                if ["table", "expression", "kind", "equal_inputs"]
+                    .iter()
+                    .any(|k| c[k] != expected[k])
+                {
                     return Err("merge contract differs from source".into());
                 }
             }
         }
         if let Some(raw) = p.artifact.get("free_join_entry") {
-            let emitted: crate::entry_join::Plan = serde_json::from_value(raw.clone()).map_err(|e|e.to_string())?;
+            let emitted: crate::entry_join::Plan =
+                serde_json::from_value(raw.clone()).map_err(|e| e.to_string())?;
             if emitted != crate::entry_join::Plan::derive(&p) {
                 return Err("Free Join entry plan differs from typed LHS".into());
             }
             p.entry_join = Some(Rc::new(emitted));
         }
-        p.entry_schedule=crate::entry_schedule::Plan::parse(&p,&p.artifact["entry_schedule"])?;
-        p.views = crate::views::Views::parse(&p, &p.artifact["reference_views"])?;
-        if std::env::var("CELL_CPU_MERGE_PROGRAMS").as_deref()!=Ok("0") && p.artifact["merge_programs"].is_null() {
+        p.entry_schedule = crate::entry_schedule::Plan::parse(&p, &p.artifact["entry_schedule"])?;
+        let marker_names = p
+            .artifact
+            .get("marker_tables")
+            .unwrap_or(&p.artifact["reference_views"]["marker_tables"]);
+        for name in marker_names.as_array().into_iter().flatten() {
+            let t = p
+                .tables
+                .iter()
+                .position(|t| name == &t.name)
+                .ok_or("unknown marker table")?;
+            if p.tables[t].constructor
+                || p.tables[t].schema.last().unwrap()["kind"] != "Unit"
+                || p.tables[t].merge != serde_json::json!({"var":"old"})
+            {
+                return Err("invalid marker relation".into());
+            }
+            p.marker_tables.insert(t);
+        }
+        if p.artifact["merge_programs"].is_null() {
             return Err("merge programs require re-emitting the CPU artifact".into());
         }
-        p.merge_programs=crate::merge_programs::Programs::parse(&p,&p.artifact["merge_programs"])?;
-        p.known_results=crate::known_results::Plans::parse(&p,&p.artifact["known_results"])?;
+        p.merge_programs =
+            crate::merge_programs::Programs::parse(&p, &p.artifact["merge_programs"])?;
+        p.known_results = crate::known_results::Plans::parse(&p, &p.artifact["known_results"])?;
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
         p.context_cuts = crate::local_context::derive_cuts(&p);
-        if let Some(raw) = p.artifact.get("context_cuts") && *raw != serde_json::json!(crate::local_context::layout(&p.context_cuts)) {
+        if let Some(raw) = p.artifact.get("context_cuts")
+            && *raw != serde_json::json!(crate::local_context::layout(&p.context_cuts))
+        {
             return Err("invalid connected context cuts".into());
         }
         if let Some(raw) = p.artifact.get("context_admission") {
-            let allowed=crate::context_admission::admitted(&p,raw)?;
-            for (plans,keep) in p.context_cuts.iter_mut().zip(allowed) {
-                if !keep { plans.clear(); }
+            let allowed = crate::context_admission::admitted(&p, raw)?;
+            for (plans, keep) in p.context_cuts.iter_mut().zip(allowed) {
+                if !keep {
+                    plans.clear();
+                }
             }
         }
-        p.local_contexts = crate::local_context::derive(&p, &p.artifact["multi_stage"]["stage_entries"]);
-        if let Some(raw) = p.artifact.get("local_contexts") && *raw != serde_json::json!(p.local_contexts) {
+
+        p.local_contexts =
+            crate::local_context::derive(&p, &p.artifact["multi_stage"]["stage_entries"]);
+        if let Some(raw) = p.artifact.get("local_contexts")
+            && *raw != serde_json::json!(p.local_contexts)
+        {
             return Err("invalid local context plan".into());
         }
 
@@ -425,8 +461,6 @@ impl Program {
         {
             p.iterative = crate::iterative::Catalog::parse(&p, &p.artifact["iterative_bake"])?;
         }
-        p.congruence = crate::congruence::Congruence::parse(&p, &p.artifact["congruence"])?;
-        p.compositions = crate::compositions::Compositions::parse(&p, &p.artifact["compositions"])?;
         Ok(p)
     }
     fn validate(&self) -> Result<()> {

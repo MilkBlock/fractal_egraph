@@ -11,20 +11,15 @@ use std::{
     path::Path,
     sync::Arc,
 };
-// `std::time::Instant` is not implemented on wasm32-unknown-unknown.
-#[cfg(not(target_arch = "wasm32"))]
 use std::time::Instant;
-#[cfg(target_arch = "wasm32")]
-use web_time::Instant;
 
 #[path = "native_cs.rs"]
 mod cs;
-#[path = "native_debug.rs"]
-pub mod debug;
+
+#[cfg(test)]
 #[path = "native_history.rs"]
 mod history;
-#[path = "native_layer_view.rs"]
-mod layer_view;
+
 #[path = "native_ripen.rs"]
 pub mod ripen;
 #[path = "native_saturated_rule_composition_pipeline.rs"]
@@ -58,6 +53,7 @@ struct Token {
     sort: Arc<str>,
     key: Key,
 }
+#[cfg(test)]
 impl Token {
     fn label(&self) -> String {
         match &self.key {
@@ -138,7 +134,9 @@ fn observed_value(
             &eg.value_to_base::<egglog::sort::S>(value).to_string(),
         )?),
         "bool" => Some(eg.value_to_base::<bool>(value).to_string()),
-        eggfuse_structural_key::SORT => Some(crate::structural_key::source::value_literal(eg, value)?),
+        eggfuse_structural_key::SORT => {
+            Some(crate::structural_key::source::value_literal(eg, value)?)
+        }
         "f64" => Some(
             Expr::Lit(
                 sp(),
@@ -197,8 +195,6 @@ struct CaptureBoundary {
 }
 struct Captured {
     device_source: Option<Json>,
-    reuse_plan: Json,
-    reuse_signatures: BTreeSet<String>,
     changes: Vec<crate::closure_contract::Change>,
     last_scope: usize,
     preview_source: String,
@@ -220,20 +216,12 @@ struct Captured {
 }
 /// Same as `capture_with_sink`, but for source text already in memory (the wasm
 /// build has no filesystem).
+
 fn capture_text_with_sink(
     name: &str,
     text: &str,
     rounds: Option<usize>,
-    sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
-) -> Result<Captured> {
-    capture_text_with_planner(name, text, rounds, sink, None)
-}
-fn capture_text_with_planner(
-    name: &str,
-    text: &str,
-    rounds: Option<usize>,
     mut sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
-    library: Option<&crate::reuse_graph::library::Library>,
 ) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
@@ -302,8 +290,7 @@ fn capture_text_with_planner(
     trace.set_rhs_lookup_reads(true);
     let mut c = Captured {
         device_source: None,
-        reuse_plan: Json::Null,
-        reuse_signatures: BTreeSet::new(),
+
         changes: vec![],
         last_scope: 0,
         preview_source: text.to_owned(),
@@ -323,51 +310,58 @@ fn capture_text_with_planner(
         trace_batches: 0,
         rejected: 0,
     };
-    use crate::reuse_graph::planner::rule_runner::SourcePlanner;
-    let mut planner = if let Some(library) = library {
-        if SourcePlanner::supports_capture(&commands) {
-            let globals = commands
-                .iter()
-                .filter_map(|c| match c {
-                    Command::Action(Action::Let(_, n, _)) => Some(n.clone()),
-                    _ => None,
-                })
-                .collect();
-            Some(SourcePlanner::new(&mut eg, library, text, globals)?)
-        } else {
-            c.reuse_plan = json!({"status":"native_fallback","reason":"program is outside the positive finite planner subset"});
-            None
-        }
-    } else {
-        None
-    };
     let mut producers = BTreeMap::new();
     let mut count = 0;
     let mut known = true;
     for (command_index, command) in commands.iter().cloned().enumerate() {
         if let Command::RunSchedule(s) = &command {
             if c.device_source.is_none() {
-                c.device_source=Some(match crate::cell_schedule::device_entry(&mut eg,&commands[command_index..]) {
-                    Ok(mut core)=>{
-                        crate::structural_key::source::attach_device_runtime(&mut core,&c.preview_source)?;
-                        json!({"status":"ready","core":core})
+                c.device_source = Some(
+                    match crate::cell_schedule::device_entry(&mut eg, &commands[command_index..]) {
+                        Ok(mut core) => {
+                            crate::structural_key::source::attach_device_runtime(
+                                &mut core,
+                                &c.preview_source,
+                            )?;
+                            json!({"status":"ready","core":core})
+                        }
+                        Err(e) => json!({"status":"unsupported","reason":e.to_string()}),
                     },
-                    Err(e)=>json!({"status":"unsupported","reason":e.to_string()}),
-                });
+                );
             }
             let simple = matches!(s, egglog::ast::Schedule::Repeat(_,_,b) if matches!(**b,egglog::ast::Schedule::Run(..)));
-            if !simple { known = false; }
-            crate::cell_schedule::execute(&mut eg, &trace, s, command_index, &mut |eg,stage| {
-                if stage["phase"]=="begin" {if let Some(p)=&planner{p.refresh(eg)?;} return Ok(());}
-                let start=c.records.len();
-                collect_with_planner(eg,&trace,&mut c,&mut producers,planner.as_mut())?;
-                count+=1;
-                let mut stage=stage;stage["record_start"]=json!(start);stage["record_end"]=json!(c.records.len());
-                c.boundaries.push(CaptureBoundary {stage:Some(stage),ripen:None,kind:if known {"round"} else {"execution-boundary"}.into(),round:known.then_some(count),end:c.records.len()});
-                if simple {if let Some(sink)=sink.as_mut(){sink(&mut c)?;}}
+            if !simple {
+                known = false;
+            }
+            crate::cell_schedule::execute(&mut eg, &trace, s, command_index, &mut |eg, stage| {
+                if stage["phase"] == "begin" {
+                    return Ok(());
+                }
+                let start = c.records.len();
+                collect(eg, &trace, &mut c, &mut producers)?;
+                count += 1;
+                let mut stage = stage;
+                stage["record_start"] = json!(start);
+                stage["record_end"] = json!(c.records.len());
+                c.boundaries.push(CaptureBoundary {
+                    stage: Some(stage),
+                    ripen: None,
+                    kind: if known { "round" } else { "execution-boundary" }.into(),
+                    round: known.then_some(count),
+                    end: c.records.len(),
+                });
+                if simple {
+                    if let Some(sink) = sink.as_mut() {
+                        sink(&mut c)?;
+                    }
+                }
                 Ok(())
             })?;
-            if !simple {if let Some(sink)=sink.as_mut(){sink(&mut c)?;}}
+            if !simple {
+                if let Some(sink) = sink.as_mut() {
+                    sink(&mut c)?;
+                }
+            }
             continue;
         }
         let external_change = match &command {
@@ -395,12 +389,6 @@ fn capture_text_with_planner(
             _ => None,
         };
         match command {
-            Command::Rule { rule } if planner.is_some() => {
-                planner
-                    .as_mut()
-                    .unwrap()
-                    .install(&mut eg, rule, Some(&trace))?
-            }
             command => {
                 eg.run_program_with_trace(vec![command], &trace)?;
             }
@@ -413,9 +401,8 @@ fn capture_text_with_planner(
                 ..Default::default()
             });
         }
-
     }
-    collect_with_planner(&eg, &trace, &mut c, &mut producers, planner.as_mut())?;
+    collect(&eg, &trace, &mut c, &mut producers)?;
     if c.boundaries.last().is_none_or(|b| b.end != c.records.len())
         || c.changes
             .last()
@@ -444,20 +431,12 @@ struct Producer {
     table: String,
     row: Vec<Value>,
 }
+
 fn collect(
     eg: &EGraph,
     trace: &TraceSession,
     c: &mut Captured,
     producers: &mut BTreeMap<u64, Producer>,
-) -> Result {
-    collect_with_planner(eg, trace, c, producers, None)
-}
-fn collect_with_planner(
-    eg: &EGraph,
-    trace: &TraceSession,
-    c: &mut Captured,
-    producers: &mut BTreeMap<u64, Producer>,
-    planner: Option<&mut crate::reuse_graph::planner::rule_runner::SourcePlanner>,
 ) -> Result {
     let prior_scope = c.last_scope;
     let rules = &c.rules;
@@ -467,11 +446,7 @@ fn collect_with_planner(
         .map(|(i, r)| (r.rule.name.clone(), i))
         .collect();
     let batch = trace.drain_completed();
-    if let Some(planner) = planner {
-        planner.consume(eg, &batch)?;
-        c.reuse_plan = planner.report();
-        c.reuse_signatures = planner.signatures();
-    }
+
     let batch_len = batch.len();
     c.trace_peak = c.trace_peak.max(batch_len);
     c.trace_batches += usize::from(batch_len > 0);
@@ -661,7 +636,9 @@ fn collect_with_planner(
                     &eg.value_to_base::<egglog::sort::S>(*v).to_string(),
                 )?),
                 "bool" => Some(eg.value_to_base::<bool>(*v).to_string()),
-                eggfuse_structural_key::SORT => Some(crate::structural_key::source::value_literal(eg, *v)?),
+                eggfuse_structural_key::SORT => {
+                    Some(crate::structural_key::source::value_literal(eg, *v)?)
+                }
                 "f64" => Some(
                     Expr::Lit(
                         sp(),
@@ -1068,8 +1045,7 @@ fn update_applies(c: &mut Captured) -> Result {
 fn update_layers(c: &mut Captured) -> Result {
     update_applies(c)?;
     c.layers.ripen = c.boundaries.last().and_then(|b| b.ripen.clone());
-    if !crate::graph_render::graphs_enabled()
-        && std::env::var("EGG_LAYOUT_COMPOSITION_DISCOVERY").as_deref() != Ok("layers")
+    if std::env::var("EGG_LAYOUT_COMPOSITION_DISCOVERY").as_deref() != Ok("layers")
         && std::env::var("EGG_LAYOUT_LAYER_VIEW").as_deref() != Ok("1")
     {
         return Ok(());
@@ -1082,310 +1058,39 @@ fn update_layers(c: &mut Captured) -> Result {
     Ok(())
 }
 
-fn execute(
-    name: &str,
-    text: &str,
-    rounds: Option<usize>,
-    out: &Path,
-    replay: Option<&Path>,
-    save_history: bool,
-    persist_frames: bool,
-    stream_frames: bool,
-    observation: crate::ripen_observation::Limits,
-    emit: &mut dyn FnMut(Json) -> Result,
-    reuse_library: Option<&Path>,
-    optimize: bool,
-) -> Result<Json> {
-    std::fs::create_dir_all(out)?;
-    let render_batch = crate::graph_render::Batch::start()?;
-    let detailed_trace = crate::graph_render::graphs_enabled()
-        && std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1");
-    eprintln!(
-        "ripen limits: {} ms, {} facts; detailed trace: {}",
-        observation
-            .milliseconds
-            .map_or("off".into(), |n| n.to_string()),
-        observation.facts.map_or("off".into(), |n| n.to_string()),
-        detailed_trace
-    );
-    let mut pipeline = saturated_rule_composition_pipeline::Pipeline::new(
-        out,
-        name.into(),
-        observation,
-        reuse_library,
-    )?;
-    let mut manifest = vec![];
-    let mut emitted = 0;
-    let mut boundary = 0;
-    let mut boundary_emit = |c: &mut Captured| -> Result {
-        update_layers(c)?;
-        boundary += 1;
-        for r in c.records[emitted..].iter().filter(|_| detailed_trace) {
-            let rule = &c.rules[r.rule].rule;
-            let mut row = debug::render(rule);
-            let (line, end) = debug::location(rule);
-            row["kind"] = json!("application");
-            row["id"] = json!(format!("apply:{}", r.id));
-            row["event"] = json!(r.id);
-            row["rule"] = json!(rule.name);
-            row["source_line"] = json!(line);
-            row["end_line"] = json!(end);
-            row["boundary"] = json!(boundary);
-            row["parents"] = json!(r.parents);
-            emit(row)?;
-        }
-        emitted = c.records.len();
-        pipeline.step(c, &c.layers, boundary)?;
-        if !persist_frames && !stream_frames {
-            return Ok(());
-        }
-        let b = c.boundaries.last().cloned().unwrap_or(CaptureBoundary {
-            stage: None,
-            ripen: None,
-            kind: "capture".into(),
-            round: None,
-            end: c.records.len(),
-        });
-        let mut frame = layer_view::snapshot(&c.layers, &b, boundary, &c.preview_source)?;
-        frame["saturated_rule_composition"] = pipeline.report().clone();
-        frame["ripen_output_directory"] = json!(out);
-        if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
-            frame["dots"]["saturated_rule_composition"] = json!(dot);
-        }
-        if persist_frames {
-            layer_view::persist(out, &frame, &mut manifest)?;
-        }
-        emit(frame)
-    };
-    let c = if let Some(path) = replay {
-        let mut c = history::read(path)?;
-        let boundaries = std::mem::take(&mut c.boundaries);
-        if boundaries.is_empty() {
-            boundary_emit(&mut c)?;
-        } else {
-            let mut records = std::mem::take(&mut c.records).into_iter();
-            let mut changes = std::mem::take(&mut c.changes).into_iter().peekable();
-            for (index, boundary) in boundaries.into_iter().enumerate() {
-                while c.records.len() < boundary.end {
-                    c.records
-                        .push(records.next().ok_or("incomplete replay boundary")?);
-                }
-                while changes
-                    .peek()
-                    .is_some_and(|change| change.boundary <= index + 1)
-                {
-                    c.changes.push(changes.next().unwrap());
-                }
-                c.boundaries.push(boundary);
-                boundary_emit(&mut c)?;
-            }
-            c.changes.extend(changes);
-        }
-        c
-    } else {
-        let library = if optimize {
-            Some(crate::reuse_graph::library::Library::load(
-                reuse_library.ok_or("optimization requires a reuse library")?,
-            )?)
-        } else {
-            None
-        };
-        if let Some(library) = &library {
-            capture_text_with_planner(name, text, rounds, Some(&mut boundary_emit), Some(library))?
-        } else {
-            capture_text_with_sink(name, text, rounds, Some(&mut boundary_emit))?
-        }
-    };
-    drop(boundary_emit);
-    if save_history {
-        history::save(&out.join("history.json"), Path::new(name), &c)?;
-    }
-    // All cells keep their native engines. Drain fairly; an infinite cell stays
-    // Running and can be interrupted by the caller, never marked saturated.
-    while pipeline.has_work() {
-        boundary += 1;
-        pipeline.step(&c, &c.layers, boundary)?;
-        if stream_frames {
-            let q = pipeline.report().clone();
-            let mut progress = json!({"kind":"ripen_progress"});
-            progress["saturated_rule_composition"] = q;
-            emit(progress)?;
-        }
-    }
-    if persist_frames || stream_frames {
-        let b = CaptureBoundary {
-            stage: None,
-            ripen: None,
-            kind: if pipeline.report()["counts"]["ObservedUnfinished"]
-                .as_u64()
-                .unwrap_or(0)
-                > 0
-            {
-                "ripen-observation"
-            } else {
-                "ripen-complete"
-            }
-            .into(),
-            round: None,
-            end: c.records.len(),
-        };
-        boundary += 1;
-        let mut frame = layer_view::snapshot(&c.layers, &b, boundary, &c.preview_source)?;
-        frame["saturated_rule_composition"] = pipeline.report().clone();
-        if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
-            frame["dots"]["saturated_rule_composition"] = json!(dot);
-        }
-        if persist_frames {
-            layer_view::persist(out, &frame, &mut manifest)?;
-        }
-        emit(frame)?;
-    }
-    let finish_started = Instant::now();
-    let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"equality_sorts":c.datatype_names,"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
-    report["reuse_plan"] = c.reuse_plan.clone();
-    report["saturated_rule_composition"] = pipeline.take_report();
-    // Opt-in through the graph-output switch: leave graphless native timing alone.
-    if crate::graph_render::graphs_enabled() {
-        let specs = c
-            .pool
-            .values
-            .iter()
-            .enumerate()
-            .map(|(i, t)| crate::slotted_layer::TokenSpec {
-                sort: t.sort.to_string(),
-                literal: c.pool.literals.get(&i).cloned(),
-            })
-            .collect::<Vec<_>>();
-        let slotted = crate::slotted_layer::LayerCanon::build(&c.layers, &specs)?;
-        report["slotted_canon"] = slotted.report().clone();
-        std::fs::write(
-            out.join("slotted-canon.json"),
-            serde_json::to_vec_pretty(slotted.report())?,
-        )?;
-        std::fs::write(out.join("slotted-canon.dsl"), slotted.to_dsl())?;
-        for (name, dot) in [
-            ("slotted-canon.dot", slotted.to_dot()),
-            (
-                "slotted-egraph.dot",
-                crate::slotted_dot::to_dot(&slotted.egraph),
-            ),
-        ] {
-            let path = out.join(name);
-            std::fs::write(&path, dot)?;
-            crate::graph_render::enqueue(&path)?;
-        }
-    }
-    std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
-    std::fs::write(
-        out.join("layers.json"),
-        serde_json::to_vec(&c.layers.report())?,
-    )?;
-    if std::env::var_os("EGG_LAYOUT_PROFILE").is_some() {
-        eprintln!(
-            "[perf-finish] output_seconds={:.6}",
-            finish_started.elapsed().as_secs_f64()
-        );
-    }
-    let cleanup_started = Instant::now();
-    pipeline.remember_grafts(c.reuse_signatures.clone());
-    pipeline.save_reuse_library()?;
-    pipeline.release_engines();
-    if std::env::var_os("EGG_LAYOUT_PROFILE").is_some() {
-        eprintln!(
-            "[perf-finish] cleanup_seconds={:.6}",
-            cleanup_started.elapsed().as_secs_f64()
-        );
-    }
-    emit(json!({"kind":"rendering","message":"Analysis complete; rendering SVGs in parallel"}))?;
-    render_batch.finish()?;
-    Ok(report)
-}
-pub fn run(
-    source: &Path,
-    out: &Path,
-    rounds: Option<usize>,
-    replay: Option<&Path>,
-    save_history: bool,
-) -> Result<Json> {
-    run_with_observation(
-        source,
-        out,
-        rounds,
-        replay,
-        save_history,
-        crate::ripen_observation::Limits::from_env()?,
-    )
-}
-pub fn run_with_observation(
-    source: &Path,
-    out: &Path,
-    rounds: Option<usize>,
-    replay: Option<&Path>,
-    save_history: bool,
-    observation: crate::ripen_observation::Limits,
-) -> Result<Json> {
-    run_with_reuse(source, out, rounds, replay, save_history, observation, None)
-}
-pub fn run_with_reuse(
-    source: &Path,
-    out: &Path,
-    rounds: Option<usize>,
-    replay: Option<&Path>,
-    save_history: bool,
-    observation: crate::ripen_observation::Limits,
-    reuse_library: Option<&Path>,
-) -> Result<Json> {
-    run_configured(
-        source,
-        out,
-        rounds,
-        replay,
-        save_history,
-        observation,
-        reuse_library,
-        false,
-    )
-}
-pub fn run_configured(
-    source: &Path,
-    out: &Path,
-    rounds: Option<usize>,
-    replay: Option<&Path>,
-    save_history: bool,
-    observation: crate::ripen_observation::Limits,
-    reuse_library: Option<&Path>,
-    optimize: bool,
-) -> Result<Json> {
-    if optimize && (reuse_library.is_none() || replay.is_some()) {
-        return Err(
-            "planned capture requires a source and reuse library, not history replay".into(),
-        );
-    }
-    observation.validate()?;
+/// Capture the training schedule, ripen its bounded candidates and save the
+/// certified Cell e-graph and recipe library consumed by marker selection.
+pub fn bake(source: &Path, out: &Path) -> Result<Json> {
     if out.exists() {
         return Err("analysis output already exists".into());
     }
-    let text = if replay.is_some() {
-        String::new()
-    } else {
-        std::fs::read_to_string(source)?
-    };
-    execute(
-        &source.to_string_lossy(),
+    std::fs::create_dir(out)?;
+    let observation = crate::ripen_observation::Limits::from_env()?;
+    observation.validate()?;
+    let name = source.to_string_lossy();
+    let text = std::fs::read_to_string(source)?;
+    let mut pipeline =
+        saturated_rule_composition_pipeline::Pipeline::new(out, name.to_string(), observation)?;
+    let mut boundary = 0;
+    let captured = capture_text_with_sink(
+        &name,
         &text,
-        rounds,
-        out,
-        replay,
-        save_history,
-        crate::graph_render::graphs_enabled(),
-        false,
-        observation,
-        &mut |_| Ok(()),
-        reuse_library,
-        optimize,
-    )
+        None,
+        Some(&mut |c| {
+            update_layers(c)?;
+            boundary += 1;
+            pipeline.step(c, &c.layers, boundary)
+        }),
+    )?;
+    while pipeline.has_work() {
+        boundary += 1;
+        pipeline.step(&captured, &captured.layers, boundary)?;
+    }
+    let report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0{"observed_unfinished"}else{"complete"},"saturated_rule_composition":pipeline.take_report()});
+    crate::pipeline::write_json(&out.join("analysis.json"), &report)?;
+    pipeline.release_engines();
+    Ok(report)
 }
-
 #[cfg(test)]
 mod incremental_history_tests {
     use super::*;

@@ -30,6 +30,16 @@ fn pass(args: &[&str]) -> Output {
     );
     output
 }
+fn stage_output(path: &Path, hash_bits: &str) -> Vec<u8> {
+    let o = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
+        .arg("internal-stages")
+        .arg(path)
+        .env("CELL_CPU_HASH_BITS", hash_bits)
+        .output()
+        .unwrap();
+    assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    o.stdout
+}
 fn json_file(p: &Path) -> J {
     serde_json::from_slice(&fs::read(p).unwrap()).unwrap()
 }
@@ -56,25 +66,17 @@ fn source_to_checked_program_and_bench() {
             .iter()
             .any(|c| c["function"] == "pick")
     );
-    let mut previous = None;
-    for lane in ["baseline", "nodes", "filtered"] {
-        let b = pass(&[
-            "bench",
-            "--program",
-            out.join("program.json").to_str().unwrap(),
-            "--lane",
-            lane,
-            "--repeat",
-            "2",
-            "--verify-stages",
-        ]);
-        let measured: J = serde_json::from_slice(&b.stdout).unwrap();
-        assert!(measured["counts"]["all_candidate_visits"].is_number());
-        if let Some(ref before) = previous {
-            assert_eq!(before, &measured["final_state_sha256"])
-        }
-        previous = Some(measured["final_state_sha256"].clone());
-    }
+    let measured = pass(&[
+        "bench",
+        "--program",
+        out.join("program.json").to_str().unwrap(),
+        "--repeat",
+        "2",
+    ]);
+    assert!(
+        serde_json::from_slice::<J>(&measured.stdout).unwrap()["counts"]["all_candidate_visits"]
+            .is_number()
+    );
     let manifest = json_file(&out.join("manifest.json"));
     let before = manifest["program_sha256"].clone();
     assert!(
@@ -91,7 +93,7 @@ fn source_to_checked_program_and_bench() {
     assert_eq!(before, json_file(&out.join("program.json"))["sha256"]);
     let native = |s: &str| {
         let mut eg = egglog::EGraph::default();
-        egg_layout::structural_key::source::install(&mut eg, s).unwrap();
+        eggfuse_bake::structural_key::source::install(&mut eg, s).unwrap();
         eg.parse_and_run_program(None, s).unwrap();
         ["Leaf", "Wrap", "Left", "Right", "pick"].map(|n| eg.get_size(n))
     };
@@ -152,73 +154,6 @@ fn incompatible_training_does_not_publish_output() {
 }
 
 #[test]
-fn witnessed_handoff_is_bound_to_the_compiled_recipe() {
-    let tmp = tempfile::tempdir().unwrap();
-    let src = tmp.path().join("chain.egg");
-    fs::write(
-        &src,
-        r#"(datatype E (Seed i64) (A E) (B E))
-(ruleset calc)
-(rule ((= x (Seed i))) ((A x)) :ruleset calc :name "start")
-(rule ((= a (A x))) ((B a)) :ruleset calc :name "finish")
-(Seed 3)
-(run-schedule (saturate calc))
-(check (= x (B (A (Seed 3)))))"#,
-    )
-    .unwrap();
-    let compile = |out: &str, extra: &[&str]| {
-        let dir = tmp.path().join(out);
-        let mut args = vec![
-            "compile",
-            "--source",
-            src.to_str().unwrap(),
-            "--output",
-            dir.to_str().unwrap(),
-        ];
-        args.extend_from_slice(extra);
-        command(&args)
-    };
-    let initial = compile("initial", &[]);
-    assert!(
-        initial.status.success(),
-        "{}",
-        String::from_utf8_lossy(&initial.stderr)
-    );
-    let recipe = json_file(&tmp.path().join("initial/recipe-program.json"));
-    let rules = recipe["rules"].as_array().unwrap();
-    let rule = |n: &str| {
-        rules
-            .iter()
-            .position(|r| r["metadata"]["name"] == n)
-            .unwrap()
-    };
-    let evidence = tmp.path().join("handoffs.json");
-    fs::write(
-        &evidence,
-        json!({"recipe_sha256":recipe["sha256"],"pairs":[[rule("start"),rule("finish")]]})
-            .to_string(),
-    )
-    .unwrap();
-    let args = ["--composition-evidence", evidence.to_str().unwrap()];
-    let ok = compile("with-evidence", &args);
-    assert!(
-        ok.status.success(),
-        "{}",
-        String::from_utf8_lossy(&ok.stderr)
-    );
-    let program = json_file(&tmp.path().join("with-evidence/program.json"));
-    assert!(
-        !program["compositions"]["edges"]
-            .as_array()
-            .unwrap()
-            .is_empty()
-    );
-    fs::write(&evidence, r#"{"recipe_sha256":"stale","pairs":[]}"#).unwrap();
-    assert!(!compile("invalid", &args).status.success());
-    assert!(!tmp.path().join("invalid").exists());
-}
-
-#[test]
 fn a_late_bridge_wakes_a_rule_with_an_empty_join_summary() {
     let tmp = tempfile::tempdir().unwrap();
     let source = tmp.path().join("late-bridge.egg");
@@ -251,105 +186,11 @@ fn a_late_bridge_wakes_a_rule_with_an_empty_join_summary() {
         "bench",
         "--program",
         output.join("program.json").to_str().unwrap(),
-        "--lane",
-        "filtered",
         "--repeat",
         "1",
-        "--verify-stages",
     ]);
     let report: J = serde_json::from_slice(&result.stdout).unwrap();
     assert!(report["counts"]["empty_join_skips"].as_u64().unwrap() > 0);
-}
-
-#[test]
-fn reused_constructor_prefix_preserves_later_cell_identities() {
-    let tmp = tempfile::tempdir().unwrap();
-    let src = tmp.path().join("constructor-prefix.egg");
-    fs::write(
-        &src,
-        r#"
-(datatype E (Seed i64) (A E) (B E) (C E))
-(ruleset build)
-(rule ((= s (Seed i))) ((C (B (A (Seed i)))) (A (Seed i))) :ruleset build)
-(A (Seed 1))
-(C (B (A (Seed 2))))
-(Seed 3)
-(run-schedule (run build))
-(check (= x (C (B (A (Seed 1))))) (= y (C (B (A (Seed 3))))))
-"#,
-    )
-    .unwrap();
-    let out = tmp.path().join("compiled");
-    pass(&[
-        "compile",
-        "--source",
-        src.to_str().unwrap(),
-        "--output",
-        out.to_str().unwrap(),
-    ]);
-    let program = out.join("program.json");
-    let report: J = serde_json::from_slice(
-        &pass(&[
-            "bench",
-            "--program",
-            program.to_str().unwrap(),
-            "--lane",
-            "baseline",
-            "--repeat",
-            "1",
-        ])
-        .stdout,
-    )
-    .unwrap();
-    let combined: J = serde_json::from_slice(
-        &pass(&[
-            "bench",
-            "--program",
-            program.to_str().unwrap(),
-            "--lane",
-            "baseline",
-            "--modules",
-            "static-aliases",
-            "--repeat",
-            "2",
-            "--verify-stages",
-        ])
-        .stdout,
-    )
-    .unwrap();
-    let base = &report["counts"];
-    let counts = &combined["counts"];
-    // Seed(2) takes the full-hit path; Seed(1) and Seed(3) miss at different
-    // positions. Later constructors read earlier aliases after materialization.
-    assert_eq!(counts["static_eliminated"], 9);
-    assert_eq!(counts["lazy_prefix_eliminated"], 5);
-    assert_eq!(
-        base["constructor_requests"].as_u64().unwrap()
-            - counts["constructor_requests"].as_u64().unwrap(),
-        9
-    );
-    assert_eq!(base["rhs_frames_avoided"], 1);
-    assert_eq!(counts["rhs_frames_avoided"], base["rhs_frames_avoided"]);
-    assert_eq!(counts["cells_created"], base["cells_created"]);
-    assert_eq!(combined["final_state_sha256"], report["final_state_sha256"]);
-
-    // Observation retains eager frames to record physical constructor witnesses.
-    // Compare every boundary including the IDs of facts created after a full hit.
-    let stages = |mode| {
-        let run = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
-            .arg("internal-stages")
-            .arg(&program)
-            .env("CELL_CPU_KNOWN_RESULTS", mode)
-            .output()
-            .unwrap();
-        assert!(
-            run.status.success(),
-            "{}",
-            String::from_utf8_lossy(&run.stderr)
-        );
-        serde_json::from_slice::<Vec<String>>(&run.stdout).unwrap()
-    };
-    assert_eq!(stages("off"), stages("observe"));
 }
 
 #[test]
@@ -387,32 +228,20 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
     let out = tmp.path().join("artifact");
     pass(&[
         "compile",
-        "--emit-free-join-entry",
         "--source",
         source.to_str().unwrap(),
         "--output",
         out.to_str().unwrap(),
     ]);
     let pg = out.join("program.json");
-    let trial = pass(&[
-        "bench",
-        "--program",
-        pg.to_str().unwrap(),
-        "--lane",
-        "free-join",
-        "--repeat",
-        "1",
-        "--verify-stages",
-    ]);
+    let trial = pass(&["bench", "--program", pg.to_str().unwrap(), "--repeat", "1"]);
     let counters: J = serde_json::from_slice(&trial.stdout).unwrap();
-    assert!(counters["counts"]["free_join"]["probes"].as_u64().unwrap() > 0);
     assert!(
-        counters["counts"]["free_join"]["subtrie_uses"]
+        counters["counts"]["free_join"]["entry_probes"]
             .as_u64()
             .unwrap()
             > 0
     );
-
     let raw = json_file(&pg);
     assert!(
         !raw["free_join_entry"]["projections"]
@@ -434,11 +263,8 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
             "bench",
             "--program",
             path.to_str().unwrap(),
-            "--lane",
-            "free-join-entry",
             "--repeat",
             "1",
-            "--verify-stages",
         ]);
         serde_json::from_slice::<J>(&result.stdout).unwrap()
     };
@@ -450,42 +276,13 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
             > 0
     );
     let derived = run_entry(&old);
-    assert_eq!(compiled["counts"], derived["counts"]);
+    assert_eq!(stage_output(&pg, "64"), stage_output(&old, "64"));
     assert_eq!(
         compiled["final_state_sha256"],
         derived["final_state_sha256"]
     );
-    let stages = |mode| {
-        let output = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
-            .args(["internal-stages", pg.to_str().unwrap()])
-            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
-            .env("CELL_CPU_SIEVE", "1")
-            .env("CELL_CPU_JOIN_INTERSECTION", "1")
-            .env("CELL_CPU_HASH_BITS", "0")
-            .env("CELL_CPU_FREE_JOIN", mode)
-            .output()
-            .unwrap();
-        assert!(
-            output.status.success(),
-            "{}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        output.stdout
-    };
-    let expected = stages("0");
-    assert_eq!(expected, stages("1"));
-    assert_eq!(expected, stages("entry"));
-    assert_eq!(expected, stages("planned"));
-    let planned = pass(&[
-        "bench",
-        "--program",
-        pg.to_str().unwrap(),
-        "--lane",
-        "free-join-planned",
-        "--repeat",
-        "3",
-        "--verify-stages",
-    ]);
+    assert_eq!(stage_output(&pg, "64"), stage_output(&pg, "0"));
+    let planned = pass(&["bench", "--program", pg.to_str().unwrap(), "--repeat", "3"]);
     let planned: J = serde_json::from_slice(&planned.stdout).unwrap();
     assert!(
         planned["counts"]["free_join"]["reverse_stages"]
@@ -497,54 +294,6 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
         compiled["final_state_sha256"],
         planned["final_state_sha256"]
     );
-}
-
-#[test]
-fn benchmark_modules_report_effective_congruence_and_compose() {
-    let tmp = tempfile::tempdir().unwrap();
-    let source = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("benchmarks/runtime-modules/congruence-chain.egg");
-    let out = tmp.path().join("chain");
-    pass(&[
-        "compile",
-        "--source",
-        source.to_str().unwrap(),
-        "--output",
-        out.to_str().unwrap(),
-    ]);
-    let program = out.join("program.json");
-    let run = |modules: &str| {
-        command(&[
-            "bench",
-            "--program",
-            program.to_str().unwrap(),
-            "--lane",
-            "free-join-planned",
-            "--modules",
-            modules,
-            "--repeat",
-            "2",
-            "--verify-stages",
-        ])
-    };
-    let enabled = run("union-graft,stage-spine,local-congruence");
-    assert!(
-        enabled.status.success(),
-        "{}",
-        String::from_utf8_lossy(&enabled.stderr)
-    );
-    let report: J = serde_json::from_slice(&enabled.stdout).unwrap();
-    let counts = &report["counts"];
-    assert_eq!(
-        report["modules_requested"],
-        json!(["local-congruence", "stage-spine", "union-graft"])
-    );
-    assert_eq!(counts["local_congruence"]["stats"]["proven_unions"], 32);
-    assert_eq!(counts["union_graft"]["enabled"], true);
-    assert_eq!(counts["stage_spine"]["enabled"], true);
-    for invalid in ["typo", "stage-spine,stage-spine"] {
-        assert!(!run(invalid).status.success());
-    }
 }
 
 #[test]
@@ -576,25 +325,13 @@ fn spine_routes_live_witnesses_and_plans_the_rest_of_the_same_query() {
     let out = tmp.path().join("artifact");
     pass(&[
         "compile",
-        "--emit-free-join-entry",
         "--source",
         src.to_str().unwrap(),
         "--output",
         out.to_str().unwrap(),
     ]);
     let pg = out.join("program.json");
-    let run = pass(&[
-        "bench",
-        "--program",
-        pg.to_str().unwrap(),
-        "--lane",
-        "free-join-planned",
-        "--modules",
-        "stage-spine",
-        "--repeat",
-        "2",
-        "--verify-stages",
-    ]);
+    let run = pass(&["bench", "--program", pg.to_str().unwrap(), "--repeat", "2"]);
     let report: J = serde_json::from_slice(&run.stdout).unwrap();
     let counts = &report["counts"];
     let spine = &counts["stage_spine"];
@@ -606,483 +343,7 @@ fn spine_routes_live_witnesses_and_plans_the_rest_of_the_same_query() {
         spine["routed_spine_seeds"].as_u64().unwrap()
             + spine["routed_matcher_seeds"].as_u64().unwrap()
     );
-    let stages = |enabled: &str, join: &str, sieve: &str, shared: &str| {
-        let mut cmd = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"));
-        for (key, _) in std::env::vars_os() {
-            if key.to_string_lossy().starts_with("CELL_CPU_") {
-                cmd.env_remove(key);
-            }
-        }
-        let run = cmd
-            .args(["internal-stages", pg.to_str().unwrap()])
-            .env("CELL_CPU_SHARED_NODE_SCHEDULE", shared)
-            .env("CELL_CPU_SIEVE", sieve)
-            .env("CELL_CPU_JOIN_INTERSECTION", "1")
-            .env("CELL_CPU_FREE_JOIN", join)
-            .env("CELL_CPU_HASH_BITS", "0")
-            .env("CELL_CPU_STAGE_SPINE", enabled)
-            .env("CELL_CPU_STAGE_SPINE_RECEIPTS", "1")
-            .output()
-            .unwrap();
-        assert!(
-            run.status.success(),
-            "{}",
-            String::from_utf8_lossy(&run.stderr)
-        );
-        run.stdout
-    };
-    for (join, sieve, shared) in [("planned", "1", "1"), ("0", "0", "1"), ("1", "1", "0")] {
-        assert_eq!(
-            stages("0", join, sieve, shared),
-            stages("1", join, sieve, shared)
-        );
-    }
-}
-
-#[test]
-fn spine_coalesces_canonical_anchor_keys_after_all_effects() {
-    let tmp = tempfile::tempdir().unwrap();
-    let source = tmp.path().join("anchors.egg");
-    // The two A anchors acquire one canonical key during repair. The last
-    // producer is the shallower one. A third receipt is deleted before publish.
-    fs::write(
-        &source,
-        r#"(datatype K (I i64))
-(relation Start (K))
-(relation Mid (K))
-(relation A (K))
-(relation Need (K))
-(relation Hit (K))
-(ruleset first)
-(ruleset emit)
-(ruleset read)
-(rule ((Start x)) ((Mid x)) :ruleset first)
-(rule ((Mid x)) ((A x)) :ruleset emit)
-(rule ((= y (I 2))) ((A y)) :ruleset emit)
-(rule ((= a (I 1)) (= b (I 2))) ((union a b)) :ruleset emit)
-(rule ((= dead (I 3))) ((delete (A dead))) :ruleset emit)
-(rule ((A x) (Need x)) ((Hit x)) :ruleset read)
-(Start (I 1)) (Start (I 3)) (Need (I 2)) (Need (I 3))
-(run-schedule (seq (run first) (run emit) (run read)))
-(check (Hit (I 1)))
-"#,
-    )
-    .unwrap();
-    let out = tmp.path().join("artifact");
-    pass(&[
-        "compile",
-        "--source",
-        source.to_str().unwrap(),
-        "--output",
-        out.to_str().unwrap(),
-    ]);
-    let pg = out.join("program.json");
-    let measured = pass(&[
-        "bench",
-        "--program",
-        pg.to_str().unwrap(),
-        "--lane",
-        "free-join-planned",
-        "--modules",
-        "stage-spine",
-        "--repeat",
-        "2",
-        "--verify-stages",
-    ]);
-    let report: J = serde_json::from_slice(&measured.stdout).unwrap();
-    let spine = &report["counts"]["stage_spine"];
-    assert!(
-        spine["captured_anchors"].as_u64().unwrap()
-            > spine["distinct_anchor_keys"].as_u64().unwrap()
-    );
-    assert_eq!(spine["receipt_redirects"], 1);
-    assert_eq!(spine["capture_reads"], 1); // the deleted receipt uses the exact-key fallback
-    assert_eq!(spine["resumed_steps"], 3);
-    assert_eq!(spine["max_chain"], 2);
-    assert!(spine["pre_resume_port_lookups"].as_u64().unwrap() > 0);
-
-    let stages = |receipts| {
-        let mut cmd = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"));
-        for (k, _) in std::env::vars_os() {
-            if k.to_string_lossy().starts_with("CELL_CPU_") {
-                cmd.env_remove(k);
-            }
-        }
-        let run = cmd
-            .args(["internal-stages", pg.to_str().unwrap()])
-            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
-            .env("CELL_CPU_SIEVE", "1")
-            .env("CELL_CPU_FREE_JOIN", "planned")
-            .env("CELL_CPU_JOIN_INTERSECTION", "1")
-            .env("CELL_CPU_STAGE_SPINE", "1")
-            .env("CELL_CPU_STAGE_SPINE_RECEIPTS", receipts)
-            .output()
-            .unwrap();
-        assert!(
-            run.status.success(),
-            "{}",
-            String::from_utf8_lossy(&run.stderr)
-        );
-        run.stdout
-    };
-    assert_eq!(stages("0"), stages("1"));
-}
-
-#[test]
-fn only_an_applied_continuation_materializes_a_shared_spine_root() {
-    let tmp = tempfile::tempdir().unwrap();
-    let src = tmp.path().join("fanout.egg");
-    // Two writers propose both anchors of key 7. Neither anchor of key 8
-    // survives repair. Key 9 is probed but fails its guard. Only the two
-    // consumers of key 7 resume, sharing a single materialization.
-    fs::write(
-        &src,
-        r#"(relation WriteKey (i64 i64))
-(relation DropKey (i64))
-(relation L (i64))
-(relation R (i64))
-(relation SawWrite (i64))
-(relation SawLeft (i64))
-(relation SawRight (i64))
-(function Threshold (i64) i64 :merge (max old new))
-(ruleset emit)
-(ruleset read)
-(rule ((WriteKey serial key)) ((L key) (R key) (SawWrite serial)) :ruleset emit)
-(rule ((DropKey key)) ((delete (L key))) :ruleset emit)
-(rule ((DropKey key)) ((delete (R key))) :ruleset emit)
-(rule ((L key) (= value (Threshold key)) (> value 0)) ((SawLeft key)) :ruleset read)
-(rule ((R key) (= value (Threshold key)) (> value 0)) ((SawRight key)) :ruleset read)
-(WriteKey 1 7) (WriteKey 2 7) (WriteKey 3 8) (DropKey 8) (WriteKey 4 9)
-(set (Threshold 7) 1) (set (Threshold 9) -1)
-(run-schedule (seq (run emit) (run read)))
-"#,
-    )
-    .unwrap();
-    let result = pass(&[
-        "bench",
-        "--source",
-        src.to_str().unwrap(),
-        "--lane",
-        "free-join-planned",
-        "--modules",
-        "stage-spine",
-        "--repeat",
-        "2",
-        "--verify-stages",
-    ]);
-    let report: J = serde_json::from_slice(&result.stdout).unwrap();
-    let spine = &report["counts"]["stage_spine"];
-    assert_eq!(spine["root_attempts"], 4);
-    assert_eq!(spine["root_handles_created"], 2);
-    assert_eq!(spine["pre_resume_port_lookups"], 4);
-    assert_eq!(spine["port_cache_fills"], 0);
-    assert_eq!(spine["captured_anchors"], 8);
-    assert_eq!(spine["distinct_anchor_keys"], 6);
-    assert_eq!(spine["anchor_publications"], 4);
-    assert_eq!(spine["contexts_created"], 1);
-    assert_eq!(spine["resumed_steps"], 2);
-    assert_eq!(spine["max_chain"], 2);
-}
-
-#[test]
-fn elided_anchors_use_the_proved_fact_and_recheck_visibility_after_repair() {
-    let tmp = tempfile::tempdir().unwrap();
-    let src = tmp.path().join("alias-receipts.egg");
-    // F(I(1)) and F(I(2)) share a result but have different keys and only
-    // the second becomes hidden. G(F(x)) aliases an earlier RHS after normalization.
-    fs::write(
-        &src,
-        r#"(datatype E (I i64) (F E) (G E))
-(relation Input (E))
-(relation SeenF (E))
-(relation SeenG (E))
-(ruleset emit)
-(ruleset read)
-(rule ((Input x) (= f (F x))) ((G f) (G (F x))) :ruleset emit)
-(rule ((= dead (I 2))) ((subsume (F dead))) :ruleset emit)
-(rule ((= f (F x))) ((SeenF x)) :ruleset read)
-(rule ((= g (G x))) ((SeenG x)) :ruleset read)
-(Input (I 1)) (Input (I 2))
-(union (F (I 1)) (F (I 2)))
-(run-schedule (seq (run emit) (run read)))
-(check (SeenF (I 1)) (SeenG (F (I 1))))
-"#,
-    )
-    .unwrap();
-    let result = pass(&[
-        "bench",
-        "--source",
-        src.to_str().unwrap(),
-        "--lane",
-        "free-join-planned",
-        "--modules",
-        "stage-spine,static-aliases",
-        "--repeat",
-        "2",
-        "--verify-stages",
-    ]);
-    let report: J = serde_json::from_slice(&result.stdout).unwrap();
-    let counts = &report["counts"];
-    let spine = &counts["stage_spine"];
-    assert_eq!(counts["static_eliminated"], 4);
-    assert_eq!(spine["alias_query_forwards"], 2);
-    assert_eq!(spine["alias_effect_forwards"], 2);
-    assert_eq!(spine["receipt_rejections"], 1);
-    assert_eq!(spine["capture_reads"], 1);
-    assert_eq!(spine["resumed_steps"], 2);
-}
-
-#[test]
-fn physical_plans_preserve_order_and_refresh_range_rows() {
-    let tmp = tempfile::tempdir().unwrap();
-    let src = tmp.path().join("plans.egg");
-    let items = (0..80)
-        .map(|i| format!("(set (Item 1 {i}) {i})"))
-        .collect::<Vec<_>>()
-        .join("\n");
-    fs::write(&src,format!(r#"(function Item (i64 i64) i64 :merge new)
-(function Limit (i64) i64 :merge new)
-(function Best (i64) i64 :merge (min new old))
-(function High (i64) i64 :merge (max old new))
-(function First (i64) i64 :merge old)
-(function Total (i64) i64 :merge (+ old new))
-(relation Seen (i64 i64))
-(relation AtMost (i64)) (relation Above (i64)) (relation AtLeast (i64))
-(relation Tick ())
-(ruleset search)
-(ruleset change)
-(rule ((= k (Limit g)) (= x (Item g id)) (< x k)) ((Seen id x)) :ruleset search)
-(rule ((= k (Limit g)) (= x (Item g id)) (<= x k)) ((AtMost id)) :ruleset search)
-(rule ((= k (Limit g)) (= x (Item g id)) (< k x)) ((Above id)) :ruleset search)
-(rule ((= k (Limit g)) (= x (Item g id)) (<= k x)) ((AtLeast id)) :ruleset search)
-(rule ((Tick)) ((set (Item 1 58) -2) (delete (Item 1 2)) (set (Limit 1) 5) (set (Best 0) 1) (set (High 0) 5) (set (First 0) 8) (set (Total 0) 4)) :ruleset change)
-{items}
-(set (Limit 1) 4)
-(set (Best 0) 9) (set (Best 0) 2) (set (Best 0) 7)
-(set (High 0) -8) (set (High 0) 13) (set (High 0) 4)
-(set (First 0) 2) (set (First 0) 3)
-(set (Total 0) 2) (set (Total 0) 3)
-(Tick)
-(run-schedule (seq (run search) (run change) (run search)))
-(check (Seen 0 0) (Seen 58 -2) (Seen 4 4) (= (Best 0) 1) (= (High 0) 13) (= (First 0) 2) (= (Total 0) 9))
-"#)).unwrap();
-    let out = tmp.path().join("artifact");
-    pass(&[
-        "compile",
-        "--emit-free-join-entry",
-        "--source",
-        src.to_str().unwrap(),
-        "--output",
-        out.to_str().unwrap(),
-    ]);
-    let program = out.join("program.json");
-    let value = json_file(&program);
-    assert!(value["physical_plan"]["ranges"].is_array());
-    let mut corrupt = value.clone();
-    corrupt["physical_plan"]["dedup"] = json!([]);
-    assert_eq!(
-        eggfuse_cell_runtime::program::Program::parse(corrupt).unwrap_err(),
-        "physical plan differs from typed recipe"
-    );
-    let result = pass(&[
-        "bench",
-        "--program",
-        program.to_str().unwrap(),
-        "--lane",
-        "free-join-planned",
-        "--modules",
-        "range-guards,fd-keys,scalar-merge",
-        "--repeat",
-        "2",
-        "--verify-stages",
-    ]);
-    let report: J = serde_json::from_slice(&result.stdout).unwrap();
-    let p = &report["counts"]["physical"];
-    assert!(p["range"]["builds"].as_u64().unwrap() > 0);
-    assert!(p["range"]["changed_entries"].as_u64().unwrap() >= 2);
-    assert!(p["range"]["broad_fallbacks"].as_u64().unwrap() > 0);
-    let range = &p["range"];
-    assert!(range["partial_domains"].as_u64().unwrap() > 0);
-    assert!(
-        range["mixed_prefixes"].as_u64().unwrap() >= range["partial_domains"].as_u64().unwrap()
-    );
-    assert!(range["partial_output_rows"].as_u64().unwrap() > 0);
-    assert!(
-        range["partial_output_rows"].as_u64().unwrap()
-            < range["partial_input_rows"].as_u64().unwrap()
-    );
-    assert!(
-        p["range"]["output_rows"].as_u64().unwrap() < p["range"]["input_rows"].as_u64().unwrap()
-    );
-    assert!(p["dedup_elements"].as_u64().unwrap() < p["dedup_full_elements"].as_u64().unwrap());
-    assert!(p["scalar_old_projection"].as_u64().unwrap() > 0);
-    assert!(p["scalar_merge_calls"].as_u64().unwrap() > p["scalar_unchanged"].as_u64().unwrap());
-    let stages = |flag: &str| {
-        let mut cmd = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"));
-        for (k, _) in std::env::vars_os() {
-            if k.to_string_lossy().starts_with("CELL_CPU_") {
-                cmd.env_remove(k);
-            }
-        }
-        let run = cmd
-            .args(["internal-stages", program.to_str().unwrap()])
-            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
-            .env("CELL_CPU_FREE_JOIN", "planned")
-            .env("CELL_CPU_HASH_BITS", "0")
-            .env("CELL_CPU_SIEVE", "1")
-            .env("CELL_CPU_JOIN_INTERSECTION", "1")
-            .env("CELL_CPU_RANGE_GUARDS", flag)
-            .env("CELL_CPU_FD_KEYS", flag)
-            .env("CELL_CPU_SCALAR_MERGE", flag)
-            .output()
-            .unwrap();
-        assert!(
-            run.status.success(),
-            "{}",
-            String::from_utf8_lossy(&run.stderr)
-        );
-        run.stdout
-    };
-    assert_eq!(stages("0"), stages("1"));
-}
-
-#[test]
-fn producer_slots_follow_run_order_and_reject_changed_wiring() {
-    let tmp = tempfile::tempdir().unwrap();
-    let src = tmp.path().join("slots.egg");
-    // F(1) already belongs to another producer. F(2) is removed before
-    // the second consume Run. Only 3 retains both effects of make-pair.
-    fs::write(
-        &src,
-        r#"(datatype E (N i64) (F E) (G E) (S E E) (One E))
-(ruleset make) (ruleset consume) (ruleset retire)
-(rule ((= x (N i))) ((F x) (G x)) :ruleset make :name "make-pair")
-(rule ((= g (G x)) (= f (F x))) ((S g f)) :ruleset consume :name "consume-pair")
-(rule ((= f (F x))) ((One f)) :ruleset consume :name "consume-one")
-(rule ((= x (N 2))) ((delete (F x))) :ruleset retire)
-(N 1) (N 2) (N 3)
-(F (N 1))
-(run-schedule (seq (run consume) (run make) (run retire) (run consume)))
-(check (= q (S (G (N 3)) (F (N 3)))) (= q2 (One (F (N 1)))))
-"#,
-    )
-    .unwrap();
-    let out = tmp.path().join("artifact");
-    pass(&[
-        "compile",
-        "--source",
-        src.to_str().unwrap(),
-        "--output",
-        out.to_str().unwrap(),
-    ]);
-    let program = out.join("program.json");
-    let bench = |path: &Path, mode: &str| {
-        let mut args = vec![
-            "bench",
-            "--program",
-            path.to_str().unwrap(),
-            "--lane",
-            "free-join-planned",
-            "--verify-stages",
-            "--repeat",
-            "1",
-        ];
-        if mode == "legacy" {
-            args.extend(["--modules", "stage-spine,slot-transfer"]);
-        } else {
-            args.extend(["--modules", "stage-spine", "--slot-transfer", mode]);
-        }
-        serde_json::from_slice::<J>(&pass(&args).stdout).unwrap()
-    };
-    for (modules, mode) in [("stage-spine", "typo"), ("slot-transfer", "parent")] {
-        assert!(
-            !command(&[
-                "bench",
-                "--program",
-                program.to_str().unwrap(),
-                "--modules",
-                modules,
-                "--slot-transfer",
-                mode
-            ])
-            .status
-            .success()
-        );
-    }
-    let compiled = bench(&program, "legacy");
-    let counts = &compiled["counts"]["slot_transfer"];
-    assert!(counts["spine_atoms"].as_u64().unwrap() > 0);
-    assert!(counts["sealed_moves"].as_u64().unwrap() > 0);
-    assert!(counts["rhs_parent_bindings"].as_u64().unwrap() > 0);
-
-    for mode in [
-        "off",
-        "siblings",
-        "parent",
-        "both",
-        "local-only",
-        "parent-check",
-        "parent-owned",
-    ] {
-        let trial = bench(&program, mode);
-        assert_eq!(trial["final_state_sha256"], compiled["final_state_sha256"]);
-        assert_eq!(trial["counts"]["slot_transfer_mode"], mode);
-        let actual = &trial["counts"]["slot_transfer"];
-        let spine_wires = matches!(mode, "siblings" | "both");
-        let eligible_parents = matches!(mode, "parent" | "both" | "parent-check" | "parent-owned");
-        assert_eq!(
-            actual["spine_atoms"].as_u64().unwrap() > 0,
-            spine_wires,
-            "{mode}"
-        );
-        assert_eq!(
-            actual["rhs_parent_bindings"].as_u64().unwrap() > 0,
-            eligible_parents,
-            "{mode}"
-        );
-        if mode == "both" {
-            assert_eq!(trial["counts"], compiled["counts"]);
-        }
-    }
-    let mut raw = json_file(&program);
-    let mut tampered = raw.clone();
-    let corrupt_first_assignment = |plan: &mut J| {
-        for route in plan["multi_stage"]["routes"].as_array_mut().unwrap() {
-            for step in route["steps"].as_array_mut().unwrap() {
-                if step["assignments"]
-                    .as_array()
-                    .is_some_and(|xs| !xs.is_empty())
-                {
-                    step["assignments"][0][0] = json!(usize::MAX);
-                    return;
-                }
-            }
-        }
-        panic!("compiler omitted producer slot wiring");
-    };
-    corrupt_first_assignment(&mut tampered);
-    match eggfuse_cell_runtime::program::Program::parse(tampered) {
-        Err(message) => assert!(
-            message.contains("invalid producer slot wiring"),
-            "{message}"
-        ),
-        Ok(_) => panic!("accepted changed producer slot wiring"),
-    }
-    for route in raw["multi_stage"]["routes"].as_array_mut().unwrap() {
-        for step in route["steps"].as_array_mut().unwrap() {
-            step.as_object_mut().unwrap().remove("assignments");
-        }
-    }
-    raw.as_object_mut().unwrap().remove("sha256");
-    raw["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&raw));
-    let legacy = tmp.path().join("legacy.json");
-    fs::write(&legacy, serde_json::to_vec(&raw).unwrap()).unwrap();
-    let derived = bench(&legacy, "both");
-    assert_eq!(compiled["counts"], derived["counts"]);
-    assert_eq!(
-        compiled["final_state_sha256"],
-        derived["final_state_sha256"]
-    );
+    assert_eq!(stage_output(&pg, "64"), stage_output(&pg, "0"));
 }
 
 const BOUNDED_CHAIN: &str = r#"
@@ -1200,8 +461,6 @@ fn a_learned_pair_executes_and_becomes_an_operand_in_the_next_round() {
                 "4",
             ])
             .args(extra)
-            .env("CELL_CPU_STAGE_SPINE", "1")
-            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
             .output()
             .unwrap();
         assert!(
@@ -1278,7 +537,6 @@ fn checked_register_plans_join_and_publish_function_writes() {
         "compile",
         "--source",
         source.to_str().unwrap(),
-        "--emit-free-join-entry",
         "--output",
         out.to_str().unwrap(),
     ]);
@@ -1290,11 +548,8 @@ fn checked_register_plans_join_and_publish_function_writes() {
                 "bench",
                 "--program",
                 path.to_str().unwrap(),
-                "--lane",
-                "free-join-planned",
                 "--repeat",
                 "1",
-                "--verify-stages",
             ])
             .stdout,
         )
@@ -1315,7 +570,7 @@ fn checked_register_plans_join_and_publish_function_writes() {
     old["sha256"] = json!(artifact_digest(&old));
     let legacy = tmp.path().join("legacy.json");
     fs::write(&legacy, serde_json::to_vec(&old).unwrap()).unwrap();
-    assert_eq!(fast["counts"], run(&legacy)["counts"]);
+    assert_eq!(stage_output(&file, "64"), stage_output(&legacy, "64"));
 }
 
 #[cfg(feature = "iterative-bake")]
@@ -1397,13 +652,8 @@ fn switched_rhs_carries_a_two_run_old_fact_and_restarts_on_a_deleted_sibling() {
                 "bench",
                 "--program",
                 file.to_str().unwrap(),
-                "--lane",
-                "free-join-planned",
-                "--modules",
-                "stage-spine,static-aliases",
                 "--repeat",
                 "1",
-                "--verify-stages",
             ])
             .stdout,
         )
@@ -1437,9 +687,6 @@ fn switched_rhs_carries_a_two_run_old_fact_and_restarts_on_a_deleted_sibling() {
             "--objective",
             "rhs-lookups",
         ])
-        .env("CELL_CPU_STAGE_SPINE", "1")
-        .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
-        .env("CELL_CPU_KNOWN_RESULTS", "static")
         .output()
         .unwrap();
     assert!(
@@ -1498,7 +745,6 @@ fn keyed_context_tracks_correlated_ports_and_late_terminal_deltas() {
         "compile",
         "--source",
         src.to_str().unwrap(),
-        "--emit-free-join-entry",
         "--output",
         out.to_str().unwrap(),
     ]);
@@ -1524,13 +770,8 @@ fn keyed_context_tracks_correlated_ports_and_late_terminal_deltas() {
             "bench",
             "--program",
             artifact.to_str().unwrap(),
-            "--lane",
-            "free-join-planned",
-            "--modules",
-            "local-context",
             "--repeat",
             "1",
-            "--verify-stages",
         ]);
         serde_json::from_slice(&o.stdout).unwrap()
     };
@@ -1546,21 +787,7 @@ fn keyed_context_tracks_correlated_ports_and_late_terminal_deltas() {
         assert!(stats[k].as_u64().unwrap() > 0, "{k} in {stats}");
     }
     assert!(stats["peak_prefix_rows"].as_u64().unwrap() > stats["peak_roots"].as_u64().unwrap());
-    let stages = |on: &str| {
-        let o = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
-            .arg("internal-stages")
-            .arg(&program)
-            .env("CELL_CPU_HASH_BITS", "0")
-            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
-            .env("CELL_CPU_LOCAL_CONTEXT", on)
-            .output()
-            .unwrap();
-        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
-        o.stdout
-    };
-    let ordinary = stages("0");
-    assert_eq!(ordinary, stages("1"));
-    assert_eq!(ordinary, stages("general"));
+    assert_eq!(stage_output(&program, "64"), stage_output(&program, "0"));
     let mut corrupt = pg.clone();
     corrupt["local_contexts"][rule]["root"] = corrupt["local_contexts"][rule]["tail"].clone();
     assert!(Program::parse(corrupt).is_err());
@@ -1570,7 +797,7 @@ fn keyed_context_tracks_correlated_ports_and_late_terminal_deltas() {
     legacy["sha256"] = json!(artifact_digest(&legacy));
     let old = tmp.path().join("legacy.json");
     fs::write(&old, serde_json::to_vec(&legacy).unwrap()).unwrap();
-    assert_eq!(result["counts"], run(&old)["counts"]);
+    assert_eq!(stage_output(&program, "64"), stage_output(&old, "64"));
 }
 
 #[test]
@@ -1607,7 +834,6 @@ fn wide_context_falls_back_and_recovers_after_a_port_shrinks() {
         "compile",
         "--source",
         src.to_str().unwrap(),
-        "--emit-free-join-entry",
         "--output",
         out.to_str().unwrap(),
     ]);
@@ -1616,13 +842,8 @@ fn wide_context_falls_back_and_recovers_after_a_port_shrinks() {
         "bench",
         "--program",
         program.to_str().unwrap(),
-        "--lane",
-        "free-join-planned",
-        "--modules",
-        "local-context",
         "--repeat",
         "1",
-        "--verify-stages",
     ]);
     let report: J = serde_json::from_slice(&o.stdout).unwrap();
     let ctx = &report["counts"]["local_context"];
@@ -1661,7 +882,6 @@ fn connected_cuts_span_chains_and_transfer_evidence_to_renamed_relations() {
             file.to_str().unwrap(),
             "--output",
             dir.to_str().unwrap(),
-            "--emit-free-join-entry",
         ]);
         json_file(&dir.join("program.json"))
     };
@@ -1716,18 +936,7 @@ fn connected_cuts_span_chains_and_transfer_evidence_to_renamed_relations() {
     target["sha256"] = artifact_digest(&target).into();
     let pg = tmp.path().join("learned.json");
     fs::write(&pg, serde_json::to_vec(&target).unwrap()).unwrap();
-    let r = pass(&[
-        "bench",
-        "--program",
-        pg.to_str().unwrap(),
-        "--lane",
-        "free-join-planned",
-        "--modules",
-        "context-cuts",
-        "--verify-stages",
-        "--repeat",
-        "1",
-    ]);
+    let r = pass(&["bench", "--program", pg.to_str().unwrap(), "--repeat", "1"]);
     let report: J = serde_json::from_slice(&r.stdout).unwrap();
     let ctx = &report["counts"]["local_context"];
     assert_eq!(ctx["cut_rules"], 1);
@@ -1738,19 +947,7 @@ fn connected_cuts_span_chains_and_transfer_evidence_to_renamed_relations() {
             .values()
             .any(|s| s["bindings"].as_u64().unwrap() > 0)
     );
-    let stages = |mode: &str| {
-        let o = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
-            .arg("internal-stages")
-            .arg(&pg)
-            .env("CELL_CPU_LOCAL_CONTEXT", mode)
-            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
-            .env("CELL_CPU_HASH_BITS", "0")
-            .output()
-            .unwrap();
-        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
-        o.stdout
-    };
-    assert_eq!(stages("0"), stages("general"));
+    assert_eq!(stage_output(&pg, "64"), stage_output(&pg, "0"));
 }
 
 #[test]
@@ -1787,7 +984,6 @@ fn changed_child_ports_follow_value_replacement_and_key_repair() {
         src.to_str().unwrap(),
         "--output",
         dest.to_str().unwrap(),
-        "--emit-free-join-entry",
     ]);
     let pg = dest.join("program.json");
     let raw = json_file(&pg);
@@ -1804,48 +1000,24 @@ fn changed_child_ports_follow_value_replacement_and_key_repair() {
             .len(),
         2
     );
-    let bench = |path: &Path, mode: &str| -> J {
+    let bench = |path: &Path| -> J {
         let res = pass(&[
             "bench",
             "--program",
             path.to_str().unwrap(),
-            "--lane",
-            "free-join-planned",
-            "--modules",
-            mode,
-            "--verify-stages",
             "--repeat",
             "1",
         ]);
         serde_json::from_slice(&res.stdout).unwrap()
     };
-    let fast = bench(&pg, "neighbor-context");
+    let fast = bench(&pg);
     let result = &fast["counts"]["neighbor_context"];
     let stats = &result["rules"][rid.to_string()]["stats"];
     assert!(stats["seeds"].as_u64().unwrap() > 0);
     assert!(stats["point_hits"].as_u64().unwrap() > 0);
     assert!(result["publication"]["refreshed"].as_u64().unwrap() > 0);
-    assert_eq!(
-        fast["final_state_sha256"],
-        bench(&pg, "neighbor-ports")["final_state_sha256"]
-    );
-    let stages = |mode: &str, scope: &str| {
-        let o = Command::new(env!("CARGO_BIN_EXE_eggfuse-cell-compiler"))
-            .arg("internal-stages")
-            .arg(&pg)
-            .env("CELL_CPU_FREE_JOIN", "planned")
-            .env("CELL_CPU_SHARED_NODE_SCHEDULE", "1")
-            .env("CELL_CPU_HASH_BITS", "0")
-            .env("CELL_CPU_QUERY_INDEX_SCOPE", scope)
-            .env("CELL_CPU_NEIGHBOR_CONTEXT", mode)
-            .output()
-            .unwrap();
-        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
-        o.stdout
-    };
-    for scope in ["table", "run", "persistent"] {
-        assert_eq!(stages("0", scope), stages("1", scope));
-    }
+
+    assert_eq!(stage_output(&pg, "64"), stage_output(&pg, "0"));
     let mut corrupt = raw.clone();
     corrupt["neighbor_entries"][rid]["pivots"] = json!([]);
     assert!(Program::parse(corrupt).is_err());
@@ -1855,5 +1027,31 @@ fn changed_child_ports_follow_value_replacement_and_key_repair() {
     legacy["sha256"] = artifact_digest(&legacy).into();
     let old = dir.path().join("old.json");
     fs::write(&old, serde_json::to_vec(&legacy).unwrap()).unwrap();
-    assert_eq!(bench(&old, "neighbor-context")["counts"], fast["counts"]);
+    assert_eq!(stage_output(&pg, "64"), stage_output(&old, "64"));
+}
+
+#[test]
+fn mismatched_catalog_is_rejected_before_publication() {
+    let tmp = tempfile::tempdir().unwrap();
+    let source = tmp.path().join("source.egg");
+    fs::write(&source, SOURCE).unwrap();
+    let catalog = tmp.path().join("catalog.json");
+    fs::write(
+        &catalog,
+        br#"{"schema":"eggfuse-cpu-catalog/v1","recipe_sha256":"wrong"}"#,
+    )
+    .unwrap();
+    let dest = tmp.path().join("out");
+    let res = command(&[
+        "compile",
+        "--source",
+        source.to_str().unwrap(),
+        "--catalog",
+        catalog.to_str().unwrap(),
+        "--output",
+        dest.to_str().unwrap(),
+    ]);
+    assert!(!res.status.success());
+    assert!(String::from_utf8_lossy(&res.stderr).contains("catalog does not match"));
+    assert!(!dest.exists());
 }

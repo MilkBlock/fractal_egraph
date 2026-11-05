@@ -1,4 +1,4 @@
-use egg_layout::closure_contract::{Change, Registry, Resource};
+use eggfuse_bake::closure_contract::{Change, Registry, Resource};
 use std::collections::BTreeSet;
 #[test]
 fn notifications_only_visit_related_subscribers_and_follow_union_aliases() {
@@ -47,7 +47,7 @@ fn notifications_only_visit_related_subscribers_and_follow_union_aliases() {
 #[test]
 fn subsume_is_preserved_by_native_export() {
     use serde_json::Value;
-    use std::{fs, process::Command};
+    use std::fs;
     let root = std::env::temp_dir().join(format!("visibility-contract-{}", std::process::id()));
     let _ = fs::remove_dir_all(&root);
     fs::create_dir_all(&root).unwrap();
@@ -57,48 +57,12 @@ fn subsume_is_preserved_by_native_export() {
         "(datatype E (A))\n(rule ((= a (A))) ((subsume (A))))\n(A)",
     )
     .unwrap();
-    let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
-        .arg("ripen")
-        .arg(src)
-        .arg(root.join("run"))
-        .output()
-        .unwrap();
-    assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
-    let s: Value =
-        serde_json::from_slice(&fs::read(root.join("run/saturated-rule-composition.json")).unwrap()).unwrap();
+    eggfuse_bake::native_analyze::ripen::run(&src, &root.join("run")).unwrap();
+    let s: Value = serde_json::from_slice(
+        &fs::read(root.join("run/saturated-rule-composition.json")).unwrap(),
+    )
+    .unwrap();
     assert_eq!(s["rows"].as_array().unwrap().len(), 1);
     assert_eq!(s["subsumed_rows"], serde_json::json!([0]));
-    fs::remove_dir_all(root).unwrap();
-}
-#[test]
-fn native_updates_unions_and_top_level_subsume_are_in_history() {
-    use serde_json::Value;
-    use std::{fs, process::Command};
-    let root = std::env::temp_dir().join(format!("events-contract-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&root);
-    fs::create_dir_all(&root).unwrap();
-    let src = root.join("source.egg");
-    fs::write(&src,"(datatype E (A) (B))\n(function flag (E) i64 :merge (max old new))\n(A)\n(B)\n(rule ((= a (A)) (= b (B))) ((union a b) (set (flag a) 1)))\n(run 1)\n(set (flag (B)) 2)\n(subsume (A))\n(run 1)").unwrap();
-    let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
-        .args(["analyze", "--recapture-tier0", "--save-history", "--source"])
-        .arg(src)
-        .arg("--output")
-        .arg(root.join("run"))
-        .output()
-        .unwrap();
-    assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
-    let h: Value =
-        serde_json::from_slice(&fs::read(root.join("run/history.json")).unwrap()).unwrap();
-    let es = h["changes"].as_array().unwrap();
-    assert!(
-        es.iter()
-            .any(|e| !e["unions"].as_array().unwrap().is_empty())
-    );
-    for name in ["A", "flag"] {
-        assert!(
-            es.iter()
-                .any(|e| e["tables"].as_array().unwrap().iter().any(|t| t == name))
-        );
-    }
     fs::remove_dir_all(root).unwrap();
 }

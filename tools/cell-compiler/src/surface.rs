@@ -1,5 +1,5 @@
 use crate::Result;
-use egg_layout::egg_source::quote;
+use eggfuse_bake::egg_source::quote;
 use serde_json::{Value as J, json};
 use std::collections::{BTreeMap, BTreeSet};
 pub fn a(j: &J) -> &[J] {
@@ -137,7 +137,7 @@ pub fn normalize(name: &str, text: &str) -> Result<(J, String)> {
     let mut e = egglog::EGraph::default();
     let mut lines = vec![];
     let mut i = 0;
-    for c in egg_layout::visual_rule::surface_program(e.parse_program(Some(name.into()), text)?) {
+    for c in eggfuse_bake::visual_rule::surface_program(e.parse_program(Some(name.into()), text)?) {
         if matches!(
             &c,
             egglog::ast::Command::Rewrite(_, _, true)
@@ -152,15 +152,15 @@ pub fn normalize(name: &str, text: &str) -> Result<(J, String)> {
                     .into(),
             );
         }
-        let c = egg_layout::visual_rule::normalize(c, i);
+        let c = eggfuse_bake::visual_rule::normalize(c, i);
         if matches!(&c, egglog::ast::Command::Rule { .. }) {
             i += 1
         }
-        lines.push(egg_layout::egg_source::printed(&c));
+        lines.push(eggfuse_bake::egg_source::printed(&c));
     }
     let normalized = lines.join("\n");
     Ok((
-        egg_layout::source_ast::export(name, &normalized)?,
+        eggfuse_bake::source_ast::export(name, &normalized)?,
         normalized,
     ))
 }

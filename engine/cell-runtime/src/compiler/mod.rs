@@ -1,5 +1,5 @@
 //! Compile native typed egglog to the standalone Cell CPU instruction format.
-mod compositions;
+
 #[cfg(feature = "spine-blocks")]
 mod spine_blocks;
 #[cfg(feature = "spine-blocks")]
@@ -145,85 +145,11 @@ fn multistage(p: &Program) -> J {
         .iter()
         .map(|s| json!({"name":s["name"],"rule_ids":s["rule_ids"]}))
         .collect::<Vec<_>>();
-    json!({"schema":"eggfuse-multistage/v1","recipe_sha256":ir["sha256"],"control":ir["control"],"rule_sets":sets,"routes":routes,"entries":entries,"finishes":finishes,"stage_entries":crate::stage_spine::compile_entries(p),"data_loaders":loaders,"union_entries":crate::union_graft::compile(p),
+    json!({"schema":"eggfuse-multistage/v1","recipe_sha256":ir["sha256"],"control":ir["control"],"rule_sets":sets,"routes":routes,"entries":entries,"finishes":finishes,"stage_entries":crate::stage_spine::compile_entries(p),"data_loaders":loaders,
         "contract":{"activation":"committed producer fact; current visible exhaustive projection","publication":"original Run occurrence, after all entry bindings are gathered","late_input":"ordinary delta route remains authoritative","alias_alternatives":"residual matching whenever a projection is not exhaustive"}})
 }
-fn views(p: &Program, markers: &BTreeSet<String>) -> Result<J> {
-    let mut out = vec![];
-    for (rid, r) in p.rules.iter().enumerate() {
-        let q = &p.artifact["recipe"]["rules"][rid];
-        let ops = &p.templates[r.template].ops;
-        let eligible = |t: usize| p.tables[t].virtual_fact || markers.contains(&p.tables[t].name);
-        let (mut carriers, mut slots, mut seen, mut rows) =
-            (vec![], vec![], BTreeSet::new(), vec![]);
-        for (i, a) in r.query.iter().enumerate() {
-            if let Call::Table(t) = a.call
-                && eligible(t)
-            {
-                carriers.push(
-                    json!({"atom":i,"table":p.tables[t].name,"columns":q["query"][i]["args"]}),
-                );
-                for (col, v) in a.args.iter().enumerate() {
-                    if let Arg::Slot(s) = v
-                        && seen.insert(*s)
-                    {
-                        slots.push(json!({"slot":s,"atom":i,"column":col}));
-                    }
-                }
-            }
-        }
-        for (op, e) in ops.iter().enumerate() {
-            match e {
-                Op::Let(dst, Call::Table(t), a) if eligible(*t) => {
-                    let mut v = a.clone();
-                    v.push(Arg::Slot(*dst));
-                    rows.push((op, v))
-                }
-                Op::Set(t, a, v) if eligible(*t) => {
-                    let mut a = a.clone();
-                    a.push(v.clone());
-                    rows.push((op, a))
-                }
-                _ => (),
-            }
-        }
-        for (i, c) in carriers.iter().enumerate() {
-            rows.push((
-                ops.len() + i,
-                r.query[c["atom"].as_u64().unwrap() as usize].args.clone(),
-            ));
-        }
-        let mut exports = BTreeMap::<usize, Vec<J>>::new();
-        for (op, a) in rows {
-            for (col, v) in a.into_iter().enumerate() {
-                if let Arg::Slot(s) = v {
-                    exports
-                        .entry(s)
-                        .or_default()
-                        .push(json!({"op":op,"column":col}));
-                }
-            }
-        }
-        let marker = |e: &Op| matches!(e,Op::Set(t,_,_) if markers.contains(&p.tables[*t].name));
-        let only = ops.iter().any(marker)
-            && ops.iter().all(|e| {
-                marker(e) || matches!(e, Op::Copy(..) | Op::Let(_, Call::Primitive(..), _))
-            });
-        out.push(json!({"rule":rid,"storage":if only{"reference-view"}else{"owned-recipe"},"carriers":carriers,"slots":slots,"continuation_slots":exports.into_iter().map(|(s,c)|json!({"slot":s,"sources":c})).collect::<Vec<_>>()}));
-    }
-    Ok(
-        json!({"schema":"eggfuse-reference-views/v1","recipe_sha256":p.artifact["recipe"]["sha256"],"marker_tables":markers,"rules":out,"contract":{"projection":"immutable matched row coordinates; mutable ports keep copied values","containment":"all owned live facts and retained parameter references must match target carriers","publication":"relocate only after Run RHS and repair; preserve fact epoch/born/hidden","retirement":"redirect references before removing empty source frame; no logical subsume","fallback":"retain source storage when any obligation is not covered"}}),
-    )
-}
-pub fn compile(core: J, markers: &BTreeSet<String>, evidence: Option<&J>) -> Result<J> {
-    compile_with_entry(core, markers, evidence, false)
-}
-pub fn compile_with_entry(
-    core: J,
-    markers: &BTreeSet<String>,
-    evidence: Option<&J>,
-    emit_entry: bool,
-) -> Result<J> {
+
+pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     let ir = recipe::build(&core)?;
     let mut templates = vec![];
     for (rid, r) in array(&ir["rules"])?.iter().enumerate() {
@@ -235,9 +161,9 @@ pub fn compile_with_entry(
     let multi = multistage(&p);
     let contexts = crate::local_context::derive(&p, &multi["stage_entries"]);
     let plans = [
-        ("single_writes",json!(&p.writes)),
-        ("neighbor_entries",json!(&p.neighbor_plans)),
-        ("row_kernels",json!(&p.kernels)),
+        ("single_writes", json!(&p.writes)),
+        ("neighbor_entries", json!(&p.neighbor_plans)),
+        ("row_kernels", json!(&p.kernels)),
         ("physical_plan", json!(&p.physical)),
         (
             "merge_contracts",
@@ -248,26 +174,19 @@ pub fn compile_with_entry(
         ("merge_programs", crate::merge_programs::compile(&p)?),
         ("multi_stage", multi),
         ("local_contexts", json!(contexts)),
-        ("context_cuts", json!(crate::local_context::layout(&crate::local_context::derive_cuts(&p)))),
-        ("reference_views", views(&p, markers)?),
-        ("congruence", crate::congruence::compile(&p)?),
+        (
+            "context_cuts",
+            json!(crate::local_context::layout(
+                &crate::local_context::derive_cuts(&p)
+            )),
+        ),
+        ("marker_tables", json!(markers)),
     ];
-    let entry = emit_entry
-        .then(|| serde_json::to_value(crate::entry_join::Plan::derive(&p)))
-        .transpose()
-        .map_err(|e| e.to_string())?;
+    let entry = crate::entry_join::Plan::derive(&p);
     j = p.artifact;
-    if let Some(plan) = entry {
-        j["free_join_entry"] = plan;
-    }
+    j["free_join_entry"] = json!(entry);
     for (k, v) in plans {
         j[k] = v;
-    }
-    if let Some(e) = evidence {
-        let p = Program::parse(j)?;
-        let plan = compositions::build(&p, e)?;
-        j = p.artifact;
-        j["compositions"] = plan;
     }
     j["sha256"] = json!(crate::checksum::artifact_digest(&j));
     Program::parse(j.clone())?;

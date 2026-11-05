@@ -229,8 +229,6 @@ impl Registers {
             #[cfg(feature = "iterative-bake")]
             direct: None,
             known: facts,
-            composition: None,
-            witnesses: MatchedFacts::None,
             values: r
                 .inputs
                 .iter()

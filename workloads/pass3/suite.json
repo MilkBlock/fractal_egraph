@@ -1,0 +1,176 @@
+{
+  "schema": "eggfuse-profile-suite/v1",
+  "cases": [
+    {
+      "name": "fact",
+      "default": true,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/fact.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "84615f276c5968cadaec53abf228a9acab66dd6c1597e902e9af1a8cab6ed149",
+      "origin": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-pass-audit/fact/pass-3-flat.egg",
+      "pass_number": 3,
+      "capacity": 65536,
+      "match_capacity": 16384
+    },
+    {
+      "name": "loopfact",
+      "default": true,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/loopfact.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "26c0d368e168673ed0925e10e42651c255cc7068fa33af96ee065371b88b2051",
+      "origin": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-pass-audit/loopfact/pass-3-flat.egg",
+      "pass_number": 3,
+      "capacity": 65536,
+      "match_capacity": 16384
+    },
+    {
+      "name": "sum-bits",
+      "default": true,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/sum-bits.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+      "origin": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/profile-suite/bootstrap/sum-bits/pass-3-flat.egg",
+      "pass_number": 3,
+      "capacity": 65536,
+      "match_capacity": 16384,
+      "catalog": {
+        "file": "catalogs/sum-bits.json",
+        "sha256": "e556cad79ab6a5a642c0a434e4701b65d0a31306a553bb3907b345b2926b4b94"
+      }
+    },
+    {
+      "name": "dot-product",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/dot-product.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "02f301e6689c2ddfca4c8a01b431d031a3289c6bba98f141deecd71edacded68",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/bril/core/dot-product.bril",
+      "pass_number": 3,
+      "source_sha256": "fb43092b0b8b4be2280c5640c048ef6cceba3d0eab1d86019dfc2096b9209646",
+      "captured_pass_sha256": "19b06fa1f67959018b4ada66912f80bf46bdac982c88825ad5f4a675c0593f6c"
+    },
+    {
+      "name": "sum-divisors",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/sum-divisors.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "9791fb092bc374d176f0534dd9ae4240b1a7de06e4fb2e7bd6d59771d0b6038a",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/bril/core/sum-divisors.bril",
+      "pass_number": 3,
+      "source_sha256": "31d42c1277f8990baa2561cddb34c41a94f1bb7bc3caf5e6db5086391b89f085",
+      "captured_pass_sha256": "a51359188c2d0e4b78add26ddfe03d371c96c566a72a853476f434918c761217"
+    },
+    {
+      "name": "fenwick_tree",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/fenwick_tree.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "4ff35d48f9ec759708f3ee14d1d54c5c67a0782b5b646d1e7bd6d7ac39f81dd5",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/fenwick/fenwick_tree.rs",
+      "pass_number": 3,
+      "source_sha256": "eeccd2e4ca66f1b3ed2d7e4c73ad19cef55d22c5861b9b9c87a63a55e179309a",
+      "captured_pass_sha256": "e8bff45ed52de8d8ba5110d37bb754bd1c58631c974847d4b7a28ff30ef44b5c"
+    },
+    {
+      "name": "jacobi-1d",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/jacobi-1d.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "3ad81c472ad9b461866c166e1569402581d69408f75430a48d3fef08d7fa173e",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/polybench/stencils/jacobi-1d.rs",
+      "pass_number": 3,
+      "source_sha256": "a17b36a69951b55cae822ad0fe2677ed731451cb8d283d49490f3582f457b83e",
+      "captured_pass_sha256": "58f7d5f730132d2d465e32d363280595c7b572fbaf34b67d92e12c660698ec6b"
+    },
+    {
+      "name": "raytrace",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/raytrace.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+      "origin": "/Users/mineralsteins/.codex/worktrees/d569/egg_layout/out/unified-pass3-multistage/source.egg",
+      "pass_number": 3,
+      "capacity": 1048576,
+      "match_capacity": 262144,
+      "catalog": {
+        "file": "catalogs/raytrace.json",
+        "sha256": "cce68f16b5048257001881d189a21f5f82135a9863e25bc550506b51520436e7"
+      }
+    },
+    {
+      "name": "deriche",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/deriche.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "b93d070e55594487e9caabf7c0d646233745368aa235f5dc29c338eacf5071c6",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/polybench/medley/deriche.rs",
+      "pass_number": 3,
+      "source_sha256": "3b171c9061179cfc1da3200f888b09c6fb6c8229b60cbb61b791a40141023790",
+      "captured_pass_sha256": "49edcee967162123cfe44bbf8226c359de69c8c424fe5aa0e0f2c40e95e259f6"
+    },
+    {
+      "name": "3mm",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/3mm.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "e390e27aa13096bbcac54df8a42fed18df9145a605f677f645b8aaed40bd0f4b",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/polybench/linear-algebra/kernels/3mm.bril",
+      "pass_number": 3,
+      "source_sha256": "1cfd09d54aa051f8e58a5d65a4391fd25e8bb96f39998e4b5fe8453d90559967",
+      "captured_pass_sha256": "f58d415a056eb8f034a2e386e3fdb5c0e43c5ce3dcf22d6f3e6e537ac69ff7c3"
+    },
+    {
+      "name": "conjugate-gradient",
+      "default": false,
+      "parts": [
+        "inputs/common-prefix.egg",
+        "inputs/conjugate-gradient.eggpart",
+        "inputs/common-suffix.egg"
+      ],
+      "sha256": "529b23353ef58c911c06672a0f42a87540d788f8b58fce6da3266251170678a1",
+      "origin": "https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/benchmarks/passing/bril/float/conjugate-gradient.bril",
+      "pass_number": 3,
+      "source_sha256": "af917c7a14d85890b18a0dd6f1cde4e6b6a7cd1f30a96804b61bc949a1b39775",
+      "captured_pass_sha256": "954818741328b7376bbdceb6226af5632263eb2c0667a97f011b64f360572038"
+    }
+  ],
+  "bake": {
+    "parts": [
+      "inputs/common-prefix.egg",
+      "inputs/bake.eggpart"
+    ],
+    "sha256": "6c40aff2c010c4101afba9cb596275db97811b925748ac8bf1e96e56729ed1ed",
+    "origin": "out/unified-pass3-multistage/bake-source.egg",
+    "scope": "Frozen same-rule training input used by the existing Raytrace compiler experiment; not full-workload Bake coverage"
+  }
+}

@@ -164,7 +164,7 @@ impl std::fmt::Debug for DirectOrigin {
 pub struct Answer {
     #[cfg(feature = "iterative-bake")]
     pub(crate) direct: Option<DirectOrigin>,
-    pub(crate) parameter_parent: Option<crate::graph::FactRef>,
+
     pub values: Vec<Value>,
     pub witnesses: Vec<Option<Dependency>>,
     pub epoch: u64,
@@ -295,8 +295,6 @@ fn bind(a: &Arg, v: &Value, input: &mut Inputs, g: &Graph) -> bool {
         Arg::Slot(i) => match &input[*i] {
             Some(x) => x == v,
             None => {
-                #[cfg(feature = "slot-transfer-audit")]
-                crate::transfer_audit::count(|c| c.fresh_bind_copies += 1);
                 input[*i] = Some(v.clone());
                 true
             }
@@ -308,7 +306,7 @@ fn record_answer(
     values: Vec<Value>,
     witnesses: Vec<Option<Dependency>>,
     epoch: u64,
-    parameter_parent: Option<crate::graph::FactRef>,
+
     cursor: Cursor,
 ) {
     #[cfg(feature = "iterative-bake")]
@@ -319,7 +317,7 @@ fn record_answer(
         Answer {
             #[cfg(feature = "iterative-bake")]
             direct: None,
-            parameter_parent,
+
             values: if direct { Vec::new() } else { values.clone() },
             witnesses,
             epoch,
@@ -452,16 +450,13 @@ impl Context {
 }
 impl Programs {
     pub fn new(p: &Program) -> Self {
-        let enabled = std::env::var("CELL_CPU_STAGE_SPINE").as_deref() == Ok("1");
+        let enabled = true;
         let mut s = Self {
             enabled,
-            receipts: enabled
-                && std::env::var("CELL_CPU_STAGE_SPINE_RECEIPTS")
-                    .map_or(true, |value| value == "1"),
+            receipts: true,
             audit_receipts: false,
-            partial: std::env::var("CELL_CPU_STAGE_SPINE_PARTIAL").as_deref() == Ok("1"),
-            shared_entries: std::env::var("CELL_CPU_STAGE_SPINE_SHARED_ENTRIES").as_deref()
-                == Ok("1"),
+            partial: false,
+            shared_entries: false,
             cache_epoch: u64::MAX,
             anchor_shapes: BTreeMap::new(),
             entry_cache: HashMap::default(),
@@ -498,41 +493,7 @@ impl Programs {
             anchor_tables.insert(t);
             s.consumer_tables.entry(*rid).or_default().insert(t);
         }
-        if std::env::var("CELL_CPU_SHARED_NODE_SCHEDULE").as_deref() != Ok("1") {
-            let mut shapes = BTreeMap::new();
-            for (rid, pivot) in p.rules.iter().enumerate().flat_map(|(rid, r)| {
-                r.query
-                    .iter()
-                    .enumerate()
-                    .filter_map(move |(i, a)| matches!(a.call, Call::Table(_)).then_some((rid, i)))
-            }) {
-                let a = &p.rules[rid].query[pivot];
-                let Call::Table(t) = a.call else {
-                    unreachable!()
-                };
-                let mut slots = BTreeMap::new();
-                let mut projection = vec![];
-                let pattern = a
-                    .args
-                    .iter()
-                    .enumerate()
-                    .map(|(col, arg)| match arg {
-                        Arg::Literal(v) => Arg::Literal(v.clone()),
-                        Arg::Slot(i) => {
-                            let n = slots.len();
-                            let normalized = *slots.entry(*i).or_insert_with(|| {
-                                projection.push((*i, col));
-                                n
-                            });
-                            Arg::Slot(normalized)
-                        }
-                    })
-                    .collect::<Vec<_>>();
-                let n = shapes.len();
-                let id = *shapes.entry((t, pattern)).or_insert(n);
-                s.anchor_shapes.insert((rid, pivot), (id, projection));
-            }
-        }
+
         // Store one cursor per committed anchor. Consumer programs attach only
         // on their own Run, rather than preparing the entire fanout at publish.
         for (rid, r) in p.rules.iter().enumerate() {
@@ -689,7 +650,7 @@ impl Programs {
                     .iter()
                     .any(|o| match o {
                         Op::Set(t, _, _) | Op::Let(_, Call::Table(t), _) => {
-                            p.views.markers.contains(t)
+                            p.marker_tables.contains(t)
                         }
                         _ => false,
                     }),
@@ -782,7 +743,7 @@ impl Programs {
                 _ => unreachable!("validated anchor operation"),
             };
             let receipt = effects.and_then(|rows| rows[i]).or_else(|| {
-                if !self.receipts || g.known_mode != "static" {
+                if !self.receipts {
                     return None;
                 }
                 match source? {
@@ -1216,10 +1177,7 @@ impl Programs {
             {
                 cursor.via_block = false;
                 #[cfg(feature = "iterative-bake")]
-                let selected = if g.slot_transfer != crate::graph::SlotTransfer::Off {
-                    cursor.state = Default::default();
-                    None
-                } else if g.program.iterative.enabled() {
+                let selected = if g.program.iterative.enabled() {
                     cursor.state.collect_pairs = self.training.collect_pairs;
                     g.program.iterative.dispatch(
                         &mut cursor.state,
@@ -1232,11 +1190,7 @@ impl Programs {
                     g.program.spine_blocks.get(rid, pivot)
                 };
                 #[cfg(not(feature = "iterative-bake"))]
-                let selected = if g.slot_transfer == crate::graph::SlotTransfer::Off {
-                    g.program.spine_blocks.get(rid, pivot)
-                } else {
-                    None
-                };
+                let selected = { g.program.spine_blocks.get(rid, pivot) };
                 if let Some(block) = selected {
                     self.stats.block_entries += 1;
                     let port = if let Some(p) = &block.port {
@@ -1268,83 +1222,15 @@ impl Programs {
                         if cursor.state.direct {
                             self.training.seal_moves += block.inputs.len() as u64;
                         }
-                        record_answer(&mut results, values, witnesses, epoch, None, cursor);
+                        record_answer(&mut results, values, witnesses, epoch, cursor);
                     }
                     continue;
                 }
             }
             let mut valid = true;
             let order = &self.orders[&(rid, pivot)];
-            // Only the owner of the actual committed pivot can back RHS slots.
-            // A different cell may have proposed the same canonical anchor.
-            let parent = g.slot_transfer.parent_routes() && rule.direct == Some(pivot);
-            let siblings = g.slot_transfer.sibling_routes() && !order.is_empty();
-            #[cfg(feature = "slot-transfer-audit")]
-            let proof_sample = if (parent || siblings) && !g.views_enabled {
-                crate::transfer_audit::Sample::begin(crate::transfer_audit::Region::SpineProof)
-            } else {
-                None
-            };
-            let source = if (parent || siblings) && !g.views_enabled {
-                #[cfg(feature = "slot-transfer-audit")]
-                crate::transfer_audit::count(|c| c.spine_owner_checks += 1);
-                match row.witness {
-                    Dependency::Fact(f)
-                        if g.cells.get(&f.cell).is_some_and(|c| {
-                            c.completed
-                                && c.template == g.program.rules[cursor.producer].template
-                                && c.facts
-                                    .get(&f.op)
-                                    .is_some_and(|s| s.entry.is_none() && s.marker_row.is_none())
-                        }) =>
-                    {
-                        Some(f)
-                    }
-                    _ => None,
-                }
-            } else {
-                None
-            };
-            let route = source
-                .and_then(|f| {
-                    #[cfg(feature = "slot-transfer-audit")]
-                    crate::transfer_audit::count(|c| c.spine_route_lookups += 1);
-                    g.program.multi_stage.routes.get(&(
-                        g.program.rules[cursor.producer].template,
-                        f.op as usize,
-                        rid,
-                        pivot,
-                    ))
-                })
-                .cloned();
-            #[cfg(feature = "slot-transfer-audit")]
-            crate::transfer_audit::count(|c| c.spine_route_hits += u64::from(route.is_some()));
-            let parameter_parent = source.filter(|_| parent && route.is_some());
-            let local_route = if !siblings {
-                None
-            } else {
-                route.and_then(|r| g.continuation_context(row.witness).map(|c| (c, r)))
-            };
-            #[cfg(feature = "slot-transfer-audit")]
-            drop(proof_sample);
-            let mut wired = false;
-            let mut trail = Vec::new();
             for &i in order {
                 let a = &rule.query[i];
-                if let Some((ctx, route)) = &local_route
-                    && let Some(read) = route
-                        .reads
-                        .iter()
-                        .find(|r| r.atom == i && r.effect.is_some())
-                    && let Some((w, stamp)) =
-                        read.wire(g, *ctx, row.witness, &mut input, &mut trail, None)?
-                {
-                    g.stats.slot_transfer.spine_atoms += 1;
-                    witnesses[i] = Some(w);
-                    epoch = epoch.max(stamp);
-                    wired = true;
-                    continue;
-                }
                 let args = a.args[..a.args.len() - 1]
                     .iter()
                     .map(|a| operand(a, &input, g).ok_or("unbound stage recipe key".into()))
@@ -1393,27 +1279,9 @@ impl Programs {
                 let values = rule
                     .inputs
                     .iter()
-                    .map(|i| {
-                        (if wired {
-                            input.take_slot(*i, &mut g.stats.slot_transfer.sealed_moves)
-                        } else {
-                            #[cfg(feature = "slot-transfer-audit")]
-                            crate::transfer_audit::count(|c| {
-                                c.binding_seal_copies += u64::from(input[*i].is_some())
-                            });
-                            input[*i].clone()
-                        })
-                        .ok_or("incomplete stage recipe input".into())
-                    })
+                    .map(|i| ({ input[*i].clone() }).ok_or("incomplete stage recipe input".into()))
                     .collect::<Result<Vec<_>>>()?;
-                record_answer(
-                    &mut results,
-                    values,
-                    witnesses,
-                    epoch,
-                    parameter_parent,
-                    cursor,
-                );
+                record_answer(&mut results, values, witnesses, epoch, cursor);
             }
         }
         if complete {
@@ -1509,8 +1377,7 @@ impl Programs {
                         Some(old) => old == v,
                         None => {
                             self.stats.entry_parameters_copied += 1;
-                            #[cfg(feature = "slot-transfer-audit")]
-                            crate::transfer_audit::count(|c| c.fresh_bind_copies += 1);
+
                             input[*i] = Some(v.clone());
                             true
                         }

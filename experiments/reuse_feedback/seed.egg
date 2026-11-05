@@ -1,4 +1,0 @@
-(datatype E (V i64) (A E) (B E))
-(rewrite (A x) (B x) :name "a-to-b")
-(A (V 1))
-(run 1)

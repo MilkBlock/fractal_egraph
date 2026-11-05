@@ -5,7 +5,6 @@ use crate::{
     graph::{Dependency, Graph, Row},
     program::*,
     query::{QueryIndexes, ReadStamp},
-    retained::{Answer, bind, operand},
     value::{Value, canon},
 };
 use rustc_hash::FxHashMap as Map;
@@ -266,11 +265,10 @@ pub(crate) struct Contexts {
     stats: BTreeMap<usize, Stats>,
 }
 impl Contexts {
-    pub fn new() -> Self {
-        let mode = std::env::var("CELL_CPU_LOCAL_CONTEXT");
+    pub fn new(program: &Program) -> Self {
         Self {
-            enabled: matches!(mode.as_deref(), Ok("1" | "general")),
-            general: mode.as_deref() == Ok("general"),
+            enabled: true,
+            general: program.artifact.get("context_admission").is_some(),
             ..Default::default()
         }
     }
@@ -725,4 +723,28 @@ fn finish_guards(
         }
     }
     Ok(true)
+}
+
+pub struct Answer {
+    pub values: Vec<Value>,
+    pub witnesses: Vec<Option<Dependency>>,
+    pub epoch: u64,
+}
+pub(crate) fn operand(a: &Arg, input: &[Option<Value>], g: &Graph) -> Option<Value> {
+    match a {
+        Arg::Literal(v) => Some(canon(v, &g.parents)),
+        Arg::Slot(i) => input[*i].clone(),
+    }
+}
+pub(crate) fn bind(a: &Arg, v: &Value, input: &mut [Option<Value>], g: &Graph) -> bool {
+    match a {
+        Arg::Literal(x) => canon(x, &g.parents) == *v,
+        Arg::Slot(i) => match &input[*i] {
+            Some(old) => old == v,
+            None => {
+                input[*i] = Some(v.clone());
+                true
+            }
+        },
+    }
 }

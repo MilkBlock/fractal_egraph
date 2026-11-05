@@ -1,6 +1,0 @@
-{
-  "name": "egglog-debugger-browser",
-  "private": true,
-  "type": "module",
-  "description": "Browser (wasm) host for the Eggplant preview pipeline used by the native debugger page."
-}

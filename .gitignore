@@ -1,31 +1,5 @@
-/target
-/tools/.deps/
-/tools/babble_adapter/target/
-/tools/eggfuse-profile/target/
-/experiments/babble/*.programs.json
-/experiments/egglog_babble/*.fixture.json
-/experiments/egglog_babble/*.candidates.json
-/experiments/egglog_babble/*.programs.json
-/experiments/comb_compression/*.programs.json
-/experiments/deep_combs/*.windows.json
-/experiments/deep_combs/*.programs.json
-/experiments/relative_bindings/*.programs.json
-/experiments/relative_bindings/corpus.json
-/experiments/relative_bindings/renaming.json
-/experiments/tier0_probe/*.jsonl
-
-# dpsk (DeepSeek) agent linked worktree
-/dpsk_workspace
-
-# Local Python and desktop caches
-__pycache__/
-*.py[cod]
-.DS_Store
-
-/research/target/
-
+/target/
 /out/
-
-# wasm debugger build artifacts
-/tools/egglog_debugger/wasm/target/
-/tools/egglog_debugger/wasm/pkg/
+.DS_Store
+__pycache__/
+*.pyc
