@@ -9,6 +9,10 @@ use std::hash::{Hash, Hasher};
 
 #[cfg(feature = "sparse-cells")]
 pub type RowFields = std::rc::Rc<[Value]>;
+#[cfg(feature = "sparse-cells")]
+use crate::ordered_run::OrderedRun as TableRows;
+#[cfg(not(feature = "sparse-cells"))]
+type TableRows<T> = BTreeSet<T>;
 #[cfg(not(feature = "sparse-cells"))]
 pub type RowFields = std::rc::Rc<Vec<Value>>;
 pub(crate) fn row_fields(v: Vec<Value>) -> RowFields {
@@ -237,8 +241,8 @@ pub struct Graph {
     pub receipt_tracking: bool,
     pub receipt_forwards: HashMap<Dependency, Dependency>,
 
-    operators: Vec<BTreeSet<FactRef>>,
-    function_operators: Vec<BTreeSet<usize>>,
+    operators: Vec<TableRows<FactRef>>,
+    function_operators: Vec<TableRows<usize>>,
     #[cfg(not(feature = "sparse-cells"))]
     intern: HashMap<u64, BTreeSet<FactRef>>,
     #[cfg(feature = "sparse-cells")]
@@ -427,8 +431,8 @@ impl Graph {
             retired_port_slots: HashMap::default(),
             receipt_forwards: HashMap::default(),
 
-            operators: vec![BTreeSet::new(); n],
-            function_operators: vec![BTreeSet::new(); n],
+            operators: vec![TableRows::default(); n],
+            function_operators: vec![TableRows::default(); n],
             intern: HashMap::default(),
             #[cfg(not(feature = "sparse-cells"))]
             function_keys: vec![Default::default(); n],

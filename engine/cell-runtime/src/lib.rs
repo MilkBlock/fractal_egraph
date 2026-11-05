@@ -15,6 +15,8 @@ mod prefix_proof;
 mod rhs_work;
 #[cfg(feature = "sparse-cells")]
 mod tiny_set;
+#[cfg(feature = "sparse-cells")]
+mod ordered_run;
 #[cfg(feature = "slot-transfer-audit")]
 pub mod transfer_audit;
 mod view_plan;
