@@ -569,6 +569,21 @@ impl QueryIndexes {
     pub(crate) fn fingerprint(&self, value: &Value) -> u64 {
         fingerprint(value, self.bits)
     }
+    /// A one-column Free Join projection has exactly the same domain as the
+    /// maintained column bucket, including in the presence of hash collisions.
+    pub(crate) fn single_projection(
+        &mut self, graph: &Graph, table: usize, col: usize, hash: u64,
+        materialized: &mut u64,
+    ) -> Result<Option<Rc<Vec<Dependency>>>> {
+        self.ensure(graph, table)?;
+        let columns = self.tables.get_mut(&table).unwrap();
+        Ok(columns.values[col].get_mut(&hash).map(|bucket| {
+            bucket.view.get_or_insert_with(|| {
+                *materialized += bucket.facts.len() as u64;
+                Rc::new(bucket.facts.iter().copied().collect())
+            }).clone()
+        }))
+    }
     /// Probe a subatom by its full projected prefix. Fingerprint collisions
     /// only enlarge the domain; the executor verifies every actual row.
     pub(crate) fn probe(

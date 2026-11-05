@@ -46,6 +46,7 @@ pub(super) struct Stats {
     reverse_empty: u64,
     cache_capacity_resets: u64,
     entry_rows: u64,
+    shared_column_reads: u64,
     #[cfg(feature = "projection-stamps")]
     stamp_reuses: u64,
     #[cfg(feature = "projection-stamps")]
@@ -348,7 +349,15 @@ impl FreeJoin {
             };
             #[cfg(feature = "projection-survey")]
             let survey_key = key.clone();
-            let result = if self.planned {
+            let direct;
+            let result: &Option<Rows> = if cfg!(feature = "sparse-cells")
+                && !cfg!(feature = "projection-stamps") && self.planned && shape.columns.len() == 1 {
+                self.stats.shared_column_reads += 1;
+                self.stats.entry_probes += 1;
+                direct = index.single_projection(g, shape.table, shape.columns[0].0, key[0],
+                    &mut self.stats.entry_bucket_rows_materialized)?;
+                &direct
+            } else if self.planned {
                 let (version, cache) = &mut self.by_projection[step.projection];
                 #[cfg(not(feature = "projection-stamps"))]
                 if *version != g.query_versions[shape.table] {

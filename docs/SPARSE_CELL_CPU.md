@@ -176,3 +176,5 @@ Clean source archive, 22 all-feature runtime tests, both full audits, one warm-u
 | Raytrace | 12.450 / 6.706 s | 15.178 / 8.721 s | 2,909.14 / 2,054.61 MiB | 6,916,788 / 6,879,302 | 2.014× | 1.856× |
 
 The measured candidate ranges were 17.782–18.972 ms and 6.642–6.737 s. Sum-bits needs 1.5055 ms less than this median to reach its fixed cutoff. These results predate the later rule-owned binding-vector change.
+
+For a compiler-planned unary Free Join projection, the shared column bucket is already its full witness domain. Admission can reuse the bucket's maintained view directly across consumers, avoiding the per-projection copy of the versioned membership cache. Multi-column projections retain ordinary admission. On the experimental stack this changed sum-bits inference from 20.855 to 19.769 ms, CLI from 119.886 to 121.084 ms, and RSS from 153.95 to 153.56 MiB. Raytrace inference fell from 7.395 to 7.207 s, CLI from 9.708 to 9.519 s and RSS from 2,039.78 to 1,997.38 MiB. Candidate visits and both full audits matched.

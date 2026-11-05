@@ -8429,5 +8429,199 @@
         "depth": 29
       }
     ]
-  }
+  },
+  "column-port": [
+    {
+      "case": "sum-bits",
+      "arm": "run-groups",
+      "i": 0,
+      "ms": 20.654,
+      "rss": 161415168,
+      "cli": 135.53,
+      "visits": 18645,
+      "search": 10.175,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "column-port",
+      "i": 0,
+      "ms": 19.851,
+      "rss": 161038336,
+      "cli": 458.378,
+      "visits": 18645,
+      "search": 9.461,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "column-port",
+      "i": 1,
+      "ms": 19.769,
+      "rss": 161021952,
+      "cli": 118.758,
+      "visits": 18645,
+      "search": 9.477,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "run-groups",
+      "i": 1,
+      "ms": 21.255,
+      "rss": 161415168,
+      "cli": 119.886,
+      "visits": 18645,
+      "search": 10.401,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "run-groups",
+      "i": 2,
+      "ms": 20.855,
+      "rss": 161431552,
+      "cli": 121.415,
+      "visits": 18645,
+      "search": 10.252,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "column-port",
+      "i": 2,
+      "ms": 20.973,
+      "rss": 161021952,
+      "cli": 121.084,
+      "visits": 18645,
+      "search": 9.905,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "column-port",
+      "i": 3,
+      "ms": 19.39,
+      "rss": 161021952,
+      "cli": 121.301,
+      "visits": 18645,
+      "search": 9.245,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "run-groups",
+      "i": 3,
+      "ms": 19.951,
+      "rss": 161431552,
+      "cli": 116.958,
+      "visits": 18645,
+      "search": 9.753,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "raytrace",
+      "arm": "run-groups",
+      "i": 0,
+      "ms": 7328.424,
+      "rss": 2143272960,
+      "cli": 9764.429,
+      "visits": 6737948,
+      "search": 3436.828,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "column-port",
+      "i": 0,
+      "ms": 7096.261,
+      "rss": 2079621120,
+      "cli": 9534.999,
+      "visits": 6737948,
+      "search": 3267.796,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "column-port",
+      "i": 1,
+      "ms": 7082.546,
+      "rss": 2087714816,
+      "cli": 9510.486,
+      "visits": 6737948,
+      "search": 3247.754,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "run-groups",
+      "i": 1,
+      "ms": 7309.77,
+      "rss": 2135867392,
+      "cli": 9674.905,
+      "visits": 6737948,
+      "search": 3456.394,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "run-groups",
+      "i": 2,
+      "ms": 7394.521,
+      "rss": 2143420416,
+      "cli": 9756.027,
+      "visits": 6737948,
+      "search": 3478.649,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "column-port",
+      "i": 2,
+      "ms": 7206.654,
+      "rss": 2094399488,
+      "cli": 9519.173,
+      "visits": 6737948,
+      "search": 3305.841,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "column-port",
+      "i": 3,
+      "ms": 7275.433,
+      "rss": 2095185920,
+      "cli": 9638.63,
+      "visits": 6737948,
+      "search": 3343.745,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "run-groups",
+      "i": 3,
+      "ms": 7474.188,
+      "rss": 2138865664,
+      "cli": 9708.104,
+      "visits": 6737948,
+      "search": 3528.284,
+      "resumed": 663403,
+      "depth": 29
+    }
+  ]
 }
