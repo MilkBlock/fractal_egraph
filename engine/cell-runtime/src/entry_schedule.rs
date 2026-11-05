@@ -296,7 +296,9 @@ struct State {
     #[cfg(not(feature = "sparse-cells"))]
     pending: BTreeSet<Dependency>,
     #[cfg(feature = "sparse-cells")]
-    pending: rustc_hash::FxHashSet<Dependency>,
+    pending: Vec<Dependency>,
+    #[cfg(feature = "sparse-cells")]
+    sorted_pending: usize,
     rows: HashMap<Dependency, SharedPacket>,
     #[cfg(not(feature = "sparse-cells"))]
     epochs: BTreeSet<(u64, Dependency)>,
@@ -305,6 +307,22 @@ struct State {
     epoch_counts: Option<BTreeMap<u64, usize>>,
 }
 impl State {
+    #[cfg(feature = "sparse-cells")]
+    fn compact_pending(&mut self) {
+        if self.sorted_pending < self.pending.len() {
+            self.pending.sort_unstable();
+            self.pending.dedup();
+            self.sorted_pending = self.pending.len();
+        }
+    }
+    #[cfg(feature = "sparse-cells")]
+    fn pending_count(&self) -> usize {
+        if self.sorted_pending == self.pending.len() { return self.sorted_pending; }
+        let mut rows = self.pending.clone();
+        rows.sort_unstable();
+        rows.dedup();
+        rows.len()
+    }
     fn insert_epoch(&mut self, epoch: u64, w: Dependency) {
         if self.epochs.insert((epoch, w))
             && let Some(counts) = &mut self.epoch_counts
@@ -496,9 +514,17 @@ impl Scheduler {
             for &id in &self.plan.tables[table] {
                 let state = &mut self.states[id];
                 if !state.cold {
+                    #[cfg(not(feature = "sparse-cells"))]
                     let before = state.pending.len();
                     state.pending.extend(changes.keys().copied());
-                    self.stats.node_notifications += (state.pending.len() - before) as u64;
+                    #[cfg(not(feature = "sparse-cells"))]
+                    { self.stats.node_notifications += (state.pending.len() - before) as u64; }
+                    #[cfg(feature = "sparse-cells")]
+                    if state.pending.len() > state.sorted_pending.saturating_mul(2).max(64) {
+                        // Bound unconsumed repetitions even when this node's
+                        // consumer ruleset is dormant for many publications.
+                        state.compact_pending();
+                    }
                 }
             }
         }
@@ -588,16 +614,20 @@ impl Scheduler {
         let n = &self.plan.nodes[id];
         let full = s.cold;
         s.cold = false;
-        let pending = if full {
+        #[cfg(feature = "sparse-cells")]
+        {
+            s.compact_pending();
+            self.stats.node_notifications += s.pending.len() as u64;
+            s.sorted_pending = 0;
+        }
+        let mut pending = if full {
             self.stats.cold_rows += g.witness_count(n.table) as u64;
             s.pending.clear();
             g.witnesses(n.table)
         } else {
             #[cfg(feature = "sparse-cells")]
             {
-                let mut v: Vec<_> = s.pending.drain().collect();
-                v.sort_unstable();
-                v
+                std::mem::take(&mut s.pending)
             }
             #[cfg(not(feature = "sparse-cells"))]
             {
@@ -615,7 +645,7 @@ impl Scheduler {
         } else {
             HashMap::default()
         };
-        for w in pending {
+        for w in pending.drain(..) {
             let previous = if full {
                 old.remove(&w)
             } else {
@@ -703,6 +733,8 @@ impl Scheduler {
                 }
             }
         }
+        #[cfg(feature = "sparse-cells")]
+        if !full { s.pending = pending; }
         self.stats.retired_packets += old.len() as u64;
         Ok(())
     }
@@ -711,6 +743,27 @@ impl Scheduler {
         self.stats.consumer_seed_deliveries
     }
     pub fn report(&self) -> J {
-        json!({"enabled":self.enabled,"nodes":self.plan.nodes.len(),"stats":self.stats,"live_packets":self.states.iter().map(|s|s.rows.len()).sum::<usize>(),"scope":"compiled shared entry predicates; consumer watermarks and complete residual/RHS remain source scheduled"})
+        #[allow(unused_mut)]
+        let mut stats = json!(&self.stats);
+        #[cfg(feature = "sparse-cells")]
+        { stats["node_notifications"] = (self.stats.node_notifications
+            + self.states.iter().map(|s|s.pending_count() as u64).sum::<u64>()).into(); }
+        json!({"enabled":self.enabled,"nodes":self.plan.nodes.len(),"stats":stats,"live_packets":self.states.iter().map(|s|s.rows.len()).sum::<usize>(),"scope":"compiled shared entry predicates; consumer watermarks and complete residual/RHS remain source scheduled"})
+    }
+}
+
+#[cfg(all(test,feature="sparse-cells"))]
+mod pending_tests {
+    use super::*;
+    #[test]
+    fn pending_counts_include_later_duplicates_only_once() {
+        let mut s=State::default();
+        s.pending.extend([Dependency::Function(2),Dependency::Function(1),Dependency::Function(2)]);
+        assert_eq!(s.pending_count(),2);
+        s.compact_pending();
+        s.pending.extend([Dependency::Function(2),Dependency::Function(3)]);
+        assert_eq!(s.pending_count(),3);
+        s.compact_pending();
+        assert_eq!(s.pending,vec![Dependency::Function(1),Dependency::Function(2),Dependency::Function(3)]);
     }
 }
