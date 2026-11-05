@@ -1162,6 +1162,15 @@ impl Graph {
     #[inline]
     fn lookup_canonical_inner(&self, table: usize, key: &[Value]) -> Result<Option<Row>> {
         self.key_lookup_calls.set(self.key_lookup_calls.get() + 1);
+        if key.is_empty() && self.program.tables[table].schema.len() == 1 {
+            let members = &self.members[table];
+            if members.len() <= 1 {
+                let Some(&word) = members.iter().next() else { return Ok(None); };
+                return if self.program.tables[table].virtual_fact {
+                    self.fact(FactRef::from_ordered_id(word))
+                } else { Ok(self.function(word as usize)) };
+            }
+        }
         if !self.program.tables[table].virtual_fact {
             return Ok(self
                 .function_index(table, key)
