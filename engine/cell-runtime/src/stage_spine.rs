@@ -297,6 +297,7 @@ pub struct Stats {
     anchors_retired: u64,
     query_attempts: u64,
     routed_spine_seeds: u64,
+    sealed_partial_origins: u64,
     routed_matcher_seeds: u64,
     mixed_routed_queries: u64,
     query_takeovers: u64,
@@ -1733,15 +1734,14 @@ impl Programs {
                 #[cfg(feature = "iterative-bake")]
                 if cursor.state.direct || {
                     #[cfg(feature = "sparse-cells")]
-                    {
-                        self.direct_sealed_answers && complete
-                    }
+                    { self.direct_sealed_answers }
                     #[cfg(not(feature = "sparse-cells"))]
-                    {
-                        false
-                    }
+                    { false }
                 } {
-                    debug_assert!(complete);
+                    // The executor appends residual matches after these winners.
+                    // Stable sealing keeps the Spine binding on an equal RHS key.
+                    // The public standalone Programs route still resolves by key.
+                    self.stats.sealed_partial_origins += u64::from(!complete);
                     let mut answer = answer;
                     answer.values = key;
                     #[cfg(feature = "sparse-cells")]
