@@ -199,3 +199,14 @@ A clean three-arm trial at 22f3f517 checked whether the same unary receipt shoul
 Each compiled table now owns one witness directory. Its table kind supplies the tag; a constructor stores the unsigned (Cell, operation) pair as an order-preserving 64-bit word and a function stores its original row index. This also provides cardinality without a second maintained counter. In the independent clean 22f3f517 ablation, sum-bits inference changed from 19.471 to 19.367 ms, CLI 116.759 to 119.343 ms and RSS 152.84 to 152.83 MiB. Raytrace changed from 7.197 to 7.128 s, CLI 9.664 to 9.502 s and RSS 2,000.69 to 1,997.61 MiB. Both full audits and visit counts matched.
 
 Building a cold Sieve summary now inserts its certified support first and populates the final Bloom bitset once. All child summaries have already been constructed, and no parent probes the new summary before it is complete. Incremental publication retains its prior per-key propagation. On the clean Run-port control, three paired medians were 19.737 / 19.472 ms and 7.119 / 7.080 s inference, 117.826 / 119.027 ms and 9.423 / 9.419 s CLI, and 152.83 / 152.81 MiB and 2,006.81 / 2,005.09 MiB RSS. Visits and the two full Run audits matched.
+
+### Held-out PGO at 98792cd9
+
+Both complete Run audits passed at the clean commit, as did the 22 all-feature runtime tests. With native CPU, fat LTO, one codegen unit and opposite-workload training, nine sum-bits / five Raytrace pairs gave the following medians after one warm-up.
+
+| Case | Inference, original / candidate | CLI, original / candidate | RSS, original / candidate | Visits, original / candidate | Fixed speedup | Same-session ratio |
+|---|---:|---:|---:|---:|---:|---:|
+| sum-bits | 30.813 / 17.304 ms | 130.916 / 98.576 ms | 161.14 / 152.97 MiB | 18,730 / 18,706 | 1.946× | 1.781× |
+| Raytrace | 12.436 / 6.517 s | 15.180 / 8.497 s | 2,906.50 / 1,987.16 MiB | 6,916,788 / 6,798,459 | 2.073× | 1.908× |
+
+No measured sum-bits process cleared the fixed 16.8375 ms threshold (16.996–19.608 ms). All measured Raytrace processes cleared 6.754039 s (6.389–6.610 s). The remaining sum-bits reduction is 0.4665 ms.
