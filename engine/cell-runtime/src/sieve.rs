@@ -40,6 +40,19 @@ struct Summary {
     keys: Support,
     bloom: Bloom,
 }
+impl Summary {
+    fn allows(&self, keys: &[u64], cols: &[usize]) -> bool {
+        #[cfg(feature = "sparse-cells")]
+        match (&self.keys, cols) {
+            (Support::Empty, _) => return false,
+            (Support::Unit, []) => return true,
+            (Support::One(words), &[c]) => return words.contains(&keys[c]),
+            (Support::Two(words), &[a,b]) => return words.contains(&[keys[a],keys[b]]),
+            _ => (),
+        }
+        self.bloom.contains_projection(keys, cols)
+    }
+}
 #[derive(Default)]
 struct Bloom {
     words: Vec<u64>,
@@ -278,9 +291,7 @@ impl Sieve {
     fn admit(&mut self, id: usize, keys: &[u64]) -> Option<Projection> {
         let spec = &self.specs[id];
         for g in &spec.guards {
-            if !self.states[g.child]
-                .bloom
-                .contains_projection(keys, &g.cols)
+            if !self.states[g.child].allows(keys, &g.cols)
             {
                 return None;
             }
@@ -378,9 +389,7 @@ impl Sieve {
         for guard in guards {
             self.stats.probes += 1;
             self.stats.per_rule[rid].0 += 1;
-            if !self.states[guard.child]
-                .bloom
-                .contains_projection(keys, &guard.cols)
+            if !self.states[guard.child].allows(keys, &guard.cols)
             {
                 self.stats.rejected += 1;
                 self.stats.per_rule[rid].1 += 1;
