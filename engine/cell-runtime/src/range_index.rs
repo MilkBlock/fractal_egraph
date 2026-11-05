@@ -15,6 +15,24 @@ use std::{
 };
 
 pub(crate) const MIN_DOMAIN: usize = 32;
+pub(crate) const MIN_COMPUTED_DOMAIN: usize = 8;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize)]
+pub(crate) enum Column {
+    Raw(usize),
+    Sum(usize, usize),
+}
+impl Column {
+    fn read(self, row: &Row) -> Result<Option<i64>> {
+        let int = |i: usize| match row.values[i] {
+            Value::Int(v) => Ok(v),
+            _ => Err("non-integer index column".to_owned()),
+        };
+        match self {
+            Self::Raw(i) => Ok(Some(int(i)?)),
+            Self::Sum(a, b) => Ok(int(a)?.checked_add(int(b)?)),
+        }
+    }
+}
 #[derive(Default)]
 struct Axis {
     keys: HashMap<Dependency, (Value, i64)>,
@@ -26,13 +44,10 @@ impl Axis {
         w: Dependency,
         row: Option<&Row>,
         prefix: usize,
-        column: usize,
+        column: Column,
     ) -> Result<bool> {
         let new = if let Some(row) = row.filter(|r| !r.hidden) {
-            let Value::Int(v) = row.values[column] else {
-                return Err("non-integer range index column".into());
-            };
-            Some((&row.values[prefix], v))
+            column.read(row)?.map(|v| (&row.values[prefix], v))
         } else {
             None
         };
@@ -65,7 +80,7 @@ impl Axis {
 #[derive(Default)]
 struct TableRanges {
     version: u64,
-    axes: HashMap<(usize, usize), Axis>,
+    axes: HashMap<(usize, Column), Axis>,
 }
 #[derive(Default, Serialize)]
 pub(crate) struct Stats {
@@ -124,6 +139,26 @@ impl RangeIndex {
         threshold: i64,
         rows: &Rc<Vec<Dependency>>,
     ) -> Result<Rc<Vec<Dependency>>> {
+        self.select_axis(
+            g,
+            table,
+            prefix,
+            Column::Raw(column),
+            Some(bound),
+            threshold,
+            rows,
+        )
+    }
+    pub fn select_axis(
+        &mut self,
+        g: &Graph,
+        table: usize,
+        prefix: (usize, Value),
+        column: Column,
+        comparison: Option<Bound>,
+        threshold: i64,
+        rows: &Rc<Vec<Dependency>>,
+    ) -> Result<Rc<Vec<Dependency>>> {
         let cached = self.tables.entry(table).or_default();
         if cached.version != g.query_versions[table] {
             self.stats.invalidated_axes += cached.axes.len() as u64;
@@ -153,6 +188,27 @@ impl RangeIndex {
         let Some(bucket) = axis.buckets.get(&prefix.1) else {
             self.stats.empty_domains += 1;
             return Ok(Rc::new(vec![]));
+        };
+        let Some(bound) = comparison else {
+            let Some(exact) = bucket.get(&threshold) else {
+                self.stats.empty_domains += 1;
+                return Ok(Rc::new(vec![]));
+            };
+            // The bound prefix guarantees an ordered witness domain from either
+            // QueryIndexes::candidates or Free Join's column projection probe.
+            let result: Vec<_> = if exact.len() < rows.len() {
+                self.stats.subset_checks += exact.len() as u64;
+                exact
+                    .iter()
+                    .copied()
+                    .filter(|w| rows.binary_search(w).is_ok())
+                    .collect()
+            } else {
+                self.stats.subset_checks += rows.len() as u64;
+                rows.iter().copied().filter(|w| exact.contains(w)).collect()
+            };
+            self.stats.output_rows += result.len() as u64;
+            return Ok(Rc::new(result));
         };
         let lo = *bucket.first_key_value().expect("nonempty prefix").0;
         let hi = *bucket.last_key_value().unwrap().0;

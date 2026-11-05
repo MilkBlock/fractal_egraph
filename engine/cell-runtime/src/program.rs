@@ -310,6 +310,9 @@ impl Program {
             sets.insert(string(&s["name"])?.into(), ids);
         }
         let kernels=crate::row_kernel::derive(&rules);
+        if let Some(raw)=j.get("computed_keys") && *raw!=serde_json::json!(crate::row_kernel::computed_plans(&kernels)) {
+            return Err("invalid computed-key plan".into());
+        }
         if let Some(raw)=j.get("row_kernels") && *raw!=serde_json::json!(kernels){return Err("invalid register join plan".into());}
         let mut p = Self {
             neighbor_plans: vec![],

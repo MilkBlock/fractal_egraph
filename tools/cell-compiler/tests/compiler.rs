@@ -1857,3 +1857,65 @@ fn changed_child_ports_follow_value_replacement_and_key_repair() {
     fs::write(&old, serde_json::to_vec(&legacy).unwrap()).unwrap();
     assert_eq!(bench(&old, "neighbor-context")["counts"], fast["counts"]);
 }
+
+#[test]
+fn computed_sum_join_narrows_both_directions_with_late_and_removed_rows() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("join.egg");
+    let facts = (0..36)
+        .map(|x| format!("(Span (N 1) {x} 1)"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    fs::write(
+        &src,
+        format!(
+            r#"
+(datatype E (N i64) (Span E i64 i64))
+(relation Hit (E E))
+(ruleset solve) (ruleset grow) (ruleset retire) (ruleset unify)
+(rule ((= l (Span group a b)) (= stop (+ a b)) (= r (Span group stop c)))
+      ((Hit l r)) :ruleset solve)
+(rule ((= s (Span e 3 1))) ((Span e 0 3)) :ruleset grow)
+(rule ((= s (Span e 4 1))) ((delete (Span e 3 1))) :ruleset retire)
+{facts}
+(Span (N 1) 9223372036854775807 1)
+(Span (N 2) 7 4)
+(rule ((= e (N 1))) ((union e (N 2))) :ruleset unify)
+(run-schedule (seq (run solve) (run grow) (run solve) (run retire) (run solve) (run unify) (run solve)))
+(check (Hit (Span (N 1) 5 1) (Span (N 1) 6 1)))
+"#
+        ),
+    )
+    .unwrap();
+    let out = tmp.path().join("artifact");
+    pass(&[
+        "compile",
+        "--source",
+        src.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+        "--emit-free-join-entry",
+    ]);
+    let pg = out.join("program.json");
+    let mut bad = json_file(&pg);
+    assert!(bad["computed_keys"].as_array().unwrap().len() >= 2);
+    bad["computed_keys"] = json!([]);
+    assert!(eggfuse_cell_runtime::program::Program::parse(bad).is_err());
+    let r = pass(&[
+        "bench",
+        "--program",
+        pg.to_str().unwrap(),
+        "--lane",
+        "free-join-planned",
+        "--modules",
+        "computed-keys",
+        "--repeat",
+        "1",
+        "--verify-stages",
+    ]);
+    let result: J = serde_json::from_slice(&r.stdout).unwrap();
+    let stats = &result["counts"]["computed_keys"];
+    assert!(stats["update_rows"].as_u64().unwrap() > 0);
+    assert!(stats["uses"].as_u64().unwrap() > 0, "{stats}");
+    assert!(stats["input_rows"].as_u64().unwrap() > stats["output_rows"].as_u64().unwrap());
+}

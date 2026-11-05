@@ -84,6 +84,27 @@ impl Registers {
                     let bound: SmallVec<[Option<Value>; 6]> = bound;
                     exec.query_indexes.candidates(&exec.graph, t, &bound)?
                 };
+                let refs = if !LOCAL
+                    && refs.len() >= crate::range_index::MIN_COMPUTED_DOMAIN
+                    && let Some(plan) = &k.computed
+                    && plan.atom == ins.atom
+                    && let Some(index) = exec.computed_index.as_mut()
+                {
+                    let Value::Int(target) = self.val(&plan.target, &exec.graph) else {
+                        return Err("expected integer computed key".into());
+                    };
+                    index.select_axis(
+                        &exec.graph,
+                        t,
+                        (plan.prefix, self.val(&plan.operand, &exec.graph)),
+                        plan.column,
+                        None,
+                        target,
+                        &refs,
+                    )?
+                } else {
+                    refs
+                };
                 let mut access = if LOCAL {
                     exec.neighbor.neighborhood(&exec.graph, rid, t, &refs)
                 } else {

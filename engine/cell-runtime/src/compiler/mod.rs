@@ -238,6 +238,7 @@ pub fn compile_with_entry(
         ("single_writes",json!(&p.writes)),
         ("neighbor_entries",json!(&p.neighbor_plans)),
         ("row_kernels",json!(&p.kernels)),
+        ("computed_keys",json!(crate::row_kernel::computed_plans(&p.kernels))),
         ("physical_plan", json!(&p.physical)),
         (
             "merge_contracts",

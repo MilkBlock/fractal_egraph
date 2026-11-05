@@ -19,11 +19,80 @@ pub(crate) struct Step {
 }
 #[derive(Clone, Debug, Serialize)]
 pub(crate) struct Kernel {
+    #[serde(skip)]
+    pub computed: Option<Computed>,
     pub pivot: usize,
     pub seed: Vec<(usize, usize)>,
     pub steps: Vec<Step>,
 }
+#[derive(Clone, Debug, Serialize)]
+pub(crate) struct Computed {
+    pub atom: usize,
+    pub prefix: usize,
+    pub operand: Arg,
+    pub column: crate::range_index::Column,
+    pub target: Arg,
+}
+fn computed(r: &Rule, steps: &[Step]) -> Option<Computed> {
+    use crate::range_index::Column;
+    let pos = steps
+        .iter()
+        .position(|s| matches!(s.access, Access::Expand))?;
+    let expand = &steps[pos];
+    let args = &r.query[expand.atom].args;
+    let available = |a: &Arg| !expand.assign.iter().any(|(_, s)| a == &Arg::Slot(*s));
+    let sum = |step: &Step| {
+        let atom = &r.query[step.atom];
+        matches!(&atom.call,Call::Primitive(name,sort) if name=="+" && sort=="i64").then_some(atom)
+    };
+    // Reverse: two fields of this row must sum to an already bound result.
+    if let Some(guard) = steps.get(pos + 1)
+        && let Some(atom) = sum(guard)
+        && let [a, b, target] = atom.args.as_slice()
+        && available(target)
+        && guard.assign.is_empty()
+        && let Some(left) = args.iter().position(|v| v == a)
+        && let Some(right) = args.iter().position(|v| v == b)
+        && let Some((prefix, operand)) = expand.bound.first()
+    {
+        return Some(Computed {
+            atom: expand.atom,
+            prefix: *prefix,
+            operand: operand.clone(),
+            column: Column::Sum(left, right),
+            target: target.clone(),
+        });
+    }
+    // Forward: a preceding sum binds a second equality column after seed admission.
+    for step in &steps[..pos] {
+        if let Some(atom) = sum(step)
+            && let [_, _, target] = atom.args.as_slice()
+            && let Some((column, _)) = expand.bound.iter().find(|(_, v)| v == target)
+            && let Some((prefix, operand)) = expand.bound.iter().find(|(col, _)| col != column)
+        {
+            return Some(Computed {
+                atom: expand.atom,
+                prefix: *prefix,
+                operand: operand.clone(),
+                column: Column::Raw(*column),
+                target: target.clone(),
+            });
+        }
+    }
+    None
+}
 pub(crate) type Kernels = Vec<Vec<Option<Rc<Kernel>>>>;
+pub(crate) fn computed_plans(kernels: &Kernels) -> Vec<(usize, usize, &Computed)> {
+    kernels
+        .iter()
+        .enumerate()
+        .flat_map(|(rid, ks)| {
+            ks.iter()
+                .flatten()
+                .filter_map(move |k| k.computed.as_ref().map(|c| (rid, k.pivot, c)))
+        })
+        .collect()
+}
 pub(crate) fn derive(rules: &[Rule]) -> Kernels {
     rules
         .iter()
@@ -109,7 +178,12 @@ fn plan(r: &Rule, pivot: usize) -> Option<Kernel> {
         });
         remaining.remove(&atom);
     }
-    Some(Kernel { pivot, seed, steps })
+    Some(Kernel {
+        computed: computed(r, &steps),
+        pivot,
+        seed,
+        steps,
+    })
 }
 
 /// A single functional write with a pure operand prefix. Its committed tuple
