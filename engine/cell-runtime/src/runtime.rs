@@ -1016,7 +1016,7 @@ impl Executor {
     fn empty_by_sieve(&mut self, rid: usize) -> Result<bool> {
         self.sieve
             .prepare(rid, &self.graph, &mut self.query_indexes)?;
-        let empty = self.sieve.empty_join(rid);
+        let empty = self.sieve.empty_join(rid) || self.free_join.disjoint(rid, &self.graph, &self.query_indexes);
         if empty {
             self.pending[rid].clear();
         }

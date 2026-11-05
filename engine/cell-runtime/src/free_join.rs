@@ -46,6 +46,8 @@ pub(super) struct Stats {
     reverse_empty: u64,
     cache_capacity_resets: u64,
     entry_rows: u64,
+    disjoint_key_reads: u64,
+    disjoint_rule_skips: u64,
     shared_column_reads: u64,
     #[cfg(feature = "projection-stamps")]
     stamp_reuses: u64,
@@ -82,6 +84,7 @@ pub(super) struct FreeJoin {
     pub enabled: bool,
     pub stats: Stats,
     plans: Vec<Vec<Vec<Subatom>>>,
+    disjoint: DisjointPlan,
     entry: Option<Rc<crate::entry_join::Plan>>,
     pub planned: bool,
     // A target version guards the membership of positive and negative probe results.
@@ -90,6 +93,43 @@ pub(super) struct FreeJoin {
     results: HashMap<(usize, SmallVec<[u64; 4]>), Option<Rows>>,
 }
 
+#[derive(Default)]
+struct DisjointPlan {
+    rules: Vec<Vec<usize>>,
+    pairs: Vec<((usize, usize), (usize, usize))>,
+    checked: Vec<Option<((u64, u64), bool)>>,
+}
+impl DisjointPlan {
+    fn derive(program: &Program, plan: &crate::entry_join::Plan) -> Self {
+        let mut indices = std::collections::BTreeMap::new();
+        let mut result = Self::default();
+        for (rid, pivots) in plan.entries.iter().enumerate() {
+            let mut used = std::collections::BTreeSet::new();
+            for (pivot, steps) in pivots.iter().enumerate() {
+                let Call::Table(driver) = program.rules[rid].query[pivot].call else { continue };
+                for step in steps {
+                    let projected = &plan.projections[step.projection];
+                    for (out, source) in &projected.columns {
+                        let crate::entry_join::Source::Cover(input) = source else { continue };
+                        let a = (driver, *input);
+                        let b = (projected.table, *out);
+                        if a == b { continue; }
+                        let pair = (a.min(b), a.max(b));
+                        let id = *indices.entry(pair).or_insert_with(|| {
+                            let i = result.pairs.len();
+                            result.pairs.push(pair);
+                            i
+                        });
+                        used.insert(id);
+                    }
+                }
+            }
+            result.rules.push(used.into_iter().collect());
+        }
+        result.checked.resize(result.pairs.len(), None);
+        result
+    }
+}
 struct Subatom {
     atom: usize,
     table: usize,
@@ -164,9 +204,10 @@ impl FreeJoin {
             #[cfg(feature = "projection-survey")]
             survey: Default::default(),
             enabled,
-            entry,
+            entry: entry.clone(),
             planned,
             by_projection,
+            disjoint: DisjointPlan::derive(p, entry.as_ref().unwrap()),
             epoch: None,
             results: HashMap::default(),
             plans,
@@ -213,6 +254,28 @@ impl FreeJoin {
     }
     pub fn entry_mode(&self) -> bool {
         self.entry.is_some()
+    }
+    pub(crate) fn disjoint(&mut self, rid: usize, graph: &Graph, ix: &QueryIndexes) -> bool {
+        let plan = &mut self.disjoint;
+        for pos in 0..plan.rules[rid].len() {
+            let id = plan.rules[rid][pos];
+            let (a,b) = plan.pairs[id];
+            let version = (graph.query_versions[a.0], graph.query_versions[b.0]);
+            let absent = match plan.checked[id] {
+                Some((v, result)) if v == version => result,
+                _ => {
+                    let result = ix.disjoint_small(a,b,version,&mut self.stats.disjoint_key_reads);
+                    plan.checked[id] = Some((version,result));
+                    result
+                }
+            };
+            if absent {
+                self.stats.disjoint_rule_skips += 1;
+                plan.rules[rid].swap(0,pos);
+                return true;
+            }
+        }
+        false
     }
     pub fn has_entry(&self, rid: usize) -> bool {
         self.entry

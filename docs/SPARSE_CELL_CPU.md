@@ -210,3 +210,5 @@ Both complete Run audits passed at the clean commit, as did the 22 all-feature r
 | Raytrace | 12.436 / 6.517 s | 15.180 / 8.497 s | 2,906.50 / 1,987.16 MiB | 6,916,788 / 6,798,459 | 2.073× | 1.908× |
 
 No measured sum-bits process cleared the fixed 16.8375 ms threshold (16.996–19.608 ms). All measured Raytrace processes cleared 6.754039 s (6.389–6.610 s). The remaining sum-bits reduction is 0.4665 ms.
+
+A shared slot in two table atoms requires their projected columns to overlap. The checked Free Join plan now interns those pairs. Matching can reject the whole rule when its maintained indexes are current, one side has at most eight distinct fingerprints, and the two sets are disjoint. Both table versions guard the certificate. A hash collision can hide a rejection but cannot produce a false absence. Standard-release medians over three pairs were 20.557 / 20.196 ms and 7.276 / 7.245 s inference, 118.274 / 116.742 ms and 9.592 / 9.567 s CLI. RSS was 152.86 / 153.36 MiB and 1,991.69 / 1,992.53 MiB. Visits were 18,706 / 18,693 and 6,798,459 / 6,798,165. Both full audits matched.

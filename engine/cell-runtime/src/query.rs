@@ -653,6 +653,16 @@ impl QueryIndexes {
                 selectors.iter().all(|(c, h)| index.keys[w][*c] == *h)
             })
     }
+    pub(crate) fn disjoint_small(&self, a: (usize,usize), b: (usize,usize), versions:(u64,u64), reads:&mut u64) -> bool {
+        let (Some(left),Some(right)) = (self.tables.get(&a.0),self.tables.get(&b.0)) else { return false };
+        if (left.version,right.version) != versions { return false; }
+        let (mut small,mut large) = (&left.values[a.1],&right.values[b.1]);
+        if small.len()>large.len() { std::mem::swap(&mut small,&mut large); }
+        small.len() <= 8 && small.keys().all(|key| {
+            *reads += 1;
+            !large.contains_key(key)
+        })
+    }
     pub(crate) fn key_count(&self, table: usize, col: usize) -> Option<usize> {
         Some(self.tables.get(&table)?.values[col].len())
     }

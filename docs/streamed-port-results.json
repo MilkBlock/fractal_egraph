@@ -11577,5 +11577,199 @@
         "depth": 29
       }
     ]
-  }
+  },
+  "tiny-support": [
+    {
+      "case": "sum-bits",
+      "arm": "ordinary-gates",
+      "i": 0,
+      "ms": 20.603,
+      "rss": 160284672,
+      "cli": 448.529,
+      "visits": 18706,
+      "search": 9.869,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "tiny-support",
+      "i": 0,
+      "ms": 20.894,
+      "rss": 160825344,
+      "cli": 460.936,
+      "visits": 18693,
+      "search": 10.161,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "tiny-support",
+      "i": 1,
+      "ms": 20.865,
+      "rss": 160808960,
+      "cli": 115.462,
+      "visits": 18693,
+      "search": 9.982,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "ordinary-gates",
+      "i": 1,
+      "ms": 19.992,
+      "rss": 160284672,
+      "cli": 118.274,
+      "visits": 18706,
+      "search": 9.516,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "ordinary-gates",
+      "i": 2,
+      "ms": 20.987,
+      "rss": 160268288,
+      "cli": 120.873,
+      "visits": 18706,
+      "search": 10.079,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "tiny-support",
+      "i": 2,
+      "ms": 20.196,
+      "rss": 160808960,
+      "cli": 118.858,
+      "visits": 18693,
+      "search": 9.609,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "tiny-support",
+      "i": 3,
+      "ms": 19.978,
+      "rss": 160808960,
+      "cli": 116.742,
+      "visits": 18693,
+      "search": 9.573,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "ordinary-gates",
+      "i": 3,
+      "ms": 20.557,
+      "rss": 160284672,
+      "cli": 117.902,
+      "visits": 18706,
+      "search": 9.909,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "raytrace",
+      "arm": "ordinary-gates",
+      "i": 0,
+      "ms": 7299.785,
+      "rss": 2086912000,
+      "cli": 9654.3,
+      "visits": 6798459,
+      "search": 3331.393,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "tiny-support",
+      "i": 0,
+      "ms": 7303.036,
+      "rss": 2090336256,
+      "cli": 9648.377,
+      "visits": 6798165,
+      "search": 3342.839,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "tiny-support",
+      "i": 1,
+      "ms": 7245.081,
+      "rss": 2090287104,
+      "cli": 9566.583,
+      "visits": 6798165,
+      "search": 3314.129,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "ordinary-gates",
+      "i": 1,
+      "ms": 7226.575,
+      "rss": 2104393728,
+      "cli": 9512.266,
+      "visits": 6798459,
+      "search": 3297.983,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "ordinary-gates",
+      "i": 2,
+      "ms": 7275.65,
+      "rss": 2084044800,
+      "cli": 9591.855,
+      "visits": 6798459,
+      "search": 3314.328,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "tiny-support",
+      "i": 2,
+      "ms": 7291.758,
+      "rss": 2088550400,
+      "cli": 9637.59,
+      "visits": 6798165,
+      "search": 3343.236,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "tiny-support",
+      "i": 3,
+      "ms": 7206.991,
+      "rss": 2089320448,
+      "cli": 9463.984,
+      "visits": 6798165,
+      "search": 3303.765,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "ordinary-gates",
+      "i": 3,
+      "ms": 7917.208,
+      "rss": 2088435712,
+      "cli": 10303.645,
+      "visits": 6798459,
+      "search": 3638.097,
+      "resumed": 663403,
+      "depth": 29
+    }
+  ]
 }
