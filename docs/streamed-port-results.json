@@ -10727,5 +10727,247 @@
       "resumed": 663403,
       "depth": 29
     }
+  ],
+  "member-words": [
+    {
+      "case": "sum-bits",
+      "arm": "epoch-read",
+      "i": 0,
+      "ms": 20.414,
+      "rss": 160251904,
+      "cli": 128.584,
+      "visits": 18706,
+      "search": 9.961,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "member-words",
+      "i": 0,
+      "ms": 19.247,
+      "rss": 160251904,
+      "cli": 467.372,
+      "visits": 18706,
+      "search": 9.207,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "member-words",
+      "i": 1,
+      "ms": 19.879,
+      "rss": 160268288,
+      "cli": 121.931,
+      "visits": 18706,
+      "search": 9.509,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "epoch-read",
+      "i": 1,
+      "ms": 19.471,
+      "rss": 160251904,
+      "cli": 116.759,
+      "visits": 18706,
+      "search": 9.306,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "epoch-read",
+      "i": 2,
+      "ms": 19.443,
+      "rss": 160268288,
+      "cli": 117.489,
+      "visits": 18706,
+      "search": 9.348,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "member-words",
+      "i": 2,
+      "ms": 19.367,
+      "rss": 160251904,
+      "cli": 119.343,
+      "visits": 18706,
+      "search": 9.207,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "member-words",
+      "i": 3,
+      "ms": 19.089,
+      "rss": 160251904,
+      "cli": 114.372,
+      "visits": 18706,
+      "search": 9.102,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "epoch-read",
+      "i": 3,
+      "ms": 19.659,
+      "rss": 160268288,
+      "cli": 114.655,
+      "visits": 18706,
+      "search": 9.454,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "raytrace",
+      "arm": "epoch-read",
+      "i": 0,
+      "ms": 7126.184,
+      "rss": 2094268416,
+      "cli": 9438.352,
+      "visits": 6798459,
+      "search": 3235.941,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "member-words",
+      "i": 0,
+      "ms": 7113.281,
+      "rss": 2092072960,
+      "cli": 9639.359,
+      "visits": 6798459,
+      "search": 3235.328,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "member-words",
+      "i": 1,
+      "ms": 7053.011,
+      "rss": 2086731776,
+      "cli": 9451.943,
+      "visits": 6798459,
+      "search": 3204.962,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "epoch-read",
+      "i": 1,
+      "ms": 7123.762,
+      "rss": 2088288256,
+      "cli": 9664.013,
+      "visits": 6798459,
+      "search": 3247.021,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "epoch-read",
+      "i": 2,
+      "ms": 7197.302,
+      "rss": 2102460416,
+      "cli": 9692.898,
+      "visits": 6798459,
+      "search": 3260.746,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "member-words",
+      "i": 2,
+      "ms": 7127.823,
+      "rss": 2094645248,
+      "cli": 9514.608,
+      "visits": 6798459,
+      "search": 3257.052,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "member-words",
+      "i": 3,
+      "ms": 7159.22,
+      "rss": 2097184768,
+      "cli": 9501.97,
+      "visits": 6798459,
+      "search": 3250.225,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "epoch-read",
+      "i": 3,
+      "ms": 7295.892,
+      "rss": 2097872896,
+      "cli": 9568.395,
+      "visits": 6798459,
+      "search": 3353.807,
+      "resumed": 663403,
+      "depth": 29
+    }
+  ],
+  "version_reuse_counts": [
+    {
+      "case": "sum-bits",
+      "arm": "epoch-read",
+      "extra": {
+        "shared_negative_hits": 1,
+        "shared_point_hits": 180,
+        "shared_point_requests": 866
+      },
+      "column_reads": 22275,
+      "actual_key_lookups": 19397
+    },
+    {
+      "case": "raytrace",
+      "arm": "epoch-read",
+      "extra": {
+        "shared_negative_hits": 379,
+        "shared_point_hits": 24221,
+        "shared_point_requests": 122926
+      },
+      "column_reads": 5789354,
+      "actual_key_lookups": 4423940
+    },
+    {
+      "case": "sum-bits",
+      "arm": "version-read",
+      "extra": {
+        "cross_run_point_hits": 169,
+        "shared_negative_hits": 1,
+        "shared_point_hits": 286,
+        "shared_point_requests": 866
+      },
+      "column_reads": 22275,
+      "actual_key_lookups": 19291
+    },
+    {
+      "case": "raytrace",
+      "arm": "version-read",
+      "extra": {
+        "cross_run_point_hits": 3513,
+        "shared_negative_hits": 395,
+        "shared_point_hits": 25926,
+        "shared_point_requests": 122926
+      },
+      "column_reads": 5789354,
+      "actual_key_lookups": 4422235
+    }
   ]
 }

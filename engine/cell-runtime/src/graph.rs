@@ -30,6 +30,14 @@ pub struct FactRef {
     pub cell: u32,
     pub op: u32,
 }
+impl FactRef {
+    fn ordered_id(self) -> u64 {
+        (u64::from(self.cell) << 32) | u64::from(self.op)
+    }
+    fn from_ordered_id(word: u64) -> Self {
+        Self { cell: (word >> 32) as u32, op: word as u32 }
+    }
+}
 /// Copied fields only need source-owner identities for containment candidates.
 /// Provider projection additionally needs atom/operation coordinates.
 
@@ -251,8 +259,8 @@ pub struct Graph {
     pub receipt_tracking: bool,
     pub receipt_forwards: HashMap<Dependency, Dependency>,
 
-    operators: Vec<TableRows<FactRef>>,
-    function_operators: Vec<TableRows<usize>>,
+    // A table's kind supplies the witness tag for every member.
+    members: Vec<TableRows<u64>>,
     #[cfg(not(feature = "sparse-cells"))]
     intern: HashMap<u64, BTreeSet<FactRef>>,
     #[cfg(feature = "sparse-cells")]
@@ -441,8 +449,7 @@ impl Graph {
             retired_port_slots: HashMap::default(),
             receipt_forwards: HashMap::default(),
 
-            operators: vec![TableRows::default(); n],
-            function_operators: vec![TableRows::default(); n],
+            members: vec![TableRows::default(); n],
             intern: HashMap::default(),
             #[cfg(not(feature = "sparse-cells"))]
             function_keys: vec![Default::default(); n],
@@ -1070,30 +1077,15 @@ impl Graph {
         }
     }
     pub fn witnesses(&self, table: usize) -> Vec<Dependency> {
+        let ids = self.members[table].iter().copied();
         if self.program.tables[table].virtual_fact {
-            self.operators[table]
-                .iter()
-                .copied()
-                .map(Dependency::Fact)
-                .collect()
+            ids.map(|id| Dependency::Fact(FactRef::from_ordered_id(id))).collect()
         } else {
-            self.function_operators[table]
-                .iter()
-                .copied()
-                .map(Dependency::Function)
-                .collect()
+            ids.map(|id| Dependency::Function(id as usize)).collect()
         }
     }
-    /// A query index contains references, never copies of virtual constructor rows.
-    /// `uses` already follows unions for rebuild; a bound identity can also narrow
-    /// a query. It is a superset (any column, including container members), so the
-    /// matcher must still check all columns and visibility on the decoded row.
     pub fn witness_count(&self, table: usize) -> usize {
-        if self.program.tables[table].virtual_fact {
-            self.operators[table].len()
-        } else {
-            self.function_operators[table].len()
-        }
+        self.members[table].len()
     }
     fn bound_uses(&self, bound: &[Option<Value>]) -> Option<&UseSet> {
         #[cfg(feature = "sparse-cells")]
@@ -1350,7 +1342,7 @@ impl Graph {
                 hash: h,
             },
         );
-        self.operators[t].insert(f);
+        self.members[t].insert(f.ordered_id());
         self.intern.entry(h).or_default().insert(f);
         self.subscribe(t, Dependency::Fact(f), &vs);
         self.changes.touch(t, Dependency::Fact(f));
@@ -1935,7 +1927,8 @@ impl Graph {
         // During repair the ordinary key directory may still contain displaced
         // keys. Resolve the complete canonical port, including pending pure
         // lattice collisions; never pick an arbitrary stale entry.
-        for i in self.function_operators[t].iter().copied() {
+        for &id in self.members[t].iter() {
+            let i = id as usize;
             let Some(row) = self.function(i) else {
                 continue;
             };
@@ -2055,7 +2048,7 @@ impl Graph {
                 live: true,
                 origin: None,
             });
-            self.function_operators[t].insert(i);
+            self.members[t].insert(i as u64);
             self.changed = true;
             self.stats.function_updates += 1;
             self.changes.touch(t, Dependency::Function(i));
@@ -2085,7 +2078,7 @@ impl Graph {
                 self.retired_port_slots
                     .insert(Dependency::Fact(f), s.port_slot);
             }
-            self.operators[r.table].remove(&f);
+            self.members[r.table].remove(&f.ordered_id());
             if let Some(b) = self.intern.get_mut(&s.hash) {
                 b.remove(&f);
                 #[cfg(feature = "sparse-cells")]
@@ -2165,7 +2158,7 @@ impl Graph {
                 self.changes.retire(t, row.witness);
                 self.function_origin(i, None);
                 self.query_versions[t] += 1;
-                self.function_operators[t].remove(&i);
+                self.members[t].remove(&(i as u64));
                 if self.units.remove(i) {
                     self.units.stats.deleted += 1;
                 } else {
@@ -2338,7 +2331,7 @@ impl Graph {
                                     .insert(Dependency::Function(i), Dependency::Function(j));
                             }
                             self.function_origin(i, None);
-                            self.function_operators[row.table].remove(&i);
+                            self.members[row.table].remove(&(i as u64));
                             self.subscribe(row.table, d, &[]);
                             if shared_unit {
                                 self.query_versions[row.table] += 1;
