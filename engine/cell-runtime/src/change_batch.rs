@@ -56,6 +56,10 @@ impl ChangeBatch {
         }
     }
 
+    #[cfg(feature = "projection-semijoin")]
+    pub(crate) fn for_table(&self, t: usize) -> &FxHashMap<Dependency, Change> {
+        &self.tables[t]
+    }
     pub fn tables(&self) -> impl Iterator<Item = (usize, &FxHashMap<Dependency, Change>)> {
         self.active.iter().map(|&t| (t, &self.tables[t]))
     }
@@ -107,7 +111,7 @@ impl Publication {
             let count = changes.len() as u64;
             self.headers += count;
             let version = g.query_versions[t];
-            let mut writer = columns.writer(t);
+            let mut writer = columns.writer(t, version);
             let mut range = ranges.as_deref_mut().filter(|r| r.observes(t));
             let neighbors = neighbor.observes(t);
             if writer.is_none() && range.is_none() && !neighbors {

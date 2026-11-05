@@ -259,6 +259,14 @@ pub(crate) struct Batch<'a> {
     pub table: usize,
 }
 impl Batch<'_> {
+    #[cfg(feature = "projection-shared")]
+    pub fn node(&self) -> usize {
+        self.consumer.node
+    }
+    #[cfg(any(feature = "projection-semijoin", feature = "projection-shared"))]
+    pub fn watermark(&self) -> u64 {
+        self.watermark
+    }
     pub fn atom(&self) -> usize {
         self.consumer.atom
     }

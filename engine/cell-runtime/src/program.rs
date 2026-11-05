@@ -397,9 +397,13 @@ impl Program {
             }
         }
         if let Some(raw) = p.artifact.get("free_join_entry") {
-            let emitted: crate::entry_join::Plan =
+            let mut emitted: crate::entry_join::Plan =
                 serde_json::from_value(raw.clone()).map_err(|e| e.to_string())?;
-            if emitted != crate::entry_join::Plan::derive(&p) {
+            let expected = crate::entry_join::Plan::derive(&p);
+            if raw.get("guards").is_none() {
+                emitted.guards = expected.guards.clone();
+            }
+            if emitted != expected {
                 return Err("Free Join entry plan differs from typed LHS".into());
             }
             p.entry_join = Some(Rc::new(emitted));

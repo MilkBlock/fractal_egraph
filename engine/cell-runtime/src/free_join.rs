@@ -4,6 +4,17 @@ use super::*;
 use smallvec::SmallVec;
 use std::collections::HashMap;
 
+#[cfg(feature = "projection-survey")]
+#[path = "projection_survey.rs"]
+mod projection_survey;
+
+#[cfg(feature = "projection-semijoin")]
+#[path = "semijoin.rs"]
+mod semijoin;
+
+#[cfg(feature = "projection-shared")]
+#[path = "shared_frontier.rs"]
+mod shared_frontier;
 type Rows = Rc<Vec<Dependency>>;
 pub(super) struct Subtrie {
     pub atom: usize,
@@ -32,6 +43,10 @@ pub(super) struct Stats {
     reverse_empty: u64,
     cache_capacity_resets: u64,
     entry_rows: u64,
+    #[cfg(feature = "projection-stamps")]
+    stamp_reuses: u64,
+    #[cfg(feature = "projection-stamps")]
+    stamp_misses: u64,
     entry_probes: u64,
     entry_cache_hits: u64,
     entry_rejections: u64,
@@ -42,14 +57,31 @@ pub(super) struct Stats {
     pub entry_point_uses: u64,
 }
 
+#[cfg(feature = "projection-stamps")]
+struct Stamped {
+    checked: u64,
+    result: Option<Rows>,
+    stamp: crate::query::ProjectionStamp,
+}
+#[cfg(feature = "projection-stamps")]
+type Cached = Stamped;
+#[cfg(not(feature = "projection-stamps"))]
+type Cached = Option<Rows>;
+
 pub(super) struct FreeJoin {
+    #[cfg(feature = "projection-shared")]
+    shared: shared_frontier::Frontiers,
+    #[cfg(feature = "projection-semijoin")]
+    pub gates: semijoin::Gates,
+    #[cfg(feature = "projection-survey")]
+    pub survey: projection_survey::Survey,
     pub enabled: bool,
     pub stats: Stats,
     plans: Vec<Vec<Vec<Subatom>>>,
     entry: Option<Rc<crate::entry_join::Plan>>,
     pub planned: bool,
     // A target version guards the membership of positive and negative probe results.
-    by_projection: Vec<(u64, HashMap<SmallVec<[u64; 4]>, Option<Rows>>)>,
+    by_projection: Vec<(u64, HashMap<SmallVec<[u64; 4]>, Cached>)>,
     epoch: Option<u64>,
     results: HashMap<(usize, SmallVec<[u64; 4]>), Option<Rows>>,
 }
@@ -121,6 +153,12 @@ impl FreeJoin {
             vec![]
         };
         Self {
+            #[cfg(feature = "projection-shared")]
+            shared: shared_frontier::Frontiers::new(entry.as_ref().unwrap()),
+            #[cfg(feature = "projection-semijoin")]
+            gates: semijoin::Gates::new(entry.as_ref().unwrap()),
+            #[cfg(feature = "projection-survey")]
+            survey: Default::default(),
             enabled,
             entry,
             planned,
@@ -132,6 +170,43 @@ impl FreeJoin {
         }
     }
 
+    #[cfg(feature = "projection-shared")]
+    pub fn shared_frontier(
+        &mut self,
+        g: &Graph,
+        ix: &mut QueryIndexes,
+        rid: usize,
+        batch: crate::entry_schedule::Batch<'_>,
+    ) -> Result<Option<Rc<Vec<Dependency>>>> {
+        self.shared
+            .restrict(g, ix, self.entry.as_ref().unwrap(), rid, batch)
+    }
+    pub fn semijoin_report(&self) -> J {
+        #[cfg(feature = "projection-semijoin")]
+        let gates = self.gates.report();
+        #[cfg(not(feature = "projection-semijoin"))]
+        let gates = J::Null;
+        let mode = match (
+            cfg!(feature = "projection-semijoin"),
+            cfg!(feature = "projection-stamps"),
+        ) {
+            (true, true) => "both",
+            (false, true) => "precise",
+            (true, false) => "group",
+            (false, false) => "off",
+        };
+        #[cfg(feature = "projection-shared")]
+        {
+            let label = if mode == "off" {
+                "shared".to_owned()
+            } else {
+                format!("{mode}+shared")
+            };
+            return json!({"mode":label,"gates":gates,"shared":self.shared.stats});
+        }
+        #[cfg(not(feature = "projection-shared"))]
+        json!({"mode":mode,"gates":gates})
+    }
     pub fn entry_mode(&self) -> bool {
         self.entry.is_some()
     }
@@ -249,12 +324,22 @@ impl FreeJoin {
                     &mut stats.entry_bucket_rows_materialized,
                 ))
             };
+            #[cfg(feature = "projection-semijoin")]
+            let sample = if std::ptr::eq(step, &steps[0]) {
+                self.gates.sample(g.epoch, rid, atom, &key)
+            } else {
+                None
+            };
+            #[cfg(feature = "projection-survey")]
+            let survey_key = key.clone();
             let result = if self.planned {
                 let (version, cache) = &mut self.by_projection[step.projection];
+                #[cfg(not(feature = "projection-stamps"))]
                 if *version != g.query_versions[shape.table] {
                     cache.clear();
                     *version = g.query_versions[shape.table];
-                } else if cache.len()
+                }
+                if cache.len()
                     > g.witness_count(row.table)
                         .saturating_add(g.witness_count(shape.table))
                         .max(64)
@@ -262,6 +347,7 @@ impl FreeJoin {
                     cache.clear();
                     self.stats.cache_capacity_resets += 1;
                 }
+                #[cfg(not(feature = "projection-stamps"))]
                 match cache.entry(key) {
                     std::collections::hash_map::Entry::Occupied(h) => {
                         self.stats.entry_cache_hits += 1;
@@ -270,6 +356,52 @@ impl FreeJoin {
                     std::collections::hash_map::Entry::Vacant(m) => {
                         let v = probe(&mut self.stats, m.key(), index)?;
                         m.insert(v)
+                    }
+                }
+                #[cfg(feature = "projection-stamps")]
+                {
+                    *version = g.query_versions[shape.table];
+                    let entry = cache.entry(key);
+                    let fresh = match &entry {
+                        std::collections::hash_map::Entry::Occupied(e) => {
+                            let hit = e.get();
+                            if hit.checked == *version {
+                                true
+                            } else if index.valid_projection(g, shape.table, &hit.stamp) {
+                                self.stats.stamp_reuses += 1;
+                                true
+                            } else {
+                                self.stats.stamp_misses += 1;
+                                false
+                            }
+                        }
+                        _ => false,
+                    };
+                    if fresh {
+                        self.stats.entry_cache_hits += 1;
+                        let std::collections::hash_map::Entry::Occupied(e) = entry else {
+                            unreachable!()
+                        };
+                        let hit = e.into_mut();
+                        hit.checked = *version;
+                        &hit.result
+                    } else {
+                        let result = probe(&mut self.stats, entry.key(), index)?;
+                        let selectors: SmallVec<[(usize, u64); 4]> = shape
+                            .columns
+                            .iter()
+                            .zip(entry.key())
+                            .map(|((c, _), k)| (*c, *k))
+                            .collect();
+                        let stamp = index.projection_stamp(shape.table, &selectors);
+                        &entry
+                            .insert_entry(Stamped {
+                                result,
+                                stamp,
+                                checked: *version,
+                            })
+                            .into_mut()
+                            .result
                     }
                 }
             } else {
@@ -284,6 +416,20 @@ impl FreeJoin {
                     }
                 }
             };
+            #[cfg(feature = "projection-survey")]
+            self.survey.observe(
+                g.epoch,
+                rid,
+                atom,
+                step.projection,
+                g.query_versions[shape.table],
+                survey_key,
+                result,
+            );
+            #[cfg(feature = "projection-semijoin")]
+            if let Some(id) = sample {
+                self.gates.finish_sample(id, result.is_some());
+            }
             let Some(rows) = result else {
                 self.stats.entry_rejections += 1;
                 return Ok(None);

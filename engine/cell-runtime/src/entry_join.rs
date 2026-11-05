@@ -24,10 +24,20 @@ pub(crate) struct Step {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Plan {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub guards: Option<Vec<GuardShape>>,
     schema: String,
     recipe_sha256: serde_json::Value,
     pub projections: Vec<Projection>,
     pub entries: Vec<Vec<Vec<Step>>>,
+}
+/// One physical semijoin can serve the first necessary subatom of several pivots.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct GuardShape {
+    pub driver: usize,
+    pub projection: usize,
+    pub consumers: Vec<(usize, usize)>,
 }
 impl Plan {
     pub fn derive(p: &Program) -> Self {
@@ -83,7 +93,40 @@ impl Plan {
             }
             entries.push(pivots)
         }
+        let mut guards = BTreeMap::<(usize, usize), Vec<(usize, usize)>>::new();
+        for (rid, pivots) in entries.iter().enumerate() {
+            for (pivot, steps) in pivots.iter().enumerate() {
+                let Some(first) = steps.first() else { continue };
+                let Call::Table(driver) = p.rules[rid].query[pivot].call else {
+                    continue;
+                };
+                let shape = &projections[first.projection];
+                // Canonical identity literals need an additional union subscription.
+                if driver != shape.table
+                    && shape.columns.len() <= 4
+                    && !shape.columns.iter().any(|(_, src)| {
+                        matches!(src, Source::Literal(Value::Eq(_) | Value::Set(_)))
+                    })
+                {
+                    guards
+                        .entry((driver, first.projection))
+                        .or_default()
+                        .push((rid, pivot));
+                }
+            }
+        }
+        let guards = Some(
+            guards
+                .into_iter()
+                .map(|((driver, projection), consumers)| GuardShape {
+                    driver,
+                    projection,
+                    consumers,
+                })
+                .collect(),
+        );
         Self {
+            guards,
             schema: "eggfuse-entry-free-join/v1".into(),
             recipe_sha256: p.artifact["recipe"]["sha256"].clone(),
             projections,

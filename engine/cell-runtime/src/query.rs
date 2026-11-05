@@ -15,11 +15,15 @@ use std::{
 
 #[derive(Default)]
 struct Bucket {
+    #[cfg(feature = "projection-stamps")]
+    membership_version: u64,
     facts: BTreeSet<Dependency>,
     view: Option<Rc<Vec<Dependency>>>,
     refinements: HashMap<Vec<(usize, u64)>, Rc<Vec<Dependency>>>,
 }
 struct Columns {
+    #[cfg(feature = "projection-stamps")]
+    write_version: u64,
     values: Vec<HashMap<u64, Bucket>>,
     keys: HashMap<Dependency, smallvec::SmallVec<[u64; 4]>>,
     version: u64,
@@ -32,6 +36,10 @@ impl Columns {
         };
         for (col, key) in keys.iter().enumerate() {
             let bucket = self.values[col].get_mut(key).unwrap();
+            #[cfg(feature = "projection-stamps")]
+            {
+                bucket.membership_version = self.write_version;
+            }
             bucket.facts.remove(&fact);
             bucket.view = None;
             bucket.refinements.clear();
@@ -69,6 +77,10 @@ impl Columns {
                 let before = prior[col];
                 if before == key {
                     let bucket = self.values[col].get_mut(&key).unwrap();
+                    #[cfg(feature = "projection-stamps")]
+                    {
+                        bucket.membership_version = self.write_version;
+                    }
                     bucket.refinements.clear();
                     if watch_reads {
                         bucket.view = None;
@@ -76,6 +88,10 @@ impl Columns {
                     continue;
                 }
                 let bucket = self.values[col].get_mut(&before).unwrap();
+                #[cfg(feature = "projection-stamps")]
+                {
+                    bucket.membership_version = self.write_version;
+                }
                 bucket.facts.remove(&row.witness);
                 bucket.view = None;
                 bucket.refinements.clear();
@@ -84,6 +100,10 @@ impl Columns {
                 }
             }
             let bucket = self.values[col].entry(key).or_default();
+            #[cfg(feature = "projection-stamps")]
+            {
+                bucket.membership_version = self.write_version;
+            }
             bucket.facts.insert(row.witness);
             bucket.view = None;
             bucket.refinements.clear();
@@ -164,6 +184,13 @@ impl ColumnWriter<'_> {
         *self.references = *self.references - removed + added;
     }
 }
+#[cfg(feature = "projection-stamps")]
+pub(crate) struct ProjectionStamp {
+    column: usize,
+    hash: u64,
+    // Absence is an independently verifiable negative certificate.
+    version: Option<u64>,
+}
 pub enum Domain {
     Empty,
     One(Dependency),
@@ -241,6 +268,35 @@ impl QueryIndexes {
             })
         }
     }
+    #[cfg(feature = "projection-stamps")]
+    pub(crate) fn projection_stamp(
+        &self,
+        table: usize,
+        selectors: &[(usize, u64)],
+    ) -> ProjectionStamp {
+        let index = &self.tables[&table];
+        let &(column, hash) = selectors
+            .iter()
+            .min_by_key(|(c, k)| index.values[*c].get(k).map_or(0, |b| b.facts.len()))
+            .unwrap();
+        ProjectionStamp {
+            column,
+            hash,
+            version: index.values[column]
+                .get(&hash)
+                .map(|b| b.membership_version),
+        }
+    }
+    #[cfg(feature = "projection-stamps")]
+    pub(crate) fn valid_projection(&self, g: &Graph, t: usize, s: &ProjectionStamp) -> bool {
+        self.tables.get(&t).is_some_and(|i| {
+            i.version == g.query_versions[t]
+                && i.values[s.column]
+                    .get(&s.hash)
+                    .map(|b| b.membership_version)
+                    == s.version
+        })
+    }
     pub fn valid_read(&self, graph: &Graph, stamp: &ReadStamp) -> bool {
         let table = match stamp {
             ReadStamp::Bucket { table, .. } | ReadStamp::Table { table, .. } => *table,
@@ -305,7 +361,7 @@ impl QueryIndexes {
     pub fn update(&mut self, graph: &mut Graph) -> Result<()> {
         self.begin_publication(graph);
         for (table, changes) in graph.changes.tables() {
-            if let Some(mut writer) = self.writer(table) {
+            if let Some(mut writer) = self.writer(table, graph.query_versions[table]) {
                 for (&w, change) in changes {
                     let row = change.row(graph, w)?;
                     writer.update(w, row.as_ref());
@@ -321,8 +377,12 @@ impl QueryIndexes {
         self.revision += u64::from(!g.changes.is_empty());
     }
 
-    pub(crate) fn writer(&mut self, table: usize) -> Option<ColumnWriter<'_>> {
+    pub(crate) fn writer(&mut self, table: usize, _version: u64) -> Option<ColumnWriter<'_>> {
         let index = self.tables.get_mut(&table)?;
+        #[cfg(feature = "projection-stamps")]
+        {
+            index.write_version = _version;
+        }
         Some(ColumnWriter {
             table,
             index,
@@ -347,6 +407,8 @@ impl QueryIndexes {
         }
         if !self.tables.contains_key(&table) {
             let mut index = Columns {
+                #[cfg(feature = "projection-stamps")]
+                write_version: graph.query_versions[table],
                 values: (0..graph.program.tables[table].schema.len())
                     .map(|_| HashMap::default())
                     .collect(),
@@ -481,6 +543,29 @@ impl QueryIndexes {
                 .clone(),
         )
     }
+    #[cfg(feature = "projection-shared")]
+    pub(crate) fn supports(
+        &self,
+        t: usize,
+        selectors: &[(usize, u64)],
+        examined: &mut u64,
+    ) -> bool {
+        let index = &self.tables[&t];
+        let Some(&(col, hash)) = selectors
+            .iter()
+            .min_by_key(|(c, h)| index.values[*c].get(h).map_or(0, |b| b.facts.len()))
+        else {
+            return false;
+        };
+        let Some(bucket) = index.values[col].get(&hash) else {
+            return false;
+        };
+        selectors.len() == 1
+            || bucket.facts.iter().any(|w| {
+                *examined += 1;
+                selectors.iter().all(|(c, h)| index.keys[w][*c] == *h)
+            })
+    }
     pub(crate) fn key_count(&self, table: usize, col: usize) -> Option<usize> {
         Some(self.tables.get(&table)?.values[col].len())
     }
@@ -553,5 +638,78 @@ impl QueryIndexes {
             .copied()
             .filter(|w| cols.iter().zip(keys).all(|(c, k)| index.keys[w][*c] == *k))
             .collect()
+    }
+}
+
+#[cfg(all(
+    test,
+    any(
+        feature = "projection-semijoin",
+        feature = "projection-stamps",
+        feature = "projection-shared"
+    )
+))]
+pub(crate) fn test_projection_indexes(bits: u32) -> QueryIndexes {
+    QueryIndexes {
+        bits,
+        ..Default::default()
+    }
+}
+
+#[cfg(all(
+    test,
+    any(
+        feature = "projection-semijoin",
+        feature = "projection-stamps",
+        feature = "projection-shared"
+    )
+))]
+pub(crate) fn test_projection_graph() -> Graph {
+    let tables: Vec<_> = ["left", "right"]
+        .iter()
+        .map(|name| {
+            serde_json::json!({
+                "name":name,"schema":["i64","i64","i64"],"constructor":false,"virtual_fact":false,
+                "internal":false,"merge":{"var":"new"}
+            })
+        })
+        .collect();
+    let p=serde_json::from_value(serde_json::json!({
+        "multi_stage":crate::multistage::MultiStage::default(),
+        "entry_schedule":crate::entry_schedule::Plan::default(),"tables":tables,"templates":[],"rules":[],
+        "sets":{},"control":[],"initial":[],"table_templates":[],"artifact":{}
+    })).unwrap();
+    let mut graph = Graph::new(p).unwrap();
+    graph.merge_programs_enabled = false; // This fixture exercises storage updates without a compiled RHS.
+    graph
+}
+
+#[cfg(all(test, feature = "projection-stamps"))]
+mod stamp_tests {
+    use super::*;
+    #[test]
+    fn stamp_survives_unrelated_updates_and_rechecks_empty_or_moved_rows() {
+        let mut g = test_projection_graph();
+        let mut ix = test_projection_indexes(64);
+        let key = |a, b| vec![Value::Int(a), Value::Int(b)];
+        g.set_function(0, key(1, 0), Value::Int(7)).unwrap();
+        ix.ensure(&g, 0).unwrap();
+        g.changes.clear();
+        let h = |x| fingerprint(&Value::Int(x), ix.bits);
+        let needle = [(0, h(1)), (2, h(7))];
+        let absent = [(0, h(3))];
+        let hit = ix.projection_stamp(0, &needle);
+        let miss = ix.projection_stamp(0, &absent);
+        g.set_function(0, key(2, 0), Value::Int(6)).unwrap();
+        ix.update(&mut g).unwrap();
+        g.changes.clear();
+        assert!(ix.valid_projection(&g, 0, &hit));
+        assert!(ix.valid_projection(&g, 0, &miss));
+        g.set_function(0, key(1, 0), Value::Int(8)).unwrap();
+        g.set_function(0, key(3, 0), Value::Int(7)).unwrap();
+        ix.update(&mut g).unwrap();
+        assert!(!ix.valid_projection(&g, 0, &hit));
+        assert!(!ix.valid_projection(&g, 0, &miss));
+        assert!(ix.probe(0, &needle, &mut 0, &mut 0).is_none());
     }
 }

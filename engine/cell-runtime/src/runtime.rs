@@ -1011,6 +1011,28 @@ impl Executor {
                         } else {
                             None
                         };
+                        #[cfg(feature = "projection-semijoin")]
+                        let inverted = if inverted.is_none() && early_join && cursors.is_none() {
+                            self.free_join.gates.restrict(
+                                &self.graph,
+                                &mut self.query_indexes,
+                                rid,
+                                batch,
+                            )?
+                        } else {
+                            inverted
+                        };
+                        #[cfg(feature = "projection-shared")]
+                        let shared = if inverted.is_none() && early_join && cursors.is_none() {
+                            self.free_join.shared_frontier(
+                                &self.graph,
+                                &mut self.query_indexes,
+                                rid,
+                                batch,
+                            )?
+                        } else {
+                            None
+                        };
                         let mut deliver = |w| {
                             if early_sieve
                                 && !self
@@ -1042,7 +1064,15 @@ impl Executor {
                             out.push(batch.seed(packet));
                             Ok::<(), String>(())
                         };
-                        if let Some(rows) = inverted {
+                        #[cfg(feature = "projection-shared")]
+                        let shared_rows = shared.as_deref().map(Vec::as_slice);
+                        #[cfg(not(feature = "projection-shared"))]
+                        let shared_rows: Option<&[Dependency]> = None;
+                        if let Some(rows) = shared_rows {
+                            for &w in rows {
+                                deliver(w)?;
+                            }
+                        } else if let Some(rows) = inverted {
                             for w in rows {
                                 deliver(w)?
                             }
@@ -1968,6 +1998,10 @@ impl Executor {
             self.range_index.as_mut(),
             &mut self.neighbor,
         )?;
+        #[cfg(feature = "projection-semijoin")]
+        self.free_join
+            .gates
+            .publish(&self.graph, &self.query_indexes);
         self.sieve.publish(&mut self.query_indexes);
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
@@ -2117,10 +2151,14 @@ impl Executor {
         Ok(())
     }
     pub fn report(&self) -> J {
+        #[cfg(feature = "projection-survey")]
+        let survey = self.free_join.survey.report();
+        #[cfg(not(feature = "projection-survey"))]
+        let survey = J::Null;
         json!({"backend":"cell-cpu","scope":"standalone Cell recipe executor","status":if self.tasks.is_empty(){"complete"}else{"checkpointed"},
             "stats":self.graph.stats,"live_cells":self.graph.cells.len(),"steps":self.steps,"program_sha256":self.graph.program.artifact["sha256"],
             "publication":self.publication,
-            "entry_schedule":self.entry_schedule.report(),"free_join":self.free_join.stats,"sieve":self.sieve.report(),"neighbor_context":self.neighbor.report(&self.graph.program),
+            "semijoin":self.free_join.semijoin_report(),"projection_survey":survey,"entry_schedule":self.entry_schedule.report(),"free_join":self.free_join.stats,"sieve":self.sieve.report(),"neighbor_context":self.neighbor.report(&self.graph.program),
             "local_context":self.local_context.report(&self.graph.program),"stage_spine":self.stage_spine.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),
             "multi_stage":{"stats":self.continuation_stats},"physical":{"range":self.range_index.as_ref().map(|r|&r.stats)}})
     }

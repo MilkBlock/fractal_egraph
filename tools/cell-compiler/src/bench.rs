@@ -82,7 +82,7 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
                 .as_u64()
                 .unwrap();
         counts = json!({"all_candidate_visits":visits,"free_join":r["free_join"],"consumer_seed_deliveries":r["entry_schedule"]["stats"]["consumer_seed_deliveries"],"empty_join_skips":r["sieve"]["stats"]["empty_join_skips"],"register_answers":g.register_answers,"single_writes":g.single_writes,
-            "publication":r["publication"],"entry_row_reads":r["entry_schedule"]["stats"]["row_decodes"],
+            "semijoin":r["semijoin"],"publication":r["publication"],"entry_row_reads":r["entry_schedule"]["stats"]["row_decodes"],
             "stage_spine":r["stage_spine"]["stats"],"neighbor_context":r["neighbor_context"],"local_context":r["local_context"],
             "handoff_closed":g.handoff_closed,"handoff_closed_fallback":g.handoff_closed_fallback,"handoff_deep":g.handoff_deep,"handoff_lets":g.handoff_lets});
     }

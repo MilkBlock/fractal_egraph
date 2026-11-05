@@ -250,6 +250,17 @@ fn free_join_preserves_cyclic_matches_and_late_rows_under_collisions() {
             .is_empty()
     );
     let mut corrupt = raw.clone();
+    let guards = raw["free_join_entry"]["guards"].as_array().unwrap();
+    assert!(!guards.is_empty());
+    let mut invalid = raw.clone();
+    invalid["free_join_entry"]["guards"][0]["driver"] = json!(usize::MAX);
+    assert!(eggfuse_cell_runtime::program::Program::parse(invalid).is_err());
+    let mut old_entry = raw.clone();
+    old_entry["free_join_entry"]
+        .as_object_mut()
+        .unwrap()
+        .remove("guards");
+    assert!(eggfuse_cell_runtime::program::Program::parse(old_entry).is_ok());
     corrupt["free_join_entry"]["projections"][0]["table"] = json!(usize::MAX);
     assert!(eggfuse_cell_runtime::program::Program::parse(corrupt).is_err());
     let mut legacy = raw.clone();
