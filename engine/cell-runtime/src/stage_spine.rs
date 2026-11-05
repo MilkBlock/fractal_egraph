@@ -1199,6 +1199,13 @@ impl Programs {
         }
         self.stats.anchor_publications += 1;
     }
+    #[cfg(feature = "sparse-cells")]
+    pub(crate) fn settled(&self)->bool {
+        self.pending_steps.is_empty() && self.pending_anchors.is_empty()
+            && self.published_bases.is_empty() && self.direct_publications.is_empty()
+            && self.sealed_cursors.is_empty() && self.origin_rules.is_empty()
+            && self.capture_unions.is_none() && self.entry_cache.is_empty() && self.row_cache.is_empty()
+    }
     pub fn publish(&mut self, g: &mut Graph) -> Result<()> {
         if !self.enabled {
             return Ok(());

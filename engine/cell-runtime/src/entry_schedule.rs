@@ -476,6 +476,9 @@ impl Scheduler {
     }
     /// Called before query-change records are consumed. Only committed rows and
     /// exact same-key forwarding retirements enter the shared pending domains.
+    pub(crate) fn settled(&self,g:&Graph)->bool {
+        !self.enabled || (self.rows.is_empty() && self.unions == g.stats.unions)
+    }
     pub fn publish(&mut self, g: &Graph) {
         self.publish_except(g, |_| false);
     }

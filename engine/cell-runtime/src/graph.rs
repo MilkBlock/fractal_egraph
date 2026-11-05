@@ -168,6 +168,8 @@ pub struct Stats {
     #[serde(default)]
     pub register_seeds: u64,
     #[serde(default)]
+    pub idle_scheduled_runs: u64,
+    #[serde(default)]
     pub shared_point_requests: u64,
     #[serde(default)]
     pub shared_point_hits: u64,
@@ -2170,6 +2172,10 @@ impl Graph {
                 Ok(true)
             }
         }
+    }
+    pub(crate) fn settled(&self)->bool {
+        self.changes.is_empty() && self.pending_unions.is_empty() && self.dirty.is_empty()
+            && self.dirty_markers.is_empty() && self.garbage.is_empty()
     }
     pub fn repair(&mut self) -> Result<()> {
         loop {

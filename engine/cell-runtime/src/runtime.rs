@@ -2469,6 +2469,32 @@ impl Executor {
             (None,self.graph.program.sets.get(set).ok_or_else(||format!("unknown ruleset {set}"))?.clone())
         };
         #[cfg(feature = "sparse-cells")]
+        if rules.is_empty() && !self.audit && !cfg!(feature="projection-semijoin")
+            && let Some(id) = set_id
+            && self.graph.settled() && self.stage_spine.settled()
+            && self.entry_schedule.settled(&self.graph) && self.query_indexes.changes.is_empty() {
+            // No dirty reader and no producer, repair or index work at this
+            // source occurrence. Commit the empty audit and its real watermark.
+            self.ready_sets.as_mut().unwrap().finish(id,self.graph.epoch);
+            #[cfg(feature = "slot-transfer-audit")]
+            {
+                crate::transfer_audit::record_run(std::iter::empty::<(&usize,&crate::slots::Slots)>())?;
+                crate::transfer_audit::begin_writes();
+                crate::transfer_audit::repaired();
+                crate::transfer_audit::end_writes();
+            }
+            self.graph.stats.idle_scheduled_runs += 1;
+            let elapsed = start.elapsed().as_secs_f64();
+            self.steps.push(schedule::RunStep {
+                ordinal:self.steps.len()+1, ruleset:set.into(), path, iterations,
+                epoch:self.graph.epoch, logical_matches:0,local_bindings:0,executed_bindings:0,
+                changed:false, live_cells:self.graph.cells.len(),elapsed_seconds:elapsed,
+                phases:schedule::Phases{search:elapsed,rhs:0.0,repair:0.0,delivery_gc:0.0,query_update:0.0},
+                json:Default::default(),
+            });
+            return Ok(false);
+        }
+        #[cfg(feature = "sparse-cells")]
         let mut work = std::mem::take(&mut self.work_scratch);
         #[cfg(not(feature = "sparse-cells"))]
         let mut work = vec![];
