@@ -1406,7 +1406,14 @@ impl Programs {
                 covered.insert((pivot, w));
             }
         }
-        self.finish_answers(g, rid, ready, covered, complete, watermark)
+        self.finish_answers(
+            g,
+            rid,
+            ready.into_iter().map(|(a, r, i, c)| (a, r, move || i, c)),
+            covered,
+            complete,
+            watermark,
+        )
     }
     #[cfg(feature = "family-survey")]
     pub(crate) fn survey_resumed(&self) -> u64 {
@@ -1448,7 +1455,14 @@ impl Programs {
         // scheduler's routed API only reports takeovers for delivered seeds.
         if seeds.is_empty() {
             self.stats.query_attempts += 1;
-            return self.finish_answers(g, rid, Vec::new(), BTreeSet::new(), true, watermark);
+            return self.finish_answers(
+                g,
+                rid,
+                std::iter::empty::<(usize, Rc<Row>, fn() -> Inputs, Cursor)>(),
+                BTreeSet::new(),
+                true,
+                watermark,
+            );
         }
         let mut routes = Vec::new();
         for (i, seed) in seeds.iter().enumerate() {
@@ -1492,26 +1506,34 @@ impl Programs {
         // Equal-depth continuations retain the original witness/atom tie break.
         routes.sort_unstable_by_key(|(i, _)| (seeds[*i].packet.row.witness, seeds[*i].atom));
         let mut covered = BTreeSet::new();
-        let mut ready = Vec::with_capacity(routes.len());
-        for (i, cursor) in routes {
+        // A complete takeover has no residual consumer for the coverage set.
+        // Stream the producer packet into its block; only the uncompiled route
+        // needs a mutable slot environment.
+        if !complete {
+            covered.extend(
+                routes
+                    .iter()
+                    .map(|(i, _)| (seeds[*i].atom, seeds[*i].packet.row.witness)),
+            );
+        }
+        let ready = routes.into_iter().map(|(i, cursor)| {
             let seed = &seeds[i];
-            covered.insert((seed.atom, seed.packet.row.witness));
-            ready.push((
+            (
                 seed.atom,
                 seed.packet.row.clone(),
-                Inputs::shared(seed.clone()),
+                move || Inputs::shared(seed.clone()),
                 cursor,
-            ));
-        }
+            )
+        });
         let result = self.finish_answers(g, rid, ready, covered, complete, watermark);
         self.stats.query_seconds += clock.elapsed().as_secs_f64();
         result
     }
-    fn finish_answers(
+    fn finish_answers<F: FnOnce() -> Inputs>(
         &mut self,
         g: &mut Graph,
         rid: usize,
-        ready: Vec<(usize, Rc<Row>, Inputs, Cursor)>,
+        ready: impl ExactSizeIterator<Item = (usize, Rc<Row>, F, Cursor)>,
         covered: BTreeSet<(usize, Dependency)>,
         complete: bool,
         watermark: u64,
@@ -1524,9 +1546,8 @@ impl Programs {
         let mut results = std::mem::take(&mut self.answer_scratch);
         #[cfg(not(feature = "sparse-cells"))]
         let mut results = Winners::new();
-        for (pivot, row, mut input, cursor) in ready {
-            let mut witnesses = vec![None; rule.query.len()];
-            witnesses[pivot] = Some(row.witness);
+        let covered_count = if complete { ready.len() } else { covered.len() };
+        for (pivot, row, make_input, cursor) in ready {
             let mut epoch = row.epoch;
             #[cfg(feature = "spine-shapes")]
             let cursor = {
@@ -1578,12 +1599,16 @@ impl Programs {
                             continue;
                         }
                         epoch = epoch.max(found.epoch);
-                        witnesses[p.atom] = Some(found.witness);
                         Some(found)
                     } else {
                         None
                     };
                     if epoch >= watermark {
+                        let mut witnesses = vec![None; rule.query.len()];
+                        witnesses[pivot] = Some(row.witness);
+                        if let Some((p, r)) = block.port.as_ref().zip(port.as_ref()) {
+                            witnesses[p.atom] = Some(r.witness);
+                        }
                         let values = block
                             .inputs
                             .iter()
@@ -1599,6 +1624,9 @@ impl Programs {
                     continue;
                 }
             }
+            let mut input = make_input();
+            let mut witnesses = vec![None; rule.query.len()];
+            witnesses[pivot] = Some(row.witness);
             let mut valid = true;
             let order = &self.orders[&(rid, pivot)];
             for &i in order {
@@ -1676,8 +1704,8 @@ impl Programs {
         } else {
             self.stats.partial_queries += 1;
         }
-        self.stats.pivots_skipped += covered.len() as u64;
-        *self.stats.covered_by_rule.entry(rid).or_default() += covered.len() as u64;
+        self.stats.pivots_skipped += covered_count as u64;
+        *self.stats.covered_by_rule.entry(rid).or_default() += covered_count as u64;
         self.stats.bindings += results.len() as u64;
         *self.stats.bindings_by_rule.entry(rid).or_default() += results.len() as u64;
         #[cfg(feature = "sparse-cells")]

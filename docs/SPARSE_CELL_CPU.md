@@ -89,3 +89,9 @@ cargo run --locked --release -p eggfuse-cell-runtime --features "$flags" -- \
 The native-build comparison is separate. For **both** control and sparse builds use `CARGO_PROFILE_RELEASE_LTO=fat`, `CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1`, and `RUSTFLAGS="-C target-cpu=native -C profile-generate=ABSOLUTE_DIRECTORY"`. Run the instrumented executable on the other workload with `LLVM_PROFILE_FILE=ABSOLUTE_DIRECTORY/%m.profraw`, merge with `llvm-profdata merge`, and rebuild with `-C profile-use=ABSOLUTE_PROFILE_FILE` in place of `-C profile-generate`. Each implementation gets its own held-out profile. Measure the resulting binary without training or audit instrumentation.
 
 [Raw timing samples, memory, hashes, phase measurements and per-rule proof counts](sparse-cell-results.json)
+
+## Streamed scheduled ports
+
+A compiled Spine block can gather its output slots directly from the published row and any verified dependent port. Scheduled routes now stream in their original witness/atom order; only the general matcher materializes a mutable input environment. Witness vectors for the compiled route are constructed after the port checks succeed. Complete takeovers do not need a residual coverage tree. This keeps the original catalog dispatch, RHS, publication barrier and tie rules.
+
+In three alternating standard-release pairs after warm-up, sparse control / streamed inference medians were 27.025 / 25.163 ms on sum-bits and 9.438 / 8.930 s on Raytrace. CLI medians were 127.78 / 124.27 ms and 11.620 / 11.081 s. Median peak RSS through inference was 157.27 / 157.27 MiB and 2,196.88 / 2,183.80 MiB respectively. Both arms reported 18,735 and 6,915,159 candidate visits. The audited streamed executable matched the frozen ordered RHS, effective writes, Spine trajectory, schedule and final graph. These are incremental standard-release measurements, not a new PGO or 2× acceptance result. [Samples](streamed-port-results.json)
