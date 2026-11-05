@@ -338,14 +338,13 @@ impl Graph {
     pub fn image(&self) -> J {
         json!({"known_mode":self.known_mode,"deletion_epochs":self.deletion_epochs,"known_stats":self.known_stats,"union_lineage":self.union_lineage,"key_lookup_calls":self.key_lookup_calls.get(),"cells":self.cells,"functions":self.functions,"parents":self.parents,"epoch":self.epoch,"stats":self.stats,"anchors":self.anchors,"next_cell":self.next_cell,"congruence_stats":self.congruence_stats,"reference_views_enabled":self.views_enabled,"marker_fields_copied":self.marker_fields_copied,"view_stats":self.view_stats,"retired_contexts":self.retired_contexts,"fact_forwards":self.fact_forwards.iter().collect::<Vec<_>>()})
     }
-    pub fn restore(program: Program, image: &J) -> Result<Self> {
+    pub fn restore(mut program: Program, image: &J) -> Result<Self> {
         fn decode<T: serde::de::DeserializeOwned>(j: &J) -> Result<T> {
-            serde_json::from_value(j.clone()).map_err(|e| e.to_string())
+            T::deserialize(j).map_err(|e| e.to_string())
         }
-        let mut empty = program.clone();
-        empty.initial.clear();
-        let mut g = Self::new(empty)?;
-        g.program = program;
+        let initial = std::mem::take(&mut program.initial);
+        let mut g = Self::new(program)?;
+        g.program.initial = initial;
         if (image["known_mode"]=="static")!=(g.known_mode=="static"){return Err("checkpoint static result representation differs".into())}
         if !image["deletion_epochs"].is_null(){g.deletion_epochs=decode(&image["deletion_epochs"])?;if g.deletion_epochs.len()!=g.program.tables.len(){return Err("deletion epoch arity".into())}}
         if !image["known_stats"].is_null(){g.known_stats=decode(&image["known_stats"])?;}
@@ -548,7 +547,7 @@ impl Graph {
             }
         }
         let n = program.tables.len();
-        let initial = program.initial.clone();
+        let initial = std::mem::take(&mut program.initial);
         let congruence_enabled = std::env::var("CELL_CPU_CONGRUENCE").as_deref() == Ok("1")
             && program.congruence.reorder_safe;
         let merge_kinds = program
@@ -631,12 +630,10 @@ impl Graph {
             garbage: BTreeSet::new(),
         };
         let mut ids = BTreeMap::new();
+        let table_ids: HashMap<_, _> = g.program.tables.iter().enumerate()
+            .map(|(id, t)| (t.name.clone(), id)).collect();
         for r in &initial {
-            let table = g
-                .program
-                .tables
-                .iter()
-                .position(|t| r["table"] == t.name)
+            let table = *table_ids.get(r["table"].as_str().ok_or("unknown initial operator")?)
                 .ok_or("unknown initial operator")?;
             let vals = array(&r["values"])?
                 .iter()
@@ -661,6 +658,7 @@ impl Graph {
                 g.set_function(table, key, val)?;
             }
         }
+        g.program.initial = initial;
         g.anchors = ids
             .into_iter()
             .map(|((sort, old), id)| (sort, old, id))
@@ -2414,43 +2412,11 @@ impl Graph {
         let anchors=self.anchors.iter().map(|(sort,old,id)|json!({"sort":sort,"old":old,"now":format!("Cell({})",root(&self.parents,*id))})).collect::<Vec<_>>();
         Ok(json!({"rows":rows,"anchors":anchors}))
     }
-    /// Stream diagnostics without allocating a second complete row graph.
-    pub fn write_export(&self, writer: impl std::io::Write) -> Result<()> {
-        use serde::ser::{SerializeSeq, SerializeStruct};
-        struct Rows<'a>(&'a Graph);
-        impl Serialize for Rows<'_> {
-            fn serialize<S: serde::Serializer>(
-                &self,
-                serializer: S,
-            ) -> std::result::Result<S::Ok, S::Error> {
-                let mut seq = serializer.serialize_seq(None)?;
-                for table in 0..self.0.program.tables.len() {
-                    for witness in self.0.witnesses(table) {
-                        if let Some(row) = self.0.row(witness).map_err(serde::ser::Error::custom)? {
-                            let table = &self.0.program.tables[row.table];
-                            seq.serialize_element(&json!({"table":table.name,"values":row.values.iter().zip(&table.schema).map(|(v,s)|exported(v,s)).collect::<Vec<_>>(),"subsumed":row.hidden}))?;
-                        }
-                    }
-                }
-                seq.end()
-            }
-        }
-        struct Export<'a>(&'a Graph);
-        impl Serialize for Export<'_> {
-            fn serialize<S: serde::Serializer>(
-                &self,
-                serializer: S,
-            ) -> std::result::Result<S::Ok, S::Error> {
-                let mut result = serializer.serialize_struct("Graph", 2)?;
-                result.serialize_field("rows", &Rows(self.0))?;
-                let anchors=self.0.anchors.iter().map(|(sort,old,id)|json!({"sort":sort,"old":old,"now":format!("Cell({})",root(&self.0.parents,*id))})).collect::<Vec<_>>();
-                result.serialize_field("anchors", &anchors)?;
-                result.end()
-            }
-        }
-        serde_json::to_writer(writer, &Export(self)).map_err(|e| e.to_string())
-    }
+
 }
 
 #[path = "reference_storage.rs"]
 mod reference_storage;
+
+#[path = "graph_export.rs"]
+mod graph_export;

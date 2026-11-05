@@ -2007,3 +2007,58 @@ fn computed_sum_join_narrows_both_directions_with_late_and_removed_rows() {
     assert!(stats["uses"].as_u64().unwrap() > 0, "{stats}");
     assert!(stats["input_rows"].as_u64().unwrap() > stats["output_rows"].as_u64().unwrap());
 }
+
+#[test]
+fn loaded_source_checks_metadata_operands_and_effects_before_execution() {
+    use eggfuse_cell_runtime::program::Program;
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("program.egg");
+    let dir = tmp.path().join("compiled");
+    fs::write(&src, SOURCE).unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        src.to_str().unwrap(),
+        "--output",
+        dir.to_str().unwrap(),
+    ]);
+    let raw = json_file(&dir.join("program.json"));
+    // The compiler and the standalone binary can resolve different JSON map
+    // ordering features. Compare against the old wire format in this build.
+    let graph =
+        eggfuse_cell_runtime::graph::Graph::new(Program::parse(raw.clone()).unwrap()).unwrap();
+    let mut executor = eggfuse_cell_runtime::executor::Executor::new(graph, false);
+    executor.execute_until(None).unwrap();
+    let state = executor.graph.export().unwrap();
+    let expected = format!(
+        "{{\"rows\":{},\"anchors\":{}}}",
+        state["rows"], state["anchors"]
+    );
+    let mut bytes = Vec::new();
+    executor.graph.write_export(&mut bytes).unwrap();
+    assert_eq!(bytes, expected.as_bytes());
+    let rid = raw["recipe"]["rules"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|r| r["metadata"]["name"] == "left")
+        .unwrap();
+    let mut wrong = raw.clone();
+    wrong["recipe"]["rules"][rid]["metadata"]["extra_field"] = true.into();
+    assert!(Program::parse(wrong).is_err());
+    let mut wrong = raw.clone();
+    wrong["recipe"]["rules"][rid]["query"][0]["args"][0] = json!({"slot":99999999});
+    assert!(Program::parse(wrong).is_err());
+    let mut wrong = raw.clone();
+    wrong["recipe"]["rules"][rid]["effects"][0]["extra_field"] = json!(null);
+    assert!(Program::parse(wrong).is_err());
+    let mut wrong = raw;
+    let set = wrong["source_core"]["rulesets"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|s| !s["rules"].as_array().unwrap().is_empty())
+        .unwrap();
+    set["rules"][0]["head"] = json!([]);
+    assert!(Program::parse(wrong).is_err());
+}

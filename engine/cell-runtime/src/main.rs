@@ -11,8 +11,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         return Ok(());
     }
+    let load_start = Instant::now();
     let bytes = std::fs::read(opt("--program").ok_or("--program required")?)?;
-    let program = Program::parse(serde_json::from_slice(&bytes)?)?;
+    let read_s = load_start.elapsed().as_secs_f64();
+    let parse_start = Instant::now();
+    let json = serde_json::from_slice(&bytes)?;
+    drop(bytes);
+    let parse_s = parse_start.elapsed().as_secs_f64();
+    let verify_start = Instant::now();
+    let program = Program::parse(json)?;
+    let verify_s = verify_start.elapsed().as_secs_f64();
     if args.iter().any(|x| x == "--inspect-program") {
         let (rules, orientations) = program.context_cut_counts();
         println!(
@@ -96,6 +104,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir(&out)?;
     let start = Instant::now();
     let audit = args.iter().any(|x| x == "--audit-stages");
+    let mut graph_s = None;
     let mut runtime = if let Some(path) = opt("--resume") {
         Executor::resume(
             program,
@@ -103,7 +112,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             audit,
         )?
     } else {
-        Executor::new(Graph::new(program)?, audit)
+        let graph = Graph::new(program)?;
+        graph_s = Some(start.elapsed().as_secs_f64());
+        Executor::new(graph, audit)
     };
     let setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
@@ -140,11 +151,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let seconds = start.elapsed().as_secs_f64();
     #[cfg(feature = "spine-shapes")]
     std::fs::write(out.join("spine-shapes.json"), serde_json::to_vec(&runtime.spine_shape_report())?)?;
+    let report_start = Instant::now();
     let mut report = runtime.report();
+    let report_s = report_start.elapsed().as_secs_f64();
     report["inference_seconds"] = seconds.into();
     report["setup_seconds"] = setup.into();
     let export_start = Instant::now();
-    let mut writer = std::io::BufWriter::new(std::fs::File::create(out.join("state.json"))?);
+    let mut writer = std::io::BufWriter::with_capacity(128 * 1024, std::fs::File::create(out.join("state.json"))?);
     runtime.graph.write_export(&mut writer)?;
     std::io::Write::flush(&mut writer)?;
     report["export_seconds"] = export_start.elapsed().as_secs_f64().into();
@@ -174,10 +187,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )?,
         )?;
     }
+    let finish_start = Instant::now();
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     println!(
         "{}",
         serde_json::json!({"status":report["status"],"inference_seconds":seconds,"live_cells":runtime.graph.cells.len(),"stats":runtime.graph.stats})
     );
+    if std::env::var_os("CELL_CPU_CLI_TIMING").is_some() {
+        let finish_s = finish_start.elapsed().as_secs_f64();
+        let export_s = report["export_seconds"].as_f64();
+        let drop_start = Instant::now();
+        drop(report);
+        drop(runtime);
+        eprintln!("{}", serde_json::json!({"read":read_s,"parse":parse_s,"validate":verify_s,"setup":setup,
+            "graph":graph_s,"executor":graph_s.map(|s| setup-s),"inference":seconds,"report_build":report_s,
+            "export":export_s,"report_finish":finish_s,"drop":drop_start.elapsed().as_secs_f64()}));
+    }
     Ok(())
 }

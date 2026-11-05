@@ -190,9 +190,23 @@ impl Views {
                 }
             }
             if tid < p.rules.len() {
-                let expected=exports.iter().map(|(s,cs)|serde_json::json!({"slot":s,"sources":cs.iter().map(|(op,col)|serde_json::json!({"op":op,"column":col})).collect::<Vec<_>>()})).collect::<Vec<_>>();
-                if j["rules"][tid]["continuation_slots"] != serde_json::json!(expected) {
+                let cert = array(&j["rules"][tid]["continuation_slots"])?;
+                if cert.len() != exports.len() {
                     return Err("continuation slot certificate differs".into());
+                }
+                for (entry, (slot, sources)) in cert.iter().zip(&exports) {
+                    let rows = array(&entry["sources"])?;
+                    if !entry.as_object().is_some_and(|o| o.len() == 2)
+                        || entry["slot"].as_u64() != Some(*slot as u64)
+                        || rows.len() != sources.len()
+                        || !rows.iter().zip(sources).all(|(r, (op, col))| {
+                            r.as_object().is_some_and(|o| o.len() == 2)
+                                && r["op"].as_u64() == Some(*op as u64)
+                                && r["column"].as_u64() == Some(*col as u64)
+                        })
+                    {
+                        return Err("continuation slot certificate differs".into());
+                    }
                 }
             }
             v.exports.insert(tid, exports);

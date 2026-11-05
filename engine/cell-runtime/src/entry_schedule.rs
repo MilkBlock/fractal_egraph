@@ -16,9 +16,9 @@ use std::{
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Plan {
-    nodes: Vec<Node>,
-    rules: Vec<Vec<Consumer>>,
-    tables: Vec<Vec<usize>>,
+    nodes: Rc<Vec<Node>>,
+    rules: Rc<Vec<Vec<Consumer>>>,
+    tables: Rc<Vec<Vec<usize>>>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Node {
@@ -55,11 +55,9 @@ impl Plan {
         Ok(s)
     }
     pub(crate) fn derive(p:&Program)->Result<(Self,J)> {
-        let mut s = Self {
-            nodes: vec![],
-            rules: vec![vec![]; p.rules.len()],
-            tables: vec![vec![]; p.tables.len()],
-        };
+        let mut nodes = vec![];
+        let mut rules = vec![vec![]; p.rules.len()];
+        let mut tables = vec![vec![]; p.tables.len()];
         let mut ids = BTreeMap::new();
         let mut expected: Vec<J> = vec![];
         for (rid, r) in p.rules.iter().enumerate() {
@@ -95,9 +93,9 @@ impl Plan {
                     let key = (t, pattern.clone());
                     let n = ids.len();
                     let id = *ids.entry(key).or_insert(n);
-                    if id == s.nodes.len() {
-                        s.tables[t].push(id);
-                        s.nodes.push(Node {
+                    if id == nodes.len() {
+                        tables[t].push(id);
+                        nodes.push(Node {
                             table: t,
                             args: pattern,
                             ports: slots.len(),
@@ -112,7 +110,7 @@ impl Plan {
                         .as_array_mut()
                         .unwrap()
                         .push(json!({"rule":rid,"atom":atom,"slots":pairs}));
-                    s.rules[rid].push(Consumer {
+                    rules[rid].push(Consumer {
                         node: id,
                         atom,
                         projection: Rc::new(projection),
@@ -126,7 +124,7 @@ impl Plan {
             "delivery":"independent consumer watermarks; original RHS publication",
             "invalidation":"old/new witnesses, visibility, canonical identities and same-key forwarding",
             "scope":"table entry nodes; residual queries and guards remain exact"}});
-        Ok((s,expected))
+        Ok((Self { nodes: Rc::new(nodes), rules: Rc::new(rules), tables: Rc::new(tables) },expected))
     }
 
 }

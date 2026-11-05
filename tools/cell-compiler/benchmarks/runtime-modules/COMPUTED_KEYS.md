@@ -60,3 +60,5 @@ CELL_CPU_COMPUTED_KEYS=1 CELL_CPU_SPINE_PUBLICATION=catalog cargo run --release 
 ```
 
 Omit both new environment settings for the control. Enable only computed keys to isolate the index. Set CELL_CPU_PROFILE=1 in a separate process for per-rule/per-pivot residual visits and produced bindings. Use iterative-bake,spine-shapes,slot-transfer-audit for ordered RHS and winning-tree verification.
+
+The [CLI loading and export measurements](CLI_IO.md) isolate program validation, initialization and complete graph serialization on the same two workloads.

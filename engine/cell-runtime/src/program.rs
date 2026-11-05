@@ -357,7 +357,7 @@ impl Program {
         if let Some(raw)=p.artifact.get("single_writes") && *raw!=serde_json::json!(p.writes){return Err("invalid functional write plan".into())}
         if let Some(raw) = p.artifact.get("physical_plan") {
             let emitted: crate::physical_plan::Plan =
-                serde_json::from_value(raw.clone()).map_err(|e| e.to_string())?;
+                Deserialize::deserialize(raw).map_err(|e: serde_json::Error| e.to_string())?;
             if emitted != *p.physical {
                 return Err("physical plan differs from typed recipe".into());
             }
@@ -395,7 +395,7 @@ impl Program {
             }
         }
         if let Some(raw) = p.artifact.get("free_join_entry") {
-            let emitted: crate::entry_join::Plan = serde_json::from_value(raw.clone()).map_err(|e|e.to_string())?;
+            let emitted: crate::entry_join::Plan = Deserialize::deserialize(raw).map_err(|e: serde_json::Error|e.to_string())?;
             if emitted != crate::entry_join::Plan::derive(&p) {
                 return Err("Free Join entry plan differs from typed LHS".into());
             }
@@ -594,74 +594,145 @@ fn verify_source(j: &J) -> Result<()> {
     {
         return Err("source schema, schedule or initial facts differ".into());
     }
-    fn decode(v: &J, slots: &[J]) -> Result<J> {
+    // Check source objects in place. Materializing every decoded rule (and
+    // cloning it into each ruleset) was particularly costly for loader RHSs.
+    fn same_fields(a: &J, b: &J, skip_a: &[&str], skip_b: &[&str]) -> bool {
+        let (Some(a), Some(b)) = (a.as_object(), b.as_object()) else {
+            return false;
+        };
+        let left = a.iter().filter(|(k, _)| !skip_a.contains(&k.as_str()));
+        left.clone().count() == b.keys().filter(|k| !skip_b.contains(&k.as_str())).count()
+            && left
+                .into_iter()
+                .all(|(k, v)| !skip_b.contains(&k.as_str()) && b.get(k) == Some(v))
+    }
+    fn operand(v: &J, expected: &J, slots: &[J]) -> Result<bool> {
         if let Some(i) = v["slot"].as_u64() {
-            let s = slots.get(i as usize).ok_or("invalid source slot")?;
-            Ok(serde_json::json!({"var":s["name"],"sort":s["sort"]}))
+            let slot = slots.get(i as usize).ok_or("invalid source slot")?;
+            Ok(expected.as_object().is_some_and(|o| o.len() == 2)
+                && expected.get("var") == Some(&slot["name"])
+                && expected.get("sort") == Some(&slot["sort"]))
         } else {
-            Ok(v.clone())
+            Ok(v == expected)
         }
     }
-    let rules = array(&ir["rules"])?;
-    let mut decoded = vec![];
-    for r in rules {
-        let slots = array(&r["slots"])?;
-        let mut body = vec![];
-        let mut head = vec![];
-        for atom in array(&r["query"])? {
-            let mut a = atom.clone();
-            a["args"] = array(&atom["args"])?
-                .iter()
-                .map(|v| decode(v, slots))
-                .collect::<Result<Vec<_>>>()?
-                .into();
-            body.push(a);
+    fn operands(v: &J, expected: &J, slots: &[J]) -> Result<bool> {
+        let args = array(v)?;
+        let Some(other) = expected.as_array() else {
+            return Ok(false);
+        };
+        if args.len() != other.len() {
+            return Ok(false);
         }
-        for effect in array(&r["effects"])? {
-            let mut a = effect.clone();
-            a.as_object_mut().ok_or("effect object")?.remove("kind");
-            if let Some(aa) = effect["args"].as_array() {
-                a["args"] = aa
-                    .iter()
-                    .map(|v| decode(v, slots))
-                    .collect::<Result<Vec<_>>>()?
-                    .into();
+        for (a, b) in args.iter().zip(other) {
+            if !operand(a, b, slots)? {
+                return Ok(false);
             }
-            for k in ["value", "arg"] {
-                if !effect[k].is_null() {
-                    a[k] = decode(&effect[k], slots)?;
+        }
+        Ok(true)
+    }
+    fn matches_rule(r: &J, source: &J) -> Result<bool> {
+        let metadata_matches = if r["metadata"].is_null() {
+            source.as_object().is_some_and(|o| o.len() == 2)
+        } else {
+            same_fields(&r["metadata"], source, &["head", "body"], &["head", "body"])
+        };
+        if !metadata_matches {
+            return Ok(false);
+        }
+        let slots = array(&r["slots"])?;
+        let query = array(&r["query"])?;
+        let body = array(&source["body"])?;
+        let effects = array(&r["effects"])?;
+        let head = array(&source["head"])?;
+        if query.len() != body.len() || effects.len() != head.len() {
+            return Ok(false);
+        }
+        for (a, b) in query.iter().zip(body) {
+            if !same_fields(a, b, &["args"], &["args"]) || !operands(&a["args"], &b["args"], slots)?
+            {
+                return Ok(false);
+            }
+        }
+        for (a, b) in effects.iter().zip(head) {
+            let fields = a.as_object().ok_or("effect object")?;
+            let Some(other) = b.as_object() else {
+                return Ok(false);
+            };
+            if fields.len() - usize::from(fields.contains_key("kind")) != other.len() {
+                return Ok(false);
+            }
+            for (k, v) in fields {
+                if k == "kind" {
+                    continue;
+                }
+                let Some(expected) = other.get(k) else {
+                    return Ok(false);
+                };
+                let equal = match k.as_str() {
+                    "args" if v.is_array() => operands(v, expected, slots)?,
+                    "value" | "arg" => operand(v, expected, slots)?,
+                    "dst" if v.is_u64() => {
+                        &slots
+                            .get(v.as_u64().unwrap() as usize)
+                            .ok_or("definition slot")?["name"]
+                            == expected
+                    }
+                    _ => v == expected,
+                };
+                if !equal {
+                    return Ok(false);
                 }
             }
-            if let Some(dst) = effect["dst"].as_u64() {
-                a["dst"] = slots.get(dst as usize).ok_or("definition slot")?["name"].clone();
-            }
-            head.push(a);
         }
-        let mut out = r["metadata"].clone();
-        out["body"] = body.into();
-        out["head"] = head.into();
-        decoded.push(out);
+        Ok(true)
     }
+    let rules = array(&ir["rules"])?;
     let sets = array(&ir["rulesets"])?;
     let source_sets = array(&core["rulesets"])?;
     if sets.len() != source_sets.len() {
         return Err("rulesets differ".into());
     }
+    let mut seen = vec![false; rules.len()];
     for (set, expected) in sets.iter().zip(source_sets) {
-        let mut s = set.clone();
-        s.as_object_mut().unwrap().remove("rule_ids");
-        s["rules"] = array(&set["rule_ids"])?
-            .iter()
-            .map(|id| {
-                decoded
-                    .get(id.as_u64().ok_or("rule ID")? as usize)
-                    .cloned()
-                    .ok_or("rule missing".into())
-            })
-            .collect::<Result<Vec<_>>>()?
-            .into();
-        if s != *expected {
-            return Err("recipe query/effect differs from source".into());
+        let ids = array(&set["rule_ids"])?;
+        let source_rules = array(&expected["rules"])?;
+        if ids.len() != source_rules.len()
+            || !same_fields(set, expected, &["rule_ids", "rules"], &["rules"])
+        {
+            return Err("rulesets differ".into());
+        }
+        for (id, source) in ids.iter().zip(source_rules) {
+            let rid = id.as_u64().ok_or("rule ID")? as usize;
+            let r = rules.get(rid).ok_or("rule missing")?;
+            seen[rid] = true;
+            if !matches_rule(r, source)? {
+                return Err("recipe query/effect differs from source".into());
+            }
+        }
+    }
+    for (r, referenced) in rules.iter().zip(seen) {
+        if referenced {
+            continue;
+        }
+        let slots = array(&r["slots"])?;
+        for a in array(&r["query"])? {
+            for v in array(&a["args"])? {
+                operand(v, &J::Null, slots)?;
+            }
+        }
+        for e in array(&r["effects"])? {
+            if let Some(args) = e["args"].as_array() {
+                for v in args {
+                    operand(v, &J::Null, slots)?;
+                }
+            }
+            for k in ["arg", "value"] {
+                operand(&e[k], &J::Null, slots)?;
+            }
+            if let Some(i) = e["dst"].as_u64() {
+                slots.get(i as usize).ok_or("definition slot")?;
+            }
         }
     }
     Ok(())
