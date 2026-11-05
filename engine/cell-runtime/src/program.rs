@@ -58,6 +58,8 @@ pub struct Rule {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
     #[serde(skip)]
+    pub(crate) view_blocks: Rc<Vec<crate::view_plan::Block>>,
+    #[serde(skip)]
     pub(crate) neighbor_plans: Vec<Option<crate::neighbor::Plan>>,
     #[serde(skip)]
     pub(crate) context_cuts: crate::local_context::Cuts,
@@ -326,6 +328,7 @@ impl Program {
             spine_blocks: Default::default(),
             #[cfg(feature = "iterative-bake")]
             iterative: Default::default(),
+            view_blocks: Default::default(),
             marker_tables: Default::default(),
             multi_stage: crate::multistage::MultiStage::default(),
             entry_schedule: crate::entry_schedule::Plan::default(),
@@ -434,6 +437,19 @@ impl Program {
             crate::merge_programs::Programs::parse(&p, &p.artifact["merge_programs"])?;
         p.known_results = crate::known_results::Plans::parse(&p, &p.artifact["known_results"])?;
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
+        let spine = p
+            .multi_stage
+            .stage_entries
+            .iter()
+            .map(|(r, _, _)| *r)
+            .collect();
+        let blocks = crate::view_plan::derive(&p, &spine);
+        if let Some(raw) = p.artifact.get("view_consumer_blocks")
+            && *raw != serde_json::json!(&blocks)
+        {
+            return Err("view consumer block differs from typed recipe".into());
+        }
+        p.view_blocks = Rc::new(blocks);
         p.context_cuts = crate::local_context::derive_cuts(&p);
         if let Some(raw) = p.artifact.get("context_cuts")
             && *raw != serde_json::json!(crate::local_context::layout(&p.context_cuts))

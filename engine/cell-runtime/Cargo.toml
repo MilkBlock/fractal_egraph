@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+view-storage = []
+view-consumers = ["view-storage"]
+view-ports = ["view-consumers"]
 projection-survey = []
 projection-stamps = []
 projection-semijoin = []

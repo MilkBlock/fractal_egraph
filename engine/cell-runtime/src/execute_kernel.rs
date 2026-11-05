@@ -226,6 +226,8 @@ impl Registers {
         }
         exec.graph.stats.register_answers += 1;
         out.push(Binding {
+            #[cfg(feature = "view-consumers")]
+            view_source: None,
             #[cfg(feature = "iterative-bake")]
             direct: None,
             known: facts,

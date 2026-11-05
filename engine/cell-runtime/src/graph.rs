@@ -155,6 +155,7 @@ pub struct Stats {
 /// All lanes share the same Run barrier. The last three are timing controls.
 
 pub struct Graph {
+    units: unit_ports::Units,
     pub known_stats: crate::known_results::Stats,
     pub merge_programs_enabled: bool,
     scalar_merge: bool,
@@ -192,6 +193,8 @@ pub struct Graph {
     parent_users: rustc_hash::FxHashMap<u32, usize>,
     garbage: BTreeSet<u32>,
 }
+#[path = "unit_ports.rs"]
+mod unit_ports;
 fn hashkey(table: usize, key: &[Value]) -> u64 {
     let mut h = rustc_hash::FxHasher::default();
     table.hash(&mut h);
@@ -257,6 +260,7 @@ impl Graph {
             })
             .collect();
         let mut g = Self {
+            units: unit_ports::Units::new(&program),
             merge_kinds,
             equal_keeps_old,
 
@@ -660,17 +664,55 @@ impl Graph {
         fields.push(v.clone());
         std::rc::Rc::new(fields)
     }
+    fn function_index(&self, t: usize, key: &[Value]) -> Option<usize> {
+        self.function_keys[t]
+            .get(key)
+            .copied()
+            .or_else(|| self.units.lookup(t, key))
+    }
+    #[cfg(feature = "view-consumers")]
+    pub(crate) fn published_view(&self, i: usize) -> Option<crate::view_plan::Tuple> {
+        let f = self.functions.get(i).filter(|f| f.live)?;
+        if let Some(fields) = &f.decoded {
+            return Some(crate::view_plan::Tuple {
+                witness: Dependency::Function(i),
+                epoch: f.epoch,
+                fields: fields.clone(),
+                columns: None,
+            });
+        }
+        self.units
+            .payload(i, f.epoch, &self.parents)
+            .or_else(|| self.function(i).map(|r| crate::view_plan::Tuple::flat(&r)))
+    }
+    #[cfg(feature = "view-storage")]
+    pub(crate) fn has_view_plan(&self, t: usize) -> bool {
+        self.units.owned[t]
+    }
+    pub(crate) fn unit_stats(&self) -> serde_json::Value {
+        self.units.report()
+    }
     pub fn function(&self, i: usize) -> Option<Row> {
         let f = self.functions.get(i)?;
         if !f.live {
             return None;
         }
-        let values = f.decoded.clone().unwrap_or_else(|| {
-            let mut values = Vec::with_capacity(f.key.len() + 1);
-            values.extend(f.key.iter().map(|v| canon(v, &self.parents)));
-            values.push(canon(&f.value, &self.parents));
-            std::rc::Rc::new(values)
-        });
+        let values = f
+            .decoded
+            .clone()
+            .or_else(|| {
+                if f.key.is_empty() && self.units.counts[f.table] > 0 {
+                    self.units.values(i, &self.parents, &f.value)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_else(|| {
+                let mut values = Vec::with_capacity(f.key.len() + 1);
+                values.extend(f.key.iter().map(|v| canon(v, &self.parents)));
+                values.push(canon(&f.value, &self.parents));
+                std::rc::Rc::new(values)
+            });
 
         Some(Row {
             table: f.table,
@@ -829,9 +871,9 @@ impl Graph {
     pub(crate) fn lookup_canonical(&self, table: usize, key: &[Value]) -> Result<Option<Row>> {
         self.key_lookup_calls.set(self.key_lookup_calls.get() + 1);
         if !self.program.tables[table].virtual_fact {
-            return Ok(self.function_keys[table]
-                .get(key)
-                .and_then(|i| self.function(*i)));
+            return Ok(self
+                .function_index(table, key)
+                .and_then(|i| self.function(i)));
         }
         let h = hashkey(table, key);
         if self.dirty_facts[table].is_empty() {
@@ -1230,7 +1272,7 @@ impl Graph {
     }
 
     pub fn set(&mut self, cell: u32, op: usize, t: usize, aa: &[Arg], v: &Arg) -> Result<()> {
-        self.set_inner(cell, op, t, aa, v, None, None)
+        self.set_inner(cell, op, t, aa, v, None, None, None)
     }
     pub fn set_visible(
         &mut self,
@@ -1241,7 +1283,7 @@ impl Graph {
         v: &Arg,
         visible: &mut bool,
     ) -> Result<()> {
-        self.set_inner(cell, op, t, aa, v, Some(visible), None)
+        self.set_inner(cell, op, t, aa, v, Some(visible), None, None)
     }
     pub fn set_recorded(
         &mut self,
@@ -1253,9 +1295,9 @@ impl Graph {
         receipt: &mut Option<Dependency>,
         visible: &mut bool,
     ) -> Result<()> {
-        self.set_inner(cell, op, t, aa, v, Some(visible), Some(receipt))
+        self.set_inner(cell, op, t, aa, v, Some(visible), Some(receipt), None)
     }
-    fn set_inner(
+    pub(crate) fn set_inner(
         &mut self,
         cell: u32,
         op: usize,
@@ -1264,12 +1306,13 @@ impl Graph {
         v: &Arg,
         visible: Option<&mut bool>,
         receipt: Option<&mut Option<Dependency>>,
+        source: Option<usize>,
     ) -> Result<()> {
         let key = self.arguments(cell, aa)?;
         let value = self.argument(cell, v)?;
         if !self.program.tables[t].virtual_fact {
             let before = self.stats.function_updates;
-            let index = self.set_function_canonical(t, &key, value)?;
+            let index = self.set_function_from(t, &key, value, Some((cell, op, source)))?;
             if let Some(receipt) = receipt {
                 *receipt = Some(Dependency::Function(index));
             }
@@ -1531,7 +1574,16 @@ impl Graph {
         self.set_function_canonical(t, &key, value)
     }
     fn set_function_canonical(&mut self, t: usize, key: &[Value], value: Value) -> Result<usize> {
-        let index = self.function_keys[t].get(key).copied();
+        self.set_function_from(t, key, value, None)
+    }
+    fn set_function_from(
+        &mut self,
+        t: usize,
+        key: &[Value],
+        value: Value,
+        site: Option<(u32, usize, Option<usize>)>,
+    ) -> Result<usize> {
+        let index = self.function_index(t, key);
         if let Some(i) = index {
             let old = canon(&self.functions[i].value, &self.parents);
             let next = self.merge_value(t, old.clone(), value)?;
@@ -1560,22 +1612,40 @@ impl Graph {
             let i = self.functions.len();
             #[cfg(feature = "slot-transfer-audit")]
             crate::transfer_audit::effective(self.epoch, t, i, key, None, &value)?;
+            let compact = if cfg!(feature = "view-storage")
+                && self.units.owned[t]
+                && value == Value::Int(0)
+            {
+                self.try_view_projection(t, i, key, site)?
+            } else {
+                false
+            };
+            let (stored_key, decoded) = if compact {
+                (Vec::new(), None)
+            } else {
+                self.function_keys[t].insert(key.to_vec(), i);
+                (key.to_vec(), Some(Self::shared_fields(key, &value)))
+            };
             self.functions.push(Function {
-                decoded: Some(Self::shared_fields(key, &value)),
+                decoded,
                 table: t,
-                key: key.to_vec(),
+                key: stored_key,
                 value,
                 epoch: self.epoch,
                 live: true,
                 origin: None,
             });
             self.function_operators[t].insert(i);
-            self.function_keys[t].insert(key.to_vec(), i);
             self.changed = true;
             self.stats.function_updates += 1;
             self.changes.touch(t, Dependency::Function(i));
-            let row = self.function(i).unwrap();
-            self.subscribe(row.witness, &row.values);
+            if compact {
+                // Unit contributes no equality dependency.
+                self.subscribe(Dependency::Function(i), key);
+            } else {
+                let row = self.function(i).unwrap();
+                self.subscribe(row.witness, &row.values);
+            }
             Ok(i)
         }
     }
@@ -1647,7 +1717,11 @@ impl Graph {
                 self.function_origin(i, None);
                 self.query_versions[t] += 1;
                 self.function_operators[t].remove(&i);
-                self.function_keys[t].remove(key);
+                if self.units.remove(i) {
+                    self.units.stats.deleted += 1;
+                } else {
+                    self.function_keys[t].remove(key);
+                }
                 self.subscribe(row.witness, &[]);
                 self.changed = true;
                 Ok(true)
@@ -1746,33 +1820,51 @@ impl Graph {
                         continue;
                     };
                     let key = row.values[..row.values.len() - 1].to_vec();
+                    let compressed = self.units.remove(i);
                     let oldkey = &self.functions[i].key;
-                    if self.function_keys[row.table].get(oldkey) == Some(&i) {
+                    if !compressed && self.function_keys[row.table].get(oldkey) == Some(&i) {
                         self.function_keys[row.table].remove(oldkey);
                     }
-                    if let Some(j) = self.function_keys[row.table].get(&key).copied() {
+                    if let Some(j) = self.function_index(row.table, &key) {
                         if j != i {
-                            let old = canon(&self.functions[j].value, &self.parents);
-                            #[cfg(feature = "slot-transfer-audit")]
-                            let before = old.clone();
-                            let next = self.merge_value(
-                                row.table,
-                                old,
-                                row.values.last().unwrap().clone(),
-                            )?;
-                            #[cfg(feature = "slot-transfer-audit")]
-                            if before != next {
-                                crate::transfer_audit::effective(
-                                    self.epoch,
-                                    row.table,
-                                    j,
-                                    &key,
-                                    Some(&before),
-                                    &next,
-                                )?;
+                            if compressed {
+                                self.units.stats.lost += 1;
                             }
-                            self.functions[j].decoded = None;
-                            self.functions[j].value = next;
+
+                            // The key directory selected the exact survivor. Its Unit
+                            // value and canonical key keep all reverse subscriptions valid.
+                            let shared_unit = cfg!(feature = "view-storage")
+                                && self.units.owned[row.table]
+                                && row.values.last() == Some(&Value::Int(0))
+                                && self.functions[j].value == Value::Int(0)
+                                && (self.functions[j].key == key
+                                    || self.units.change_block(j, &row.values));
+                            if shared_unit {
+                                self.functions[j].decoded = Some(row.values.clone());
+                                self.units.stats.fast_merges += 1;
+                            } else {
+                                let old = canon(&self.functions[j].value, &self.parents);
+                                #[cfg(feature = "slot-transfer-audit")]
+                                let before = old.clone();
+                                let next = self.merge_value(
+                                    row.table,
+                                    old,
+                                    row.values.last().unwrap().clone(),
+                                )?;
+                                #[cfg(feature = "slot-transfer-audit")]
+                                if before != next {
+                                    crate::transfer_audit::effective(
+                                        self.epoch,
+                                        row.table,
+                                        j,
+                                        &key,
+                                        Some(&before),
+                                        &next,
+                                    )?;
+                                }
+                                self.functions[j].decoded = None;
+                                self.functions[j].value = next;
+                            }
                             self.functions[j].epoch = self.epoch;
                             self.functions[i].live = false;
                             self.changes.retire(row.table, d);
@@ -1783,11 +1875,18 @@ impl Graph {
                             self.function_origin(i, None);
                             self.function_operators[row.table].remove(&i);
                             self.subscribe(d, &[]);
-                            let target = self.function(j).unwrap();
-                            self.subscribe(target.witness, &target.values);
-                            self.changes.touch(target.table, target.witness);
+                            if shared_unit {
+                                self.query_versions[row.table] += 1;
+                            } else {
+                                let target = self.function(j).unwrap();
+                                self.subscribe(target.witness, &target.values);
+                            }
+                            self.changes.touch(row.table, Dependency::Function(j));
                             continue;
                         }
+                    }
+                    if compressed {
+                        self.units.stats.promoted += 1;
                     }
                     self.functions[i].decoded = Some(row.values.clone());
                     self.functions[i].key = key.clone();

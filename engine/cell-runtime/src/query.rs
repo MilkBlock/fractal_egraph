@@ -377,6 +377,10 @@ impl QueryIndexes {
         self.revision += u64::from(!g.changes.is_empty());
     }
 
+    #[cfg(feature = "view-consumers")]
+    pub(crate) fn has_columns(&self, table: usize) -> bool {
+        self.tables.contains_key(&table)
+    }
     pub(crate) fn writer(&mut self, table: usize, _version: u64) -> Option<ColumnWriter<'_>> {
         let index = self.tables.get_mut(&table)?;
         #[cfg(feature = "projection-stamps")]

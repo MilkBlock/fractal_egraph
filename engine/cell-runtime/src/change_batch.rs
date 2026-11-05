@@ -89,6 +89,8 @@ impl Change {
 
 #[derive(Default, serde::Serialize)]
 pub(crate) struct Publication {
+    #[cfg(feature = "view-storage")]
+    view_column_rows: u64,
     row_reads: u64,
     headers: u64,
     header_only: u64,
@@ -105,6 +107,7 @@ impl Publication {
         columns: &mut QueryIndexes,
         mut ranges: Option<&mut RangeIndex>,
         neighbor: &mut Context,
+        mut publish_ports: impl FnMut(usize, &FxHashMap<Dependency, Change>, bool),
     ) -> Result<()> {
         columns.begin_publication(g);
         for (t, changes) in g.changes.tables() {
@@ -112,6 +115,11 @@ impl Publication {
             self.headers += count;
             let version = g.query_versions[t];
             let mut writer = columns.writer(t, version);
+            publish_ports(t, changes, writer.is_some());
+            #[cfg(feature = "view-storage")]
+            if writer.is_some() && g.has_view_plan(t) {
+                self.view_column_rows += count;
+            }
             let mut range = ranges.as_deref_mut().filter(|r| r.observes(t));
             let neighbors = neighbor.observes(t);
             if writer.is_none() && range.is_none() && !neighbors {

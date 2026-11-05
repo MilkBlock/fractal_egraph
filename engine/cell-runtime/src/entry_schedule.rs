@@ -344,12 +344,18 @@ impl Scheduler {
     /// Called before query-change records are consumed. Only committed rows and
     /// exact same-key forwarding retirements enter the shared pending domains.
     pub fn publish(&mut self, g: &Graph) {
+        self.publish_except(g, |_| false);
+    }
+    pub(crate) fn publish_except(&mut self, g: &Graph, dedicated: impl Fn(usize) -> bool) {
         if !self.enabled {
             return;
         }
         self.rows.clear();
         // A same-key repair retires the old witness and touches the survivor.
         for (table, changes) in g.changes.tables() {
+            if dedicated(table) {
+                continue;
+            }
             self.stats.changed_headers += changes.len() as u64;
             for &id in &self.plan.tables[table] {
                 let state = &mut self.states[id];

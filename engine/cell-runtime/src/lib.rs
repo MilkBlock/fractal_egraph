@@ -2,6 +2,7 @@ mod change_batch;
 pub mod checksum;
 #[cfg(feature = "slot-transfer-audit")]
 pub mod transfer_audit;
+mod view_plan;
 
 #[path = "runtime.rs"]
 pub mod executor;

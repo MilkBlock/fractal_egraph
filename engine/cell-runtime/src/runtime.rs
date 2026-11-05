@@ -1,6 +1,9 @@
 use crate::query::QueryIndexes;
 #[path = "free_join.rs"]
 mod free_join;
+#[cfg(feature = "view-consumers")]
+#[path = "view_exec.rs"]
+mod view_exec;
 use free_join::{FreeJoin, Subtrie};
 #[path = "execute_kernel.rs"]
 mod execute_kernel;
@@ -18,6 +21,8 @@ use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct Binding {
+    #[cfg(feature = "view-consumers")]
+    view_source: Option<usize>,
     #[cfg(feature = "iterative-bake")]
     direct: Option<crate::stage_spine::DirectOrigin>,
     known: QueryFacts,
@@ -60,6 +65,8 @@ struct StagePatch {
     bindings: Vec<(usize, Binding)>,
 }
 pub struct Executor {
+    #[cfg(feature = "view-consumers")]
+    blocks: view_exec::Blocks,
     publication: crate::change_batch::Publication,
     range_index: Option<crate::range_index::RangeIndex>,
 
@@ -226,6 +233,8 @@ impl Executor {
         graph.receipt_tracking =
             (stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
+            #[cfg(feature = "view-consumers")]
+            blocks: view_exec::Blocks::new(&graph),
             publication: Default::default(),
             range_index: Some(Default::default()),
 
@@ -301,6 +310,8 @@ impl Executor {
     ) -> Result<()> {
         if !remaining.iter().any(|pending| *pending) {
             out.push(Binding {
+                #[cfg(feature = "view-consumers")]
+                view_source: None,
                 #[cfg(feature = "iterative-bake")]
                 direct: None,
                 known: env.known.clone(),
@@ -773,6 +784,8 @@ impl Executor {
     ) -> Result<()> {
         let Some((&i, tail)) = order.split_first() else {
             out.push(Binding {
+                #[cfg(feature = "view-consumers")]
+                view_source: None,
                 #[cfg(feature = "iterative-bake")]
                 direct: None,
                 known: env.known.clone(),
@@ -914,6 +927,8 @@ impl Executor {
                     known.record(i, w);
                 }
                 Binding {
+                    #[cfg(feature = "view-consumers")]
+                    view_source: None,
                     #[cfg(feature = "iterative-bake")]
                     direct: None,
                     values: rule.inputs.iter().copied().zip(answer.values).collect(),
@@ -951,6 +966,20 @@ impl Executor {
                 self.pending[rid].clear();
             }
             return Ok(vec![]);
+        }
+        #[cfg(feature = "view-consumers")]
+        if !probe
+            && let Some(rows) = self.blocks.matches(
+                rid,
+                self.watermarks[rid],
+                &mut self.graph,
+                &mut self.query_indexes,
+                &mut self.entry_schedule,
+                &self.stage_spine,
+            )?
+        {
+            self.pending[rid].clear();
+            return Ok(rows);
         }
         let query_facts = if probe {
             QueryFacts::None
@@ -1142,6 +1171,8 @@ impl Executor {
                         }
 
                         Binding {
+                            #[cfg(feature = "view-consumers")]
+                            view_source: None,
                             #[cfg(feature = "iterative-bake")]
                             direct: a.direct,
                             values: rule.inputs.iter().copied().zip(a.values).collect(),
@@ -1256,6 +1287,8 @@ impl Executor {
                     }
                     if !remaining.iter().any(|v| *v) {
                         found.push(Binding {
+                            #[cfg(feature = "view-consumers")]
+                            view_source: None,
                             #[cfg(feature = "iterative-bake")]
                             direct: None,
                             known: env.known.clone(),
@@ -1545,6 +1578,8 @@ impl Executor {
                             }
                             if !remaining.iter().any(|v| *v) {
                                 found.push(Binding {
+                                    #[cfg(feature = "view-consumers")]
+                                    view_source: None,
                                     #[cfg(feature = "iterative-bake")]
                                     direct: None,
                                     known: env.known.clone(),
@@ -1852,20 +1887,20 @@ impl Executor {
                         .insert(*dst, v);
                 }
                 Op::Set(t, aa, v) => {
-                    if let Some(receipts) = &mut effect_receipts {
-                        let mut visible = false;
-                        self.graph.set_recorded(
-                            cell,
-                            i,
-                            *t,
-                            aa,
-                            v,
-                            &mut receipts[i],
-                            &mut visible,
-                        )?;
-                    } else {
-                        self.graph.set(cell, i, *t, aa, v)?;
-                    }
+                    #[cfg(feature = "view-consumers")]
+                    let source = b.view_source;
+                    #[cfg(not(feature = "view-consumers"))]
+                    let source = None;
+                    self.graph.set_inner(
+                        cell,
+                        i,
+                        *t,
+                        aa,
+                        v,
+                        None,
+                        effect_receipts.as_mut().map(|rs| &mut rs[i]),
+                        source,
+                    )?;
                 }
                 Op::Union(a, b) => {
                     let a = self.graph.argument(cell, &a)?;
@@ -1990,6 +2025,10 @@ impl Executor {
         let repair_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.stage_spine.publish(&mut self.graph)?;
+        #[cfg(feature = "view-consumers")]
+        self.entry_schedule
+            .publish_except(&self.graph, |t| self.blocks.dedicated(t));
+        #[cfg(not(feature = "view-consumers"))]
         self.entry_schedule.publish(&self.graph);
         self.graph.receipt_forwards.clear();
         self.publication.publish(
@@ -1997,6 +2036,11 @@ impl Executor {
             &mut self.query_indexes,
             self.range_index.as_mut(),
             &mut self.neighbor,
+            |_table, _changes, _indexed| {
+                #[cfg(feature = "view-consumers")]
+                self.blocks
+                    .publish_table(&self.graph, _table, _changes, _indexed);
+            },
         )?;
         #[cfg(feature = "projection-semijoin")]
         self.free_join
@@ -2151,13 +2195,23 @@ impl Executor {
         Ok(())
     }
     pub fn report(&self) -> J {
+        let view_rule_profile=self.profile_queries.then(||{
+            self.graph.program.view_blocks.iter().flat_map(|b|b.producer.members.iter().chain(&b.consumers.members))
+                .map(|m|{let (calls,seconds,visits,answers)=self.query_profile[m.rule];
+                    json!({"rule":m.rule,"calls":calls,"search_s":seconds,"residual_visits":visits,"bindings":answers})
+                }).collect::<Vec<_>>()
+        });
+        #[cfg(feature = "view-consumers")]
+        let views = self.blocks.report(&self.graph, &self.query_indexes);
+        #[cfg(not(feature = "view-consumers"))]
+        let views = J::Null;
         #[cfg(feature = "projection-survey")]
         let survey = self.free_join.survey.report();
         #[cfg(not(feature = "projection-survey"))]
         let survey = J::Null;
         json!({"backend":"cell-cpu","scope":"standalone Cell recipe executor","status":if self.tasks.is_empty(){"complete"}else{"checkpointed"},
             "stats":self.graph.stats,"live_cells":self.graph.cells.len(),"steps":self.steps,"program_sha256":self.graph.program.artifact["sha256"],
-            "publication":self.publication,
+            "view_rule_profile":view_rule_profile,"view_consumers":views,"view_storage":self.graph.unit_stats(),"publication":self.publication,
             "semijoin":self.free_join.semijoin_report(),"projection_survey":survey,"entry_schedule":self.entry_schedule.report(),"free_join":self.free_join.stats,"sieve":self.sieve.report(),"neighbor_context":self.neighbor.report(&self.graph.program),
             "local_context":self.local_context.report(&self.graph.program),"stage_spine":self.stage_spine.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),
             "multi_stage":{"stats":self.continuation_stats},"physical":{"range":self.range_index.as_ref().map(|r|&r.stats)}})

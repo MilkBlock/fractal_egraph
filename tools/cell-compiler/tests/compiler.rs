@@ -1066,3 +1066,108 @@ fn mismatched_catalog_is_rejected_before_publication() {
     assert!(String::from_utf8_lossy(&res.stderr).contains("catalog does not match"));
     assert!(!dest.exists());
 }
+
+#[test]
+fn producer_and_consumers_share_a_checked_port_on_the_original_schedule() {
+    use eggfuse_cell_runtime::program::Program;
+    let tmp = tempfile::tempdir().unwrap();
+    let text = include_str!("fixtures/view-consumers.egg");
+    let compile = |name: &str, body: &str| {
+        let input = tmp.path().join(format!("{name}.egg"));
+        let output = tmp.path().join(name);
+        fs::write(&input, body).unwrap();
+        pass(&[
+            "compile",
+            "--source",
+            input.to_str().unwrap(),
+            "--output",
+            output.to_str().unwrap(),
+        ]);
+        output.join("program.json")
+    };
+    let pg = compile("renamed", text);
+    let raw = json_file(&pg);
+    let blocks = raw["view_consumer_blocks"].as_array().unwrap();
+    assert_eq!(blocks.len(), 1);
+    let block = &blocks[0];
+    let table = block["view"].as_u64().unwrap() as usize;
+    assert_eq!(raw["recipe"]["tables"][table]["name"], "Ticket");
+    assert_eq!(block["consumers"]["members"].as_array().unwrap().len(), 3);
+    assert!(block["consumers"]["dispatch"].is_object());
+    // Frozen ordinary execution includes both fresh pivots, a late peer, union,
+    // removal and reinsertion. Each digest includes the ordered RHS and stage graph.
+    let expected = serde_json::json!([
+        "ce93a735fd0c26467d1a34fe387af8ae9758ad7991a0815b4560e3e4900ad803",
+        "9f99a78d53ad8270e7948c482c80e148ab142972b952b10fe6aba9c96ffa7f27",
+        "209ae7a3624b07f9a77356a21363e0f2fc9cc719dddf2792aac4b05b190e1271",
+        "48ed5708219762f8a98cec4c8d0f00e2b38db044a77a1001495e5ccef06b9b54",
+        "c62459792ac8a0daf41c36b36c110e75e9a694ece14ee14ab214e85d65380348",
+        "d385b2d1690d278321d8a9b871bc5c6058e216ac2af3eb6d1df3107b91f98a42",
+        "afc110eeef13beb11fcd4eff54790780908d8b69cfaf2ece2711b193817a9846",
+        "d291af02fa82965e3ff35b500ba0e6472f25e4bcc238665f10443ffa7d194548",
+        "ee28a12bbfbd7a64cee5bc4d5f2e1eb2da50c93bacdf7315d04fcdd4975fe508",
+        "fc5bc52d6c90b2fda284ccbe9067c2a26f1a43b6d49328b883cbf8357e7defc1"
+    ]);
+    for bits in ["64", "0"] {
+        let stages: J = serde_json::from_slice(&stage_output(&pg, bits)).unwrap();
+        assert_eq!(stages, expected);
+    }
+    let mut invalid = raw.clone();
+    invalid["view_consumer_blocks"][0]["consumers"]["dispatch"]["equal"] = json!(375);
+    assert!(
+        Program::parse(invalid)
+            .unwrap_err()
+            .contains("view consumer block")
+    );
+    let mut legacy = raw;
+    legacy
+        .as_object_mut()
+        .unwrap()
+        .remove("view_consumer_blocks");
+    assert!(Program::parse(legacy).is_ok());
+
+    let bench = pass(&["bench", "--program", pg.to_str().unwrap(), "--repeat", "1"]);
+    let result: J = serde_json::from_slice(&bench.stdout).unwrap();
+    if cfg!(feature = "view-ports") {
+        let counts = &result["counts"];
+        assert_eq!(
+            counts["view_consumers"]["tables"][0]["generic_columns"],
+            false
+        );
+        assert!(counts["view_storage"]["direct_sources"].as_u64().unwrap() > 0);
+        assert!(counts["view_storage"]["deleted"].as_u64().unwrap() > 0);
+        assert!(
+            counts["view_consumers"]["tables"][0]["port_rows"]
+                .as_u64()
+                .unwrap()
+                > 0
+        );
+        assert!(
+            counts["view_consumers"]["groups"][1]["counts"]["comparison_dispatches"]
+                .as_u64()
+                .unwrap()
+                > 0
+        );
+    }
+    let overlapping = compile(
+        "overlap",
+        &text.replace("(< cost bound)", "(<= cost bound)"),
+    );
+    let general = json_file(&overlapping);
+    assert_eq!(general["view_consumer_blocks"].as_array().unwrap().len(), 1);
+    assert!(general["view_consumer_blocks"][0]["consumers"]["dispatch"].is_null());
+    assert_eq!(
+        stage_output(&overlapping, "64"),
+        stage_output(&overlapping, "0")
+    );
+
+    let marker = "(Choice (Cost 1 3) (Cost 2 6))";
+    let extra=text.replace(marker,&format!("(ruleset inspect)\n(rule ((Ticket v a b n)) ((set (Ledger 7) n)) :ruleset inspect)\n{marker}"));
+    let other = compile("extra-reader", &format!("{extra}\n(run inspect 1)"));
+    assert!(
+        json_file(&other)["view_consumer_blocks"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+}

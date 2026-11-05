@@ -160,7 +160,17 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     let p = Program::load(j, true)?;
     let multi = multistage(&p);
     let contexts = crate::local_context::derive(&p, &multi["stage_entries"]);
+    let spine = multi["stage_entries"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|x| x["rule"].as_u64().unwrap() as usize)
+        .collect();
     let plans = [
+        (
+            "view_consumer_blocks",
+            json!(crate::view_plan::derive(&p, &spine)),
+        ),
         ("single_writes", json!(&p.writes)),
         ("neighbor_entries", json!(&p.neighbor_plans)),
         ("row_kernels", json!(&p.kernels)),
