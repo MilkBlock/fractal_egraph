@@ -839,8 +839,18 @@ impl Graph {
             _ => Err("invalid parent fact".into()),
         }
     }
-    pub fn arguments(&self, cell: u32, aa: &[Arg]) -> Result<Vec<Value>> {
-        aa.iter().map(|a| self.argument(cell, a)).collect()
+    fn collect_arguments<C: FromIterator<Value>>(&self, cell: u32, args: &[Arg]) -> Result<C> {
+        if let Some(frame) = self.rhs_frame(cell) {
+            args.iter().map(|arg| self.argument_in(cell, frame, arg)).collect()
+        } else {
+            args.iter().map(|arg| self.argument(cell, arg)).collect()
+        }
+    }
+    pub fn arguments(&self, cell: u32, args: &[Arg]) -> Result<Vec<Value>> {
+        self.collect_arguments(cell, args)
+    }
+    pub(crate) fn inline_arguments(&self, cell: u32, args: &[Arg]) -> Result<smallvec::SmallVec<[Value; 4]>> {
+        self.collect_arguments(cell, args)
     }
     pub fn fact(&self, f: FactRef) -> Result<Option<Row>> {
         let Some(c) = self.cells.get(&f.cell) else {
@@ -1521,7 +1531,7 @@ impl Graph {
         receipt: Option<&mut Option<Dependency>>,
     ) -> Result<Value> {
         self.stats.constructor_requests += 1;
-        let key = self.arguments(cell, aa)?;
+        let key = self.inline_arguments(cell, aa)?;
         let row = self.lookup_canonical(t, &key)?;
         if let Some(row) = row {
             if let Some(receipt) = receipt {
@@ -1698,7 +1708,7 @@ impl Graph {
         receipt: Option<&mut Option<Dependency>>,
         source: Option<usize>,
     ) -> Result<()> {
-        let key = self.arguments(cell, aa)?;
+        let key = self.inline_arguments(cell, aa)?;
         let value = self.argument(cell, v)?;
         if !self.program.tables[t].virtual_fact {
             let before = self.stats.function_updates;
@@ -1724,7 +1734,7 @@ impl Graph {
             }
             return Ok(());
         }
-        if let Some(old) = self.lookup(t, &key)? {
+        if let Some(old) = self.lookup_canonical(t, &key)? {
             if let Some(receipt) = receipt {
                 *receipt = Some(old.witness);
             }

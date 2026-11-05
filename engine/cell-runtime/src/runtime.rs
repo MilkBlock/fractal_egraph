@@ -2233,7 +2233,7 @@ impl Executor {
                             self.graph.construct(cell, i, *t, aa, *dst)?;
                         };
                     } else {
-                        let key = self.graph.arguments(cell, &aa)?;
+                        let key = self.graph.inline_arguments(cell, aa)?;
                         let row = self.graph.lookup_canonical(*t, &key)?.ok_or_else(|| {
                             format!(
                                 "missing function read {}",
@@ -2251,7 +2251,7 @@ impl Executor {
                     }
                 }
                 Op::Let(dst, Call::Primitive(name, output), aa) => {
-                    let args = self.graph.arguments(cell, &aa)?;
+                    let args = self.graph.inline_arguments(cell, aa)?;
                     if name.starts_with("cell-key-") {
                         self.graph.stats.key_operations += 1;
                     }
@@ -2286,7 +2286,7 @@ impl Executor {
                     self.graph.enqueue_union(a, b)?;
                 }
                 Op::Hide(t, aa, delete) => {
-                    let key = self.graph.arguments(cell, &aa)?;
+                    let key = self.graph.inline_arguments(cell, aa)?;
                     if !self.graph.hide(*t, &key, *delete)? {
                         completed_prefix = i + 1;
                         completed = false;
