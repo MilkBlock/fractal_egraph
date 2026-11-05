@@ -613,6 +613,8 @@ impl Programs {
         *self.stats.by_set.entry(set.into()).or_default() += 1;
         if let Some(mut cursor) = previous {
             self.stats.resumed_steps += 1;
+            #[cfg(feature = "slot-transfer-audit")]
+            crate::transfer_audit::resume(cursor.root.id, cursor.producer, rid, cursor.depth);
             #[cfg(feature = "iterative-bake")]
             self.training
                 .applied(&p.iterative, &mut cursor.state, p.rules[rid].inputs.len());
@@ -833,25 +835,26 @@ impl Programs {
         let clock = Instant::now();
         // Removed/coalesced anchors are not reusable. Other stale ports are
         // refreshed by exact keys when their legal consumer stage arrives.
-        for w in g.query_changes.keys() {
-            let live = match *w {
-                Dependency::Fact(f) => g
-                    .cells
-                    .get(&f.cell)
-                    .and_then(|c| c.facts.get(&f.op))
-                    .is_some_and(|f| !f.hidden),
-                Dependency::Function(i) => g.functions.get(i).is_some_and(|f| f.live),
-            };
-            if live {
-                continue;
-            }
-            if self.entries.remove(w).is_some() {
-                self.stats.anchors_retired += 1;
-                let t = g.query_changes[w];
-                let n = self.active_tables.get_mut(&t).unwrap();
-                *n -= 1;
-                if *n == 0 {
-                    self.active_tables.remove(&t);
+        for (t, changes) in g.changes.tables() {
+            for w in changes.keys() {
+                let live = match *w {
+                    Dependency::Fact(f) => g
+                        .cells
+                        .get(&f.cell)
+                        .and_then(|c| c.facts.get(&f.op))
+                        .is_some_and(|f| !f.hidden),
+                    Dependency::Function(i) => g.functions.get(i).is_some_and(|f| f.live),
+                };
+                if live {
+                    continue;
+                }
+                if self.entries.remove(w).is_some() {
+                    self.stats.anchors_retired += 1;
+                    let n = self.active_tables.get_mut(&t).unwrap();
+                    *n -= 1;
+                    if *n == 0 {
+                        self.active_tables.remove(&t);
+                    }
                 }
             }
         }

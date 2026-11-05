@@ -95,19 +95,21 @@ pub(crate) struct RangeIndex {
 }
 impl RangeIndex {
     pub fn update(&mut self, g: &Graph) -> Result<()> {
-        if self.tables.is_empty() || g.query_changes.is_empty() {
+        if self.tables.is_empty() || g.changes.is_empty() {
             return Ok(());
         }
         let clock = Instant::now();
-        for (&w, &t) in &g.query_changes {
+        for (t, changes) in g.changes.tables() {
             let Some(table) = self.tables.get_mut(&t) else {
                 continue;
             };
-            let row = g.row(w)?;
-            self.stats.update_rows += 1;
-            for (&(prefix, column), axis) in &mut table.axes {
-                self.stats.changed_entries +=
-                    u64::from(axis.update(w, row.as_ref(), prefix, column)?);
+            for &w in changes.keys() {
+                let row = g.row(w)?;
+                self.stats.update_rows += 1;
+                for (&(prefix, column), axis) in &mut table.axes {
+                    self.stats.changed_entries +=
+                        u64::from(axis.update(w, row.as_ref(), prefix, column)?);
+                }
             }
             table.version = g.query_versions[t];
         }

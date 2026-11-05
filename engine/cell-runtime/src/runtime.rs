@@ -263,24 +263,26 @@ impl Executor {
         };
         e.entry_schedule.publish(&e.graph);
         e.deliver();
-        e.graph.query_changes.clear();
+        e.graph.changes.clear();
         e
     }
     fn deliver(&mut self) {
-        // All events are delivered at one published Run boundary. Repeated
-        // repairs of one fact have the same final state and subscriber set.
-        let mut events = std::mem::take(&mut self.graph.events);
-        self.graph.stats.delivery_events += events.len() as u64;
-        events.sort_unstable();
-        events.dedup();
-        self.graph.stats.distinct_delivery_events += events.len() as u64;
-        for event in events {
-            if let Some(table) = self.graph.live_table(event) {
-                for &rid in &self.readers[table] {
-                    self.dirty[rid] = true;
-                    if !self.entry_schedule.accepts(rid) {
-                        self.pending[rid].insert(event);
-                    }
+        use crate::change_batch::Change;
+        let batch = &self.graph.changes;
+        self.graph.stats.delivery_events += batch.events;
+        self.graph.stats.distinct_delivery_events += batch.distinct_events;
+        for (table, changes) in batch.tables() {
+            if !changes.values().any(|c| *c == Change::Wake) {
+                continue;
+            }
+            for &rid in &self.readers[table] {
+                self.dirty[rid] = true;
+                if !self.entry_schedule.accepts(rid) {
+                    self.pending[rid].extend(
+                        changes
+                            .iter()
+                            .filter_map(|(w, c)| (*c == Change::Wake).then_some(*w)),
+                    );
                 }
             }
         }
@@ -1584,6 +1586,8 @@ impl Executor {
         Ok(found)
     }
     fn apply(&mut self, rid: usize, b: Binding) -> Result<()> {
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::rhs(rid);
         let stage_cursor = self.stage_spine.begin_step(
             &self.graph.program,
             rid,
@@ -1939,10 +1943,14 @@ impl Executor {
             self.binding_audit.push(json!({"ruleset":set,"bindings":patch.bindings.iter().map(|(rid,b)|{let template=&self.graph.program.templates[self.graph.program.rules[*rid].template];json!({"rule":rid,"values":b.values.iter().map(|(i,v)|json!({"slot":i,"value":crate::value::exported(v,&template.sorts[*i])})).collect::<Vec<_>>()})}).collect::<Vec<_>>()}));
         }
         let phase = Instant::now();
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::begin_writes();
         let executed = patch.bindings.len();
         for (rid, binding) in patch.bindings {
             self.apply(rid, binding)?;
         }
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::repaired();
         let rhs_seconds = phase.elapsed().as_secs_f64();
         self.graph.stats.bindings += executed as u64;
         let phase = Instant::now();
@@ -1958,7 +1966,7 @@ impl Executor {
         {
             {
                 self.query_indexes
-                    .update_with(&mut self.graph, |table, fact, row| {
+                    .update_with(&self.graph, |table, fact, row| {
                         self.neighbor.changed(table, fact, row)
                     })?;
                 self.neighbor
@@ -1969,8 +1977,11 @@ impl Executor {
         let query_update_seconds = phase.elapsed().as_secs_f64();
         let phase = Instant::now();
         self.deliver();
+        self.graph.changes.clear();
         self.graph.collect_garbage();
         let delivery_seconds = phase.elapsed().as_secs_f64();
+        #[cfg(feature = "slot-transfer-audit")]
+        crate::transfer_audit::end_writes();
         let changed = self.graph.changed;
         self.steps.push(json!({"ordinal":self.steps.len()+1,"ruleset":set,"path":path,"iterations":iterations,"epoch":self.graph.epoch,"logical_matches":matches,"local_bindings":0,"executed_bindings":executed,"changed":changed,"live_cells":self.graph.cells.len(),"elapsed_seconds":start.elapsed().as_secs_f64(),"phases":{"search":search_seconds,"rhs":rhs_seconds,"repair":repair_seconds,"delivery_gc":delivery_seconds,"query_update":query_update_seconds}}));
         if self.audit {
@@ -2113,6 +2124,7 @@ impl Executor {
     pub fn report(&self) -> J {
         json!({"backend":"cell-cpu","scope":"standalone Cell recipe executor","status":if self.tasks.is_empty(){"complete"}else{"checkpointed"},
             "stats":self.graph.stats,"live_cells":self.graph.cells.len(),"steps":self.steps,"program_sha256":self.graph.program.artifact["sha256"],
+            "publication":{"row_reads":self.query_indexes.publication_reads + self.range_index.as_ref().map_or(0,|index|index.stats.update_rows)},
             "entry_schedule":self.entry_schedule.report(),"free_join":self.free_join.stats,"sieve":self.sieve.report(),"neighbor_context":self.neighbor.report(&self.graph.program),
             "local_context":self.local_context.report(&self.graph.program),"stage_spine":self.stage_spine.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),
             "multi_stage":{"stats":self.continuation_stats},"physical":{"range":self.range_index.as_ref().map(|r|&r.stats)}})

@@ -340,24 +340,15 @@ impl Scheduler {
             return;
         }
         self.rows.clear();
-        let mut changed = g.query_changes.clone();
-        for &w in &g.events {
-            if let Some(t) = g.live_table(w) {
-                changed.insert(w, t);
-            }
-        }
-        for (&old, &new) in &g.receipt_forwards {
-            let new = g.resolve_receipt(new);
-            if let Some(t) = g.live_table(new) {
-                changed.insert(old, t);
-                changed.insert(new, t);
-            }
-        }
-        self.stats.changed_headers += changed.len() as u64;
-        for (w, t) in changed {
-            for &id in &self.plan.tables[t] {
-                if !self.states[id].cold && self.states[id].pending.insert(w) {
-                    self.stats.node_notifications += 1;
+        // A same-key repair retires the old witness and touches the survivor.
+        for (table, changes) in g.changes.tables() {
+            self.stats.changed_headers += changes.len() as u64;
+            for &id in &self.plan.tables[table] {
+                let state = &mut self.states[id];
+                if !state.cold {
+                    let before = state.pending.len();
+                    state.pending.extend(changes.keys().copied());
+                    self.stats.node_notifications += (state.pending.len() - before) as u64;
                 }
             }
         }

@@ -171,11 +171,10 @@ pub struct Graph {
     pub stats: Stats,
     pub pending_unions: Vec<(u64, u64)>,
 
-    pub events: Vec<Dependency>,
+    pub(crate) changes: crate::change_batch::ChangeBatch,
     pub anchors: Vec<(String, String, u64)>,
     pub next_cell: u32,
     pub query_versions: Vec<u64>,
-    pub query_changes: HashMap<Dependency, usize>,
     // Transient commit-boundary receipts, never part of a checkpoint.
     pub receipt_tracking: bool,
     pub receipt_forwards: HashMap<Dependency, Dependency>,
@@ -276,11 +275,10 @@ impl Graph {
             merge_programs_enabled: true,
             pending_unions: vec![],
 
-            events: vec![],
+            changes: crate::change_batch::ChangeBatch::new(n),
             anchors: vec![],
             next_cell: 1,
             query_versions: vec![0; n],
-            query_changes: HashMap::default(),
             receipt_tracking: false,
             receipt_forwards: HashMap::default(),
 
@@ -877,7 +875,6 @@ impl Graph {
     fn subscribe(&mut self, d: Dependency, values: &[Value]) {
         if let Some(table) = self.dependency_table(d) {
             self.query_versions[table] += 1;
-            self.query_changes.insert(d, table);
         }
         let mut refs = BTreeSet::new();
         for v in values {
@@ -928,7 +925,7 @@ impl Graph {
         self.operators[t].insert(f);
         self.intern.entry(h).or_default().insert(f);
         self.subscribe(Dependency::Fact(f), &vs);
-        self.events.push(Dependency::Fact(f));
+        self.changes.touch(t, Dependency::Fact(f));
         self.stats.logical_facts_created += 1;
 
         self.changed = true;
@@ -1540,18 +1537,19 @@ impl Graph {
             let next = self.merge_value(t, old.clone(), value)?;
             if next != old {
                 self.functions[i].decoded = Some(Self::shared_fields(key, &next));
+                #[cfg(feature = "slot-transfer-audit")]
+                crate::transfer_audit::effective(self.epoch, t, i, key, Some(&old), &next)?;
                 self.functions[i].value = next;
                 self.functions[i].epoch = self.epoch;
                 self.changed = true;
                 self.stats.function_updates += 1;
-                self.events.push(Dependency::Function(i));
+                self.changes.touch(t, Dependency::Function(i));
                 // A scalar result change preserves every subscribed eclass.
                 // Publish the row version without rebuilding its reverse uses.
                 if !matches!(old, Value::Eq(_) | Value::Set(_))
                     && !matches!(self.functions[i].value, Value::Eq(_) | Value::Set(_))
                 {
                     self.query_versions[t] += 1;
-                    self.query_changes.insert(Dependency::Function(i), t);
                 } else {
                     let row = self.function(i).unwrap();
                     self.subscribe(row.witness, &row.values);
@@ -1560,6 +1558,8 @@ impl Graph {
             Ok(i)
         } else {
             let i = self.functions.len();
+            #[cfg(feature = "slot-transfer-audit")]
+            crate::transfer_audit::effective(self.epoch, t, i, key, None, &value)?;
             self.functions.push(Function {
                 decoded: Some(Self::shared_fields(key, &value)),
                 table: t,
@@ -1573,7 +1573,7 @@ impl Graph {
             self.function_keys[t].insert(key.to_vec(), i);
             self.changed = true;
             self.stats.function_updates += 1;
-            self.events.push(Dependency::Function(i));
+            self.changes.touch(t, Dependency::Function(i));
             let row = self.function(i).unwrap();
             self.subscribe(row.witness, &row.values);
             Ok(i)
@@ -1581,8 +1581,8 @@ impl Graph {
     }
     fn retire(&mut self, f: FactRef) -> Result<()> {
         if let Some(r) = self.fact(f)? {
+            self.changes.retire(r.table, Dependency::Fact(f));
             self.query_versions[r.table] += 1;
-            self.query_changes.insert(Dependency::Fact(f), r.table);
             let s = self
                 .cells
                 .get_mut(&f.cell)
@@ -1630,11 +1630,10 @@ impl Graph {
                         .unwrap();
                     if !s.hidden {
                         self.query_versions[t] += 1;
-                        self.query_changes.insert(row.witness, t);
                         s.hidden = true;
                         s.epoch = self.epoch;
                         self.changed = true;
-                        self.events.push(row.witness);
+                        self.changes.touch(t, row.witness);
                     }
                 }
                 Ok(born < self.epoch)
@@ -1644,9 +1643,9 @@ impl Graph {
                     return Err("function subsume unsupported".into());
                 }
                 self.functions[i].live = false;
+                self.changes.retire(t, row.witness);
                 self.function_origin(i, None);
                 self.query_versions[t] += 1;
-                self.query_changes.insert(row.witness, t);
                 self.function_operators[t].remove(&i);
                 self.function_keys[t].remove(key);
                 self.subscribe(row.witness, &[]);
@@ -1709,7 +1708,6 @@ impl Graph {
                         }
                         if let Dependency::Fact(keep) = other.witness {
                             self.query_versions[r.table] += 1;
-                            self.query_changes.insert(other.witness, r.table);
                             let target = self
                                 .cells
                                 .get_mut(&keep.cell)
@@ -1719,7 +1717,7 @@ impl Graph {
                                 .unwrap();
                             target.hidden |= r.hidden;
                             target.epoch = self.epoch;
-                            self.events.push(other.witness);
+                            self.changes.touch(r.table, other.witness);
                         }
                         if self.receipt_tracking {
                             self.receipt_forwards
@@ -1740,7 +1738,7 @@ impl Graph {
                         s.hash = h;
                         s.epoch = self.epoch;
                         self.subscribe(d, &r.values);
-                        self.events.push(d);
+                        self.changes.touch(r.table, d);
                     }
                 }
                 Dependency::Function(i) => {
@@ -1755,15 +1753,29 @@ impl Graph {
                     if let Some(j) = self.function_keys[row.table].get(&key).copied() {
                         if j != i {
                             let old = canon(&self.functions[j].value, &self.parents);
+                            #[cfg(feature = "slot-transfer-audit")]
+                            let before = old.clone();
                             let next = self.merge_value(
                                 row.table,
                                 old,
                                 row.values.last().unwrap().clone(),
                             )?;
+                            #[cfg(feature = "slot-transfer-audit")]
+                            if before != next {
+                                crate::transfer_audit::effective(
+                                    self.epoch,
+                                    row.table,
+                                    j,
+                                    &key,
+                                    Some(&before),
+                                    &next,
+                                )?;
+                            }
                             self.functions[j].decoded = None;
                             self.functions[j].value = next;
                             self.functions[j].epoch = self.epoch;
                             self.functions[i].live = false;
+                            self.changes.retire(row.table, d);
                             if self.receipt_tracking {
                                 self.receipt_forwards
                                     .insert(Dependency::Function(i), Dependency::Function(j));
@@ -1773,7 +1785,7 @@ impl Graph {
                             self.subscribe(d, &[]);
                             let target = self.function(j).unwrap();
                             self.subscribe(target.witness, &target.values);
-                            self.events.push(target.witness);
+                            self.changes.touch(target.table, target.witness);
                             continue;
                         }
                     }
@@ -1783,7 +1795,7 @@ impl Graph {
                     self.functions[i].epoch = self.epoch;
                     self.function_keys[row.table].insert(key, i);
                     self.subscribe(d, &row.values);
-                    self.events.push(d);
+                    self.changes.touch(row.table, d);
                 }
             }
         }

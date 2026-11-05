@@ -134,6 +134,7 @@ pub struct QueryIndexes {
     pub peak_references: usize,
     pub decoded_facts: u64,
     pub updated_facts: u64,
+    pub(crate) publication_reads: u64,
     pub builds: u64,
 }
 pub enum Domain {
@@ -174,6 +175,7 @@ impl Default for QueryIndexes {
             peak_references: 0,
             decoded_facts: 0,
             updated_facts: 0,
+            publication_reads: 0,
             builds: 0,
         }
     }
@@ -282,31 +284,34 @@ impl QueryIndexes {
     }
     pub(crate) fn update_with(
         &mut self,
-        graph: &mut Graph,
+        graph: &Graph,
         mut publish: impl FnMut(usize, Dependency, Option<&Row>),
     ) -> Result<()> {
-        if !graph.query_changes.is_empty() {
+        if !graph.changes.is_empty() {
             self.revision += 1;
         }
         // Collapse all writes/union repairs within a Run to the final visible row.
-        for (fact, table) in std::mem::take(&mut graph.query_changes) {
+        for (table, changes) in graph.changes.tables() {
             if let Some(index) = self.tables.get_mut(&table) {
-                let row = graph.row(fact)?;
-                publish(table, fact, row.as_ref());
-                let (removed, added) = if let Some(row) = &row {
-                    self.updated_facts += 1;
-                    index.put(row, self.bits, index.leased_reads)
-                } else {
-                    (index.remove(fact), 0)
-                };
-                // The index already decoded this committed row. Move its payload
-                // into the publication batch, instead of decoding it again in
-                // each subscribed context. Cleared after the current publication.
+                self.publication_reads += changes.len() as u64;
+                for &fact in changes.keys() {
+                    let row = graph.row(fact)?;
+                    publish(table, fact, row.as_ref());
+                    let (removed, added) = if let Some(row) = &row {
+                        self.updated_facts += 1;
+                        index.put(row, self.bits, index.leased_reads)
+                    } else {
+                        (index.remove(fact), 0)
+                    };
+                    // The index already decoded this committed row. Move its payload
+                    // into the publication batch, instead of decoding it again in
+                    // each subscribed context. Cleared after the current publication.
 
-                if self.track_changes && added > 0 {
-                    self.changes.push((fact, table));
+                    if self.track_changes && added > 0 {
+                        self.changes.push((fact, table));
+                    }
+                    self.references = self.references - removed + added;
                 }
-                self.references = self.references - removed + added;
             }
         }
         for (table, index) in &mut self.tables {

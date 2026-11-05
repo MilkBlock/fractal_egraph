@@ -1,3 +1,4 @@
+mod change_batch;
 pub mod checksum;
 #[cfg(feature = "slot-transfer-audit")]
 pub mod transfer_audit;
