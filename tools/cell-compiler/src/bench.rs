@@ -64,6 +64,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
                 "stage-spine" => ("CELL_CPU_STAGE_SPINE", "1"),
                 "slot-transfer" => ("CELL_CPU_SLOT_TRANSFER", "1"),
                 "computed-keys" => ("CELL_CPU_COMPUTED_KEYS", "1"),
+                "catalog-publication" => ("CELL_CPU_SPINE_PUBLICATION", "catalog"),
                 "range-guards" => ("CELL_CPU_RANGE_GUARDS", "1"),
                 "fd-keys" => ("CELL_CPU_FD_KEYS", "1"),
                 "scalar-merge" => ("CELL_CPU_SCALAR_MERGE", "1"),

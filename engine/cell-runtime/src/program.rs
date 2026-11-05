@@ -131,6 +131,10 @@ impl Program {
         if j["schema"] != "eggfuse-cell-runtime/v1" {
             return Err("unsupported Cell runtime artifact".into());
         }
+        if !compiling && std::env::var("CELL_CPU_SPINE_PUBLICATION").as_deref()==Ok("catalog")
+            && (!cfg!(feature="spine-blocks") || !j["spine_blocks"]["entries"].is_array()) {
+            return Err("catalog publication requires a spine-blocks build and a checked block catalog".into());
+        }
         if !compiling && std::env::var("CELL_CPU_UNION_GRAFT").as_deref() == Ok("1")
             && j["multi_stage"]["union_entries"].is_null()
         {

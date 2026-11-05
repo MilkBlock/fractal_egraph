@@ -177,6 +177,8 @@ pub struct Coverage {
 }
 #[derive(Default, Serialize)]
 pub struct Stats {
+    producer_ops_available: usize,
+    producer_ops_admitted: usize,
     root_attempts: u64,
     root_handles_created: u64,
     contexts_created: u64,
@@ -533,6 +535,20 @@ impl Programs {
                 s.anchor_shapes.insert((rid, pivot), (id, projection));
             }
         }
+        // Restrict only producer capture. An unclaimed consumer still follows
+        // its normal scheduled matcher. Keep every writer of an admitted table
+        // so last-writer and same-key forwarding semantics agree at publication.
+        #[cfg(feature = "spine-blocks")]
+        let admitted_tables = (std::env::var("CELL_CPU_SPINE_PUBLICATION").as_deref() == Ok("catalog"))
+            .then(|| p.multi_stage.stage_entries.iter().filter_map(|(rid, pivot, _)| {
+                p.spine_blocks.get(*rid, *pivot)?;
+                match p.rules[*rid].query[*pivot].call {
+                    Call::Table(t) => Some(t),
+                    _ => None,
+                }
+            }).collect::<BTreeSet<_>>());
+        #[cfg(not(feature = "spine-blocks"))]
+        let admitted_tables: Option<BTreeSet<usize>> = None;
         // Store one cursor per committed anchor. Consumer programs attach only
         // on their own Run, rather than preparing the entire fanout at publish.
         for (rid, r) in p.rules.iter().enumerate() {
@@ -559,7 +575,16 @@ impl Programs {
             let mut query_facts = QueryFacts::None;
             let mut anchors = Vec::new();
             if is_producer {
+                s.stats.producer_ops_available += ops.len();
                 for op in ops {
+                    if let Some(tables) = &admitted_tables {
+                        let t = match p.templates[r.template].ops[op] {
+                            Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => t,
+                            _ => unreachable!(),
+                        };
+                        if !tables.contains(&t) { continue; }
+                    }
+                    s.stats.producer_ops_admitted += 1;
                     let source = p
                         .known_results
                         .static_sources
