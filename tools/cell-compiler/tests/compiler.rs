@@ -128,6 +128,41 @@ fn source_to_checked_program_and_bench() {
         json_file(&measured.join("marker-selection.json"))["selected"],
         0
     );
+    // A per-fragment rebuild charge must reach the ILP, not just the report.
+    let mut v2 = json_file(&profile);
+    v2["schema"] = json!("marker-cost-profile/v2");
+    for entry in v2["markers"].as_object_mut().unwrap().values_mut() {
+        entry["maintenance_ns"] = json!(0);
+        entry["native_rebuild_delta_ns"] = json!(100000);
+        for saving in entry["saved_search_ns_by_rule"]
+            .as_object_mut()
+            .unwrap()
+            .values_mut()
+        {
+            *saving = json!(10);
+        }
+    }
+    let proposed = |costs: &J, name: &str| {
+        fs::write(&profile, serde_json::to_vec(costs).unwrap()).unwrap();
+        let dest = tmp.path().join(name);
+        pass(&[
+            "compile",
+            "--source",
+            src.to_str().unwrap(),
+            "--output",
+            dest.to_str().unwrap(),
+            "--profile",
+            profile.to_str().unwrap(),
+        ]);
+        json_file(&dest.join("marker-selection.json"))["selected"]
+            .as_u64()
+            .unwrap()
+    };
+    assert_eq!(proposed(&v2, "with-rebuild"), 0);
+    for e in v2["markers"].as_object_mut().unwrap().values_mut() {
+        e["native_rebuild_delta_ns"] = 0.into();
+    }
+    assert!(proposed(&v2, "without-rebuild") > 0);
 }
 #[test]
 fn incompatible_training_does_not_publish_output() {
@@ -1856,6 +1891,59 @@ fn changed_child_ports_follow_value_replacement_and_key_repair() {
     let old = dir.path().join("old.json");
     fs::write(&old, serde_json::to_vec(&legacy).unwrap()).unwrap();
     assert_eq!(bench(&old, "neighbor-context")["counts"], fast["counts"]);
+}
+
+#[test]
+fn native_rebuild_charge_changes_admission_of_the_exact_marker_bundle() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("in.egg");
+    fs::write(&src, SOURCE).unwrap();
+    let dir = tmp.path().join("proposed");
+    pass(&[
+        "compile",
+        "--source",
+        src.to_str().unwrap(),
+        "--output",
+        dir.to_str().unwrap(),
+    ]);
+    let manifest = json_file(&dir.join("manifest.json"));
+    let mut profile = json!({"schema":"eggfuse-native-marker-cost/v1","source_sha256":manifest["files"]["source_sk.egg"],
+        "marked_sha256":manifest["files"]["source_sk_mk.egg"],"phase_order_ms":["search_apply","merge","rebuild"],"pairs":[]});
+    let cost = tmp.path().join("profile.json");
+    let compile = |name: &str, profile: &J| {
+        fs::write(&cost, serde_json::to_vec(profile).unwrap()).unwrap();
+        let out = tmp.path().join(name);
+        let o = command(&[
+            "compile",
+            "--source",
+            src.to_str().unwrap(),
+            "--output",
+            out.to_str().unwrap(),
+            "--native-marker-profile",
+            cost.to_str().unwrap(),
+        ]);
+        (o, out)
+    };
+    for (label, rebuild, accept) in [("accepted", 1., true), ("rejected", 10., false)] {
+        profile["pairs"] = json!(vec![[[8., 1., 1.], [4., 1., rebuild]]; 3]);
+        let (o, out) = compile(label, &profile);
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+        let selection = json_file(&out.join("marker-selection.json"));
+        assert_eq!(selection["native_admission"]["admitted"], accept);
+        assert_eq!(selection["selected"].as_u64().unwrap() > 0, accept);
+        assert_eq!(
+            fs::read(out.join("source_sk_mk.egg")).unwrap(),
+            fs::read(dir.join(if accept {
+                "source_sk_mk.egg"
+            } else {
+                "source_sk.egg"
+            }))
+            .unwrap()
+        );
+    }
+    profile["marked_sha256"] = json!("different");
+    let (o, out) = compile("stale", &profile);
+    assert!(!o.status.success() && !out.exists());
 }
 
 #[test]

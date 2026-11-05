@@ -4,6 +4,7 @@ mod bench;
 mod keys;
 mod marker_ir;
 mod markers;
+mod marker_admission;
 mod surface;
 mod witness;
 use serde_json::{Value as J, json};
@@ -123,13 +124,28 @@ fn compile(
         return Err("unknown marker locality".into());
     }
     let cells = witness::load(&analysis)?;
-    let (marked, report, names) = markers::rewrite(
+    let (mut marked, mut report, mut names) = markers::rewrite(
         "source_sk.egg",
         &keyed,
         &cells,
         profile.as_ref(),
         locality == "identity",
     )?;
+    if let Some(file) = opts.get("--native-marker-profile") {
+        let (admitted, decision) = marker_admission::decision(&read(Path::new(file))?, &keyed, &marked)?;
+        report["native_admission"] = decision;
+        report["proposed_selected"] = report["selected"].clone();
+        if !admitted {
+            marked = keyed.clone();
+            names.clear();
+            for key in ["markers", "receipt_tables"] {
+                report[key] = json!([]);
+            }
+            for key in ["selected", "publish_actions"] {
+                report[key] = 0.into();
+            }
+        }
+    }
     let core = egg_layout::device_frontend::core("source_sk_mk.egg", &marked)?;
     eprintln!("Cell compiler: lower and validate standalone CPU plans");
     let analysis_bytes = fs::read(analysis.join("cell-recipes.json"))?;
@@ -280,7 +296,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
     }
     if cmd == "help" || args.iter().any(|a| a == "--help") {
         println!(
-            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry|free-join-planned] [--modules local-congruence,union-graft,stage-spine,local-context,context-cuts,neighbor-context,neighbor-ports,static-aliases,slot-transfer,range-guards,fd-keys,scalar-merge] [--slot-transfer off|siblings|parent|both|local-only|parent-check|parent-owned] [--verify-stages]"
+            "cargo cell-compile (--case NAME | --source FILE [--bake-source FILE]) --output DIR [--emit-free-join-entry] [--profile FILE] [--native-marker-profile FILE] [--marker-locality identity|all] [--composition-evidence FILE]\ncargo cell-calibrate-markers --compiled DIR --native COUNT_FJ --output PROFILE [--pairs N]\ncargo cell-bench (--case NAME | --source FILE [--bake-source FILE] | --program FILE) [--repeat N] [--lane baseline|nodes|filtered|free-join|free-join-entry|free-join-planned] [--modules local-congruence,union-graft,stage-spine,local-context,context-cuts,neighbor-context,neighbor-ports,computed-keys,catalog-publication,static-aliases,slot-transfer,range-guards,fd-keys,scalar-merge] [--slot-transfer off|siblings|parent|both|local-only|parent-check|parent-owned] [--verify-stages]"
         );
         return Ok(());
     }
@@ -289,6 +305,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
         #[cfg(feature = "iterative-bake")]
         "iterate" => iterate::run(args),
         "internal-bake" if args.len() == 2 => bake(Path::new(&args[0]), Path::new(&args[1])),
+        "calibrate-markers" => marker_admission::calibrate(args),
         "compile" => {
             let opts = options(
                 args.into_iter(),
@@ -298,6 +315,7 @@ pub fn cli(default_bench: bool) -> Result<()> {
                     "--output",
                     "--bake-source",
                     "--profile",
+                    "--native-marker-profile",
                     "--marker-locality",
                     "--composition-evidence",
                     "--emit-free-join-entry",

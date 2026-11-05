@@ -340,6 +340,19 @@ fn costs(view: &View, rules: &[J], profile: Option<&J>) -> Result<(f64, Vec<f64>
         .as_f64()
         .filter(|x| x.is_finite() && *x >= 0.)
         .ok_or_else(|| format!("invalid maintenance cost for {key}"))?;
+    // In v2 the caller measures maintenance excluding rebuild, and adds
+    // the marginal native rebuild time for this particular view exactly once.
+    let maintenance = if p["schema"] == "marker-cost-profile/v2" {
+        let delta = data["native_rebuild_delta_ns"].as_f64().filter(|x| x.is_finite())
+            .ok_or_else(|| format!("missing native rebuild delta for {key}"))?;
+        let total = maintenance + delta;
+        if !total.is_finite() {
+            return Err("nonfinite marker lifecycle cost".into());
+        }
+        total
+    } else {
+        maintenance
+    };
     let saved = view
         .uses
         .iter()
@@ -450,7 +463,7 @@ pub fn rewrite(
     identity: bool,
 ) -> Result<(String, J, BTreeSet<String>)> {
     if let Some(p) = profile
-        && (p["schema"] != "marker-cost-profile/v1"
+        && (!matches!(p["schema"].as_str(),Some("marker-cost-profile/v1" | "marker-cost-profile/v2"))
             || p["source_sha256"] != crate::sha(source.as_bytes()))
     {
         return Err("marker profile does not describe the structural-key source".into());
@@ -707,7 +720,7 @@ pub fn rewrite(
             lines.push(s(&c["text"]).into())
         }
     }
-    let report = json!({"offered":offered,"offered_fragments":offers,"locality":if identity{"identity"}else{"all"},"selection_scope":"exact positive source views; training observations provide witnesses","cost_model":if profile.is_some(){"profile-supplied lifecycle nanoseconds"}else{"structural baseline; not a runtime performance estimate"},"receipt_tables":applied.iter().map(|v|&v.0).collect::<Vec<_>>(),"selected":selected,"publish_actions":pubs,"markers":views.iter().map(|v|json!({"name":v.name,"body":v.body,"completion_body":v.completion,"sorts":v.sorts,"cells":crate::witness::matches(cells,&v.body,&v.sorts),"consumers":v.uses.iter().map(|o|o.rid).collect::<Vec<_>>() })).collect::<Vec<_>>()});
+    let report = json!({"offered":offered,"offered_fragments":offers,"locality":if identity{"identity"}else{"all"},"selection_scope":"exact positive source views; training observations provide witnesses","cost_model":if profile.is_some_and(|p|p["schema"]=="marker-cost-profile/v2"){"profile-supplied lifecycle plus marginal native rebuild nanoseconds"}else if profile.is_some(){"profile-supplied lifecycle nanoseconds"}else{"structural baseline; not a runtime performance estimate"},"receipt_tables":applied.iter().map(|v|&v.0).collect::<Vec<_>>(),"selected":selected,"publish_actions":pubs,"markers":views.iter().map(|v|json!({"name":v.name,"body":v.body,"completion_body":v.completion,"sorts":v.sorts,"cells":crate::witness::matches(cells,&v.body,&v.sorts),"consumers":v.uses.iter().map(|o|o.rid).collect::<Vec<_>>() })).collect::<Vec<_>>()});
     Ok((
         lines.join("\n") + "\n",
         report,

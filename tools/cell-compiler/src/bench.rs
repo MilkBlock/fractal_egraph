@@ -49,6 +49,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
             "--lane",
             "--modules",
             "--slot-transfer",
+            "--native-marker-profile",
         ],
     )?;
     let mut modules = BTreeMap::new();
@@ -101,7 +102,7 @@ pub(super) fn run(mut args: Vec<String>) -> Result<()> {
     }
     let dir = tempfile::tempdir()?;
     let program = if let Some(p) = opts.get("--program") {
-        if ["--case", "--source", "--bake-source"]
+        if ["--case", "--source", "--bake-source", "--native-marker-profile"]
             .iter()
             .any(|k| opts.contains_key(*k))
         {
