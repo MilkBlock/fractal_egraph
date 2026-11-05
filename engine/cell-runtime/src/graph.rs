@@ -220,6 +220,12 @@ mod scalar_keys;
 mod writer_frames;
 pub struct Graph {
     #[cfg(feature = "sparse-cells")]
+    pub(crate) sealed_generation: Option<u64>,
+    #[cfg(feature = "sparse-cells")]
+    pub(crate) sealed_input_cell: Option<u32>,
+    #[cfg(feature = "sparse-cells")]
+    sealed_reads: std::cell::Cell<u64>,
+    #[cfg(feature = "sparse-cells")]
     visibility_tainted: Vec<bool>,
     #[cfg(feature = "sparse-cells")]
     active_origin: Option<usize>,
@@ -295,6 +301,21 @@ fn hashkey(table: usize, key: &[Value]) -> u64 {
     h.finish()
 }
 impl Graph {
+    /// Only the frame being executed may read its sealed inputs without
+    /// canonicalizing them again. A real union invalidates that permission.
+    #[cfg(feature = "sparse-cells")]
+    fn trust_sealed_frame(&mut self, id: u32) {
+        self.sealed_input_cell = (self.sealed_generation == Some(self.stats.unions)).then_some(id);
+    }
+
+    #[cfg(feature = "storage-metrics")]
+    fn sealed_read_count(&self) -> u64 {
+        #[cfg(feature = "sparse-cells")]
+        { self.sealed_reads.get() }
+        #[cfg(not(feature = "sparse-cells"))]
+        { 0 }
+    }
+
     #[cfg(feature = "receipt-slots")]
     pub(crate) fn current_port_slot(&self, w: Dependency) -> Option<u32> {
         match w {
@@ -345,7 +366,7 @@ impl Graph {
         let writers = json!({"live":self.writer_dir.live,"peak":self.writer_dir.peak,"installed":self.writer_dir.installations,"promoted":self.writer_dir.promoted,"from_general_rhs":self.writer_dir.general});
         #[cfg(not(feature = "sparse-cells"))]
         let writers = J::Null;
-        json!({"embedded_writers":writers,"full_cells":self.cells.len(),"cell_fact_arity_0_1_2_3_4plus":arity,"intern_sizes_0_1_2_3plus":buckets,"intern_headers":self.intern.len(),"forward_dependency_headers":self.dependencies.len(),"reverse_dependency_headers":self.uses.len(),"dependency_edges":self.dependencies.values().map(|v|v.len()).sum::<usize>(),"live_functions":self.functions.iter().filter(|f|f.live).count(),"function_slots":self.functions.len(),"cell_id_high_water":self.next_cell})
+        json!({"sealed_slot_reads": self.sealed_read_count(), "embedded_writers":writers,"full_cells":self.cells.len(),"cell_fact_arity_0_1_2_3_4plus":arity,"intern_sizes_0_1_2_3plus":buckets,"intern_headers":self.intern.len(),"forward_dependency_headers":self.dependencies.len(),"reverse_dependency_headers":self.uses.len(),"dependency_edges":self.dependencies.values().map(|v|v.len()).sum::<usize>(),"live_functions":self.functions.iter().filter(|f|f.live).count(),"function_slots":self.functions.len(),"cell_id_high_water":self.next_cell})
     }
     /// Follow only storage relocation and proved same-key coalescence in this
     /// commit. Equal result classes alone never establish a row receipt.
@@ -411,6 +432,12 @@ impl Graph {
             .map(scalar_keys::FunctionKeys::new)
             .collect();
         let mut g = Self {
+            #[cfg(feature = "sparse-cells")]
+            sealed_generation: None,
+            #[cfg(feature = "sparse-cells")]
+            sealed_input_cell: None,
+            #[cfg(feature = "sparse-cells")]
+            sealed_reads: Default::default(),
             #[cfg(feature = "sparse-cells")]
             visibility_tainted: vec![false; n],
             #[cfg(feature = "sparse-cells")]
@@ -615,6 +642,8 @@ impl Graph {
         #[cfg(feature = "structural-depth")] mut receipts: Option<&mut [Option<Dependency>]>,
     ) -> Result<Option<(u32, usize)>> {
         let id = self.reserve_cell_id()?;
+        #[cfg(feature = "sparse-cells")]
+        self.trust_sealed_frame(id);
         let mut frame = self.new_cell(template, values, parent);
         let ops = self.program.templates[template].ops.clone();
         for (op, instruction) in ops.iter().enumerate() {
@@ -666,6 +695,8 @@ impl Graph {
         keep_key: bool,
     ) -> Result<(u32, usize, Option<Vec<Value>>, bool)> {
         let id = self.reserve_cell_id()?;
+        #[cfg(feature = "sparse-cells")]
+        self.trust_sealed_frame(id);
         self.stats.single_writes += 1;
         let before = self.stats.function_updates;
         #[cfg(feature="sparse-cells")]
@@ -763,6 +794,8 @@ impl Graph {
             self.active_origin = None;
         }
         let id = self.reserve_cell_id()?;
+        #[cfg(feature = "sparse-cells")]
+        self.trust_sealed_frame(id);
         self.active_rhs = Some((id, self.new_cell(template, values, parent)));
         Ok(id)
     }
@@ -800,6 +833,11 @@ impl Graph {
         i: usize,
     ) -> Result<Value> {
         if let Some(v) = values.get(&i) {
+            #[cfg(feature = "sparse-cells")]
+            if self.sealed_input_cell == Some(cell) {
+                self.sealed_reads.set(self.sealed_reads.get()+1);
+                return Ok(v.clone());
+            }
             return Ok(canon(v, &self.parents));
         }
         let arg = |a: &Arg| match a {
@@ -1627,6 +1665,8 @@ impl Graph {
         }
         let (lo, hi) = (a.min(b), a.max(b));
 
+        #[cfg(feature = "sparse-cells")]
+        { self.sealed_input_cell = None; }
         self.parents.insert(hi, lo);
         let mut affected = self.uses.remove(&hi).unwrap_or_default();
         // Only displaced identities change row fields. Re-stamping the already
@@ -2470,3 +2510,21 @@ impl Graph {
 
 #[path = "producer.rs"]
 pub(crate) mod producer;
+
+#[cfg(all(test, feature="sparse-cells", feature="projection-stamps"))]
+mod sealed_input_tests {
+    use super::*;
+    #[test]
+    fn a_union_invalidates_the_active_frame_certificate() {
+        let mut graph=crate::query::test_projection_graph();
+        let values=std::iter::once((0,Value::Eq(9))).collect();
+        graph.sealed_generation=Some(graph.stats.unions);
+        graph.trust_sealed_frame(42);
+        assert_eq!(graph.slot_fields(42,0,None,&values,0).unwrap(),Value::Eq(9));
+        graph.union(9,2).unwrap();
+        assert_eq!(graph.sealed_input_cell,None);
+        assert_eq!(graph.slot_fields(42,0,None,&values,0).unwrap(),Value::Eq(2));
+        graph.trust_sealed_frame(43);
+        assert_eq!(graph.sealed_input_cell,None);
+    }
+}

@@ -22866,5 +22866,199 @@
         "idle_runs": 7551
       }
     }
-  }
+  },
+  "sealed-input": [
+    {
+      "case": "sum-bits",
+      "arm": "pending-control",
+      "i": 0,
+      "ms": 19.025,
+      "rss": 159973376,
+      "cli": 118.094,
+      "visits": 18693,
+      "search": 9.251,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "sealed-input",
+      "i": 0,
+      "ms": 19.967,
+      "rss": 159989760,
+      "cli": 441.993,
+      "visits": 18693,
+      "search": 9.81,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "sealed-input",
+      "i": 1,
+      "ms": 19.415,
+      "rss": 159989760,
+      "cli": 112.671,
+      "visits": 18693,
+      "search": 9.564,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pending-control",
+      "i": 1,
+      "ms": 19.721,
+      "rss": 159956992,
+      "cli": 113.548,
+      "visits": 18693,
+      "search": 9.532,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pending-control",
+      "i": 2,
+      "ms": 19.512,
+      "rss": 159956992,
+      "cli": 115.687,
+      "visits": 18693,
+      "search": 9.494,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "sealed-input",
+      "i": 2,
+      "ms": 19.234,
+      "rss": 159973376,
+      "cli": 112.839,
+      "visits": 18693,
+      "search": 9.435,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "sealed-input",
+      "i": 3,
+      "ms": 18.675,
+      "rss": 159973376,
+      "cli": 111.832,
+      "visits": 18693,
+      "search": 9.172,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pending-control",
+      "i": 3,
+      "ms": 19.219,
+      "rss": 159973376,
+      "cli": 112.706,
+      "visits": 18693,
+      "search": 9.335,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "raytrace",
+      "arm": "pending-control",
+      "i": 0,
+      "ms": 7033.737,
+      "rss": 2077589504,
+      "cli": 10428.219,
+      "visits": 6798165,
+      "search": 3214.149,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "sealed-input",
+      "i": 0,
+      "ms": 6992.05,
+      "rss": 2083340288,
+      "cli": 10371.078,
+      "visits": 6798165,
+      "search": 3193.66,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "sealed-input",
+      "i": 1,
+      "ms": 6926.838,
+      "rss": 2084978688,
+      "cli": 10357.131,
+      "visits": 6798165,
+      "search": 3199.726,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pending-control",
+      "i": 1,
+      "ms": 7078.614,
+      "rss": 2081751040,
+      "cli": 10474.339,
+      "visits": 6798165,
+      "search": 3227.003,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pending-control",
+      "i": 2,
+      "ms": 7021.056,
+      "rss": 2083307520,
+      "cli": 10437.361,
+      "visits": 6798165,
+      "search": 3203.495,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "sealed-input",
+      "i": 2,
+      "ms": 6957.567,
+      "rss": 2083258368,
+      "cli": 10325.881,
+      "visits": 6798165,
+      "search": 3203.539,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "sealed-input",
+      "i": 3,
+      "ms": 6964.89,
+      "rss": 2083160064,
+      "cli": 10332.438,
+      "visits": 6798165,
+      "search": 3198.959,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pending-control",
+      "i": 3,
+      "ms": 7082.078,
+      "rss": 2082471936,
+      "cli": 10386.912,
+      "visits": 6798165,
+      "search": 3229.365,
+      "resumed": 663403,
+      "depth": 29
+    }
+  ]
 }

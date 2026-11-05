@@ -2603,6 +2603,8 @@ impl Executor {
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::begin_writes();
         let executed = patch.len;
+        #[cfg(feature = "sparse-cells")]
+        let binding_generation = self.graph.stats.unions;
         #[cfg(feature = "family-survey")]
         let mut rhs_clock: Option<(usize, Instant)> = None;
         #[cfg(feature = "rhs-work-audit")]
@@ -2632,12 +2634,19 @@ impl Executor {
                 self.local_counts.block_local_intermediates,
                 self.local_counts.local_complete,
             );
+            #[cfg(feature = "sparse-cells")]
+            { self.graph.sealed_generation = Some(binding_generation); }
             let applied = self.apply(
                 rid,
                 binding,
                 #[cfg(feature = "structural-depth")]
                 evidence.as_mut().and_then(Iterator::next),
             );
+            #[cfg(feature = "sparse-cells")]
+            {
+                self.graph.sealed_input_cell = None;
+                self.graph.sealed_generation = None;
+            }
             #[cfg(feature = "sparse-cells")]
             if applied.is_err() {
                 self.graph.promote_active();
