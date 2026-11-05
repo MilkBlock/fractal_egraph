@@ -111,6 +111,6 @@ Four measured pairs after one warm-up gave the following medians for the previou
 | Pass 3 | Inference, before → after | CLI, before → after | RSS, before → after | Visits | Speedup vs fixed c8ee1a3f |
 |---|---:|---:|---:|---:|---:|
 | sum-bits | 22.311 → 20.197 ms | 102.917 → 100.122 ms | 157.39 → 153.87 MiB | 18,735 | 1.67× |
-| Raytrace | 7.468 → 6.942 s | 9.464 → 8.944 s | 2,198.05 → 2,157.22 MiB | 6,915,159 | 1.95× |
+| Raytrace | 7.468 → 6.942 s | 9.464 → 8.944 s | 2,199.01 → 2,158.17 MiB | 6,915,159 | 1.95× |
 
 The fixed 2× thresholds are 16.8375 ms and 6.754039 s. Each timing sample validated the schedule and final graph. Ordered RHS, effective writes and Spine were checked with the corresponding separately instrumented build.
