@@ -406,7 +406,7 @@ impl Graph {
             stats: Stats::default(),
 
             known_stats: Default::default(),
-            scalar_merge: false,
+            scalar_merge: cfg!(feature = "sparse-cells"),
             merge_programs_enabled: true,
             pending_unions: vec![],
 
@@ -635,6 +635,19 @@ impl Graph {
     ) -> Result<(u32, usize, Vec<Value>, bool)> {
         let id = self.reserve_cell_id()?;
         self.stats.single_writes += 1;
+        let before = self.stats.function_updates;
+        #[cfg(feature="sparse-cells")]
+        if parent.is_none() && let Some(ports)=&write.ports {
+            let (key,value,dst)=ports.project(&values,&self.parents)?;
+            let i=self.set_function_canonical(write.table,std::slice::from_ref(&key),Value::Int(value))?;
+            let changed=self.stats.function_updates!=before;
+            if changed{
+                let mut frame=self.new_cell(template,values,None);
+                if let Some(dst)=dst{frame.values.insert(dst,Value::Int(value));}
+                self.keep_writer(i,id,write.op,frame);
+            }else{self.stats.rhs_frames_avoided+=1;self.stats.transient_writes+=1;}
+            return Ok((id,i,vec![key],changed));
+        }
         let mut frame = self.new_cell(template, values, parent);
         for (dst, name, sort, args) in &write.prefix {
             let args = args
@@ -651,32 +664,23 @@ impl Graph {
             .map(|a| self.argument_in(id, &frame, a))
             .collect::<Result<Vec<_>>>()?;
         let value = self.argument_in(id, &frame, &write.value)?;
-        let before = self.stats.function_updates;
-        let i = self.set_function_canonical(write.table, &key, value)?;
-        let changed = self.stats.function_updates != before;
+        let i=self.set_function_canonical(write.table,&key,value)?;
+        let changed=self.stats.function_updates!=before;
         if changed {
-            #[cfg(feature = "sparse-cells")]
-            if i < u32::MAX as usize {
-                frame.completed = true;
-                frame.completed_prefix = write.op + 1;
-                self.inline_writer(i, id, write.op, frame);
-                return Ok((id, i, key, changed));
-            }
-            frame.completed = true;
-            frame.completed_prefix = write.op + 1;
-            self.store_cell(id, frame);
-            self.function_origin(
-                i,
-                Some(FactRef {
-                    cell: id,
-                    op: write.op as u32,
-                }),
-            );
+            self.keep_writer(i,id,write.op,frame);
         } else {
             self.stats.rhs_frames_avoided += 1;
             self.stats.transient_writes += 1;
         }
         Ok((id, i, key, changed))
+    }
+    fn keep_writer(&mut self,i:usize,id:u32,op:usize,mut frame:Cell){
+        frame.completed=true;
+        frame.completed_prefix=op+1;
+        #[cfg(feature="sparse-cells")]
+        if i<u32::MAX as usize {self.inline_writer(i,id,op,frame);return;}
+        self.store_cell(id,frame);
+        self.function_origin(i,Some(FactRef{cell:id,op:op as u32}));
     }
     pub fn argument(&self, cell: u32, a: &Arg) -> Result<Value> {
         match a {

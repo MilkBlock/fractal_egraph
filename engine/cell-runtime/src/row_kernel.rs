@@ -116,11 +116,43 @@ fn plan(r: &Rule, pivot: usize) -> Option<Kernel> {
 /// is also the only possible published anchor of this RHS.
 #[derive(Clone, Debug, Serialize)]
 pub(crate) struct Write {
+    #[cfg(feature="sparse-cells")]
+    #[serde(skip)] pub(crate) ports: Option<PortWrite>,
     pub op: usize,
     pub table: usize,
     pub key: Vec<Arg>,
     pub value: Arg,
     pub prefix: Vec<(usize, String, String, Vec<Arg>)>,
+}
+#[cfg(feature="sparse-cells")]
+#[derive(Clone,Debug)]
+pub(crate) struct PortWrite {
+    key: usize, value: Arg, add: Option<(usize,Arg,Arg)>,
+}
+#[cfg(feature="sparse-cells")]
+impl PortWrite {
+    fn derive(p:&Program,r:&Rule,table:usize,keys:&[Arg],value:&Arg,ops:&[(usize,String,String,Vec<Arg>)])->Option<Self>{
+        let [Arg::Slot(key)]=keys else{return None};
+        if p.tables[table].schema[0]["kind"]!="eq" || p.tables[table].schema.last()?["kind"]!="i64" || !r.inputs.contains(key){return None}
+        let input=|a:&Arg|match a {Arg::Slot(s)=>r.inputs.contains(s) && p.templates[r.template].sorts[*s]["kind"]=="i64",Arg::Literal(crate::value::Value::Int(_))=>true,_=>false};
+        let add=match ops {
+            [] if input(value)=>None,
+            [(dst,op,sort,args)] if op=="+" && sort=="i64" && value==&Arg::Slot(*dst)=>{
+                let [a,b]=args.as_slice() else{return None};
+                if !input(a)||!input(b){return None}
+                Some((*dst,a.clone(),b.clone()))
+            },
+            _=>return None,
+        };
+        Some(Self{key:*key,value:value.clone(),add})
+    }
+    pub(crate) fn project(&self,slots:&crate::slots::Slots,parents:&crate::value::Parents)->Result<(crate::value::Value,i64,Option<usize>)>{
+        use crate::value::Value;
+        let Value::Eq(key)=slots[&self.key] else{return Err("invalid producer expression port".into())};
+        let int=|a:&Arg|match a {Arg::Literal(Value::Int(v))=>Ok(*v),Arg::Slot(s)=>match &slots[s]{Value::Int(v)=>Ok(*v),_=>Err("invalid integer port".to_string())},_=>Err("invalid integer operand".to_string())};
+        let (v,dst)=if let Some((dst,a,b))=&self.add{(int(a)?.checked_add(int(b)?).ok_or("RHS primitive failed: +")?,Some(*dst))}else{(int(&self.value)?,None)};
+        Ok((Value::Eq(crate::value::root(parents,key)),v,dst))
+    }
 }
 pub(crate) fn writes(p: &Program) -> Vec<Option<Rc<Write>>> {
     p.rules
@@ -153,11 +185,15 @@ pub(crate) fn writes(p: &Program) -> Vec<Option<Rc<Write>>> {
                     _ => return None,
                 }
             }
+            let key=key.iter().map(norm).collect::<Vec<_>>();
+            let value=norm(value);
             Some(Rc::new(Write {
+                #[cfg(feature="sparse-cells")]
+                ports:PortWrite::derive(p,r,*table,&key,&value,&calc),
                 op: prefix.len(),
                 table: *table,
-                key: key.iter().map(norm).collect(),
-                value: norm(value),
+                key,
+                value,
                 prefix: calc,
             }))
         })
