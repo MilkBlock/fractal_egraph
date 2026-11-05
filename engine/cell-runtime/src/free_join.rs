@@ -2,7 +2,10 @@
 //! shared columns. A probe returns a witness subset for the next stage.
 use super::*;
 use smallvec::SmallVec;
+#[cfg(not(feature="sparse-cells"))]
 use std::collections::HashMap;
+#[cfg(feature="sparse-cells")]
+use rustc_hash::FxHashMap as HashMap;
 
 #[cfg(feature = "projection-survey")]
 #[path = "projection_survey.rs"]
@@ -147,7 +150,7 @@ impl FreeJoin {
         );
         let by_projection = if planned {
             (0..entry.as_ref().unwrap().projections.len())
-                .map(|_| (0, HashMap::new()))
+                .map(|_| (0, HashMap::default()))
                 .collect()
         } else {
             vec![]
@@ -164,7 +167,7 @@ impl FreeJoin {
             planned,
             by_projection,
             epoch: None,
-            results: HashMap::new(),
+            results: HashMap::default(),
             plans,
             stats: Stats::default(),
         }
@@ -295,6 +298,7 @@ impl FreeJoin {
             #[cfg(feature = "family-overlap")]
             let timer = (Instant::now(), self.stats.entry_probes);
             let shape = &plan.projections[step.projection];
+            #[cfg(not(feature="sparse-cells"))]
             let hashes = index.hashes(row.table, row.witness);
             let key = shape
                 .columns
@@ -304,7 +308,16 @@ impl FreeJoin {
                         index.fingerprint(&canon(v, &g.parents))
                     }
                     crate::entry_join::Source::Cover(col) => {
-                        hashes.map_or_else(|| index.fingerprint(&row.values[*col]), |h| h[*col])
+                        #[cfg(feature="sparse-cells")]
+                        {
+                            let value=&row.values[*col];
+                            match value {
+                                Value::Eq(_) | Value::Int(_) => index.fingerprint(value),
+                                _ => index.hashes(row.table,row.witness).map_or_else(||index.fingerprint(value),|h|h[*col]),
+                            }
+                        }
+                        #[cfg(not(feature="sparse-cells"))]
+                        { hashes.map_or_else(|| index.fingerprint(&row.values[*col]), |h| h[*col]) }
                     }
                 })
                 .collect::<SmallVec<[_; 4]>>();
@@ -536,7 +549,7 @@ impl FreeJoin {
         index.ensure(g, table)?;
         self.stats.stages += 1;
         self.stats.cover_rows += rows.len() as u64;
-        let mut positions = HashMap::new();
+        let mut positions = HashMap::default();
         let mut groups = SmallVec::<[Group; 2]>::new();
         // If the prefix and the current bindings already determine the cover's
         // functional key, there is no exact group reuse to amortize a hash map.

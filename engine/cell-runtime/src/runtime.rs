@@ -111,7 +111,8 @@ pub struct Executor {
     neighbor: crate::neighbor::Context,
     local_context: crate::local_context::Contexts,
     pub graph: Graph,
-    pub steps: Vec<J>,
+    pub steps: Vec<schedule::RunStep>,
+    last_change:usize,
     watermarks: Vec<u64>,
     dirty: Vec<bool>,
     pending: Vec<BTreeSet<Dependency>>,
@@ -314,6 +315,7 @@ impl Executor {
             local_context: crate::local_context::Contexts::new(&graph.program),
             graph,
             steps: vec![],
+            last_change:0,
             watermarks: vec![0; n],
             dirty: vec![true; n],
             pending: vec![BTreeSet::new(); n],
@@ -2612,7 +2614,12 @@ impl Executor {
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::end_writes();
         let changed = self.graph.changed;
-        self.steps.push(json!({"ordinal":self.steps.len()+1,"ruleset":set,"path":path,"iterations":iterations,"epoch":self.graph.epoch,"logical_matches":matches,"local_bindings":0,"executed_bindings":executed,"changed":changed,"live_cells":self.graph.cells.len(),"elapsed_seconds":start.elapsed().as_secs_f64(),"phases":{"search":search_seconds,"rhs":rhs_seconds,"repair":repair_seconds,"delivery_gc":delivery_seconds,"query_update":query_update_seconds}}));
+        let ordinal=self.steps.len()+1;
+        if changed {self.last_change=ordinal;}
+        self.steps.push(schedule::RunStep {ordinal,ruleset:set.into(),path:path.to_vec(),iterations:iterations.to_vec(),
+            epoch:self.graph.epoch, logical_matches:matches,local_bindings:0,executed_bindings:executed,
+            changed,live_cells:self.graph.cells.len(),elapsed_seconds:start.elapsed().as_secs_f64(),
+            phases:schedule::Phases{search:search_seconds,rhs:rhs_seconds,repair:repair_seconds,delivery_gc:delivery_seconds,query_update:query_update_seconds},json:Default::default()});
         if self.audit {
             self.snapshots.push(self.graph.export()?);
         }
@@ -2697,7 +2704,7 @@ impl Executor {
                     path,
                     iterations,
                 } => {
-                    if next > 0 && !self.steps[start..].iter().any(|s| s["changed"] == true) {
+                    if next > 0 && self.last_change <= start {
                         continue;
                     }
                     if next < count {
@@ -2725,7 +2732,7 @@ impl Executor {
                     path,
                     iterations,
                 } => {
-                    if self.steps[start..].iter().any(|s| s["changed"] == true) {
+                    if self.last_change > start {
                         let iteration = iteration
                             .checked_add(1)
                             .ok_or("saturation occurrence exhausted")?;
