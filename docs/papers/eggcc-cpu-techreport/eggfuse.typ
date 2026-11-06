@@ -11,8 +11,8 @@
 #show heading.where(level:2):set text(size:13pt,weight:"semibold")
 #show raw:set text(font:"Menlo",size:8.3pt)
 #show link:set text(fill:green)
-#let data=json("report-data.json")
 #let mem=json("memory-update.json")
+#let perf=json("performance-update.json")
 #let tip(body)=block(width:100%,inset:(x:11pt,y:8pt),fill:light,stroke:(left:2pt+green),body)
 #let cap(i,body)={v(1pt);text(font:"Avenir Next",size:8.8pt,fill:muted)[*Fig. #i*  #body];v(3pt)}
 #let kicker(s)=block(above:6pt,below:3pt,text(font:"Avenir Next",size:9pt,weight:"bold",fill:green,tracking:1pt,s))
@@ -30,19 +30,16 @@
 #v(4pt)
 #text(font:"Avenir Next",size:29pt,weight:"bold",fill:navy)[Compiling scheduled egglog rules into reusable CPU execution blocks]
 #v(4pt)
-#text(font:"Avenir Next",size:12pt,fill:muted)[An architecture proposal for egglog and eggcc, evaluated on every workload in the passing suite at eggcc revision #raw("ae80f82").]
+#text(font:"Avenir Next",size:12pt,fill:muted)[An architecture proposal for egglog and eggcc, evaluated on frozen sum-bits and Raytrace Pass 3 workloads.]
 #v(9pt)
 Eggfuse compiles rule-local joins and effects into typed recipes, shares entry work across consumers, and carries checked references to committed constructor results across scheduled Runs. It leaves Free Join responsible for residual matches. The architectural proposal is to expose these operations as optional physical plans inside egglog, where the native engine can retain ownership of scheduling, merges and extraction.
 
-#grid(("Frozen inference","Tasks","Cell faster","Geomean N/C","Total N/C"), data.summary,(1.5fr,.65fr,1fr,1.18fr,1fr))
-#text(size:9pt,fill:muted)[N/C is original unmarked egglog replay time divided by Eggfuse replay time. Ratios above 1 favor Eggfuse. Each row uses all paired successes in that scope. Appendix A gives every task. Appendix B gives the original eggcc production timings.]
+#grid(("Latest Pass 3","Paired old ms","Candidate ms","Fixed ratio","Paired ratio"),perf.headline,(1.0fr,1.1fr,1.1fr,.95fr,1fr),sz:8.5pt,pad:5pt)
+#text(size:9pt,fill:muted)[Latest verified checkpoint #raw("502e29cd"). The control is the earlier Cell CPU engine. Fixed ratios use the predeclared reference times; paired ratios use the control rerun in the same session. Candidate builds include native CPU, LTO and held-out PGO. Section 5 gives the full method and data.]
 
-Across #data.n tasks, the three captured schedules took #data.native_s s in native egglog and #data.cell_s s in Cell in aggregate. Preparation of the Cell targets took an additional #data.prep_s s in this experiment. Raytrace contributed 82.6% of the aggregate time saved. Excluding it gives a time-weighted ratio of 1.029×. A fixed sum-bits block catalog was transferred to every target without per-target block training. The survey measures isolated, single-thread inference. Each next pass starts from eggcc's captured production input. A separately repeated comparison appears in §6.
-
-#tip[*The adoption decision.* Prototype shared entry packets and checked register joins beneath egglog's existing evaluator. The current standalone backend has a concrete sum-bits endpoint discrepancy even though projected table counts agree. Treat the timing differences as architecture evidence. Require the native observable-result and extraction gates in §7 before enabling an alternative backend for production.]
+#tip[*The adoption decision.* Prototype shared entry packets and checked register joins beneath egglog's existing evaluator. The pinned cross-engine audit has a concrete sum-bits endpoint discrepancy even though projected table counts agree. Treat the timing differences as architecture evidence. Require the native observable-result and extraction gates in §7 before enabling an alternative backend for production.]
 #v(5pt)
-#text(size:9pt,fill:muted)[Revision of 6 November. Section 9 adds a separate two-workload memory study. The full-suite measurements below use their original snapshot.]
-#text(size:9pt,fill:muted)[Source snapshot #raw("70b2910") · Apple M3 Max · arm64 macOS 27.0.1 · Rust 1.94.0. The corpus has 96 Bril/Rust workloads and 288 pass inputs. Scope, individual timings, replay scripts, witness and input digests are included in the companion artifact.]
+#text(size:9pt,fill:muted)[Performance checkpoint #raw("502e29cd") · memory implementation #raw("4d9ea942") · Apple M3 Max · Rust 1.94.0. Sections 5–6 report performance; Section 8 reports memory. Sample data, source identities and validation scripts are included.]
 
 #pagebreak()
 = 1. Where the compiler meets the engine
@@ -105,49 +102,49 @@ A *Spine* follows committed facts that serve as anchors for subsequent rules. Th
 *Learning larger blocks.* Start with 32 applied consumer/pivot leaves. A training round counts witnessed adjacent units on a winning lineage. A proposed binary unit names a left unit, the publishing instruction and a right unit. Freeze the catalog during each run, bound its size, and let an actually applied macro become a later operand. The donor used here has a 64-unit ceiling, at most four primitive steps, eight nodes, up to eight additions per round and a 512-entry candidate budget. When transferring, the harness asks the compiler to resolve each leaf's typed rule signature on the target. It remaps only reachable joins and rebuilds every RHS handoff against that target. #src(code+"compiler/spine_blocks.rs","Typed leaf transfer") · #src(code+"iterative.rs","Bounded composition")
 
 #pagebreak()
-= 5. What explains the gain
-The strongest historical improvement over the earlier Cell implementation came from compiling fast per-pivot register joins, specializing single writes, and reducing frame and index overhead. The comparison below uses frozen 64-block artifacts and single-thread release builds. The numerator is a previous *Cell* engine. §6 gives the independent egglog comparison. #src(bench+"INFERENCE_THROUGHPUT.md","Paired historical measurements")
+= 5. Latest verified performance checkpoint
+#kicker("502e29cd   /   FROZEN PASS 3 ACCEPTANCE")
+The latest complete fixed-target acceptance file in the inspected branch records implementation #raw("502e29cd"). It compares two frozen Pass 3 programs with the original Cell executable at #raw("c8ee1a3f"), whose binary SHA was verified. Each case retains 32 primitive block leaves and 32 learned joins. One warm-up per arm is excluded, followed by 11 measured sum-bits pairs and seven Raytrace pairs in fresh, alternating processes.
 
-#grid(("Workload","Earlier Cell","Optimized Cell","Ratio","Pairs above 2×"),(("sum-bits","79.34 ms","37.07 ms","2.14×","8 / 9"),("Raytrace","33.81 s","15.50 s","2.18×","5 / 5")),(1.15fr,1fr,1.18fr,.72fr,1.2fr))
-On Raytrace the register plans produced 2,650,667 bindings and the single-write plans avoided 1,017,798 transient frame registrations. Peak process memory fell from 4,122 to 3,265 MiB in that paired study. The reported candidate-work counter actually rose. A guess about fewer row visits would therefore give the wrong explanation for this result.
+#grid(("Pass 3","Paired old ms","Candidate ms","Fixed ratio","Paired ratio"),
+ perf.headline,(1fr,1.1fr,1.1fr,.95fr,1fr),sz:9pt,pad:5pt)
 
-*What RHS specialization buys separately.* With the fixed Raytrace catalog, the later guarded switch avoided 30,896 constructor requests and 17,152 complete RHS frames. Its comparison against dispatch alone was faster in one of four matched rounds. Fewer operations and a demonstrated throughput gain require separate measurements. #src(bench+"RHS_COMPLETION.md","RHS ablation")
+#kicker("TWO DISTINCT ACCEPTANCE DENOMINATORS")
+The fixed ratio divides the previously declared original median by the new candidate median. The paired ratio divides the original median remeasured in the same session by that candidate median. Both use the original Cell engine as control. Section 6 defines the timed intervals and build settings.
 
-*Why context retention stays optional.* In a five-atom loop-invariant rule, a #raw("DoWhile") root keyed reads of input context, output context and type. Retaining up to 84 correlated prefixes let the final #raw("Const") expansion join against the changed side. Rule search dropped from 149.31 to 50.45 ms and emitted the same 143,282 bindings. Whole-pass Raytrace inference was 13.837 versus 13.844 s. Generalizing the compiler found cuts in 481 of 582 rules. Enabling all cuts increased full-pass visits from 8.42 to 10.33 million relative to narrow retention. The portable path used in this report leaves the context experiments off. #src(bench+"LOCAL_CONTEXT.md","Loop-invariant trace") · #src(bench+"CONTEXT_CUTS.md","Admission study")
+#grid(("Pass 3","Fixed reference ms","Fixed 2× cutoff ms","Candidates below cutoff"),
+ perf.limits,(1fr,1.4fr,1.4fr,1.4fr),sz:8.5pt,pad:5pt)
+Both candidate medians passed the fixed thresholds. The concurrent paired ratios were *1.849×* and *1.988×*. Thus the fixed-target checkpoint is complete, while a twofold improvement against both contemporaneous controls remains unestablished. The original executable ran faster in this session than in the session that defined the fixed thresholds.
 
-*Break-even condition.* Retaining a prefix pays when avoided probes, decodes and sorting exceed work to observe changes, validate roots, refresh prefixes and route answers. It matters how often old prefixes meet new terminal rows. Counting only distinct roots hides this join multiplicity. Query hints also need a lifetime budget and a fallback for changing workloads. The present single-thread measurements supply no scaling curve for a parallel implementation.
+#kicker("CLI, MEMORY AND LOGICAL WORK")
+#grid(("Pass 3","Old CLI ms","New CLI ms","Old RSS MiB","New RSS MiB"),
+ perf.execution,(.95fr,1.15fr,1.15fr,1fr,1fr),sz:8.5pt,pad:5pt)
+#grid(("Pass 3","Old visits","New visits","Pairs","Runs","Resumes / chain"),
+ perf.counts,(.9fr,1.15fr,1.15fr,.5fr,.8fr,1.3fr),sz:8.1pt,pad:4pt)
+CLI time includes loading and exporting the same Cell graph. RSS is sampled after inference. Logical visits are the existing Cell work counter. Both independent full audits and forced-collision sum-bits matched the frozen RHS, effective-write, schedule, graph and Spine digests. The recorded test counts were 26 all-feature runtime, 12 ordinary runtime, nine minimal runtime and 15 compiler integration tests.
 
-#pagebreak()
-= 6. Three measurements of eggcc workloads
-*Production.* The capture ran eggcc at #raw("ae80f82") with its pinned #raw("egglog-experimental 08771f9") and actual Tiger extraction feeding the next pass. The pass driver was instrumented. Appendix B sums time inside ordinary Run and outer Saturate packets once, then separately reports extraction and execution including setup. These are archived measurements on original emitted programs. They answer where eggcc spent time. #link("https://github.com/egraphs-good/eggcc/blob/ae80f82a403c1209fb084b115ee89470c7e66d0e/Cargo.toml")[Pinned dependency]
-
-*Matched replay.* For every captured pass the experimental frontend resolved the original program, printed the resulting flat commands, and normalized generated names. Both timed lanes start from that unmarked source. Native Free Join uses the project's immutable #raw("egglog-baseline 62ae6baa"), with an external timing adapter and compiled-out work counters. The native clock starts at the first Run schedule after bootstrap and includes subsequent commands. Eggfuse's Rust compiler transforms the same flat input and emits a marked typed recipe. Its clock covers schedule execution after graph setup. The timings exclude training, parsing, final export and Tiger. Raw experimental syntax needs the experimental frontend; passing it directly to the tag runner fails the prelude/type environment on the first corpus input. #src("tools/cell-compiler/benchmarks/free-join/README.md","Native adapter and counter boundaries")
-
-*Fixed treatment.* One thread, ordinary storage, shared nodes, planned Free Join, Sieve, intersection, range guards, static RHS aliases, Stage Spine and receipts. All targets use one frozen, small marker-training program exercising terms and helpers, and one iterative block donor learned from real sum-bits Pass 3 executions. These supply different compiler inputs. The target receives 59 deployable units in each Pass 1 and Pass 2 program and 64 in each Pass 3 program. Cell setup derives and checks each target's plans. This is within-workload transfer for the donor benchmark and cross-workload deployment elsewhere. The suite uses this policy throughout. Runtime settings, input hashes, repetitions and compiler costs are recorded with the data.
-
-#grid(("Repeated Pass 3","Pairs","Native ms","Cell ms","Ratio","Cell wins"),data.pairs,(1.5fr,.65fr,1fr,1fr,.8fr,1fr))
-#text(size:9pt,fill:muted)[One excluded warm-up per arm, then four alternated fresh-process pairs. Ratios divide the two medians. The corpus survey executes one sample per arm and alternates order by workload index. Close single-sample outcomes should be interpreted at their measured precision.]
-#v(5pt)
-At the process boundary, native / Cell median wall time was 104.6 / 145.5 ms for sum-bits, 170.3 / 208.7 ms for fenwick_tree, and 23.673 / 16.196 s for Raytrace. The Cell CLI also exports the final graph and detailed report. These observations expose startup and output costs; the two CLIs have different output duties.
-
-Earlier case-specific catalogs produced native-original / Cell inference medians of 46.43 / 36.68 ms on sum-bits and 24.192 / 14.015 s on Raytrace in a separate matched experiment. Native-on-marked medians in that study were 54.85 ms and 21.697 s. The original-program column is the baseline for an architectural claim. The marked column measures how the transformation changes the work egglog sees. The companion archive includes the historical samples.
+#tip[*Build treatment.* The candidate uses fat LTO, one codegen unit, native CPU code generation and offline PGO trained solely on the other workload. LLVM's value-profile counter capacity is 16 during training. The measured binary collects no profile. These comparisons combine execution and build changes; they do not isolate PGO's contribution.]
 
 #pagebreak()
-= The upstream baseline on its own terms
-The first numeric column below is the time eggcc's pinned engine spent in scheduled packets on the original inputs. Its driver ran each pass, extracted with Tiger, and supplied that result to the next pass. The capture also separates parsing and non-schedule setup. Columns N and C are fresh replays of those captured boundaries. They answer the narrower question of what an alternative execution layer costs on a common input representation. Historical production runs and fresh replays have different harnesses and sampling dates.
+= 6. Benchmark method and interpretation
+The performance evaluation covers the frozen sum-bits and Raytrace Pass 3 programs. Each executable runs the same source schedule on one CPU thread. Cell input consists of the checked recipe artifact, the marker representation and a fixed catalog of 32 primitive leaves plus 32 learned joins. The artifact, recipe, executable and opposite-workload profile hashes are bundled with the accepted measurements.
 
-#image("figures/boundary.svg",width:100%)
-#cap(5,[The solid path is the measured production pipeline. The dashed branch reruns that specific pass input under two execution engines. Replaying the three captured inputs isolates inference from drift in preceding extracted programs.])
-#grid(("All workloads","Production sched, s","Tiger wall, s","N replay, s","C replay, s"),data.production,(1fr,1.25fr,1fr,1.05fr,1.05fr))
-#text(size:9pt,fill:muted)[Production figures cover all archived cases per pass. Replay totals cover completed pairs shown on the first page. The original driver profile does not record an explicit thread setting. Only the fresh N/C comparisons here enforce one thread.]
+#kicker("TIMED INTERVALS")
+Inference begins after artifact loading and runtime initialization and ends after the scheduled engine execution. It includes matching, RHS evaluation, rebuild and incremental publication. Complete CLI time also includes loading, diagnostics and graph export. Offline Bake and PGO training are outside these clocks. Each measured process starts fresh; one warm-up per arm is excluded, and control/candidate order alternates.
 
-#kicker("WHAT EGGLOG ALREADY DOES")
-The tagged engine decomposes a query into join stages. During Free Join execution, a chosen cover enumerates keys or projected rows, other atoms probe indexes, and intersected domains constrain later stages. Completed substitutions reach an action buffer. The rule bridge invokes native merge and rebuild machinery, including incremental versus nonincremental rebuild selection. Shared indexes, an incremental frontier, compiled join plans and vectorized actions are features of the baseline. The proposed extension reuses correlated cross-rule entry packets and physical producer receipts across Run boundaries. #link("https://github.com/MilkBlock/eggfuse/tree/egglog-baseline/egglog/core-relations/src/free_join")[Native Free Join] · #link("https://github.com/MilkBlock/eggfuse/blob/egglog-baseline/egglog/egglog-bridge/src/lib.rs")[Native rule bridge and rebuild]
+#kicker("CONTROLS AND BUILD SETTINGS")
+The paired control is the original Cell executable at #raw("c8ee1a3f"), verified by SHA-256. The candidate checkpoint is #raw("502e29cd"). Its compiler configuration includes native CPU generation, fat LTO, one codegen unit and held-out PGO. The profile used for sum-bits comes from Raytrace; the profile used for Raytrace comes from sum-bits. These ratios measure the combined executable changes. A PGO-only claim requires a pair with every other build setting fixed.
 
-#kicker("A COUNTER IS A UNIT OF WORK")
-On historical frozen sum-bits, instrumented native Free Join on the original source recorded 40,425 enumerated index keys, 5,918 projected scan rows, 871 materializations and 34,698 probes. The 8,763 bindings delivered to the action buffer were counted separately. Eggfuse's visits sum direct candidates, residual witnesses or key attempts, merge and Spine candidates and shared predicate checks. Comparing the two integers as numbers of rows eliminated would mix different operations. Timings here use the native runner with counters compiled out. #src("tools/cell-compiler/benchmarks/free-join/README.md","Definitions and native ablation")
+#kicker("FIXED TARGETS AND PAIRED RATIOS")
+The predeclared reference medians were 33.675 ms and 13,508.078 ms. Their twofold cutoffs are 16.8375 ms and 6,754.039 ms. The accepted candidate medians, 16.379 ms and 6,140.271 ms, pass both. The original remeasured in that session was 30.290 ms and 12,208.315 ms, yielding paired ratios of 1.849× and 1.988×. The measured pairs answer present-machine improvement; the fixed cutoffs answer progress against the declared target.
 
-The storage proposal can be evaluated incrementally. First keep native Free Join and table storage as the oracle and share one entry computation for consumers with identical normalized atom shapes. Then compare full bindings from register kernels at the action-buffer interface. Introduce a committed fact handle only for operations that can prove its identity, visibility and canonical key. This sequence isolates which interface earns its implementation cost.
+#kicker("OBSERVATIONS THAT MUST AGREE")
+The candidate preserves the complete source Run sequence, ordered RHS inputs, effective write order, final logical graph and winning Spine lineage against the frozen Cell reference. The audit executable is independent of the timed build. Forced fingerprint and Sieve collisions exercise exact fallback checks. Counts of candidate visits, bindings, constructor requests and committed writes describe separate work units. A reduction in one count does not by itself establish a reduction in time.
+
+#kicker("MEMORY HAS ITS OWN MATCHED EXPERIMENT")
+Section 8 tests reader-lifetime reclamation and source-artifact release at ordinary release settings. Its control is #raw("27f098a2") and its implementation is #raw("4d9ea942"). The 1,432.68 MiB Raytrace peak belongs to that configuration; the performance checkpoint's 6.140 s and 1,978.20 MiB belong together. Each table reports its own treatment and sample counts.
+
+#tip[*Rebuild the performance tables.* #raw("reproduce/render-performance-data.py") validates all measured samples and generates the tables from #raw("evidence/performance-acceptance.json"). The archived full-suite inputs and results remain in the companion data package. The current PDF's performance tables use the two-workload checkpoint.]
 
 #pagebreak()
 = 7. Semantic boundary and upstream decision
@@ -174,20 +171,9 @@ This locates an observable membership difference. It leaves open whether the cha
 The first implementation milestone is an opt-in alternative matcher feeding egglog's ordinary action buffer. Run the exact counterexample as a regression and capture the first divergent source Run. Only after equality partitions, function outputs, visibility and selected terms agree should a production trial replace native effect or storage handling. A final trial should include offline cost amortization, total compiler wall time, peak memory and execution of the resulting binaries.
 
 #pagebreak()
-= 8. Distribution and cost of portability
-#image("figures/suite.svg",width:100%)
-#cap(6,[Equal-height bars correspond to equal multiplicative changes. The horizontal reference is parity. All cases contribute one observation irrespective of program size.])
-#grid(("Three-pass tails","Native / Cell","Native sum, ms","Cell sum, ms"),data.tails.map(row=>(row.at(0).split("/").last(),..row.slice(1))),(1.6fr,1fr,1.1fr,1.1fr))
-The first three rows are the largest regressions among the covered tasks; the last three are the largest improvements. Reporting them alongside the aggregate makes the deployment trade-off visible. The geomean weights one workload once. The time-weighted ratio answers how long the entire sequential sweep spends in inference. Both use sums of three frozen inference intervals per case.
-
-*Interpreting preparation.* The general compiler re-runs the fixed marker Bake, selects markers, lowers the target, then validates and links the donor blocks for each independent artifact. This deliberately straightforward driver repeats preparation that a service might cache. It does not measure such a cache. If all measured preparation is additional and startup/export differences are set to zero, the illustrative break-even reuse count is preparation time divided by positive per-execution inference savings. Over this suite the implied break-even is about 48 replays of the same prepared artifacts. Compiling each program once for a single inference run would lose the observed 16.62 s saving many times over. Sharing plans across input programs is therefore an integration requirement worth measuring. When inference is slower, repeated runs do not repay preparation.
-
-*Reproducibility.* The data package contains the 288 flat programs, raw eggcc inputs, compact production summaries, the frozen donor, full per-run JSONL and CSV, and Cargo-backed replay code. Keys are workload path plus pass number. Duplicate basenames remain distinct. Source links point to the tested commit. The unpinned workstation had concurrent system activity. Alternating order and repeating three anchors reduces some timing noise; the full-corpus single samples have no per-task confidence interval. Automatic context cuts, reference views, local saturation, union grafts and GPU execution were outside this fixed policy. The suite provides evidence about this pinned revision and machine. Other egglog releases, architectures and thread counts require their own measurements.
-
-#pagebreak()
-= 9. Memory and cross-Run lifetime
-#kicker("6 NOVEMBER 2026   /   TWO-WORKLOAD UPDATE")
-This follow-up measures the standalone Cell CPU engine at #raw("27f098a2") and the lifetime changes implemented in #raw("4d9ea942"). It uses the frozen sum-bits and Raytrace Pass 3 artifacts, their original 64-unit Bake catalog, one CPU thread and ordinary release builds. These runs add evidence about memory to the earlier suite. Their timing matrix has its own control; no PGO is used here.
+= 8. Memory and cross-Run lifetime
+#kicker("6 NOVEMBER 2026   /   TWO-WORKLOAD MEMORY STUDY")
+This follow-up measures the standalone Cell CPU engine at #raw("27f098a2") and the lifetime changes implemented in #raw("4d9ea942"). It uses the frozen sum-bits and Raytrace Pass 3 artifacts, their original 64-unit Bake catalog, one CPU thread and ordinary release builds. The memory matrix has its own control and ordinary release configuration; no PGO is used here.
 
 #grid(("Pass 3","Control ms","Reclaimed ms","Control MiB","Reclaimed MiB"),
  mem.outcomes,(1.0fr,1fr,1.05fr,1fr,1.1fr),sz:8.8pt,pad:5pt)
@@ -202,7 +188,7 @@ A diagnostic allocator attributes requested bytes to the allocating operation an
 #grid(("Allocation origin","Live requested MiB"),mem.allocation.slice(0,8),(2.7fr,1.3fr),sz:8.6pt,pad:3pt)
 The largest remaining categories include RHS (62.6 MiB), Sieve (22.1 MiB) and captured history (2.3 MiB). Allocation origin can differ from the eventual owner: matched parameters can become persistent Cell slots. Category peaks occur at different times. The ledger excludes allocator fragmentation and C allocations; its instrumented timing and RSS are excluded from the speed comparison.
 
-#text(size:8.5pt,fill:muted)[Evidence: #raw("evidence/memory-lifetimes.json"), rendered by #raw("reproduce/render-memory-data.py"). The original 96-workload tables retain their earlier source revision and measurement dates.]
+#text(size:8.5pt,fill:muted)[Evidence: #raw("evidence/memory-lifetimes.json"), rendered by #raw("reproduce/render-memory-data.py"). Program identities and all three memory matrices are recorded in the evidence file.]
 
 #pagebreak()
 = Consumers determine retention
@@ -239,7 +225,7 @@ The primary sum-bits retirement-only arm was slower in all eight pairs. The evid
 #kicker("AUDIT THE SAME SCHEDULED OBSERVATIONS")
 Full audits matched the frozen graph, schedule, ordered RHS inputs, effective writes and Spine trajectory. They include the combined mode and forced fingerprint/Sieve collisions. Twenty-eight runtime tests and fifteen compiler tests passed, covering reader lifetimes, backward watermark requests and rejected certificates.
 
-These are within-Cell checks. The grounded cross-engine witness in §7 requires its own resolution. The memory comparison alone establishes neither native semantic equivalence nor a completed twofold speed target.
+These are within-Cell checks. The grounded cross-engine witness in §7 requires its own resolution. The memory comparison establishes within-Cell equivalence. Section 5 gives the independent fixed-target and contemporaneous paired performance checks.
 
 #kicker("WHAT CROSS-RUN COMPLETION CAN STILL ABSORB")
 History-reference trimming can recover only a few MiB in this measurement. Larger structures hold graph records, parameters, indexes and shared entry state. Future blocks should expose reader demand and last-use ports, then measure reconstruction costs against another retained row copy.
@@ -249,58 +235,17 @@ Generated view and completion rows are the next candidate. A compressed form mus
 #tip[*Reproduce the update.* #raw("reproduce/memory-replay.sh") accepts checkout #raw("4d9ea942") and two frozen program files. Features #raw("entry-retirement") and #raw("origin-demand") select lifetime optimizations; #raw("--release-source-artifact") releases validation IR. Bundled data contains all three matrices and their hashes.]
 
 #pagebreak()
-#let per=24
-#for start in range(0,data.tasks.len(),step:per) {
-  if start>0 {pagebreak()}
-  kicker("APPENDIX A   /   FROZEN REPLAY")
-  heading(level:1)[Per-workload inference]
-  [Milliseconds. Within each pass, N denotes native egglog on unmarked flat input and C denotes the standalone Cell executor. The final column divides the three-pass sums. LA abbreviates #emph[linear-algebra] in the paths.]
-  v(6pt)
-  grid(("ID","eggcc passing workload","P1 N","P1 C","P2 N","P2 C","P3 N","P3 C","N/C"),data.tasks.slice(start,calc.min(start+per,data.tasks.len())),(.35fr,2.85fr,.71fr,.71fr,.71fr,.71fr,.8fr,.8fr,.55fr),sz:8pt,pad:5pt)
-}
-#pagebreak()
-#for start in range(0,data.archived.len(),step:per) {
-  if start>0 {pagebreak()}
-  kicker("APPENDIX B   /   PRODUCTION EGGCC CAPTURE")
-  heading(level:1)[Native schedules and Tiger extraction]
-  [Milliseconds in eggcc's original captured production run. P1–P3 are scheduled execution only. Extract is the three-pass sum of extraction wall time. Exec is the sum of recorded pass execution time including setup. Keep these columns separate from the fresh replay ratios in Appendix A.]
-  v(6pt)
-  grid(("ID","eggcc passing workload","P1","P2","P3","Extract","Exec"),data.archived.slice(start,calc.min(start+per,data.archived.len())),(.35fr,3.15fr,.9fr,.9fr,.95fr,1fr,1fr),sz:8.2pt,pad:5pt)
-}
-
-#pagebreak()
 #set text(font:"Hiragino Sans GB",lang:"zh",size:10.7pt)
 #set par(leading:.78em)
 #kicker("MAINTAINER BRIEF   /   中文摘要")
-#text(size:21pt,weight:"bold",fill:navy)[建议先在 egglog 的动作缓冲区前接入编译计划]
-#v(7pt)
-eggcc 的真实生产链和独立重放给出了两个不同的答案。附录 B 记录原始 eggcc 程序如何在固定版本的生产引擎中执行、再由 Tiger 把结果传给下一 pass。附录 A 在同一个已经展开的输入上测试两个执行器。原生 egglog 直接执行未加 marker 的程序；Cell 由编译器生成 marker、共享入口、寄存器连接计划和跨 Run 的指令块。这个设计可以把推理收益同上一个 pass 选出了什么程序分开。
-
-#v(5pt)
-#text(weight:"bold",fill:green)[覆盖全部输入后，收益主要集中在哪里？]
-共 96 个 passing 任务、288 个 pass，双方全部完成。三段推理相加，原生 egglog 共 143.43 秒，Cell 共 126.80 秒；73 个任务更快，23 个更慢。等权几何平均为 1.138×，按总耗时为 1.131×。Raytrace 占总节省时间的 82.6%。去掉它，按总时间仍有 1.029×。算法必须连同失利的例子一起看。3mm 的三段合计从 5.40 秒升至 6.02 秒。当前离线准备累计约 792 秒。若每个新程序都承担完整准备成本，只运行一次会慢于原生路径。
-
-#v(5pt)
-#text(weight:"bold",fill:green)[在哪个接口开始改最容易验证？]
-先让编译器把同一输入变化编码为一份带槽位、事实引用和 epoch 的只读数据包，按规则原来的 Run 交给消费者。让已证明的完整键读取走寄存器计划，让剩余入口继续走原生 Free Join。两条路径都向 egglog 原有的动作缓冲区交付完整、有序的 RHS 输入。这样可以在保留原生 merge、rebuild 和 extraction 的条件下，直接比较每条绑定。
-
-第二步才引入跨 Run 的事实引用。生产者已经构造过的结果，必须在下一消费者真正被调度时，验证其可见性、当前等价类和完整键。通过检查就切换到复用指令块，缺少任何必需端口就走普通路径。图 4 给出了实际的 SubTuple、Get、Single 链。
-
-#v(5pt)
-#text(weight:"bold",fill:green)[现有证据支持多强的结论？]
-sum-bits 两端投影到原始表后都是 3,206 行，但正文给出的具体 TermSingle 在 Cell 端可见，原生 egglog 的查询失败。相同 check 在原生执行 marked 源码时也失败。要声称可以替换后端，还需要定位首次语义分歧，核对可见事实和等价类，并用各自的 Tiger 结果独立驱动完整三 pass，对比提取程序及其行为。本报告支持一次可以逐步验收的上游架构实验。
-
-#pagebreak()
-#set text(font:"Hiragino Sans GB",lang:"zh",size:10.7pt)
-#kicker("6 NOVEMBER UPDATE   /   内存与跨 Run 生命周期")
-#text(size:21pt,weight:"bold",fill:navy)[让消费关系决定状态保留多久]
+#text(size:21pt,weight:"bold",fill:navy)[当前性能与内存结果]
 #v(8pt)
-本轮从 #raw("27f098a2") 出发，在固定的 sum-bits 与 Raytrace Pass 3 上测试独立 Cell CPU 引擎。Raytrace 峰值 RSS 从 1,856.79 降到 1,432.68 MiB，减少 22.8%。原生 egglog 在未加 marker 的对应源码上，两次单线程测得 462.375 和 450.047 MiB，均包含解析、初始化和推理，未导出图。Cell 的峰值在导出前采样，包含编译产物加载。两类表示的内存比约从 4.07 倍降到 3.14 倍。
+本报告的性能主表采用已验证的 #raw("502e29cd") checkpoint，覆盖固定的 sum-bits 和 Raytrace Pass 3。推理中位数分别为 16.379 ms 和 6.140 s，相对预先声明的旧 Cell 基线达到 2.056× 与 2.200×。这组验收有 11 对 sum-bits 和 7 对 Raytrace 实测，均在排除预热后交替启动新进程。
 
-编译器首先列出共享入口的全部消费者。所有消费者都越过某个 epoch 后，引擎释放该 epoch 的旧材料化行，并保留准确的成员基数。后来的变更可以重建行；请求更早的 watermark 也会触发重建。Raytrace 留存的入口包从 665,584 降到 82,355。
+同场重跑旧 Cell 得到 30.290 ms 和 12.208 s，因此同场中位数之比分别为 1.849× 和 1.988×。两个固定阈值都已通过；两者相对同场旧版都达到 2×，仍需要进一步证据。候选构建同时使用 native CPU、fat LTO、单 codegen unit，以及仅在另一个负载上训练的 PGO，这组比较反映它们与引擎改动的合计效果。
 
-另一项分析检查 Unit 完成表是否存在声明的读者。无人读取来源的完成记录继续保留键、值和修复身份，同时解除对生产者 Cell 的保活。完整 Cell 与紧凑来源快照合计从 687,913 降到 648,737。第三项显式选项在运行结构初始化后释放验证用 JSON 和输入缓冲；后续离线 Bake 需要重载原文件。
+内存实验另以 #raw("27f098a2") 为控制，使用普通 release 配对。Raytrace 峰值 RSS 从 1,856.79 降到 1,432.68 MiB，减少 22.8%。改动包括在所有消费者越过入口 epoch 后释放旧材料化行，解除无读者 Unit 完成记录对生产者的保活，以及在运行结构初始化后释放验证 JSON 和输入缓冲。推理中位数为 6.746 → 6.717 s，逐对结果有波动，本轮主要支持内存收益。
 
-合用三项改动后，Raytrace 推理中位数为 6.746 → 6.717 秒，但逐对差异的中位数为 +16.663 ms，四对中只有一对更快。因此本轮证据主要支持内存收益。逐 Run 的 RHS、有效写入、Spine 接续、调度和最终图与冻结 Cell 参考一致。第 7 节的跨引擎具体语义差异仍需要单独解决。
+对应原始未加 marker 的 Raytrace 源码在原生 egglog 上，两次单线程峰值约为 462.375 和 450.047 MiB。两边均包含解析、初始化和推理。原生未导出图，Cell 在导出前采样。内存比约从 4.07 倍降到 3.14 倍。生成的 View 与 Applied 表占最终 Cell 图约 32.4% 的行，后续压缩必须保住查询、修复转发、锚点发布和导出的可观察行为。
 
-分配统计还显示，History 产生的存活申请量约 2.3 MiB。更大的空间在图存储、参数、索引和共享入口里。最终图中生成的 View 与 Applied 表共占约 32.4% 的行；进一步压缩这些记录，需要证明它们在后续查询、union 转发、锚点发布与导出中的可观察行为。
+本轮各 Cell 配置的逐 Run RHS、有效写入、Spine 接续、调度和最终图与冻结参考一致。第 7 节保留了跨引擎检查中的具体 TermSingle 差异。原生后端替换还需定位该差异并验证提取结果。当前性能表的覆盖范围是这两个 Pass 3；原有全套输入与结果仍作为历史证据保存在数据附件中。

@@ -30,3 +30,5 @@ print('Verified 96 workloads, 288 measurements per backend, all input hashes, 15
 # The memory follow-up has its own source snapshot and paired controls.
 import subprocess,sys
 subprocess.run([sys.executable,str(r/"reproduce/render-memory-data.py"),"--check"],check=True)
+
+subprocess.run([sys.executable,str(r/"reproduce/render-performance-data.py"),"--check"],check=True)
