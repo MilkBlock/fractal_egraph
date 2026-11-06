@@ -12,6 +12,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--catalog",
             "--program",
             "--repeat",
+            #[cfg(feature="scheduled-functions")]
+            "--scheduled-functions",
             #[cfg(feature="function-blocks")]
             "--function-blocks",
             #[cfg(feature="two-run-blocks")]
@@ -31,6 +33,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--reference-program",
         ],
     )?;
+    #[cfg(feature="scheduled-functions")]
+    let scheduled=match opts.get("--scheduled-functions").map(String::as_str).unwrap_or("off") {
+        "off"=>false,"on"=>true,_=>return Err("--scheduled-functions requires off or on".into())
+    };
     #[cfg(feature="function-blocks")]
     let functions=match opts.get("--function-blocks").map(String::as_str).unwrap_or("off"){
         "off"=>false,"on"=>true,_=>return Err("--function-blocks requires off or on".into())
@@ -102,6 +108,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     if let Some(reference) = opts.get("--reference-program") {
         if stage_digests(
             Path::new(reference),
+            #[cfg(feature="scheduled-functions")]
+            false,
             #[cfg(feature="function-blocks")]
             false,
             #[cfg(feature="two-run-blocks")]
@@ -116,6 +124,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             (0, None),
         )? != stage_digests(
             &path,
+            #[cfg(feature="scheduled-functions")]
+            scheduled,
             #[cfg(feature="function-blocks")]
             functions,
             #[cfg(feature="two-run-blocks")]
@@ -138,6 +148,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     let mut counts = J::Null;
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
+        #[cfg(feature="scheduled-functions")]
+        e.configure_scheduled_functions(scheduled)?;
         #[cfg(feature="function-blocks")]
         e.graph.configure_function_blocks(functions);
         #[cfg(feature="two-run-blocks")]
@@ -199,6 +211,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
         { counts["port_frames"]=e.graph.port_frames_report(); }
         #[cfg(feature="function-blocks")]
         {counts["function_blocks"]=e.graph.function_blocks_report();}
+        #[cfg(feature="scheduled-functions")]
+        {counts["scheduled_functions"]=e.scheduled_functions_report();}
         #[cfg(feature = "deferred-incidence")]
         { counts["deferred_incidence"] = r["deferred_incidence"].clone(); }
         #[cfg(feature = "rhs-locals")]
@@ -229,6 +243,8 @@ pub(super) fn stages(path: &Path) -> Result<()> {
         "{}",
         serde_json::to_string(&stage_digests(
             path,
+            #[cfg(feature="scheduled-functions")]
+            false,
             #[cfg(feature="function-blocks")]
             false,
             #[cfg(feature="two-run-blocks")]
@@ -247,6 +263,7 @@ pub(super) fn stages(path: &Path) -> Result<()> {
 }
 fn stage_digests(
     path: &Path,
+    #[cfg(feature="scheduled-functions")] scheduled:bool,
     #[cfg(feature="function-blocks")] functions:bool,
     #[cfg(feature="two-run-blocks")] two_run:bool,
     #[cfg(feature="port-frames")] ports:bool,
@@ -255,6 +272,8 @@ fn stage_digests(
     #[cfg(feature = "structural-depth")] structural: (u8, Option<&J>),
 ) -> Result<Vec<String>> {
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
+    #[cfg(feature="scheduled-functions")]
+    e.configure_scheduled_functions(scheduled)?;
     #[cfg(feature="function-blocks")]
     e.graph.configure_function_blocks(functions);
     #[cfg(feature="two-run-blocks")]

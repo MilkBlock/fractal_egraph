@@ -1,0 +1,42 @@
+{
+  "scope": "standalone Cell CPU; derived publication only, not native egglog or new Bake proof credit",
+  "base_revision": "672dbdf8",
+  "frozen_reference": "docs/view-consumer-results.json",
+  "catalog": "same frozen 64-unit iterative Bake artifacts in both modes",
+  "host": "Apple M3 Max, aarch64-apple-darwin",
+  "timed_features": "scheduled-functions,port-frames,view-ports,storage-metrics",
+  "audit_features": "scheduled-functions,port-frames,view-ports,storage-metrics,slot-transfer-audit,spine-shapes",
+  "test_features": "scheduled-functions,function-blocks,two-run-survey,origin-demand,entry-retirement,view-ports,storage-metrics",
+  "compiler_tests_passed": 20,
+  "runtime_tests_passed": 30,
+  "default_build_check": "passed",
+  "scheduled_feature_without_view_features_check": "passed",
+  "audits": {
+    "sum-bits": "all frozen state, schedule, ordered RHS, effective writes, resumes and Spine-shape hashes match",
+    "raytrace": "all frozen state, schedule, ordered RHS, effective writes, resumes and Spine-shape hashes match",
+    "graph_counters": "identical in both modes",
+    "spine_counters": "identical after excluding capture, publication and query timing fields"
+  },
+  "collision_audit": {
+    "case": "sum-bits",
+    "environment": {"CELL_CPU_HASH_BITS": "0", "CELL_CPU_SIEVE_COLLISIONS": "1"},
+    "arguments": "--port-frames --scheduled-functions",
+    "actual_hashes": "collision-sha256.txt",
+    "all_five_frozen_hashes_match": true
+  },
+  "timing": {
+    "pgo": false,
+    "threads": 1,
+    "fresh_processes": true,
+    "warmups_per_mode": 1,
+    "measured_pairs": 5,
+    "order": "alternating",
+    "constructor_ports": "on in both modes",
+    "function_parameter_blocks": "off in both modes",
+    "two_run_blocks": "off in both modes",
+    "default_enabled": false,
+    "preliminary_matrix": "per-rule-samples.jsonl and per-rule-summary.json",
+    "final_matrix": "paired-samples.jsonl and paired-summary.json",
+    "summary_projection": "duplicate per-rule Sieve arrays removed; all original values retained in JSONL samples"
+  }
+}

@@ -89,6 +89,8 @@ impl Change {
 
 #[derive(Default, serde::Serialize)]
 pub(crate) struct Publication {
+    #[cfg(feature = "scheduled-functions")]
+    deferred_column_rows: u64,
     #[cfg(feature = "view-storage")]
     view_column_rows: u64,
     row_reads: u64,
@@ -99,6 +101,54 @@ pub(crate) struct Publication {
     neighbor_rows: u64,
 }
 impl Publication {
+    #[cfg(feature = "scheduled-functions")]
+    pub(crate) fn activate_columns(
+        &mut self,
+        g: &Graph,
+        t: usize,
+        ids: &[usize],
+        columns: &mut QueryIndexes,
+        range: Option<&mut RangeIndex>,
+        neighbor: &mut Context,
+    ) -> Result<u64> {
+        let mut writer = columns.writer(t, g.query_versions[t]);
+        let mut range = range.filter(|r| r.observes(t));
+        let neighbors = neighbor.observes(t);
+        if writer.is_none() && range.is_none() && !neighbors {
+            return Ok(0);
+        }
+        let count = ids.len() as u64;
+        self.column_rows += count * u64::from(writer.is_some());
+        self.deferred_column_rows += count * u64::from(writer.is_some());
+        #[cfg(feature = "view-storage")]
+        if writer.is_some() && g.has_view_plan(t) {
+            self.view_column_rows += count;
+        }
+        self.range_rows += count * u64::from(range.is_some());
+        self.neighbor_rows += count * u64::from(neighbors);
+        let mut retired = 0;
+        for &i in ids {
+            let row = g.function(i);
+            self.row_reads += u64::from(row.is_some());
+            retired += u64::from(row.is_none());
+            let w = Dependency::Function(i);
+            if let Some(writer) = &mut writer {
+                writer.update(w, row.as_ref());
+            }
+            if let Some(range) = &mut range {
+                range.update_row(t, g.query_versions[t], w, row.as_ref())?;
+            }
+            if neighbors {
+                neighbor.changed(t, w, row.as_ref());
+            }
+        }
+        if let Some(writer) = writer {
+            writer.finish(g.query_versions[t]);
+        }
+        neighbor.finish_publication_where(g, |table| table == t);
+        columns.finish_publication();
+        Ok(retired)
+    }
     #[cfg(feature = "rhs-work-audit")]
     pub fn index_writes(&self) -> [u64; 3] {
         [self.column_rows, self.range_rows, self.neighbor_rows]
@@ -109,6 +159,7 @@ impl Publication {
         &mut self,
         #[cfg(feature = "family-survey")] sample: (&mut crate::family_survey::Survey, bool),
         g: &Graph,
+        #[cfg(feature = "scheduled-functions")] deferred: &crate::scheduled_functions::State,
         columns: &mut QueryIndexes,
         mut ranges: Option<&mut RangeIndex>,
         neighbor: &mut Context,
@@ -116,19 +167,27 @@ impl Publication {
     ) -> Result<()> {
         columns.begin_publication(g);
         for (t, changes) in g.changes.tables() {
+            #[cfg(feature = "scheduled-functions")]
+            let delayed = deferred.defers(t);
+            #[cfg(not(feature = "scheduled-functions"))]
+            let delayed = false;
             let count = changes.len() as u64;
             self.headers += count;
             let version = g.query_versions[t];
             #[cfg(feature = "family-survey")]
             let clock = std::time::Instant::now();
-            let mut writer = columns.writer(t, version);
+            let mut writer = if delayed {
+                None
+            } else {
+                columns.writer(t, version)
+            };
             publish_ports(t, changes, writer.is_some());
             #[cfg(feature = "view-storage")]
             if writer.is_some() && g.has_view_plan(t) {
                 self.view_column_rows += count;
             }
-            let mut range = ranges.as_deref_mut().filter(|r| r.observes(t));
-            let neighbors = neighbor.observes(t);
+            let mut range = ranges.as_deref_mut().filter(|r| !delayed && r.observes(t));
+            let neighbors = !delayed && neighbor.observes(t);
             #[cfg(feature = "family-survey")]
             let observed = (writer.is_some(), range.is_some());
             if writer.is_none() && range.is_none() && !neighbors {
@@ -179,7 +238,13 @@ impl Publication {
             );
         }
         columns.finish_publication();
-        neighbor.finish_publication(g);
+        neighbor.finish_publication_where(g, |_t| {
+            #[cfg(feature = "scheduled-functions")]
+            if deferred.defers(_t) {
+                return false;
+            }
+            true
+        });
         Ok(())
     }
 }

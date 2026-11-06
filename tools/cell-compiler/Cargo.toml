@@ -17,6 +17,7 @@ name = "cell"
 harness = false
 
 [features]
+scheduled-functions = ["sparse-cells", "eggfuse-cell-runtime/scheduled-functions"]
 function-blocks = ["sparse-cells", "eggfuse-cell-runtime/function-blocks"]
 two-run-blocks=["port-frames","eggfuse-cell-runtime/two-run-blocks"]
 two-run-survey=["two-run-blocks","eggfuse-cell-runtime/two-run-survey"]

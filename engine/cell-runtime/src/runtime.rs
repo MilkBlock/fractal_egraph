@@ -110,6 +110,8 @@ pub struct Executor {
     #[cfg(feature = "view-consumers")]
     blocks: view_exec::Blocks,
     publication: crate::change_batch::Publication,
+    #[cfg(feature="scheduled-functions")]
+    scheduled_functions:crate::scheduled_functions::State,
     range_index: Option<crate::range_index::RangeIndex>,
 
     dedup_rows: u64,
@@ -238,6 +240,57 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     }
 }
 impl Executor {
+    #[cfg(feature="scheduled-functions")]
+    pub fn configure_scheduled_functions(&mut self,on:bool)->Result<()> {
+        if !self.steps.is_empty() {return Err("configure scheduled functions before execution".into())}
+        if on && cfg!(any(feature="projection-semijoin",feature="family-replay")) {
+            return Err("scheduled functions do not yet cover auxiliary publication observers".into())
+        }
+        self.scheduled_functions.enabled=on;
+        Ok(())
+    }
+    #[cfg(feature="scheduled-functions")]
+    pub fn scheduled_functions_report(&self)->J {self.scheduled_functions.report(&self.graph.program)}
+    #[cfg(feature="scheduled-functions")]
+    fn activate_function_readers(&mut self, rules: &[usize], probe: bool) -> Result<()> {
+        if !self.scheduled_functions.has_work() { return Ok(()); }
+        let mut start = None;
+        for &rid in rules {
+            if !self.scheduled_functions.reads(rid).iter().any(|&t|self.scheduled_functions.has_pending(t)) {
+                continue;
+            }
+            if (!probe && self.graph.program.rules[rid].seminaive && !self.dirty[rid])
+                || self.required_tables[rid].iter().any(|&t|self.graph.witness_count(t)==0) {
+                continue;
+            }
+            for at in 0..self.scheduled_functions.reads(rid).len() {
+                let t = self.scheduled_functions.reads(rid)[at];
+                if !self.scheduled_functions.has_pending(t) { continue; }
+                start.get_or_insert_with(Instant::now);
+                let ids = self.scheduled_functions.take(t);
+                #[cfg(feature="view-consumers")]
+                let dedicated = self.blocks.dedicated(t);
+                #[cfg(not(feature="view-consumers"))]
+                let dedicated = false;
+                if !dedicated {
+                    self.entry_schedule.publish_witnesses(t,ids.iter().copied().map(Dependency::Function));
+                }
+                let retired = self.publication.activate_columns(
+                    &self.graph,t,&ids,&mut self.query_indexes,
+                    self.range_index.as_mut(),&mut self.neighbor,
+                )?;
+                self.scheduled_functions.retired(retired);
+                self.scheduled_functions.recycle(t,ids);
+            }
+        }
+        if let Some(start)=start {
+            // Apply every changed dependency before exposing any necessary
+            // condition. No intermediate, unobserved value is required here.
+            self.sieve.publish(&mut self.query_indexes);
+            self.scheduled_functions.activated(start.elapsed().as_secs_f64());
+        }
+        Ok(())
+    }
     #[cfg(feature = "iterative-bake")]
     pub fn collect_iterative_pairs(&mut self) {
         self.stage_spine.training.collect_pairs = true;
@@ -320,6 +373,8 @@ impl Executor {
             #[cfg(feature = "view-consumers")]
             blocks: view_exec::Blocks::new(&graph),
             publication: Default::default(),
+            #[cfg(feature="scheduled-functions")]
+            scheduled_functions:crate::scheduled_functions::State::new(&graph.program),
             range_index: Some(Default::default()),
 
             dedup_rows: 0,
@@ -2453,6 +2508,8 @@ impl Executor {
             .ok_or("unknown probe ruleset")?
             .clone();
         for r in rules {
+            #[cfg(feature="scheduled-functions")]
+            self.activate_function_readers(std::slice::from_ref(&r),true)?;
             if !self.matches(r, true)?.is_empty() {
                 return Ok(true);
             }
@@ -2526,6 +2583,8 @@ impl Executor {
             .structural
             .measure_bindings()
             .then(|| self.watermarks.clone());
+        #[cfg(feature="scheduled-functions")]
+        self.activate_function_readers(&rules,false)?;
         let mut count = 0;
         for rid in rules {
             // Only semi-naive rules clear their dirty flag. An untriggered
@@ -2721,18 +2780,30 @@ impl Executor {
         }
         let phase = repair_end;
         self.stage_spine.publish(&mut self.graph)?;
+        #[cfg(feature="scheduled-functions")]
+        self.scheduled_functions.capture(&self.graph,|t|
+            self.query_indexes.has_columns(t) || self.entry_schedule.observes_table(t)
+            || self.neighbor.observes(t) || self.range_index.as_ref().is_some_and(|r|r.observes(t)));
         #[cfg(feature = "structural-depth")]
         self.stage_spine.structural.publish(&mut self.graph)?;
-        #[cfg(feature = "view-consumers")]
+        #[cfg(all(feature = "view-consumers",not(feature="scheduled-functions")))]
         self.entry_schedule
             .publish_except(&self.graph, |t| self.blocks.dedicated(t));
-        #[cfg(not(feature = "view-consumers"))]
+        #[cfg(all(not(feature = "view-consumers"),not(feature="scheduled-functions")))]
         self.entry_schedule.publish(&self.graph);
+        #[cfg(feature="scheduled-functions")]
+        self.entry_schedule.publish_except(&self.graph,|t|{
+            #[cfg(feature="view-consumers")]
+            if self.blocks.dedicated(t) {return true}
+            self.scheduled_functions.defers(t)
+        });
         self.graph.receipt_forwards.clear();
         self.publication.publish(
             #[cfg(feature = "family-survey")]
             (&mut self.survey, unions_before != self.graph.stats.unions),
             &self.graph,
+            #[cfg(feature="scheduled-functions")]
+            &self.scheduled_functions,
             &mut self.query_indexes,
             self.range_index.as_mut(),
             &mut self.neighbor,

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+scheduled-functions = ["sparse-cells"]
 function-blocks = ["sparse-cells"]
 two-run-blocks = ["port-frames"]
 two-run-survey = ["two-run-blocks"]

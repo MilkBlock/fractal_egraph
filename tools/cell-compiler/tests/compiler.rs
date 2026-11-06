@@ -4,6 +4,53 @@ use std::{
     path::Path,
     process::{Command, Output},
 };
+#[cfg(feature="scheduled-functions")]
+#[test]
+fn scheduled_function_publication_preserves_probes_merge_rekey_and_reinsertion() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    let tmp=tempfile::tempdir().unwrap();
+    for (case,merge,probe) in [("new","new",""),("custom","(+ old new)","(check (= (attr (N 0)) 10))")] {
+        let input=tmp.path().join(format!("{case}.egg"));let out=tmp.path().join(case);
+        fs::write(&input,format!(r#"
+(datatype E (N i64) (Seen E i64) (Joined E E i64))
+(function attr (E) i64 :merge {merge})
+(function peer (E) i64 :merge new)
+(ruleset seed) (ruleset a) (ruleset b) (ruleset c) (ruleset read) (ruleset join)
+(ruleset erase) (ruleset unite)
+(rule ((= x (N n))) ((set (attr x) n) (set (peer x) n)) :ruleset seed)
+(rule ((= x (N n))) ((set (attr x) (+ n 10))) :ruleset a)
+(rule ((= x (N n))) ((set (attr x) (+ n 20))) :ruleset b)
+(rule ((= x (N n))) ((set (attr x) (+ n 30)) (set (peer x) (+ n 30))) :ruleset c)
+(rule ((= x (N n)) (= v (attr x))) ((Seen x v)) :ruleset read)
+(rule ((= v (attr x)) (= v (peer y))) ((Joined x y v)) :ruleset join)
+(rule ((= x (N 0))) ((delete (attr x))) :ruleset erase)
+(rule ((= left (N 1)) (= right (N 2))) ((union left right)) :ruleset unite)
+(N 0) (N 1) (N 2)
+(run-schedule (run seed) (run read) (run join) (run a))
+{probe}
+(run-schedule (run erase) (run b) (run c) (run unite) (run read) (run join))
+"#)).unwrap();
+        pass(&["compile","--source",input.to_str().unwrap(),"--output",out.to_str().unwrap()]);
+        let artifact=json_file(&out.join("program.json"));
+        let run=|on|{
+            let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+            e.configure_scheduled_functions(on).unwrap();
+            // Stop/resume must preserve queued publication state.
+            e.execute_until(Some(6)).unwrap();e.execute().unwrap();
+            let scheduled=e.scheduled_functions_report();let report=e.report();
+            (e.snapshots,e.binding_audit,scheduled,report)
+        };
+        let a=run(false);let b=run(true);
+        assert_eq!(a.0,b.0,"{case}");assert_eq!(a.1,b.1,"{case}");
+        assert!(b.2["stats"]["coalesced_headers"].as_u64().unwrap()>0,"{}",b.2);
+        assert!(b.3["publication"]["column_rows"].as_u64().unwrap()<a.3["publication"]["column_rows"].as_u64().unwrap(),"{} {}",a.3["publication"],b.3["publication"]);
+        let mut bad=artifact.clone();
+        bad["scheduled_functions"]["reads"][0]=json!([999999]);
+        bad["sha256"]=json!(eggfuse_cell_runtime::checksum::artifact_digest(&bad));
+        assert!(Program::parse(bad).unwrap_err().contains("scheduled function readers"));
+        pass(&["bench","--program",out.join("program.json").to_str().unwrap(),"--reference-program",out.join("program.json").to_str().unwrap(),"--scheduled-functions","on","--repeat","1"]);
+    }
+}
 #[cfg(feature="function-blocks")]
 #[test]
 fn function_blocks_preserve_min_max_custom_merge_and_cross_run_consumers() {
@@ -1247,6 +1294,12 @@ fn changed_child_ports_follow_value_replacement_and_key_repair() {
         serde_json::from_slice(&res.stdout).unwrap()
     };
     let fast = bench(&pg);
+    #[cfg(feature="scheduled-functions")]
+    {
+        let delayed:J=serde_json::from_slice(&pass(&["bench","--program",pg.to_str().unwrap(),"--reference-program",pg.to_str().unwrap(),"--scheduled-functions","on","--repeat","1"]).stdout).unwrap();
+        assert_eq!(delayed["final_state_sha256"],fast["final_state_sha256"]);
+        assert!(delayed["counts"]["neighbor_context"]["publication"]["refreshed"].as_u64().unwrap()>0);
+    }
     let result = &fast["counts"]["neighbor_context"];
     let stats = &result["rules"][rid.to_string()]["stats"];
     assert!(stats["seeds"].as_u64().unwrap() > 0);

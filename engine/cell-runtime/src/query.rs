@@ -455,7 +455,7 @@ impl QueryIndexes {
         self.revision += u64::from(!g.changes.is_empty());
     }
 
-    #[cfg(feature = "view-consumers")]
+    #[cfg(any(feature = "view-consumers",feature="scheduled-functions"))]
     pub(crate) fn has_columns(&self, table: usize) -> bool {
         self.tables.contains_key(&table)
     }

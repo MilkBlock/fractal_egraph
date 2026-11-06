@@ -1,0 +1,919 @@
+{
+  "scope": "diagnostic work counts during implementation; not timing comparisons",
+  "column_only": [
+    {
+      "case": "sum-bits",
+      "mode": "off",
+      "publication": {
+        "column_rows": 5585,
+        "deferred_column_rows": 0,
+        "header_only": 1690,
+        "headers": 7275,
+        "neighbor_rows": 190,
+        "range_rows": 0,
+        "row_reads": 4750,
+        "view_column_rows": 0
+      },
+      "scheduled_functions": {
+        "certified_tables": 47,
+        "dirty_capacity_bytes": 0,
+        "enabled": false,
+        "pending": 0,
+        "pending_id_capacity_bytes": 0,
+        "scope": "derived columns and shared-entry notifications; Graph merges and Spine publication remain eager",
+        "stats": {
+          "activation_seconds": 0.0,
+          "activations": 0,
+          "capture_seconds": 0.0,
+          "captured_headers": 0,
+          "coalesced_headers": 0,
+          "flushed_headers": 0,
+          "peak_pending": 0,
+          "retired_index_rows": 0
+        },
+        "tables": []
+      }
+    },
+    {
+      "case": "sum-bits",
+      "mode": "on",
+      "publication": {
+        "column_rows": 5422,
+        "deferred_column_rows": 763,
+        "header_only": 2426,
+        "headers": 7275,
+        "neighbor_rows": 190,
+        "range_rows": 0,
+        "row_reads": 4748,
+        "view_column_rows": 0
+      },
+      "scheduled_functions": {
+        "certified_tables": 47,
+        "dirty_capacity_bytes": 2048,
+        "enabled": true,
+        "pending": 161,
+        "pending_id_capacity_bytes": 4544,
+        "scope": "derived columns and shared-entry notifications; Graph merges and Spine publication remain eager",
+        "stats": {
+          "activation_seconds": 0.0004063869999999999,
+          "activations": 236,
+          "capture_seconds": 0.00003524299999999994,
+          "captured_headers": 1543,
+          "coalesced_headers": 165,
+          "flushed_headers": 1217,
+          "peak_pending": 179,
+          "retired_index_rows": 45
+        },
+        "tables": [
+          {
+            "captured": 7,
+            "coalesced": 2,
+            "flushed": 5,
+            "pending": 0,
+            "table": "CellSpineView1"
+          },
+          {
+            "captured": 3,
+            "coalesced": 1,
+            "flushed": 2,
+            "pending": 0,
+            "table": "CellSpineView10"
+          },
+          {
+            "captured": 26,
+            "coalesced": 4,
+            "flushed": 22,
+            "pending": 0,
+            "table": "CellSpineView11"
+          },
+          {
+            "captured": 115,
+            "coalesced": 34,
+            "flushed": 81,
+            "pending": 0,
+            "table": "CellSpineView16"
+          },
+          {
+            "captured": 7,
+            "coalesced": 0,
+            "flushed": 7,
+            "pending": 0,
+            "table": "CellSpineView18"
+          },
+          {
+            "captured": 1,
+            "coalesced": 0,
+            "flushed": 1,
+            "pending": 0,
+            "table": "CellSpineView19"
+          },
+          {
+            "captured": 160,
+            "coalesced": 0,
+            "flushed": 0,
+            "pending": 160,
+            "table": "CellSpineView28"
+          },
+          {
+            "captured": 6,
+            "coalesced": 2,
+            "flushed": 4,
+            "pending": 0,
+            "table": "CellSpineView29"
+          },
+          {
+            "captured": 3,
+            "coalesced": 1,
+            "flushed": 2,
+            "pending": 0,
+            "table": "CellSpineView3"
+          },
+          {
+            "captured": 18,
+            "coalesced": 2,
+            "flushed": 16,
+            "pending": 0,
+            "table": "CellSpineView6"
+          },
+          {
+            "captured": 193,
+            "coalesced": 0,
+            "flushed": 193,
+            "pending": 0,
+            "table": "CellSpineView8"
+          },
+          {
+            "captured": 315,
+            "coalesced": 0,
+            "flushed": 315,
+            "pending": 0,
+            "table": "CellSpineView9"
+          },
+          {
+            "captured": 209,
+            "coalesced": 0,
+            "flushed": 209,
+            "pending": 0,
+            "table": "Expr-size"
+          },
+          {
+            "captured": 349,
+            "coalesced": 119,
+            "flushed": 230,
+            "pending": 0,
+            "table": "ExtractedExpr"
+          },
+          {
+            "captured": 1,
+            "coalesced": 0,
+            "flushed": 0,
+            "pending": 1,
+            "table": "LoopNumItersGuess"
+          },
+          {
+            "captured": 11,
+            "coalesced": 0,
+            "flushed": 11,
+            "pending": 0,
+            "table": "TypeList-length"
+          },
+          {
+            "captured": 5,
+            "coalesced": 0,
+            "flushed": 5,
+            "pending": 0,
+            "table": "hi-bound"
+          },
+          {
+            "captured": 5,
+            "coalesced": 0,
+            "flushed": 5,
+            "pending": 0,
+            "table": "lo-bound"
+          },
+          {
+            "captured": 1,
+            "coalesced": 0,
+            "flushed": 1,
+            "pending": 0,
+            "table": "to-hoist-size"
+          },
+          {
+            "captured": 108,
+            "coalesced": 0,
+            "flushed": 108,
+            "pending": 0,
+            "table": "tuple-length"
+          }
+        ]
+      }
+    },
+    {
+      "case": "raytrace",
+      "mode": "off",
+      "publication": {
+        "column_rows": 2395590,
+        "deferred_column_rows": 0,
+        "header_only": 618045,
+        "headers": 3013635,
+        "neighbor_rows": 1126308,
+        "range_rows": 57325,
+        "row_reads": 2231377,
+        "view_column_rows": 0
+      },
+      "scheduled_functions": {
+        "certified_tables": 47,
+        "dirty_capacity_bytes": 0,
+        "enabled": false,
+        "pending": 0,
+        "pending_id_capacity_bytes": 0,
+        "scope": "derived columns and shared-entry notifications; Graph merges and Spine publication remain eager",
+        "stats": {
+          "activation_seconds": 0.0,
+          "activations": 0,
+          "capture_seconds": 0.0,
+          "captured_headers": 0,
+          "coalesced_headers": 0,
+          "flushed_headers": 0,
+          "peak_pending": 0,
+          "retired_index_rows": 0
+        },
+        "tables": []
+      }
+    },
+    {
+      "case": "raytrace",
+      "mode": "on",
+      "publication": {
+        "column_rows": 2349958,
+        "deferred_column_rows": 1267884,
+        "header_only": 747928,
+        "headers": 3013635,
+        "neighbor_rows": 1126308,
+        "range_rows": 57325,
+        "row_reads": 3365092,
+        "view_column_rows": 0
+      },
+      "scheduled_functions": {
+        "certified_tables": 47,
+        "dirty_capacity_bytes": 618496,
+        "enabled": true,
+        "pending": 63056,
+        "pending_id_capacity_bytes": 787040,
+        "scope": "derived columns and shared-entry notifications; Graph merges and Spine publication remain eager",
+        "stats": {
+          "activation_seconds": 0.4282903689999982,
+          "activations": 4602,
+          "capture_seconds": 0.008542437999999885,
+          "captured_headers": 1678608,
+          "coalesced_headers": 45627,
+          "flushed_headers": 1569925,
+          "peak_pending": 65700,
+          "retired_index_rows": 7945
+        },
+        "tables": [
+          {
+            "captured": 876,
+            "coalesced": 4,
+            "flushed": 872,
+            "pending": 0,
+            "table": "CellSpineView1"
+          },
+          {
+            "captured": 3,
+            "coalesced": 0,
+            "flushed": 3,
+            "pending": 0,
+            "table": "CellSpineView10"
+          },
+          {
+            "captured": 806,
+            "coalesced": 3,
+            "flushed": 803,
+            "pending": 0,
+            "table": "CellSpineView11"
+          },
+          {
+            "captured": 3411,
+            "coalesced": 15,
+            "flushed": 3396,
+            "pending": 0,
+            "table": "CellSpineView16"
+          },
+          {
+            "captured": 456,
+            "coalesced": 0,
+            "flushed": 456,
+            "pending": 0,
+            "table": "CellSpineView18"
+          },
+          {
+            "captured": 59,
+            "coalesced": 0,
+            "flushed": 59,
+            "pending": 0,
+            "table": "CellSpineView19"
+          },
+          {
+            "captured": 113,
+            "coalesced": 0,
+            "flushed": 113,
+            "pending": 0,
+            "table": "CellSpineView2"
+          },
+          {
+            "captured": 70,
+            "coalesced": 3,
+            "flushed": 66,
+            "pending": 1,
+            "table": "CellSpineView20"
+          },
+          {
+            "captured": 70,
+            "coalesced": 1,
+            "flushed": 69,
+            "pending": 0,
+            "table": "CellSpineView21"
+          },
+          {
+            "captured": 43,
+            "coalesced": 0,
+            "flushed": 43,
+            "pending": 0,
+            "table": "CellSpineView22"
+          },
+          {
+            "captured": 63050,
+            "coalesced": 0,
+            "flushed": 0,
+            "pending": 63050,
+            "table": "CellSpineView28"
+          },
+          {
+            "captured": 58,
+            "coalesced": 2,
+            "flushed": 55,
+            "pending": 1,
+            "table": "CellSpineView29"
+          },
+          {
+            "captured": 1,
+            "coalesced": 0,
+            "flushed": 1,
+            "pending": 0,
+            "table": "CellSpineView3"
+          },
+          {
+            "captured": 2,
+            "coalesced": 0,
+            "flushed": 2,
+            "pending": 0,
+            "table": "CellSpineView4"
+          },
+          {
+            "captured": 926,
+            "coalesced": 32,
+            "flushed": 894,
+            "pending": 0,
+            "table": "CellSpineView6"
+          },
+          {
+            "captured": 884,
+            "coalesced": 9,
+            "flushed": 875,
+            "pending": 0,
+            "table": "CellSpineView7"
+          },
+          {
+            "captured": 71204,
+            "coalesced": 0,
+            "flushed": 71204,
+            "pending": 0,
+            "table": "CellSpineView8"
+          },
+          {
+            "captured": 287718,
+            "coalesced": 0,
+            "flushed": 287718,
+            "pending": 0,
+            "table": "CellSpineView9"
+          },
+          {
+            "captured": 1126614,
+            "coalesced": 0,
+            "flushed": 1126614,
+            "pending": 0,
+            "table": "Expr-size"
+          },
+          {
+            "captured": 101425,
+            "coalesced": 45558,
+            "flushed": 55867,
+            "pending": 0,
+            "table": "ExtractedExpr"
+          },
+          {
+            "captured": 84,
+            "coalesced": 0,
+            "flushed": 80,
+            "pending": 4,
+            "table": "LoopNumItersGuess"
+          },
+          {
+            "captured": 903,
+            "coalesced": 0,
+            "flushed": 903,
+            "pending": 0,
+            "table": "TypeList-length"
+          },
+          {
+            "captured": 1040,
+            "coalesced": 0,
+            "flushed": 1040,
+            "pending": 0,
+            "table": "hi-bound"
+          },
+          {
+            "captured": 1040,
+            "coalesced": 0,
+            "flushed": 1040,
+            "pending": 0,
+            "table": "lo-bound"
+          },
+          {
+            "captured": 86,
+            "coalesced": 0,
+            "flushed": 86,
+            "pending": 0,
+            "table": "to-hoist-size"
+          },
+          {
+            "captured": 17666,
+            "coalesced": 0,
+            "flushed": 17666,
+            "pending": 0,
+            "table": "tuple-length"
+          }
+        ]
+      }
+    }
+  ],
+  "combined": [
+    {
+      "case": "sum-bits",
+      "mode": "off",
+      "publication": {
+        "column_rows": 5585,
+        "deferred_column_rows": 0,
+        "header_only": 1690,
+        "headers": 7275,
+        "neighbor_rows": 190,
+        "range_rows": 0,
+        "row_reads": 4750,
+        "view_column_rows": 0
+      },
+      "scheduled_functions": {
+        "certified_tables": 47,
+        "dirty_capacity_bytes": 0,
+        "enabled": false,
+        "pending": 0,
+        "pending_id_capacity_bytes": 0,
+        "scope": "derived columns, ranges, neighbor ports and shared-entry notifications; Graph merges and Spine publication remain eager",
+        "stats": {
+          "activation_seconds": 0.0,
+          "activations": 0,
+          "capture_seconds": 0.0,
+          "captured_headers": 0,
+          "coalesced_headers": 0,
+          "flushed_headers": 0,
+          "peak_pending": 0,
+          "retired_index_rows": 0
+        },
+        "tables": []
+      }
+    },
+    {
+      "case": "sum-bits",
+      "mode": "on",
+      "publication": {
+        "column_rows": 5422,
+        "deferred_column_rows": 763,
+        "header_only": 2616,
+        "headers": 7275,
+        "neighbor_rows": 190,
+        "range_rows": 0,
+        "row_reads": 4587,
+        "view_column_rows": 0
+      },
+      "scheduled_functions": {
+        "certified_tables": 47,
+        "dirty_capacity_bytes": 2048,
+        "enabled": true,
+        "pending": 161,
+        "pending_id_capacity_bytes": 4544,
+        "scope": "derived columns, ranges, neighbor ports and shared-entry notifications; Graph merges and Spine publication remain eager",
+        "stats": {
+          "activation_seconds": 0.00041741600000000004,
+          "activations": 236,
+          "capture_seconds": 0.00003474999999999994,
+          "captured_headers": 1543,
+          "coalesced_headers": 165,
+          "flushed_headers": 1217,
+          "peak_pending": 179,
+          "retired_index_rows": 45
+        },
+        "tables": [
+          {
+            "captured": 7,
+            "coalesced": 2,
+            "flushed": 5,
+            "pending": 0,
+            "table": "CellSpineView1"
+          },
+          {
+            "captured": 3,
+            "coalesced": 1,
+            "flushed": 2,
+            "pending": 0,
+            "table": "CellSpineView10"
+          },
+          {
+            "captured": 26,
+            "coalesced": 4,
+            "flushed": 22,
+            "pending": 0,
+            "table": "CellSpineView11"
+          },
+          {
+            "captured": 115,
+            "coalesced": 34,
+            "flushed": 81,
+            "pending": 0,
+            "table": "CellSpineView16"
+          },
+          {
+            "captured": 7,
+            "coalesced": 0,
+            "flushed": 7,
+            "pending": 0,
+            "table": "CellSpineView18"
+          },
+          {
+            "captured": 1,
+            "coalesced": 0,
+            "flushed": 1,
+            "pending": 0,
+            "table": "CellSpineView19"
+          },
+          {
+            "captured": 160,
+            "coalesced": 0,
+            "flushed": 0,
+            "pending": 160,
+            "table": "CellSpineView28"
+          },
+          {
+            "captured": 6,
+            "coalesced": 2,
+            "flushed": 4,
+            "pending": 0,
+            "table": "CellSpineView29"
+          },
+          {
+            "captured": 3,
+            "coalesced": 1,
+            "flushed": 2,
+            "pending": 0,
+            "table": "CellSpineView3"
+          },
+          {
+            "captured": 18,
+            "coalesced": 2,
+            "flushed": 16,
+            "pending": 0,
+            "table": "CellSpineView6"
+          },
+          {
+            "captured": 193,
+            "coalesced": 0,
+            "flushed": 193,
+            "pending": 0,
+            "table": "CellSpineView8"
+          },
+          {
+            "captured": 315,
+            "coalesced": 0,
+            "flushed": 315,
+            "pending": 0,
+            "table": "CellSpineView9"
+          },
+          {
+            "captured": 209,
+            "coalesced": 0,
+            "flushed": 209,
+            "pending": 0,
+            "table": "Expr-size"
+          },
+          {
+            "captured": 349,
+            "coalesced": 119,
+            "flushed": 230,
+            "pending": 0,
+            "table": "ExtractedExpr"
+          },
+          {
+            "captured": 1,
+            "coalesced": 0,
+            "flushed": 0,
+            "pending": 1,
+            "table": "LoopNumItersGuess"
+          },
+          {
+            "captured": 11,
+            "coalesced": 0,
+            "flushed": 11,
+            "pending": 0,
+            "table": "TypeList-length"
+          },
+          {
+            "captured": 5,
+            "coalesced": 0,
+            "flushed": 5,
+            "pending": 0,
+            "table": "hi-bound"
+          },
+          {
+            "captured": 5,
+            "coalesced": 0,
+            "flushed": 5,
+            "pending": 0,
+            "table": "lo-bound"
+          },
+          {
+            "captured": 1,
+            "coalesced": 0,
+            "flushed": 1,
+            "pending": 0,
+            "table": "to-hoist-size"
+          },
+          {
+            "captured": 108,
+            "coalesced": 0,
+            "flushed": 108,
+            "pending": 0,
+            "table": "tuple-length"
+          }
+        ]
+      }
+    },
+    {
+      "case": "raytrace",
+      "mode": "off",
+      "publication": {
+        "column_rows": 2395590,
+        "deferred_column_rows": 0,
+        "header_only": 618045,
+        "headers": 3013635,
+        "neighbor_rows": 1126308,
+        "range_rows": 57325,
+        "row_reads": 2231377,
+        "view_column_rows": 0
+      },
+      "scheduled_functions": {
+        "certified_tables": 47,
+        "dirty_capacity_bytes": 0,
+        "enabled": false,
+        "pending": 0,
+        "pending_id_capacity_bytes": 0,
+        "scope": "derived columns, ranges, neighbor ports and shared-entry notifications; Graph merges and Spine publication remain eager",
+        "stats": {
+          "activation_seconds": 0.0,
+          "activations": 0,
+          "capture_seconds": 0.0,
+          "captured_headers": 0,
+          "coalesced_headers": 0,
+          "flushed_headers": 0,
+          "peak_pending": 0,
+          "retired_index_rows": 0
+        },
+        "tables": []
+      }
+    },
+    {
+      "case": "raytrace",
+      "mode": "on",
+      "publication": {
+        "column_rows": 2349958,
+        "deferred_column_rows": 1267884,
+        "header_only": 1931561,
+        "headers": 3013635,
+        "neighbor_rows": 1126308,
+        "range_rows": 57325,
+        "row_reads": 2185745,
+        "view_column_rows": 0
+      },
+      "scheduled_functions": {
+        "certified_tables": 47,
+        "dirty_capacity_bytes": 618496,
+        "enabled": true,
+        "pending": 63056,
+        "pending_id_capacity_bytes": 787040,
+        "scope": "derived columns, ranges, neighbor ports and shared-entry notifications; Graph merges and Spine publication remain eager",
+        "stats": {
+          "activation_seconds": 0.5041347659999972,
+          "activations": 4602,
+          "capture_seconds": 0.008764468999999974,
+          "captured_headers": 1678608,
+          "coalesced_headers": 45627,
+          "flushed_headers": 1569925,
+          "peak_pending": 65700,
+          "retired_index_rows": 7945
+        },
+        "tables": [
+          {
+            "captured": 876,
+            "coalesced": 4,
+            "flushed": 872,
+            "pending": 0,
+            "table": "CellSpineView1"
+          },
+          {
+            "captured": 3,
+            "coalesced": 0,
+            "flushed": 3,
+            "pending": 0,
+            "table": "CellSpineView10"
+          },
+          {
+            "captured": 806,
+            "coalesced": 3,
+            "flushed": 803,
+            "pending": 0,
+            "table": "CellSpineView11"
+          },
+          {
+            "captured": 3411,
+            "coalesced": 15,
+            "flushed": 3396,
+            "pending": 0,
+            "table": "CellSpineView16"
+          },
+          {
+            "captured": 456,
+            "coalesced": 0,
+            "flushed": 456,
+            "pending": 0,
+            "table": "CellSpineView18"
+          },
+          {
+            "captured": 59,
+            "coalesced": 0,
+            "flushed": 59,
+            "pending": 0,
+            "table": "CellSpineView19"
+          },
+          {
+            "captured": 113,
+            "coalesced": 0,
+            "flushed": 113,
+            "pending": 0,
+            "table": "CellSpineView2"
+          },
+          {
+            "captured": 70,
+            "coalesced": 3,
+            "flushed": 66,
+            "pending": 1,
+            "table": "CellSpineView20"
+          },
+          {
+            "captured": 70,
+            "coalesced": 1,
+            "flushed": 69,
+            "pending": 0,
+            "table": "CellSpineView21"
+          },
+          {
+            "captured": 43,
+            "coalesced": 0,
+            "flushed": 43,
+            "pending": 0,
+            "table": "CellSpineView22"
+          },
+          {
+            "captured": 63050,
+            "coalesced": 0,
+            "flushed": 0,
+            "pending": 63050,
+            "table": "CellSpineView28"
+          },
+          {
+            "captured": 58,
+            "coalesced": 2,
+            "flushed": 55,
+            "pending": 1,
+            "table": "CellSpineView29"
+          },
+          {
+            "captured": 1,
+            "coalesced": 0,
+            "flushed": 1,
+            "pending": 0,
+            "table": "CellSpineView3"
+          },
+          {
+            "captured": 2,
+            "coalesced": 0,
+            "flushed": 2,
+            "pending": 0,
+            "table": "CellSpineView4"
+          },
+          {
+            "captured": 926,
+            "coalesced": 32,
+            "flushed": 894,
+            "pending": 0,
+            "table": "CellSpineView6"
+          },
+          {
+            "captured": 884,
+            "coalesced": 9,
+            "flushed": 875,
+            "pending": 0,
+            "table": "CellSpineView7"
+          },
+          {
+            "captured": 71204,
+            "coalesced": 0,
+            "flushed": 71204,
+            "pending": 0,
+            "table": "CellSpineView8"
+          },
+          {
+            "captured": 287718,
+            "coalesced": 0,
+            "flushed": 287718,
+            "pending": 0,
+            "table": "CellSpineView9"
+          },
+          {
+            "captured": 1126614,
+            "coalesced": 0,
+            "flushed": 1126614,
+            "pending": 0,
+            "table": "Expr-size"
+          },
+          {
+            "captured": 101425,
+            "coalesced": 45558,
+            "flushed": 55867,
+            "pending": 0,
+            "table": "ExtractedExpr"
+          },
+          {
+            "captured": 84,
+            "coalesced": 0,
+            "flushed": 80,
+            "pending": 4,
+            "table": "LoopNumItersGuess"
+          },
+          {
+            "captured": 903,
+            "coalesced": 0,
+            "flushed": 903,
+            "pending": 0,
+            "table": "TypeList-length"
+          },
+          {
+            "captured": 1040,
+            "coalesced": 0,
+            "flushed": 1040,
+            "pending": 0,
+            "table": "hi-bound"
+          },
+          {
+            "captured": 1040,
+            "coalesced": 0,
+            "flushed": 1040,
+            "pending": 0,
+            "table": "lo-bound"
+          },
+          {
+            "captured": 86,
+            "coalesced": 0,
+            "flushed": 86,
+            "pending": 0,
+            "table": "to-hoist-size"
+          },
+          {
+            "captured": 17666,
+            "coalesced": 0,
+            "flushed": 17666,
+            "pending": 0,
+            "table": "tuple-length"
+          }
+        ]
+      }
+    }
+  ]
+}

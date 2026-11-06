@@ -3,6 +3,8 @@ mod origin_demand;
 #[cfg(feature="allocation-census")]
 pub mod allocation_census;
 mod change_batch;
+#[cfg(feature="scheduled-functions")]
+mod scheduled_functions;
 pub mod checksum;
 mod depth_plan;
 #[cfg(feature = "structural-depth")]

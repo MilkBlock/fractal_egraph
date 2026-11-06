@@ -261,12 +261,13 @@ impl Context {
             self.published.nanoseconds += clock.elapsed().as_nanos() as u64;
         }
     }
-    pub fn finish_publication(&mut self, g: &Graph) {
+    pub fn finish_publication_where(&mut self, g: &Graph, include:impl Fn(usize)->bool) {
         if self.subscribed.is_empty() {
             return;
         }
         let clock = self.profiling.then(Instant::now);
         for &t in &self.subscribed {
+            if !include(t) {continue}
             let cache = self.ports[t].as_mut().unwrap();
             cache.version = g.query_versions[t];
         }

@@ -37,14 +37,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output = PathBuf::from(&args[1]);
     fs::create_dir(&output)?;
     let rounds: usize = args[4].parse()?;
+    let scheduled=args.get(5).is_some_and(|s|s=="--scheduled" || s=="--audit-scheduled");
     let functions=args.get(5).is_some_and(|s|s=="--functions" || s=="--audit-functions");
     let fusion = args
         .get(5)
         .is_some_and(|s| s == "--two-run" || s == "--audit-two-run");
     let audit = args
         .get(5)
-        .is_some_and(|s| s == "--audit" || s == "--audit-ports" || s == "--audit-two-run" || s=="--audit-functions");
-    let ports = functions || fusion
+        .is_some_and(|s| s == "--audit" || s == "--audit-ports" || s == "--audit-two-run" || s=="--audit-functions" || s=="--audit-scheduled");
+    let ports = scheduled || functions || fusion
         || args
             .get(5)
             .is_some_and(|s| s == "--ports" || s == "--audit-ports");
@@ -83,10 +84,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 cmd.args(["--program", input, "--output"])
                     .arg(&run)
                     .args(["--deferred-incidence", if ports { "off" } else { mode }]);
-                if functions || fusion || (ports && mode == "on") {
+                if scheduled || functions || fusion || (ports && mode == "on") {
                     cmd.arg("--port-frames");
                 }
                 if functions && mode=="on" {cmd.arg("--function-blocks");}
+                if scheduled && mode=="on" {cmd.arg("--scheduled-functions");}
                 if fusion && mode == "on" {
                     cmd.arg("--two-run-blocks");
                 }
@@ -167,7 +169,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "inference_ms":report["inference_seconds"].as_f64().unwrap()*1000.,"cli_ms":cli_ms,
                     "rss_bytes":report["peak_rss_through_inference_bytes"],"phases_ms":phases,
                     "stats":report["stats"],"deferred_incidence":report["deferred_incidence"],"port_frames":report["port_frames"],"two_run_blocks":report["two_run_blocks"],"storage":report["storage"],
-                    "function_blocks":report["function_blocks"],"spine":report["stage_spine"]["stats"],"runs":steps.len(),"digests":digests});
+                    "function_blocks":report["function_blocks"],"scheduled_functions":report["scheduled_functions"],"publication":report["publication"],"entry_schedule":report["entry_schedule"],"sieve":report["sieve"],"indexed_columns":report["indexed_columns"],"spine":report["stage_spine"]["stats"],"runs":steps.len(),"digests":digests});
                 writeln!(log, "{sample}")?;
                 log.flush()?;
                 println!(
@@ -207,6 +209,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 values["port_frames"] = selected[0]["port_frames"].clone();
                 values["storage"] = selected[0]["storage"].clone();
                 values["function_blocks"] = selected[0]["function_blocks"].clone();
+                for key in ["scheduled_functions","publication","entry_schedule","sieve","indexed_columns"] {values[key]=selected[0][key].clone();}
                 for key in ["search","rhs","repair","delivery_gc","query_update"] {
                     values["phases_ms"][key]=json!(median(selected.iter().map(|s|s["phases_ms"][key].as_f64().unwrap()).collect()));
                 }

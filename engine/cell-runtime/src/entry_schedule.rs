@@ -381,6 +381,8 @@ impl State {
 }
 #[derive(Default, Serialize)]
 pub struct Stats {
+    #[cfg(feature="scheduled-functions")]
+    pending_appends:u64,
     #[cfg(feature="entry-retirement")] packets_consumed:u64,
     #[cfg(feature="entry-retirement")] backwards_rebuilds:u64,
     pub predicate_checks: u64,
@@ -605,6 +607,10 @@ impl Scheduler {
     pub fn publish(&mut self, g: &Graph) {
         self.publish_except(g, |_| false);
     }
+    #[cfg(feature="scheduled-functions")]
+    pub(crate) fn observes_table(&self,t:usize)->bool {
+        self.enabled && self.plan.tables[t].iter().any(|&id|!self.states[id].cold)
+    }
     pub(crate) fn publish_except(&mut self, g: &Graph, dedicated: impl Fn(usize) -> bool) {
         #[cfg(feature = "allocation-census")]
         let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Entries);
@@ -617,23 +623,7 @@ impl Scheduler {
             if dedicated(table) {
                 continue;
             }
-            self.stats.changed_headers += changes.len() as u64;
-            for &id in &self.plan.tables[table] {
-                let state = &mut self.states[id];
-                if !state.cold {
-                    #[cfg(not(feature = "sparse-cells"))]
-                    let before = state.pending.len();
-                    state.pending.extend(changes.keys().copied());
-                    #[cfg(not(feature = "sparse-cells"))]
-                    { self.stats.node_notifications += (state.pending.len() - before) as u64; }
-                    #[cfg(feature = "sparse-cells")]
-                    if state.pending.len() > state.sorted_pending.saturating_mul(2).max(64) {
-                        // Bound unconsumed repetitions even when this node's
-                        // consumer ruleset is dormant for many publications.
-                        state.compact_pending();
-                    }
-                }
-            }
+            self.publish_witnesses(table,changes.keys().copied());
         }
         if self.unions != g.stats.unions {
             for (id, n) in self.plan.nodes.iter().enumerate() {
@@ -642,6 +632,26 @@ impl Scheduler {
                 }
             }
             self.unions = g.stats.unions;
+        }
+    }
+    pub(crate) fn publish_witnesses(&mut self,table:usize,rows:impl ExactSizeIterator<Item=Dependency>+Clone) {
+        if !self.enabled {return}
+        self.stats.changed_headers+=rows.len() as u64;
+        for &id in &self.plan.tables[table] {
+            let state=&mut self.states[id];
+            if !state.cold {
+                #[cfg(feature="scheduled-functions")]
+                {self.stats.pending_appends+=rows.len() as u64;}
+                #[cfg(not(feature="sparse-cells"))]
+                let before=state.pending.len();
+                state.pending.extend(rows.clone());
+                #[cfg(not(feature="sparse-cells"))]
+                {self.stats.node_notifications+=(state.pending.len()-before) as u64;}
+                #[cfg(feature="sparse-cells")]
+                if state.pending.len()>state.sorted_pending.saturating_mul(2).max(64) {
+                    state.compact_pending();
+                }
+            }
         }
     }
     pub fn seeds(&mut self, g: &Graph, rid: usize, watermark: u64) -> Result<Vec<Seed>> {

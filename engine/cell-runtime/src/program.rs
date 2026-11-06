@@ -398,6 +398,11 @@ impl Program {
             artifact: j,
         };
         p.validate()?;
+        #[cfg(feature="scheduled-functions")]
+        if let Some(raw)=p.artifact.get("scheduled_functions")
+            && *raw!=serde_json::json!(crate::scheduled_functions::Plan::derive(&p)) {
+            return Err("invalid scheduled function readers".into());
+        }
         #[cfg(feature = "deferred-incidence")]
         {
             p.deferred_incidence = crate::deferred_incidence::derive(&p);

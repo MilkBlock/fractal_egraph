@@ -38,6 +38,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         #[cfg(feature = "entry-retirement")]
         println!("  --entry-retire-interval N (default 1)");
         println!("  --release-source-artifact (discard validation IR after runtime setup)");
+        #[cfg(feature="scheduled-functions")]
+        println!("  --scheduled-functions (publish derived function state at consumer Runs)");
         #[cfg(feature="port-frames")]
         println!("  --port-frames (compact checked constructor blocks) [--frame-census]");
         #[cfg(feature="two-run-blocks")]
@@ -99,6 +101,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .ok_or("missing retirement interval")?;
             }
             "--audit-stages" | "--inspect-program" | "--release-source-artifact" => {}
+            #[cfg(feature="scheduled-functions")]
+            "--scheduled-functions"=>{},
             #[cfg(feature = "function-blocks")]
             "--function-blocks" => {}
             #[cfg(feature = "port-frames")]
@@ -142,6 +146,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     let audit = args.iter().any(|x| x == "--audit-stages");
     let mut runtime = Executor::new(Graph::new(program)?, audit);
+    #[cfg(feature="scheduled-functions")]
+    runtime.configure_scheduled_functions(args.iter().any(|x|x=="--scheduled-functions"))?;
     #[cfg(feature = "function-blocks")]
     runtime.graph.configure_function_blocks(args.iter().any(|x|x=="--function-blocks"));
     #[cfg(feature = "port-frames")]
@@ -270,6 +276,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "keeper-proof")]
     runtime.write_keepers(&out)?;
     let mut report = runtime.report();
+    #[cfg(feature="scheduled-functions")]
+    {report["scheduled_functions"]=runtime.scheduled_functions_report();}
     #[cfg(feature = "function-blocks")]
     {report["function_blocks"]=runtime.graph.function_blocks_report();}
     #[cfg(feature = "port-frames")]

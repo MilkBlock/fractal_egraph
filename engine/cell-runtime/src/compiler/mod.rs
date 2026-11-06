@@ -209,7 +209,11 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     let deferred = json!(p.deferred_incidence);
     #[cfg(feature = "port-frames")]
     let ports=json!(crate::graph::port_frames::derive(&p,&known_results));
+    #[cfg(feature="scheduled-functions")]
+    let scheduled=json!(crate::scheduled_functions::Plan::derive(&p));
     j = p.artifact;
+    #[cfg(feature="scheduled-functions")]
+    {j["scheduled_functions"]=scheduled;}
     #[cfg(feature = "function-blocks")]
     {j["function_blocks"]=functions;}
     #[cfg(feature = "port-frames")]
