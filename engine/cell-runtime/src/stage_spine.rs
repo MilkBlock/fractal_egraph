@@ -429,12 +429,14 @@ pub struct Programs {
     anchor_shapes: BTreeMap<(usize, usize), (usize, Vec<(usize, usize)>)>,
     entry_cache: HashMap<(usize, Dependency), (bool, usize)>,
     row_cache: HashMap<Dependency, Option<Rc<Row>>>,
-    consumer_tables: BTreeMap<usize, BTreeSet<usize>>,
+    table_readers: Vec<Vec<usize>>,
+    // Number of distinct planned input tables with at least one live anchor.
+    live_inputs: Vec<usize>,
     orders: BTreeMap<(usize, usize), Vec<usize>>,
     entries: HashMap<Dependency, Published>,
     #[cfg(feature = "sparse-cells")]
     published_bases: Vec<Option<PublishedBase>>,
-    active_tables: BTreeMap<usize, usize>,
+    active_tables: Vec<usize>,
     // Anchor-producing operations and their optional proven receipt sources.
     anchor_ops: Vec<Vec<(usize, Option<Source>)>>,
     alias_query_facts: Vec<QueryFacts>,
@@ -680,12 +682,13 @@ impl Programs {
             anchor_shapes: BTreeMap::new(),
             entry_cache: HashMap::default(),
             row_cache: HashMap::default(),
-            consumer_tables: BTreeMap::new(),
+            table_readers: vec![Vec::new(); p.tables.len()],
+            live_inputs: vec![0; p.rules.len()],
             orders: BTreeMap::new(),
             entries: HashMap::default(),
             #[cfg(feature = "sparse-cells")]
             published_bases: vec![],
-            active_tables: BTreeMap::new(),
+            active_tables: vec![0; p.tables.len()],
             #[cfg(feature = "spine-shapes")]
             shapes: Default::default(),
             #[cfg(feature = "iterative-bake")]
@@ -734,7 +737,9 @@ impl Programs {
                 unreachable!()
             };
             anchor_tables.insert(t);
-            s.consumer_tables.entry(*rid).or_default().insert(t);
+            if !s.table_readers[t].contains(rid) {
+                s.table_readers[t].push(*rid);
+            }
         }
 
         // Store one cursor per committed anchor. Consumer programs attach only
@@ -1195,7 +1200,12 @@ impl Programs {
             cursor
         };
         if self.entries.insert(w, cursor).is_none() {
-            *self.active_tables.entry(table).or_default() += 1;
+            if self.active_tables[table] == 0 {
+                for &rid in &self.table_readers[table] {
+                    self.live_inputs[rid] += 1;
+                }
+            }
+            self.active_tables[table] += 1;
         }
         self.stats.anchor_publications += 1;
     }
@@ -1214,6 +1224,7 @@ impl Programs {
         // Removed/coalesced anchors are not reusable. Other stale ports are
         // refreshed by exact keys when their legal consumer stage arrives.
         for (t, changes) in g.changes.tables() {
+            if self.active_tables[t] == 0 { continue; }
             for w in changes.keys() {
                 let live = match *w {
                     Dependency::Fact(f) => g
@@ -1228,10 +1239,13 @@ impl Programs {
                 }
                 if self.entries.remove(w).is_some() {
                     self.stats.anchors_retired += 1;
-                    let n = self.active_tables.get_mut(&t).unwrap();
+                    let n = &mut self.active_tables[t];
                     *n -= 1;
                     if *n == 0 {
-                        self.active_tables.remove(&t);
+                        for &rid in &self.table_readers[t] {
+                            self.live_inputs[rid] -= 1;
+                        }
+                        break;
                     }
                 }
             }
@@ -1476,11 +1490,7 @@ impl Programs {
         self.stats.resumed_steps
     }
     pub(crate) fn active_for_rule(&self, rid: usize) -> bool {
-        self.enabled
-            && self
-                .consumer_tables
-                .get(&rid)
-                .is_some_and(|tables| tables.iter().any(|t| self.active_tables.contains_key(t)))
+        self.enabled && self.live_inputs[rid] != 0
     }
 
     /// A live cursor only owns this pivot if the compiler supplied an exhaustive
@@ -1492,7 +1502,7 @@ impl Programs {
         table: usize,
     ) -> Option<&HashMap<Dependency, Published>> {
         (self.enabled
-            && self.active_tables.contains_key(&table)
+            && self.active_tables[table] != 0
             && self.orders.contains_key(&(rid, pivot)))
         .then_some(&self.entries)
     }
