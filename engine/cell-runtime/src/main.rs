@@ -38,6 +38,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         #[cfg(feature = "entry-retirement")]
         println!("  --entry-retire-interval N (default 1)");
         println!("  --release-source-artifact (discard validation IR after runtime setup)");
+        #[cfg(feature="iterative-bake")]
+        println!("  --no-iterative-lhs (ablate learned LHS ports; keep the same RHS catalog)");
         #[cfg(feature="port-frames")]
         println!("  --port-frames (compact checked constructor blocks) [--frame-census]");
         #[cfg(feature="two-run-blocks")]
@@ -59,6 +61,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             return Err(format!("duplicate option {flag}").into());
         }
         match flag.as_str() {
+            #[cfg(feature="iterative-bake")]
+            "--no-iterative-lhs"=>{},
             "--program" | "--output" | "--extract-unit-cost" => {
                 flags
                     .next()
@@ -134,6 +138,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("run the two-run survey separately from fusion".into());
     }
     let program = Program::parse(serde_json::from_slice(&bytes)?)?;
+    #[cfg(feature="iterative-bake")]
+    let program={let mut p=program;if args.iter().any(|s|s=="--no-iterative-lhs"){p.disable_iterative_lhs();}p};
     #[cfg(feature = "allocation-census")]
     drop(loading);
     if args.iter().any(|x| x == "--inspect-program") {

@@ -1,0 +1,748 @@
+[
+  {
+    "unit": 289,
+    "served_reads": 300,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          56,
+          0
+        ]
+      ],
+      [
+        0,
+        [
+          57,
+          2
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 56,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((leading-Expr tuple)\n       (> (tuple-length tuple) 0))\n      ((Get tuple 0))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "leading-Expr",
+          "tuple-length"
+        ],
+        "writes": [
+          "Get"
+        ]
+      },
+      {
+        "rule": 57,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "leading-Expr",
+          "tuple-length",
+          "Get"
+        ],
+        "writes": [
+          "Get"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 288,
+    "served_reads": 260,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          57,
+          2
+        ]
+      ],
+      [
+        3,
+        [
+          57,
+          2
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 57,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "leading-Expr",
+          "tuple-length",
+          "Get"
+        ],
+        "writes": [
+          "Get"
+        ]
+      },
+      {
+        "rule": 57,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "leading-Expr",
+          "tuple-length",
+          "Get"
+        ],
+        "writes": [
+          "Get"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 284,
+    "served_reads": 139,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          270,
+          1
+        ]
+      ],
+      [
+        2,
+        [
+          270,
+          1
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 270,
+        "ruleset": "canon",
+        "metadata": {
+          "name": "(rewrite (Bop (Add ) x y) (Bop (Add ) y x) :ruleset canon)",
+          "seminaive": true,
+          "source_set": "canon"
+        },
+        "reads": [
+          "Add",
+          "Bop"
+        ],
+        "writes": [
+          "Add",
+          "Bop"
+        ]
+      },
+      {
+        "rule": 270,
+        "ruleset": "canon",
+        "metadata": {
+          "name": "(rewrite (Bop (Add ) x y) (Bop (Add ) y x) :ruleset canon)",
+          "seminaive": true,
+          "source_set": "canon"
+        },
+        "reads": [
+          "Add",
+          "Bop"
+        ],
+        "writes": [
+          "Add",
+          "Bop"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 290,
+    "served_reads": 36,
+    "depth": 3,
+    "expanded": [
+      [
+        null,
+        [
+          143,
+          0
+        ]
+      ],
+      [
+        0,
+        [
+          153,
+          0
+        ]
+      ],
+      [
+        2,
+        [
+          155,
+          1
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 143,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((Get expr i))\n      ((union (Single (Get expr i)) (SubTuple expr i 1)))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Get"
+        ],
+        "writes": [
+          "Get",
+          "Single",
+          "SubTuple"
+        ]
+      },
+      {
+        "rule": 153,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Get",
+          "Expr-size"
+        ],
+        "writes": [
+          "Expr-size"
+        ]
+      },
+      {
+        "rule": 155,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((= expr (Single x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Single",
+          "Expr-size"
+        ],
+        "writes": [
+          "Expr-size"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 291,
+    "served_reads": 28,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          62,
+          0
+        ]
+      ],
+      [
+        5,
+        [
+          62,
+          0
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 62,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Add-All-Gets",
+          "tuple-length"
+        ],
+        "writes": [
+          "Get",
+          "Get",
+          "Add-All-Gets"
+        ]
+      },
+      {
+        "rule": 62,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((Add-All-Gets orig something offset pos)\n       (< pos (tuple-length something)))\n      ((union (Get orig (+ offset pos)) (Get something pos))\n       (Add-All-Gets orig something offset (+ pos 1)))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Add-All-Gets",
+          "tuple-length"
+        ],
+        "writes": [
+          "Get",
+          "Get",
+          "Add-All-Gets"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 293,
+    "served_reads": 15,
+    "depth": 3,
+    "expanded": [
+      [
+        null,
+        [
+          138,
+          0
+        ]
+      ],
+      [
+        1,
+        [
+          153,
+          0
+        ]
+      ],
+      [
+        2,
+        [
+          155,
+          1
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 138,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rewrite (SubTuple expr a b) (Concat (Single (Get expr a)) (SubTuple expr (+ a 1) (- b 1))) :when ((> b 1)) :ruleset always-run)",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "SubTuple"
+        ],
+        "writes": [
+          "Get",
+          "Single",
+          "SubTuple",
+          "Concat"
+        ]
+      },
+      {
+        "rule": 153,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Get",
+          "Expr-size"
+        ],
+        "writes": [
+          "Expr-size"
+        ]
+      },
+      {
+        "rule": 155,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((= expr (Single x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Single",
+          "Expr-size"
+        ],
+        "writes": [
+          "Expr-size"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 294,
+    "served_reads": 12,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          56,
+          1
+        ]
+      ],
+      [
+        0,
+        [
+          57,
+          2
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 56,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((leading-Expr tuple)\n       (> (tuple-length tuple) 0))\n      ((Get tuple 0))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "leading-Expr",
+          "tuple-length"
+        ],
+        "writes": [
+          "Get"
+        ]
+      },
+      {
+        "rule": 57,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((leading-Expr tuple)\n       (= len (tuple-length tuple))\n       (= ith (Get tuple i))\n       (< (+ i 1) len))\n      ((Get tuple (+ 1 i)))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "leading-Expr",
+          "tuple-length",
+          "Get"
+        ],
+        "writes": [
+          "Get"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 295,
+    "served_reads": 7,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          273,
+          1
+        ]
+      ],
+      [
+        2,
+        [
+          273,
+          1
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 273,
+        "ruleset": "canon",
+        "metadata": {
+          "name": "(rewrite (Bop (And ) x y) (Bop (And ) y x) :ruleset canon)",
+          "seminaive": true,
+          "source_set": "canon"
+        },
+        "reads": [
+          "And",
+          "Bop"
+        ],
+        "writes": [
+          "And",
+          "Bop"
+        ]
+      },
+      {
+        "rule": 273,
+        "ruleset": "canon",
+        "metadata": {
+          "name": "(rewrite (Bop (And ) x y) (Bop (And ) y x) :ruleset canon)",
+          "seminaive": true,
+          "source_set": "canon"
+        },
+        "reads": [
+          "And",
+          "Bop"
+        ],
+        "writes": [
+          "And",
+          "Bop"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 296,
+    "served_reads": 5,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          272,
+          1
+        ]
+      ],
+      [
+        2,
+        [
+          272,
+          1
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 272,
+        "ruleset": "canon",
+        "metadata": {
+          "name": "(rewrite (Bop (Eq ) x y) (Bop (Eq ) y x) :ruleset canon)",
+          "seminaive": true,
+          "source_set": "canon"
+        },
+        "reads": [
+          "Eq",
+          "Bop"
+        ],
+        "writes": [
+          "Eq",
+          "Bop"
+        ]
+      },
+      {
+        "rule": 272,
+        "ruleset": "canon",
+        "metadata": {
+          "name": "(rewrite (Bop (Eq ) x y) (Bop (Eq ) y x) :ruleset canon)",
+          "seminaive": true,
+          "source_set": "canon"
+        },
+        "reads": [
+          "Eq",
+          "Bop"
+        ],
+        "writes": [
+          "Eq",
+          "Bop"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 297,
+    "served_reads": 4,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          274,
+          1
+        ]
+      ],
+      [
+        2,
+        [
+          274,
+          1
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 274,
+        "ruleset": "canon",
+        "metadata": {
+          "name": "(rewrite (Bop (Or ) x y) (Bop (Or ) y x) :ruleset canon)",
+          "seminaive": true,
+          "source_set": "canon"
+        },
+        "reads": [
+          "Or",
+          "Bop"
+        ],
+        "writes": [
+          "Or",
+          "Bop"
+        ]
+      },
+      {
+        "rule": 274,
+        "ruleset": "canon",
+        "metadata": {
+          "name": "(rewrite (Bop (Or ) x y) (Bop (Or ) y x) :ruleset canon)",
+          "seminaive": true,
+          "source_set": "canon"
+        },
+        "reads": [
+          "Or",
+          "Bop"
+        ],
+        "writes": [
+          "Or",
+          "Bop"
+        ]
+      }
+    ]
+  },
+  {
+    "unit": 298,
+    "served_reads": 2,
+    "depth": 2,
+    "expanded": [
+      [
+        null,
+        [
+          140,
+          0
+        ]
+      ],
+      [
+        2,
+        [
+          145,
+          0
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 140,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((= lhs (If pred inputs thn els))\n       (= size (tuple-length lhs)))\n      ((union lhs (SubTuple lhs 0 size)))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "If",
+          "tuple-length"
+        ],
+        "writes": [
+          "SubTuple"
+        ]
+      },
+      {
+        "rule": 145,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rewrite (SubTuple expr 0 len) expr :when ((= len (tuple-length expr))) :ruleset always-run)",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "SubTuple",
+          "tuple-length"
+        ],
+        "writes": []
+      }
+    ]
+  },
+  {
+    "unit": 299,
+    "served_reads": 2,
+    "depth": 3,
+    "expanded": [
+      [
+        null,
+        [
+          137,
+          0
+        ]
+      ],
+      [
+        1,
+        [
+          153,
+          0
+        ]
+      ],
+      [
+        2,
+        [
+          155,
+          1
+        ]
+      ]
+    ],
+    "steps": [
+      {
+        "rule": 137,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rewrite (SubTuple expr x 1) (Single (Get expr x)) :ruleset always-run)",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "SubTuple"
+        ],
+        "writes": [
+          "Get",
+          "Single"
+        ]
+      },
+      {
+        "rule": 153,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Get",
+          "Expr-size"
+        ],
+        "writes": [
+          "Expr-size"
+        ]
+      },
+      {
+        "rule": 155,
+        "ruleset": "always-run",
+        "metadata": {
+          "name": "(rule ((= expr (Single x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "seminaive": true,
+          "source_set": "always-run"
+        },
+        "reads": [
+          "Single",
+          "Expr-size"
+        ],
+        "writes": [
+          "Expr-size"
+        ]
+      }
+    ]
+  }
+]

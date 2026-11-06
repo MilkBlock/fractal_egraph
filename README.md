@@ -20,6 +20,11 @@ The normal commands select a single CPU execution strategy. For checkpoint/resum
 
 ### Custom programs and training
 
+The [iterative LHS Bake experiment](docs/ITERATIVE_LHS_BAKE.md) learns bounded
+cross-Run combinations from remaining global probes and compiles constructor
+and current function-row references into consumer matching. It reports per-round
+and per-unit work, retention cost and cross-workload transfer results.
+
 The opt-in [whole-block postcondition experiment](docs/BLOCK_LHS_COMPLETION.md)
 uses constructor facts from all available shared phases to serve exact consumer
 LHS reads, leaves unproved atoms in the original matcher, and can project a

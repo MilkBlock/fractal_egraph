@@ -774,6 +774,61 @@ const BOUNDED_CHAIN: &str = r#"
 (A (N 1)) (A (N 2))
 (run-schedule (seq (run one) (run two) (run three) (run four)))
 "#;
+#[cfg(feature="iterative-bake")]
+#[test]
+fn iterative_lhs_grows_a_bridge_and_checks_old_receipts_before_matching() {
+    use eggfuse_cell_runtime::{checksum::artifact_digest,compiler::bake_spine_blocks,program::Program};
+    for kind in 0..3 {
+    let function=kind!=0;
+    let tmp=tempfile::tempdir().unwrap();let src=tmp.path().join("lhs.egg");let out=tmp.path().join("compiled");
+    let constructor=r#"
+(datatype E (N i64) (Start E) (Left E) (Gateway E) (Mid E) (Out E E))
+(ruleset init) (ruleset a) (ruleset b) (ruleset c) (ruleset retire)
+(rule ((= x (N i))) ((Start x)) :ruleset init :name "start")
+(rule ((= s (Start x))) ((Left x) (Gateway x)) :ruleset a :name "producer")
+(rule ((= g (Gateway x))) ((Mid x)) :ruleset b :name "bridge")
+(rule ((= m (Mid x)) (= l (Left x))) ((Out m l)) :ruleset c :name "consume")
+(rule ((= x (N 2))) ((delete (Left x))) :ruleset retire)
+(N 1) (N 2)
+(run-schedule (seq (run init) (run a) (run b) (run retire) (run c)))
+"#;
+    let mutable=r#"
+(datatype E (N i64) (Start E) (Gateway E) (Mid E) (Out E i64))
+(function Score (E) i64 :merge (min old new))
+(ruleset init) (ruleset a) (ruleset b) (ruleset c) (ruleset update) (ruleset retire)
+(rule ((= x (N i))) ((Start x)) :ruleset init :name "start")
+(rule ((= s (Start x))) ((set (Score x) 9) (Gateway x)) :ruleset a :name "producer")
+(rule ((= g (Gateway x))) ((Mid x)) :ruleset b :name "bridge")
+(rule ((= x (N i))) ((set (Score x) 20) (set (Score x) 3)) :ruleset update)
+(rule ((= m (Mid x)) (= n (Score x)) (< n 5)) ((Out m n)) :ruleset c :name "consume")
+(rule ((= x (N 2))) ((delete (Score x))) :ruleset retire)
+(N 1) (N 2)
+(run-schedule (seq (run init) (run a) (run b) (run update) (run retire) (run c)))
+"#;
+    let source=if kind==2 {mutable.replace("((= g (Gateway x)))", "((= g (Gateway x)) (= old (Score x)))")}else{if function{mutable}else{constructor}.to_owned()};
+    fs::write(&src,source).unwrap();
+    pass(&["compile","--source",src.to_str().unwrap(),"--output",out.to_str().unwrap()]);
+    let p=Program::parse(json_file(&out.join("program.json"))).unwrap();
+    let profile=json!({"schema":"eggfuse-spine-shapes/v1","program_sha256":p.artifact["sha256"],"prefixes":p.multi_stage.stage_entries.iter().map(|(r,a,_)|json!({"edge":[0,0,r,a],"visits":2})).collect::<Vec<_>>()});
+    let leaves=bake_spine_blocks(&p,&profile,&p,32).unwrap();
+    let mut raw=p.artifact;raw["spine_blocks"]=leaves;raw.as_object_mut().unwrap().remove("sha256");raw["sha256"]=artifact_digest(&raw).into();
+    let seed=tmp.path().join("seed.json");fs::write(&seed,serde_json::to_vec(&raw).unwrap()).unwrap();
+    let learned=tmp.path().join("learned");
+    pass(&["iterate","--program",seed.to_str().unwrap(),"--output",learned.to_str().unwrap(),"--rounds","4","--objective","lhs-lookups","--new-per-round","1","--min-support","1"]);
+    let rounds=json_file(&learned.join("rounds.json"));let rs=rounds.as_array().unwrap();
+    assert!(rs.len()>=if kind==2{2}else{3},"{rounds}");
+    if kind!=2 {assert!(rs.iter().any(|r|r["admitted"].as_array().unwrap().iter().any(|j|j[1]["bridge_support"].as_u64().unwrap()>0)),"{rounds}");}
+    assert!(rs.last().unwrap()["lhs_completion"]["by_back"][if kind==2{"1"}else{"2"}].as_u64().unwrap_or(0)>0,"{rounds}");
+    if kind!=2 {assert!(rs.last().unwrap()["lhs_completion"]["guard_fallbacks"].as_u64().unwrap_or(0)>0,"{rounds}");}
+    if function {assert!(rs.last().unwrap()["lhs_completion"]["function_hits"].as_u64().unwrap_or(0)>0,"{rounds}");}
+    pass(&["bench","--program",learned.join("program.json").to_str().unwrap(),"--reference-program",seed.to_str().unwrap(),"--repeat","1"]);
+    let mut bad=json_file(&learned.join("program.json"));
+    let transferred=eggfuse_cell_runtime::iterative::Catalog::transfer_lhs(&Program::parse(bad.clone()).unwrap(),&Program::parse(raw).unwrap()).unwrap();
+    assert!(transferred["iterative_bake"]["lhs_handoffs"]["max_back"].as_u64().unwrap()>=if kind==2{1}else{2});
+    bad["iterative_bake"]["lhs_handoffs"]["max_back"]=json!(99);
+    assert!(Program::parse(bad).unwrap_err().contains("cross-Run LHS"));
+    }
+}
 #[test]
 fn native_bake_cuts_before_preparation_and_reopens_the_frontier() {
     let tmp = tempfile::tempdir().unwrap();
@@ -1078,6 +1133,11 @@ fn switched_rhs_carries_a_two_run_old_fact_and_restarts_on_a_deleted_sibling() {
         .unwrap()
     };
     let base = bench(raw.clone(), "base.json");
+    let mut legacy=Program::parse(raw.clone()).unwrap();
+    legacy.disable_iterative_lhs();
+    let mut legacy=eggfuse_cell_runtime::executor::Executor::new(eggfuse_cell_runtime::graph::Graph::new(legacy).unwrap(),false);
+    legacy.execute().unwrap();
+    assert_eq!(legacy.graph.stats.handoff_lets,0,"LHS ablation must not enable RHS switching in a legacy catalog");
     Catalog::emit_handoffs(&program, &mut plan).unwrap();
     raw["iterative_bake"] = plan;
     let result = bench(raw.clone(), "optimized.json");

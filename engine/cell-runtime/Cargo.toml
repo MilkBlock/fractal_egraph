@@ -73,6 +73,10 @@ name = "complete_blocks"
 required-features = ["iterative-bake"]
 
 [[example]]
+name = "transfer_lhs"
+required-features = ["iterative-bake"]
+
+[[example]]
 name = "rank_families"
 required-features = ["family-survey"]
 

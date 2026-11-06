@@ -32,8 +32,8 @@ pub(crate) enum QueryFacts {
     Tracked(Box<QueryFacts>, Vec<Option<Dependency>>, u8),
     #[default]
     None,
-    One(usize, Option<FactRef>),
-    All(Vec<Option<FactRef>>),
+    One(usize, Option<Dependency>),
+    All(Vec<Option<Dependency>>),
 }
 impl QueryFacts {
     #[cfg(feature="two-run-blocks")]
@@ -53,7 +53,7 @@ impl QueryFacts {
             #[cfg(feature="two-run-blocks")]
             Self::Block(base,_)=>base.as_ref().and_then(|b|b.tracked(atom)),
             Self::Tracked(_, rows, _) => rows.get(atom).copied().flatten(),
-            _ => self.get(atom).map(Dependency::Fact),
+            _ => self.dependency(atom),
         }
     }
     #[cfg(feature = "structural-depth")]
@@ -75,10 +75,6 @@ impl QueryFacts {
         }
     }
     pub fn record(&mut self, atom: usize, witness: Option<Dependency>) {
-        let fact = match witness {
-            Some(Dependency::Fact(f)) => Some(f),
-            _ => None,
-        };
         match self {
             #[cfg(feature = "structural-depth")]
             Self::Tracked(original, rows, _) => {
@@ -87,17 +83,20 @@ impl QueryFacts {
             }
             #[cfg(feature="two-run-blocks")]
             Self::Block(base,_)=>{if let Some(base)=base {base.record(atom,witness)}},
-            Self::One(source, slot) if *source == atom => *slot = fact,
-            Self::All(rows) => rows[atom] = fact,
+            Self::One(source, slot) if *source == atom => *slot = witness,
+            Self::All(rows) => rows[atom] = witness,
             _ => {}
         }
     }
     pub fn get(&self, atom: usize) -> Option<FactRef> {
+        match self.dependency(atom)? {Dependency::Fact(f)=>Some(f),_=>None}
+    }
+    pub fn dependency(&self,atom:usize)->Option<Dependency> {
         match self {
             #[cfg(feature="two-run-blocks")]
-            Self::Block(base,_)=>base.as_ref().and_then(|b|b.get(atom)),
+            Self::Block(base,_)=>base.as_ref().and_then(|b|b.dependency(atom)),
             #[cfg(feature = "structural-depth")]
-            Self::Tracked(original, _, _) => original.get(atom),
+            Self::Tracked(original, _, _) => original.dependency(atom),
             Self::One(source, fact) if *source == atom => *fact,
             Self::All(rows) => rows[atom],
             _ => None,

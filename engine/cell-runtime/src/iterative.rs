@@ -9,6 +9,24 @@ use std::{
 };
 pub type Id = usize;
 type Entry = (usize, usize);
+impl Program {
+    /// Ablation keeps the learned compositions and RHS programs unchanged.
+    pub fn disable_iterative_lhs(&mut self) {
+        if self.artifact["iterative_bake"].get("lhs_handoffs").is_none() {
+            return;
+        }
+        let cat = &self.iterative;
+        let switch = crate::result_handoff::Switch::build(
+            self,
+            cat.units.iter().map(|u| u.path.as_slice()),
+            &cat.leaves,
+            self.artifact["iterative_bake"]["rhs_handoffs"]["reuse_results"]
+                .as_bool()
+                .unwrap_or(true),
+        );
+        self.iterative.switch = switch;
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct Join {
     pub left: Id,
@@ -58,7 +76,7 @@ struct Unit {
     first: Entry,
     last: Entry,
     path: Vec<(Option<usize>, Entry)>,
-    terminal: Rc<Block>,
+    terminal: Option<Rc<Block>>,
 }
 #[derive(Clone, Debug, Default)]
 pub struct Catalog {
@@ -98,6 +116,101 @@ impl State {
     }
 }
 impl Catalog {
+    /// Transfer learned compositions, never workload identities or receipts.
+    /// Every rule is mapped by its complete typed signature, and every new
+    /// target join is revalidated before compiling its ports.
+    pub fn transfer_lhs(source: &Program, target: &Program) -> Result<J> {
+        let mut plan = target.artifact["iterative_bake"].clone();
+        if plan.is_null() {
+            plan = Self::seed(target, source.iterative.limits)?;
+        }
+        plan["limits"] = json!(source.iterative.limits);
+        Self::expand_lhs_seed(target, &mut plan)?;
+        Self::emit_handoffs(target, &mut plan)?;
+        let mut cat = Self::parse(target, &plan)?;
+        let mut rules = BTreeMap::<String, Vec<usize>>::new();
+        for (i, r) in target.artifact["recipe"]["rules"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .enumerate()
+        {
+            rules
+                .entry(crate::compiler::rule_signature(r))
+                .or_default()
+                .push(i);
+        }
+        let mapping = source.artifact["recipe"]["rules"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| {
+                match rules
+                    .get(&crate::compiler::rule_signature(r))
+                    .map(Vec::as_slice)
+                {
+                    Some(&[r]) => Some(r),
+                    _ => None,
+                }
+            })
+            .collect::<Vec<_>>();
+        let mut paths = cat
+            .units
+            .iter()
+            .enumerate()
+            .map(|(i, u)| (u.path.clone(), i))
+            .collect::<BTreeMap<_, _>>();
+        let joins = source
+            .iterative
+            .jumps
+            .iter()
+            .map(|(j, i)| (*i, *j))
+            .collect::<BTreeMap<_, _>>();
+        let mut ids = vec![None; source.iterative.units.len()];
+        for (id, u) in source.iterative.units.iter().enumerate() {
+            let Some(path) = u
+                .path
+                .iter()
+                .map(|&(op, (r, pivot))| Some((op, (mapping[r]?, pivot))))
+                .collect::<Option<Vec<_>>>()
+            else {
+                continue;
+            };
+            if let Some(&old) = paths.get(&path) {
+                ids[id] = Some(old);
+                continue;
+            }
+            let Some(j) = joins.get(&id) else { continue };
+            let (Some(left), Some(right)) = (ids[j.left], ids[j.right]) else {
+                continue;
+            };
+            let j = Join {
+                left,
+                output: j.output,
+                right,
+            };
+            let Some(unit) = cat.combine(target, j) else {
+                continue;
+            };
+            if unit.path != path || cat.units.len() >= cat.limits.total {
+                continue;
+            }
+            let next = cat.units.len();
+            paths.insert(path.clone(), next);
+            ids[id] = Some(next);
+            cat.paths.insert(path);
+            cat.jumps.insert(j, next);
+            cat.units.push(unit);
+            plan["joins"].as_array_mut().unwrap().push(json!(j));
+        }
+        Self::emit_handoffs(target, &mut plan)?;
+        Self::emit_lhs(target, &mut plan)?;
+        let mut raw = target.artifact.clone();
+        raw["iterative_bake"] = plan;
+        raw.as_object_mut().unwrap().remove("sha256");
+        raw["sha256"] = crate::checksum::artifact_digest(&raw).into();
+        Ok(Program::parse(raw)?.artifact)
+    }
     pub fn seed(p: &Program, limits: Limits) -> Result<J> {
         limits.validate()?;
         let seed = &p.artifact["spine_blocks"];
@@ -110,6 +223,54 @@ impl Catalog {
         Ok(
             json!({"schema":"eggfuse-iterative/v1","recipe":p.artifact["recipe"]["sha256"],"seed":crate::checksum::artifact_digest(seed),"limits":limits,"joins":[]}),
         )
+    }
+    /// The RHS-selected seed omits many valid residual consumer entries. Make
+    /// those typed scheduled entries available as leaves before learning joins.
+    /// Existing compositions retain their paths after deterministic ID remapping.
+    pub fn expand_lhs_seed(p: &Program, plan: &mut J) -> Result<()> {
+        if plan.get("lhs_entries").is_some() {
+            return Ok(());
+        }
+        let base = p.artifact["spine_blocks"]["entries"]
+            .as_array()
+            .ok_or("missing leaves")?;
+        let old = base
+            .iter()
+            .map(|e| {
+                (
+                    e["consumer"].as_u64().unwrap() as usize,
+                    e["pivot"].as_u64().unwrap() as usize,
+                )
+            })
+            .collect::<BTreeSet<_>>();
+        let entries = p
+            .multi_stage
+            .stage_entries
+            .iter()
+            .map(|(r, a, _)| (*r, *a))
+            .filter(|e| !old.contains(e))
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        let limits: Limits =
+            serde_json::from_value(plan["limits"].clone()).map_err(|e| e.to_string())?;
+        if base.len() + entries.len() + plan["joins"].as_array().unwrap().len() > limits.total {
+            return Err(
+                "LHS seed entries exceed --max-units; increase the explicit catalog budget".into(),
+            );
+        }
+        for j in plan["joins"].as_array_mut().unwrap() {
+            for k in ["left", "right"] {
+                let id = j[k].as_u64().unwrap() as usize;
+                if id >= base.len() {
+                    j[k] = json!(id + entries.len());
+                }
+            }
+        }
+        plan["lhs_entries"] = json!(entries);
+        plan.as_object_mut().unwrap().remove("rhs_handoffs");
+        plan.as_object_mut().unwrap().remove("lhs_handoffs");
+        Ok(())
     }
     pub(crate) fn parse(p: &Program, raw: &J) -> Result<Self> {
         if raw.is_null() {
@@ -144,8 +305,34 @@ impl Catalog {
                 first: entry,
                 last: entry,
                 path,
-                terminal,
+                terminal: Some(terminal),
             });
+        }
+        if let Some(raw) = raw.get("lhs_entries") {
+            for e in array(raw)? {
+                let entry: (usize, usize) =
+                    serde_json::from_value(e.clone()).map_err(|e| e.to_string())?;
+                if s.leaves.contains_key(&entry)
+                    || !p
+                        .multi_stage
+                        .stage_entries
+                        .iter()
+                        .any(|(r, a, _)| (*r, *a) == entry)
+                    || s.units.len() >= limits.total
+                {
+                    return Err("invalid LHS seed entry".into());
+                }
+                let id = s.units.len();
+                let path = vec![(None, entry)];
+                s.leaves.insert(entry, id);
+                s.paths.insert(path.clone());
+                s.units.push(Unit {
+                    first: entry,
+                    last: entry,
+                    path,
+                    terminal: Block::lower(p, entry.0, entry.1).map(Rc::new),
+                });
+            }
         }
         for j in array(&raw["joins"])? {
             let join: Join = serde_json::from_value(j.clone()).map_err(|e| e.to_string())?;
@@ -172,12 +359,44 @@ impl Catalog {
                 return Err("invalid cross-Run RHS plan".into());
             }
         }
+        if let Some(claimed) = raw.get("lhs_handoffs") {
+            s.switch = crate::result_handoff::Switch::build_lhs(
+                p,
+                s.units.iter().map(|u| u.path.as_slice()),
+                &s.leaves,
+                raw["rhs_handoffs"]["reuse_results"]
+                    .as_bool()
+                    .unwrap_or(true),
+            );
+            if *claimed != s.switch.artifact() {
+                return Err("invalid cross-Run LHS plan".into());
+            }
+        }
         Ok(s)
     }
     pub fn emit_handoffs(p: &Program, plan: &mut J) -> Result<()> {
         Self::emit_switch(p, plan, true)
     }
+    pub fn emit_lhs(p: &Program, plan: &mut J) -> Result<()> {
+        plan.as_object_mut()
+            .ok_or("missing iterative catalog")?
+            .remove("lhs_handoffs");
+        let cat = Self::parse(p, plan)?;
+        plan["lhs_handoffs"] = crate::result_handoff::Switch::build_lhs(
+            p,
+            cat.units.iter().map(|u| u.path.as_slice()),
+            &cat.leaves,
+            plan["rhs_handoffs"]["reuse_results"]
+                .as_bool()
+                .unwrap_or(true),
+        )
+        .artifact();
+        Ok(())
+    }
     pub fn emit_switch(p: &Program, plan: &mut J, reuse: bool) -> Result<()> {
+        plan.as_object_mut()
+            .ok_or("missing iterative catalog")?
+            .remove("lhs_handoffs");
         plan.as_object_mut()
             .ok_or("missing iterative catalog")?
             .remove("rhs_handoffs");
@@ -204,6 +423,12 @@ impl Catalog {
         self.switch
             .program(s.pc)
             .map_or(&[], |t| t.reuse.as_slice())
+    }
+    pub(crate) fn lhs_program(&self, s: &State) -> &[crate::result_handoff::Reuse] {
+        self.switch.program(s.pc).map_or(&[], |t| t.lhs.as_slice())
+    }
+    pub(crate) fn active_unit(&self, s: &State) -> usize {
+        self.switch.active(s.pc)
     }
     pub(crate) fn closed(&self, s: &State) -> bool {
         self.switch.program(s.pc).is_some_and(|p| p.complete)
@@ -301,7 +526,7 @@ impl Catalog {
                     .count();
                 state.stack.drain(..state.stack.len() - keep);
             }
-            return Some(self.units[unit].terminal.clone());
+            return self.units[unit].terminal.clone();
         }
         let Some(&id) = self.leaves.get(&(rule, pivot)) else {
             *state = State::default();
@@ -352,7 +577,7 @@ impl Catalog {
             })
             .count();
         state.stack.drain(..state.stack.len() - keep);
-        Some(self.units[right.unit].terminal.clone())
+        self.units[right.unit].terminal.clone()
     }
     pub fn entries(&self) -> Vec<J> {
         self.units
@@ -369,6 +594,12 @@ impl Catalog {
             .collect()
     }
     pub fn select(&self, p: &Program, profile: &Training) -> Vec<(Join, Evidence)> {
+        self.select_mode(p, profile, false)
+    }
+    pub fn select_lhs(&self, p: &Program, profile: &Training) -> Vec<(Join, Evidence)> {
+        self.select_mode(p, profile, true)
+    }
+    fn select_mode(&self, p: &Program, profile: &Training, lhs: bool) -> Vec<(Join, Evidence)> {
         let mut choices = vec![];
         for (&join, e) in &profile.pairs {
             if e.visits < self.limits.support {
@@ -381,19 +612,24 @@ impl Catalog {
                 continue;
             }
             let mut e = e.clone();
+            e.measured_lhs_probes=profile.reads.get(&join).map_or(0,|rs|rs.values().sum());
             if self.switch.enabled() {
-                let old = &self
-                    .switch
-                    .program(self.switch.replay(&u.path))
-                    .unwrap()
-                    .reuse;
-                let proof = crate::result_handoff::terminal(p, &u.path);
+                let old_program = self.switch.program(self.switch.replay(&u.path)).unwrap();
+                let old = if lhs {
+                    &old_program.lhs
+                } else {
+                    &old_program.reuse
+                };
+                let proof = if lhs {
+                    crate::result_handoff::derive_lhs(p, &u.path)
+                } else {
+                    crate::result_handoff::derive(p, &u.path)
+                };
                 let additional = proof
-                    .reuse
                     .iter()
                     .filter(|r| !old.iter().any(|s| s.op == r.op))
-                    .count();
-                e.predicted_key_reads = e.visits.saturating_mul(additional as u64);
+                    .map(|r|if lhs {profile.probes(join,r.op).min(e.visits)}else{e.visits}).sum();
+                e.predicted_key_reads = additional;
             }
             // A + B can be useful even when B itself has nothing to reuse.
             // Propose a bounded bridge only if observed B + C and the typed
@@ -424,14 +660,21 @@ impl Catalog {
                     let mut suffix = tail.path.clone();
                     suffix[0].0 = Some(next.output);
                     path.extend(suffix);
-                    let old = &self
-                        .switch
-                        .program(self.switch.replay(&path))
-                        .unwrap()
-                        .reuse;
+                    let old_program = self.switch.program(self.switch.replay(&path)).unwrap();
+                    let old = if lhs {
+                        &old_program.lhs
+                    } else {
+                        &old_program.reuse
+                    };
                     let start_of_b = self.units[join.left].path.len();
-                    if crate::result_handoff::derive(p, &path).iter().any(|r| {
+                    let proof = if lhs {
+                        crate::result_handoff::derive_lhs(p, &path)
+                    } else {
+                        crate::result_handoff::derive(p, &path)
+                    };
+                    if proof.iter().any(|r| {
                         path.len() - 1 - r.back < start_of_b && !old.iter().any(|x| x.op == r.op)
+                            && (!lhs || profile.probes(*next,r.op)>0)
                     }) {
                         e.bridge_support = e.bridge_support.max(w.visits.min(e.visits));
                     }
@@ -466,6 +709,7 @@ impl Catalog {
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Evidence {
     pub visits: u64,
+    pub measured_lhs_probes:u64,
     pub predicted_key_reads: u64,
     pub bridge_support: u64,
     pub avoidable_origin_slots: u64,
@@ -478,6 +722,7 @@ pub struct Evidence {
 pub struct Training {
     pub(crate) collect_pairs: bool,
     pairs: BTreeMap<Join, Evidence>,
+    reads:BTreeMap<Join,BTreeMap<usize,u64>>,
     hits: BTreeMap<Id, u64>,
     evictions: u64,
     capped_events: u64,
@@ -487,6 +732,13 @@ pub struct Training {
     pub(crate) seal_moves: u64,
 }
 impl Training {
+    fn probes(&self,j:Join,atom:usize)->u64 {self.reads.get(&j).and_then(|r|r.get(&atom)).copied().unwrap_or(0)}
+    pub(crate) fn positive_read(&mut self,c:&Catalog,s:&State,atom:usize) {
+        if !self.collect_pairs {return}
+        let Some(j)=s.pending else{return};
+        if !self.reads.contains_key(&j) && self.reads.len()>=c.limits.candidates {return}
+        *self.reads.entry(j).or_default().entry(atom).or_default()+=1;
+    }
     pub(crate) fn applied(&mut self, c: &Catalog, s: &mut State, inputs: usize) {
         let parent_run = std::mem::replace(&mut s.last_run, self.run);
         self.capped_events += u64::from(s.capped);
@@ -551,7 +803,7 @@ impl Training {
         }
     }
     pub fn report(&self) -> J {
-        json!({"applied_units":self.hits,"candidate_shapes":self.pairs.len(),"counter_prunes":self.evictions,"oversized_applied_pairs":self.capped_events,"direct_origins":self.direct_origins,"saved_origin_key_slots":self.saved_key_slots,"saved_answer_slot_copies":self.seal_moves})
+        json!({"applied_units":self.hits,"candidate_shapes":self.pairs.len(),"positive_lhs_probe_shapes":self.reads.len(),"positive_lhs_probes":self.reads.values().flat_map(|r|r.values()).sum::<u64>(),"counter_prunes":self.evictions,"oversized_applied_pairs":self.capped_events,"direct_origins":self.direct_origins,"saved_origin_key_slots":self.saved_key_slots,"saved_answer_slot_copies":self.seal_moves})
     }
 }
 
@@ -571,7 +823,7 @@ mod tests {
             c.units.push(Unit {
                 first: (i, 0),
                 last: (i, 0),
-                terminal: terminal.clone(),
+                terminal: Some(terminal.clone()),
                 path: vec![(None, (i, 0))],
             });
         }
@@ -584,7 +836,7 @@ mod tests {
                 first: c.units[l].first,
                 last: c.units[r].last,
                 path,
-                terminal: terminal.clone(),
+                terminal: Some(terminal.clone()),
             };
             c.jumps.insert(
                 Join {

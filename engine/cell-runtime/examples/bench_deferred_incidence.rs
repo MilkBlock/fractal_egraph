@@ -30,22 +30,25 @@ fn median(mut xs: Vec<f64>) -> f64 {
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    if args.len() < 5 || args.len() > 6 {
+    if ![5,6,8].contains(&args.len()) {
         return Err("expected BINARY NEW_OUTPUT SUM_PROGRAM RAY_PROGRAM ROUNDS [--audit]".into());
     }
     let binary = fs::canonicalize(&args[0])?;
     let output = PathBuf::from(&args[1]);
     fs::create_dir(&output)?;
     let rounds: usize = args[4].parse()?;
+    let learned=args.get(5).is_some_and(|s|s=="--iterative-lhs" || s=="--audit-iterative-lhs");
+    let catalog=args.get(5).is_some_and(|s|s=="--catalog-pair" || s=="--audit-catalog-pair");
+    if (learned||catalog) && args.len()!=8 {return Err("learned catalog modes require SUM_BASE RAY_BASE after MODE".into())}
     let lhs=args.get(5).is_some_and(|s|s=="--block-lhs" || s=="--audit-block-lhs");
     let multi=args.get(5).is_some_and(|s|s=="--multi-run" || s=="--audit-multi-run");
     let fusion = args
         .get(5)
         .is_some_and(|s| s == "--two-run" || s == "--audit-two-run");
-    let audit = args
+    let audit = args.get(5).is_some_and(|s|s=="--audit-iterative-lhs" || s=="--audit-catalog-pair") || args
         .get(5)
         .is_some_and(|s| s == "--audit" || s == "--audit-ports" || s == "--audit-two-run" || s=="--audit-multi-run" || s=="--audit-block-lhs");
-    let ports = lhs || multi || fusion
+    let ports = learned || catalog || lhs || multi || fusion
         || args
             .get(5)
             .is_some_and(|s| s == "--ports" || s == "--audit-ports");
@@ -57,7 +60,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut log = fs::File::create(output.join("samples.jsonl"))?;
     let mut samples = vec![];
     for (case, input) in [("sum-bits", &args[2]), ("raytrace", &args[3])] {
-        let mut original: J = serde_json::from_slice(&fs::read(input)?)?;
+        let base=if learned||catalog {&args[if case=="sum-bits"{6}else{7}]}else{input};
+        let mut original: J = serde_json::from_slice(&fs::read(base)?)?;
         let mut admitted = original
             .as_object_mut()
             .unwrap()
@@ -69,6 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .remove("two_run_blocks")
             .is_some();
         admitted |= original.as_object_mut().unwrap().remove("multi_run_blocks").is_some();
+        admitted |= learned || catalog;
         original.as_object_mut().unwrap().remove("sha256");
         let original_sha = eggfuse_cell_runtime::checksum::artifact_digest(&original);
         for round in 0..=rounds {
@@ -82,10 +87,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             for mode in modes {
                 let run = output.join(format!("{case}-{round}-{mode}"));
                 let mut cmd = Command::new(&binary);
-                cmd.args(["--program", input, "--output"])
+                let program=if catalog && mode=="off" {base}else{input};
+                cmd.args(["--program", program, "--output"])
                     .arg(&run)
                     .args(["--deferred-incidence", if ports { "off" } else { mode }]);
-                if lhs || multi || fusion || (ports && mode == "on") {
+                if learned || catalog || lhs || multi || fusion || (ports && mode == "on") {
                     cmd.arg("--port-frames");
                 }
                 if fusion && mode == "on" {
@@ -97,6 +103,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     _=>{cmd.arg("--multi-run-blocks");},
                 }}
                 if lhs {cmd.arg("--multi-run-blocks");if mode=="on" {cmd.arg("--block-lhs");}}
+                if learned||catalog {cmd.arg("--multi-run-blocks");}
+                if learned && mode=="off" {cmd.arg("--no-iterative-lhs");}
                 for (k, _) in std::env::vars() {
                     if k.starts_with("CELL_CPU_") || k.starts_with("RAYON_") {
                         cmd.env_remove(k);
@@ -171,7 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
                 }
                 let sample = json!({"case":case,"round":round,"mode":mode,"audit":audit,
-                    "inference_ms":report["inference_seconds"].as_f64().unwrap()*1000.,"cli_ms":cli_ms,
+                    "input_sha256":hash(Path::new(program))?,"inference_ms":report["inference_seconds"].as_f64().unwrap()*1000.,"cli_ms":cli_ms,
                     "rss_bytes":report["peak_rss_through_inference_bytes"],"phases_ms":phases,
                     "stats":report["stats"],"block_lhs":report["block_lhs"],"key_lookup_calls":report["key_lookup_calls"],"deferred_incidence":report["deferred_incidence"],"port_frames":report["port_frames"],"two_run_blocks":report["two_run_blocks"],"storage":report["storage"],
                     "spine":report["stage_spine"]["stats"],"runs":steps.len(),"digests":digests});

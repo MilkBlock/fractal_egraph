@@ -198,18 +198,26 @@ impl Started {
         rid: usize,
         read: impl Fn(usize) -> Option<Dependency>,
         effects: Option<&[Option<Dependency>]>,
+        stats: &mut LhsStats,
+        single: Option<(usize,Dependency)>,
     ) {
         if cat.history_depth() == 0 {
             return;
         }
         if let Self::Live(c) = self {
-            c.state.history.capture(
+            let clock=Instant::now();
+            let (wanted,kept,copied)=c.state.history.capture(
                 cat.history_depth(),
                 rid,
                 cat.capture_sources(&c.state),
                 read,
-                effects,
+                |op|single.filter(|(i,_)|*i==op).map(|(_,w)|w).or_else(||effects.and_then(|e|e.get(op).copied().flatten())),
             );
+            stats.history_captures+=1;
+            stats.history_wanted+=wanted as u64;
+            stats.history_receipts+=kept as u64;
+            stats.history_slots_copied+=copied as u64;
+            stats.history_ns+=clock.elapsed().as_nanos() as u64;
         }
     }
     fn cursor(&mut self, stats: &mut Stats) -> &Cursor {
@@ -331,7 +339,25 @@ mod set_counts_test {
     }
 }
 #[derive(Default, Serialize)]
+pub struct LhsStats {
+    attempts:u64,
+    hits:u64,
+    function_hits:u64,
+    missing_receipts:u64,
+    guard_fallbacks:u64,
+    by_back:BTreeMap<usize,u64>,
+    by_unit:BTreeMap<usize,u64>,
+    guard_ns:u64,
+    history_captures:u64,
+    history_wanted:u64,
+    history_receipts:u64,
+    history_slots_copied:u64,
+    history_ns:u64,
+}
+#[derive(Default, Serialize)]
 pub struct Stats {
+    #[cfg(feature="iterative-bake")]
+    pub iterative_lhs: LhsStats,
     root_attempts: u64,
     root_handles_created: u64,
     #[cfg(feature = "sparse-cells")]
@@ -543,8 +569,11 @@ fn read_port(
     g: &mut Graph,
     cursor: &Cursor,
     table: usize,
+    _atom: usize,
     args: PortKey,
     stats: &mut Stats,
+    #[cfg(feature="iterative-bake")]
+    training:&mut crate::iterative::Training,
     #[cfg(feature="two-run-blocks")]
     block:Option<(&crate::graph::block_lhs::Context,usize)>,
     #[cfg(feature = "structural-depth")] structural: (&mut crate::depth_runtime::Depth, Dependency),
@@ -570,10 +599,30 @@ fn read_port(
     };
     if row.is_none() {
         stats.port_refreshes += 1;
+        #[cfg(feature="iterative-bake")]
+        let learned=if let Some(r)=g.program.iterative.lhs_program(&cursor.state).iter().find(|r|r.op==_atom) {
+            let clock=Instant::now();
+            stats.iterative_lhs.attempts+=1;
+            let found=if let Some(w)=cursor.state.history.dependency(r) {
+                let row=g.row(g.resolve_receipt(w))?.filter(good);
+                if row.is_none(){stats.iterative_lhs.guard_fallbacks+=1;}
+                row
+            } else {stats.iterative_lhs.missing_receipts+=1;None};
+            if found.is_some(){
+                stats.iterative_lhs.hits+=1;
+                stats.iterative_lhs.function_hits+=u64::from(!g.program.tables[table].virtual_fact);
+                *stats.iterative_lhs.by_back.entry(r.back).or_default()+=1;
+                *stats.iterative_lhs.by_unit.entry(g.program.iterative.active_unit(&cursor.state)).or_default()+=1;
+            }
+            stats.iterative_lhs.guard_ns+=clock.elapsed().as_nanos() as u64;
+            found
+        } else {None};
+        #[cfg(not(feature="iterative-bake"))]
+        let learned:Option<Row>=None;
         #[cfg(feature="two-run-blocks")]
-        let provided=if let Some((ctx,atom))=block {g.read_block_lhs(ctx,atom,table,&key.1)?} else {None};
+        let provided=if learned.is_some(){learned} else if let Some((ctx,atom))=block {g.read_block_lhs(ctx,atom,table,&key.1)?} else {None};
         #[cfg(not(feature="two-run-blocks"))]
-        let provided:Option<Row>=None;
+        let provided=learned;
         #[cfg(feature = "structural-depth")]
         let forwarded = if provided.is_none(){structural.0.spine_read(g, structural.1, table, &key.1)?}else{None};
         #[cfg(not(feature = "structural-depth"))]
@@ -584,6 +633,8 @@ fn read_port(
             Some(row) => Some(row),
             None => g.lookup_canonical(table, &key.1)?,
         };
+        #[cfg(feature="iterative-bake")]
+        if probed && row.is_some(){training.positive_read(&g.program.iterative,&cursor.state,_atom);}
         if let Some(context) = cache {
             let mut context = context.borrow_mut();
             if let Some(r) = row.as_ref().filter(|r| !r.hidden) {
@@ -1061,7 +1112,7 @@ impl Programs {
         #[cfg(feature = "iterative-bake")]
         let step = {
             let mut s = step;
-            s.remember(&g.program.iterative, rid, &query_fact, effects);
+            s.remember(&g.program.iterative, rid, &query_fact, effects, &mut self.stats.iterative_lhs,None);
             s
         };
         self.pending_steps.push(step);
@@ -1160,7 +1211,7 @@ impl Programs {
         #[cfg(feature = "iterative-bake")]
         let step = {
             let mut s = step;
-            s.remember(catalog, rid, |i| query.get(i).map(Dependency::Fact), None);
+            s.remember(catalog, rid, |i| query.dependency(i), None, &mut self.stats.iterative_lhs,Some((op,w)));
             s
         };
         self.pending_steps.push(step);
@@ -1710,8 +1761,11 @@ impl Programs {
                             g,
                             &cursor,
                             p.table,
+                            p.atom,
                             args,
                             &mut self.stats,
+                            #[cfg(feature="iterative-bake")]
+                            &mut self.training,
                             #[cfg(feature="two-run-blocks")]
                             block_lhs.as_ref().map(|ctx|(ctx,p.atom)),
                             #[cfg(feature = "structural-depth")]
@@ -1771,8 +1825,11 @@ impl Programs {
                             g,
                             &cursor,
                             *t,
+                            i,
                             args,
                             &mut self.stats,
+                            #[cfg(feature="iterative-bake")]
+                            &mut self.training,
                             #[cfg(feature="two-run-blocks")]
                             block_lhs.as_ref().map(|ctx|(ctx,i)),
                             #[cfg(feature = "structural-depth")]

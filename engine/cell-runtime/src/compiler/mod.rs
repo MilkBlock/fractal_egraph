@@ -4,7 +4,7 @@
 mod spine_blocks;
 #[cfg(feature = "spine-blocks")]
 pub use spine_blocks::bake_spine_blocks;
-#[cfg(feature="two-run-blocks")]
+#[cfg(any(feature="two-run-blocks",feature="iterative-bake"))]
 pub(crate) use spine_blocks::signature as rule_signature;
 mod recipe;
 use crate::{

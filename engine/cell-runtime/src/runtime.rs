@@ -2029,7 +2029,7 @@ impl Executor {
                     rid,
                     cell,
                     stage_cursor.unwrap(),
-                    |i| b.known.get(i).map(Dependency::Fact),
+                    |i| b.known.dependency(i),
                     Some(&receipts),
                     |i, _| {
                         keys[i]
@@ -2069,7 +2069,7 @@ impl Executor {
                     rid,
                     cell,
                     cursor,
-                    |i| b.known.get(i).map(Dependency::Fact),
+                    |i| b.known.dependency(i),
                     Some(&receipts),
                     |i, _| {
                         keys[i]
@@ -2203,7 +2203,7 @@ impl Executor {
                             rid,
                             cell,
                             cursor,
-                            |i| b.known.get(i).map(Dependency::Fact),
+                            |i| b.known.dependency(i),
                             effect_receipts.as_deref(),
                             |_, args| g.local_key(cell, &frame, args),
                         )?;
@@ -2416,7 +2416,7 @@ impl Executor {
                 rid,
                 cell,
                 cursor,
-                |i| b.known.get(i).map(Dependency::Fact),
+                |i| b.known.dependency(i),
                 effect_receipts.as_deref(),
             )?;
         }
