@@ -50,18 +50,34 @@ struct Bucket {
 struct Columns {
     #[cfg(feature = "projection-stamps")]
     write_version: u64,
-    values: Vec<HashMap<u64, Bucket>>,
+    values: Vec<std::cell::OnceCell<HashMap<u64, Bucket>>>,
     keys: HashMap<Dependency, smallvec::SmallVec<[u64; 4]>>,
     version: u64,
     leased_reads: bool,
 }
 impl Columns {
+    /// Full row fingerprints are authoritative. Build the reverse membership
+    /// map for a column only on its first indexed reader, from the sealed keys.
+    fn column(&self, col:usize) -> &HashMap<u64,Bucket> {
+        self.values[col].get_or_init(|| {
+            let mut buckets = HashMap::<u64,Bucket>::default();
+            for (&w,keys) in &self.keys {
+                let bucket=buckets.entry(keys[col]).or_default();
+                bucket.facts.insert(w);
+                #[cfg(feature="projection-stamps")]
+                { bucket.membership_version=self.version; }
+            }
+            buckets
+        })
+    }
+
     fn remove(&mut self, fact: Dependency) -> usize {
         let Some(keys) = self.keys.remove(&fact) else {
             return 0;
         };
         for (col, key) in keys.iter().enumerate() {
-            let bucket = self.values[col].get_mut(key).unwrap();
+            let Some(column)=self.values[col].get_mut() else { continue };
+            let bucket = column.get_mut(key).unwrap();
             #[cfg(feature = "projection-stamps")]
             {
                 bucket.membership_version = self.write_version;
@@ -70,7 +86,7 @@ impl Columns {
             bucket.view = None;
             bucket.refinements.clear();
             if bucket.facts.is_empty() {
-                self.values[col].remove(key);
+                column.remove(key);
             }
         }
         keys.len()
@@ -89,7 +105,8 @@ impl Columns {
             // forced collisions). Every changed witness invalidates read leases.
             if watch_reads {
                 for (col, key) in keys.iter().enumerate() {
-                    let bucket = self.values[col].get_mut(key).unwrap();
+                    let Some(column)=self.values[col].get_mut() else { continue };
+                    let bucket = column.get_mut(key).unwrap();
                     bucket.view = None;
                     bucket.refinements.clear();
                 }
@@ -99,10 +116,12 @@ impl Columns {
         let old = self.keys.insert(row.witness, keys.clone());
         let mut changed = 0;
         for (col, &key) in keys.iter().enumerate() {
+            changed += usize::from(old.as_ref().is_none_or(|prior|prior[col]!=key));
+            let Some(column)=self.values[col].get_mut() else { continue };
             if let Some(prior) = old.as_ref() {
                 let before = prior[col];
                 if before == key {
-                    let bucket = self.values[col].get_mut(&key).unwrap();
+                    let bucket = column.get_mut(&key).unwrap();
                     #[cfg(feature = "projection-stamps")]
                     {
                         bucket.membership_version = self.write_version;
@@ -113,7 +132,7 @@ impl Columns {
                     }
                     continue;
                 }
-                let bucket = self.values[col].get_mut(&before).unwrap();
+                let bucket = column.get_mut(&before).unwrap();
                 #[cfg(feature = "projection-stamps")]
                 {
                     bucket.membership_version = self.write_version;
@@ -122,10 +141,10 @@ impl Columns {
                 bucket.view = None;
                 bucket.refinements.clear();
                 if bucket.facts.is_empty() {
-                    self.values[col].remove(&before);
+                    column.remove(&before);
                 }
             }
-            let bucket = self.values[col].entry(key).or_default();
+            let bucket = column.entry(key).or_default();
             #[cfg(feature = "projection-stamps")]
             {
                 bucket.membership_version = self.write_version;
@@ -133,7 +152,7 @@ impl Columns {
             bucket.facts.insert(row.witness);
             bucket.view = None;
             bucket.refinements.clear();
-            changed += 1;
+
         }
         (if old.is_some() { changed } else { 0 }, changed)
     }
@@ -142,7 +161,7 @@ impl Columns {
         for (col, v) in bound.iter().enumerate() {
             if let Some(v) = v {
                 let key = fingerprint(v, bits);
-                let size = self.values[col].get(&key).map_or(0, |b| b.facts.len());
+                let size = self.column(col).get(&key).map_or(0, |b| b.facts.len());
                 if best.is_none_or(|(_, _, n)| size < n) {
                     best = Some((col, key, size));
                 }
@@ -297,7 +316,7 @@ impl QueryIndexes {
         // invalidation work on unrelated indexes used only for ordinary joins.
         index.leased_reads = true;
         if let Some((column, hash, _)) = index.best(bound, self.bits) {
-            let view = index.values[column].get_mut(&hash).map(|bucket| {
+            let view = index.values[column].get_mut().expect("selected column").get_mut(&hash).map(|bucket| {
                 bucket
                     .view
                     .get_or_insert_with(|| Rc::new(bucket.facts.iter().copied().collect()))
@@ -325,12 +344,12 @@ impl QueryIndexes {
         let index = &self.tables[&table];
         let &(column, hash) = selectors
             .iter()
-            .min_by_key(|(c, k)| index.values[*c].get(k).map_or(0, |b| b.facts.len()))
+            .min_by_key(|(c, k)| index.column(*c).get(k).map_or(0, |b| b.facts.len()))
             .unwrap();
         ProjectionStamp {
             column,
             hash,
-            version: index.values[column]
+            version: index.column(column)
                 .get(&hash)
                 .map(|b| b.membership_version),
         }
@@ -339,7 +358,7 @@ impl QueryIndexes {
     pub(crate) fn valid_projection(&self, g: &Graph, t: usize, s: &ProjectionStamp) -> bool {
         self.tables.get(&t).is_some_and(|i| {
             i.version == g.query_versions[t]
-                && i.values[s.column]
+                && i.column(s.column)
                     .get(&s.hash)
                     .map(|b| b.membership_version)
                     == s.version
@@ -359,7 +378,7 @@ impl QueryIndexes {
             ReadStamp::Table { version, .. } => index.version == *version,
             ReadStamp::Bucket {
                 column, hash, view, ..
-            } => match (view, index.values[*column].get(hash)) {
+            } => match (view, index.column(*column).get(hash)) {
                 (None, None) => true,
                 (Some(old), Some(bucket)) => {
                     bucket.view.as_ref().is_some_and(|now| Rc::ptr_eq(old, now))
@@ -374,12 +393,12 @@ impl QueryIndexes {
         table: usize,
         bound: &[Option<Value>],
     ) -> Result<Domain> {
-        self.ensure(graph, table)?;
+        self.ensure_selected(graph,table,bound.iter().enumerate().filter_map(|(c,v)|v.as_ref().map(|_|c)))?;
         let index = &self.tables[&table];
         if let Some((col, key, count)) = index.best(bound, self.bits) {
             Ok(match count {
                 0 => Domain::Empty,
-                1 => Domain::One(*index.values[col][&key].facts.first().unwrap()),
+                1 => Domain::One(*index.column(col)[&key].facts.first().unwrap()),
                 _ => Domain::Many,
             })
         } else {
@@ -448,7 +467,10 @@ impl QueryIndexes {
     pub(crate) fn finish_publication(&mut self) {
         self.peak_references = self.peak_references.max(self.references);
     }
-    pub(crate) fn ensure(&mut self, graph: &Graph, table: usize) -> Result<()> {
+    pub(crate) fn ensure(&mut self, graph:&Graph, table:usize)->Result<()> {
+        self.ensure_selected(graph,table,std::iter::empty())
+    }
+    pub(crate) fn ensure_selected(&mut self, graph:&Graph, table:usize, wanted:impl IntoIterator<Item=usize>)->Result<()> {
         if self
             .tables
             .get(&table)
@@ -462,12 +484,13 @@ impl QueryIndexes {
                 #[cfg(feature = "projection-stamps")]
                 write_version: graph.query_versions[table],
                 values: (0..graph.program.tables[table].schema.len())
-                    .map(|_| HashMap::default())
+                    .map(|_| std::cell::OnceCell::new())
                     .collect(),
                 keys: HashMap::default(),
                 version: graph.query_versions[table],
                 leased_reads: false,
             };
+            for c in wanted { index.values[c].get_or_init(Default::default); }
             for fact in graph.witnesses(table) {
                 self.decoded_facts += 1;
                 if let Some(row) = graph.row(fact)? {
@@ -485,7 +508,7 @@ impl QueryIndexes {
         if !bound.iter().any(Option::is_some) {
             return Ok(graph.witness_count(table));
         }
-        self.ensure(graph, table)?;
+        self.ensure_selected(graph,table,bound.iter().enumerate().filter_map(|(c,v)|v.as_ref().map(|_|c)))?;
         Ok(self.tables[&table].best(bound, self.bits).unwrap().2)
     }
     pub fn candidates(
@@ -517,13 +540,13 @@ impl QueryIndexes {
         if !bound.iter().any(Option::is_some) {
             return Ok(Rc::new(graph.witnesses(table)));
         }
-        self.ensure(graph, table)?;
+        self.ensure_selected(graph,table,bound.iter().enumerate().filter_map(|(c,v)|v.as_ref().map(|_|c)))?;
         let index = self.tables.get_mut(&table).unwrap();
         let (col, key, size) = index.best(bound, self.bits).unwrap();
         if size == 0 {
             return Ok(Rc::new(vec![]));
         }
-        let bucket = index.values[col].get_mut(&key).unwrap();
+        let bucket = index.values[col].get_mut().expect("selected column").get_mut(&key).unwrap();
         let view = bucket
             .view
             .get_or_insert_with(|| Rc::new(bucket.facts.iter().copied().collect()))
@@ -572,17 +595,18 @@ impl QueryIndexes {
     /// A one-column Free Join projection has exactly the same domain as the
     /// maintained column bucket, including in the presence of hash collisions.
     pub(crate) fn single_support(&mut self, graph: &Graph, table: usize, column:usize, key:u64) -> Result<Domain> {
-        self.ensure(graph,table)?;
-        let Some(bucket) = self.tables[&table].values[column].get(&key) else { return Ok(Domain::Empty); };
+        self.ensure_selected(graph,table,[column])?;
+        let Some(bucket) = self.tables[&table].column(column).get(&key) else { return Ok(Domain::Empty); };
         Ok(if bucket.facts.len() == 1 { Domain::One(*bucket.facts.first().unwrap()) } else { Domain::Many })
     }
     pub(crate) fn single_projection(
         &mut self, graph: &Graph, table: usize, col: usize, hash: u64,
         materialized: &mut u64,
     ) -> Result<Option<Rc<Vec<Dependency>>>> {
-        self.ensure(graph, table)?;
+        self.ensure_selected(graph,table,[col])?;
         let columns = self.tables.get_mut(&table).unwrap();
-        Ok(columns.values[col].get_mut(&hash).map(|bucket| {
+        columns.column(col);
+        Ok(columns.values[col].get_mut().expect("selected column").get_mut(&hash).map(|bucket| {
             bucket.view.get_or_insert_with(|| {
                 *materialized += bucket.facts.len() as u64;
                 Rc::new(bucket.facts.iter().copied().collect())
@@ -601,13 +625,13 @@ impl QueryIndexes {
         let index = self.tables.get_mut(&table).expect("prepared probe index");
         let mut best = None;
         for &(col, key) in selectors {
-            let size = index.values[col].get(&key)?.facts.len();
+            let size = index.column(col).get(&key)?.facts.len();
             if best.is_none_or(|(_, _, n)| size < n) {
                 best = Some((col, key, size));
             }
         }
         let (col, key, size) = best.expect("nonempty subatom");
-        let bucket = index.values[col].get_mut(&key).unwrap();
+        let bucket = index.values[col].get_mut().expect("selected column").get_mut(&key).unwrap();
         if selectors.len() > 1 {
             let matches = |w: &Dependency| selectors.iter().all(|&(c, k)| index.keys[w][c] == k);
             *examined += size as u64;
@@ -645,11 +669,11 @@ impl QueryIndexes {
         let index = &self.tables[&t];
         let Some(&(col, hash)) = selectors
             .iter()
-            .min_by_key(|(c, h)| index.values[*c].get(h).map_or(0, |b| b.facts.len()))
+            .min_by_key(|(c, h)| index.column(*c).get(h).map_or(0, |b| b.facts.len()))
         else {
             return false;
         };
-        let Some(bucket) = index.values[col].get(&hash) else {
+        let Some(bucket) = index.column(col).get(&hash) else {
             return false;
         };
         selectors.len() == 1
@@ -661,7 +685,7 @@ impl QueryIndexes {
     pub(crate) fn disjoint_small(&self, a: (usize,usize), b: (usize,usize), versions:(u64,u64), reads:&mut u64) -> bool {
         let (Some(left),Some(right)) = (self.tables.get(&a.0),self.tables.get(&b.0)) else { return false };
         if (left.version,right.version) != versions { return false; }
-        let (mut small,mut large) = (&left.values[a.1],&right.values[b.1]);
+        let (mut small,mut large) = (left.column(a.1),right.column(b.1));
         if small.len()>large.len() { std::mem::swap(&mut small,&mut large); }
         small.len() <= 8 && small.keys().all(|key| {
             *reads += 1;
@@ -669,7 +693,7 @@ impl QueryIndexes {
         })
     }
     pub(crate) fn key_count(&self, table: usize, col: usize) -> Option<usize> {
-        Some(self.tables.get(&table)?.values[col].len())
+        Some(self.tables.get(&table)?.column(col).len())
     }
     /// Enumerate follower keys and their matching cover references. Abort
     /// before copying a bucket that would exceed the forward-scan budget.
@@ -680,8 +704,8 @@ impl QueryIndexes {
         budget: usize,
         keys: &mut u64,
     ) -> Option<Vec<Dependency>> {
-        let drivers = &self.tables.get(&driver.0)?.values[driver.1];
-        let followers = &self.tables.get(&follower.0)?.values[follower.1];
+        let drivers = self.tables.get(&driver.0)?.column(driver.1);
+        let followers = self.tables.get(&follower.0)?.column(follower.1);
         let limit = budget.checked_sub(followers.len())?;
         let mut hits = vec![];
         let mut size = 0;
@@ -701,10 +725,16 @@ impl QueryIndexes {
         }
         Some(rows)
     }
+    pub(crate) fn column_storage(&self) -> (usize,usize,usize) {
+        self.tables.values().fold((0,0,0),|(total,live,refs),t| {
+            let built=t.values.iter().filter(|c|c.get().is_some()).count();
+            (total+t.values.len(),live+built,refs+built*t.keys.len())
+        })
+    }
     pub fn refinement_storage(&self) -> (usize, usize) {
         self.tables
             .values()
-            .flat_map(|t| t.values.iter())
+            .flat_map(|t| t.values.iter().filter_map(std::cell::OnceCell::get))
             .flat_map(|v| v.values())
             .flat_map(|b| b.refinements.values())
             .fold((0, 0), |(n, r), v| (n + 1, r + v.len()))
@@ -731,11 +761,11 @@ impl QueryIndexes {
         let Some((c, k)) = cols
             .iter()
             .zip(keys)
-            .min_by_key(|(c, k)| index.values[**c].get(k).map_or(0, |b| b.facts.len()))
+            .min_by_key(|(c, k)| index.column(**c).get(k).map_or(0, |b| b.facts.len()))
         else {
             return vec![];
         };
-        let Some(bucket) = index.values[*c].get(k) else {
+        let Some(bucket) = index.column(*c).get(k) else {
             return vec![];
         };
         bucket

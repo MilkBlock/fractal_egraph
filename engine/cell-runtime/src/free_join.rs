@@ -329,8 +329,8 @@ impl FreeJoin {
         if !batch.delta_exceeds(threshold, &mut self.stats.reverse_epoch_bins) {
             return Ok(None);
         }
-        index.ensure(g, table)?;
-        index.ensure(g, batch.table)?;
+        index.ensure_selected(g,table,[to])?;
+        index.ensure_selected(g,batch.table,[from])?;
         let Some(rows) = index.reverse_cover(
             (batch.table, from),
             (table, to),
@@ -426,7 +426,7 @@ impl FreeJoin {
                          selectors_key: &[u64],
                          index: &mut QueryIndexes|
              -> Result<Option<Rows>> {
-                index.ensure(g, shape.table)?;
+                index.ensure_selected(g,shape.table,shape.columns.iter().map(|(col,_)|*col))?;
                 let selectors = shape
                     .columns
                     .iter()
@@ -644,7 +644,7 @@ impl FreeJoin {
                     *col = selectors.len();
                     selectors.push((source_col, 0));
                 }
-                index.ensure(g, sub.table)?;
+                index.ensure_selected(g,sub.table,selectors.iter().map(|(col,_)|*col))?;
                 probes.push(Probe {
                     atom: sub.atom,
                     table: sub.table,
