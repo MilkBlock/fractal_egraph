@@ -727,6 +727,10 @@ impl Graph {
         #[cfg(feature = "sparse-cells")]
         self.trust_sealed_frame(id);
         self.stats.single_writes += 1;
+        #[cfg(feature="function-blocks")]
+        let owned_block=parent.is_some() && self.own_function_block(template,&values);
+        #[cfg(feature="function-blocks")]
+        let parent=parent.filter(|_| !owned_block);
         let before = self.stats.function_updates;
         #[cfg(feature="sparse-cells")]
         if parent.is_none() && let Some(ports)=&write.ports {
@@ -734,6 +738,8 @@ impl Graph {
             let i=self.set_function_canonical(write.table,std::slice::from_ref(&key),Value::Int(value))?;
             let changed=self.stats.function_updates!=before;
             if changed{
+                #[cfg(feature="function-blocks")]
+                {self.writer_dir.parent_links_avoided+=u64::from(owned_block);}
                 let mut frame=self.new_cell(template,values,None);
                 if let Some(dst)=dst{frame.values.insert(dst,Value::Int(value));}
                 self.keep_writer(i,id,write.op,frame);
@@ -759,6 +765,8 @@ impl Graph {
         let i=self.set_function_canonical(write.table,&key,value)?;
         let changed=self.stats.function_updates!=before;
         if changed {
+            #[cfg(feature="function-blocks")]
+            {self.writer_dir.parent_links_avoided+=u64::from(owned_block);}
             self.keep_writer(i,id,write.op,frame);
         } else {
             self.stats.rhs_frames_avoided += 1;
@@ -797,6 +805,9 @@ impl Graph {
         }
         #[cfg(feature = "sparse-cells")]
         if let Some(w) = self.writer(cell) {
+            #[cfg(feature = "function-blocks")]
+            return self.function_block_slot(cell,w,i);
+            #[cfg(not(feature = "function-blocks"))]
             return self.slot_fields(cell, w.template, w.parent, &w.values, i);
         }
         Err("expired Cell reference".into())

@@ -4,6 +4,55 @@ use std::{
     path::Path,
     process::{Command, Output},
 };
+#[cfg(feature="function-blocks")]
+#[test]
+fn function_blocks_preserve_min_max_custom_merge_and_cross_run_consumers() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    let tmp=tempfile::tempdir().unwrap();
+    let input=tmp.path().join("functions.egg");let out=tmp.path().join("compiled");
+    fs::write(&input,r#"
+(datatype E (Leaf i64) (Wrap E) (Seen E i64))
+(function smallest (E) i64 :merge (min old new))
+(function largest (E) i64 :merge (max old new))
+(function first (E) i64 :merge old)
+(function total (E) i64 :merge (+ old new))
+(ruleset seed) (ruleset improve) (ruleset propagate) (ruleset observe) (ruleset merge)
+(rule ((= x (Leaf n))) ((set (smallest x) (+ n 10))) :ruleset seed)
+(rule ((= x (Leaf n))) ((set (largest x) n)) :ruleset seed)
+(rule ((= x (Leaf n))) ((set (first x) n)) :ruleset seed)
+(rule ((= x (Leaf n))) ((set (total x) n)) :ruleset seed)
+(rule ((= x (Leaf n))) ((set (smallest x) n)) :ruleset improve)
+(rule ((= x (Leaf n))) ((set (largest x) (+ n 10))) :ruleset improve)
+(rule ((= x (Leaf n))) ((set (first x) (+ n 10))) :ruleset improve)
+(rule ((= x (Leaf n))) ((set (total x) (+ n 1))) :ruleset improve)
+(rule ((= w (Wrap x)) (= n (smallest x))) ((set (smallest w) n)) :ruleset propagate)
+(rule ((= n (smallest x))) ((Seen x n)) :ruleset observe)
+(rule ((= n (total x))) ((Seen x n)) :ruleset observe)
+(rule ((= a (Leaf 1)) (= b (Leaf 2))) ((union a b)) :ruleset merge)
+(Wrap (Leaf 1)) (Wrap (Leaf 2))
+(run-schedule (run seed) (run propagate) (run observe) (run improve) (run propagate) (run observe) (run merge) (run propagate) (run observe))
+"#).unwrap();
+    pass(&["compile","--source",input.to_str().unwrap(),"--output",out.to_str().unwrap()]);
+    let artifact=json_file(&out.join("program.json"));
+    let run=|on|{
+        let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+        e.graph.configure_function_blocks(on);e.execute().unwrap();
+        (e.snapshots,e.binding_audit,e.graph.function_blocks_report(),e.graph.stats)
+    };
+    let off=run(false);let on=run(true);
+    assert_eq!(off.0,on.0);assert_eq!(off.1,on.1);
+    assert_eq!(off.3.function_updates,on.3.function_updates);
+    assert_eq!(off.3.merge_calls,on.3.merge_calls);
+    assert!(on.2["installed"].as_u64().unwrap()>0);
+    assert_eq!(on.2["fallback"],0,"{}",on.2);
+    assert!(on.2["parent_links_avoided"].as_u64().unwrap()>0,"{}",on.2);
+    let mut bad=artifact;
+    let at=bad["function_blocks"].as_array().unwrap().iter().position(|x|x.is_object()).unwrap();
+    bad["function_blocks"][at]["slots"][0][0]=json!(9999);
+    bad["sha256"]=json!(eggfuse_cell_runtime::checksum::artifact_digest(&bad));
+    assert!(Program::parse(bad).unwrap_err().contains("function block certificate"));
+    pass(&["bench","--program",out.join("program.json").to_str().unwrap(),"--reference-program",out.join("program.json").to_str().unwrap(),"--function-blocks","on","--repeat","1"]);
+}
 #[cfg(feature = "deferred-incidence")]
 #[test]
 fn deferred_intermediates_preserve_reads_forwarding_and_scheduled_consumers() {

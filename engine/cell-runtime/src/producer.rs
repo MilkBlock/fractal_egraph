@@ -24,6 +24,13 @@ impl Graph {
         if let Dependency::Function(i) = w
             && let Some(writer) = self.functions[i].writer.as_ref()
         {
+            #[cfg(feature = "function-blocks")]
+            if writer.values.is_packed() {
+                self.writer_dir.blocks_contexts.set(self.writer_dir.blocks_contexts.get()+1);
+                if writer.epoch < self.epoch {
+                    self.writer_dir.blocks_cross_run_contexts.set(self.writer_dir.blocks_cross_run_contexts.get()+1);
+                }
+            }
             return Some(Context {
                 completed: writer.completed,
                 cell: actual.cell,

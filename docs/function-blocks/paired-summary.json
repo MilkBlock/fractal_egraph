@@ -1,0 +1,562 @@
+{
+  "audit": false,
+  "binary_sha256": "3742d55d5cae5945e9040adf7ea922db0023976f811b6259c11a54140a8d0071",
+  "cases": {
+    "raytrace": {
+      "off": {
+        "cli_ms": 10976.657417,
+        "deferred_incidence": {
+          "admitted_positions": 1024,
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "function_blocks": {
+          "all_writer_headers_bytes": 6879120,
+          "borrowed_parent_blocks": 0,
+          "captured_slots": 0,
+          "certified_templates": 59,
+          "context_requests": 0,
+          "earlier_run_context_requests": 0,
+          "enabled": false,
+          "fallback": 0,
+          "installed": 0,
+          "live": 0,
+          "live_by_merge_contract": {},
+          "live_by_template": {},
+          "live_slots": 0,
+          "live_widths": {},
+          "omitted_snapshot_slots": 0,
+          "ordinary_live_slots": 467052,
+          "ordinary_parameters_header_bytes": 24,
+          "ordinary_slot_bytes": 24,
+          "packed_port_heap_bytes": 0,
+          "parameter_heap_capacity_bytes": 12428184,
+          "parameters_header_bytes": 32,
+          "parent_links_avoided": 0,
+          "promoted_for_retained_parent": 0,
+          "slot_reads": 0,
+          "wide_buffer_allocations": 0,
+          "wide_buffer_reuses": 0
+        },
+        "inference_ms": 8431.489875000001,
+        "phases_ms": {
+          "delivery_gc": 20.26902299999976,
+          "query_update": 1639.8847339999893,
+          "repair": 660.3650540000024,
+          "rhs": 2180.0627049999953,
+          "search": 3919.990093999935
+        },
+        "port_frames": {
+          "all_producer_records": 687913,
+          "borrowed_parent_records": 0,
+          "context_requests": 51641,
+          "cross_run_context_requests": 51641,
+          "directory_capacity": 2926592,
+          "directory_kind": "shared-tagged-cell-directory",
+          "embedded_writers": 85989,
+          "enabled": true,
+          "fact_positions": 321158,
+          "full_cells": 300469,
+          "live_records": 301455,
+          "max_rows_per_slab": 4194304,
+          "max_slabs": 512,
+          "parameter_values": 2536195,
+          "physical_rows": 301455,
+          "slab_capacity_bytes": 94351280,
+          "slabs": 246,
+          "stats": {
+            "fallback": 0,
+            "installed": 385233,
+            "removed": 83778
+          }
+        },
+        "rss_bytes": 1896890368.0,
+        "storage": {
+          "cell_fact_arity_0_1_2_3_4plus": [
+            117578,
+            106429,
+            10667,
+            65488,
+            307
+          ],
+          "cell_id_high_water": 3875369,
+          "dependency_edges": 2796816,
+          "embedded_writers": {
+            "from_general_rhs": 64188,
+            "installed": 1348058,
+            "live": 85989,
+            "peak": 85991,
+            "promoted": 0
+          },
+          "forward_dependency_headers": 1034514,
+          "full_cells": 300469,
+          "function_slots": 475011,
+          "intern_headers": 658670,
+          "intern_sizes_0_1_2_3plus": [
+            0,
+            658670,
+            0,
+            0
+          ],
+          "live_functions": 375844,
+          "reverse_dependency_headers": 524655,
+          "sealed_slot_reads": 11844061,
+          "unread_receipt_tables": []
+        }
+      },
+      "on": {
+        "cli_ms": 10749.911250000001,
+        "deferred_incidence": {
+          "admitted_positions": 1024,
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "function_blocks": {
+          "all_writer_headers_bytes": 6879120,
+          "borrowed_parent_blocks": 0,
+          "captured_slots": 4170698,
+          "certified_templates": 59,
+          "context_requests": 23524,
+          "earlier_run_context_requests": 23524,
+          "enabled": true,
+          "fallback": 62982,
+          "installed": 1285076,
+          "live": 82127,
+          "live_by_merge_contract": {
+            "lattice": 19240,
+            "ordered": 50472,
+            "unique": 12415
+          },
+          "live_by_template": {
+            "148": 28,
+            "149": 1534,
+            "150": 654,
+            "151": 3091,
+            "152": 3,
+            "153": 3456,
+            "154": 5537,
+            "155": 4369,
+            "157": 66,
+            "158": 83,
+            "159": 77,
+            "160": 121,
+            "164": 137,
+            "268": 84,
+            "269": 84,
+            "279": 625,
+            "280": 67,
+            "282": 2,
+            "284": 20,
+            "285": 543,
+            "286": 23067,
+            "288": 3,
+            "289": 794,
+            "294": 3335,
+            "296": 456,
+            "297": 59,
+            "298": 67,
+            "299": 41,
+            "300": 43,
+            "306": 21130,
+            "307": 56,
+            "436": 80,
+            "49": 11513,
+            "575": 902
+          },
+          "live_slots": 375237,
+          "live_widths": {
+            "1": 1611,
+            "2": 11897,
+            "3": 166,
+            "4": 3728,
+            "5": 60850,
+            "6": 456,
+            "8": 3335,
+            "9": 84
+          },
+          "omitted_snapshot_slots": 2724373,
+          "ordinary_live_slots": 39841,
+          "ordinary_parameters_header_bytes": 24,
+          "ordinary_slot_bytes": 24,
+          "packed_port_heap_bytes": 2798656,
+          "parameter_heap_capacity_bytes": 4238128,
+          "parameters_header_bytes": 32,
+          "parent_links_avoided": 0,
+          "promoted_for_retained_parent": 0,
+          "slot_reads": 26,
+          "wide_buffer_allocations": 164643,
+          "wide_buffer_reuses": 450138
+        },
+        "inference_ms": 8171.878083,
+        "phases_ms": {
+          "delivery_gc": 19.811214999999677,
+          "query_update": 1600.197606999991,
+          "repair": 638.9210369999946,
+          "rhs": 2097.6291780000056,
+          "search": 3792.1743019999453
+        },
+        "port_frames": {
+          "all_producer_records": 687913,
+          "borrowed_parent_records": 0,
+          "context_requests": 51641,
+          "cross_run_context_requests": 51641,
+          "directory_capacity": 2926592,
+          "directory_kind": "shared-tagged-cell-directory",
+          "embedded_writers": 85989,
+          "enabled": true,
+          "fact_positions": 321158,
+          "full_cells": 300469,
+          "live_records": 301455,
+          "max_rows_per_slab": 4194304,
+          "max_slabs": 512,
+          "parameter_values": 2536195,
+          "physical_rows": 301455,
+          "slab_capacity_bytes": 94351280,
+          "slabs": 246,
+          "stats": {
+            "fallback": 0,
+            "installed": 385233,
+            "removed": 83778
+          }
+        },
+        "rss_bytes": 1895858176.0,
+        "storage": {
+          "cell_fact_arity_0_1_2_3_4plus": [
+            117578,
+            106429,
+            10667,
+            65488,
+            307
+          ],
+          "cell_id_high_water": 3875369,
+          "dependency_edges": 2796816,
+          "embedded_writers": {
+            "from_general_rhs": 64188,
+            "installed": 1348058,
+            "live": 85989,
+            "peak": 85991,
+            "promoted": 0
+          },
+          "forward_dependency_headers": 1034514,
+          "full_cells": 300469,
+          "function_slots": 475011,
+          "intern_headers": 658670,
+          "intern_sizes_0_1_2_3plus": [
+            0,
+            658670,
+            0,
+            0
+          ],
+          "live_functions": 375844,
+          "reverse_dependency_headers": 524655,
+          "sealed_slot_reads": 11844061,
+          "unread_receipt_tables": []
+        }
+      }
+    },
+    "sum-bits": {
+      "off": {
+        "cli_ms": 127.21470800000002,
+        "deferred_incidence": {
+          "admitted_positions": 485,
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "function_blocks": {
+          "all_writer_headers_bytes": 39200,
+          "borrowed_parent_blocks": 0,
+          "captured_slots": 0,
+          "certified_templates": 59,
+          "context_requests": 0,
+          "earlier_run_context_requests": 0,
+          "enabled": false,
+          "fallback": 0,
+          "installed": 0,
+          "live": 0,
+          "live_by_merge_contract": {},
+          "live_by_template": {},
+          "live_slots": 0,
+          "live_widths": {},
+          "omitted_snapshot_slots": 0,
+          "ordinary_live_slots": 2962,
+          "ordinary_parameters_header_bytes": 24,
+          "ordinary_slot_bytes": 24,
+          "packed_port_heap_bytes": 0,
+          "parameter_heap_capacity_bytes": 82104,
+          "parameters_header_bytes": 32,
+          "parent_links_avoided": 0,
+          "promoted_for_retained_parent": 0,
+          "slot_reads": 0,
+          "wide_buffer_allocations": 0,
+          "wide_buffer_reuses": 0
+        },
+        "inference_ms": 21.498583,
+        "phases_ms": {
+          "delivery_gc": 0.19262400000000052,
+          "query_update": 3.780373000000004,
+          "repair": 1.6682550000000038,
+          "rhs": 5.250591999999997,
+          "search": 10.297587999999958
+        },
+        "port_frames": {
+          "all_producer_records": 2875,
+          "borrowed_parent_records": 0,
+          "context_requests": 404,
+          "cross_run_context_requests": 404,
+          "directory_capacity": 16384,
+          "directory_kind": "shared-tagged-cell-directory",
+          "embedded_writers": 490,
+          "enabled": true,
+          "fact_positions": 1641,
+          "full_cells": 953,
+          "live_records": 1432,
+          "max_rows_per_slab": 4194304,
+          "max_slabs": 512,
+          "parameter_values": 7630,
+          "physical_rows": 1432,
+          "slab_capacity_bytes": 412608,
+          "slabs": 156,
+          "stats": {
+            "fallback": 0,
+            "installed": 1925,
+            "removed": 493
+          }
+        },
+        "rss_bytes": 161923072.0,
+        "storage": {
+          "cell_fact_arity_0_1_2_3_4plus": [
+            211,
+            484,
+            90,
+            166,
+            2
+          ],
+          "cell_id_high_water": 10459,
+          "dependency_edges": 10262,
+          "embedded_writers": {
+            "from_general_rhs": 158,
+            "installed": 754,
+            "live": 490,
+            "peak": 490,
+            "promoted": 0
+          },
+          "forward_dependency_headers": 4045,
+          "full_cells": 953,
+          "function_slots": 1300,
+          "intern_headers": 2895,
+          "intern_sizes_0_1_2_3plus": [
+            0,
+            2895,
+            0,
+            0
+          ],
+          "live_functions": 1150,
+          "reverse_dependency_headers": 2193,
+          "sealed_slot_reads": 47388,
+          "unread_receipt_tables": []
+        }
+      },
+      "on": {
+        "cli_ms": 128.295,
+        "deferred_incidence": {
+          "admitted_positions": 485,
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "function_blocks": {
+          "all_writer_headers_bytes": 39200,
+          "borrowed_parent_blocks": 0,
+          "captured_slots": 2863,
+          "certified_templates": 59,
+          "context_requests": 74,
+          "earlier_run_context_requests": 74,
+          "enabled": true,
+          "fallback": 153,
+          "installed": 601,
+          "live": 435,
+          "live_by_merge_contract": {
+            "lattice": 112,
+            "ordered": 238,
+            "unique": 85
+          },
+          "live_by_template": {
+            "148": 2,
+            "149": 5,
+            "150": 4,
+            "151": 16,
+            "152": 2,
+            "153": 17,
+            "154": 24,
+            "155": 33,
+            "157": 3,
+            "158": 1,
+            "159": 4,
+            "268": 1,
+            "269": 1,
+            "279": 1,
+            "281": 1,
+            "286": 65,
+            "288": 2,
+            "289": 14,
+            "294": 77,
+            "296": 7,
+            "306": 65,
+            "307": 4,
+            "436": 1,
+            "49": 75,
+            "575": 10
+          },
+          "live_slots": 2119,
+          "live_widths": {
+            "1": 9,
+            "2": 77,
+            "3": 3,
+            "4": 25,
+            "5": 236,
+            "6": 7,
+            "8": 77,
+            "9": 1
+          },
+          "omitted_snapshot_slots": 391,
+          "ordinary_live_slots": 521,
+          "ordinary_parameters_header_bytes": 24,
+          "ordinary_slot_bytes": 24,
+          "packed_port_heap_bytes": 15648,
+          "parameter_heap_capacity_bytes": 33648,
+          "parameters_header_bytes": 32,
+          "parent_links_avoided": 0,
+          "promoted_for_retained_parent": 0,
+          "slot_reads": 12,
+          "wide_buffer_allocations": 491,
+          "wide_buffer_reuses": 0
+        },
+        "inference_ms": 22.762792,
+        "phases_ms": {
+          "delivery_gc": 0.19913700000000042,
+          "query_update": 3.836661000000006,
+          "repair": 1.6572860000000045,
+          "rhs": 5.596805999999994,
+          "search": 11.04548199999993
+        },
+        "port_frames": {
+          "all_producer_records": 2875,
+          "borrowed_parent_records": 0,
+          "context_requests": 404,
+          "cross_run_context_requests": 404,
+          "directory_capacity": 16384,
+          "directory_kind": "shared-tagged-cell-directory",
+          "embedded_writers": 490,
+          "enabled": true,
+          "fact_positions": 1641,
+          "full_cells": 953,
+          "live_records": 1432,
+          "max_rows_per_slab": 4194304,
+          "max_slabs": 512,
+          "parameter_values": 7630,
+          "physical_rows": 1432,
+          "slab_capacity_bytes": 412608,
+          "slabs": 156,
+          "stats": {
+            "fallback": 0,
+            "installed": 1925,
+            "removed": 493
+          }
+        },
+        "rss_bytes": 161873920.0,
+        "storage": {
+          "cell_fact_arity_0_1_2_3_4plus": [
+            211,
+            484,
+            90,
+            166,
+            2
+          ],
+          "cell_id_high_water": 10459,
+          "dependency_edges": 10262,
+          "embedded_writers": {
+            "from_general_rhs": 158,
+            "installed": 754,
+            "live": 490,
+            "peak": 490,
+            "promoted": 0
+          },
+          "forward_dependency_headers": 4045,
+          "full_cells": 953,
+          "function_slots": 1300,
+          "intern_headers": 2895,
+          "intern_sizes_0_1_2_3plus": [
+            0,
+            2895,
+            0,
+            0
+          ],
+          "live_functions": 1150,
+          "reverse_dependency_headers": 2193,
+          "sealed_slot_reads": 47388,
+          "unread_receipt_tables": []
+        }
+      }
+    }
+  },
+  "inputs": {
+    "raytrace": "3dbf982844330176ebe346d40530e9e1515c0d6ca543c1817f9562283369d32c",
+    "sum-bits": "12f83e99ede012a5716e357aa15ac354214f3bf570fbfce71c019460d0838f0d"
+  },
+  "rounds": 5
+}

@@ -57,6 +57,9 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[cfg(feature = "function-blocks")]
+    #[serde(skip)]
+    pub(crate) function_blocks: Vec<Option<crate::function_blocks::Plan>>,
     #[cfg(feature="two-run-blocks")]
     #[serde(skip)]
     pub(crate) two_run:Vec<Option<Rc<crate::graph::two_run::Plan>>>,
@@ -352,6 +355,8 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
+            #[cfg(feature = "function-blocks")]
+            function_blocks: vec![],
             #[cfg(feature="two-run-blocks")]
             two_run:vec![],
             #[cfg(feature = "port-frames")]
@@ -517,6 +522,14 @@ impl Program {
             }
         }
         p.multi_stage = crate::multistage::MultiStage::parse(&p, &p.artifact["multi_stage"])?;
+        #[cfg(feature = "function-blocks")]
+        {
+            p.function_blocks=crate::function_blocks::derive(&p,&p.multi_stage);
+            if let Some(raw)=p.artifact.get("function_blocks")
+                && *raw!=serde_json::json!(p.function_blocks) {
+                return Err("invalid function block certificate".into());
+            }
+        }
         let spine = p
             .multi_stage
             .stage_entries

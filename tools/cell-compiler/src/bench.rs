@@ -12,6 +12,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--catalog",
             "--program",
             "--repeat",
+            #[cfg(feature="function-blocks")]
+            "--function-blocks",
             #[cfg(feature="two-run-blocks")]
             "--two-run-blocks",
             #[cfg(feature="port-frames")]
@@ -29,6 +31,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--reference-program",
         ],
     )?;
+    #[cfg(feature="function-blocks")]
+    let functions=match opts.get("--function-blocks").map(String::as_str).unwrap_or("off"){
+        "off"=>false,"on"=>true,_=>return Err("--function-blocks requires off or on".into())
+    };
     #[cfg(feature="two-run-blocks")]
     let two_run=match opts.get("--two-run-blocks").map(String::as_str).unwrap_or("off"){
         "off"=>false,"on"=>true,_=>return Err("--two-run-blocks requires off or on".into())
@@ -96,6 +102,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     if let Some(reference) = opts.get("--reference-program") {
         if stage_digests(
             Path::new(reference),
+            #[cfg(feature="function-blocks")]
+            false,
             #[cfg(feature="two-run-blocks")]
             false,
             #[cfg(feature="port-frames")]
@@ -108,6 +116,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             (0, None),
         )? != stage_digests(
             &path,
+            #[cfg(feature="function-blocks")]
+            functions,
             #[cfg(feature="two-run-blocks")]
             two_run,
             #[cfg(feature="port-frames")]
@@ -128,6 +138,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     let mut counts = J::Null;
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
+        #[cfg(feature="function-blocks")]
+        e.graph.configure_function_blocks(functions);
         #[cfg(feature="two-run-blocks")]
         e.configure_two_run(two_run);
         #[cfg(feature="port-frames")]
@@ -185,6 +197,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "handoff_closed":g.handoff_closed,"handoff_closed_fallback":g.handoff_closed_fallback,"handoff_deep":g.handoff_deep,"handoff_lets":g.handoff_lets});
         #[cfg(feature="port-frames")]
         { counts["port_frames"]=e.graph.port_frames_report(); }
+        #[cfg(feature="function-blocks")]
+        {counts["function_blocks"]=e.graph.function_blocks_report();}
         #[cfg(feature = "deferred-incidence")]
         { counts["deferred_incidence"] = r["deferred_incidence"].clone(); }
         #[cfg(feature = "rhs-locals")]
@@ -215,6 +229,8 @@ pub(super) fn stages(path: &Path) -> Result<()> {
         "{}",
         serde_json::to_string(&stage_digests(
             path,
+            #[cfg(feature="function-blocks")]
+            false,
             #[cfg(feature="two-run-blocks")]
             false,
             #[cfg(feature="port-frames")]
@@ -231,6 +247,7 @@ pub(super) fn stages(path: &Path) -> Result<()> {
 }
 fn stage_digests(
     path: &Path,
+    #[cfg(feature="function-blocks")] functions:bool,
     #[cfg(feature="two-run-blocks")] two_run:bool,
     #[cfg(feature="port-frames")] ports:bool,
     #[cfg(feature = "deferred-incidence")] deferred: (bool, bool),
@@ -238,6 +255,8 @@ fn stage_digests(
     #[cfg(feature = "structural-depth")] structural: (u8, Option<&J>),
 ) -> Result<Vec<String>> {
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
+    #[cfg(feature="function-blocks")]
+    e.graph.configure_function_blocks(functions);
     #[cfg(feature="two-run-blocks")]
     e.configure_two_run(two_run);
     #[cfg(feature="port-frames")]

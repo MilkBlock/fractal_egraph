@@ -1,0 +1,46 @@
+{
+  "scope": "standalone Cell CPU; not native egglog",
+  "base_revision": "ce64ea3aa503a275a518956010cee3f2c841c3b8",
+  "frozen_reference": "docs/view-consumer-results.json",
+  "input_catalog": "unchanged 64-unit iterative Bake artifacts for both arms",
+  "profile_admission": false,
+  "pgo": false,
+  "host": {
+    "cpu": "Apple M3 Max",
+    "memory_bytes": 51539607552,
+    "os": "macOS 27.0.1 (26A434)",
+    "rustc": "1.94.0 (4a4ef493e 2026-03-02)",
+    "target": "aarch64-apple-darwin"
+  },
+  "timed_features": "function-blocks,port-frames,view-ports,storage-metrics",
+  "audit_features": "function-blocks,port-frames,view-ports,storage-metrics,slot-transfer-audit,spine-shapes",
+  "regression_features": "function-blocks,two-run-survey,origin-demand,entry-retirement,view-ports,storage-metrics",
+  "regression": {
+    "compiler_tests_passed": 19,
+    "runtime_tests_passed": 29,
+    "default_build_check": "passed",
+    "port_only_build_check": "passed"
+  },
+  "ordered_audits": {
+    "sum-bits": "all frozen state, schedule, RHS, effective write, resume and Spine-shape hashes match",
+    "raytrace": "all frozen state, schedule, RHS, effective write, resume and Spine-shape hashes match",
+    "graph_work_counters": "all Graph stats identical in both arms",
+    "spine_work_counters": "all Spine stats identical after removing three timing fields"
+  },
+  "forced_collision_audit": {
+    "case": "sum-bits",
+    "environment": {"CELL_CPU_HASH_BITS": "0", "CELL_CPU_SIEVE_COLLISIONS": "1"},
+    "mode": "--port-frames --function-blocks",
+    "actual_hashes": "collision-sha256.txt",
+    "all_five_hashes_match_frozen_reference": true
+  },
+  "timing": {
+    "fresh_processes": true,
+    "threads": 1,
+    "warmups_per_arm": 1,
+    "measured_pairs": 5,
+    "order": "alternating",
+    "default_enabled": false,
+    "note": "same-binary off/on controls both include the experimental parameter tag; documentation charges its header cost separately against the uncompiled feature"
+  }
+}

@@ -51,6 +51,8 @@ pub mod compiler;
 mod merge_contract;
 
 mod physical_plan;
+#[cfg(feature = "function-blocks")]
+mod function_blocks;
 mod range_index;
 
 #[cfg(feature = "iterative-bake")]

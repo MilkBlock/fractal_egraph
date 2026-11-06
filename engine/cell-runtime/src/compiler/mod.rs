@@ -171,6 +171,8 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     let (known_results, known_json) = crate::known_results::Plans::derive(&p)?;
     #[cfg(not(feature = "rhs-locals"))]
     let _ = known_results;
+    #[cfg(feature = "function-blocks")]
+    let functions=json!(crate::function_blocks::derive(&p,&crate::multistage::MultiStage::parse(&p,&multi)?));
     let plans = [
         (
             "view_consumer_blocks",
@@ -208,6 +210,8 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     #[cfg(feature = "port-frames")]
     let ports=json!(crate::graph::port_frames::derive(&p,&known_results));
     j = p.artifact;
+    #[cfg(feature = "function-blocks")]
+    {j["function_blocks"]=functions;}
     #[cfg(feature = "port-frames")]
     {j["port_frames"]=ports;}
     #[cfg(feature = "deferred-incidence")]

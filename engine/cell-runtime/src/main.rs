@@ -99,6 +99,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .ok_or("missing retirement interval")?;
             }
             "--audit-stages" | "--inspect-program" | "--release-source-artifact" => {}
+            #[cfg(feature = "function-blocks")]
+            "--function-blocks" => {}
             #[cfg(feature = "port-frames")]
             "--frame-census" => {}
             #[cfg(feature = "port-frames")]
@@ -140,6 +142,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     let audit = args.iter().any(|x| x == "--audit-stages");
     let mut runtime = Executor::new(Graph::new(program)?, audit);
+    #[cfg(feature = "function-blocks")]
+    runtime.graph.configure_function_blocks(args.iter().any(|x|x=="--function-blocks"));
     #[cfg(feature = "port-frames")]
     runtime.graph.configure_frame_census(args.iter().any(|x|x=="--frame-census"));
     #[cfg(feature = "port-frames")]
@@ -266,6 +270,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "keeper-proof")]
     runtime.write_keepers(&out)?;
     let mut report = runtime.report();
+    #[cfg(feature = "function-blocks")]
+    {report["function_blocks"]=runtime.graph.function_blocks_report();}
     #[cfg(feature = "port-frames")]
     { report["frame_census"] = runtime.graph.frame_census_report(); }
     #[cfg(feature = "port-frames")]
