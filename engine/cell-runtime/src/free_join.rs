@@ -50,6 +50,7 @@ pub(super) struct Stats {
     reverse_empty: u64,
     cache_capacity_resets: u64,
     entry_rows: u64,
+    pub(super) empty_entry_batches: u64,
     membership_only: u64,
     disjoint_key_reads: u64,
     disjoint_rule_skips: u64,

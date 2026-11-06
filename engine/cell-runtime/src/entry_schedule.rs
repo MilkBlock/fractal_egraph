@@ -290,6 +290,7 @@ impl std::ops::IndexMut<usize> for Inputs {
 mod epoch_runs;
 #[derive(Default)]
 struct State {
+    latest_witness_epoch: u64,
     #[cfg(feature = "sparse-cells")]
     planned_counts: bool,
     cold: bool,
@@ -324,6 +325,7 @@ impl State {
         rows.len()
     }
     fn insert_epoch(&mut self, epoch: u64, w: Dependency) {
+        self.latest_witness_epoch = self.latest_witness_epoch.max(epoch);
         if self.epochs.insert((epoch, w))
             && let Some(counts) = &mut self.epoch_counts
         {
@@ -395,6 +397,9 @@ impl Batch<'_> {
     }
     pub fn atom(&self) -> usize {
         self.consumer.atom
+    }
+    pub fn empty_delta(&self) -> bool {
+        self.state.rows.is_empty() || self.state.latest_witness_epoch < self.watermark
     }
     pub fn len(&self) -> usize {
         self.state.rows.len()
@@ -636,6 +641,7 @@ impl Scheduler {
         };
         if full {
             s.epochs.clear();
+            s.latest_witness_epoch = 0;
             if let Some(counts) = &mut s.epoch_counts {
                 counts.clear();
             }

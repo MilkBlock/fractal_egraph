@@ -1147,6 +1147,11 @@ impl Executor {
             Some(if early_join || route_spine {
                 self.entry_schedule
                     .batches(&self.graph, rid, watermark, |batch, out| {
+                        #[cfg(not(any(feature = "family-frontiers", feature = "family-scan", feature = "family-overlap")))]
+                        if batch.empty_delta() {
+                            self.free_join.stats.empty_entry_batches += 1;
+                            return Ok(());
+                        }
                         #[cfg(feature = "family-frontiers")]
                         let gate_clock = Instant::now();
                         let atom = batch.atom();
