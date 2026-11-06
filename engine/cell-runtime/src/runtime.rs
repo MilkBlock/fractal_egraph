@@ -128,6 +128,7 @@ pub struct Executor {
     dirty: Vec<bool>,
     pending: Vec<BTreeSet<Dependency>>,
     readers: Vec<Vec<usize>>,
+    required_tables: Vec<Vec<usize>>,
     ready_sets: Option<ready_sets::ReadySets>,
     pub audit: bool,
     pub snapshots: Vec<J>,
@@ -255,14 +256,19 @@ impl Executor {
 
     pub fn new(mut graph: Graph, audit: bool) -> Self {
         let mut readers = vec![vec![]; graph.program.tables.len()];
-        for (rid, r) in graph.program.rules.iter().enumerate() {
-            for a in r.query.iter() {
-                if let Call::Table(t) = a.call {
-                    if !readers[t].contains(&rid) {
-                        readers[t].push(rid)
-                    }
+        let mut required_tables = Vec::with_capacity(graph.program.rules.len());
+        for (rid, rule) in graph.program.rules.iter().enumerate() {
+            let mut required = Vec::new();
+            for atom in rule.query.iter() {
+                if let Call::Table(table) = atom.call
+                    && readers[table].last() != Some(&rid)
+                {
+                    readers[table].push(rid);
+                    required.push(table);
                 }
             }
+            required.sort_by_key(|&table| graph.witness_count(table));
+            required_tables.push(required);
         }
         let n = graph.program.rules.len();
         let tasks = schedule::initial(&graph.program.control);
@@ -340,6 +346,7 @@ impl Executor {
             dirty: vec![true; n],
             pending: vec![BTreeSet::new(); n],
             readers,
+            required_tables,
             audit,
             snapshots: vec![],
             binding_audit: vec![],
@@ -1080,18 +1087,15 @@ impl Executor {
         {
             return Ok(vec![]);
         }
-        let rule = self.graph.program.rules[rid].clone();
-        // No join can succeed if a required relation is empty. This is a query
-        // property, not a Cell proof or a prediction about future stages.
-        if rule.query.iter().any(|a| match a.call {
-            Call::Table(t) => self.graph.witness_count(t) == 0,
-            _ => false,
-        }) {
-            if !probe {
-                self.pending[rid].clear();
-            }
-            return Ok(vec![]);
+        let tables = &mut self.required_tables[rid];
+        if let Some(pos) = tables.iter().position(|&t| self.graph.witness_count(t) == 0) {
+            // Retest the last empty input first, using current storage. No
+            // maintained negative result can hide the appearance of a row.
+            tables.swap(0,pos);
+            if !probe { self.pending[rid].clear(); }
+            return Ok(Vec::new());
         }
+        let rule = self.graph.program.rules[rid].clone();
         #[cfg(feature = "view-consumers")]
         if !probe
             && let Some(rows) = self.blocks.matches(
