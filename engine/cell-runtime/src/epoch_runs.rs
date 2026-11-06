@@ -2,14 +2,27 @@
 //! contiguous array. Re-keying can retire an old entry without shifting the
 //! range; an out-of-order insertion falls back to a tree for that epoch.
 use crate::graph::Dependency;
-use std::collections::BTreeMap;
 use crate::ordered_run::OrderedRun;
+use std::collections::BTreeMap;
 type Item = (u64, Dependency);
 #[derive(Default)]
 pub(super) struct Epochs {
     bins: BTreeMap<u64, OrderedRun<Item>>,
 }
 impl Epochs {
+    #[cfg(feature = "entry-retirement")]
+    pub fn retire_before(&mut self, floor: u64, mut discard: impl FnMut(Dependency)) {
+        while self
+            .bins
+            .first_key_value()
+            .is_some_and(|(epoch, _)| *epoch < floor)
+        {
+            let (_, rows) = self.bins.pop_first().unwrap();
+            for &(_, w) in rows.iter() {
+                discard(w);
+            }
+        }
+    }
     pub fn clear(&mut self) {
         self.bins.clear()
     }

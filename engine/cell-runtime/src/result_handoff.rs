@@ -224,6 +224,8 @@ impl History {
         read: impl Fn(usize) -> Option<Dependency>,
         effects: Option<&[Option<Dependency>]>,
     ) {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::History);
         if limit == 0 || (wanted.is_empty() && self.0.is_none()) {
             return;
         }

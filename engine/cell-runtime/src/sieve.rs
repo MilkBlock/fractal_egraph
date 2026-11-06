@@ -318,6 +318,8 @@ impl Sieve {
         Some(k)
     }
     fn ensure(&mut self, id: usize, g: &Graph, index: &mut QueryIndexes) -> Result<()> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Sieve);
         if self.states[id].built {
             self.stats.reused_summaries += 1;
             return Ok(());
@@ -410,6 +412,8 @@ impl Sieve {
         true
     }
     pub fn publish(&mut self, index: &mut QueryIndexes) {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Sieve);
         let mut changes = std::mem::take(&mut index.changes);
         changes.sort_unstable();
         if !self.enabled {

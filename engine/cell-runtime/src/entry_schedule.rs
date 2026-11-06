@@ -288,6 +288,40 @@ impl std::ops::IndexMut<usize> for Inputs {
 #[cfg(feature = "sparse-cells")]
 #[path = "epoch_runs.rs"]
 mod epoch_runs;
+#[cfg(feature = "entry-retirement")]
+type RetainedPacket = Option<SharedPacket>;
+#[cfg(not(feature = "entry-retirement"))]
+type RetainedPacket = SharedPacket;
+fn packet(p: &RetainedPacket) -> Option<&SharedPacket> {
+    #[cfg(feature = "entry-retirement")]
+    {
+        p.as_ref()
+    }
+    #[cfg(not(feature = "entry-retirement"))]
+    {
+        Some(p)
+    }
+}
+fn unwrap_packet(p: RetainedPacket) -> Option<SharedPacket> {
+    #[cfg(feature = "entry-retirement")]
+    {
+        p
+    }
+    #[cfg(not(feature = "entry-retirement"))]
+    {
+        Some(p)
+    }
+}
+fn retain_packet(p: SharedPacket) -> RetainedPacket {
+    #[cfg(feature = "entry-retirement")]
+    {
+        Some(p)
+    }
+    #[cfg(not(feature = "entry-retirement"))]
+    {
+        p
+    }
+}
 #[derive(Default)]
 struct State {
     latest_witness_epoch: u64,
@@ -300,7 +334,8 @@ struct State {
     pending: Vec<Dependency>,
     #[cfg(feature = "sparse-cells")]
     sorted_pending: usize,
-    rows: HashMap<Dependency, SharedPacket>,
+    rows: HashMap<Dependency,RetainedPacket>,
+    #[cfg(feature="entry-retirement")] retained_from:u64,
     #[cfg(not(feature = "sparse-cells"))]
     epochs: BTreeSet<(u64, Dependency)>,
     #[cfg(feature = "sparse-cells")]
@@ -346,6 +381,8 @@ impl State {
 }
 #[derive(Default, Serialize)]
 pub struct Stats {
+    #[cfg(feature="entry-retirement")] packets_consumed:u64,
+    #[cfg(feature="entry-retirement")] backwards_rebuilds:u64,
     pub predicate_checks: u64,
     node_refreshes: u64,
     changed_headers: u64,
@@ -361,6 +398,10 @@ pub struct Stats {
     retired_packets: u64,
 }
 pub struct Scheduler {
+    #[cfg(feature="entry-retirement")] pub(crate) retirement_interval:u64,
+    #[cfg(feature="entry-retirement")] consumer_epochs:Vec<u64>,
+    #[cfg(feature="entry-retirement")] node_readers:Vec<Vec<usize>>,
+    #[cfg(feature="entry-retirement")] touched_nodes:Vec<bool>,
     pub enabled: bool,
     plan: Plan,
     states: Vec<State>,
@@ -457,6 +498,7 @@ impl Batch<'_> {
         self.state
             .rows
             .get(&w)
+            .and_then(packet)
             .filter(|p| p.row.epoch >= self.watermark)
     }
     pub fn seed(&self, packet: &SharedPacket) -> Seed {
@@ -485,13 +527,71 @@ impl Scheduler {
                 ..Default::default()
             })
             .collect();
+        #[cfg(feature="entry-retirement")] let node_readers={
+            let mut readers=vec![Vec::new();plan.nodes.len()];
+            for (r,cs) in plan.rules.iter().enumerate(){for c in cs{if readers[c.node].last()!=Some(&r){readers[c.node].push(r);}}}
+            readers
+        };
         Self {
+            #[cfg(feature="entry-retirement")] retirement_interval:1,
+            #[cfg(feature="entry-retirement")] consumer_epochs:vec![0;plan.rules.len()],
+            #[cfg(feature="entry-retirement")] touched_nodes:vec![false;plan.nodes.len()],
+            #[cfg(feature="entry-retirement")] node_readers,
             enabled,
             plan,
             states,
             rows: HashMap::default(),
             unions: 0,
             stats: Stats::default(),
+        }
+    }
+    #[cfg(feature = "entry-retirement")]
+    fn check_floor(&mut self, node: usize, watermark: u64) {
+        let s = &mut self.states[node];
+        if watermark < s.retained_from {
+            s.cold = true;
+            s.retained_from = 0;
+            self.stats.backwards_rebuilds += 1;
+        }
+    }
+    /// A rule can occur in several source sets. Committing one occurrence
+    /// advances that consumer, while the shared node waits for its slowest reader.
+    #[cfg(feature = "entry-retirement")]
+    pub(crate) fn complete_consumers(&mut self, rules: &[usize], epoch: u64) {
+        #[cfg(feature = "allocation-census")]
+        let _s = crate::allocation_census::scope(crate::allocation_census::Tag::Entries);
+        for &r in rules {
+            self.consumer_epochs[r] = self.consumer_epochs[r].max(epoch);
+            for c in &self.plan.rules[r] {
+                self.touched_nodes[c.node] = true;
+            }
+        }
+        if !epoch.is_multiple_of(self.retirement_interval) {
+            return;
+        }
+        for (node, touched) in self.touched_nodes.iter_mut().enumerate() {
+            if !std::mem::take(touched) {
+                continue;
+            }
+            let floor = self.node_readers[node]
+                .iter()
+                .map(|r| self.consumer_epochs[*r])
+                .min()
+                .unwrap_or(0);
+            let s = &mut self.states[node];
+            if s.cold || floor <= s.retained_from {
+                continue;
+            }
+            let rows = &mut s.rows;
+            let count = &mut self.stats.packets_consumed;
+            s.epochs.retire_before(floor, |w| {
+                if let Some(slot) = rows.get_mut(&w)
+                    && slot.take().is_some()
+                {
+                    *count += 1;
+                }
+            });
+            s.retained_from = floor;
         }
     }
     pub fn accepts(&self, rid: usize) -> bool {
@@ -506,6 +606,8 @@ impl Scheduler {
         self.publish_except(g, |_| false);
     }
     pub(crate) fn publish_except(&mut self, g: &Graph, dedicated: impl Fn(usize) -> bool) {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Entries);
         if !self.enabled {
             return;
         }
@@ -555,7 +657,7 @@ impl Scheduler {
         self.batches(g, rid, watermark, |batch, out| {
             for &(_, w) in batch.delta() {
                 if allow(batch.atom(), batch.table, w) {
-                    out.push(batch.seed(&batch.state.rows[&w]));
+                    out.push(batch.seed(batch.packet(w).expect("retained delta packet")));
                 }
             }
             Ok(())
@@ -573,6 +675,7 @@ impl Scheduler {
             .position(|c| c.atom == atom)
             .ok_or("missing terminal entry")?;
         let node = self.plan.rules[rid][i].node;
+        #[cfg(feature="entry-retirement")] self.check_floor(node,watermark);
         self.refresh(g, node)?;
         Ok(Batch {
             state: &self.states[node],
@@ -592,7 +695,8 @@ impl Scheduler {
         let mut out = vec![];
         for i in 0..self.plan.rules[rid].len() {
             let node = self.plan.rules[rid][i].node;
-            self.refresh(g, node)?;
+            #[cfg(feature="entry-retirement")] self.check_floor(node,watermark);
+        self.refresh(g, node)?;
             let c = &self.plan.rules[rid][i];
             let start = out.len();
             visit(
@@ -611,6 +715,8 @@ impl Scheduler {
         Ok(out)
     }
     fn refresh(&mut self, g: &Graph, id: usize) -> Result<()> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Entries);
         let s = &mut self.states[id];
         if !s.cold && s.pending.is_empty() {
             return Ok(());
@@ -656,7 +762,7 @@ impl Scheduler {
                 old.remove(&w)
             } else {
                 s.rows.remove(&w)
-            };
+            }.and_then(unwrap_packet);
             if !full && let Some(p) = &previous {
                 s.remove_epoch(p.row.epoch, w);
             }
@@ -685,14 +791,14 @@ impl Scheduler {
                 self.stats.parameter_packets_reused += 1;
                 s.insert_epoch(row.epoch, w);
                 #[cfg(feature = "sparse-cells")]
-                s.rows.insert(w, Packet { row });
+                s.rows.insert(w,retain_packet(Packet{row}));
                 #[cfg(not(feature = "sparse-cells"))]
                 s.rows.insert(
                     w,
-                    Rc::new(Packet {
+                    retain_packet(Rc::new(Packet {
                         row,
                         values: _previous.values.clone(),
-                    }),
+                    })),
                 );
                 continue;
             }
@@ -704,7 +810,7 @@ impl Scheduler {
                 });
                 if valid {
                     s.insert_epoch(row.epoch, w);
-                    s.rows.insert(w, Packet { row });
+                    s.rows.insert(w,retain_packet(Packet{row}));
                 } else {
                     self.stats.retired_packets += u64::from(previous.is_some());
                 }
@@ -733,7 +839,7 @@ impl Scheduler {
                         Rc::new(values)
                     };
                     s.insert_epoch(row.epoch, w);
-                    s.rows.insert(w, Rc::new(Packet { row, values }));
+                    s.rows.insert(w,retain_packet(Rc::new(Packet{row,values})));
                 } else {
                     self.stats.retired_packets += u64::from(previous.is_some());
                 }
@@ -749,12 +855,14 @@ impl Scheduler {
         self.stats.consumer_seed_deliveries
     }
     pub fn report(&self) -> J {
+        #[cfg(feature="entry-retirement")] let retirement_interval=self.retirement_interval;
+        #[cfg(not(feature="entry-retirement"))] let retirement_interval=0;
         #[allow(unused_mut)]
         let mut stats = json!(&self.stats);
         #[cfg(feature = "sparse-cells")]
         { stats["node_notifications"] = (self.stats.node_notifications
             + self.states.iter().map(|s|s.pending_count() as u64).sum::<u64>()).into(); }
-        json!({"enabled":self.enabled,"nodes":self.plan.nodes.len(),"stats":stats,"live_packets":self.states.iter().map(|s|s.rows.len()).sum::<usize>(),"scope":"compiled shared entry predicates; consumer watermarks and complete residual/RHS remain source scheduled"})
+        json!({"enabled":self.enabled,"nodes":self.plan.nodes.len(),"stats":stats,"live_packets":self.states.iter().map(|s|s.rows.values().filter(|v|packet(v).is_some()).count()).sum::<usize>(),"retirement_interval":retirement_interval,"membership_headers":self.states.iter().map(|s|s.rows.len()).sum::<usize>(),"scope":"compiled shared entry predicates; consumer watermarks and complete residual/RHS remain source scheduled"})
     }
 }
 
@@ -771,5 +879,72 @@ mod pending_tests {
         assert_eq!(s.pending_count(),3);
         s.compact_pending();
         assert_eq!(s.pending,vec![Dependency::Function(1),Dependency::Function(2),Dependency::Function(3)]);
+    }
+}
+#[cfg(all(test, feature = "entry-retirement"))]
+mod lifetime_tests {
+    use super::*;
+    #[test]
+    fn shared_node_waits_for_last_reader_and_recovers_for_an_older_request() {
+        let consumer = Consumer {
+            node: 0,
+            atom: 0,
+            projection: Rc::new(vec![Some(0)]),
+        };
+        let plan = Plan {
+            nodes: vec![Node {
+                table: 0,
+                args: vec![Arg::Slot(0)],
+                ports: 1,
+                literal_identity: false,
+                checks: vec![],
+            }],
+            rules: vec![vec![consumer.clone()], vec![consumer]],
+            tables: vec![vec![0]],
+        };
+        let w = Dependency::Function(7);
+        let mut state = State {
+            planned_counts: true,
+            ..Default::default()
+        };
+        state.rows.insert(
+            w,
+            Some(Packet {
+                row: Rc::new(Row {
+                    table: 0,
+                    epoch: 3,
+                    witness: w,
+                    hidden: false,
+                    values: crate::graph::row_fields(vec![Value::Int(5)]),
+                }),
+            }),
+        );
+        state.insert_epoch(3, w);
+        let mut scheduler = Scheduler {
+            enabled: true,
+            plan,
+            states: vec![state],
+            rows: Default::default(),
+            unions: 0,
+            stats: Default::default(),
+            retirement_interval: 1,
+            consumer_epochs: vec![0; 2],
+            node_readers: vec![vec![0, 1]],
+            touched_nodes: vec![false],
+        };
+        scheduler.retirement_interval = 8;
+        scheduler.complete_consumers(&[0], 5);
+        assert!(scheduler.states[0].rows[&w].is_some());
+        scheduler.complete_consumers(&[1], 3);
+        assert!(scheduler.states[0].rows[&w].is_some()); // equal watermark is still an eligible delta
+        scheduler.complete_consumers(&[1], 4);
+        assert!(scheduler.states[0].rows[&w].is_some());
+        scheduler.complete_consumers(&[], 8);
+        assert!(scheduler.states[0].rows[&w].is_none());
+        assert_eq!(scheduler.states[0].rows.len(), 1); // preserve exact planner cardinality
+        assert_eq!(scheduler.states[0].epochs.range(0).count(), 0);
+        scheduler.check_floor(0, 2);
+        assert!(scheduler.states[0].cold);
+        assert_eq!(scheduler.stats.backwards_rebuilds, 1);
     }
 }

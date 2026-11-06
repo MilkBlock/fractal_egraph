@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+origin-demand = ["sparse-cells"]
+entry-retirement = ["sparse-cells"]
+allocation-census = []
 sparse-cells = ["iterative-bake"]
 storage-metrics = ["dep:libc"]
 keeper-proof = ["rhs-work-audit", "rhs-locals"]

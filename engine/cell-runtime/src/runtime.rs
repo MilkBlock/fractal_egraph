@@ -1081,6 +1081,8 @@ impl Executor {
         Ok(empty)
     }
     fn matches(&mut self, rid: usize, probe: bool) -> Result<Vec<Binding>> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Search);
         if !probe
             && self.graph.program.rules[rid].seminaive
             && !std::mem::replace(&mut self.dirty[rid], false)
@@ -1896,6 +1898,8 @@ impl Executor {
         b: Binding,
         #[cfg(feature = "structural-depth")] evidence: Option<crate::depth_runtime::Evidence>,
     ) -> Result<()> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Rhs);
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::rhs(rid);
         let stage_cursor = self.stage_spine.begin_step(
@@ -2485,6 +2489,7 @@ impl Executor {
             // No dirty reader and no producer, repair or index work at this
             // source occurrence. Commit the empty audit and its real watermark.
             self.ready_sets.as_mut().unwrap().finish(id,self.graph.epoch);
+            #[cfg(feature="entry-retirement")] self.entry_schedule.complete_consumers(&self.graph.program.sets[set],self.graph.epoch);
             #[cfg(feature = "slot-transfer-audit")]
             {
                 crate::transfer_audit::record_run(std::iter::empty::<(&usize,&crate::slots::Slots)>())?;
@@ -2575,6 +2580,7 @@ impl Executor {
         if let (Some(id),Some(sets)) = (set_id,&mut self.ready_sets) {
             sets.finish(id,self.graph.epoch);
         }
+        #[cfg(feature="entry-retirement")] self.entry_schedule.complete_consumers(&self.graph.program.sets[set],self.graph.epoch);
         let patch = StagePatch { groups: work, len: count };
         #[cfg(feature = "structural-depth")]
         let mut evidence = if let Some(marks) = marks {
@@ -3031,6 +3037,31 @@ impl Executor {
     #[cfg(feature = "keeper-proof")]
     pub fn write_keepers(&self, path: &std::path::Path) -> Result<()> {
         self.graph.proof.write(&self.graph, path)
+    }
+    #[cfg(feature = "entry-retirement")]
+    pub fn configure_entry_retirement(&mut self, interval: u64) -> Result<()> {
+        if interval == 0 || !self.steps.is_empty() {
+            return Err("configure positive retirement interval before execution".into());
+        }
+        self.entry_schedule.retirement_interval = interval;
+        Ok(())
+    }
+    /// Discard source/validation IR after all runtime plans are constructed.
+    /// The remaining artifact is provenance metadata, and is intentionally
+    /// rejected by Program::parse. Offline Bake requires reloading the source.
+    pub fn release_validation_artifact(&mut self) -> Result<()> {
+        if !self.steps.is_empty() {
+            return Err("release validation IR before execution".into());
+        }
+        let p = &mut self.graph.program;
+        if p.artifact["schema"] == "eggfuse-execution-provenance/v1" {
+            return Ok(());
+        }
+        let sha = p.artifact["sha256"].take();
+        let recipe = p.artifact["recipe"]["sha256"].take();
+        let nodes = p.artifact["source_core"]["structural_key"]["nodes"].take();
+        p.artifact = serde_json::json!({"schema":"eggfuse-execution-provenance/v1","sha256":sha,"recipe":{"sha256":recipe},"source_core":{"structural_key":{"nodes":nodes}}});
+        Ok(())
     }
     pub fn report(&self) -> J {
         let view_rule_profile=self.profile_queries.then(||{

@@ -200,7 +200,9 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     let structural = json!(crate::depth_plan::Plan::derive(&p));
     #[cfg(feature = "rhs-locals")]
     let local_blocks = json!(crate::local_rhs::derive(&p, &known_results));
+    #[cfg(feature="origin-demand")] let demand=json!(p.origin_required);
     j = p.artifact;
+    #[cfg(feature="origin-demand")] {j["origin_demand"]=demand;}
     #[cfg(feature = "rhs-locals")]
     {
         j["local_rhs_blocks"] = local_blocks;

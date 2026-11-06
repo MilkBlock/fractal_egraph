@@ -72,6 +72,8 @@ impl Columns {
     }
 
     fn remove(&mut self, fact: Dependency) -> usize {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Columns);
         let Some(keys) = self.keys.remove(&fact) else {
             return 0;
         };
@@ -92,6 +94,8 @@ impl Columns {
         keys.len()
     }
     fn put(&mut self, row: &Row, bits: u32, watch_reads: bool) -> (usize, usize) {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Columns);
         if row.hidden {
             return (self.remove(row.witness), 0);
         }
@@ -478,6 +482,8 @@ impl QueryIndexes {
         self.ensure_selected(graph,table,std::iter::empty())
     }
     pub(crate) fn ensure_selected(&mut self, graph:&Graph, table:usize, wanted:impl IntoIterator<Item=usize>)->Result<()> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Columns);
         if self
             .tables
             .get(&table)
@@ -544,6 +550,8 @@ impl QueryIndexes {
         table: usize,
         bound: &[Option<Value>],
     ) -> Result<Rc<Vec<Dependency>>> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Columns);
         if !bound.iter().any(Option::is_some) {
             return Ok(Rc::new(graph.witnesses(table)));
         }
@@ -629,6 +637,8 @@ impl QueryIndexes {
         examined: &mut u64,
         materialized: &mut u64,
     ) -> Option<Rc<Vec<Dependency>>> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Columns);
         let index = self.tables.get_mut(&table).expect("prepared probe index");
         let mut best = None;
         for &(col, key) in selectors {

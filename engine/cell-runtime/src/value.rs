@@ -51,6 +51,8 @@ pub fn primitive(
     output: &str,
     nodes: &J,
 ) -> Result<Option<Value>, String> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Primitive);
     if name.starts_with("cell-key-") {
         use eggfuse_structural_key::Key;
         let key = |i: usize| -> Result<&Key, String> {

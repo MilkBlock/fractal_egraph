@@ -650,6 +650,8 @@ impl Context {
 }
 impl Programs {
     pub fn new(p: &Program) -> Self {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Spine);
         let enabled = true;
         #[cfg(feature = "sparse-cells")]
         let permanent = {
@@ -835,6 +837,8 @@ impl Programs {
         epoch: u64,
         #[cfg(feature = "iterative-bake")] direct: Option<DirectOrigin>,
     ) -> Option<Started> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Spine);
         if !self.enabled {
             return None;
         }
@@ -995,6 +999,8 @@ impl Programs {
         effects: Option<&[Option<Dependency>]>,
         mut key: impl FnMut(usize, &[Arg]) -> Result<Vec<Value>>,
     ) -> Result<()> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Spine);
         self.stats.completed_steps += 1;
         if self.anchor_ops.get(rid).is_none_or(Vec::is_empty) {
             return Ok(());
@@ -1093,6 +1099,8 @@ impl Programs {
         #[cfg(feature = "iterative-bake")] catalog: &crate::iterative::Catalog,
         #[cfg(feature = "iterative-bake")] query: &QueryFacts,
     ) {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Spine);
         self.stats.completed_steps += 1;
         if self.anchor_ops[rid].is_empty() {
             return;
@@ -1217,6 +1225,8 @@ impl Programs {
             && self.capture_unions.is_none() && self.entry_cache.is_empty() && self.row_cache.is_empty()
     }
     pub fn publish(&mut self, g: &mut Graph) -> Result<()> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Spine);
         if !self.enabled {
             return Ok(());
         };
@@ -1604,6 +1614,8 @@ impl Programs {
         complete: bool,
         watermark: u64,
     ) -> Result<Option<Coverage>> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Spine);
         if !complete && covered.is_empty() {
             return Ok(None);
         }

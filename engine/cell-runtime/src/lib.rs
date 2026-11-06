@@ -1,3 +1,7 @@
+#[cfg(feature="origin-demand")]
+mod origin_demand;
+#[cfg(feature="allocation-census")]
+pub mod allocation_census;
 mod change_batch;
 pub mod checksum;
 mod depth_plan;

@@ -1,5 +1,10 @@
+#[cfg(not(feature = "allocation-census"))]
 #[global_allocator]
 static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
+#[cfg(feature = "allocation-census")]
+#[global_allocator]
+static CENSUS: eggfuse_cell_runtime::allocation_census::Allocator =
+    eggfuse_cell_runtime::allocation_census::Allocator;
 use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
 use std::{path::PathBuf, time::Instant};
 #[cfg(all(unix, feature = "storage-metrics"))]
@@ -30,6 +35,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  --rhs-local-width N [--rhs-local-profile FILE] (0 disables local RHS blocks)");
         #[cfg(feature = "rhs-work-audit")]
         println!("  --rhs-cohort FILE (replay the recorded RHS work cohort)");
+        #[cfg(feature = "entry-retirement")]
+        println!("  --entry-retire-interval N (default 1)");
+        println!("  --release-source-artifact (discard validation IR after runtime setup)");
         return Ok(());
     }
     let mut seen = std::collections::BTreeSet::new();
@@ -75,12 +83,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .filter(|v| !v.starts_with("--"))
                     .ok_or("missing keeper pairs")?;
             }
-            "--audit-stages" | "--inspect-program" => {}
+            #[cfg(feature = "entry-retirement")]
+            "--entry-retire-interval" => {
+                flags
+                    .next()
+                    .filter(|v| !v.starts_with("--"))
+                    .ok_or("missing retirement interval")?;
+            }
+            "--audit-stages" | "--inspect-program" | "--release-source-artifact" => {}
             _ => return Err(format!("unknown option {flag}").into()),
         }
     }
-    let bytes = std::fs::read(opt("--program").ok_or("--program required")?)?;
+    #[cfg(feature = "allocation-census")]
+    let loading = eggfuse_cell_runtime::allocation_census::scope(
+        eggfuse_cell_runtime::allocation_census::Tag::Artifact,
+    );
+    let mut bytes = std::fs::read(opt("--program").ok_or("--program required")?)?;
     let program = Program::parse(serde_json::from_slice(&bytes)?)?;
+    #[cfg(feature = "allocation-census")]
+    drop(loading);
     if args.iter().any(|x| x == "--inspect-program") {
         let (rules, orientations) = program.context_cut_counts();
         println!(
@@ -126,8 +147,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(path) = opt("--keeper-pairs") {
         runtime.read_keepers(std::path::Path::new(&path))?;
     }
+    #[cfg(feature = "entry-retirement")]
+    runtime.configure_entry_retirement(
+        opt("--entry-retire-interval")
+            .map(|v| v.parse())
+            .transpose()?
+            .unwrap_or(1),
+    )?;
+    if args.iter().any(|a| a == "--release-source-artifact") {
+        runtime.release_validation_artifact()?;
+        drop(std::mem::take(&mut bytes));
+    }
     #[cfg(all(unix, feature = "storage-metrics"))]
     let setup_peak_rss_bytes = peak_rss_bytes()?;
+    #[cfg(feature = "allocation-census")]
+    let memory_setup = eggfuse_cell_runtime::allocation_census::snapshot();
     let setup = start.elapsed().as_secs_f64();
     let start = Instant::now();
     #[cfg(feature = "slot-transfer-audit")]
@@ -161,6 +195,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
     }
     let seconds = start.elapsed().as_secs_f64();
+    #[cfg(feature = "allocation-census")]
+    let memory_inference = eggfuse_cell_runtime::allocation_census::snapshot();
     #[cfg(all(unix, feature = "storage-metrics"))]
     let inference_peak_rss_bytes = peak_rss_bytes()?;
     #[cfg(feature = "spine-shapes")]
@@ -192,6 +228,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "keeper-proof")]
     runtime.write_keepers(&out)?;
     let mut report = runtime.report();
+    #[cfg(feature = "allocation-census")]
+    {
+        report["allocation_census"] =
+            serde_json::json!({"setup":memory_setup,"inference":memory_inference});
+    }
     #[cfg(all(unix, feature = "storage-metrics"))]
     {
         report["peak_rss_through_setup_bytes"] = setup_peak_rss_bytes.into();
@@ -232,5 +273,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "{}",
         serde_json::json!({"status":report["status"],"inference_seconds":seconds,"live_cells":runtime.graph.cells.len(),"stats":runtime.graph.stats})
     );
+    #[cfg(feature = "allocation-census")]
+    {
+        let before = eggfuse_cell_runtime::allocation_census::snapshot();
+        drop(bytes);
+        let after_input = eggfuse_cell_runtime::allocation_census::snapshot();
+        drop(std::mem::take(&mut runtime.graph.program.artifact));
+        let after_artifact = eggfuse_cell_runtime::allocation_census::snapshot();
+        drop(runtime);
+        let after_engine = eggfuse_cell_runtime::allocation_census::snapshot();
+        std::fs::write(
+            out.join("allocation-teardown.json"),
+            serde_json::to_vec_pretty(
+                &serde_json::json!({"before":before,"after_input":after_input,"after_artifact":after_artifact,"after_engine":after_engine}),
+            )?,
+        )?;
+    }
     Ok(())
 }

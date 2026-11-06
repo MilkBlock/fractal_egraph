@@ -297,6 +297,8 @@ impl Contexts {
         ix: &mut QueryIndexes,
         entries: &mut Scheduler,
     ) -> Result<Option<Vec<Answer>>> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Context);
         let rule = g.program.rules[rid].clone();
         let stats = self.stats.entry(rid).or_default();
         if spine_active {

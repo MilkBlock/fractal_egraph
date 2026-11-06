@@ -219,6 +219,8 @@ mod scalar_keys;
 #[path = "writer_frames.rs"]
 mod writer_frames;
 pub struct Graph {
+    #[cfg(feature = "origin-demand")]
+    origin_required: std::rc::Rc<Vec<bool>>,
     #[cfg(feature = "sparse-cells")]
     pub(crate) sealed_generation: Option<u64>,
     #[cfg(feature = "sparse-cells")]
@@ -366,7 +368,9 @@ impl Graph {
         let writers = json!({"live":self.writer_dir.live,"peak":self.writer_dir.peak,"installed":self.writer_dir.installations,"promoted":self.writer_dir.promoted,"from_general_rhs":self.writer_dir.general});
         #[cfg(not(feature = "sparse-cells"))]
         let writers = J::Null;
-        json!({"sealed_slot_reads": self.sealed_read_count(), "embedded_writers":writers,"full_cells":self.cells.len(),"cell_fact_arity_0_1_2_3_4plus":arity,"intern_sizes_0_1_2_3plus":buckets,"intern_headers":self.intern.len(),"forward_dependency_headers":self.dependencies.len(),"reverse_dependency_headers":self.uses.len(),"dependency_edges":self.dependencies.values().map(|v|v.len()).sum::<usize>(),"live_functions":self.functions.iter().filter(|f|f.live).count(),"function_slots":self.functions.len(),"cell_id_high_water":self.next_cell})
+        #[cfg(feature="origin-demand")] let unread_tables:Vec<_>=self.origin_required.iter().enumerate().filter(|(_,v)|!**v).map(|(i,_)|self.program.tables[i].name.as_str()).collect();
+        #[cfg(not(feature="origin-demand"))] let unread_tables:Vec<&str>=vec![];
+        json!({"unread_receipt_tables":unread_tables,"sealed_slot_reads": self.sealed_read_count(), "embedded_writers":writers,"full_cells":self.cells.len(),"cell_fact_arity_0_1_2_3_4plus":arity,"intern_sizes_0_1_2_3plus":buckets,"intern_headers":self.intern.len(),"forward_dependency_headers":self.dependencies.len(),"reverse_dependency_headers":self.uses.len(),"dependency_edges":self.dependencies.values().map(|v|v.len()).sum::<usize>(),"live_functions":self.functions.iter().filter(|f|f.live).count(),"function_slots":self.functions.len(),"cell_id_high_water":self.next_cell})
     }
     /// Follow only storage relocation and proved same-key coalescence in this
     /// commit. Equal result classes alone never establish a row receipt.
@@ -400,6 +404,8 @@ impl Graph {
     }
 
     pub fn new(program: Program) -> Result<Self> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Graph);
         let n = program.tables.len();
         let initial = program.initial.clone();
 
@@ -431,7 +437,15 @@ impl Graph {
             .iter()
             .map(scalar_keys::FunctionKeys::new)
             .collect();
+        #[cfg(feature = "origin-demand")]
+        let origin_required = if program.origin_required.len() == program.tables.len() {
+            program.origin_required.clone()
+        } else {
+            std::rc::Rc::new(crate::origin_demand::required(&program))
+        };
         let mut g = Self {
+            #[cfg(feature = "origin-demand")]
+            origin_required,
             #[cfg(feature = "sparse-cells")]
             sealed_generation: None,
             #[cfg(feature = "sparse-cells")]
@@ -603,6 +617,8 @@ impl Graph {
         }
     }
     fn store_cell(&mut self, id: u32, cell: Cell) {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Graph);
         if let Some(parent) = cell.parent {
             self.retain_reference(parent);
         }
@@ -738,6 +754,12 @@ impl Graph {
         Ok((id, i, keep_key.then_some(key), changed))
     }
     fn keep_writer(&mut self,i:usize,id:u32,op:usize,mut frame:Cell){
+        #[cfg(feature = "origin-demand")]
+        if !self.origin_required[self.functions[i].table] {
+            self.function_origin(i, None);
+            self.stats.rhs_frames_avoided += 1;
+            return;
+        }
         frame.completed=true;
         frame.completed_prefix=op+1;
         #[cfg(feature="sparse-cells")]
@@ -915,6 +937,8 @@ impl Graph {
     }
     #[inline]
     pub fn fact(&self, f: FactRef) -> Result<Option<Row>> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Rows);
         let Some(c) = self.cells.get(&f.cell) else {
             return Ok(None);
         };
@@ -959,6 +983,8 @@ impl Graph {
         })
     }
     fn shared_fields(key: &[Value], v: &Value) -> RowFields {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Rows);
         #[cfg(feature = "sparse-cells")]
         {
             key.iter()
@@ -1004,6 +1030,8 @@ impl Graph {
     }
     #[inline]
     pub fn function(&self, i: usize) -> Option<Row> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Rows);
         let f = self.functions.get(i)?;
         if !f.live {
             return None;
@@ -1075,6 +1103,8 @@ impl Graph {
         }
     }
     fn function_origin(&mut self, index: usize, origin: Option<FactRef>) {
+        #[cfg(feature = "origin-demand")]
+        let origin = origin.filter(|_| self.origin_required[self.functions[index].table]);
         if self.functions[index].origin == origin {
             return;
         }
@@ -1253,6 +1283,8 @@ impl Graph {
     }
     #[cfg(not(feature = "sparse-cells"))]
     fn subscribe(&mut self, table: usize, d: Dependency, values: &[Value]) {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Graph);
         self.query_versions[table] += 1;
         let mut refs = BTreeSet::new();
         for v in values {
@@ -1280,6 +1312,8 @@ impl Graph {
     }
     #[cfg(feature = "sparse-cells")]
     fn subscribe(&mut self, table: usize, d: Dependency, values: &[Value]) {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Graph);
         type Refs = smallvec::SmallVec<[u64; 3]>;
         fn collect(v: &Value, p: &Parents, out: &mut Refs) {
             match v {
@@ -1343,6 +1377,8 @@ impl Graph {
         v: Value,
         hidden: bool,
     ) -> Result<()> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Graph);
         #[cfg(feature = "keeper-proof")]
         if let Some(pair) = self.proof.expects(f) {
             let old = self.fact(pair.keeper)?.ok_or("keeper missing at birth")?;
@@ -1768,7 +1804,8 @@ impl Graph {
             if self.stats.function_updates != before {
                 #[cfg(feature = "sparse-cells")]
                 if self.active_rhs.as_ref().is_some_and(|(id, _)| *id == cell) {
-                    self.active_origin = Some(index);
+                    #[cfg(feature="origin-demand")] if self.origin_required[t]{self.active_origin=Some(index);}
+                    #[cfg(not(feature="origin-demand"))] {self.active_origin=Some(index);}
                 }
                 self.function_origin(
                     index,
@@ -2023,6 +2060,8 @@ impl Graph {
         self.set_function_canonical(t, &key, value)
     }
     fn set_function_canonical(&mut self, t: usize, key: &[Value], value: Value) -> Result<usize> {
+        #[cfg(feature = "allocation-census")]
+        let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Graph);
         self.set_function_from(t, key, value, None)
     }
     fn set_function_from(

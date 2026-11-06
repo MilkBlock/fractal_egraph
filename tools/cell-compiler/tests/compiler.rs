@@ -1401,3 +1401,113 @@ fn local_rhs_keeps_existing_intermediates_and_promotes_at_the_first_new_fact() {
         assert!(full[field].as_u64().unwrap() > 0, "{field}: {full}");
     }
 }
+
+#[test]
+fn released_validation_ir_preserves_scheduled_execution_and_remains_explicit() {
+    use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
+    let tmp = tempfile::tempdir().unwrap();
+    let input = tmp.path().join("source.egg");
+    let out = tmp.path().join("compiled");
+    fs::write(&input, SOURCE).unwrap();
+    pass(&[
+        "compile",
+        "--source",
+        input.to_str().unwrap(),
+        "--output",
+        out.to_str().unwrap(),
+    ]);
+    let artifact = json_file(&out.join("program.json"));
+    let run = |release| {
+        let mut e = Executor::new(
+            Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),
+            true,
+        );
+        if release {
+            e.release_validation_artifact().unwrap();
+            e.release_validation_artifact().unwrap();
+            assert!(Program::parse(e.graph.program.artifact.clone()).is_err());
+        }
+        e.execute().unwrap();
+        assert_eq!(e.report()["program_sha256"], artifact["sha256"]);
+        assert!(e.release_validation_artifact().is_err());
+        (e.snapshots, e.binding_audit)
+    };
+    assert_eq!(run(false), run(true));
+}
+
+#[cfg(feature = "origin-demand")]
+#[test]
+fn write_only_unit_receipts_release_producers_but_declared_readers_keep_them() {
+    use eggfuse_cell_runtime::{
+        executor::Executor,
+        graph::{Dependency, Graph},
+        program::Program,
+    };
+    let tmp = tempfile::tempdir().unwrap();
+    let src = r#"(datatype E (Leaf i64))
+(function TokenLedger (E) Unit :merge old)
+(ruleset publish)
+(rule ((= x (Leaf n))) ((set (TokenLedger x) ())) :ruleset publish)
+(Leaf 1)
+(run-schedule (run publish))
+"#;
+    for reader in [false, true] {
+        let name = if reader { "with-reader" } else { "write-only" };
+        let input = tmp.path().join(format!("{name}.egg"));
+        let out = tmp.path().join(name);
+        fs::write(
+            &input,
+            format!(
+                "{src}{}",
+                if reader {
+                    "(check (TokenLedger (Leaf 1)))"
+                } else {
+                    ""
+                }
+            ),
+        )
+        .unwrap();
+        pass(&[
+            "compile",
+            "--source",
+            input.to_str().unwrap(),
+            "--output",
+            out.to_str().unwrap(),
+        ]);
+        let mut tampered = json_file(&out.join("program.json"));
+        let at = tampered["recipe"]["tables"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .position(|t| t["name"] == "TokenLedger")
+            .unwrap();
+        tampered["origin_demand"][at] = serde_json::json!(!reader);
+        tampered["sha256"] =
+            serde_json::json!(eggfuse_cell_runtime::checksum::artifact_digest(&tampered));
+        assert!(
+            Program::parse(tampered)
+                .unwrap_err()
+                .contains("origin demand")
+        );
+        let mut e = Executor::new(
+            Graph::new(Program::parse(json_file(&out.join("program.json"))).unwrap()).unwrap(),
+            false,
+        );
+        e.execute().unwrap();
+        let t = e
+            .graph
+            .program
+            .tables
+            .iter()
+            .position(|t| t.name == "TokenLedger")
+            .unwrap();
+        let i = e
+            .graph
+            .functions
+            .iter()
+            .position(|f| f.live && f.table == t)
+            .unwrap();
+        assert_eq!(e.graph.origin(Dependency::Function(i)).is_some(), reader);
+        assert_eq!(e.graph.witness_count(t), 1);
+    }
+}

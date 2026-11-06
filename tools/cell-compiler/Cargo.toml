@@ -17,6 +17,8 @@ name = "cell"
 harness = false
 
 [features]
+origin-demand=["sparse-cells","eggfuse-cell-runtime/origin-demand"]
+entry-retirement = ["sparse-cells","eggfuse-cell-runtime/entry-retirement"]
 sparse-cells = ["eggfuse-cell-runtime/sparse-cells"]
 rhs-locals = ["eggfuse-cell-runtime/rhs-locals"]
 receipt-slots = ["structural-depth","eggfuse-cell-runtime/receipt-slots"]

@@ -57,6 +57,7 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[cfg(feature="origin-demand")] #[serde(skip)] pub(crate) origin_required:Rc<Vec<bool>>,
     #[cfg(feature = "sparse-cells")]
     #[serde(skip)]
     pub(crate) cached_key_nodes: Rc<J>,
@@ -342,6 +343,7 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
+            #[cfg(feature="origin-demand")] origin_required:Default::default(),
             #[cfg(feature = "sparse-cells")]
             cached_key_nodes: Rc::new(j["source_core"]["structural_key"]["nodes"].clone()),
             #[cfg(feature = "rhs-locals")]
@@ -376,6 +378,12 @@ impl Program {
             artifact: j,
         };
         p.validate()?;
+        #[cfg(feature="origin-demand")] {
+            p.origin_required=Rc::new(crate::origin_demand::required(&p));
+            if let Some(raw)=p.artifact.get("origin_demand") && *raw!=serde_json::json!(p.origin_required){
+                return Err("origin demand differs from executable readers".into())
+            }
+        }
         p.physical = Rc::new(crate::physical_plan::Plan::derive(&p));
         p.writes = crate::row_kernel::writes(&p);
         p.neighbor_plans = crate::neighbor::derive(&p);
