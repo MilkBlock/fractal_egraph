@@ -1,0 +1,152 @@
+[
+  {
+    "directory": "032-sum-bits",
+    "block": 0,
+    "prepare_s": 2.8652421250008047,
+    "cell_cli_ms": 141.20229199761525,
+    "cell_ms": 33.728916999999996,
+    "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+    "native_ms": 43.882,
+    "native_cli_ms": 104.82816700823605
+  },
+  {
+    "directory": "032-sum-bits",
+    "block": 1,
+    "prepare_s": 2.8652421250008047,
+    "native_ms": 43.667,
+    "native_cli_ms": 103.39674999704584,
+    "cell_cli_ms": 148.1602499843575,
+    "cell_ms": 35.814625,
+    "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1"
+  },
+  {
+    "directory": "032-sum-bits",
+    "block": 2,
+    "prepare_s": 2.8652421250008047,
+    "cell_cli_ms": 146.51224995031953,
+    "cell_ms": 34.805042,
+    "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+    "native_ms": 44.093,
+    "native_cli_ms": 108.01033396273851
+  },
+  {
+    "directory": "032-sum-bits",
+    "block": 3,
+    "prepare_s": 2.8652421250008047,
+    "native_ms": 43.651,
+    "native_cli_ms": 104.25562504678965,
+    "cell_cli_ms": 140.66070801345631,
+    "cell_ms": 34.111667,
+    "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1"
+  },
+  {
+    "directory": "032-sum-bits",
+    "block": 4,
+    "prepare_s": 2.8652421250008047,
+    "cell_cli_ms": 144.43329203641042,
+    "cell_ms": 36.638999999999996,
+    "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+    "native_ms": 43.744,
+    "native_cli_ms": 104.85816700384021
+  },
+  {
+    "directory": "064-fenwick_tree",
+    "block": 0,
+    "prepare_s": 2.902873750019353,
+    "cell_cli_ms": 218.14962499774992,
+    "cell_ms": 88.68454200000001,
+    "state_sha256": "0ee4fe3dd7979d435d30c5683b8d75d4773727b02f916b925b65f656b04de8d6",
+    "native_ms": 111.837,
+    "native_cli_ms": 177.25474998587742
+  },
+  {
+    "directory": "064-fenwick_tree",
+    "block": 1,
+    "prepare_s": 2.902873750019353,
+    "native_ms": 108.26,
+    "native_cli_ms": 170.4240000108257,
+    "cell_cli_ms": 207.31462503317744,
+    "cell_ms": 82.929417,
+    "state_sha256": "0ee4fe3dd7979d435d30c5683b8d75d4773727b02f916b925b65f656b04de8d6"
+  },
+  {
+    "directory": "064-fenwick_tree",
+    "block": 2,
+    "prepare_s": 2.902873750019353,
+    "cell_cli_ms": 210.0695000262931,
+    "cell_ms": 84.67379199999999,
+    "state_sha256": "0ee4fe3dd7979d435d30c5683b8d75d4773727b02f916b925b65f656b04de8d6",
+    "native_ms": 106.965,
+    "native_cli_ms": 169.37820799648762
+  },
+  {
+    "directory": "064-fenwick_tree",
+    "block": 3,
+    "prepare_s": 2.902873750019353,
+    "native_ms": 107.603,
+    "native_cli_ms": 170.57433299487457,
+    "cell_cli_ms": 206.297333992552,
+    "cell_ms": 83.796792,
+    "state_sha256": "0ee4fe3dd7979d435d30c5683b8d75d4773727b02f916b925b65f656b04de8d6"
+  },
+  {
+    "directory": "064-fenwick_tree",
+    "block": 4,
+    "prepare_s": 2.902873750019353,
+    "cell_cli_ms": 210.73066699318588,
+    "cell_ms": 84.848167,
+    "state_sha256": "0ee4fe3dd7979d435d30c5683b8d75d4773727b02f916b925b65f656b04de8d6",
+    "native_ms": 107.993,
+    "native_cli_ms": 170.12962501030415
+  },
+  {
+    "directory": "095-raytrace",
+    "block": 0,
+    "prepare_s": 6.981377624964807,
+    "cell_cli_ms": 16231.794416031335,
+    "cell_ms": 13471.139041,
+    "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+    "native_ms": 23502.016,
+    "native_cli_ms": 23667.00562502956
+  },
+  {
+    "directory": "095-raytrace",
+    "block": 1,
+    "prepare_s": 6.981377624964807,
+    "native_ms": 23511.723,
+    "native_cli_ms": 23673.006166995037,
+    "cell_cli_ms": 16303.15079196589,
+    "cell_ms": 13530.183459,
+    "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2"
+  },
+  {
+    "directory": "095-raytrace",
+    "block": 2,
+    "prepare_s": 6.981377624964807,
+    "cell_cli_ms": 16179.774709045887,
+    "cell_ms": 13426.599833999999,
+    "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+    "native_ms": 23516.993,
+    "native_cli_ms": 23672.401332994923
+  },
+  {
+    "directory": "095-raytrace",
+    "block": 3,
+    "prepare_s": 6.981377624964807,
+    "native_ms": 23570.165,
+    "native_cli_ms": 23730.588084028568,
+    "cell_cli_ms": 16160.545375023503,
+    "cell_ms": 13458.415834,
+    "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2"
+  },
+  {
+    "directory": "095-raytrace",
+    "block": 4,
+    "prepare_s": 6.981377624964807,
+    "cell_cli_ms": 16212.810624972917,
+    "cell_ms": 13480.871709000001,
+    "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+    "native_ms": 23493.755,
+    "native_cli_ms": 23651.22858301038
+  }
+]

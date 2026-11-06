@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="136" viewBox="0 0 750 136"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6a8291"/></marker></defs>
+<rect x="0" y="4" width="202" height="61" rx="7" fill="#eaf2fa" stroke="#b0c4cd"/>
+<text x="11" y="26" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">eggcc emits a pass</text>
+<text x="11" y="48" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Original rules and input</text>
+<rect x="258" y="4" width="226" height="61" rx="7" fill="#e0f3ec" stroke="#b0c4cd"/>
+<text x="269" y="26" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Pinned egglog-experimental</text>
+<text x="269" y="48" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Schedule, merge and rebuild</text>
+<rect x="538" y="4" width="210" height="61" rx="7" fill="#efeafa" stroke="#b0c4cd"/>
+<text x="549" y="26" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Tiger extraction</text>
+<text x="549" y="48" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Input to the next real pass</text>
+<polyline points="202,34 257,34" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="484,34 537,34" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<rect x="258" y="89" width="490" height="45" rx="7" fill="#fff2d6" stroke="#b0c4cd"/>
+<text x="269" y="111" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Frozen input → flat native replay / compiled Cell replay</text>
+<polyline points="101,65 101,112 257,112" fill="none" stroke="#6a8291" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+</svg>

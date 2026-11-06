@@ -1,0 +1,27 @@
+Error: CheckError([Eq(In 5785:3286-5791:34 of with-check.egg: (= witness
+  (TermSingle
+    (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2))))))), Var(In 5785:3289-3295 of with-check.egg: witness, "witness"), Call(In 5786:3-5791:33 of with-check.egg: (TermSingle
+    (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2)))))), "TermSingle", [Call(In 5787:5-5791:32 of with-check.egg: (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2))))), "TermBop", [Call(In 5787:14-18 of with-check.egg: (Add), "Add", []), Call(In 5787:20-40 of with-check.egg: (TermGet (TermArg) 0), "TermGet", [Call(In 5787:29-37 of with-check.egg: (TermArg), "TermArg", []), Lit(In 5787:39-39 of with-check.egg: 0, Int(0))]), Call(In 5788:7-5791:31 of with-check.egg: (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2)))), "TermBop", [Call(In 5788:16-20 of with-check.egg: (Sub), "Sub", []), Call(In 5788:22-42 of with-check.egg: (TermGet (TermArg) 1), "TermGet", [Call(In 5788:31-39 of with-check.egg: (TermArg), "TermArg", []), Lit(In 5788:41-41 of with-check.egg: 1, Int(1))]), Call(In 5789:9-5791:30 of with-check.egg: (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2))), "TermBop", [Call(In 5789:18-22 of with-check.egg: (Mul), "Mul", []), Call(In 5790:11-69 of with-check.egg: (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2)), "TermBop", [Call(In 5790:20-24 of with-check.egg: (Div), "Div", []), Call(In 5790:26-46 of with-check.egg: (TermGet (TermArg) 1), "TermGet", [Call(In 5790:35-43 of with-check.egg: (TermArg), "TermArg", []), Lit(In 5790:45-45 of with-check.egg: 1, Int(1))]), Call(In 5790:48-68 of with-check.egg: (TermGet (TermArg) 2), "TermGet", [Call(In 5790:57-65 of with-check.egg: (TermArg), "TermArg", []), Lit(In 5790:67-67 of with-check.egg: 2, Int(2))])]), Call(In 5791:11-29 of with-check.egg: (TermConst (Int 2)), "TermConst", [Call(In 5791:22-28 of with-check.egg: (Int 2), "Int", [Lit(In 5791:27-27 of with-check.egg: 2, Int(2))])])])])])]))], In 5785:3279-5791:35 of with-check.egg: (check (= witness
+  (TermSingle
+    (TermBop (Add) (TermGet (TermArg) 0)
+      (TermBop (Sub) (TermGet (TermArg) 1)
+        (TermBop (Mul)
+          (TermBop (Div) (TermGet (TermArg) 1) (TermGet (TermArg) 2))
+          (TermConst (Int 2)))))))))

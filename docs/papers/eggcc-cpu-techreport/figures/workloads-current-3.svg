@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="748" viewBox="0 0 800 748">
+<rect width="100%" height="100%" fill="white"/>
+<text x="4.00" y="20.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700">Workload (ID links to per-pass table)</text>
+<text x="430.00" y="20.00" text-anchor="middle" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700">Native / Cell</text>
+<text x="643.00" y="20.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700">Native ms</text>
+<text x="729.00" y="20.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700">Cell ms</text>
+<text x="795.00" y="20.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700">Ratio</text>
+<line x1="297.00" x2="297.00" y1="43" y2="709" stroke="#d7e0e3" stroke-width="0.6"/>
+<text x="297.00" y="38.00" text-anchor="middle" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="400">0.5×</text>
+<line x1="385.67" x2="385.67" y1="43" y2="709" stroke="#17394b" stroke-width="1.5"/>
+<text x="385.67" y="38.00" text-anchor="middle" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="400">1×</text>
+<line x1="474.33" x2="474.33" y1="43" y2="709" stroke="#d7e0e3" stroke-width="0.6"/>
+<text x="474.33" y="38.00" text-anchor="middle" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="400">2×</text>
+<line x1="563.00" x2="563.00" y1="43" y2="709" stroke="#d7e0e3" stroke-width="0.6"/>
+<text x="563.00" y="38.00" text-anchor="middle" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="400">4×</text>
+<rect x="0" y="44" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="60.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">000  bril/core/ackermann.bril</text>
+<line x1="385.67" x2="484.61" y1="57" y2="57" stroke="#126f65" stroke-width="3"/>
+<circle cx="484.61" cy="57" r="3.3" fill="#126f65"/>
+<text x="643.00" y="60.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">44.27</text>
+<text x="729.00" y="60.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">20.43</text>
+<text x="795.00" y="60.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.167×</text>
+<text x="4.00" y="87.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">039  bril/float/cordic.bril</text>
+<line x1="385.67" x2="484.80" y1="84" y2="84" stroke="#126f65" stroke-width="3"/>
+<circle cx="484.80" cy="84" r="3.3" fill="#126f65"/>
+<text x="643.00" y="87.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">1,681.78</text>
+<text x="729.00" y="87.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">774.85</text>
+<text x="795.00" y="87.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.170×</text>
+<rect x="0" y="98" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="108.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="10.7" font-weight="400">046  bril/float/</text>
+<text x="18.00" y="119.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="10.7" font-weight="400">ray-sphere-intersection.bril</text>
+<line x1="385.67" x2="485.77" y1="111" y2="111" stroke="#126f65" stroke-width="3"/>
+<circle cx="485.77" cy="111" r="3.3" fill="#126f65"/>
+<text x="643.00" y="114.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">54.96</text>
+<text x="729.00" y="114.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">25.13</text>
+<text x="795.00" y="114.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.187×</text>
+<text x="4.00" y="141.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">035  bril/core/sum-sq-diff.bril</text>
+<line x1="385.67" x2="487.22" y1="138" y2="138" stroke="#126f65" stroke-width="3"/>
+<circle cx="487.22" cy="138" r="3.3" fill="#126f65"/>
+<text x="643.00" y="141.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">141.00</text>
+<text x="729.00" y="141.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">63.74</text>
+<text x="795.00" y="141.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.212×</text>
+<rect x="0" y="152" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="168.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">070  polybench/LA/blas/symm.bril</text>
+<line x1="385.67" x2="487.47" y1="165" y2="165" stroke="#126f65" stroke-width="3"/>
+<circle cx="487.47" cy="165" r="3.3" fill="#126f65"/>
+<text x="643.00" y="168.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">2,425.82</text>
+<text x="729.00" y="168.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">1,094.50</text>
+<text x="795.00" y="168.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.216×</text>
+<text x="4.00" y="195.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">094  polybench/stencils/seidel-2d.rs</text>
+<line x1="385.67" x2="488.44" y1="192" y2="192" stroke="#126f65" stroke-width="3"/>
+<circle cx="488.44" cy="192" r="3.3" fill="#126f65"/>
+<text x="643.00" y="195.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">1,840.48</text>
+<text x="729.00" y="195.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">824.17</text>
+<text x="795.00" y="195.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.233×</text>
+<rect x="0" y="206" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="222.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">048  bril/float/sqrt.bril</text>
+<line x1="385.67" x2="488.86" y1="219" y2="219" stroke="#126f65" stroke-width="3"/>
+<circle cx="488.86" cy="219" r="3.3" fill="#126f65"/>
+<text x="643.00" y="222.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">174.70</text>
+<text x="729.00" y="222.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">77.98</text>
+<text x="795.00" y="222.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.240×</text>
+<text x="4.00" y="249.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">004  bril/core/bitshift.bril</text>
+<line x1="385.67" x2="489.53" y1="246" y2="246" stroke="#126f65" stroke-width="3"/>
+<circle cx="489.53" cy="246" r="3.3" fill="#126f65"/>
+<text x="643.00" y="249.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">65.57</text>
+<text x="729.00" y="249.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">29.11</text>
+<text x="795.00" y="249.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.252×</text>
+<rect x="0" y="260" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="276.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">007  bril/core/check-primes.bril</text>
+<line x1="385.67" x2="491.27" y1="273" y2="273" stroke="#126f65" stroke-width="3"/>
+<circle cx="491.27" cy="273" r="3.3" fill="#126f65"/>
+<text x="643.00" y="276.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">193.54</text>
+<text x="729.00" y="276.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">84.77</text>
+<text x="795.00" y="276.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.283×</text>
+<text x="4.00" y="303.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">036  bril/core/totient.bril</text>
+<line x1="385.67" x2="491.84" y1="300" y2="300" stroke="#126f65" stroke-width="3"/>
+<circle cx="491.84" cy="300" r="3.3" fill="#126f65"/>
+<text x="643.00" y="303.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">253.02</text>
+<text x="729.00" y="303.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">110.33</text>
+<text x="795.00" y="303.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.293×</text>
+<rect x="0" y="314" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="330.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">016  bril/core/gcd.bril</text>
+<line x1="385.67" x2="492.00" y1="327" y2="327" stroke="#126f65" stroke-width="3"/>
+<circle cx="492.00" cy="327" r="3.3" fill="#126f65"/>
+<text x="643.00" y="330.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">110.97</text>
+<text x="729.00" y="330.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">48.33</text>
+<text x="795.00" y="330.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.296×</text>
+<text x="4.00" y="357.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">009  bril/core/digital-root.bril</text>
+<line x1="385.67" x2="492.01" y1="354" y2="354" stroke="#126f65" stroke-width="3"/>
+<circle cx="492.01" cy="354" r="3.3" fill="#126f65"/>
+<text x="643.00" y="357.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">148.81</text>
+<text x="729.00" y="357.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">64.80</text>
+<text x="795.00" y="357.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.296×</text>
+<rect x="0" y="368" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="384.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">052  bril/mem/binary-search.bril</text>
+<line x1="385.67" x2="492.02" y1="381" y2="381" stroke="#126f65" stroke-width="3"/>
+<circle cx="492.02" cy="381" r="3.3" fill="#126f65"/>
+<text x="643.00" y="384.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">198.09</text>
+<text x="729.00" y="384.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">86.25</text>
+<text x="795.00" y="384.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.297×</text>
+<text x="4.00" y="411.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">030  bril/core/relative-primes.bril</text>
+<line x1="385.67" x2="492.95" y1="408" y2="408" stroke="#126f65" stroke-width="3"/>
+<circle cx="492.95" cy="408" r="3.3" fill="#126f65"/>
+<text x="643.00" y="411.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">151.90</text>
+<text x="729.00" y="411.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">65.66</text>
+<text x="795.00" y="411.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.313×</text>
+<rect x="0" y="422" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="438.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">031  bril/core/reverse.bril</text>
+<line x1="385.67" x2="493.47" y1="435" y2="435" stroke="#126f65" stroke-width="3"/>
+<circle cx="493.47" cy="435" r="3.3" fill="#126f65"/>
+<text x="643.00" y="438.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">181.12</text>
+<text x="729.00" y="438.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">77.98</text>
+<text x="795.00" y="438.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.323×</text>
+<text x="4.00" y="465.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">025  bril/core/perfect.bril</text>
+<line x1="385.67" x2="493.92" y1="462" y2="462" stroke="#126f65" stroke-width="3"/>
+<circle cx="493.92" cy="462" r="3.3" fill="#126f65"/>
+<text x="643.00" y="465.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">178.32</text>
+<text x="729.00" y="465.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">76.50</text>
+<text x="795.00" y="465.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.331×</text>
+<rect x="0" y="476" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="492.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">008  bril/core/collatz.bril</text>
+<line x1="385.67" x2="495.38" y1="489" y2="489" stroke="#126f65" stroke-width="3"/>
+<circle cx="495.38" cy="489" r="3.3" fill="#126f65"/>
+<text x="643.00" y="492.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">115.80</text>
+<text x="729.00" y="492.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">49.12</text>
+<text x="795.00" y="492.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.358×</text>
+<text x="4.00" y="519.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">021  bril/core/mod_inv.bril</text>
+<line x1="385.67" x2="497.57" y1="516" y2="516" stroke="#126f65" stroke-width="3"/>
+<circle cx="497.57" cy="516" r="3.3" fill="#126f65"/>
+<text x="643.00" y="519.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">194.97</text>
+<text x="729.00" y="519.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">81.29</text>
+<text x="795.00" y="519.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.398×</text>
+<rect x="0" y="530" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="546.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">061  bril/mem/vsmul.bril</text>
+<line x1="385.67" x2="498.11" y1="543" y2="543" stroke="#126f65" stroke-width="3"/>
+<circle cx="498.11" cy="543" r="3.3" fill="#126f65"/>
+<text x="643.00" y="546.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">185.23</text>
+<text x="729.00" y="546.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">76.90</text>
+<text x="795.00" y="546.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.409×</text>
+<text x="4.00" y="573.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">028  bril/core/quadratic.bril</text>
+<line x1="385.67" x2="498.26" y1="570" y2="570" stroke="#126f65" stroke-width="3"/>
+<circle cx="498.26" cy="570" r="3.3" fill="#126f65"/>
+<text x="643.00" y="573.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">134.60</text>
+<text x="729.00" y="573.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">55.82</text>
+<text x="795.00" y="573.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.411×</text>
+<rect x="0" y="584" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="600.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">056  bril/mem/major-elm.bril</text>
+<line x1="385.67" x2="498.52" y1="597" y2="597" stroke="#126f65" stroke-width="3"/>
+<circle cx="498.52" cy="597" r="3.3" fill="#126f65"/>
+<text x="643.00" y="600.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">200.78</text>
+<text x="729.00" y="600.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">83.10</text>
+<text x="795.00" y="600.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.416×</text>
+<text x="4.00" y="627.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">063  bril/mixed/mat-inv.bril</text>
+<line x1="385.67" x2="498.92" y1="624" y2="624" stroke="#126f65" stroke-width="3"/>
+<circle cx="498.92" cy="624" r="3.3" fill="#126f65"/>
+<text x="643.00" y="627.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">432.18</text>
+<text x="729.00" y="627.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">178.30</text>
+<text x="795.00" y="627.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.424×</text>
+<rect x="0" y="638" width="800" height="25" fill="#edf4f5" fill-opacity=".7"/>
+<text x="4.00" y="654.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">018  bril/core/is-decreasing.bril</text>
+<line x1="385.67" x2="500.04" y1="651" y2="651" stroke="#126f65" stroke-width="3"/>
+<circle cx="500.04" cy="651" r="3.3" fill="#126f65"/>
+<text x="643.00" y="654.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">123.36</text>
+<text x="729.00" y="654.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">50.45</text>
+<text x="795.00" y="654.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.445×</text>
+<text x="4.00" y="681.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">058  bril/mem/max-subarray.bril</text>
+<line x1="385.67" x2="500.25" y1="678" y2="678" stroke="#126f65" stroke-width="3"/>
+<circle cx="500.25" cy="678" r="3.3" fill="#126f65"/>
+<text x="643.00" y="681.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">263.90</text>
+<text x="729.00" y="681.00" text-anchor="end" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="400">107.76</text>
+<text x="795.00" y="681.00" text-anchor="end" fill="#126f65" font-family="Helvetica,Arial,sans-serif" font-size="11.5" font-weight="700">2.449×</text>
+<text x="4.00" y="731.00" text-anchor="start" fill="#17394b" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="400">Three-pass totals sum the median of 3 fresh processes per pass. Right of 1× favors Cell.</text>
+</svg>

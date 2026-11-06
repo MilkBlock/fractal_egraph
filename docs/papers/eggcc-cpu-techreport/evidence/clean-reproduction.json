@@ -1,0 +1,9 @@
+{
+  "clean_cargo_build": true,
+  "binary_status": "complete",
+  "runs": 1428,
+  "bindings": 10226,
+  "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+  "tag_witness_error": "CheckError",
+  "native_exit": 1
+}
