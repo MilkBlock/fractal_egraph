@@ -1,0 +1,525 @@
+{
+  "implementation": "cb6f385bb177cd138575524280f472ba26ca4ded",
+  "reference_sha256": "f9eea9786662d6993d3fcd5387f4e99ec0b5b088f788329d84284f1262374466",
+  "cases": {
+    "sum-bits": {
+      "medians": {
+        "pinned-original": {
+          "ms": 30.499,
+          "cli": 130.78,
+          "rss": 168984576,
+          "visits": 18730
+        },
+        "port-pgo-raytrace": {
+          "ms": 16.338,
+          "cli": 97.862,
+          "rss": 160038912,
+          "visits": 18693
+        }
+      },
+      "fixed_limit_ms": 16.8375,
+      "fixed_pass": true,
+      "paired_pass": false
+    },
+    "raytrace": {
+      "medians": {
+        "pinned-original": {
+          "ms": 11932.441,
+          "cli": 16968.121,
+          "rss": 3046653952,
+          "visits": 6916788
+        },
+        "port-pgo-sum-bits": {
+          "ms": 5854.135,
+          "cli": 10315.057,
+          "rss": 1950957568,
+          "visits": 6798165
+        }
+      },
+      "fixed_limit_ms": 6754.039,
+      "fixed_pass": true,
+      "paired_pass": true
+    }
+  },
+  "audits": {
+    "sum-bits": {
+      "artifact": "1d6e531e391cd34c56b452124e5c46563f044c1d75aea3776e9e2d0e60a29409",
+      "runs": 1428,
+      "digests": {
+        "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+        "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+        "rhs": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+        "writes": "f474604bbae6d87bb1dc7265f2a1ca0d137d35e2be88334c64d5624cbeff8b33",
+        "resumes": "d6766db41e1b164d751ff13054e24dbf84ef89c90d56e9c4faa978260843291e",
+        "spine-shapes": "9b20b382837a2b457f1395da5ecbfeffd1d40bf5a1543a08220ccfc83d730dca"
+      },
+      "resumes": 3034,
+      "longest": 12,
+      "idle_runs": 769
+    },
+    "sum-bits-collision": {
+      "artifact": "1d6e531e391cd34c56b452124e5c46563f044c1d75aea3776e9e2d0e60a29409",
+      "runs": 1428,
+      "digests": {
+        "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+        "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+        "rhs": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+        "writes": "f474604bbae6d87bb1dc7265f2a1ca0d137d35e2be88334c64d5624cbeff8b33",
+        "resumes": "d6766db41e1b164d751ff13054e24dbf84ef89c90d56e9c4faa978260843291e",
+        "spine-shapes": "9b20b382837a2b457f1395da5ecbfeffd1d40bf5a1543a08220ccfc83d730dca"
+      },
+      "resumes": 3034,
+      "longest": 12,
+      "idle_runs": 769
+    },
+    "raytrace": {
+      "artifact": "2ea40b3ded80dda4bfbf7e9a67a1ac74ae08ad16568b1a4ea4b5ae3f355b6579",
+      "runs": 16883,
+      "digests": {
+        "state_sha256": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+        "schedule_sha256": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5",
+        "rhs": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+        "writes": "48295f40c16c56c057fffd01757d6be752f5a50d774e02e838adc0cd14fbfab0",
+        "resumes": "49edbeefc5f2e4330b49f82b773694fd7a21f8a6182a14c86392c3fb95e01e9d",
+        "spine-shapes": "fea18e15ddcab8010c487f3314819d22727e313ba7913b360fb0ccb61439cb39"
+      },
+      "resumes": 663403,
+      "longest": 29,
+      "idle_runs": 7551
+    }
+  },
+  "pairs": [
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 1,
+      "ms": 31.835,
+      "rss": 168984576,
+      "cli": 130.935,
+      "visits": 18730,
+      "search": 13.889,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 1,
+      "ms": 16.517,
+      "rss": 160038912,
+      "cli": 99.645,
+      "visits": 18693,
+      "search": 7.925,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 2,
+      "ms": 17.816,
+      "rss": 160055296,
+      "cli": 101.395,
+      "visits": 18693,
+      "search": 8.552,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 2,
+      "ms": 33.105,
+      "rss": 168984576,
+      "cli": 133.534,
+      "visits": 18730,
+      "search": 14.563,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 3,
+      "ms": 30.499,
+      "rss": 168984576,
+      "cli": 130.321,
+      "visits": 18730,
+      "search": 13.22,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 3,
+      "ms": 16.294,
+      "rss": 160038912,
+      "cli": 97.862,
+      "visits": 18693,
+      "search": 7.832,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 4,
+      "ms": 16.067,
+      "rss": 160038912,
+      "cli": 96.103,
+      "visits": 18693,
+      "search": 7.719,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 4,
+      "ms": 29.97,
+      "rss": 168968192,
+      "cli": 126.217,
+      "visits": 18730,
+      "search": 12.99,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 5,
+      "ms": 32.488,
+      "rss": 168968192,
+      "cli": 131.78,
+      "visits": 18730,
+      "search": 14.076,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 5,
+      "ms": 15.507,
+      "rss": 160055296,
+      "cli": 94.978,
+      "visits": 18693,
+      "search": 7.429,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 6,
+      "ms": 15.99,
+      "rss": 160055296,
+      "cli": 97.291,
+      "visits": 18693,
+      "search": 7.67,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 6,
+      "ms": 29.963,
+      "rss": 168984576,
+      "cli": 129.51,
+      "visits": 18730,
+      "search": 13.011,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 7,
+      "ms": 29.875,
+      "rss": 168984576,
+      "cli": 129.762,
+      "visits": 18730,
+      "search": 12.916,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 7,
+      "ms": 16.338,
+      "rss": 160038912,
+      "cli": 97.635,
+      "visits": 18693,
+      "search": 7.843,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 8,
+      "ms": 16.06,
+      "rss": 160038912,
+      "cli": 97.018,
+      "visits": 18693,
+      "search": 7.704,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 8,
+      "ms": 30.418,
+      "rss": 168968192,
+      "cli": 128.341,
+      "visits": 18730,
+      "search": 13.18,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 9,
+      "ms": 31.547,
+      "rss": 168968192,
+      "cli": 133.321,
+      "visits": 18730,
+      "search": 13.721,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 9,
+      "ms": 16.393,
+      "rss": 160055296,
+      "cli": 101.486,
+      "visits": 18693,
+      "search": 7.905,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 10,
+      "ms": 16.423,
+      "rss": 160055296,
+      "cli": 99.713,
+      "visits": 18693,
+      "search": 7.901,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 10,
+      "ms": 30.491,
+      "rss": 168984576,
+      "cli": 130.78,
+      "visits": 18730,
+      "search": 13.34,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "pinned-original",
+      "i": 11,
+      "ms": 33.553,
+      "rss": 168984576,
+      "cli": 134.354,
+      "visits": 18730,
+      "search": 14.494,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "sum-bits",
+      "arm": "port-pgo-raytrace",
+      "i": 11,
+      "ms": 17.359,
+      "rss": 160038912,
+      "cli": 101.613,
+      "visits": 18693,
+      "search": 8.453,
+      "resumed": 3034,
+      "depth": 12
+    },
+    {
+      "case": "raytrace",
+      "arm": "pinned-original",
+      "i": 1,
+      "ms": 11932.441,
+      "rss": 3046031360,
+      "cli": 16946.108,
+      "visits": 6916788,
+      "search": 5181.505,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "port-pgo-sum-bits",
+      "i": 1,
+      "ms": 5883.706,
+      "rss": 1955397632,
+      "cli": 10340.781,
+      "visits": 6798165,
+      "search": 2669.937,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "port-pgo-sum-bits",
+      "i": 2,
+      "ms": 5788.118,
+      "rss": 1950957568,
+      "cli": 10213.487,
+      "visits": 6798165,
+      "search": 2627.485,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pinned-original",
+      "i": 2,
+      "ms": 11829.618,
+      "rss": 3059466240,
+      "cli": 17044.918,
+      "visits": 6916788,
+      "search": 5118.705,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pinned-original",
+      "i": 3,
+      "ms": 11957.39,
+      "rss": 3046653952,
+      "cli": 16968.121,
+      "visits": 6916788,
+      "search": 5205.494,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "port-pgo-sum-bits",
+      "i": 3,
+      "ms": 5782.656,
+      "rss": 1948418048,
+      "cli": 10318.778,
+      "visits": 6798165,
+      "search": 2624.682,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "port-pgo-sum-bits",
+      "i": 4,
+      "ms": 5864.929,
+      "rss": 1956675584,
+      "cli": 10132.602,
+      "visits": 6798165,
+      "search": 2663.662,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pinned-original",
+      "i": 4,
+      "ms": 11845.352,
+      "rss": 3045113856,
+      "cli": 16900.281,
+      "visits": 6916788,
+      "search": 5129.567,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pinned-original",
+      "i": 5,
+      "ms": 11974.865,
+      "rss": 3055730688,
+      "cli": 17110.55,
+      "visits": 6916788,
+      "search": 5193.909,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "port-pgo-sum-bits",
+      "i": 5,
+      "ms": 5932.34,
+      "rss": 1944813568,
+      "cli": 10449.484,
+      "visits": 6798165,
+      "search": 2674.883,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "port-pgo-sum-bits",
+      "i": 6,
+      "ms": 5854.135,
+      "rss": 1951039488,
+      "cli": 10115.5,
+      "visits": 6798165,
+      "search": 2660.721,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pinned-original",
+      "i": 6,
+      "ms": 11934.16,
+      "rss": 3039215616,
+      "cli": 16992.428,
+      "visits": 6916788,
+      "search": 5173.976,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "pinned-original",
+      "i": 7,
+      "ms": 11869.072,
+      "rss": 3052060672,
+      "cli": 16843.994,
+      "visits": 6916788,
+      "search": 5129.054,
+      "resumed": 663403,
+      "depth": 29
+    },
+    {
+      "case": "raytrace",
+      "arm": "port-pgo-sum-bits",
+      "i": 7,
+      "ms": 5809.14,
+      "rss": 1943601152,
+      "cli": 10315.057,
+      "visits": 6798165,
+      "search": 2655.419,
+      "resumed": 663403,
+      "depth": 29
+    }
+  ]
+}
