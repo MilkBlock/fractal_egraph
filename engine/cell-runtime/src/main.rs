@@ -38,6 +38,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         #[cfg(feature = "entry-retirement")]
         println!("  --entry-retire-interval N (default 1)");
         println!("  --release-source-artifact (discard validation IR after runtime setup)");
+        #[cfg(feature = "deferred-incidence")]
+        println!("  --deferred-incidence off|edges|on (delay reverse edges and row payloads)");
         return Ok(());
     }
     let mut seen = std::collections::BTreeSet::new();
@@ -91,6 +93,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .ok_or("missing retirement interval")?;
             }
             "--audit-stages" | "--inspect-program" | "--release-source-artifact" => {}
+            #[cfg(feature = "deferred-incidence")]
+            "--deferred-incidence" => {
+                let value = flags.next().ok_or("missing incidence mode")?;
+                if !["off", "edges", "on"].contains(&value.as_str()) { return Err("incidence mode must be off, edges or on".into()); }
+            }
             _ => return Err(format!("unknown option {flag}").into()),
         }
     }
@@ -116,6 +123,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     let audit = args.iter().any(|x| x == "--audit-stages");
     let mut runtime = Executor::new(Graph::new(program)?, audit);
+    #[cfg(feature = "deferred-incidence")]
+    {
+        let mode = opt("--deferred-incidence").unwrap_or_else(|| "off".into());
+        runtime.graph.configure_deferred_incidence(mode != "off");
+        runtime.graph.configure_deferred_payloads(mode == "on");
+    }
     #[cfg(feature = "structural-depth")]
     {
         let survey = args.iter().any(|x| x == "--structural-survey");

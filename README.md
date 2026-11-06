@@ -20,6 +20,11 @@ The normal commands select a single CPU execution strategy. For checkpoint/resum
 
 ### Custom programs and training
 
+An opt-in [deferred intermediate representation experiment](docs/DEFERRED_CELL_FACTS.md)
+uses compiler-checked instruction positions and pending unions to postpone
+reverse subscriptions and decoded row payloads. Its `off` / `edges` / `on`
+Cargo ablation preserves ordinary keys, receipts and Run boundaries.
+
 ```sh
 cargo cell-compile --source app.egg --output out/app
 cargo cell-compile --source app.egg --bake-source training.egg --catalog catalog.json --output out/trained

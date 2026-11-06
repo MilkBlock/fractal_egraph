@@ -12,6 +12,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--catalog",
             "--program",
             "--repeat",
+            #[cfg(feature = "deferred-incidence")]
+            "--deferred-incidence",
             #[cfg(feature = "rhs-locals")]
             "--rhs-local-width",
             #[cfg(feature = "rhs-locals")]
@@ -23,6 +25,11 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--reference-program",
         ],
     )?;
+    #[cfg(feature = "deferred-incidence")]
+    let deferred = match opts.get("--deferred-incidence").map(String::as_str).unwrap_or("off") {
+        "off" => (false, false), "edges" => (true, false), "on" => (true, true),
+        _ => return Err("--deferred-incidence requires off, edges or on".into()),
+    };
     #[cfg(feature = "structural-depth")]
     let depth = opts
         .get("--structural-depth")
@@ -77,12 +84,16 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     if let Some(reference) = opts.get("--reference-program") {
         if stage_digests(
             Path::new(reference),
+            #[cfg(feature = "deferred-incidence")]
+            (false, false),
             #[cfg(feature = "rhs-locals")]
             (0, None),
             #[cfg(feature = "structural-depth")]
             (0, None),
         )? != stage_digests(
             &path,
+            #[cfg(feature = "deferred-incidence")]
+            deferred,
             #[cfg(feature = "rhs-locals")]
             (width, local_profile.as_ref()),
             #[cfg(feature = "structural-depth")]
@@ -97,6 +108,11 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     let mut counts = J::Null;
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
+        #[cfg(feature = "deferred-incidence")]
+        {
+            e.graph.configure_deferred_incidence(deferred.0);
+            e.graph.configure_deferred_payloads(deferred.1);
+        }
         #[cfg(feature = "structural-depth")]
         {
             e.configure_depth(depth, false)?;
@@ -141,6 +157,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "semijoin":r["semijoin"],"view_consumers":r["view_consumers"],"view_storage":r["view_storage"],"publication":r["publication"],"entry_row_reads":r["entry_schedule"]["stats"]["row_decodes"],
             "stage_spine":r["stage_spine"]["stats"],"neighbor_context":r["neighbor_context"],"local_context":r["local_context"],
             "handoff_closed":g.handoff_closed,"handoff_closed_fallback":g.handoff_closed_fallback,"handoff_deep":g.handoff_deep,"handoff_lets":g.handoff_lets});
+        #[cfg(feature = "deferred-incidence")]
+        { counts["deferred_incidence"] = r["deferred_incidence"].clone(); }
         #[cfg(feature = "rhs-locals")]
         {
             counts["rhs_locals"] = e.rhs_local_report();
@@ -169,6 +187,8 @@ pub(super) fn stages(path: &Path) -> Result<()> {
         "{}",
         serde_json::to_string(&stage_digests(
             path,
+            #[cfg(feature = "deferred-incidence")]
+            (false, false),
             #[cfg(feature = "rhs-locals")]
             (0, None),
             #[cfg(feature = "structural-depth")]
@@ -179,10 +199,16 @@ pub(super) fn stages(path: &Path) -> Result<()> {
 }
 fn stage_digests(
     path: &Path,
+    #[cfg(feature = "deferred-incidence")] deferred: (bool, bool),
     #[cfg(feature = "rhs-locals")] local: (usize, Option<&J>),
     #[cfg(feature = "structural-depth")] structural: (u8, Option<&J>),
 ) -> Result<Vec<String>> {
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
+    #[cfg(feature = "deferred-incidence")]
+    {
+        e.graph.configure_deferred_incidence(deferred.0);
+        e.graph.configure_deferred_payloads(deferred.1);
+    }
     #[cfg(feature = "structural-depth")]
     {
         e.configure_depth(structural.0, false)?;

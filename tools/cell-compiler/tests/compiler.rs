@@ -4,6 +4,78 @@ use std::{
     path::Path,
     process::{Command, Output},
 };
+#[cfg(feature = "deferred-incidence")]
+#[test]
+fn deferred_intermediates_preserve_reads_forwarding_and_scheduled_consumers() {
+    use eggfuse_cell_runtime::{executor::Executor, graph::Graph, program::Program};
+    let tmp = tempfile::tempdir().unwrap();
+    for (queued, hidden) in [(false,false), (true,false), (true,true)] {
+        let source = format!(r#"
+(datatype E (A) (B) (F E) (G E) (H E) (Seen E))
+(ruleset producer)
+(ruleset consumer)
+(rule ((= a (A)) (= b (B))) ({union} (G (F b)) (G (H b))) :ruleset producer)
+(rule ((= b (B))) ((Seen (F b))) :ruleset producer)
+(rule ((= x (G y))) ((Seen x)) :ruleset consumer)
+{hide_rule}
+(A) (B) (F (A))
+(run-schedule (run producer) (run consumer) {hide_run})
+"#, union=if queued {"(union a b)"} else {""},
+            hide_rule=if hidden {"(ruleset hidden) (rule ((= f (F x))) ((subsume (F x))) :ruleset hidden)"} else {""},
+            hide_run=if hidden {"(run hidden)"} else {""});
+        let input = tmp.path().join(format!("{queued}-{hidden}.egg"));
+        let out = tmp.path().join(format!("{queued}-{hidden}"));
+        fs::write(&input, source).unwrap();
+        pass(&["compile", "--source", input.to_str().unwrap(), "--output", out.to_str().unwrap()]);
+        let artifact = json_file(&out.join("program.json"));
+        let run = |enabled| {
+            let mut e = Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(), true);
+            e.graph.configure_deferred_incidence(enabled);
+            e.execute().unwrap();
+            (e.report(), e.snapshots, e.binding_audit)
+        };
+        let a = run(false);
+        let b = run(true);
+        assert_eq!(a.1,b.1);
+        assert_eq!(a.2,b.2);
+        for key in ["logical_facts_created", "function_updates", "unions", "repaired_dependencies"] {
+            assert_eq!(a.0["stats"][key],b.0["stats"][key],"{key}");
+        }
+        let stats = &b.0["deferred_incidence"]["stats"];
+        if queued {
+            assert!(stats["deferred_births"].as_u64().unwrap()>0,"{stats}");
+            assert_eq!(stats["retired_before_subscription"].as_u64().unwrap()>0,!hidden,"{stats}");
+            assert!(stats["promoted"].as_u64().unwrap()>0,"{stats}");
+            if !hidden { assert!(b.0["deferred_incidence"]["reads_before_repair"].as_u64().unwrap()>0); }
+        } else { assert_eq!(stats["deferred_births"],0); }
+        assert_eq!(b.0["deferred_incidence"]["pending"],0);
+        if queued {
+            assert!(stats["saved_birth_row_payloads"].as_u64().unwrap()>0);
+            pass(&["bench", "--program", out.join("program.json").to_str().unwrap(),
+                "--reference-program", out.join("program.json").to_str().unwrap(),
+                "--deferred-incidence", "on", "--repeat", "1"]);
+        }
+        let mut bad = artifact.clone();
+        let row = bad["deferred_incidence"].as_array_mut().unwrap().iter_mut()
+            .find(|x| !x.as_array().unwrap().is_empty()).unwrap();
+        row[0] = json!(!row[0].as_bool().unwrap());
+        bad["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&bad));
+        assert!(Program::parse(bad).unwrap_err().contains("deferred incidence"));
+        let mut admitted = artifact.clone();
+        admitted["deferred_incidence_admission"] = json!({
+            "schema":"eggfuse-deferred-incidence-admission/v1", "tables":[]});
+        admitted["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&admitted));
+        let mut e = Executor::new(Graph::new(Program::parse(admitted.clone()).unwrap()).unwrap(),true);
+        e.graph.configure_deferred_incidence(true);
+        e.execute().unwrap();
+        assert_eq!(e.snapshots,a.1);
+        assert_eq!(e.report()["deferred_incidence"]["stats"]["deferred_births"],0);
+        admitted["deferred_incidence_admission"]["tables"] = json!([{"name":"F","sorts":[]}]);
+        admitted["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&admitted));
+        assert!(Program::parse(admitted).unwrap_err().contains("type mismatch"));
+    }
+}
+
 const SOURCE: &str = r#"
 ; cell-choice/v1 {"function":"pick","tie_break":"structural"}
 (datatype E (Leaf i64) (Wrap E) (Left E) (Right E))

@@ -3064,6 +3064,15 @@ impl Executor {
         Ok(())
     }
     pub fn report(&self) -> J {
+        #[cfg(feature = "deferred-incidence")]
+        let deferred = json!({"enabled": self.graph.deferred_incidence.enabled,
+            "admitted_positions": self.graph.program.deferred_incidence.iter().flatten().filter(|x|**x).count(),
+            "payloads": self.graph.deferred_incidence.payloads,
+            "reads_before_repair": self.graph.deferred_incidence.reads_before_repair.get(),
+            "stats": self.graph.deferred_incidence.stats,
+            "pending": self.graph.deferred_incidence.live.len()});
+        #[cfg(not(feature = "deferred-incidence"))]
+        let deferred = J::Null;
         let view_rule_profile=self.profile_queries.then(||{
             self.graph.program.view_blocks.iter().flat_map(|b|b.producer.members.iter().chain(&b.consumers.members))
                 .map(|m|{let (calls,seconds,visits,answers)=self.query_profile[m.rule];
@@ -3079,7 +3088,7 @@ impl Executor {
         #[cfg(not(feature = "projection-survey"))]
         let survey = J::Null;
         json!({"backend":"cell-cpu","scope":"standalone Cell recipe executor","status":if self.tasks.is_empty(){"complete"}else{"checkpointed"},
-            "indexed_columns":self.query_indexes.column_storage(),"stats":self.graph.stats,"live_cells":self.graph.cells.len(),"steps":self.steps,"program_sha256":self.graph.program.artifact["sha256"],
+            "deferred_incidence":deferred,"indexed_columns":self.query_indexes.column_storage(),"stats":self.graph.stats,"live_cells":self.graph.cells.len(),"steps":self.steps,"program_sha256":self.graph.program.artifact["sha256"],
             "view_rule_profile":view_rule_profile,"view_consumers":views,"view_storage":self.graph.unit_stats(),"publication":self.publication,
             "semijoin":self.free_join.semijoin_report(),"projection_survey":survey,"entry_schedule":self.entry_schedule.report(),"free_join":self.free_join.stats,"sieve":self.sieve.report(),"neighbor_context":self.neighbor.report(&self.graph.program),
             "local_context":self.local_context.report(&self.graph.program),"stage_spine":self.stage_spine.report(),"key_lookup_calls":self.graph.key_lookup_calls.get(),

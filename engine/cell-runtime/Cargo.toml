@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+deferred-incidence = ["sparse-cells"]
 origin-demand = ["sparse-cells"]
 entry-retirement = ["sparse-cells"]
 allocation-census = []
@@ -46,6 +47,14 @@ mimalloc = { version = "0.1", default-features = false }
 [[example]]
 name = "bake_spine_blocks"
 required-features = ["spine-blocks"]
+
+[[example]]
+name = "bake_deferred_admission"
+required-features = ["deferred-incidence"]
+
+[[example]]
+name = "bench_deferred_incidence"
+required-features = ["deferred-incidence", "storage-metrics"]
 
 
 [[example]]

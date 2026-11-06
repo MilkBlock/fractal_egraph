@@ -219,6 +219,8 @@ mod scalar_keys;
 #[path = "writer_frames.rs"]
 mod writer_frames;
 pub struct Graph {
+    #[cfg(feature = "deferred-incidence")]
+    pub(crate) deferred_incidence: crate::deferred_incidence::State,
     #[cfg(feature = "origin-demand")]
     origin_required: std::rc::Rc<Vec<bool>>,
     #[cfg(feature = "sparse-cells")]
@@ -444,6 +446,8 @@ impl Graph {
             std::rc::Rc::new(crate::origin_demand::required(&program))
         };
         let mut g = Self {
+            #[cfg(feature = "deferred-incidence")]
+            deferred_incidence: Default::default(),
             #[cfg(feature = "origin-demand")]
             origin_required,
             #[cfg(feature = "sparse-cells")]
@@ -955,6 +959,11 @@ impl Graph {
             }));
         }
 
+        #[cfg(feature = "deferred-incidence")]
+        if self.deferred_incidence.payloads && !self.deferred_incidence.repairing
+            && self.deferred_incidence.live.contains(&f) {
+            self.deferred_incidence.reads_before_repair.set(self.deferred_incidence.reads_before_repair.get()+1);
+        }
         self.decode_fact(f, c, s).map(Some)
     }
 
@@ -1399,9 +1408,22 @@ impl Graph {
             self.visibility_tainted[t] = true;
         }
         let h = hashkey(t, key);
-        let vs = Self::shared_fields(key, &v);
         #[cfg(feature = "sparse-cells")]
         self.promote_owner(f.cell);
+        #[cfg(feature = "deferred-incidence")]
+        let deferred = self.deferred_incidence.enabled && !self.deferred_incidence.repairing
+            && self.sealed_generation.is_some() && !hidden && !self.visibility_tainted[t]
+            && self.program.deferred_incidence[self.cells[&f.cell].template][f.op as usize]
+            && self.deferred_incidence.admit(f, key, &self.parents, &self.pending_unions);
+        #[cfg(not(feature = "deferred-incidence"))]
+        let deferred = false;
+        #[cfg(feature = "deferred-incidence")]
+        let local_payload = deferred && self.deferred_incidence.payloads;
+        #[cfg(not(feature = "deferred-incidence"))]
+        let local_payload = false;
+        // The checked template and its slots already encode the complete row.
+        // Pre-barrier reads can decode them; surviving rows get cached by repair.
+        let vs = (!local_payload).then(|| Self::shared_fields(key, &v));
         let facts = &mut self.cells.get_mut(&f.cell).unwrap().facts;
         #[cfg(feature = "sparse-cells")]
         facts.reserve_first();
@@ -1410,7 +1432,7 @@ impl Graph {
             FactState {
                 #[cfg(feature = "receipt-slots")]
                 port_slot: 0,
-                decoded: Some((t, vs.clone())),
+                decoded: vs.as_ref().map(|v| (t, v.clone())),
 
                 entry: None,
                 hidden,
@@ -1421,7 +1443,30 @@ impl Graph {
         );
         self.members[t].insert(f.ordered_id());
         self.intern.entry(h).or_default().insert(f);
-        self.subscribe(t, Dependency::Fact(f), &vs);
+        if deferred {
+            // Preserve cache generations while postponing reverse edge storage.
+            self.query_versions[t] += 1;
+            #[cfg(feature = "deferred-incidence")]
+            {
+                fn refs(v: &Value, p: &Parents, xs: &mut smallvec::SmallVec<[u64; 4]>) {
+                    match v {
+                        Value::Eq(id) => xs.push(root(p, *id)),
+                        Value::Set(vs) => for v in vs.iter() { refs(v, p, xs); },
+                        _ => (),
+                    }
+                }
+                let mut ids = smallvec::SmallVec::new();
+                for v in key.iter().chain(std::iter::once(&v)) { refs(v, &self.parents, &mut ids); }
+                ids.sort_unstable(); ids.dedup();
+                self.deferred_incidence.stats.saved_birth_edges += ids.len() as u64;
+                if local_payload {
+                    self.deferred_incidence.stats.saved_birth_row_payloads += 1;
+                    self.deferred_incidence.stats.saved_birth_values += key.len() as u64 + 1;
+                }
+            }
+        } else {
+            self.subscribe(t, Dependency::Fact(f), vs.as_ref().unwrap());
+        }
         self.changes.touch(t, Dependency::Fact(f));
         self.stats.logical_facts_created += 1;
 
@@ -2146,6 +2191,8 @@ impl Graph {
     }
     fn retire(&mut self, f: FactRef) -> Result<()> {
         if let Some(r) = self.fact(f)? {
+            #[cfg(feature = "deferred-incidence")]
+            self.deferred_incidence.finish(f, r.table, true);
             self.changes.retire(r.table, Dependency::Fact(f));
             self.query_versions[r.table] += 1;
             let s = self
@@ -2257,6 +2304,15 @@ impl Graph {
             && self.dirty_markers.is_empty() && self.garbage.is_empty()
     }
     pub fn repair(&mut self) -> Result<()> {
+        #[cfg(feature = "deferred-incidence")]
+        {
+            self.deferred_incidence.begin_repair();
+            // Every admitted key is guaranteed to be displaced by the queued
+            // union prefix. Enter exactly the ordinary ordered repair worklist.
+            let mut affected = UseSet::default();
+            for &f in &self.deferred_incidence.live { affected.insert(Dependency::Fact(f)); }
+            self.mark_affected(&affected);
+        }
         loop {
             if !self.pending_unions.is_empty() {
                 let pairs = std::mem::take(&mut self.pending_unions);
@@ -2337,6 +2393,8 @@ impl Graph {
                         self.retire(f)?;
                     } else {
                         self.intern.entry(h).or_default().insert(f);
+                        #[cfg(feature = "deferred-incidence")]
+                        self.deferred_incidence.finish(f, r.table, false);
                         let s = self
                             .cells
                             .get_mut(&f.cell)
@@ -2446,9 +2504,24 @@ impl Graph {
             }
         }
 
+        #[cfg(feature = "deferred-incidence")]
+        {
+            debug_assert!(self.deferred_incidence.live.is_empty());
+            self.deferred_incidence.repairing = false;
+        }
         Ok(())
     }
 
+    #[cfg(feature = "deferred-incidence")]
+    pub fn configure_deferred_incidence(&mut self, enabled: bool) {
+        self.deferred_incidence.enabled = enabled;
+        self.deferred_incidence.payloads = enabled;
+    }
+    /// Independent ablation of row payload materialization under the same proof.
+    #[cfg(feature = "deferred-incidence")]
+    pub fn configure_deferred_payloads(&mut self, enabled: bool) {
+        self.deferred_incidence.payloads = enabled;
+    }
     pub fn release_empty(&mut self, cell: u32) {
         #[cfg(feature = "sparse-cells")]
         if self.active_rhs.as_ref().is_some_and(|(id, _)| *id == cell) {

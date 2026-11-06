@@ -57,6 +57,9 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[cfg(feature = "deferred-incidence")]
+    #[serde(skip)]
+    pub(crate) deferred_incidence: Vec<Vec<bool>>,
     #[cfg(feature="origin-demand")] #[serde(skip)] pub(crate) origin_required:Rc<Vec<bool>>,
     #[cfg(feature = "sparse-cells")]
     #[serde(skip)]
@@ -343,6 +346,8 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
+            #[cfg(feature = "deferred-incidence")]
+            deferred_incidence: vec![],
             #[cfg(feature="origin-demand")] origin_required:Default::default(),
             #[cfg(feature = "sparse-cells")]
             cached_key_nodes: Rc::new(j["source_core"]["structural_key"]["nodes"].clone()),
@@ -378,6 +383,15 @@ impl Program {
             artifact: j,
         };
         p.validate()?;
+        #[cfg(feature = "deferred-incidence")]
+        {
+            p.deferred_incidence = crate::deferred_incidence::derive(&p);
+            if let Some(raw) = p.artifact.get("deferred_incidence")
+                && *raw != serde_json::json!(p.deferred_incidence) {
+                return Err("invalid deferred incidence certificate".into());
+            }
+            p.deferred_incidence = crate::deferred_incidence::admit(&p, p.deferred_incidence.clone())?;
+        }
         #[cfg(feature="origin-demand")] {
             p.origin_required=Rc::new(crate::origin_demand::required(&p));
             if let Some(raw)=p.artifact.get("origin_demand") && *raw!=serde_json::json!(p.origin_required){

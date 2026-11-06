@@ -69,3 +69,5 @@ mod result_handoff;
 
 pub mod context_admission;
 mod local_context;
+#[cfg(feature = "deferred-incidence")]
+mod deferred_incidence;

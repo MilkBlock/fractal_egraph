@@ -201,7 +201,11 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     #[cfg(feature = "rhs-locals")]
     let local_blocks = json!(crate::local_rhs::derive(&p, &known_results));
     #[cfg(feature="origin-demand")] let demand=json!(p.origin_required);
+    #[cfg(feature = "deferred-incidence")]
+    let deferred = json!(p.deferred_incidence);
     j = p.artifact;
+    #[cfg(feature = "deferred-incidence")]
+    { j["deferred_incidence"] = deferred; }
     #[cfg(feature="origin-demand")] {j["origin_demand"]=demand;}
     #[cfg(feature = "rhs-locals")]
     {

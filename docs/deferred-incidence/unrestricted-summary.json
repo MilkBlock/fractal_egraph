@@ -1,0 +1,165 @@
+{
+  "audit": false,
+  "binary_sha256": "8826bf1927367a40f9b67cb6a70e609858830e3665b1eb39d01477b37e898ade",
+  "cases": {
+    "raytrace": {
+      "edges": {
+        "cli_ms": 10080.250250000001,
+        "deferred_incidence": {
+          "enabled": true,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 11900,
+            "eligible_births": 186850,
+            "examined_union_pairs": 175848,
+            "peak_pending": 917,
+            "promoted": 2,
+            "retired_before_subscription": 11898,
+            "retired_by_table": {
+              "170": 7,
+              "5": 11891
+            },
+            "saved_birth_edges": 35700,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "inference_ms": 6789.922291,
+        "rss_bytes": 1943207936.0
+      },
+      "off": {
+        "cli_ms": 10118.510666,
+        "deferred_incidence": {
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "inference_ms": 6777.669459,
+        "rss_bytes": 1943453696.0
+      },
+      "on": {
+        "cli_ms": 10173.754167000001,
+        "deferred_incidence": {
+          "enabled": true,
+          "payloads": true,
+          "pending": 0,
+          "reads_before_repair": 1134,
+          "stats": {
+            "deferred_births": 11900,
+            "eligible_births": 186850,
+            "examined_union_pairs": 175848,
+            "peak_pending": 917,
+            "promoted": 2,
+            "retired_before_subscription": 11898,
+            "retired_by_table": {
+              "170": 7,
+              "5": 11891
+            },
+            "saved_birth_edges": 35700,
+            "saved_birth_row_payloads": 11900,
+            "saved_birth_values": 35700
+          }
+        },
+        "inference_ms": 6792.511333,
+        "rss_bytes": 1959346176.0
+      }
+    },
+    "sum-bits": {
+      "edges": {
+        "cli_ms": 113.72579200000001,
+        "deferred_incidence": {
+          "enabled": true,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 64,
+            "eligible_births": 706,
+            "examined_union_pairs": 682,
+            "peak_pending": 15,
+            "promoted": 0,
+            "retired_before_subscription": 64,
+            "retired_by_table": {
+              "323": 3,
+              "5": 61
+            },
+            "saved_birth_edges": 189,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "inference_ms": 18.228292,
+        "rss_bytes": 159580160.0
+      },
+      "off": {
+        "cli_ms": 112.54404199999999,
+        "deferred_incidence": {
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "inference_ms": 18.292834,
+        "rss_bytes": 159563776.0
+      },
+      "on": {
+        "cli_ms": 111.989958,
+        "deferred_incidence": {
+          "enabled": true,
+          "payloads": true,
+          "pending": 0,
+          "reads_before_repair": 15,
+          "stats": {
+            "deferred_births": 64,
+            "eligible_births": 706,
+            "examined_union_pairs": 682,
+            "peak_pending": 15,
+            "promoted": 0,
+            "retired_before_subscription": 64,
+            "retired_by_table": {
+              "323": 3,
+              "5": 61
+            },
+            "saved_birth_edges": 189,
+            "saved_birth_row_payloads": 64,
+            "saved_birth_values": 189
+          }
+        },
+        "inference_ms": 18.23175,
+        "rss_bytes": 159580160.0
+      }
+    }
+  },
+  "inputs": {
+    "raytrace": "3dbf982844330176ebe346d40530e9e1515c0d6ca543c1817f9562283369d32c",
+    "sum-bits": "12f83e99ede012a5716e357aa15ac354214f3bf570fbfce71c019460d0838f0d"
+  },
+  "rounds": 5
+}

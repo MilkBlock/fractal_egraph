@@ -1,0 +1,10 @@
+{
+  "audit": true,
+  "binary_sha256": "8f4f8ad4dbb75b34d809130efc010688aca3c28b6fde47da23d27528c34a7aea",
+  "cases": {},
+  "inputs": {
+    "raytrace": "b1f72918e566928281cf4026980ba8e6a4113c1a689f4b0bdc1c42228d33bb5d",
+    "sum-bits": "479b68aabea85029bc747b773d0e79adc5516b69030f51375c86c268dd885bca"
+  },
+  "rounds": 0
+}

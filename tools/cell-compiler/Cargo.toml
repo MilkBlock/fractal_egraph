@@ -17,6 +17,7 @@ name = "cell"
 harness = false
 
 [features]
+deferred-incidence = ["sparse-cells", "eggfuse-cell-runtime/deferred-incidence"]
 origin-demand=["sparse-cells","eggfuse-cell-runtime/origin-demand"]
 entry-retirement = ["sparse-cells","eggfuse-cell-runtime/entry-retirement"]
 sparse-cells = ["eggfuse-cell-runtime/sparse-cells"]
