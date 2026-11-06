@@ -4,6 +4,113 @@ use std::{
     path::Path,
     process::{Command, Output},
 };
+#[cfg(feature="two-run-blocks")]
+#[test]
+fn multi_run_ports_share_results_before_rhs_and_survive_retirement() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program,checksum::artifact_digest};
+    let tmp=tempfile::tempdir().unwrap();
+    for (name,retire) in [("root","(delete (F x))"),("middle","(delete (G f x))"),("tail","(delete (H g f x))")] {
+        let input=tmp.path().join(format!("{name}.egg"));let out=tmp.path().join(name);
+        fs::write(&input,format!(r#"
+(datatype E (Leaf i64) (F E) (G E E) (H E E E) (Seen E E))
+(ruleset first) (ruleset second) (ruleset third) (ruleset retire) (ruleset observe) (ruleset merge)
+(rule ((= x (Leaf n))) ((F x)) :ruleset first)
+(rule ((= f (F x))) ((G f x)) :ruleset second)
+(rule ((= g (G f x))) ((H g f x)) :ruleset third)
+(rule ((= h (H g f x))) ({retire}) :ruleset retire)
+(rule ((= h (H g f x))) ((Seen h x)) :ruleset observe)
+(rule ((= left (Leaf 1)) (= right (Leaf 2))) ((union left right)) :ruleset merge)
+(Leaf 1) (Leaf 2)
+(run-schedule (run first) (run second) (run third) (run retire) (run observe) (run merge) (run observe))
+"#)).unwrap();
+        // A typed rule fixture isolates the port contract from marker selection.
+        // Frozen marked workloads are audited separately by the Cargo driver.
+        let core=eggfuse_bake::device_frontend::core(input.to_str().unwrap(),&fs::read_to_string(&input).unwrap()).unwrap();
+        let mut artifact=eggfuse_cell_runtime::compiler::compile(core,&Default::default()).unwrap();
+        let p=Program::parse(artifact.clone()).unwrap();artifact["multi_run_blocks"]=p.compile_multi_run();
+        artifact.as_object_mut().unwrap().remove("sha256");
+        artifact["sha256"]=json!(artifact_digest(&artifact));
+        fs::create_dir(&out).unwrap();
+        fs::write(out.join("program.json"),serde_json::to_vec(&artifact).unwrap()).unwrap();
+        let run=|depth|{
+            let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+            e.graph.configure_port_frames(true);
+            if depth>0 {e.configure_multi_run(depth).unwrap();}
+            e.execute_until(Some(3)).unwrap();
+            let first_three=e.graph.port_frames_report();
+            e.execute().unwrap();
+            let report=e.graph.port_frames_report();let mut flow=e.graph.two_run_report();flow["first_three"]=first_three;
+            (e.snapshots,e.binding_audit,report,flow)
+        };
+        let off=run(0);let two=run(2);let three=run(3);
+        assert_eq!(off.0,two.0,"{name}");assert_eq!(off.1,two.1,"{name}");
+        assert_eq!(off.0,three.0,"{name}");assert_eq!(off.1,three.1,"{name}");
+        assert_eq!(two.2["stats"]["max_phase"],2,"{}",two.2);
+        assert_eq!(three.2["stats"]["max_phase"],3,"{}",three.2);
+        assert_eq!(three.3["first_three"]["stats"]["max_phase"],3,"{}",three.3);
+        assert!(three.3["stats"]["early_result_inputs"].as_u64().unwrap()>0);
+        assert!(three.3["early_slot_reads"].as_u64().unwrap()>0);
+        if name!="tail" {assert!(three.2["stats"]["detached_children"].as_u64().unwrap()>0,"{name}: {}",three.2);}
+        pass(&["bench","--program",out.join("program.json").to_str().unwrap(),"--reference-program",out.join("program.json").to_str().unwrap(),"--multi-run-blocks","on","--port-block-depth","3","--repeat","1"]);
+        let mut bad=artifact;let entry=bad["multi_run_blocks"]["entries"].as_array_mut().unwrap().iter_mut().find(|e|e["results"].is_array()).unwrap();
+        entry["results"]=json!([99999]);bad.as_object_mut().unwrap().remove("sha256");bad["sha256"]=json!(artifact_digest(&bad));
+        assert!(Program::parse(bad).unwrap_err().contains("multi-run certificate"));
+    }
+}
+#[cfg(feature="two-run-blocks")]
+#[test]
+fn third_phase_completes_existing_constructor_and_guards_retired_ports() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    for (action,target) in [("","x"),("","g"),("(delete (F x))","x"),("(subsume (F x))","x")] {
+        let source=format!(r#"
+(datatype E (Leaf i64) (F E) (G E E) (Side E))
+(ruleset first) (ruleset second) (ruleset third) (ruleset alter)
+(rule ((= x (Leaf n))) ((F x) (Side x)) :ruleset first)
+(rule ((= f (F x))) ((G f x)) :ruleset second)
+(rule ((= g (G f x))) ((F {target})) :ruleset third)
+{alter}
+(Leaf 1) (Leaf 2)
+(run-schedule (run first) (run second) (run alter) (run third))
+"#,alter=if action.is_empty(){String::new()}else{format!("(rule ((= x (Leaf n))) ({action}) :ruleset alter)")});
+        let core=eggfuse_bake::device_frontend::core("completion.egg",&source).unwrap();
+        let artifact=eggfuse_cell_runtime::compiler::compile(core,&Default::default()).unwrap();
+        let run=|on|{
+            let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+            e.graph.configure_port_frames(true);if on {e.configure_multi_run(8).unwrap();}
+            e.execute().unwrap();let report=e.graph.two_run_report();let requests=e.graph.stats.constructor_requests;
+            (e.snapshots,e.binding_audit,report,requests)
+        };
+        let off=run(false);let on=run(true);assert_eq!(off.0,on.0,"{action}");assert_eq!(off.1,on.1,"{action}");
+        if action.is_empty() && target=="x" {assert_eq!(on.2["stats"]["completed_by_phase"]["3"],2);assert_eq!(off.3-on.3,2);}
+        else {assert_eq!(off.3,on.3,"stale/hidden output must use ordinary construction");}
+    }
+}
+#[cfg(feature="two-run-blocks")]
+#[test]
+fn recursive_port_chain_stops_at_the_budget_and_resumes_as_a_new_owner() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    let source=r#"
+(datatype E (Leaf i64) (F E))
+(ruleset seed) (ruleset step)
+(rule ((= x (Leaf n))) ((F x)) :ruleset seed)
+(rule ((= f (F x))) ((F f)) :ruleset step)
+(Leaf 1)
+(run-schedule (run seed) (repeat 10 (run step)))
+"#;
+    let core=eggfuse_bake::device_frontend::core("recursive.egg",source).unwrap();
+    let artifact=eggfuse_cell_runtime::compiler::compile(core,&Default::default()).unwrap();
+    let run=|depth|{
+        let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+        e.graph.configure_port_frames(true);if depth>0 {e.configure_multi_run(depth).unwrap();}
+        e.execute().unwrap();let report=e.graph.port_frames_report();(e.snapshots,e.binding_audit,report)
+    };
+    let control=run(0);
+    for depth in [3,8] {
+        let shared=run(depth);assert_eq!(control.0,shared.0);assert_eq!(control.1,shared.1);
+        assert_eq!(shared.2["stats"]["max_phase"],depth);
+        assert!(shared.2["stats"]["by_phase"]["2"].as_u64().unwrap()>1,"{}",shared.2);
+    }
+}
 #[cfg(feature = "deferred-incidence")]
 #[test]
 fn deferred_intermediates_preserve_reads_forwarding_and_scheduled_consumers() {

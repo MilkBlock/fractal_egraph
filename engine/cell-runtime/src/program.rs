@@ -60,6 +60,9 @@ pub struct Program {
     #[cfg(feature="two-run-blocks")]
     #[serde(skip)]
     pub(crate) two_run:Vec<Option<Rc<crate::graph::two_run::Plan>>>,
+    #[cfg(feature="two-run-blocks")]
+    #[serde(skip)]
+    pub(crate) multi_run:Vec<Vec<Rc<crate::graph::two_run::Plan>>>,
     #[cfg(feature = "port-frames")]
     #[serde(skip)]
     pub(crate) port_frames: Vec<Option<Vec<u32>>>,
@@ -354,6 +357,8 @@ impl Program {
         let mut p = Self {
             #[cfg(feature="two-run-blocks")]
             two_run:vec![],
+            #[cfg(feature="two-run-blocks")]
+            multi_run:vec![],
             #[cfg(feature = "port-frames")]
             port_frames: vec![],
             #[cfg(feature = "deferred-incidence")]
@@ -506,7 +511,7 @@ impl Program {
             if let Some(raw)=p.artifact.get("port_frames") && *raw!=serde_json::json!(p.port_frames){return Err("invalid port frame certificate".into());}
         }
         #[cfg(feature="two-run-blocks")]
-        {p.two_run=crate::graph::two_run::load(&p)?;}
+        {p.two_run=crate::graph::two_run::load(&p)?;p.multi_run=crate::graph::two_run::load_multi(&p)?;}
         #[cfg(feature = "rhs-locals")]
         {
             p.local_rhs = crate::local_rhs::derive(&p, &p.known_results);

@@ -3073,6 +3073,16 @@ impl Executor {
         self.graph.configure_two_run(on);
         self.stage_spine.configure_two_run(&self.graph.program,on);
     }
+    #[cfg(feature="two-run-blocks")]
+    pub fn configure_multi_run(&mut self,depth:usize)->Result<()> {
+        if self.graph.program.artifact.get("multi_run_blocks").is_none() {
+            return Err("multi-run blocks require a checked catalog; recompile or run bake_multi_run".into());
+        }
+        self.graph.configure_port_frames(true);
+        self.graph.configure_multi_run(depth)?;
+        self.stage_spine.configure_multi_run(&self.graph.program);
+        Ok(())
+    }
     pub fn report(&self) -> J {
         #[cfg(feature = "deferred-incidence")]
         let deferred = json!({"enabled": self.graph.deferred_incidence.enabled,

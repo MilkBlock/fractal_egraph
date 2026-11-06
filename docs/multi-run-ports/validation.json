@@ -1,0 +1,43 @@
+{
+  "scope": "standalone Cell CPU; bounded constructor-port chains and guarded block-internal completion",
+  "base_revision": "ce64ea3aa503a275a518956010cee3f2c841c3b8",
+  "frozen_reference": "docs/view-consumer-results.json",
+  "catalogs": "original 64-unit iterative catalogs unchanged; existing legacy two_run_blocks preserved; 102 static edges compiled independently for each typed workload",
+  "pgo": false,
+  "new_bake_training": false,
+  "catalog_evidence": "catalog.json; independently generated sum/ray catalogs compared byte-identical before deduplication",
+  "mode_default": "off",
+  "timed_features": "two-run-blocks,view-ports,storage-metrics",
+  "audit_features": "two-run-blocks,view-ports,storage-metrics,slot-transfer-audit,spine-shapes",
+  "test_features": "two-run-survey,view-ports,storage-metrics,origin-demand,entry-retirement",
+  "compiler_tests_passed": 21,
+  "runtime_tests_passed": 28,
+  "additional_checks": ["default runtime/compiler build", "two-run-blocks with rhs-work-audit"],
+  "audit_results": {
+    "sum-bits": "all three modes match frozen state, schedule, ordered RHS, effective writes, resumes and Spine-shape hashes",
+    "raytrace": "all three modes match frozen state, schedule, ordered RHS, effective writes, resumes and Spine-shape hashes",
+    "identity_normalization": "only program_sha256 in spine-shapes changes for the added catalog; raw and normalized hashes retained",
+    "resumptions": {"sum-bits": 3034, "raytrace": 663403},
+    "longest_spine_chain": {"sum-bits": 12, "raytrace": 29},
+    "native_egglog_equivalence": "not established by these Cell-versus-Cell checks"
+  },
+  "collision_audit": {
+    "case": "sum-bits",
+    "environment": {"CELL_CPU_HASH_BITS": "0", "CELL_CPU_SIEVE_COLLISIONS": "1"},
+    "mode": "--multi-run-blocks",
+    "actual_hashes": "collision-sha256.txt",
+    "spine_shape_header_normalized": true,
+    "all_five_frozen_hashes_match": true
+  },
+  "timing": {
+    "host": "Apple M3 Max, aarch64-apple-darwin",
+    "release": true,
+    "threads": 1,
+    "fresh_processes": true,
+    "warmups_per_mode": 1,
+    "measured_rounds": 5,
+    "order": "three modes rotate each round",
+    "legacy_control": "previous selected catalog and late binding in the same generalized binary; not a rebuild of ce64ea3a"
+  },
+  "measured_limit": "persistent workload chains still reach two phases; Raytrace has 832 third-phase completions without new facts; persistent three/eight-phase chains are verified in fixtures"
+}

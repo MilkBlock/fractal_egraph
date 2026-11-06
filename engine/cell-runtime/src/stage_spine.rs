@@ -965,11 +965,11 @@ impl Programs {
         };
         #[cfg(feature="two-run-blocks")]
         let base=if let Some((pivot,arity))=self.fusion_inputs[rid] {
-            match base {
+            if pivot==usize::MAX {QueryFacts::All(vec![None;arity])} else {match base {
                 QueryFacts::None=>QueryFacts::One(pivot,None),
                 QueryFacts::One(i,_) if i!=pivot=>QueryFacts::All(vec![None;arity]),
                 other=>other,
-            }
+            }}
         }else{base};
         #[cfg(feature = "structural-depth")]
         if self.track_ports[rid] > 0 {
@@ -981,6 +981,16 @@ impl Programs {
     pub(crate) fn configure_two_run(&mut self,p:&Program,on:bool){
         for (rid,entry) in self.fusion_inputs.iter_mut().enumerate(){
             *entry=if on {p.two_run[rid].as_ref().map(|plan|(plan.pivot,p.rules[rid].query.len()))} else{None};
+        }
+    }
+    #[cfg(feature="two-run-blocks")]
+    pub(crate) fn configure_multi_run(&mut self,p:&Program){
+        for (rid,entry) in self.fusion_inputs.iter_mut().enumerate(){
+            let plans=&p.multi_run[rid];
+            *entry=plans.first().map(|first|{
+                let pivot=if plans.iter().all(|p|p.pivot==first.pivot) {first.pivot} else {usize::MAX};
+                (pivot,p.rules[rid].query.len())
+            });
         }
     }
     /// Query witnesses are used only as receipts for proved RHS aliases.

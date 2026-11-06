@@ -836,12 +836,16 @@ impl Graph {
         let id = self.reserve_cell_id()?;
         #[cfg(feature = "sparse-cells")]
         self.trust_sealed_frame(id);
+        #[cfg(feature="two-run-blocks")]
+        let (values,parent)=self.borrow_two_run_inputs(id,template,values,parent);
         self.active_rhs = Some((id, self.new_cell(template, values, parent)));
         Ok(id)
     }
     #[cfg(feature = "sparse-cells")]
     pub(crate) fn promote_active(&mut self) {
         if let Some((id, c)) = self.active_rhs.take() {
+            #[cfg(feature="two-run-blocks")]
+            let c=self.restore_two_run_frame(id,c);
             self.store_registered_cell(id, c);
         }
     }
@@ -880,6 +884,8 @@ impl Graph {
             }
             return Ok(canon(v, &self.parents));
         }
+        #[cfg(feature="two-run-blocks")]
+        if let Some(v)=self.borrowed_two_run_slot(cell,i) {return Ok(v)}
         let arg = |a: &Arg| match a {
             Arg::Literal(v) => Ok(canon(v, &self.parents)),
             Arg::Slot(s) => self.slot_fields(cell, template, parent, values, *s),
@@ -1689,10 +1695,19 @@ impl Graph {
         visible: Option<&mut bool>,
         receipt: Option<&mut Option<Dependency>>,
     ) -> Result<Value> {
+        #[cfg(feature="two-run-blocks")]
+        if let Some((fact,value))=self.complete_port_constructor(cell,op,t)? {
+            if let Some(receipt)=receipt {*receipt=Some(Dependency::Fact(fact));}
+            if let Some(visible)=visible {*visible=true;}
+            self.rhs_frame_mut(cell).unwrap().values.insert(dst,value.clone());
+            return Ok(value);
+        }
         self.stats.constructor_requests += 1;
         let key = self.inline_arguments(cell, aa)?;
         let row = self.lookup_canonical(t, &key)?;
         if let Some(row) = row {
+            #[cfg(feature="two-run-blocks")]
+            self.record_two_run_reuse(cell,row.witness);
             if let Some(receipt) = receipt {
                 *receipt = Some(row.witness);
             }
@@ -2552,6 +2567,8 @@ impl Graph {
                 return;
             }
             self.active_rhs = None;
+            #[cfg(feature="two-run-blocks")]
+            self.clear_two_run_loan(cell);
             self.stats.rhs_frames_avoided += 1;
             return;
         }
@@ -2564,10 +2581,10 @@ impl Graph {
         if self.parent_users.get(&cell).copied().unwrap_or(0)==0 && self.port_frames.empty(cell) {
             let parent=self.port_frames.parent(cell);
             #[cfg(feature="two-run-blocks")]
-            let child=self.port_frames.detach_child(cell);
+            let children=self.port_frames.detach_chain(cell);
             self.port_frames.remove(cell);self.parent_users.remove(&cell);
             #[cfg(feature="two-run-blocks")]
-            if let Some((id,mut frame))=child {
+            for (id,mut frame) in children {
                 frame.completed_prefix=self.program.templates[frame.template].ops.len();
                 if frame.facts.is_empty() && self.parent_users.get(&id).copied().unwrap_or(0)==0 {
                     self.port_frames.stats.removed+=1;

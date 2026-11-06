@@ -42,6 +42,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  --port-frames (compact checked constructor blocks) [--frame-census]");
         #[cfg(feature="two-run-blocks")]
         println!("  --two-run-blocks (execute checked two-phase port catalog)");
+        #[cfg(feature="two-run-blocks")]
+        println!("  --multi-run-blocks [--port-block-depth 2..8] (early shared input/result ports)");
         #[cfg(feature="two-run-survey")]
         println!("  --two-run-survey (diagnostic owner-to-consumer census)");
         #[cfg(feature = "deferred-incidence")]
@@ -107,6 +109,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--two-run-survey" => {}
             #[cfg(feature="two-run-blocks")]
             "--two-run-blocks" => {}
+            #[cfg(feature="two-run-blocks")]
+            "--multi-run-blocks"=>{},
+            #[cfg(feature="two-run-blocks")]
+            "--port-block-depth"=>{flags.next().ok_or("missing port block depth")?;},
             #[cfg(feature = "deferred-incidence")]
             "--deferred-incidence" => {
                 let value = flags.next().ok_or("missing incidence mode")?;
@@ -148,6 +154,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     runtime.graph.configure_two_run_survey(args.iter().any(|x|x=="--two-run-survey"));
     #[cfg(feature="two-run-blocks")]
     runtime.configure_two_run(args.iter().any(|x|x=="--two-run-blocks"));
+    #[cfg(feature="two-run-blocks")]
+    if args.iter().any(|x|x=="--multi-run-blocks") {
+        if args.iter().any(|x|x=="--two-run-blocks" || x=="--two-run-survey") {return Err("choose legacy fusion, multi-run fusion, or survey".into())}
+        runtime.configure_multi_run(opt("--port-block-depth").map(|s|s.parse()).transpose()?.unwrap_or(8))?;
+    }
     #[cfg(feature = "deferred-incidence")]
     {
         let mode = opt("--deferred-incidence").unwrap_or_else(|| "off".into());

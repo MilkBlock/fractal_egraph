@@ -226,6 +226,15 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
         j[k] = v;
     }
     j["sha256"] = json!(crate::checksum::artifact_digest(&j));
-    Program::parse(j.clone())?;
+    let checked=Program::parse(j.clone())?;
+    #[cfg(feature="two-run-blocks")]
+    {
+        j["multi_run_blocks"]=checked.compile_multi_run();
+        j.as_object_mut().unwrap().remove("sha256");
+        j["sha256"]=json!(crate::checksum::artifact_digest(&j));
+        Program::parse(j.clone())?;
+    }
+    #[cfg(not(feature="two-run-blocks"))]
+    let _=checked;
     Ok(j)
 }

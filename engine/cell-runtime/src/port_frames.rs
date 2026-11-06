@@ -4,8 +4,10 @@ use super::*;
 use std::cell::Cell as Counter;
 #[cfg(feature = "two-run-blocks")]
 #[path = "two_phase_ports.rs"]
-mod phases;
+pub(super) mod phases;
 #[cfg(feature = "two-run-blocks")]
+// This bit distinguishes owners from views. Child.phase stores the actual
+// stage number, so the directory encoding does not limit a block to two Runs.
 const PHASE_BITS: u32 = 1;
 #[cfg(not(feature = "two-run-blocks"))]
 const PHASE_BITS: u32 = 0;
@@ -63,6 +65,10 @@ pub(super) struct Counts {
     pub child_capacity_shrinks: u64,
     #[cfg(feature = "two-run-blocks")]
     pub child_capacity_bytes_released: u64,
+    #[cfg(feature="two-run-blocks")]
+    pub max_phase:usize,
+    #[cfg(feature="two-run-blocks")]
+    pub by_phase:BTreeMap<usize,u64>,
 }
 struct Record {
     id: u32,
@@ -116,10 +122,11 @@ impl Store {
         Some((&self.slabs[b], r, phase))
     }
     pub fn template(&self, id: u32) -> Option<usize> {
-        let (b, _, _phase) = self.locate(id)?;
+        let (b, _r, _phase) = self.locate(id)?;
         #[cfg(feature = "two-run-blocks")]
         if _phase == 1 {
-            return Some(b.extension.as_ref()?.plan.consumer_template);
+            let e=b.extension.as_ref()?;
+            return Some(e.layouts[e.children[_r].layout].plan.consumer_template);
         }
         Some(b.template)
     }
@@ -159,15 +166,16 @@ impl Store {
         if _phase == 1 {
             let e = b.extension.as_ref()?;
             let owner = e.children[r].owner as usize;
-            let value = e
-                .projection
+            let l=&e.layouts[e.children[r].layout];
+            let value = l.plan.inputs
                 .binary_search_by_key(&slot, |x| x.0)
                 .ok()
-                .map(|i| match &e.projection[i].1 {
-                    phases::Source::Column(col) => &b.values[owner * b.slots.len() + col],
-                    phases::Source::Literal(v) => v,
+                .and_then(|i| match &l.projection[i] {
+                    phases::Source::Column(col) => Some(&b.values[owner * b.slots.len() + col]),
+                    phases::Source::Literal(v) => Some(v),
+                    phases::Source::Result{..} => None,
                 });
-            return Some((e.plan.consumer_template, None, value));
+            return Some((l.plan.consumer_template, None, value));
         }
         Some((
             b.template,
@@ -183,7 +191,7 @@ impl Store {
         #[cfg(feature = "two-run-blocks")]
         if _phase == 1 {
             let e = b.extension.as_ref()?;
-            return (f.op as usize == e.plan.child_op)
+            return (f.op as usize == e.layouts[e.children[r].layout].plan.child_op)
                 .then(|| e.facts[r].as_ref())
                 .flatten();
         }
@@ -195,7 +203,7 @@ impl Store {
         #[cfg(feature = "two-run-blocks")]
         if _phase == 1 {
             let e = b.extension.as_mut()?;
-            return (f.op as usize == e.plan.child_op)
+            return (f.op as usize == e.layouts[e.children[r].layout].plan.child_op)
                 .then(|| e.facts[r].as_mut())
                 .flatten();
         }
@@ -208,7 +216,7 @@ impl Store {
         #[cfg(feature = "two-run-blocks")]
         if _phase == 1 {
             let e = b.extension.as_mut()?;
-            return (f.op as usize == e.plan.child_op)
+            return (f.op as usize == e.layouts[e.children[r].layout].plan.child_op)
                 .then(|| e.facts[r].take())
                 .flatten();
         }
@@ -313,10 +321,14 @@ impl Store {
         #[cfg(feature = "two-run-blocks")]
         if let Some(e) = &mut b.extension {
             e.links.swap_remove(r);
-            if r < last
-                && let Some(child) = e.links[r].checked_sub(1)
-            {
-                e.children[child as usize].owner = r as u32;
+            if r < last {
+                let directory=self.directory.borrow();
+                let mut next=e.links[r];
+                while let Some(id)=next.checked_sub(1) {
+                    let index=((directory.get(id) as usize)>>PHASE_BITS)&(ROW_LIMIT-1);
+                    e.children[index].owner=r as u32;
+                    next=e.children[index].successor;
+                }
             }
         }
         if let Some(parents) = &mut b.parents {
@@ -336,7 +348,8 @@ impl Store {
         if _phase == 1 {
             let e = b.extension.as_ref()?;
             let c = e.children[r];
-            if f.op as usize != e.plan.child_op || e.facts[r].is_none() {
+            let plan=&e.layouts[c.layout].plan;
+            if f.op as usize != plan.child_op || e.facts[r].is_none() {
                 return None;
             }
             self.contexts.set(self.contexts.get() + 1);
@@ -345,7 +358,7 @@ impl Store {
             return Some(producer::Context {
                 completed: true,
                 cell: f.cell,
-                template: e.plan.consumer_template,
+                template: plan.consumer_template,
                 depth: c.depth,
                 op: f.op as usize,
             });
@@ -450,6 +463,8 @@ impl Graph {
                 }
             }
         } else {
+            #[cfg(feature="two-run-blocks")]
+            let frame=self.restore_two_run_frame(id,frame);
             self.port_frames.stats.fallback += 1;
             self.store_registered_cell(id, frame);
         }
@@ -462,6 +477,8 @@ impl Graph {
         parent: Option<FactRef>,
         slot: usize,
     ) -> Result<Value> {
+        #[cfg(feature="two-run-blocks")]
+        if let Some(value)=self.port_frames.result_value(id,slot) {return Ok(canon(&value,&self.parents));}
         if let Some(a) = self
             .program
             .known_results
@@ -633,6 +650,7 @@ mod tests {
             pivot: 0,
             child_op: 2,
             inputs: vec![(0, Arg::Slot(0))],
+            results:vec![],
         });
         for (owner, child, value) in [(10, 111, 7), (20, 121, 8), (30, 131, 9)] {
             s.insert(owner, frame(value)).unwrap();
@@ -661,10 +679,40 @@ mod tests {
     }
     #[cfg(feature="two-run-blocks")]
     #[test]
+    fn three_phase_results_survive_root_moves_and_middle_detachment() {
+        let mut s=Store::default();let parents=Parents::default();
+        let first=std::rc::Rc::new(two_run::Plan{producer_template:0,producer_op:2,consumer:1,consumer_template:1,pivot:0,child_op:2,inputs:vec![(0,Arg::Slot(0)),(1,Arg::Slot(1))],results:vec![1]});
+        let second=std::rc::Rc::new(two_run::Plan{producer_template:1,producer_op:2,consumer:2,consumer_template:2,pivot:0,child_op:2,inputs:vec![(0,Arg::Slot(0)),(1,Arg::Slot(1)),(2,Arg::Slot(2))],results:vec![2]});
+        let eq=|id:u32,slot:u64|Value::Eq(((id as u64)<<32)|(slot+1));
+        for (a,value) in [(10,7),(20,9)] {
+            s.insert(a,frame(value)).unwrap();
+            let mut b=frame(value);b.template=1;b.started_epoch=2;b.values.insert(1,eq(a,1));
+            let prepared=s.prepare(FactRef{cell:a,op:2},first.clone(),&b.values,&parents,2,8).unwrap();
+            s.attach_prepared(a+1,b,prepared).unwrap();
+            let mut c=frame(value);c.template=2;c.started_epoch=3;c.values.insert(1,eq(a,1));c.values.insert(2,eq(a+1,2));
+            let prepared=s.prepare(FactRef{cell:a+1,op:2},second.clone(),&c.values,&parents,3,8).unwrap();
+            s.attach_prepared(a+2,c,prepared).unwrap();
+        }
+        assert_eq!(s.phase(12),Some(3));
+        let suffix=s.detach_chain(10);assert_eq!(suffix.len(),2);
+        assert_eq!(suffix[1].1.values[&2],eq(11,2));
+        s.remove(10);
+        assert_eq!(s.value(22,0),Some(&Value::Int(9)));
+        assert_eq!(s.result_value(22,1),Some(eq(20,1)));
+        assert_eq!(s.result_value(22,2),Some(eq(21,2)));
+        let mut last=s.detach_chain(21);assert_eq!(last.len(),1);
+        s.take_state(FactRef{cell:21,op:2});s.remove(21);
+        let (id,frame)=last.pop().unwrap();s.insert(id,frame).unwrap();
+        assert_eq!(s.value(22,2),Some(&eq(21,2)));
+        s.take_state(FactRef{cell:22,op:2});s.remove(22);
+        assert_eq!(s.value(20,0),Some(&Value::Int(9)));
+    }
+    #[cfg(feature="two-run-blocks")]
+    #[test]
     fn fusion_guards_leave_storage_unchanged_on_failure(){
         let mut s=Store::default();s.insert(10,frame(7)).unwrap();
         let f=FactRef{cell:10,op:2};let parents=Parents::default();
-        let plan=std::rc::Rc::new(two_run::Plan{producer_template:0,producer_op:2,consumer:1,consumer_template:1,pivot:0,child_op:2,inputs:vec![(0,Arg::Slot(0))]});
+        let plan=std::rc::Rc::new(two_run::Plan{producer_template:0,producer_op:2,consumer:1,consumer_template:1,pivot:0,child_op:2,inputs:vec![(0,Arg::Slot(0))],results:vec![]});
         let child=|v|{let mut c=frame(v);c.template=1;c.started_epoch=2;c};
         assert!(s.attach(f,20,child(8),plan.clone(),&parents,2).is_err());
         assert!(s.attach(f,20,child(7),plan.clone(),&parents,1).is_err());

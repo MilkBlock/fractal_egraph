@@ -14,6 +14,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--repeat",
             #[cfg(feature="two-run-blocks")]
             "--two-run-blocks",
+            #[cfg(feature="two-run-blocks")]
+            "--multi-run-blocks",
+            #[cfg(feature="two-run-blocks")]
+            "--port-block-depth",
             #[cfg(feature="port-frames")]
             "--port-frames",
             #[cfg(feature = "deferred-incidence")]
@@ -33,6 +37,13 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     let two_run=match opts.get("--two-run-blocks").map(String::as_str).unwrap_or("off"){
         "off"=>false,"on"=>true,_=>return Err("--two-run-blocks requires off or on".into())
     };
+    #[cfg(feature="two-run-blocks")]
+    let multi=match opts.get("--multi-run-blocks").map(String::as_str).unwrap_or("off") {
+        "off"=>None,"on"=>Some(opts.get("--port-block-depth").map(|v|v.parse()).transpose()?.unwrap_or(8)),
+        _=>return Err("--multi-run-blocks requires on or off".into()),
+    };
+    #[cfg(feature="two-run-blocks")]
+    if multi.is_some() && two_run {return Err("choose legacy or multi-run blocks".into())}
     #[cfg(feature="port-frames")]
     let ports=match opts.get("--port-frames").map(String::as_str).unwrap_or("off") {
         "off"=>false,"on"=>true,_=>return Err("--port-frames requires off or on".into())
@@ -97,6 +108,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
         if stage_digests(
             Path::new(reference),
             #[cfg(feature="two-run-blocks")]
+            None,
+            #[cfg(feature="two-run-blocks")]
             false,
             #[cfg(feature="port-frames")]
             false,
@@ -108,6 +121,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             (0, None),
         )? != stage_digests(
             &path,
+            #[cfg(feature="two-run-blocks")]
+            multi,
             #[cfg(feature="two-run-blocks")]
             two_run,
             #[cfg(feature="port-frames")]
@@ -134,6 +149,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
         e.graph.configure_port_frames(ports);
         #[cfg(feature="two-run-blocks")]
         if two_run {e.graph.configure_port_frames(true);}
+        #[cfg(feature="two-run-blocks")]
+        if let Some(depth)=multi {e.configure_multi_run(depth)?;}
         #[cfg(feature = "deferred-incidence")]
         {
             e.graph.configure_deferred_incidence(deferred.0);
@@ -216,6 +233,8 @@ pub(super) fn stages(path: &Path) -> Result<()> {
         serde_json::to_string(&stage_digests(
             path,
             #[cfg(feature="two-run-blocks")]
+            None,
+            #[cfg(feature="two-run-blocks")]
             false,
             #[cfg(feature="port-frames")]
             false,
@@ -231,6 +250,7 @@ pub(super) fn stages(path: &Path) -> Result<()> {
 }
 fn stage_digests(
     path: &Path,
+    #[cfg(feature="two-run-blocks")] multi:Option<usize>,
     #[cfg(feature="two-run-blocks")] two_run:bool,
     #[cfg(feature="port-frames")] ports:bool,
     #[cfg(feature = "deferred-incidence")] deferred: (bool, bool),
@@ -244,6 +264,8 @@ fn stage_digests(
     e.graph.configure_port_frames(ports);
     #[cfg(feature="two-run-blocks")]
     if two_run {e.graph.configure_port_frames(true);}
+    #[cfg(feature="two-run-blocks")]
+    if let Some(depth)=multi {e.configure_multi_run(depth)?;}
     #[cfg(feature = "deferred-incidence")]
     {
         e.graph.configure_deferred_incidence(deferred.0);
