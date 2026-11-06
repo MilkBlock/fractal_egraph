@@ -20,6 +20,12 @@ The normal commands select a single CPU execution strategy. For checkpoint/resum
 
 ### Custom programs and training
 
+The opt-in [whole-block postcondition experiment](docs/BLOCK_LHS_COMPLETION.md)
+uses constructor facts from all available shared phases to serve exact consumer
+LHS reads, leaves unproved atoms in the original matcher, and can project a
+consumer's RHS inputs before execution. It extends the
+[multi-Run parameter and result ports](docs/MULTI_RUN_PORTS.md).
+
 The [two-Run composition experiment](docs/TWO_RUN_BLOCKS.md) transfers a checked
 producer-to-consumer projection learned from actual executions. A selected
 consumer shares its producer's parameter row at its original Run, with guarded

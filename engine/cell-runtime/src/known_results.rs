@@ -26,6 +26,8 @@ pub struct Plans {
 /// Keep a single requested query witness inline.
 #[derive(Clone, Debug, Default)]
 pub(crate) enum QueryFacts {
+    #[cfg(feature="two-run-blocks")]
+    Block(Option<Box<QueryFacts>>,u32),
     #[cfg(feature = "structural-depth")]
     Tracked(Box<QueryFacts>, Vec<Option<Dependency>>, u8),
     #[default]
@@ -34,21 +36,38 @@ pub(crate) enum QueryFacts {
     All(Vec<Option<FactRef>>),
 }
 impl QueryFacts {
+    #[cfg(feature="two-run-blocks")]
+    pub fn with_block(self,id:u32)->Self {
+        if id==0 {return self}
+        match self {Self::None=>Self::Block(None,id),Self::Block(base,_)=>Self::Block(base,id),other=>Self::Block(Some(Box::new(other)),id)}
+    }
+    #[cfg(feature="two-run-blocks")]
+    pub fn block_lease(&self)->u32 {
+        match self {Self::Block(_,id)=>*id,
+            #[cfg(feature="structural-depth")]
+            Self::Tracked(base,_,_)=>base.block_lease(),_=>0}
+    }
     #[cfg(feature = "structural-depth")]
     pub fn tracked(&self, atom: usize) -> Option<Dependency> {
         match self {
+            #[cfg(feature="two-run-blocks")]
+            Self::Block(base,_)=>base.as_ref().and_then(|b|b.tracked(atom)),
             Self::Tracked(_, rows, _) => rows.get(atom).copied().flatten(),
             _ => self.get(atom).map(Dependency::Fact),
         }
     }
     #[cfg(feature = "structural-depth")]
     pub fn mark(&mut self, depth: u8) {
+        #[cfg(feature="two-run-blocks")]
+        if let Self::Block(Some(base),_)=self {base.mark(depth);return}
         if let Self::Tracked(_, _, d) = self {
             *d = depth
         }
     }
     #[cfg(feature = "structural-depth")]
     pub fn depth(&self) -> u8 {
+        #[cfg(feature="two-run-blocks")]
+        if let Self::Block(base,_)=self {return base.as_ref().map_or(0,|b|b.depth())}
         if let Self::Tracked(_, _, d) = self {
             *d
         } else {
@@ -66,6 +85,8 @@ impl QueryFacts {
                 original.record(atom, witness);
                 rows[atom] = witness;
             }
+            #[cfg(feature="two-run-blocks")]
+            Self::Block(base,_)=>{if let Some(base)=base {base.record(atom,witness)}},
             Self::One(source, slot) if *source == atom => *slot = fact,
             Self::All(rows) => rows[atom] = fact,
             _ => {}
@@ -73,6 +94,8 @@ impl QueryFacts {
     }
     pub fn get(&self, atom: usize) -> Option<FactRef> {
         match self {
+            #[cfg(feature="two-run-blocks")]
+            Self::Block(base,_)=>base.as_ref().and_then(|b|b.get(atom)),
             #[cfg(feature = "structural-depth")]
             Self::Tracked(original, _, _) => original.get(atom),
             Self::One(source, fact) if *source == atom => *fact,

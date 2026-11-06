@@ -59,6 +59,9 @@ pub struct Rule {
 pub struct Program {
     #[cfg(feature="two-run-blocks")]
     #[serde(skip)]
+    pub(crate) block_postconditions:Vec<Vec<crate::graph::block_lhs::Fact>>,
+    #[cfg(feature="two-run-blocks")]
+    #[serde(skip)]
     pub(crate) two_run:Vec<Option<Rc<crate::graph::two_run::Plan>>>,
     #[cfg(feature="two-run-blocks")]
     #[serde(skip)]
@@ -356,6 +359,8 @@ impl Program {
         }
         let mut p = Self {
             #[cfg(feature="two-run-blocks")]
+            block_postconditions:vec![],
+            #[cfg(feature="two-run-blocks")]
             two_run:vec![],
             #[cfg(feature="two-run-blocks")]
             multi_run:vec![],
@@ -505,6 +510,13 @@ impl Program {
         p.merge_programs =
             crate::merge_programs::Programs::parse(&p, &p.artifact["merge_programs"])?;
         p.known_results = crate::known_results::Plans::parse(&p, &p.artifact["known_results"])?;
+        #[cfg(feature="two-run-blocks")]
+        {
+            p.block_postconditions=crate::graph::block_lhs::derive(&p);
+            if let Some(raw)=p.artifact.get("block_postconditions") && *raw!=serde_json::json!(p.block_postconditions) {
+                return Err("invalid block postcondition certificate".into());
+            }
+        }
         #[cfg(feature = "port-frames")]
         {
             p.port_frames=crate::graph::port_frames::derive(&p,&p.known_results);

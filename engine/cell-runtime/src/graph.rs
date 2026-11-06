@@ -220,6 +220,8 @@ mod scalar_keys;
 mod writer_frames;
 pub struct Graph {
     #[cfg(feature="two-run-blocks")]
+    block_lhs:block_lhs::State,
+    #[cfg(feature="two-run-blocks")]
     two_run:two_run::Survey,
     #[cfg(feature = "port-frames")]
     port_frames: port_frames::Store,
@@ -439,6 +441,8 @@ impl Graph {
         #[cfg(feature="port-frames")]
         let cells=arena::Cells::default();
         let mut g = Self {
+            #[cfg(feature="two-run-blocks")]
+            block_lhs:block_lhs::State::new(&program),
             #[cfg(feature="two-run-blocks")]
             two_run:Default::default(),
             #[cfg(feature = "port-frames")]
@@ -2684,6 +2688,9 @@ pub(crate) mod port_frames;
 #[cfg(feature="two-run-blocks")]
 #[path="two_run.rs"]
 pub(crate) mod two_run;
+#[cfg(feature="two-run-blocks")]
+#[path="block_lhs.rs"]
+pub(crate) mod block_lhs;
 
 #[cfg(all(test, feature="sparse-cells", feature="projection-stamps"))]
 mod sealed_input_tests {

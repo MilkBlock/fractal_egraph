@@ -75,6 +75,8 @@ impl Registers {
         out: &mut Vec<Binding>,
     ) -> Result<()> {
         exec.graph.stats.register_seeds += 1;
+        #[cfg(feature="two-run-blocks")]
+        let block=exec.graph.block_context(rid,k.pivot,seed);
         self.witnesses[k.pivot] = Some(seed.witness);
         for &(c, s) in &k.seed {
             self.fields[s] = seed.values[c].clone();
@@ -89,6 +91,8 @@ impl Registers {
             seed.epoch,
             domains,
             known,
+            #[cfg(feature="two-run-blocks")]
+            block.as_ref(),
             out,
         )
     }
@@ -103,6 +107,8 @@ impl Registers {
         mut epoch: u64,
         domains: &[Subtrie],
         known: &QueryFacts,
+        #[cfg(feature="two-run-blocks")]
+        block:Option<&crate::graph::block_lhs::Context>,
         out: &mut Vec<Binding>,
     ) -> Result<()> {
         for (offset, ins) in k.steps[pc..].iter().enumerate() {
@@ -162,6 +168,8 @@ impl Registers {
                         epoch.max(row.epoch),
                         domains,
                         known,
+                        #[cfg(feature="two-run-blocks")]
+                        block,
                         out,
                     )
                 };
@@ -221,7 +229,11 @@ impl Registers {
             let result = match &a.call {
                 Call::Table(t) => {
                     let neighbor = LOCAL && !exec.graph.program.tables[*t].virtual_fact;
-                    let row = if neighbor {
+                    #[cfg(feature="two-run-blocks")]
+                    let supplied=if let Some(ctx)=block {exec.graph.read_block_lhs(ctx,ins.atom,*t,&args)?} else {None};
+                    #[cfg(not(feature="two-run-blocks"))]
+                    let supplied:Option<Row>=None;
+                    let row = if supplied.is_some() {supplied} else if neighbor {
                         exec.neighbor.point(&mut exec.graph, rid, *t, &args)?
                     } else {
                         exec.graph.stats.residual_candidates += 1;
@@ -269,6 +281,8 @@ impl Registers {
             }
         }
         exec.graph.stats.register_answers += 1;
+        #[cfg(feature="two-run-blocks")]
+        let facts=facts.with_block(exec.graph.lease_block_rhs(block));
         out.push(Binding {
             #[cfg(feature = "view-consumers")]
             view_source: None,

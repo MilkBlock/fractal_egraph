@@ -37,14 +37,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output = PathBuf::from(&args[1]);
     fs::create_dir(&output)?;
     let rounds: usize = args[4].parse()?;
+    let lhs=args.get(5).is_some_and(|s|s=="--block-lhs" || s=="--audit-block-lhs");
     let multi=args.get(5).is_some_and(|s|s=="--multi-run" || s=="--audit-multi-run");
     let fusion = args
         .get(5)
         .is_some_and(|s| s == "--two-run" || s == "--audit-two-run");
     let audit = args
         .get(5)
-        .is_some_and(|s| s == "--audit" || s == "--audit-ports" || s == "--audit-two-run" || s=="--audit-multi-run");
-    let ports = multi || fusion
+        .is_some_and(|s| s == "--audit" || s == "--audit-ports" || s == "--audit-two-run" || s=="--audit-multi-run" || s=="--audit-block-lhs");
+    let ports = lhs || multi || fusion
         || args
             .get(5)
             .is_some_and(|s| s == "--ports" || s == "--audit-ports");
@@ -84,7 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 cmd.args(["--program", input, "--output"])
                     .arg(&run)
                     .args(["--deferred-incidence", if ports { "off" } else { mode }]);
-                if multi || fusion || (ports && mode == "on") {
+                if lhs || multi || fusion || (ports && mode == "on") {
                     cmd.arg("--port-frames");
                 }
                 if fusion && mode == "on" {
@@ -95,6 +96,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "early2"=>{cmd.args(["--multi-run-blocks","--port-block-depth","2"]);},
                     _=>{cmd.arg("--multi-run-blocks");},
                 }}
+                if lhs {cmd.arg("--multi-run-blocks");if mode=="on" {cmd.arg("--block-lhs");}}
                 for (k, _) in std::env::vars() {
                     if k.starts_with("CELL_CPU_") || k.starts_with("RAYON_") {
                         cmd.env_remove(k);
@@ -171,7 +173,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let sample = json!({"case":case,"round":round,"mode":mode,"audit":audit,
                     "inference_ms":report["inference_seconds"].as_f64().unwrap()*1000.,"cli_ms":cli_ms,
                     "rss_bytes":report["peak_rss_through_inference_bytes"],"phases_ms":phases,
-                    "stats":report["stats"],"key_lookup_calls":report["key_lookup_calls"],"deferred_incidence":report["deferred_incidence"],"port_frames":report["port_frames"],"two_run_blocks":report["two_run_blocks"],"storage":report["storage"],
+                    "stats":report["stats"],"block_lhs":report["block_lhs"],"key_lookup_calls":report["key_lookup_calls"],"deferred_incidence":report["deferred_incidence"],"port_frames":report["port_frames"],"two_run_blocks":report["two_run_blocks"],"storage":report["storage"],
                     "spine":report["stage_spine"]["stats"],"runs":steps.len(),"digests":digests});
                 writeln!(log, "{sample}")?;
                 log.flush()?;
@@ -181,6 +183,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     sample["deferred_incidence"]["stats"]["deferred_births"]
                 );
                 samples.push(sample);
+                if lhs && audit && mode=="on" {
+                    fs::copy(run.join("block-lhs-plans.json"),output.join(format!("{case}-plans.json")))?;
+                }
                 // Only this freshly created child output is disposable; failed
                 // executions and failed checks above retain their complete data.
                 fs::remove_dir_all(&run)?;
@@ -213,6 +218,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 values["storage"] = selected[0]["storage"].clone();
                 values["two_run_blocks"]=selected[0]["two_run_blocks"].clone();
                 values["key_lookup_calls"]=selected[0]["key_lookup_calls"].clone();
+                values["block_lhs"]=selected[0]["block_lhs"].clone();
                 for name in ["search","rhs","repair","delivery_gc","query_update"] {
                     values["phases_ms"][name]=json!(median(selected.iter().map(|s|s["phases_ms"][name].as_f64().unwrap()).collect()));
                 }

@@ -1377,7 +1377,10 @@ impl Executor {
                             #[cfg(feature = "iterative-bake")]
                             direct: a.direct,
                             values: rule.inputs.iter().copied().zip(a.values).collect(),
+                            #[cfg(not(feature="two-run-blocks"))]
                             known,
+                            #[cfg(feature="two-run-blocks")]
+                            known:known.with_block(a.block_lease),
                             parent: None,
                             continuation: None,
                             epoch: a.epoch,
@@ -2139,6 +2142,7 @@ impl Executor {
             if me.graph.program.rules[rid].constructor_only
                 && stage_cursor.is_none()
                 && origin.is_none()
+                && {#[cfg(feature="two-run-blocks")] {b.known.block_lease()==0} #[cfg(not(feature="two-run-blocks"))] {true}}
             {
                 me.graph.start_constructor_rhs(
                     template,
@@ -2460,6 +2464,8 @@ impl Executor {
         Ok(false)
     }
     fn run(&mut self, set: &str, path: Rc<[usize]>, iterations: Rc<[u64]>) -> Result<bool> {
+        #[cfg(feature="two-run-blocks")]
+        self.graph.begin_block_match();
         if self.current_stage != set {
             self.current_stage.clear();
             self.current_stage.push_str(set);

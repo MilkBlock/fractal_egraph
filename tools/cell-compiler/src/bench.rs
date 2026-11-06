@@ -18,6 +18,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--multi-run-blocks",
             #[cfg(feature="two-run-blocks")]
             "--port-block-depth",
+            #[cfg(feature="two-run-blocks")]
+            "--block-lhs",
             #[cfg(feature="port-frames")]
             "--port-frames",
             #[cfg(feature = "deferred-incidence")]
@@ -36,6 +38,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     #[cfg(feature="two-run-blocks")]
     let two_run=match opts.get("--two-run-blocks").map(String::as_str).unwrap_or("off"){
         "off"=>false,"on"=>true,_=>return Err("--two-run-blocks requires off or on".into())
+    };
+    #[cfg(feature="two-run-blocks")]
+    let block_lhs=match opts.get("--block-lhs").map(String::as_str).unwrap_or("off") {
+        "on"=>true,"off"=>false,_=>return Err("--block-lhs requires on or off".into())
     };
     #[cfg(feature="two-run-blocks")]
     let multi=match opts.get("--multi-run-blocks").map(String::as_str).unwrap_or("off") {
@@ -108,6 +114,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
         if stage_digests(
             Path::new(reference),
             #[cfg(feature="two-run-blocks")]
+            false,
+            #[cfg(feature="two-run-blocks")]
             None,
             #[cfg(feature="two-run-blocks")]
             false,
@@ -121,6 +129,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             (0, None),
         )? != stage_digests(
             &path,
+            #[cfg(feature="two-run-blocks")]
+            block_lhs,
             #[cfg(feature="two-run-blocks")]
             multi,
             #[cfg(feature="two-run-blocks")]
@@ -143,6 +153,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     let mut counts = J::Null;
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
+        #[cfg(feature="two-run-blocks")]
+        e.graph.configure_block_lhs(block_lhs);
         #[cfg(feature="two-run-blocks")]
         e.configure_two_run(two_run);
         #[cfg(feature="port-frames")]
@@ -202,6 +214,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "handoff_closed":g.handoff_closed,"handoff_closed_fallback":g.handoff_closed_fallback,"handoff_deep":g.handoff_deep,"handoff_lets":g.handoff_lets});
         #[cfg(feature="port-frames")]
         { counts["port_frames"]=e.graph.port_frames_report(); }
+        #[cfg(feature="two-run-blocks")]
+        {counts["block_lhs"]=e.graph.block_lhs_report();}
         #[cfg(feature = "deferred-incidence")]
         { counts["deferred_incidence"] = r["deferred_incidence"].clone(); }
         #[cfg(feature = "rhs-locals")]
@@ -233,6 +247,8 @@ pub(super) fn stages(path: &Path) -> Result<()> {
         serde_json::to_string(&stage_digests(
             path,
             #[cfg(feature="two-run-blocks")]
+            false,
+            #[cfg(feature="two-run-blocks")]
             None,
             #[cfg(feature="two-run-blocks")]
             false,
@@ -250,6 +266,7 @@ pub(super) fn stages(path: &Path) -> Result<()> {
 }
 fn stage_digests(
     path: &Path,
+    #[cfg(feature="two-run-blocks")] block_lhs:bool,
     #[cfg(feature="two-run-blocks")] multi:Option<usize>,
     #[cfg(feature="two-run-blocks")] two_run:bool,
     #[cfg(feature="port-frames")] ports:bool,
@@ -258,6 +275,8 @@ fn stage_digests(
     #[cfg(feature = "structural-depth")] structural: (u8, Option<&J>),
 ) -> Result<Vec<String>> {
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
+    #[cfg(feature="two-run-blocks")]
+    e.graph.configure_block_lhs(block_lhs);
     #[cfg(feature="two-run-blocks")]
     e.configure_two_run(two_run);
     #[cfg(feature="port-frames")]

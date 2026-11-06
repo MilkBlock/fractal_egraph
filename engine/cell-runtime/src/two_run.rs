@@ -1,7 +1,7 @@
 //! Actual committed anchor owner to scheduled consumer, with typed projections.
 use super::*;
 type Pair = (usize, usize, usize, usize);
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct Plan {
     pub producer_template: usize,
     pub producer_op: usize,
@@ -569,6 +569,13 @@ impl Graph {
         self.two_run.selected = None;
         self.two_run.loan = None;
         if self.two_run.multi {
+            if let Some(lease)=self.block_rhs_lease(known.block_lease())
+                && lease.plan.consumer==rid
+                && self.port_frames.template(lease.source.cell)==Some(lease.plan.producer_template)
+                && self.port_frames.successor(lease.source.cell).is_none()
+                && self.port_frames.phase(lease.source.cell).is_some_and(|p|p<self.two_run.limit) {
+                self.two_run.selected=Some((lease.source,lease.plan));return;
+            }
             if resumed {
                 for group in self.program.multi_run[rid].chunk_by(|a, b| a.pivot == b.pivot) {
                     let Some(f) = known.get(group[0].pivot) else {

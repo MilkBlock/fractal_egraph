@@ -40,10 +40,8 @@ fn fact_expression(
     phase: usize,
     input: impl Fn(usize) -> Option<Source>,
 ) -> Option<PortFact> {
-    let (table, key) = match &p.templates[t].ops[op] {
-        Op::Let(_, Call::Table(table), key) | Op::Set(table, key, _) => (*table, key),
-        _ => return None,
-    };
+    let fact=p.block_postconditions[t].iter().find(|f|f.op==op)?;
+    let table=fact.table;let key=&fact.fields[..fact.fields.len()-1];
     let arg = |a: &Arg| -> Option<Source> {
         match two_run::normalize(p,t,a.clone())? {
         Arg::Literal(v)=>Some(Source::Literal(v)),Arg::Slot(s)=>input(s).or_else(||{
@@ -70,12 +68,38 @@ pub(crate) struct Prepared {
 }
 pub(super) struct Extension {
     pub layouts: Vec<Layout>,
-    layout_keys: BTreeMap<(usize, usize, usize, usize), usize>,
+    layout_keys: BTreeMap<(usize, Rc<two_run::Plan>), usize>,
     pub children: Vec<Child>,
     pub facts: Vec<Option<FactState>>,
     pub links: Vec<u32>, // logical successor ID + 1, never a moving row offset
 }
 impl Store {
+    pub fn query_input(&self,anchor:FactRef)->Option<block_lhs::Input> {
+        self.state(anchor)?;
+        let root=self.owner(anchor.cell)?;
+        let (slab,_,_)=self.location(root)?;
+        let mut ids=smallvec::smallvec![root];let mut next=self.successor(root);
+        while let Some(id)=next {if ids.len()>=MAX_PHASES {return None}ids.push(id);next=self.successor(id);}
+        let phase=ids.iter().position(|id|*id==anchor.cell)?;
+        let key=if ids.len()==1 {block_lhs::ShapeKey::Root(self.slabs[slab].template)} else {
+            let (_,r,_)=self.location(*ids.last()?)?;
+            block_lhs::ShapeKey::Chain(slab,self.slabs[slab].extension.as_ref()?.children[r].layout)
+        };
+        Some(block_lhs::Input{key,ids,anchor_phase:phase})
+    }
+    pub fn query_shape(&self,input:&block_lhs::Input)->Option<block_lhs::Shape> {
+        let (slab,_,_)=self.location(input.ids[0])?;let b=&self.slabs[slab];
+        let mut phases=vec![block_lhs::Phase{template:b.template,inputs:vec![]}];
+        for &id in &input.ids[1..] {
+            let (_,r,_)=self.location(id)?;let e=b.extension.as_ref()?;let l=&e.layouts[e.children[r].layout];
+            let inputs=l.plan.inputs.iter().zip(&l.projection).map(|((slot,_),src)|{
+                let sym=match src {Source::Column(c)=>block_lhs::Symbol::Slot(0,b.slots[*c]),Source::Literal(v)=>block_lhs::Symbol::Literal(v.clone()),Source::Result{phase,slot}=>block_lhs::Symbol::Slot(phase-1,*slot)};
+                (*slot,sym)
+            }).collect();
+            phases.push(block_lhs::Phase{template:l.plan.consumer_template,inputs});
+        }
+        Some(block_lhs::Shape{phases})
+    }
     pub fn owner(&self, id: u32) -> Option<u32> {
         let (b, r, p) = self.locate(id)?;
         Some(if p == 0 {
@@ -287,7 +311,7 @@ impl Store {
             let c = &b.extension.as_ref()?.children[r];
             (c.owner as usize, c.layout)
         };
-        let key = (source_layout, plan.producer_op, plan.consumer, plan.pivot);
+        let key = (source_layout, plan.clone());
         let existing = b
             .extension
             .as_ref()

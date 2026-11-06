@@ -44,6 +44,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  --two-run-blocks (execute checked two-phase port catalog)");
         #[cfg(feature="two-run-blocks")]
         println!("  --multi-run-blocks [--port-block-depth 2..8] (early shared input/result ports)");
+        #[cfg(feature="two-run-blocks")]
+        println!("  --block-lhs (use guarded block postconditions for residual matching)");
         #[cfg(feature="two-run-survey")]
         println!("  --two-run-survey (diagnostic owner-to-consumer census)");
         #[cfg(feature = "deferred-incidence")]
@@ -112,6 +114,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             #[cfg(feature="two-run-blocks")]
             "--multi-run-blocks"=>{},
             #[cfg(feature="two-run-blocks")]
+            "--block-lhs"=>{},
+            #[cfg(feature="two-run-blocks")]
             "--port-block-depth"=>{flags.next().ok_or("missing port block depth")?;},
             #[cfg(feature = "deferred-incidence")]
             "--deferred-incidence" => {
@@ -146,6 +150,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     let audit = args.iter().any(|x| x == "--audit-stages");
     let mut runtime = Executor::new(Graph::new(program)?, audit);
+    #[cfg(feature="two-run-blocks")]
+    runtime.graph.configure_block_lhs(args.iter().any(|s|s=="--block-lhs"));
     #[cfg(feature = "port-frames")]
     runtime.graph.configure_frame_census(args.iter().any(|x|x=="--frame-census"));
     #[cfg(feature = "port-frames")]
@@ -277,6 +283,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "keeper-proof")]
     runtime.write_keepers(&out)?;
     let mut report = runtime.report();
+    #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
+    if args.iter().any(|s|s=="--block-lhs") {
+        std::fs::write(out.join("block-lhs-plans.json"),serde_json::to_vec(&runtime.graph.block_lhs_plans())?)?;
+    }
+    #[cfg(feature="two-run-blocks")]
+    {report["block_lhs"]=runtime.graph.block_lhs_report();}
     #[cfg(feature = "port-frames")]
     { report["frame_census"] = runtime.graph.frame_census_report(); }
     #[cfg(feature = "port-frames")]

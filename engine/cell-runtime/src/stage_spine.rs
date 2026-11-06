@@ -275,6 +275,8 @@ impl std::fmt::Debug for DirectOrigin {
     }
 }
 pub struct Answer {
+    #[cfg(feature="two-run-blocks")]
+    pub(crate) block_lease:u32,
     #[cfg(feature = "iterative-bake")]
     pub(crate) direct: Option<DirectOrigin>,
 
@@ -498,6 +500,7 @@ fn record_answer(
     values: Vec<Value>,
     witnesses: Vec<Option<Dependency>>,
     epoch: u64,
+    #[cfg(feature="two-run-blocks")] block_lease:u32,
 
     cursor: Cursor,
 ) {
@@ -507,6 +510,8 @@ fn record_answer(
     let direct = false;
     let candidate = (
         Answer {
+            #[cfg(feature="two-run-blocks")]
+            block_lease,
             #[cfg(feature = "iterative-bake")]
             direct: None,
 
@@ -540,6 +545,8 @@ fn read_port(
     table: usize,
     args: PortKey,
     stats: &mut Stats,
+    #[cfg(feature="two-run-blocks")]
+    block:Option<(&crate::graph::block_lhs::Context,usize)>,
     #[cfg(feature = "structural-depth")] structural: (&mut crate::depth_runtime::Depth, Dependency),
 ) -> Result<Option<Row>> {
     let key = (table, args);
@@ -563,10 +570,15 @@ fn read_port(
     };
     if row.is_none() {
         stats.port_refreshes += 1;
+        #[cfg(feature="two-run-blocks")]
+        let provided=if let Some((ctx,atom))=block {g.read_block_lhs(ctx,atom,table,&key.1)?} else {None};
+        #[cfg(not(feature="two-run-blocks"))]
+        let provided:Option<Row>=None;
         #[cfg(feature = "structural-depth")]
-        let forwarded = structural.0.spine_read(g, structural.1, table, &key.1)?;
+        let forwarded = if provided.is_none(){structural.0.spine_read(g, structural.1, table, &key.1)?}else{None};
         #[cfg(not(feature = "structural-depth"))]
         let forwarded: Option<Row> = None;
+        let forwarded=provided.or(forwarded);
         let probed = forwarded.is_none();
         row = match forwarded {
             Some(row) => Some(row),
@@ -1658,6 +1670,8 @@ impl Programs {
         let mut results = Winners::new();
         let covered_count = if complete { ready.len() } else { covered.len() };
         for (pivot, row, make_input, cursor) in ready {
+            #[cfg(feature="two-run-blocks")]
+            let block_lhs=g.block_context(rid,pivot,&row);
             let mut epoch = row.epoch;
             #[cfg(feature = "spine-shapes")]
             let cursor = {
@@ -1698,6 +1712,8 @@ impl Programs {
                             p.table,
                             args,
                             &mut self.stats,
+                            #[cfg(feature="two-run-blocks")]
+                            block_lhs.as_ref().map(|ctx|(ctx,p.atom)),
                             #[cfg(feature = "structural-depth")]
                             (&mut self.structural, row.witness),
                         )?
@@ -1731,7 +1747,9 @@ impl Programs {
                         if cursor.state.direct {
                             self.training.seal_moves += block.inputs.len() as u64;
                         }
-                        record_answer(&mut results, values, witnesses, epoch, cursor);
+                        record_answer(&mut results, values, witnesses, epoch,
+                            #[cfg(feature="two-run-blocks")]
+                            g.lease_block_rhs(block_lhs.as_ref()),cursor);
                     }
                     continue;
                 }
@@ -1755,6 +1773,8 @@ impl Programs {
                             *t,
                             args,
                             &mut self.stats,
+                            #[cfg(feature="two-run-blocks")]
+                            block_lhs.as_ref().map(|ctx|(ctx,i)),
                             #[cfg(feature = "structural-depth")]
                             (&mut self.structural, row.witness),
                         )?
@@ -1799,7 +1819,9 @@ impl Programs {
                         input.get(*i).cloned().ok_or_else(|| String::from("incomplete stage recipe input"))
                     })
                     .collect::<Result<Vec<_>>>()?;
-                record_answer(&mut results, values, witnesses, epoch, cursor);
+                record_answer(&mut results, values, witnesses, epoch,
+                    #[cfg(feature="two-run-blocks")]
+                    g.lease_block_rhs(block_lhs.as_ref()),cursor);
             }
         }
         #[cfg(feature = "sparse-cells")]

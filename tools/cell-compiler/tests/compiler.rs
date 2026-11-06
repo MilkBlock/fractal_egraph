@@ -6,6 +6,130 @@ use std::{
 };
 #[cfg(feature="two-run-blocks")]
 #[test]
+fn block_postconditions_close_multiple_atoms_keep_guards_and_feed_rhs() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program,checksum::artifact_digest};
+    let source=r#"
+(datatype E (Leaf i64) (F E) (K E) (Pair E E) (H E E E) (Ready E E E) (Wrong E))
+(function Size (E) i64 :merge (min old new))
+(ruleset produce) (ruleset consume) (ruleset large) (ruleset small) (ruleset guarded) (ruleset mismatch)
+(ruleset erase) (ruleset replace) (ruleset merge)
+(rule ((= x (Leaf 1)) (= y (Leaf 2))) ((F x) (K y) (Pair x y)) :ruleset produce)
+(rule ((= p (Pair x y)) (= a (F x)) (= b (K y))) ((H p a b)) :ruleset consume)
+(rule ((= a (F x))) ((set (Size a) 12)) :ruleset large)
+(rule ((= a (F x))) ((set (Size a) 7)) :ruleset small)
+(rule ((= p (Pair x y)) (= a (F x)) (= b (K y)) (= n (Size a)) (< n 10)) ((Ready p a b)) :ruleset guarded)
+(rule ((= p (Pair x y)) (= p (F x))) ((Wrong x)) :ruleset mismatch)
+(rule ((= x (Leaf 1))) ((delete (F x))) :ruleset erase)
+(rule ((= x (Leaf 1))) ((F x)) :ruleset replace)
+(rule ((= x (Leaf 1)) (= y (Leaf 2))) ((union x y)) :ruleset merge)
+(Leaf 1) (Leaf 2)
+(run-schedule (run produce) (run consume) (run mismatch) (run large) (run guarded)
+              (run small) (run guarded) (run erase) (run replace) (run consume) (run merge) (run consume))
+"#;
+    let core=eggfuse_bake::device_frontend::core("postconditions.egg",source).unwrap();
+    let artifact=eggfuse_cell_runtime::compiler::compile(core,&Default::default()).unwrap();
+    let run=|on|{
+        let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+        e.configure_multi_run(8).unwrap();e.graph.configure_block_lhs(on);e.execute().unwrap();
+        let report=e.graph.block_lhs_report();let ports=e.graph.port_frames_report();
+        (e.snapshots,e.binding_audit,report,ports)
+    };
+    let off=run(false);let on=run(true);assert_eq!(off.0,on.0);assert_eq!(off.1,on.1);
+    let count=|snap:&J,table:&str|snap["rows"].as_array().unwrap().iter().filter(|r|r["table"]==table).count();
+    assert_eq!(count(&on.0[4],"Ready"),0);assert!(count(&on.0[6],"Ready")>0);
+    assert_eq!(count(on.0.last().unwrap(),"Wrong"),0);
+    for field in ["provided_atoms","full_table_plans","partial_plans","rhs_leases","invisible"] {
+        assert!(on.2["stats"][field].as_u64().unwrap()>0,"{field}: {}",on.2);
+    }
+    assert!(on.3["stats"]["fused_children"].as_u64().unwrap()>off.3["stats"]["fused_children"].as_u64().unwrap());
+    let mut bad=artifact;let facts=bad["block_postconditions"].as_array_mut().unwrap().iter_mut().find(|f|!f.as_array().unwrap().is_empty()).unwrap();
+    facts[0]["op"]=json!(9999);bad.as_object_mut().unwrap().remove("sha256");bad["sha256"]=json!(artifact_digest(&bad));
+    assert!(Program::parse(bad).unwrap_err().contains("postcondition certificate"));
+}
+#[cfg(feature="two-run-blocks")]
+#[test]
+fn whole_block_postconditions_close_consumers_across_three_runs() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    let source=r#"
+(datatype E (Leaf i64) (F E) (Side E) (G E E E) (H E E E E))
+(ruleset first) (ruleset second) (ruleset third)
+(rule ((= x (Leaf n))) ((F x) (Side x)) :ruleset first)
+(rule ((= f (F x)) (= s (Side x))) ((G f s x)) :ruleset second)
+(rule ((= g (G f s x)) (= f (F x)) (= s (Side x))) ((H g f s x)) :ruleset third)
+(Leaf 1) (Leaf 2)
+(run-schedule (run first) (run second) (run third))
+"#;
+    let core=eggfuse_bake::device_frontend::core("whole-block.egg",source).unwrap();
+    let artifact=eggfuse_cell_runtime::compiler::compile(core,&Default::default()).unwrap();
+    let run=|on|{
+        let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+        e.configure_multi_run(8).unwrap();e.graph.configure_block_lhs(on);e.execute().unwrap();
+        let report=e.graph.block_lhs_report();let ports=e.graph.port_frames_report();
+        let plans=e.graph.block_lhs_plans();
+        (e.snapshots,e.binding_audit,report,ports,plans)
+    };
+    let off=run(false);let on=run(true);assert_eq!(off.0,on.0);assert_eq!(off.1,on.1);
+    assert_eq!(on.3["stats"]["max_phase"],3,"{}",on.3);
+    assert!(on.2["stats"]["rhs_leases"].as_u64().unwrap()>=4,"{}",on.2);
+    assert!(on.4["entries"].as_array().unwrap().iter().any(|entry|{
+        entry["shape"].get("Chain").is_some() && entry["anchor_phase"]==1 &&
+        entry["plan"]["ports"].as_array().unwrap().iter().filter(|ps|{
+            ps.as_array().unwrap().iter().any(|p|p["address"]["phase"]==0)
+        }).count()>=2
+    }),"{}",on.4);
+}
+#[cfg(feature="two-run-blocks")]
+#[test]
+fn reused_result_ports_are_hints_until_table_and_key_are_checked() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    for (name,merge) in [("direct",""),("other-key","(union (F (Leaf 0)) (F (Leaf 1)))"),("other-table","(union (F (Leaf 1)) (Leaf 1))")] {
+        let source=format!(r#"
+(datatype E (Leaf i64) (F E) (Pair E E) (Out E E))
+(ruleset seed) (ruleset make) (ruleset use) (ruleset merge)
+(Leaf 0) (Leaf 1)
+(rule ((= x (Leaf n))) ((F x)) :ruleset seed)
+(rule ((= a (Leaf 0)) (= b (Leaf 1))) ({merge}) :ruleset merge)
+(rule ((= x (Leaf 1))) ((F x) (Pair x x)) :ruleset make)
+(rule ((= p (Pair x x)) (= f (F x))) ((Out p f)) :ruleset use)
+(run-schedule (run seed) (run merge) (run make) (run use))
+"#);
+        let core=eggfuse_bake::device_frontend::core("result-hints.egg",&source).unwrap();
+        let artifact=eggfuse_cell_runtime::compiler::compile(core,&Default::default()).unwrap();
+        let run=|on|{
+            let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+            e.configure_multi_run(8).unwrap();e.graph.configure_block_lhs(on);e.execute().unwrap();
+            let report=e.graph.block_lhs_report();(e.snapshots,e.binding_audit,report)
+        };
+        let a=run(false);let b=run(true);assert_eq!(a.0,b.0,"{name}");assert_eq!(a.1,b.1,"{name}");
+        assert!(b.2["stats"]["result_hints"].as_u64().unwrap()>0,"{name}: {}",b.2);
+        if name=="direct" {assert!(b.2["stats"]["result_hint_hits"].as_u64().unwrap()>0,"{}",b.2);}
+        else {assert_eq!(b.2["stats"]["result_hint_hits"],0,"{name}");}
+        if name=="other-key" {assert!(b.2["stats"]["key_mismatch"].as_u64().unwrap()>0);}
+    }
+}
+#[cfg(feature="two-run-blocks")]
+#[test]
+fn block_proofs_do_not_replace_non_exhaustive_expansions() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    let source=r#"
+(datatype E (Leaf i64) (F E) (Z E) (Out E E))
+(ruleset make) (ruleset use)
+(rule ((= x (Leaf 0))) ((Z x) (F x)) :ruleset make)
+(rule ((= z (Z x)) (= f (F y))) ((Out x y)) :ruleset use)
+(Leaf 0) (F (Leaf 1))
+(run-schedule (run make) (run use))
+"#;
+    let core=eggfuse_bake::device_frontend::core("expansion.egg",source).unwrap();
+    let artifact=eggfuse_cell_runtime::compiler::compile(core,&Default::default()).unwrap();
+    let run=|on|{
+        let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+        e.configure_multi_run(8).unwrap();e.graph.configure_block_lhs(on);e.execute().unwrap();(e.snapshots,e.binding_audit)
+    };
+    let a=run(false);let b=run(true);assert_eq!(a,b);
+    assert_eq!(b.0.last().unwrap()["rows"].as_array().unwrap().iter().filter(|r|r["table"]=="Out").count(),2);
+}
+#[cfg(feature="two-run-blocks")]
+#[test]
 fn multi_run_ports_share_results_before_rhs_and_survive_retirement() {
     use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program,checksum::artifact_digest};
     let tmp=tempfile::tempdir().unwrap();

@@ -29,6 +29,11 @@ their variables are available. The rule's matched receipt selects the actual
 producer; candidate plans are grouped by pivot and binary-searched by producer
 template/instruction.
 
+The later opt-in [whole-block LHS extension](BLOCK_LHS_COMPLETION.md) adds checked
+constructor postconditions and guarded residual matching across shared phases.
+The results on this page describe the parameter-closure baseline without that
+extension.
+
 At the first occurrence of a concrete root-slot layout and transition, the
 engine specializes and caches its projection. Parameter references are flattened
 to root columns or literals. Result references identify the earlier phase and
