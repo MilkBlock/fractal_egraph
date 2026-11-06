@@ -219,6 +219,8 @@ mod scalar_keys;
 #[path = "writer_frames.rs"]
 mod writer_frames;
 pub struct Graph {
+    #[cfg(feature="two-run-blocks")]
+    two_run:two_run::Survey,
     #[cfg(feature = "port-frames")]
     port_frames: port_frames::Store,
     #[cfg(feature = "port-frames")]
@@ -437,6 +439,8 @@ impl Graph {
         #[cfg(feature="port-frames")]
         let cells=arena::Cells::default();
         let mut g = Self {
+            #[cfg(feature="two-run-blocks")]
+            two_run:Default::default(),
             #[cfg(feature = "port-frames")]
             port_frames: port_frames::Store::new(cells.directory()),
             #[cfg(feature = "port-frames")]
@@ -2559,7 +2563,22 @@ impl Graph {
         #[cfg(feature = "port-frames")]
         if self.parent_users.get(&cell).copied().unwrap_or(0)==0 && self.port_frames.empty(cell) {
             let parent=self.port_frames.parent(cell);
+            #[cfg(feature="two-run-blocks")]
+            let child=self.port_frames.detach_child(cell);
             self.port_frames.remove(cell);self.parent_users.remove(&cell);
+            #[cfg(feature="two-run-blocks")]
+            if let Some((id,mut frame))=child {
+                frame.completed_prefix=self.program.templates[frame.template].ops.len();
+                if frame.facts.is_empty() && self.parent_users.get(&id).copied().unwrap_or(0)==0 {
+                    self.port_frames.stats.removed+=1;
+                    self.parent_users.remove(&id);self.stats.empty_frames_released+=1;
+                }else{
+                    match self.port_frames.insert(id,frame){
+                        Ok(())=>self.port_frames.stats.installed-=1,
+                        Err(frame)=>{self.port_frames.stats.fallback+=1;self.port_frames.stats.removed+=1;self.store_registered_cell(id,frame);}
+                    }
+                }
+            }
             if let Some(parent)=parent {self.release_reference(parent);}
             self.stats.empty_frames_released+=1;return;
         }
@@ -2581,6 +2600,8 @@ impl Graph {
         while let Some(cell) = self.garbage.pop_first() {
             self.retire_empty(cell);
         }
+        #[cfg(feature="two-run-blocks")]
+        self.port_frames.trim_child_capacity();
     }
     pub fn export(&self) -> Result<J> {
         let mut rows = vec![];
@@ -2642,6 +2663,10 @@ mod frame_census;
 #[cfg(feature = "port-frames")]
 #[path = "port_frames.rs"]
 pub(crate) mod port_frames;
+
+#[cfg(feature="two-run-blocks")]
+#[path="two_run.rs"]
+pub(crate) mod two_run;
 
 #[cfg(all(test, feature="sparse-cells", feature="projection-stamps"))]
 mod sealed_input_tests {

@@ -1,0 +1,37 @@
+{
+  "entries": [
+    {
+      "child_op": 0,
+      "consumer": 58,
+      "consumer_template": 58,
+      "inputs": [
+        [
+          0,
+          {
+            "Slot": 1
+          }
+        ],
+        [
+          1,
+          {
+            "Literal": {
+              "Int": 0
+            }
+          }
+        ],
+        [
+          2,
+          {
+            "Slot": 0
+          }
+        ]
+      ],
+      "pivot": 0,
+      "producer_op": 1,
+      "producer_template": 55
+    }
+  ],
+  "ranked_saved_parameters": 21741,
+  "schema": "eggfuse-two-run-blocks/v1",
+  "training_program": "2ea40b3ded80dda4bfbf7e9a67a1ac74ae08ad16568b1a4ea4b5ae3f355b6579"
+}

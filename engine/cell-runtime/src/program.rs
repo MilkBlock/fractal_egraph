@@ -57,6 +57,9 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[cfg(feature="two-run-blocks")]
+    #[serde(skip)]
+    pub(crate) two_run:Vec<Option<Rc<crate::graph::two_run::Plan>>>,
     #[cfg(feature = "port-frames")]
     #[serde(skip)]
     pub(crate) port_frames: Vec<Option<Vec<u32>>>,
@@ -349,6 +352,8 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
+            #[cfg(feature="two-run-blocks")]
+            two_run:vec![],
             #[cfg(feature = "port-frames")]
             port_frames: vec![],
             #[cfg(feature = "deferred-incidence")]
@@ -500,6 +505,8 @@ impl Program {
             p.port_frames=crate::graph::port_frames::derive(&p,&p.known_results);
             if let Some(raw)=p.artifact.get("port_frames") && *raw!=serde_json::json!(p.port_frames){return Err("invalid port frame certificate".into());}
         }
+        #[cfg(feature="two-run-blocks")]
+        {p.two_run=crate::graph::two_run::load(&p)?;}
         #[cfg(feature = "rhs-locals")]
         {
             p.local_rhs = crate::local_rhs::derive(&p, &p.known_results);

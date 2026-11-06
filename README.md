@@ -20,6 +20,11 @@ The normal commands select a single CPU execution strategy. For checkpoint/resum
 
 ### Custom programs and training
 
+The [two-Run composition experiment](docs/TWO_RUN_BLOCKS.md) transfers a checked
+producer-to-consumer projection learned from actual executions. A selected
+consumer shares its producer's parameter row at its original Run, with guarded
+fallback and explicit lifetime handling. It remains opt-in.
+
 The opt-in [compact block-port backend](docs/PORT_FRAMES.md) keeps stable logical
 fact identities while moving completed constructor producers into shared-layout
 arrays. It preserves the original Run schedule and provides separate physical

@@ -37,8 +37,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output = PathBuf::from(&args[1]);
     fs::create_dir(&output)?;
     let rounds: usize = args[4].parse()?;
-    let audit = args.get(5).is_some_and(|s| s == "--audit" || s == "--audit-ports");
-    let ports = args.get(5).is_some_and(|s| s == "--ports" || s == "--audit-ports");
+    let fusion = args
+        .get(5)
+        .is_some_and(|s| s == "--two-run" || s == "--audit-two-run");
+    let audit = args
+        .get(5)
+        .is_some_and(|s| s == "--audit" || s == "--audit-ports" || s == "--audit-two-run");
+    let ports = fusion
+        || args
+            .get(5)
+            .is_some_and(|s| s == "--ports" || s == "--audit-ports");
     if rounds == 0 && !audit {
         return Err("zero rounds only for audit".into());
     }
@@ -48,23 +56,38 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut samples = vec![];
     for (case, input) in [("sum-bits", &args[2]), ("raytrace", &args[3])] {
         let mut original: J = serde_json::from_slice(&fs::read(input)?)?;
-        let admitted = original
+        let mut admitted = original
             .as_object_mut()
             .unwrap()
             .remove("deferred_incidence_admission")
             .is_some();
+        admitted |= original
+            .as_object_mut()
+            .unwrap()
+            .remove("two_run_blocks")
+            .is_some();
         original.as_object_mut().unwrap().remove("sha256");
         let original_sha = eggfuse_cell_runtime::checksum::artifact_digest(&original);
         for round in 0..=rounds {
-            let mut modes = if ports {vec!["off","on"]} else {vec!["off","edges","on"]};
-            let n=modes.len();modes.rotate_left(round % n);
+            let mut modes = if ports {
+                vec!["off", "on"]
+            } else {
+                vec!["off", "edges", "on"]
+            };
+            let n = modes.len();
+            modes.rotate_left(round % n);
             for mode in modes {
                 let run = output.join(format!("{case}-{round}-{mode}"));
                 let mut cmd = Command::new(&binary);
                 cmd.args(["--program", input, "--output"])
                     .arg(&run)
-                    .args(["--deferred-incidence", if ports {"off"} else {mode}]);
-                if ports && mode=="on" {cmd.arg("--port-frames");}
+                    .args(["--deferred-incidence", if ports { "off" } else { mode }]);
+                if fusion || (ports && mode == "on") {
+                    cmd.arg("--port-frames");
+                }
+                if fusion && mode == "on" {
+                    cmd.arg("--two-run-blocks");
+                }
                 for (k, _) in std::env::vars() {
                     if k.starts_with("CELL_CPU_") || k.starts_with("RAYON_") {
                         cmd.env_remove(k);
@@ -141,7 +164,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let sample = json!({"case":case,"round":round,"mode":mode,"audit":audit,
                     "inference_ms":report["inference_seconds"].as_f64().unwrap()*1000.,"cli_ms":cli_ms,
                     "rss_bytes":report["peak_rss_through_inference_bytes"],"phases_ms":phases,
-                    "stats":report["stats"],"deferred_incidence":report["deferred_incidence"],"port_frames":report["port_frames"],"storage":report["storage"],
+                    "stats":report["stats"],"deferred_incidence":report["deferred_incidence"],"port_frames":report["port_frames"],"two_run_blocks":report["two_run_blocks"],"storage":report["storage"],
                     "spine":report["stage_spine"]["stats"],"runs":steps.len(),"digests":digests});
                 writeln!(log, "{sample}")?;
                 log.flush()?;
@@ -161,7 +184,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "inputs":{"sum-bits":hash(Path::new(&args[2]))?,"raytrace":hash(Path::new(&args[3]))?},"cases":{}});
     if rounds > 0 {
         for case in ["sum-bits", "raytrace"] {
-            for mode in if ports {vec!["off","on"]} else {vec!["off","edges","on"]} {
+            for mode in if ports {
+                vec!["off", "on"]
+            } else {
+                vec!["off", "edges", "on"]
+            } {
                 let selected: Vec<_> = samples
                     .iter()
                     .filter(|s| {

@@ -40,6 +40,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  --release-source-artifact (discard validation IR after runtime setup)");
         #[cfg(feature="port-frames")]
         println!("  --port-frames (compact checked constructor blocks) [--frame-census]");
+        #[cfg(feature="two-run-blocks")]
+        println!("  --two-run-blocks (execute checked two-phase port catalog)");
+        #[cfg(feature="two-run-survey")]
+        println!("  --two-run-survey (diagnostic owner-to-consumer census)");
         #[cfg(feature = "deferred-incidence")]
         println!("  --deferred-incidence off|edges|on (delay reverse edges and row payloads)");
         return Ok(());
@@ -99,6 +103,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--frame-census" => {}
             #[cfg(feature = "port-frames")]
             "--port-frames" => {}
+            #[cfg(feature="two-run-survey")]
+            "--two-run-survey" => {}
+            #[cfg(feature="two-run-blocks")]
+            "--two-run-blocks" => {}
             #[cfg(feature = "deferred-incidence")]
             "--deferred-incidence" => {
                 let value = flags.next().ok_or("missing incidence mode")?;
@@ -112,6 +120,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         eggfuse_cell_runtime::allocation_census::Tag::Artifact,
     );
     let mut bytes = std::fs::read(opt("--program").ok_or("--program required")?)?;
+    if args.iter().any(|s|s=="--two-run-survey") && args.iter().any(|s|s=="--two-run-blocks"){
+        return Err("run the two-run survey separately from fusion".into());
+    }
     let program = Program::parse(serde_json::from_slice(&bytes)?)?;
     #[cfg(feature = "allocation-census")]
     drop(loading);
@@ -133,6 +144,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     runtime.graph.configure_frame_census(args.iter().any(|x|x=="--frame-census"));
     #[cfg(feature = "port-frames")]
     runtime.graph.configure_port_frames(args.iter().any(|x|x=="--port-frames"));
+    #[cfg(feature="two-run-survey")]
+    runtime.graph.configure_two_run_survey(args.iter().any(|x|x=="--two-run-survey"));
+    #[cfg(feature="two-run-blocks")]
+    runtime.configure_two_run(args.iter().any(|x|x=="--two-run-blocks"));
     #[cfg(feature = "deferred-incidence")]
     {
         let mode = opt("--deferred-incidence").unwrap_or_else(|| "off".into());
@@ -255,6 +270,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     { report["frame_census"] = runtime.graph.frame_census_report(); }
     #[cfg(feature = "port-frames")]
     { report["port_frames"] = runtime.graph.port_frames_report(); }
+    #[cfg(feature="two-run-blocks")]
+    {report["two_run_blocks"]=runtime.graph.two_run_report();}
     #[cfg(feature = "allocation-census")]
     {
         report["allocation_census"] =

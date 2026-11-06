@@ -1911,6 +1911,10 @@ impl Executor {
             #[cfg(feature = "iterative-bake")]
             b.direct,
         );
+        #[cfg(feature="two-run-survey")]
+        self.graph.prepare_two_run(rid,stage_cursor.as_ref().and_then(|c|c.join_anchor()));
+        #[cfg(feature="two-run-blocks")]
+        self.graph.prepare_two_run_execution(rid,&b.known,matches!(&stage_cursor,Some(crate::stage_spine::Started::Live(_))));
         #[cfg(feature = "rhs-work-audit")]
         self.ledger.resumed(matches!(
             &stage_cursor,
@@ -3062,6 +3066,12 @@ impl Executor {
         let nodes = p.artifact["source_core"]["structural_key"]["nodes"].take();
         p.artifact = serde_json::json!({"schema":"eggfuse-execution-provenance/v1","sha256":sha,"recipe":{"sha256":recipe},"source_core":{"structural_key":{"nodes":nodes}}});
         Ok(())
+    }
+    #[cfg(feature="two-run-blocks")]
+    pub fn configure_two_run(&mut self,on:bool){
+        if on {self.graph.configure_port_frames(true);}
+        self.graph.configure_two_run(on);
+        self.stage_spine.configure_two_run(&self.graph.program,on);
     }
     pub fn report(&self) -> J {
         #[cfg(feature = "deferred-incidence")]

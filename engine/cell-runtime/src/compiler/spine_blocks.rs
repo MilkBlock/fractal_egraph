@@ -4,7 +4,7 @@ use serde_json::{Value as J, json};
 use std::collections::{BTreeMap, BTreeSet};
 // Keep rule-local variable names and debug labels out of the cross-recipe key.
 // Distinct matching target rules are rejected rather than arbitrarily picked.
-fn signature(rule: &J) -> String {
+pub(crate) fn signature(rule: &J) -> String {
     let slots = rule["slots"]
         .as_array()
         .unwrap()

@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+two-run-blocks = ["port-frames"]
+two-run-survey = ["two-run-blocks"]
 port-frames = ["deferred-incidence"]
 deferred-incidence = ["sparse-cells"]
 origin-demand = ["sparse-cells"]
@@ -48,6 +50,10 @@ mimalloc = { version = "0.1", default-features = false }
 [[example]]
 name = "bake_spine_blocks"
 required-features = ["spine-blocks"]
+
+[[example]]
+name = "bake_two_run"
+required-features = ["two-run-blocks"]
 
 [[example]]
 name = "bake_deferred_admission"

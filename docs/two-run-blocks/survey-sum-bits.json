@@ -1,0 +1,724 @@
+{
+  "status": "complete",
+  "program_sha256": "1d6e531e391cd34c56b452124e5c46563f044c1d75aea3776e9e2d0e60a29409",
+  "two_run_blocks": {
+    "pairs": [
+      {
+        "consumer": 65,
+        "pivot": 0,
+        "producer_op": 3,
+        "producer_template": 21,
+        "projection": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            10
+          ]
+        ],
+        "work": {
+          "calls": 2,
+          "consumer_values": 8,
+          "producer_values": 14,
+          "shared_values": 6
+        }
+      },
+      {
+        "consumer": 58,
+        "pivot": 0,
+        "producer_op": 1,
+        "producer_template": 55,
+        "projection": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "work": {
+          "calls": 47,
+          "consumer_values": 141,
+          "producer_values": 94,
+          "shared_values": 94
+        }
+      },
+      {
+        "consumer": 61,
+        "pivot": 0,
+        "producer_op": 0,
+        "producer_template": 58,
+        "projection": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "work": {
+          "calls": 7,
+          "consumer_values": 35,
+          "producer_values": 21,
+          "shared_values": 14
+        }
+      },
+      {
+        "consumer": 125,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 114,
+        "projection": [
+          [
+            0,
+            3
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            5
+          ]
+        ],
+        "work": {
+          "calls": 2,
+          "consumer_values": 8,
+          "producer_values": 8,
+          "shared_values": 4
+        }
+      },
+      {
+        "consumer": 125,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 119,
+        "projection": [
+          [
+            0,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "work": {
+          "calls": 7,
+          "consumer_values": 28,
+          "producer_values": 42,
+          "shared_values": 14
+        }
+      },
+      {
+        "consumer": 125,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 120,
+        "projection": [
+          [
+            0,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 4,
+          "producer_values": 6,
+          "shared_values": 2
+        }
+      },
+      {
+        "consumer": 125,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 121,
+        "projection": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "work": {
+          "calls": 2,
+          "consumer_values": 8,
+          "producer_values": 10,
+          "shared_values": 4
+        }
+      },
+      {
+        "consumer": 125,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 122,
+        "projection": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "work": {
+          "calls": 47,
+          "consumer_values": 188,
+          "producer_values": 235,
+          "shared_values": 94
+        }
+      },
+      {
+        "consumer": 110,
+        "pivot": 0,
+        "producer_op": 1,
+        "producer_template": 136,
+        "projection": [
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 3,
+          "producer_values": 7,
+          "shared_values": 3
+        }
+      },
+      {
+        "consumer": 55,
+        "pivot": 0,
+        "producer_op": 2,
+        "producer_template": 137,
+        "projection": [
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 2,
+          "producer_values": 4,
+          "shared_values": 2
+        }
+      },
+      {
+        "consumer": 58,
+        "pivot": 0,
+        "producer_op": 2,
+        "producer_template": 324,
+        "projection": [
+          [
+            0,
+            6
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "work": {
+          "calls": 7,
+          "consumer_values": 21,
+          "producer_values": 41,
+          "shared_values": 20
+        }
+      },
+      {
+        "consumer": 143,
+        "pivot": 0,
+        "producer_op": 2,
+        "producer_template": 324,
+        "projection": [
+          [
+            0,
+            6
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "work": {
+          "calls": 20,
+          "consumer_values": 80,
+          "producer_values": 115,
+          "shared_values": 55
+        }
+      },
+      {
+        "consumer": 420,
+        "pivot": 0,
+        "producer_op": 1,
+        "producer_template": 335,
+        "projection": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            9
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 4,
+          "producer_values": 8,
+          "shared_values": 3
+        }
+      },
+      {
+        "consumer": 527,
+        "pivot": 0,
+        "producer_op": 1,
+        "producer_template": 336,
+        "projection": [
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            8
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 5,
+          "producer_values": 7,
+          "shared_values": 2
+        }
+      },
+      {
+        "consumer": 65,
+        "pivot": 0,
+        "producer_op": 4,
+        "producer_template": 338,
+        "projection": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            3,
+            13
+          ]
+        ],
+        "work": {
+          "calls": 5,
+          "consumer_values": 20,
+          "producer_values": 53,
+          "shared_values": 13
+        }
+      },
+      {
+        "consumer": 67,
+        "pivot": 0,
+        "producer_op": 3,
+        "producer_template": 339,
+        "projection": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            2,
+            11
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 3,
+          "producer_values": 9,
+          "shared_values": 2
+        }
+      },
+      {
+        "consumer": 58,
+        "pivot": 0,
+        "producer_op": 3,
+        "producer_template": 340,
+        "projection": [
+          [
+            0,
+            10
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            11
+          ]
+        ],
+        "work": {
+          "calls": 16,
+          "consumer_values": 48,
+          "producer_values": 144,
+          "shared_values": 32
+        }
+      },
+      {
+        "consumer": 143,
+        "pivot": 0,
+        "producer_op": 3,
+        "producer_template": 340,
+        "projection": [
+          [
+            0,
+            10
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            11
+          ]
+        ],
+        "work": {
+          "calls": 21,
+          "consumer_values": 84,
+          "producer_values": 189,
+          "shared_values": 42
+        }
+      },
+      {
+        "consumer": 51,
+        "pivot": 0,
+        "producer_op": 4,
+        "producer_template": 346,
+        "projection": [
+          [
+            0,
+            12
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            4,
+            14
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 7,
+          "producer_values": 11,
+          "shared_values": 3
+        }
+      },
+      {
+        "consumer": 541,
+        "pivot": 0,
+        "producer_op": 4,
+        "producer_template": 346,
+        "projection": [
+          [
+            0,
+            12
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            4,
+            14
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 7,
+          "producer_values": 12,
+          "shared_values": 4
+        }
+      },
+      {
+        "consumer": 487,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 493,
+        "projection": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "work": {
+          "calls": 2,
+          "consumer_values": 8,
+          "producer_values": 12,
+          "shared_values": 6
+        }
+      },
+      {
+        "consumer": 521,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 512,
+        "projection": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "work": {
+          "calls": 2,
+          "consumer_values": 8,
+          "producer_values": 10,
+          "shared_values": 4
+        }
+      },
+      {
+        "consumer": 521,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 513,
+        "projection": [
+          [
+            0,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "work": {
+          "calls": 6,
+          "consumer_values": 24,
+          "producer_values": 36,
+          "shared_values": 12
+        }
+      },
+      {
+        "consumer": 521,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 514,
+        "projection": [
+          [
+            0,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 4,
+          "producer_values": 6,
+          "shared_values": 2
+        }
+      },
+      {
+        "consumer": 521,
+        "pivot": 1,
+        "producer_op": 1,
+        "producer_template": 518,
+        "projection": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "work": {
+          "calls": 25,
+          "consumer_values": 100,
+          "producer_values": 125,
+          "shared_values": 50
+        }
+      },
+      {
+        "consumer": 554,
+        "pivot": 0,
+        "producer_op": 2,
+        "producer_template": 539,
+        "projection": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            7
+          ]
+        ],
+        "work": {
+          "calls": 1,
+          "consumer_values": 5,
+          "producer_values": 6,
+          "shared_values": 2
+        }
+      }
+    ],
+    "scope": "non-mutating actual Spine anchor-owner to consumer survey; disjoint pairs reserve each logical producer at most once",
+    "stats": {
+      "disjoint_pairs": 228,
+      "function_anchor": 87,
+      "guard_failure": 0,
+      "new_port_consumers": 450,
+      "no_source_port": 594,
+      "overlap": 91,
+      "parent_link": 0,
+      "prepared": 1229,
+      "resumed": 3034,
+      "same_run": 0,
+      "shared_values": 489,
+      "small_projection": 131,
+      "unsupported_consumer": 1124
+    }
+  }
+}

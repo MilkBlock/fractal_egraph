@@ -114,6 +114,63 @@ fn port_producers_survive_consumers_unions_and_subsumption() {
     assert!(Program::parse(bad).unwrap_err().contains("port frame certificate"));
 }
 
+#[cfg(feature="two-run-survey")]
+#[test]
+fn two_run_blocks_preserve_orphaned_children_and_child_first_retirement(){
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    let tmp=tempfile::tempdir().unwrap();
+    for (name,src) in [
+        ("parent-first",r#"
+(datatype E (Leaf i64) (Link E) (Out E E) (Seen E))
+(ruleset a) (ruleset b) (ruleset merge) (ruleset observe)
+(rule ((= x (Leaf n)) (= y (Leaf m)) (= m (+ n 1))) ((union (Link x) y)) :ruleset a)
+(rule ((= y (Link x)) (= x (Leaf 1))) ((Out x y)) :ruleset b)
+(rule ((= left (Leaf 0)) (= right (Leaf 1))) ((union left right)) :ruleset merge)
+(rule ((= out (Out x y))) ((Seen out)) :ruleset observe)
+(Leaf 0) (Leaf 1) (Leaf 2)
+(run-schedule (run a) (run b) (run merge) (run observe))
+"#),
+        ("child-first",r#"
+(datatype E (Leaf i64) (Link E) (Out E))
+(ruleset a) (ruleset b) (ruleset merge)
+(rule ((= x (Leaf 0)) (= y (Leaf 2))) ((union (Link x) y)) :ruleset a)
+(rule ((= y (Link x))) ((Out y)) :ruleset b)
+(rule ((= left (Leaf 2)) (= right (Leaf 3))) ((union left right)) :ruleset merge)
+(Leaf 3) (Out (Leaf 3)) (Leaf 0) (Leaf 2)
+(run-schedule (run a) (run b) (run merge))
+"#)
+    ]{
+        let input=tmp.path().join(format!("{name}.egg"));let out=tmp.path().join(name);
+        fs::write(&input,src).unwrap();pass(&["compile","--source",input.to_str().unwrap(),"--output",out.to_str().unwrap()]);
+        let original=json_file(&out.join("program.json"));let p=Program::parse(original.clone()).unwrap();
+        let mut survey=Executor::new(Graph::new(p.clone()).unwrap(),false);
+        survey.graph.configure_port_frames(true);survey.graph.configure_two_run_survey(true);survey.execute().unwrap();
+        let mut report=survey.report();report["two_run_blocks"]=survey.graph.two_run_report();
+        let catalog=p.bake_two_run(&report,&p).unwrap();
+        assert_eq!(catalog["entries"].as_array().unwrap().len(),1,"{name}: {report}");
+        let mut artifact=original;artifact["two_run_blocks"]=catalog;
+        artifact["sha256"]=json!(eggfuse_cell_runtime::checksum::artifact_digest(&artifact));
+        let run=|on|{
+            let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+            e.graph.configure_port_frames(true);e.configure_two_run(on);e.execute().unwrap();
+            (e.snapshots,e.binding_audit,e.graph.port_frames_report())
+        };
+        let control=run(false);let fused=run(true);
+        assert_eq!(control.0,fused.0,"{name}");assert_eq!(control.1,fused.1,"{name}");
+        assert!(fused.2["stats"]["fused_children"].as_u64().unwrap()>0,"{name}: {}",fused.2);
+        assert_eq!(control.2["all_producer_records"],fused.2["all_producer_records"]);
+        if name=="parent-first"{assert!(fused.2["stats"]["detached_children"].as_u64().unwrap()>0);}
+        let mut invalid=artifact.clone();invalid["two_run_blocks"]["entries"][0]["inputs"][0][1]=json!({"Literal":{"Int":999}});
+        invalid["sha256"]=json!(eggfuse_cell_runtime::checksum::artifact_digest(&invalid));
+        assert!(Program::parse(invalid).unwrap_err().contains("two-run certificate"));
+        let planned=out.join("two-run.json");
+        artifact.as_object_mut().unwrap().remove("sha256");
+        artifact["sha256"]=json!(eggfuse_cell_runtime::checksum::artifact_digest(&artifact));
+        fs::write(&planned,serde_json::to_vec(&artifact).unwrap()).unwrap();
+        pass(&["bench","--program",planned.to_str().unwrap(),"--reference-program",out.join("program.json").to_str().unwrap(),"--two-run-blocks","on","--repeat","1"]);
+    }
+}
+
 const SOURCE: &str = r#"
 ; cell-choice/v1 {"function":"pick","tie_break":"structural"}
 (datatype E (Leaf i64) (Wrap E) (Left E) (Right E))

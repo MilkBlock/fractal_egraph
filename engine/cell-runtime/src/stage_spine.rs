@@ -23,6 +23,8 @@ use std::{
 mod shapes;
 #[derive(Clone)]
 pub struct Cursor {
+    #[cfg(feature="two-run-survey")]
+    join_anchor:Option<(Dependency,usize)>,
     #[cfg(feature = "iterative-bake")]
     state: crate::iterative::State,
     #[cfg(feature = "spine-blocks")]
@@ -111,6 +113,8 @@ impl Cursor {
 impl Cursor {
     fn fresh(root: Rc<Root>, producer: usize) -> Self {
         Self {
+            #[cfg(feature="two-run-survey")]
+            join_anchor:None,
             root,
             producer,
             depth: 1,
@@ -162,6 +166,8 @@ pub(crate) enum Started {
     Live(Cursor),
 }
 impl Started {
+    #[cfg(feature="two-run-survey")]
+    pub(crate) fn join_anchor(&self)->Option<(Dependency,usize)>{match self{Self::Live(c)=>c.join_anchor,_=>None}}
     #[cfg(feature = "iterative-bake")]
     pub(crate) fn closed(&self, catalog: &crate::iterative::Catalog) -> bool {
         matches!(self,Self::Live(c) if catalog.closed(&c.state))
@@ -215,6 +221,8 @@ impl Started {
         } = self
         {
             *self = Self::Live(Cursor {
+                #[cfg(feature="two-run-survey")]
+                join_anchor:None,
                 root: Rc::new(Root {
                     id: *id,
                     epoch: *epoch,
@@ -410,6 +418,8 @@ struct Publication {
     source: crate::graph::FactRef,
 }
 pub struct Programs {
+    #[cfg(feature="two-run-blocks")]
+    fusion_inputs:Vec<Option<(usize,usize)>>,
     #[cfg(feature = "sparse-cells")]
     pub(crate) direct_sealed_answers: bool,
     #[cfg(feature = "structural-depth")]
@@ -677,6 +687,8 @@ impl Programs {
             direct_sealed_answers: false,
             enabled,
             receipts: true,
+            #[cfg(feature="two-run-blocks")]
+            fusion_inputs:vec![None;p.rules.len()],
             audit_receipts: false,
             partial: false,
             shared_entries: false,
@@ -951,11 +963,25 @@ impl Programs {
         } else {
             QueryFacts::None
         };
+        #[cfg(feature="two-run-blocks")]
+        let base=if let Some((pivot,arity))=self.fusion_inputs[rid] {
+            match base {
+                QueryFacts::None=>QueryFacts::One(pivot,None),
+                QueryFacts::One(i,_) if i!=pivot=>QueryFacts::All(vec![None;arity]),
+                other=>other,
+            }
+        }else{base};
         #[cfg(feature = "structural-depth")]
         if self.track_ports[rid] > 0 {
             return QueryFacts::Tracked(Box::new(base), vec![None; self.track_ports[rid]], 0);
         }
         base
+    }
+    #[cfg(feature="two-run-blocks")]
+    pub(crate) fn configure_two_run(&mut self,p:&Program,on:bool){
+        for (rid,entry) in self.fusion_inputs.iter_mut().enumerate(){
+            *entry=if on {p.two_run[rid].as_ref().map(|plan|(plan.pivot,p.rules[rid].query.len()))} else{None};
+        }
     }
     /// Query witnesses are used only as receipts for proved RHS aliases.
     pub fn capture(
@@ -1632,6 +1658,8 @@ impl Programs {
             };
             #[cfg(feature = "spine-blocks")]
             let mut cursor = cursor;
+            #[cfg(feature="two-run-survey")]
+            {cursor.join_anchor=Some((row.witness,pivot));}
             #[cfg(feature = "spine-blocks")]
             {
                 cursor.via_block = false;

@@ -2,11 +2,18 @@
 //! Logical Cell/FactRef IDs are unchanged; no ordinary Cell record is installed.
 use super::*;
 use std::cell::Cell as Counter;
-const ROW_BITS: u32 = 22;
+#[cfg(feature = "two-run-blocks")]
+#[path = "two_phase_ports.rs"]
+mod phases;
+#[cfg(feature = "two-run-blocks")]
+const PHASE_BITS: u32 = 1;
+#[cfg(not(feature = "two-run-blocks"))]
+const PHASE_BITS: u32 = 0;
+const ROW_BITS: u32 = 22 - PHASE_BITS;
 const ROW_LIMIT: usize = 1 << ROW_BITS;
-const SLAB_LIMIT: usize = 1 << (31 - ROW_BITS);
+const SLAB_LIMIT: usize = 1 << (31 - ROW_BITS - PHASE_BITS);
 fn address(slab: usize, row: usize) -> u32 {
-    arena::PORT_TAG | ((slab as u32) << ROW_BITS) | row as u32
+    arena::PORT_TAG | ((slab as u32) << (ROW_BITS + PHASE_BITS)) | ((row as u32) << PHASE_BITS)
 }
 
 pub(crate) fn derive(p: &Program, known: &crate::known_results::Plans) -> Vec<Option<Vec<u32>>> {
@@ -46,6 +53,16 @@ pub(super) struct Counts {
     pub installed: u64,
     pub removed: u64,
     pub fallback: u64,
+    #[cfg(feature = "two-run-blocks")]
+    pub fused_children: u64,
+    #[cfg(feature = "two-run-blocks")]
+    pub saved_parameters: u64,
+    #[cfg(feature = "two-run-blocks")]
+    pub detached_children: u64,
+    #[cfg(feature = "two-run-blocks")]
+    pub child_capacity_shrinks: u64,
+    #[cfg(feature = "two-run-blocks")]
+    pub child_capacity_bytes_released: u64,
 }
 struct Record {
     id: u32,
@@ -53,6 +70,8 @@ struct Record {
     born: u64,
 }
 struct Slab {
+    #[cfg(feature = "two-run-blocks")]
+    extension: Option<phases::Extension>,
     template: usize,
     slots: Vec<usize>,
     ops: Vec<u32>,
@@ -63,6 +82,8 @@ struct Slab {
 }
 #[derive(Default)]
 pub(super) struct Store {
+    #[cfg(feature = "two-run-blocks")]
+    extensions: BTreeSet<usize>,
     pub enabled: bool,
     slabs: Vec<Slab>,
     by_template: Vec<Vec<usize>>,
@@ -82,35 +103,72 @@ impl Store {
             ..Default::default()
         }
     }
-    fn location(&self, id: u32) -> Option<(usize, usize)> {
+    fn location(&self, id: u32) -> Option<(usize, usize, usize)> {
         let word = self.directory.borrow().get(id);
         (word & arena::PORT_TAG != 0).then_some((
-            ((word & !arena::PORT_TAG) >> ROW_BITS) as usize,
-            (word as usize) & (ROW_LIMIT - 1),
+            ((word & !arena::PORT_TAG) >> (ROW_BITS + PHASE_BITS)) as usize,
+            ((word as usize) >> PHASE_BITS) & (ROW_LIMIT - 1),
+            (word as usize) & ((1 << PHASE_BITS) - 1),
         ))
     }
-    fn locate(&self, id: u32) -> Option<(&Slab, usize)> {
-        let (b, r) = self.location(id)?;
-        Some((&self.slabs[b], r))
+    fn locate(&self, id: u32) -> Option<(&Slab, usize, usize)> {
+        let (b, r, phase) = self.location(id)?;
+        Some((&self.slabs[b], r, phase))
     }
     pub fn template(&self, id: u32) -> Option<usize> {
-        Some(self.locate(id)?.0.template)
+        let (b, _, _phase) = self.locate(id)?;
+        #[cfg(feature = "two-run-blocks")]
+        if _phase == 1 {
+            return Some(b.extension.as_ref()?.plan.consumer_template);
+        }
+        Some(b.template)
     }
     #[cfg(test)]
     pub fn value(&self, id: u32, slot: usize) -> Option<&Value> {
-        let (b, r) = self.locate(id)?;
-        Some(&b.values[r * b.slots.len() + b.slots.binary_search(&slot).ok()?])
+        self.read_slot(id, slot)?.2
     }
     pub fn parent(&self, id: u32) -> Option<FactRef> {
-        let (b, r) = self.locate(id)?;
+        let (b, r, _phase) = self.locate(id)?;
+        #[cfg(feature = "two-run-blocks")]
+        if _phase == 1 {
+            return None;
+        }
         Some(b.parents.as_ref()?[r])
+    }
+    #[cfg(feature = "two-run-blocks")]
+    pub fn born(&self, id: u32) -> Option<u64> {
+        let (b, r, phase) = self.locate(id)?;
+        Some(if phase == 1 {
+            b.extension.as_ref()?.children[r].born
+        } else {
+            b.records[r].born
+        })
+    }
+    #[cfg(feature = "two-run-blocks")]
+    pub fn parameter_count(&self, id: u32) -> Option<usize> {
+        let (b, _, phase) = self.locate(id)?;
+        Some(if phase == 1 { 0 } else { b.slots.len() })
     }
     pub fn read_slot(
         &self,
         id: u32,
         slot: usize,
     ) -> Option<(usize, Option<FactRef>, Option<&Value>)> {
-        let (b, r) = self.locate(id)?;
+        let (b, r, _phase) = self.locate(id)?;
+        #[cfg(feature = "two-run-blocks")]
+        if _phase == 1 {
+            let e = b.extension.as_ref()?;
+            let owner = e.children[r].owner as usize;
+            let value = e
+                .projection
+                .binary_search_by_key(&slot, |x| x.0)
+                .ok()
+                .map(|i| match &e.projection[i].1 {
+                    phases::Source::Column(col) => &b.values[owner * b.slots.len() + col],
+                    phases::Source::Literal(v) => v,
+                });
+            return Some((e.plan.consumer_template, None, value));
+        }
         Some((
             b.template,
             b.parents.as_ref().map(|p| p[r]),
@@ -121,23 +179,48 @@ impl Store {
         ))
     }
     pub fn state(&self, f: FactRef) -> Option<&FactState> {
-        let (b, r) = self.locate(f.cell)?;
+        let (b, r, _phase) = self.locate(f.cell)?;
+        #[cfg(feature = "two-run-blocks")]
+        if _phase == 1 {
+            let e = b.extension.as_ref()?;
+            return (f.op as usize == e.plan.child_op)
+                .then(|| e.facts[r].as_ref())
+                .flatten();
+        }
         b.facts[r * b.ops.len() + b.ops.binary_search(&f.op).ok()?].as_ref()
     }
     pub fn state_mut(&mut self, f: FactRef) -> Option<&mut FactState> {
-        let (b, r) = self.location(f.cell)?;
+        let (b, r, _phase) = self.location(f.cell)?;
         let b = &mut self.slabs[b];
+        #[cfg(feature = "two-run-blocks")]
+        if _phase == 1 {
+            let e = b.extension.as_mut()?;
+            return (f.op as usize == e.plan.child_op)
+                .then(|| e.facts[r].as_mut())
+                .flatten();
+        }
         let i = r * b.ops.len() + b.ops.binary_search(&f.op).ok()?;
         b.facts[i].as_mut()
     }
     pub fn take_state(&mut self, f: FactRef) -> Option<FactState> {
-        let (b, r) = self.location(f.cell)?;
+        let (b, r, _phase) = self.location(f.cell)?;
         let b = &mut self.slabs[b];
+        #[cfg(feature = "two-run-blocks")]
+        if _phase == 1 {
+            let e = b.extension.as_mut()?;
+            return (f.op as usize == e.plan.child_op)
+                .then(|| e.facts[r].take())
+                .flatten();
+        }
         let i = r * b.ops.len() + b.ops.binary_search(&f.op).ok()?;
         b.facts[i].take()
     }
     pub fn empty(&self, id: u32) -> bool {
-        self.locate(id).is_some_and(|(b, r)| {
+        self.locate(id).is_some_and(|(b, r, _phase)| {
+            #[cfg(feature = "two-run-blocks")]
+            if _phase == 1 {
+                return b.extension.as_ref().is_some_and(|e| e.facts[r].is_none());
+            }
             b.facts[r * b.ops.len()..(r + 1) * b.ops.len()]
                 .iter()
                 .all(Option::is_none)
@@ -163,6 +246,8 @@ impl Store {
         let i = found.unwrap_or_else(|| {
             let i = self.slabs.len();
             self.slabs.push(Slab {
+                #[cfg(feature = "two-run-blocks")]
+                extension: None,
                 template: t,
                 slots: c.values.keys().copied().collect(),
                 ops: c.facts.keys().copied().collect(),
@@ -176,6 +261,10 @@ impl Store {
         });
         let b = &mut self.slabs[i];
         let r = b.records.len();
+        #[cfg(feature = "two-run-blocks")]
+        if let Some(e) = &mut b.extension {
+            e.links.push(0);
+        }
         if let Some(parents) = &mut b.parents {
             parents.push(c.parent.unwrap());
         }
@@ -192,12 +281,23 @@ impl Store {
         Ok(())
     }
     pub fn remove(&mut self, id: u32) -> bool {
-        let Some((i, r)) = self.location(id) else {
+        let Some((i, r, _phase)) = self.location(id) else {
             return false;
         };
         self.directory.borrow_mut().set(id, 0);
         self.live -= 1;
+        #[cfg(feature = "two-run-blocks")]
+        if _phase == 1 {
+            assert!(self.slabs[i].extension.as_ref().unwrap().facts[r].is_none());
+            self.remove_child(i, r);
+            self.stats.removed += 1;
+            return true;
+        }
         let b = &mut self.slabs[i];
+        #[cfg(feature = "two-run-blocks")]
+        if let Some(e) = &b.extension {
+            assert_eq!(e.links[r], 0, "detach child before owner removal");
+        }
         let last = b.records.len() - 1;
         for col in 0..b.slots.len() {
             b.values
@@ -210,6 +310,15 @@ impl Store {
         b.values.truncate(last * b.slots.len());
         b.facts.truncate(last * b.ops.len());
         b.records.swap_remove(r);
+        #[cfg(feature = "two-run-blocks")]
+        if let Some(e) = &mut b.extension {
+            e.links.swap_remove(r);
+            if r < last
+                && let Some(child) = e.links[r].checked_sub(1)
+            {
+                e.children[child as usize].owner = r as u32;
+            }
+        }
         if let Some(parents) = &mut b.parents {
             parents.swap_remove(r);
         }
@@ -222,7 +331,25 @@ impl Store {
         true
     }
     pub fn context(&self, f: FactRef, epoch: u64) -> Option<producer::Context> {
-        let (b, r) = self.locate(f.cell)?;
+        let (b, r, _phase) = self.locate(f.cell)?;
+        #[cfg(feature = "two-run-blocks")]
+        if _phase == 1 {
+            let e = b.extension.as_ref()?;
+            let c = e.children[r];
+            if f.op as usize != e.plan.child_op || e.facts[r].is_none() {
+                return None;
+            }
+            self.contexts.set(self.contexts.get() + 1);
+            self.cross_run_contexts
+                .set(self.cross_run_contexts.get() + u64::from(c.born < epoch));
+            return Some(producer::Context {
+                completed: true,
+                cell: f.cell,
+                template: e.plan.consumer_template,
+                depth: c.depth,
+                op: f.op as usize,
+            });
+        }
         b.facts[r * b.ops.len() + b.ops.binary_search(&f.op).ok()?].as_ref()?;
         let row = &b.records[r];
         self.contexts.set(self.contexts.get() + 1);
@@ -237,14 +364,25 @@ impl Store {
         })
     }
     pub fn report(&self) -> J {
-        json!({"enabled":self.enabled,"live_records":self.live,"slabs":self.slabs.len(),
+        let mut report = json!({"enabled":self.enabled,"live_records":self.live,"slabs":self.slabs.len(),
             "stats":self.stats,"context_requests":self.contexts.get(),"cross_run_context_requests":self.cross_run_contexts.get(),
             "parameter_values":self.slabs.iter().map(|b|b.values.len()).sum::<usize>(),
             "fact_positions":self.slabs.iter().map(|b|b.facts.iter().filter(|s|s.is_some()).count()).sum::<usize>(),
             "slab_capacity_bytes":self.slabs.iter().map(|b|b.values.capacity()*std::mem::size_of::<Value>()+b.facts.capacity()*std::mem::size_of::<Option<FactState>>()+b.records.capacity()*std::mem::size_of::<Record>()+b.parents.as_ref().map_or(0,|v|v.capacity()*std::mem::size_of::<FactRef>())).sum::<usize>(),
             "borrowed_parent_records":self.slabs.iter().map(|b|b.parents.as_ref().map_or(0,Vec::len)).sum::<usize>(),
             "directory_kind":"shared-tagged-cell-directory","max_slabs":SLAB_LIMIT,"max_rows_per_slab":ROW_LIMIT,
-            "directory_capacity":self.directory.borrow().capacity()})
+            "directory_capacity":self.directory.borrow().capacity()});
+        report["physical_rows"] = json!(self.slabs.iter().map(|b| b.records.len()).sum::<usize>());
+        #[cfg(feature = "two-run-blocks")]
+        {
+            let (_, fused, bytes) = self.phase_rows();
+            report["fused_rows"] = json!(fused);
+            report["child_column_capacity_bytes"] = json!(bytes);
+            report["fact_positions"] = json!(
+                report["fact_positions"].as_u64().unwrap() + self.extra_fact_positions() as u64
+            );
+        }
+        report
     }
 }
 
@@ -292,12 +430,19 @@ impl Graph {
             });
         let (_, frame) = self.active_rhs.take().unwrap();
         if allowed {
+            #[cfg(feature = "two-run-blocks")]
+            let frame = match self.try_two_run(id, frame) {
+                Ok(()) => return true,
+                Err(frame) => frame,
+            };
             let parent = frame.parent;
             match self.port_frames.insert(id, frame) {
                 Ok(()) => {
                     if let Some(parent) = parent {
                         self.retain_reference(parent);
                     }
+                    #[cfg(feature = "two-run-blocks")]
+                    self.survey_two_run(id);
                 }
                 Err(frame) => {
                     self.port_frames.stats.fallback += 1;
@@ -474,5 +619,57 @@ mod tests {
         g.collect_garbage();
         assert!(g.slot(20, 0).is_err());
         assert!(g.slot(10, 0).is_err());
+    }
+    #[cfg(feature = "two-run-blocks")]
+    #[test]
+    fn fused_child_and_owner_moves_keep_projection_addresses_valid() {
+        let mut s = Store::default();
+        let parents = Parents::default();
+        let plan = std::rc::Rc::new(two_run::Plan {
+            producer_template: 0,
+            producer_op: 2,
+            consumer: 1,
+            consumer_template: 1,
+            pivot: 0,
+            child_op: 2,
+            inputs: vec![(0, Arg::Slot(0))],
+        });
+        for (owner, child, value) in [(10, 111, 7), (20, 121, 8), (30, 131, 9)] {
+            s.insert(owner, frame(value)).unwrap();
+            let mut c = frame(value);
+            c.template = 1;
+            c.started_epoch = 2;
+            s.attach(
+                FactRef { cell: owner, op: 2 },
+                child,
+                c,
+                plan.clone(),
+                &parents,
+                2,
+            )
+            .unwrap();
+        }
+        let (id, c) = s.detach_child(20).unwrap();
+        assert_eq!(id, 121);
+        assert_eq!(c.values[&0], Value::Int(8));
+        s.remove(20);
+        assert_eq!(s.value(131, 0), Some(&Value::Int(9)));
+        s.take_state(FactRef { cell: 111, op: 2 });
+        s.remove(111);
+        assert_eq!(s.value(131, 0), Some(&Value::Int(9)));
+        assert_eq!(s.detach_child(30).unwrap().1.values[&0], Value::Int(9));
+    }
+    #[cfg(feature="two-run-blocks")]
+    #[test]
+    fn fusion_guards_leave_storage_unchanged_on_failure(){
+        let mut s=Store::default();s.insert(10,frame(7)).unwrap();
+        let f=FactRef{cell:10,op:2};let parents=Parents::default();
+        let plan=std::rc::Rc::new(two_run::Plan{producer_template:0,producer_op:2,consumer:1,consumer_template:1,pivot:0,child_op:2,inputs:vec![(0,Arg::Slot(0))]});
+        let child=|v|{let mut c=frame(v);c.template=1;c.started_epoch=2;c};
+        assert!(s.attach(f,20,child(8),plan.clone(),&parents,2).is_err());
+        assert!(s.attach(f,20,child(7),plan.clone(),&parents,1).is_err());
+        s.state_mut(f).unwrap().hidden=true;
+        assert!(s.attach(f,20,child(7),plan,&parents,2).is_err());
+        assert_eq!(s.live,1);assert!(s.template(20).is_none());assert_eq!(s.phase_rows().1,0);
     }
 }
