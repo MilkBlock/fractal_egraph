@@ -1,9 +1,9 @@
-#set document(title: "Compiling scheduled egglog rules into reusable CPU execution blocks",author:"Eggfuse research project",date:datetime(year:2026,month:11,day:5))
+#set document(title: "Compiling scheduled egglog rules into reusable CPU execution blocks",author:"Eggfuse research project",date:datetime(year:2026,month:11,day:6))
 #let navy=rgb("#17394b")
 #let green=rgb("#126f65")
 #let muted=rgb("#506772")
 #let light=rgb("#eef4f5")
-#set page(paper:"a4",margin:(x:18mm,top:19mm,bottom:19mm),header:context [#set text(font:"Avenir Next",size:8pt,fill:muted); #align(left)[EGGFUSE   /   SYSTEMS RESEARCH #h(1fr) EXECUTION ARCHITECTURE]],footer:context [#line(length:100%,stroke:0.45pt+rgb("#bbcbd0"))#v(3pt)#set text(font:"Avenir Next",size:8pt,fill:muted); 5 November 2026 #h(1fr) Technical report   ·   #counter(page).display("1")])
+#set page(paper:"a4",margin:(x:18mm,top:19mm,bottom:19mm),header:context [#set text(font:"Avenir Next",size:8pt,fill:muted); #align(left)[EGGFUSE   /   SYSTEMS RESEARCH #h(1fr) EXECUTION ARCHITECTURE]],footer:context [#line(length:100%,stroke:0.45pt+rgb("#bbcbd0"))#v(3pt)#set text(font:"Avenir Next",size:8pt,fill:muted); 6 November 2026 #h(1fr) Technical report   ·   #counter(page).display("1")])
 #set text(font:"Palatino",size:10.5pt,fill:rgb("#172f39"),lang:"en")
 #set par(leading:0.66em,justify:false)
 #show heading: set text(font:"Avenir Next",fill:navy)
@@ -12,6 +12,7 @@
 #show raw:set text(font:"Menlo",size:8.3pt)
 #show link:set text(fill:green)
 #let data=json("report-data.json")
+#let mem=json("memory-update.json")
 #let tip(body)=block(width:100%,inset:(x:11pt,y:8pt),fill:light,stroke:(left:2pt+green),body)
 #let cap(i,body)={v(1pt);text(font:"Avenir Next",size:8.8pt,fill:muted)[*Fig. #i*  #body];v(3pt)}
 #let kicker(s)=block(above:6pt,below:3pt,text(font:"Avenir Next",size:9pt,weight:"bold",fill:green,tracking:1pt,s))
@@ -40,6 +41,7 @@ Across #data.n tasks, the three captured schedules took #data.native_s s in nati
 
 #tip[*The adoption decision.* Prototype shared entry packets and checked register joins beneath egglog's existing evaluator. The current standalone backend has a concrete sum-bits endpoint discrepancy even though projected table counts agree. Treat the timing differences as architecture evidence. Require the native observable-result and extraction gates in §7 before enabling an alternative backend for production.]
 #v(5pt)
+#text(size:9pt,fill:muted)[Revision of 6 November. Section 9 adds a separate two-workload memory study. The full-suite measurements below use their original snapshot.]
 #text(size:9pt,fill:muted)[Source snapshot #raw("70b2910") · Apple M3 Max · arm64 macOS 27.0.1 · Rust 1.94.0. The corpus has 96 Bril/Rust workloads and 288 pass inputs. Scope, individual timings, replay scripts, witness and input digests are included in the companion artifact.]
 
 #pagebreak()
@@ -183,6 +185,70 @@ The first three rows are the largest regressions among the covered tasks; the la
 *Reproducibility.* The data package contains the 288 flat programs, raw eggcc inputs, compact production summaries, the frozen donor, full per-run JSONL and CSV, and Cargo-backed replay code. Keys are workload path plus pass number. Duplicate basenames remain distinct. Source links point to the tested commit. The unpinned workstation had concurrent system activity. Alternating order and repeating three anchors reduces some timing noise; the full-corpus single samples have no per-task confidence interval. Automatic context cuts, reference views, local saturation, union grafts and GPU execution were outside this fixed policy. The suite provides evidence about this pinned revision and machine. Other egglog releases, architectures and thread counts require their own measurements.
 
 #pagebreak()
+= 9. Memory and cross-Run lifetime
+#kicker("6 NOVEMBER 2026   /   TWO-WORKLOAD UPDATE")
+This follow-up measures the standalone Cell CPU engine at #raw("27f098a2") and the lifetime changes implemented in #raw("4d9ea942"). It uses the frozen sum-bits and Raytrace Pass 3 artifacts, their original 64-unit Bake catalog, one CPU thread and ordinary release builds. These runs add evidence about memory to the earlier suite. Their timing matrix has its own control; no PGO is used here.
+
+#grid(("Pass 3","Control ms","Reclaimed ms","Control MiB","Reclaimed MiB"),
+ mem.outcomes,(1.0fr,1fr,1.05fr,1fr,1.1fr),sz:8.8pt,pad:5pt)
+Raytrace's peak RSS fell by *#mem.reduction_percent%*. In the same matrix, complete CLI medians were 10.373 and 10.374 s. The median of paired inference differences was +16.663 ms, with only one of four reclaimed runs faster. A lower ratio of medians therefore supplies little evidence of a latency improvement.
+
+#kicker("RECHECKING THE NATIVE MEMORY GAP")
+Two new runs of eggcc's pinned native egglog #raw("ebba7bb") executed the original unmarked Raytrace source with a verified one-worker pool. macOS #raw("time -l") recorded #mem.native_samples.at(0) and #mem.native_samples.at(1) MiB peak RSS; the median was #mem.native_rss MiB. Native timing included parsing, initialization and inference, without a graph export. Cell RSS was sampled after inference and before its export, including its artifact loader and generated tables. The control/native memory ratio was approximately *#mem.old_native_ratio×*, falling to *#mem.new_native_ratio×* with reclamation. Source and binary hashes accompany the measurements.
+
+#kicker("COUNT LIVE ALLOCATIONS ONCE")
+A diagnostic allocator attributes requested bytes to the allocating operation and subtracts them on deallocation. A shared Rc allocation is charged once. Reallocation retains its original category. At Raytrace inference completion it counted *#mem.allocation_total MiB* still live.
+
+#grid(("Allocation origin","Live requested MiB"),mem.allocation.slice(0,8),(2.7fr,1.3fr),sz:8.6pt,pad:3pt)
+The largest remaining categories include RHS (62.6 MiB), Sieve (22.1 MiB) and captured history (2.3 MiB). Allocation origin can differ from the eventual owner: matched parameters can become persistent Cell slots. Category peaks occur at different times. The ledger excludes allocator fragmentation and C allocations; its instrumented timing and RSS are excluded from the speed comparison.
+
+#text(size:8.5pt,fill:muted)[Evidence: #raw("evidence/memory-lifetimes.json"), rendered by #raw("reproduce/render-memory-data.py"). The original 96-workload tables retain their earlier source revision and measurement dates.]
+
+#pagebreak()
+= Consumers determine retention
+A shared entry node owns a set of declared rule consumers. After a source ruleset occurrence, each rule's logical watermark advances, including rules omitted by the ready set. The node can release a materialized packet once its epoch is *strictly below every consumer's watermark*. An equal epoch can still seed a match. A rule appearing in several sets advances with its latest actual occurrence.
+
+The implementation keeps a compact membership header so join planning sees the same cardinality. A changed fact can rebuild its packet through the existing publication stream. An explicitly older watermark request marks the node cold and reconstructs its visible rows. Reclamation can run immediately or conservatively every 32 graph epochs. The latter delays release without advancing the readers.
+
+On Raytrace, immediate reclamation reduced retained entry packets from *#mem.entry_packets.at(0)* to *#mem.entry_packets.at(1)*. Entry-origin requested storage fell from 149.0 to 72.4 MiB. There were 882,328 retirements over the schedule, including repeated incarnations of some witnesses.
+
+#kicker("COMPLETION RECEIPTS NEED FEWER PRODUCER OWNERS")
+The final Raytrace Cell graph has 1,034,514 logical rows. Generated #raw("CellSpineView*") tables account for 213,334; #raw("CellSpineApplied*") tables account for 121,502. Together they contribute *#mem.generated_percent%* of the rows. This table-name grouping describes the measurement. The optimization uses executable read contracts.
+
+The three populated Applied tables have no declared query or RHS readers. Their Unit values use an old-value merge. The compiler derives origin demand from all rule queries, executable table reads and calls in merge expressions. It checks an emitted certificate against the target program. An unread receipt can keep its key, value and rebuild identity while releasing its optional creating-frame reference. An assertion or later declared rule that reads the table retains that producer.
+
+#grid(("Pass 3","Full live Cells","Embedded snapshots","Both forms"),
+ mem.physical,(.75fr,1.45fr,1.45fr,1.5fr),sz:8.0pt,pad:5pt)
+Some remaining producers change from full Cells into embedded snapshots after an unnecessary second owner is removed. The combined count measures that distinction. Every completion-table row stays in the logical export. A caller choosing the new mode can receive #raw("None") from the optional origin accessor for an unread receipt.
+
+#kicker("RELEASE VALIDATION IR AFTER INITIALIZATION")
+A teardown probe freed about 323.7 MiB by dropping the original Raytrace validation JSON, plus 17.1 MiB for its input buffer. The explicit #raw("--release-source-artifact") option releases these after runtime plans are initialized. Typed plans, structural-key nodes and the original source SHA remain available. The residual object has a provenance-only schema, which the source loader rejects. Offline Bake or revalidation requires reloading the original artifact.
+
+For sum-bits, the combined live-requested footprint fell from 131.99 to 22.08 MiB, while peak RSS changed by much less. Its parser/setup high-water had already occurred. This separates the benefit of reclaiming completed input state from the cost of initially loading it.
+
+#pagebreak()
+= Cost, correctness and remaining scope
+The primary Raytrace matrix isolates entry retirement from validation-IR release.
+
+#grid(("Arm","Inference s","Peak RSS MiB"),mem.factorial,(2fr,1fr,1.2fr),sz:9pt,pad:5pt)
+The final matrix combines all three changes, with 32-epoch retirement. It rotates eight processes per sum-bits arm and four per Raytrace arm. Compilation and diagnostic runs are outside the measurements.
+
+#grid(("Pass 3","Paired delta","Faster pairs","Control CLI ms","Reclaimed CLI ms"),mem.paired,(.9fr,1.1fr,.8fr,1.2fr,1.3fr),sz:8.3pt,pad:5pt)
+The primary sum-bits retirement-only arm was slower in all eight pairs. The evidence supports a memory reduction with a small, workload-dependent maintenance cost. Both lifetime features remain opt-in.
+
+#kicker("AUDIT THE SAME SCHEDULED OBSERVATIONS")
+Full audits matched the frozen graph, schedule, ordered RHS inputs, effective writes and Spine trajectory. They include the combined mode and forced fingerprint/Sieve collisions. Twenty-eight runtime tests and fifteen compiler tests passed, covering reader lifetimes, backward watermark requests and rejected certificates.
+
+These are within-Cell checks. The grounded cross-engine witness in §7 requires its own resolution. The memory comparison alone establishes neither native semantic equivalence nor a completed twofold speed target.
+
+#kicker("WHAT CROSS-RUN COMPLETION CAN STILL ABSORB")
+History-reference trimming can recover only a few MiB in this measurement. Larger structures hold graph records, parameters, indexes and shared entry state. Future blocks should expose reader demand and last-use ports, then measure reconstruction costs against another retained row copy.
+
+Generated view and completion rows are the next candidate. A compressed form must still support required canonical-key lookups, union forwarding, last-writer publication and exports. Their generated origin alone cannot justify removal.
+
+#tip[*Reproduce the update.* #raw("reproduce/memory-replay.sh") accepts checkout #raw("4d9ea942") and two frozen program files. Features #raw("entry-retirement") and #raw("origin-demand") select lifetime optimizations; #raw("--release-source-artifact") releases validation IR. Bundled data contains all three matrices and their hashes.]
+
+#pagebreak()
 #let per=24
 #for start in range(0,data.tasks.len(),step:per) {
   if start>0 {pagebreak()}
@@ -223,3 +289,18 @@ eggcc 的真实生产链和独立重放给出了两个不同的答案。附录 B
 #v(5pt)
 #text(weight:"bold",fill:green)[现有证据支持多强的结论？]
 sum-bits 两端投影到原始表后都是 3,206 行，但正文给出的具体 TermSingle 在 Cell 端可见，原生 egglog 的查询失败。相同 check 在原生执行 marked 源码时也失败。要声称可以替换后端，还需要定位首次语义分歧，核对可见事实和等价类，并用各自的 Tiger 结果独立驱动完整三 pass，对比提取程序及其行为。本报告支持一次可以逐步验收的上游架构实验。
+
+#pagebreak()
+#set text(font:"Hiragino Sans GB",lang:"zh",size:10.7pt)
+#kicker("6 NOVEMBER UPDATE   /   内存与跨 Run 生命周期")
+#text(size:21pt,weight:"bold",fill:navy)[让消费关系决定状态保留多久]
+#v(8pt)
+本轮从 #raw("27f098a2") 出发，在固定的 sum-bits 与 Raytrace Pass 3 上测试独立 Cell CPU 引擎。Raytrace 峰值 RSS 从 1,856.79 降到 1,432.68 MiB，减少 22.8%。原生 egglog 在未加 marker 的对应源码上，两次单线程测得 462.375 和 450.047 MiB，均包含解析、初始化和推理，未导出图。Cell 的峰值在导出前采样，包含编译产物加载。两类表示的内存比约从 4.07 倍降到 3.14 倍。
+
+编译器首先列出共享入口的全部消费者。所有消费者都越过某个 epoch 后，引擎释放该 epoch 的旧材料化行，并保留准确的成员基数。后来的变更可以重建行；请求更早的 watermark 也会触发重建。Raytrace 留存的入口包从 665,584 降到 82,355。
+
+另一项分析检查 Unit 完成表是否存在声明的读者。无人读取来源的完成记录继续保留键、值和修复身份，同时解除对生产者 Cell 的保活。完整 Cell 与紧凑来源快照合计从 687,913 降到 648,737。第三项显式选项在运行结构初始化后释放验证用 JSON 和输入缓冲；后续离线 Bake 需要重载原文件。
+
+合用三项改动后，Raytrace 推理中位数为 6.746 → 6.717 秒，但逐对差异的中位数为 +16.663 ms，四对中只有一对更快。因此本轮证据主要支持内存收益。逐 Run 的 RHS、有效写入、Spine 接续、调度和最终图与冻结 Cell 参考一致。第 7 节的跨引擎具体语义差异仍需要单独解决。
+
+分配统计还显示，History 产生的存活申请量约 2.3 MiB。更大的空间在图存储、参数、索引和共享入口里。最终图中生成的 View 与 Applied 表共占约 32.4% 的行；进一步压缩这些记录，需要证明它们在后续查询、union 转发、锚点发布与导出中的可观察行为。

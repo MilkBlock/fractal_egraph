@@ -26,3 +26,7 @@ for cid in set(p['directory'] for p in pairs):
 assert j('semantic-audit.json')['cell_state_sha256']==survey['bril/core/sum-bits.bril',3]['state_sha256']
 assert j('grounded-check.json')['result'][0]=='missing grounded key'
 print('Verified 96 workloads, 288 measurements per backend, all input hashes, 15 paired trials and the Cell witness endpoint.')
+
+# The memory follow-up has its own source snapshot and paired controls.
+import subprocess,sys
+subprocess.run([sys.executable,str(r/"reproduce/render-memory-data.py"),"--check"],check=True)

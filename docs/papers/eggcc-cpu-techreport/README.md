@@ -40,3 +40,40 @@ python3 reproduce/check-endpoint.py out-one/original-core.json out-one/native-ex
 Run `python3 reproduce/figures.py`, `python3 reproduce/render-data.py` and `typst compile eggfuse.typ` to rebuild the report from the supplied data. The PDF includes links to pinned source files and to the original egglog paper. This artifact was prepared for review and has not been submitted to upstream.
 
 The packaged `one` command was executed from a fresh Cargo target. Its sum-bits result completed 1,428 Runs, reproduced the survey state hash, and reproduced the native witness failure. See **evidence/clean-reproduction.json**. Use `python3 reproduce/verify-data.py` to check the full data bundle.
+
+## Memory update, 6 November 2026
+
+Section 9 and the added Chinese maintainer note report the separate two-workload
+memory study based on `27f098a2`, implemented at
+`4d9ea942b665a38df46ca673776e39314237841a` and documented at
+`0f3a4fda4ddd4406e403f570a414395dc5908e73`. These commits belong to the local
+`codex/cell-context-memory` research branch. The original full-suite source and
+the grounded semantic witness have their own pinned provenance.
+
+`evidence/memory-lifetimes.json` is an exact copy of that study's committed
+results. It includes allocation snapshots, all three timing matrices, native
+runner/source fingerprints, and the frozen Cell audit digests.
+`memory-update.json` is a rendering derivative. Regenerate and validate it with
+
+```sh
+python3 reproduce/render-memory-data.py
+typst compile eggfuse.typ eggfuse.pdf
+```
+
+To replay the control and combined memory configuration, check out the memory
+implementation separately and supply existing frozen `program.json` inputs.
+The script requires absolute paths and a new output directory. It records the
+actual source commit and builds both executables with Cargo.
+
+```sh
+sh reproduce/memory-replay.sh /absolute/path/to/memory-worktree \
+  /absolute/path/to/sum-bits/program.json \
+  /absolute/path/to/raytrace/program.json \
+  /absolute/path/to/new-memory-results
+```
+
+This is a one-run reproduction of each arm. The reported paired study rotated
+fresh processes eight times per sum-bits arm and four per Raytrace arm.
+Enable `allocation-census` only for the independent memory ledger, and
+`slot-transfer-audit,spine-shapes` for ordered audit files. Diagnostic allocator
+timings and RSS are excluded from the performance tables.
