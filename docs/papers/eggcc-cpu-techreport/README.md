@@ -1,89 +1,125 @@
 # Eggfuse CPU architecture and eggcc benchmark artifact
 
-Open [eggfuse.pdf](eggfuse.pdf) for the technical report. The source is
-**eggfuse.typ**. The cover and Section 5 use the latest verified two-workload
-performance checkpoint, **502e29cd**, from **evidence/performance-acceptance.json**.
-The old performance tables and full-suite appendices have been replaced in the
-PDF. Their original data remains in this archive for provenance and replay.
-Section 8 contains the separately controlled memory study.
+Open [eggfuse.pdf](eggfuse.pdf) for the technical report; its source is
+[eggfuse.typ](eggfuse.typ). The main performance study compares **original native
+egglog against the standalone Cell CPU engine**, across all **96 workloads and
+288 frozen pass inputs**. Each input has three fresh-process measurements per
+backend. Appendix A plots every named workload with both inference totals;
+Appendix B lists all per-pass medians. No workload is excluded by its outcome.
 
-Rebuild the current report with
+The refreshed Cell source is `27f098a251b87449d25cc833aee7c32a7411d340`.
+The native comparator is the immutable `egglog-baseline` tag,
+`62ae6baa5539af4468a8f1a94d6e108de4dcd2df`. Both use one thread and ordinary Cargo
+release builds, without PGO or machine-specific code-generation overrides.
+Native executes the original **unmarked** input. Cell compiles that input using
+one common marker-training source and one fixed sum-bits iterative donor.
+
+Summed inference medians are **145.504 s native / 66.286 s Cell**, a **2.195×**
+ratio. The equal-weight workload geometric mean is **2.197×**; all 96 three-pass
+totals favor Cell. Excluding Raytrace gives **1.988×** by total inference time.
+Summed CLI medians are 165.828 / 141.316 s (**1.173×**), before offline preparation
+and with different output duties. Preparation adds 826.63 s for Cell artifacts.
+
+The capture corpus comes from eggcc `ae80f82`, whose archived production run used
+`egglog-experimental 08771f9`. Those production measurements are not the timing
+baseline. Each replay begins at a captured pass boundary; the three-pass sum is
+not a new end-to-end compiler run driven by either backend's extraction.
+
+## Regenerate the report and verify data
 
 ```sh
-python3 reproduce/render-performance-data.py
+python3 reproduce/render-current-data.py
 python3 reproduce/render-memory-data.py
+python3 reproduce/verify-data.py
 typst compile eggfuse.typ eggfuse.pdf
+shasum -a 256 -c SHA256SUMS
 ```
 
-The performance medians are 16.379 ms for sum-bits and 6,140.271 ms for Raytrace.
-Fixed-reference ratios are 2.056× / 2.200×; same-session original/candidate ratios
-are 1.849× / 1.988×. Candidate builds use native CPU, fat LTO, one codegen unit
-and profiles trained only on the opposite workload. These results cover two
-frozen Pass 3 inputs. The current report does not substitute these times into
-unmeasured workloads or the historical native egglog comparison.
+- [suite-current.jsonl](suite-current.jsonl): all three pairs for all 288 inputs,
+  medians, source/program hashes, preparation costs, deployed units, Cell Run
+  counts, bindings, resumed steps and endpoint hashes.
+- [benchmark-current.csv](benchmark-current.csv): one row per workload and pass,
+  including inference, CLI, RSS and preparation measurements.
+- [current-report-data.json](current-report-data.json): derived tables, aggregate
+  and equal-weight ratios, full workload names, tails and anchor measurements.
+- [evidence/suite-current-provenance.json](evidence/suite-current-provenance.json):
+  source, binary and training identities, build settings and measurement protocol.
+- `figures/workloads-current-1.svg` through `-4.svg`: four named workload plots
+  using one common log-ratio scale. `figures/suite-current.svg` is the overview.
 
-## Data and historical archive
+All 288 inputs completed. Final Cell endpoint hashes equal the archived Cell
+endpoints, and repeated processes agree on the graph, schedule hash, binding
+count and resumed-step count. These checks establish consistency within Cell.
+**They do not resolve the native/Cell membership difference in Section 7.**
+The concrete sum-bits witness remains an acceptance gate for a backend change.
 
-- [benchmark.csv](benchmark.csv) and [suite.jsonl](suite.jsonl) contain every survey result, flat and raw program digests, original benchmark source digests, offline preparation seconds, attached block counts, resumed steps, Cell bindings, final Cell state digests, native replay milliseconds, and archived production timing.
-- **paired.json** contains the independently repeated Pass 3 experiments, including warm-up block zero. CLI measurements include each executable's normal reporting/export behavior. They have different output obligations. The report uses the internal inference timers for engine comparisons.
-- **semantic-audit.json**, **grounded-check.json** and **witness-rows.json** document the sum-bits discrepancy. The frozen sum-bits Cell endpoint used for this check has the same SHA-256 as the sum-bits Pass 3 sweep row.
-- **evidence/** contains binary / source fingerprints, manifests, the historical repeated anchor data, diagnostic logs, and the two compressed exports used in the grounded comparison. The archived native exporter uses the local native fork. The independent membership check was run with the tagged timing executable.
-- **reproduce/captures.tar.gz** contains all captured raw and flat eggcc pass programs. The compact per-pass production report preserves aggregate fields. Full original report digests are in the manifest. The input programs are distributed under the included eggcc license. **donor.json.gz** contains the exact fixed 64-unit donor deployed in the survey.
+## Reproduce the current native comparison
 
-## Replay the historical full-suite experiment
-
-Clone [eggfuse](https://github.com/MilkBlock/eggfuse) including the `egglog-baseline` tag and checkout `70b291077252a8a6cfd9a00ebdd98f9599cd0c62`. Rust/Cargo, git, tar, gzip and Python 3.11+ are required. Run the following commands from the unpacked artifact in a clean shell. Output directories must be new.
+Requirements: Rust/Cargo, git, tar, gzip and Python 3.11+. Check out the measured
+Cell revision separately, including the immutable native baseline tag. Run from
+this artifact directory with a new output directory:
 
 ```sh
-sh reproduce/replay.sh /absolute/path/to/eggfuse out-one one
-sh reproduce/replay.sh /absolute/path/to/eggfuse out-survey suite
-sh reproduce/replay.sh /absolute/path/to/eggfuse out-anchors anchors
+sh reproduce/refresh-suite.sh /absolute/path/to/eggfuse-at-27f098a2 \
+  /absolute/path/to/new-native-cell-results
 ```
 
-All compiler, engine and helper binaries are built with Cargo. The transfer helper uses the public Rust compiler and loader to reconstruct blocks. The Python driver selects inputs and times fresh processes. It runs serially, discards generated graphs after hashing and records failures per arm. Native consumes `pass-i-flat.egg` directly. Cell compiles that unmarked program with the shared marker training input and transfers the same donor to each target. The runtime envelopes, sample order and workload sizes are in the report. Compile and artifact-link costs are recorded separately from inference. To reproduce the host's scheduling priority, invoke the replay script under `nice -n 10`.
+The script builds the compiler, engine, native adapter and catalog linker with
+Cargo. Its serial Python driver compiles/links each target once, alternates
+three fresh native/Cell process pairs, and discards graph exports after hashing.
+Pass order is P3, P1, P2. There is no excluded warm-up per input. Preparation is
+outside inference; sums and ratios are derived from per-pass medians. The
+unisolated workstation and three repetitions do not support strong claims about
+small timing differences.
 
-To reproduce the semantic witness, first run the single-case command. Then append the supplied assertion to the captured input and use the native executable built above.
+Native inference starts after initialization at the first RunSchedule. Cell
+inference includes scheduled search, RHS, repair and publication. CLI includes
+each tool's normal loading and output obligations; Cell exports the entire graph
+and report, while the native helper does not export. Native peak RSS covers the
+whole process, while Cell reports the peak through inference before export.
+
+The bundle includes all captured raw/flat programs in `reproduce/captures.tar.gz`
+and the fixed donor in `reproduce/donor.json.gz`. `evidence/manifest.json` preserves
+source identities and input digests. The accompanying eggcc license applies to
+the captured input programs.
+
+## Semantic witness
+
+The archived Cell and native exports have equal projected table counts, but a
+grounded TermSingle key is visible only in Cell. Appending the assertion to the
+original source fails in the native timing executable. After reproduction:
 
 ```sh
-cat out-one/capture/032-sum-bits/pass-3-flat.egg reproduce/sum-bits-witness.egg > out-one/witness.egg
-out-one/cargo-target/release/examples/count_fj out-one/witness.egg
+cat /absolute/path/to/new-native-cell-results/capture/032-sum-bits/pass-3-flat.egg \
+  reproduce/sum-bits-witness.egg > /absolute/path/to/new-native-cell-results/witness.egg
+/absolute/path/to/new-native-cell-results/native \
+  /absolute/path/to/new-native-cell-results/witness.egg
 ```
 
-The timed tag executable returns `CheckError`. To inspect the grounded table difference with the archived native exporter, unpack the comparison inputs and run the read-only checker.
+The expected result is `CheckError`. `semantic-audit.json`, `grounded-check.json`,
+`witness-rows.json`, the compressed exports in `evidence/`, and
+`reproduce/check-endpoint.py` retain the grounded comparison. The report proposes
+an alternative matcher inside native semantic ownership as the first upstream
+experiment; it does not claim a verified drop-in backend replacement.
 
-```sh
-gzip -dc evidence/original-core.json.gz > out-one/original-core.json
-gzip -dc evidence/native-export.json.gz > out-one/native-export.json
-python3 reproduce/check-endpoint.py out-one/original-core.json out-one/native-export.json out-one/measured/state.json
-```
+`evidence/suite-current-reproduction.json` records a successful one-pair smoke
+test of the packaged driver and a fresh native witness failure. This extra pair
+is outside the three-pair full-suite measurements. The exact measured driver is
+archived as `evidence/suite-current-driver.py`; the portable entry point is
+`reproduce/refresh-suite.py`.
 
-The archived suite figures and derived tables can be regenerated with `python3 reproduce/figures.py` and `python3 reproduce/render-data.py`. Use the performance and memory renderers above for the current report. The PDF includes links to pinned source files and to the original egglog paper. This artifact was prepared for review and has not been submitted to upstream.
+## Separate memory study
 
-The packaged `one` command was executed from a fresh Cargo target. Its sum-bits result completed 1,428 Runs, reproduced the survey state hash, and reproduced the native witness failure. See **evidence/clean-reproduction.json**. Use `python3 reproduce/verify-data.py` to check the full data bundle.
+Section 9 uses its own ordinary-release paired control at `27f098a2`, with
+lifetime changes implemented at `4d9ea942b665a38df46ca673776e39314237841a` and
+documented at `0f3a4fda4ddd4406e403f570a414395dc5908e73`. These commits belong to
+`codex/cell-context-memory`. Do not combine this study's lower RSS with the
+96-workload suite's faster times as if they described one measured executable.
 
-## Memory update, 6 November 2026
-
-Section 8 and the Chinese maintainer note report the separate two-workload
-memory study based on `27f098a2`, implemented at
-`4d9ea942b665a38df46ca673776e39314237841a` and documented at
-`0f3a4fda4ddd4406e403f570a414395dc5908e73`. These commits belong to the local
-`codex/cell-context-memory` research branch. The original full-suite source and
-the grounded semantic witness have their own pinned provenance.
-
-`evidence/memory-lifetimes.json` is an exact copy of that study's committed
-results. It includes allocation snapshots, all three timing matrices, native
-runner/source fingerprints, and the frozen Cell audit digests.
-`memory-update.json` is a rendering derivative. Regenerate and validate it with
-
-```sh
-python3 reproduce/render-memory-data.py
-typst compile eggfuse.typ eggfuse.pdf
-```
-
-To replay the control and combined memory configuration, check out the memory
-implementation separately and supply existing frozen `program.json` inputs.
-The script requires absolute paths and a new output directory. It records the
-actual source commit and builds both executables with Cargo.
+`evidence/memory-lifetimes.json` preserves all three matrices, allocation
+snapshots, native source/binary fingerprints and Cell audit digests.
+`memory-update.json` is a derived rendering. To replay the two memory arms,
+supply frozen Cell program files and a fresh output directory:
 
 ```sh
 sh reproduce/memory-replay.sh /absolute/path/to/memory-worktree \
@@ -92,8 +128,24 @@ sh reproduce/memory-replay.sh /absolute/path/to/memory-worktree \
   /absolute/path/to/new-memory-results
 ```
 
-This is a one-run reproduction of each arm. The reported paired study rotated
-fresh processes eight times per sum-bits arm and four per Raytrace arm.
-Enable `allocation-census` only for the independent memory ledger, and
-`slot-transfer-audit,spine-shapes` for ordered audit files. Diagnostic allocator
-timings and RSS are excluded from the performance tables.
+This command executes one process per arm. The reported matrix rotated eight
+processes per sum-bits arm and four per Raytrace arm. Allocator instrumentation
+and ordered audits use separate diagnostic builds; their timing and RSS are
+excluded from the performance table.
+
+## Preserved historical evidence
+
+`benchmark.csv`, `suite.jsonl`, `report-data.json` and `paired.json` retain the
+original `70b2910` survey and repeated anchors. `reproduce/replay.sh`,
+`reproduce/sweep.py`, `reproduce/render-data.py` and `reproduce/figures.py` replay
+or render that original study. `evidence/clean-reproduction.json` records its
+fresh-Cargo single-case reproduction. The production profiles remain archived
+with the captures; they are not mixed into the refreshed replay medians.
+
+`evidence/performance-acceptance.json`, `performance-update.json` and
+`reproduce/render-performance-data.py` preserve a separate two-workload Cell
+checkpoint at `502e29cd`, using cross-workload PGO, native CPU and fat LTO. It is
+not the native baseline and does not supply the current PDF's main comparisons.
+
+The artifact is prepared for review. No upstream submission or publication is
+performed by these scripts.

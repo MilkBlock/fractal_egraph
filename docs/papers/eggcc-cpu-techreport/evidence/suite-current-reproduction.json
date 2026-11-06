@@ -1,0 +1,52 @@
+{
+  "implementation": "27f098a251b87449d25cc833aee7c32a7411d340",
+  "purpose": "One-pair smoke test of the portable packaged driver, outside the three-pair timing matrix; repeated native semantic witness.",
+  "portable_driver_sha256": "9c5fddf375530cd4101238439d34e595c672eb0b5f03fede88c932fdd9763109",
+  "pilot": {
+    "case": "bril/core/sum-bits.bril",
+    "directory": "032-sum-bits",
+    "pass_number": 3,
+    "source_sha256": "6faf80f228e5d80e1868a9e84a7b73d8779d820aff67d5de5e43616f6111983b",
+    "flat_sha256": "29b8396e56c0a08bc11ca9e5d52afdc25c138e5e4731d2780484bb004b3686d1",
+    "samples": [
+      {
+        "i": 1,
+        "order": [
+          "cell",
+          "native"
+        ],
+        "cell_ms": 18.269875000000003,
+        "cell_cli_ms": 126.73216703115031,
+        "cell_rss_bytes": 176914432,
+        "native_ms": 45.387,
+        "native_cli_ms": 125.49812498036772,
+        "native_rss_bytes": 38027264
+      }
+    ],
+    "status": "complete",
+    "units": 64,
+    "prepare_s": 3.0903239590115845,
+    "program_sha256": "b425d1bf6606c64382cab81c587ad4019e75a71c3b5bc271a4a4936dd0575489",
+    "recipe_sha256": "3270d6f77a99b915be0c279e3c0f4f7ec3887804d3767b9ed3581dfd9eb998e7",
+    "state_sha256": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+    "schedule_sha256": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+    "runs": 1428,
+    "bindings": 10226,
+    "resumed": 3034,
+    "matches_historical_cell_endpoint": true,
+    "native_ms": 45.387,
+    "cell_ms": 18.269875000000003,
+    "native_cli_ms": 125.49812498036772,
+    "cell_cli_ms": 126.73216703115031,
+    "native_rss_bytes": 38027264,
+    "cell_rss_bytes": 176914432,
+    "speedup": 2.4842534500099203
+  },
+  "native_witness": {
+    "returncode": 1,
+    "result": "CheckError",
+    "input_sha256": "0009d78d335aa9b7ec17c0255bd9d083079ea70f666d24bc7c0aa25fd3f96632",
+    "native_binary_sha256": "d618493c0793cdd358850e34abfd2132a8ccad837c386f028d57a9aa6e72eaf8",
+    "log": "evidence/suite-current-witness.log"
+  }
+}

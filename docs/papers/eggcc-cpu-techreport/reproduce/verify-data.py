@@ -32,3 +32,23 @@ import subprocess,sys
 subprocess.run([sys.executable,str(r/"reproduce/render-memory-data.py"),"--check"],check=True)
 
 subprocess.run([sys.executable,str(r/"reproduce/render-performance-data.py"),"--check"],check=True)
+
+# The current native comparison keeps every measured repetition and endpoint.
+subprocess.run([sys.executable,str(r/"reproduce/render-current-data.py"),"--check"],check=True)
+provenance = j('evidence/suite-current-provenance.json')
+for path, expected in (
+    (provenance['executed_driver'], provenance['source_files']['runner.py']),
+    ('reproduce/native-inference.rs', provenance['source_files']['native_helper.rs']),
+    ('reproduce/transfer.rs', provenance['source_files']['transfer.rs']),
+    ('evidence/manifest.json', provenance['source_capture_manifest_sha256']),
+):
+    assert hashlib.sha256((r/path).read_bytes()).hexdigest() == expected, path
+print('Verified the refreshed study measurement sources and input manifest.')
+smoke = j('evidence/suite-current-reproduction.json')
+assert smoke['pilot']['status'] == 'complete'
+assert smoke['pilot']['matches_historical_cell_endpoint']
+assert smoke['native_witness']['result'] == 'CheckError'
+assert smoke['native_witness']['returncode'] != 0
+assert 'CheckError' in (r/smoke['native_witness']['log']).read_text()
+assert smoke['portable_driver_sha256'] == hashlib.sha256((r/'reproduce/refresh-suite.py').read_bytes()).hexdigest()
+print('Verified the portable driver smoke test and repeated native witness.')
