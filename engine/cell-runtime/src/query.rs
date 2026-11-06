@@ -100,20 +100,27 @@ impl Columns {
             .iter()
             .map(|v| fingerprint(v, bits))
             .collect::<smallvec::SmallVec<[u64; 4]>>();
-        if self.keys.get(&row.witness) == Some(&keys) {
-            // Equal fingerprints do not prove unchanged exact values (including
-            // forced collisions). Every changed witness invalidates read leases.
-            if watch_reads {
-                for (col, key) in keys.iter().enumerate() {
-                    let Some(column)=self.values[col].get_mut() else { continue };
-                    let bucket = column.get_mut(key).unwrap();
-                    bucket.view = None;
-                    bucket.refinements.clear();
+        use std::collections::hash_map::Entry;
+        let old = match self.keys.entry(row.witness) {
+            Entry::Occupied(entry) if entry.get() == &keys => {
+                // Equal fingerprints do not prove unchanged exact values (including
+                // forced collisions). Every changed witness invalidates read leases.
+                if watch_reads {
+                    for (col, key) in keys.iter().enumerate() {
+                        let Some(column)=self.values[col].get_mut() else { continue };
+                        let bucket = column.get_mut(key).unwrap();
+                        bucket.view = None;
+                        bucket.refinements.clear();
+                    }
                 }
+                return (0, 0);
             }
-            return (0, 0);
-        }
-        let old = self.keys.insert(row.witness, keys.clone());
+            Entry::Occupied(mut entry) => Some(entry.insert(keys.clone())),
+            Entry::Vacant(entry) => {
+                entry.insert(keys.clone());
+                None
+            }
+        };
         let mut changed = 0;
         for (col, &key) in keys.iter().enumerate() {
             changed += usize::from(old.as_ref().is_none_or(|prior|prior[col]!=key));
@@ -578,7 +585,7 @@ impl QueryIndexes {
         let result = Rc::new(
             view.iter()
                 .copied()
-                .filter(|w| selectors.iter().all(|(c, k)| index.keys[w][*c] == *k))
+                .filter(|w| { let hashes = &index.keys[w]; selectors.iter().all(|(c,k)|hashes[*c]==*k) })
                 .collect::<Vec<_>>(),
         );
         self.refinements.avoided += (view.len() - result.len()) as u64;
@@ -633,7 +640,7 @@ impl QueryIndexes {
         let (col, key, size) = best.expect("nonempty subatom");
         let bucket = index.values[col].get_mut().expect("selected column").get_mut(&key).unwrap();
         if selectors.len() > 1 {
-            let matches = |w: &Dependency| selectors.iter().all(|&(c, k)| index.keys[w][c] == k);
+            let matches = |w: &Dependency| { let hashes = &index.keys[w]; selectors.iter().all(|&(c,k)|hashes[c]==k) };
             *examined += size as u64;
             if size == 1 {
                 if !matches(bucket.facts.first().unwrap()) {
@@ -679,7 +686,7 @@ impl QueryIndexes {
         selectors.len() == 1
             || bucket.facts.iter().any(|w| {
                 *examined += 1;
-                selectors.iter().all(|(c, h)| index.keys[w][*c] == *h)
+                { let hashes = &index.keys[w]; selectors.iter().all(|(c,h)|hashes[*c]==*h) }
             })
     }
     pub(crate) fn disjoint_small(&self, a: (usize,usize), b: (usize,usize), versions:(u64,u64), reads:&mut u64) -> bool {
@@ -772,7 +779,7 @@ impl QueryIndexes {
             .facts
             .iter()
             .copied()
-            .filter(|w| cols.iter().zip(keys).all(|(c, k)| index.keys[w][*c] == *k))
+            .filter(|w| { let hashes = &index.keys[w]; cols.iter().zip(keys).all(|(c,k)|hashes[*c]==*k) })
             .collect()
     }
 }
