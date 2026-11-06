@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="290" viewBox="0 0 750 290"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6a8291"/></marker></defs>
+<rect x="0" y="12" width="229" height="84" rx="7" fill="#e0f3ec" stroke="#b0c4cd"/>
+<text x="11" y="34" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Producer Run</text>
+<text x="11" y="56" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Rule 143 sees Get(t, i).</text>
+<text x="11" y="74" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">RHS builds Single(Get(t, i)).</text>
+<rect x="262" y="12" width="226" height="84" rx="7" fill="#efeafa" stroke="#b0c4cd"/>
+<text x="273" y="34" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Commit boundary</text>
+<text x="273" y="56" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Publish SubTuple(t, i, 1).</text>
+<text x="273" y="74" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Record its live fact handle.</text>
+<rect x="518" y="12" width="230" height="84" rx="7" fill="#fff2d6" stroke="#b0c4cd"/>
+<text x="529" y="34" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Learned edge</text>
+<text x="529" y="56" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Producer output position →</text>
+<text x="529" y="74" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">consumer rule and pivot</text>
+<polyline points="229,55 261,55" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="488,55 517,55" fill="none" stroke="#6a8291" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<rect x="262" y="150" width="226" height="94" rx="7" fill="#e0f3ec" stroke="#b0c4cd"/>
+<text x="273" y="172" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Consumer Run</text>
+<text x="273" y="194" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Rule 137 is scheduled.</text>
+<text x="273" y="212" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Check witness, epoch, keys</text>
+<text x="273" y="230" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">and required RHS receipts.</text>
+<rect x="518" y="150" width="230" height="94" rx="7" fill="#efeafa" stroke="#b0c4cd"/>
+<text x="529" y="172" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Covered operations</text>
+<text x="529" y="194" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Forward Get and Single.</text>
+<text x="529" y="212" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Suppress an already-equal</text>
+<text x="529" y="230" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">union after preflight.</text>
+<rect x="0" y="150" width="229" height="94" rx="7" fill="#eaf2fa" stroke="#b0c4cd"/>
+<text x="11" y="172" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16">Ordinary path</text>
+<text x="11" y="194" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">On failed guards, match or</text>
+<text x="11" y="212" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">execute the original recipe.</text>
+<text x="11" y="230" fill="#153345" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">A new key can still match.</text>
+<polyline points="374,96 374,149" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="633,96 633,119 424,119 424,149" fill="none" stroke="#6a8291" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<polyline points="488,196 517,196" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="262,203 230,203" fill="none" stroke="#6a8291" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="0" y="276" fill="#536b79" font-family="Helvetica,Arial,sans-serif" font-weight="400" font-size="14">Solid = scheduled data or effect path     Dashed = compiler-selected opportunity, checked on use</text>
+</svg>

@@ -1,0 +1,11 @@
+{
+  "result": [
+    "missing grounded key",
+    "TermSingle(TermBop(Add(), TermGet(TermArg(), ('i64', 'lit', '0')), TermBop(Sub(), TermGet(TermArg(), ('i64', 'lit', '1')), TermBop(Mul(), TermBop(Div(), TermGet(TermArg(), ('i64', 'lit', '1')), TermGet(TermArg(), ('i64', 'lit', '2'))), TermConst(Int(('i64', 'lit', '2')))))))",
+    "('TermSingle', (('Term', 'eq', 'Value(2199)'),))"
+  ],
+  "checked_before_stop": 245,
+  "class_pairs": 229,
+  "native_rows": 3206,
+  "cell_rows": 3206
+}

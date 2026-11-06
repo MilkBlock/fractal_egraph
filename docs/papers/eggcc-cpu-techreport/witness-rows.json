@@ -1,0 +1,318 @@
+[
+  {
+    "op": "Add",
+    "args": [],
+    "result": [
+      "eq",
+      "BinaryOp",
+      "Cell(10)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermArg",
+    "args": [],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(10943576670213)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermGet",
+    "args": [
+      [
+        "eq",
+        "Term",
+        "Cell(10943576670213)"
+      ],
+      [
+        "value",
+        "i64",
+        "0"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(11128260263945)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "Sub",
+    "args": [],
+    "result": [
+      "eq",
+      "BinaryOp",
+      "Cell(11)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermArg",
+    "args": [],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(10943576670213)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermGet",
+    "args": [
+      [
+        "eq",
+        "Term",
+        "Cell(10943576670213)"
+      ],
+      [
+        "value",
+        "i64",
+        "1"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(11132555231241)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "Mul",
+    "args": [],
+    "result": [
+      "eq",
+      "BinaryOp",
+      "Cell(13)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "Div",
+    "args": [],
+    "result": [
+      "eq",
+      "BinaryOp",
+      "Cell(12)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermArg",
+    "args": [],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(10943576670213)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermGet",
+    "args": [
+      [
+        "eq",
+        "Term",
+        "Cell(10943576670213)"
+      ],
+      [
+        "value",
+        "i64",
+        "1"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(11132555231241)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermArg",
+    "args": [],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(10943576670213)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermGet",
+    "args": [
+      [
+        "eq",
+        "Term",
+        "Cell(10943576670213)"
+      ],
+      [
+        "value",
+        "i64",
+        "2"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(11145440133129)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermBop",
+    "args": [
+      [
+        "eq",
+        "BinaryOp",
+        "Cell(12)"
+      ],
+      [
+        "eq",
+        "Term",
+        "Cell(11132555231241)"
+      ],
+      [
+        "eq",
+        "Term",
+        "Cell(11145440133129)"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(21844203667470)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "Int",
+    "args": [
+      [
+        "value",
+        "i64",
+        "2"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Constant",
+      "Cell(554050781219)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermConst",
+    "args": [
+      [
+        "eq",
+        "Constant",
+        "Cell(554050781219)"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(10930691768326)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermBop",
+    "args": [
+      [
+        "eq",
+        "BinaryOp",
+        "Cell(13)"
+      ],
+      [
+        "eq",
+        "Term",
+        "Cell(21844203667470)"
+      ],
+      [
+        "eq",
+        "Term",
+        "Cell(10930691768326)"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(22046067130382)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermBop",
+    "args": [
+      [
+        "eq",
+        "BinaryOp",
+        "Cell(11)"
+      ],
+      [
+        "eq",
+        "Term",
+        "Cell(11132555231241)"
+      ],
+      [
+        "eq",
+        "Term",
+        "Cell(22046067130382)"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(22316650070030)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermBop",
+    "args": [
+      [
+        "eq",
+        "BinaryOp",
+        "Cell(10)"
+      ],
+      [
+        "eq",
+        "Term",
+        "Cell(11128260263945)"
+      ],
+      [
+        "eq",
+        "Term",
+        "Cell(22316650070030)"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(22527103467534)"
+    ],
+    "subsumed": false
+  },
+  {
+    "op": "TermSingle",
+    "args": [
+      [
+        "eq",
+        "Term",
+        "Cell(22527103467534)"
+      ]
+    ],
+    "result": [
+      "eq",
+      "Term",
+      "Cell(22776211570696)"
+    ],
+    "subsumed": false
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "schema": "eggfuse-native-suite-refresh/v1",
+  "implementation": "27f098a251b87449d25cc833aee7c32a7411d340",
+  "native_baseline_tag_commit": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+  "eggcc_capture_revision": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+  "source_capture_manifest_sha256": "43e2b2c39e8b9c0ecebb7db899af75a1ae14005686e6f671716a0de8bead1213",
+  "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)",
+  "hardware": "Apple M3 Max",
+  "compiler_configuration": "ordinary release --locked; sparse-cells,view-ports,storage-metrics; no target-cpu override, LTO override or PGO",
+  "native_configuration": "Cargo release, native baseline helper count_fj, counters compiled out; EGraph::set_num_threads(1)",
+  "sample_design": "Three fresh native/Cell process pairs per workload and pass, alternating order by case, pass and repetition. No in-process warm-up. Native receives original unmarked flat source; Cell uses one shared marker-training source and a signature-transferred fixed donor. Preparation once per input, outside inference; per-pass medians are summed for a three-pass frozen-input comparison. Full production pipeline extraction is outside scope.",
+  "files": {
+    "native": "d618493c0793cdd358850e34abfd2132a8ccad837c386f028d57a9aa6e72eaf8",
+    "compiler": "966b16a803116d4f8f0a598654b20bc2e27b50f9a2da50d03d81ae2a8bc960b9",
+    "cell": "0b27ee627c07320fffdf9c283d1172857a82cb87c777dded860e2a80b061af26",
+    "transfer": "c52ff8b226444254faad9c14c2547a513c7cc7eaf6dc6b96cae8fff02a8b25b1",
+    "donor.json": "fa00d0dadcfca9e5195fc7162ff3784b98cd4bf03a7db5d41591c4fa273b593f",
+    "bake.egg": "6c40aff2c010c4101afba9cb596275db97811b925748ac8bf1e96e56729ed1ed"
+  },
+  "source_files": {
+    "transfer.rs": "371ff688a33f9f9c93cee82236412934be36e9de90eb85d87587ef39fdc33438",
+    "runner.py": "29e5cc65b380afa164334eda78699b755a3b66721619cf650331e5c1fd3c663e",
+    "native_helper.rs": "8ce8769cc3a1ab4256493fa81d28774009bff08a49b756ad5c474bd6f329dc4c"
+  },
+  "date": "2026-11-06",
+  "executed_driver": "evidence/suite-current-driver.py",
+  "portable_driver": "reproduce/refresh-suite.py",
+  "portable_driver_notes": "The packaged driver accepts an output directory, adds Linux RSS parsing, and classifies audit exceptions as failures even after timing fields are present. No sample in the measured study contains an arm error.",
+  "build_commands": [
+    "cargo build --release --locked --manifest-path tools/cell-compiler/Cargo.toml",
+    "cargo build --release --locked --manifest-path engine/cell-runtime/Cargo.toml --features sparse-cells,view-ports,storage-metrics",
+    "cargo build --release --locked --no-default-features --manifest-path native/egglog/Cargo.toml --example count_fj",
+    "cargo build --release --locked --manifest-path link/Cargo.toml"
+  ],
+  "native_helper_note": "A pinned baseline archive has only the bundled optional Free Join counter patch and inference-timing example applied. Counter hooks are constant-disabled when EGGLOG_COUNT_FREE_JOIN is unset during compilation. The measured native executable is the archived clean-Cargo native helper, reused byte-for-byte.",
+  "coverage": {
+    "workloads": 96,
+    "pass_inputs": 288,
+    "pairs_per_input": 3,
+    "timed_processes_per_backend": 864,
+    "failures": 0,
+    "cell_endpoints_equal_historical": 288
+  },
+  "measurement_results_sha256": "50c537ffcff0f129e45b776df91969b59e354695ddf60dd7dc6a8a8672a02d3a"
+}
