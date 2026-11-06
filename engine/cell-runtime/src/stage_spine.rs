@@ -1237,11 +1237,7 @@ impl Programs {
             if self.active_tables[t] == 0 { continue; }
             for w in changes.keys() {
                 let live = match *w {
-                    Dependency::Fact(f) => g
-                        .cells
-                        .get(&f.cell)
-                        .and_then(|c| c.facts.get(&f.op))
-                        .is_some_and(|f| !f.hidden),
+                    Dependency::Fact(f) => g.fact_state(f).is_some_and(|f| !f.hidden),
                     Dependency::Function(i) => g.functions.get(i).is_some_and(|f| f.live),
                 };
                 if live {

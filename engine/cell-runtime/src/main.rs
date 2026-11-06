@@ -38,6 +38,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         #[cfg(feature = "entry-retirement")]
         println!("  --entry-retire-interval N (default 1)");
         println!("  --release-source-artifact (discard validation IR after runtime setup)");
+        #[cfg(feature="port-frames")]
+        println!("  --port-frames (compact checked constructor blocks) [--frame-census]");
         #[cfg(feature = "deferred-incidence")]
         println!("  --deferred-incidence off|edges|on (delay reverse edges and row payloads)");
         return Ok(());
@@ -93,6 +95,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .ok_or("missing retirement interval")?;
             }
             "--audit-stages" | "--inspect-program" | "--release-source-artifact" => {}
+            #[cfg(feature = "port-frames")]
+            "--frame-census" => {}
+            #[cfg(feature = "port-frames")]
+            "--port-frames" => {}
             #[cfg(feature = "deferred-incidence")]
             "--deferred-incidence" => {
                 let value = flags.next().ok_or("missing incidence mode")?;
@@ -123,6 +129,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     let audit = args.iter().any(|x| x == "--audit-stages");
     let mut runtime = Executor::new(Graph::new(program)?, audit);
+    #[cfg(feature = "port-frames")]
+    runtime.graph.configure_frame_census(args.iter().any(|x|x=="--frame-census"));
+    #[cfg(feature = "port-frames")]
+    runtime.graph.configure_port_frames(args.iter().any(|x|x=="--port-frames"));
     #[cfg(feature = "deferred-incidence")]
     {
         let mode = opt("--deferred-incidence").unwrap_or_else(|| "off".into());
@@ -241,6 +251,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "keeper-proof")]
     runtime.write_keepers(&out)?;
     let mut report = runtime.report();
+    #[cfg(feature = "port-frames")]
+    { report["frame_census"] = runtime.graph.frame_census_report(); }
+    #[cfg(feature = "port-frames")]
+    { report["port_frames"] = runtime.graph.port_frames_report(); }
     #[cfg(feature = "allocation-census")]
     {
         report["allocation_census"] =

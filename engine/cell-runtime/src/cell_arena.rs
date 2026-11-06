@@ -1,15 +1,33 @@
 //! Dense live Cells with stable logical IDs. Removing a Cell relocates at
 //! most one physical record and fixes its reverse slot; FactRef IDs never move.
 use super::Cell;
+#[cfg(feature="port-frames")]
+#[path="cell_locations.rs"]
+mod locations;
+#[cfg(feature="port-frames")]
+pub(crate) use locations::{SharedDirectory,PORT_TAG};
 #[derive(Default)]
 pub struct Cells {
     records: Vec<(u32, Cell)>,
+    #[cfg(feature="port-frames")]
+    directory:SharedDirectory,
+    #[cfg(not(feature="port-frames"))]
     positions: Vec<u32>,
+    #[cfg(not(feature="port-frames"))]
     outliers: rustc_hash::FxHashMap<u32, u32>,
 }
 impl Cells {
+    #[cfg(feature="port-frames")]
+    pub(crate) fn directory(&self)->SharedDirectory{self.directory.clone()}
     #[inline]
     fn position(&self, id: &u32) -> Option<usize> {
+        #[cfg(feature="port-frames")]
+        {
+            let word=self.directory.borrow().get(*id);
+            if word&PORT_TAG!=0{return None;}
+            word.checked_sub(1).map(|i|i as usize)
+        }
+        #[cfg(not(feature="port-frames"))]
         {
             let v = self.positions.get(*id as usize).copied().unwrap_or(0);
             if v != 0 {
@@ -37,10 +55,16 @@ impl Cells {
         if let Some(i) = self.position(&id) {
             return Some(std::mem::replace(&mut self.records[i].1, c));
         }
+        #[cfg(not(feature="port-frames"))]
         let n = id as usize;
         let slot = u32::try_from(self.records.len() + 1)
             .expect("more live Cells than reserved identities");
+        #[cfg(feature="port-frames")]
+        {assert!(slot<PORT_TAG);assert_eq!(self.directory.borrow().get(id),0,"detach a port before promotion");}
         self.records.push((id, c));
+        #[cfg(feature="port-frames")]
+        self.directory.borrow_mut().set(id,slot);
+        #[cfg(not(feature="port-frames"))]
         if n <= self.positions.len().saturating_add(65_536) {
             if n >= self.positions.len() {
                 self.positions.resize(n + 1, 0);
@@ -53,6 +77,9 @@ impl Cells {
     }
     pub fn remove(&mut self, id: &u32) -> Option<Cell> {
         let i = self.position(id)?;
+        #[cfg(feature="port-frames")]
+        self.directory.borrow_mut().set(*id,0);
+        #[cfg(not(feature="port-frames"))]
         if self.positions.get(*id as usize).is_some_and(|n| *n != 0) {
             self.positions[*id as usize] = 0;
         } else {
@@ -60,6 +87,9 @@ impl Cells {
         }
         let (_, c) = self.records.swap_remove(i);
         if let Some((moved, _)) = self.records.get(i) {
+            #[cfg(feature="port-frames")]
+            self.directory.borrow_mut().set(*moved,i as u32+1);
+            #[cfg(not(feature="port-frames"))]
             if self.positions.get(*moved as usize).is_some_and(|n| *n != 0) {
                 self.positions[*moved as usize] = i as u32 + 1;
             } else {
@@ -107,7 +137,10 @@ mod tests {
         a.insert(9, cell(2));
         assert_eq!(a.remove(&3).unwrap().template, 0);
         assert_eq!(a[&9].template, 2);
+        #[cfg(not(feature="port-frames"))]
         assert!(a.positions.len() < 100);
+        #[cfg(feature="port-frames")]
+        assert!(a.directory.borrow().capacity()<100);
         assert_eq!(a.insert(u32::MAX, cell(3)).unwrap().template, 1);
         a.remove(&9);
         assert_eq!(a[&u32::MAX].template, 3);

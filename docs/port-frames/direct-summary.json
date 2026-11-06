@@ -1,0 +1,331 @@
+{
+  "audit": false,
+  "binary_sha256": "e8331a6798a65a862c40b8ac7348a9c337b47425234acf134dee86c0c7137efe",
+  "cases": {
+    "raytrace": {
+      "off": {
+        "cli_ms": 12703.221458,
+        "deferred_incidence": {
+          "admitted_positions": 1024,
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "inference_ms": 6862.728375,
+        "port_frames": {
+          "all_producer_records": 687913,
+          "borrowed_parent_records": 0,
+          "context_requests": 0,
+          "cross_run_context_requests": 0,
+          "directory_capacity": 2926592,
+          "directory_kind": "shared-tagged-cell-directory",
+          "embedded_writers": 85989,
+          "enabled": false,
+          "fact_positions": 0,
+          "full_cells": 601924,
+          "live_records": 0,
+          "max_rows_per_slab": 4194304,
+          "max_slabs": 512,
+          "parameter_values": 0,
+          "slab_capacity_bytes": 0,
+          "slabs": 0,
+          "stats": {
+            "fallback": 0,
+            "installed": 0,
+            "removed": 0
+          }
+        },
+        "rss_bytes": 1959624704.0,
+        "storage": {
+          "cell_fact_arity_0_1_2_3_4plus": [
+            117578,
+            389684,
+            27381,
+            66957,
+            324
+          ],
+          "cell_id_high_water": 3875369,
+          "dependency_edges": 2796816,
+          "embedded_writers": {
+            "from_general_rhs": 64188,
+            "installed": 1348058,
+            "live": 85989,
+            "peak": 85991,
+            "promoted": 0
+          },
+          "forward_dependency_headers": 1034514,
+          "full_cells": 601924,
+          "function_slots": 475011,
+          "intern_headers": 658670,
+          "intern_sizes_0_1_2_3plus": [
+            0,
+            658670,
+            0,
+            0
+          ],
+          "live_functions": 375844,
+          "reverse_dependency_headers": 524655,
+          "sealed_slot_reads": 11844061,
+          "unread_receipt_tables": []
+        }
+      },
+      "on": {
+        "cli_ms": 12425.725208,
+        "deferred_incidence": {
+          "admitted_positions": 1024,
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "inference_ms": 6710.549333,
+        "port_frames": {
+          "all_producer_records": 687913,
+          "borrowed_parent_records": 0,
+          "context_requests": 51641,
+          "cross_run_context_requests": 51641,
+          "directory_capacity": 2926592,
+          "directory_kind": "shared-tagged-cell-directory",
+          "embedded_writers": 85989,
+          "enabled": true,
+          "fact_positions": 321158,
+          "full_cells": 300469,
+          "live_records": 301455,
+          "max_rows_per_slab": 4194304,
+          "max_slabs": 512,
+          "parameter_values": 2536195,
+          "slab_capacity_bytes": 94351280,
+          "slabs": 246,
+          "stats": {
+            "fallback": 0,
+            "installed": 385233,
+            "removed": 83778
+          }
+        },
+        "rss_bytes": 1894580224.0,
+        "storage": {
+          "cell_fact_arity_0_1_2_3_4plus": [
+            117578,
+            106429,
+            10667,
+            65488,
+            307
+          ],
+          "cell_id_high_water": 3875369,
+          "dependency_edges": 2796816,
+          "embedded_writers": {
+            "from_general_rhs": 64188,
+            "installed": 1348058,
+            "live": 85989,
+            "peak": 85991,
+            "promoted": 0
+          },
+          "forward_dependency_headers": 1034514,
+          "full_cells": 300469,
+          "function_slots": 475011,
+          "intern_headers": 658670,
+          "intern_sizes_0_1_2_3plus": [
+            0,
+            658670,
+            0,
+            0
+          ],
+          "live_functions": 375844,
+          "reverse_dependency_headers": 524655,
+          "sealed_slot_reads": 11844061,
+          "unread_receipt_tables": []
+        }
+      }
+    },
+    "sum-bits": {
+      "off": {
+        "cli_ms": 115.80604199999999,
+        "deferred_incidence": {
+          "admitted_positions": 485,
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "inference_ms": 18.501542,
+        "port_frames": {
+          "all_producer_records": 2875,
+          "borrowed_parent_records": 0,
+          "context_requests": 0,
+          "cross_run_context_requests": 0,
+          "directory_capacity": 16384,
+          "directory_kind": "shared-tagged-cell-directory",
+          "embedded_writers": 490,
+          "enabled": false,
+          "fact_positions": 0,
+          "full_cells": 2385,
+          "live_records": 0,
+          "max_rows_per_slab": 4194304,
+          "max_slabs": 512,
+          "parameter_values": 0,
+          "slab_capacity_bytes": 0,
+          "slabs": 0,
+          "stats": {
+            "fallback": 0,
+            "installed": 0,
+            "removed": 0
+          }
+        },
+        "rss_bytes": 159924224.0,
+        "storage": {
+          "cell_fact_arity_0_1_2_3_4plus": [
+            211,
+            1747,
+            225,
+            194,
+            8
+          ],
+          "cell_id_high_water": 10459,
+          "dependency_edges": 10262,
+          "embedded_writers": {
+            "from_general_rhs": 158,
+            "installed": 754,
+            "live": 490,
+            "peak": 490,
+            "promoted": 0
+          },
+          "forward_dependency_headers": 4045,
+          "full_cells": 2385,
+          "function_slots": 1300,
+          "intern_headers": 2895,
+          "intern_sizes_0_1_2_3plus": [
+            0,
+            2895,
+            0,
+            0
+          ],
+          "live_functions": 1150,
+          "reverse_dependency_headers": 2193,
+          "sealed_slot_reads": 47388,
+          "unread_receipt_tables": []
+        }
+      },
+      "on": {
+        "cli_ms": 114.53141699999999,
+        "deferred_incidence": {
+          "admitted_positions": 485,
+          "enabled": false,
+          "payloads": false,
+          "pending": 0,
+          "reads_before_repair": 0,
+          "stats": {
+            "deferred_births": 0,
+            "eligible_births": 0,
+            "examined_union_pairs": 0,
+            "peak_pending": 0,
+            "promoted": 0,
+            "retired_before_subscription": 0,
+            "retired_by_table": {},
+            "saved_birth_edges": 0,
+            "saved_birth_row_payloads": 0,
+            "saved_birth_values": 0
+          }
+        },
+        "inference_ms": 18.156499999999998,
+        "port_frames": {
+          "all_producer_records": 2875,
+          "borrowed_parent_records": 0,
+          "context_requests": 404,
+          "cross_run_context_requests": 404,
+          "directory_capacity": 16384,
+          "directory_kind": "shared-tagged-cell-directory",
+          "embedded_writers": 490,
+          "enabled": true,
+          "fact_positions": 1641,
+          "full_cells": 953,
+          "live_records": 1432,
+          "max_rows_per_slab": 4194304,
+          "max_slabs": 512,
+          "parameter_values": 7630,
+          "slab_capacity_bytes": 412608,
+          "slabs": 156,
+          "stats": {
+            "fallback": 0,
+            "installed": 1925,
+            "removed": 493
+          }
+        },
+        "rss_bytes": 159629312.0,
+        "storage": {
+          "cell_fact_arity_0_1_2_3_4plus": [
+            211,
+            484,
+            90,
+            166,
+            2
+          ],
+          "cell_id_high_water": 10459,
+          "dependency_edges": 10262,
+          "embedded_writers": {
+            "from_general_rhs": 158,
+            "installed": 754,
+            "live": 490,
+            "peak": 490,
+            "promoted": 0
+          },
+          "forward_dependency_headers": 4045,
+          "full_cells": 953,
+          "function_slots": 1300,
+          "intern_headers": 2895,
+          "intern_sizes_0_1_2_3plus": [
+            0,
+            2895,
+            0,
+            0
+          ],
+          "live_functions": 1150,
+          "reverse_dependency_headers": 2193,
+          "sealed_slot_reads": 47388,
+          "unread_receipt_tables": []
+        }
+      }
+    }
+  },
+  "inputs": {
+    "raytrace": "3dbf982844330176ebe346d40530e9e1515c0d6ca543c1817f9562283369d32c",
+    "sum-bits": "12f83e99ede012a5716e357aa15ac354214f3bf570fbfce71c019460d0838f0d"
+  },
+  "rounds": 5
+}

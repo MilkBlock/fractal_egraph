@@ -219,6 +219,10 @@ mod scalar_keys;
 #[path = "writer_frames.rs"]
 mod writer_frames;
 pub struct Graph {
+    #[cfg(feature = "port-frames")]
+    port_frames: port_frames::Store,
+    #[cfg(feature = "port-frames")]
+    frame_census: frame_census::Census,
     #[cfg(feature = "deferred-incidence")]
     pub(crate) deferred_incidence: crate::deferred_incidence::State,
     #[cfg(feature = "origin-demand")]
@@ -323,12 +327,7 @@ impl Graph {
     #[cfg(feature = "receipt-slots")]
     pub(crate) fn current_port_slot(&self, w: Dependency) -> Option<u32> {
         match w {
-            Dependency::Fact(f) => self
-                .cells
-                .get(&f.cell)?
-                .facts
-                .get(&f.op)
-                .map(|f| f.port_slot),
+            Dependency::Fact(f) => self.fact_state(f).map(|f| f.port_slot),
             Dependency::Function(i) => self.functions.get(i).map(|f| f.port_slot),
         }
     }
@@ -345,13 +344,7 @@ impl Graph {
     pub(crate) fn set_port_slot(&mut self, w: Dependency, id: u32) {
         match w {
             Dependency::Fact(f) => {
-                self.cells
-                    .get_mut(&f.cell)
-                    .unwrap()
-                    .facts
-                    .get_mut(&f.op)
-                    .unwrap()
-                    .port_slot = id
+                self.fact_state_mut(f).unwrap().port_slot = id
             }
             Dependency::Function(i) => self.functions[i].port_slot = id,
         }
@@ -383,11 +376,7 @@ impl Graph {
         match w {
             Dependency::Fact(f) => {
                 self.live_table(w) == Some(table)
-                    && self
-                        .cells
-                        .get(&f.cell)
-                        .and_then(|c| c.facts.get(&f.op))
-                        .is_some_and(|s| !s.hidden)
+                    && self.fact_state(f).is_some_and(|s| !s.hidden)
             }
             Dependency::Function(i) => self
                 .functions
@@ -445,7 +434,13 @@ impl Graph {
         } else {
             std::rc::Rc::new(crate::origin_demand::required(&program))
         };
+        #[cfg(feature="port-frames")]
+        let cells=arena::Cells::default();
         let mut g = Self {
+            #[cfg(feature = "port-frames")]
+            port_frames: port_frames::Store::new(cells.directory()),
+            #[cfg(feature = "port-frames")]
+            frame_census: Default::default(),
             #[cfg(feature = "deferred-incidence")]
             deferred_incidence: Default::default(),
             #[cfg(feature = "origin-demand")]
@@ -475,6 +470,9 @@ impl Graph {
             key_lookup_calls: std::cell::Cell::new(0),
 
             program,
+            #[cfg(feature="port-frames")]
+            cells,
+            #[cfg(not(feature="port-frames"))]
             cells: Default::default(),
             functions: vec![],
             parents: Default::default(),
@@ -621,6 +619,13 @@ impl Graph {
         }
     }
     fn store_cell(&mut self, id: u32, cell: Cell) {
+        #[cfg(feature = "port-frames")]
+        if self.sealed_generation.is_some() && self.active_rhs.is_none() && self.port_eligible(cell.template) {
+            self.active_rhs=Some((id,cell));return;
+        }
+        self.store_registered_cell(id,cell);
+    }
+    fn store_registered_cell(&mut self,id:u32,cell:Cell) {
         #[cfg(feature = "allocation-census")]
         let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Graph);
         if let Some(parent) = cell.parent {
@@ -781,6 +786,11 @@ impl Graph {
         if let Some(c) = self.rhs_frame(cell) {
             return self.slot_in(cell, c, i);
         }
+        #[cfg(feature = "port-frames")]
+        if let Some((template,parent,value))=self.port_frames.read_slot(cell,i){
+            if let Some(v)=value {return Ok(canon(v,&self.parents));}
+            return self.port_slot(cell,template,parent,i);
+        }
         #[cfg(feature = "sparse-cells")]
         if let Some(w) = self.writer(cell) {
             return self.slot_fields(cell, w.template, w.parent, &w.values, i);
@@ -828,7 +838,7 @@ impl Graph {
     #[cfg(feature = "sparse-cells")]
     pub(crate) fn promote_active(&mut self) {
         if let Some((id, c)) = self.active_rhs.take() {
-            self.store_cell(id, c);
+            self.store_registered_cell(id, c);
         }
     }
     #[cfg(feature = "sparse-cells")]
@@ -900,7 +910,7 @@ impl Graph {
     fn fact_column(&self, f: FactRef, col: usize) -> Result<Value> {
         // Recipe parameters are immutable even after this fact is hidden/deleted.
         // Derived Cells can keep their binding without copying the parent's fields.
-        let template = self.cells.get(&f.cell).map(|c| c.template);
+        let template = self.frame_template(f.cell);
         #[cfg(feature = "sparse-cells")]
         let template = template.or_else(|| self.writer(f.cell).map(|w| w.template));
         match self.program.templates[template.ok_or("expired parent Cell")?]
@@ -939,14 +949,37 @@ impl Graph {
     pub(crate) fn inline_arguments(&self, cell: u32, args: &[Arg]) -> Result<smallvec::SmallVec<[Value; 4]>> {
         self.collect_arguments(cell, args)
     }
+    pub(crate) fn frame_template(&self,id:u32)->Option<usize>{
+        #[cfg(feature = "port-frames")]
+        if let Some(t)=self.port_frames.template(id){return Some(t);}
+        self.rhs_frame(id).map(|c|c.template)
+    }
+    pub(crate) fn fact_state(&self,f:FactRef)->Option<&FactState>{
+        #[cfg(feature = "port-frames")]
+        if let Some(s)=self.port_frames.state(f){return Some(s);}
+        self.rhs_frame(f.cell)?.facts.get(&f.op)
+    }
+    fn fact_state_mut(&mut self,f:FactRef)->Option<&mut FactState>{
+        #[cfg(feature = "port-frames")]
+        if let Some(s)=self.port_frames.state_mut(f){return Some(s);}
+        #[cfg(feature = "sparse-cells")]
+        if let Some((id,c))=&mut self.active_rhs && *id==f.cell {return c.facts.get_mut(&f.op);}
+        self.cells.get_mut(&f.cell)?.facts.get_mut(&f.op)
+    }
+    fn take_fact_state(&mut self,f:FactRef)->Option<FactState>{
+        #[cfg(feature = "port-frames")]
+        if let Some(s)=self.port_frames.take_state(f){return Some(s);}
+        self.rhs_frame_mut(f.cell)?.facts.remove(&f.op)
+    }
     #[inline]
     pub fn fact(&self, f: FactRef) -> Result<Option<Row>> {
         #[cfg(feature = "allocation-census")]
         let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Rows);
-        let Some(c) = self.cells.get(&f.cell) else {
-            return Ok(None);
-        };
-        let Some(s) = c.facts.get(&f.op) else {
+        let owner=self.rhs_frame(f.cell);
+        let state=owner.and_then(|c|c.facts.get(&f.op));
+        #[cfg(feature = "port-frames")]
+        let state=state.or_else(||self.port_frames.state(f));
+        let Some(s) = state else {
             return Ok(None);
         };
         if let Some((table, values)) = &s.decoded {
@@ -964,12 +997,13 @@ impl Graph {
             && self.deferred_incidence.live.contains(&f) {
             self.deferred_incidence.reads_before_repair.set(self.deferred_incidence.reads_before_repair.get()+1);
         }
-        self.decode_fact(f, c, s).map(Some)
+        self.decode_fact(f, owner, s).map(Some)
     }
 
     #[inline(never)]
-    fn decode_fact(&self, f: FactRef, c: &Cell, s: &FactState) -> Result<Row> {
-        let op = self.program.templates[c.template]
+    fn decode_fact(&self, f: FactRef, owner:Option<&Cell>, s: &FactState) -> Result<Row> {
+        let template=owner.map(|c|c.template).or_else(||self.frame_template(f.cell)).ok_or("expired fact owner")?;
+        let op = self.program.templates[template]
             .ops
             .get(f.op as usize)
             .ok_or("invalid live fact position")?;
@@ -979,10 +1013,11 @@ impl Graph {
             _ => return Err("invalid fact recipe position".into()),
         };
         let mut values = Vec::with_capacity(args.len() + 1);
+        let arg=|a| if let Some(c)=owner {self.argument_in(f.cell,c,a)} else {self.argument(f.cell,a)};
         for arg in args {
-            values.push(self.argument_in(f.cell, c, arg)?);
+            values.push(if let Some(c)=owner {self.argument_in(f.cell,c,arg)?} else {self.argument(f.cell,arg)?});
         }
-        values.push(self.argument_in(f.cell, c, &result)?);
+        values.push(arg(&result)?);
         Ok(Row {
             table,
             values: row_fields(values),
@@ -1076,11 +1111,7 @@ impl Graph {
     }
     pub(crate) fn visible_epoch(&self, w: Dependency) -> Option<u64> {
         match w {
-            Dependency::Fact(f) => self
-                .cells
-                .get(&f.cell)?
-                .facts
-                .get(&f.op)
+            Dependency::Fact(f) => self.fact_state(f)
                 .filter(|s| !s.hidden)
                 .map(|s| s.epoch),
             Dependency::Function(i) => self.functions.get(i).filter(|f| f.live).map(|f| f.epoch),
@@ -1091,10 +1122,8 @@ impl Graph {
         match w {
             Dependency::Function(i) => self.functions.get(i).filter(|f| f.live).map(|f| f.table),
             Dependency::Fact(f) => {
-                let c = self.cells.get(&f.cell)?;
-                c.facts.get(&f.op)?;
-
-                match self.program.templates[c.template].ops.get(f.op as usize)? {
+                self.fact_state(f)?;
+                match self.program.templates[self.frame_template(f.cell)?].ops.get(f.op as usize)? {
                     Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => Some(*t),
                     _ => None,
                 }
@@ -1138,9 +1167,7 @@ impl Graph {
         match w {
             Dependency::Function(i) => self.functions.get(i).map(|f| f.table),
             Dependency::Fact(f) => {
-                let c = self.cells.get(&f.cell)?;
-
-                match self.program.templates[c.template].ops.get(f.op as usize)? {
+                match self.program.templates[self.frame_template(f.cell)?].ops.get(f.op as usize)? {
                     Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => Some(*t),
                     _ => None,
                 }
@@ -1186,12 +1213,7 @@ impl Graph {
                     .copied()
                     .filter(|w| match w {
                         Dependency::Fact(f) => {
-                            self.cells.get(&f.cell).is_some_and(|c| {
-                                match &self.program.templates[c.template].ops[f.op as usize] {
-                                    Op::Let(_, Call::Table(t), _) | Op::Set(t, _, _) => *t == table,
-                                    _ => false,
-                                }
-                            })
+                            self.dependency_table(Dependency::Fact(*f))==Some(table)
                         }
                         Dependency::Function(i) => {
                             self.functions[*i].live && self.functions[*i].table == table
@@ -1408,12 +1430,16 @@ impl Graph {
             self.visibility_tainted[t] = true;
         }
         let h = hashkey(t, key);
+        #[cfg(feature = "port-frames")]
+        let port_birth=self.port_birth(f);
+        #[cfg(all(feature = "sparse-cells",not(feature = "port-frames")))]
+        let port_birth=false;
         #[cfg(feature = "sparse-cells")]
-        self.promote_owner(f.cell);
+        if !port_birth {self.promote_owner(f.cell);}
         #[cfg(feature = "deferred-incidence")]
         let deferred = self.deferred_incidence.enabled && !self.deferred_incidence.repairing
             && self.sealed_generation.is_some() && !hidden && !self.visibility_tainted[t]
-            && self.program.deferred_incidence[self.cells[&f.cell].template][f.op as usize]
+            && self.program.deferred_incidence[self.frame_template(f.cell).unwrap()][f.op as usize]
             && self.deferred_incidence.admit(f, key, &self.parents, &self.pending_unions);
         #[cfg(not(feature = "deferred-incidence"))]
         let deferred = false;
@@ -1424,7 +1450,8 @@ impl Graph {
         // The checked template and its slots already encode the complete row.
         // Pre-barrier reads can decode them; surviving rows get cached by repair.
         let vs = (!local_payload).then(|| Self::shared_fields(key, &v));
-        let facts = &mut self.cells.get_mut(&f.cell).unwrap().facts;
+        let epoch=self.epoch;
+        let facts = &mut self.rhs_frame_mut(f.cell).unwrap().facts;
         #[cfg(feature = "sparse-cells")]
         facts.reserve_first();
         facts.insert(
@@ -1436,8 +1463,8 @@ impl Graph {
 
                 entry: None,
                 hidden,
-                epoch: self.epoch,
-                born: self.epoch,
+                epoch,
+                born: epoch,
                 hash: h,
             },
         );
@@ -1783,10 +1810,7 @@ impl Graph {
                 self.functions[*i].decoded = None;
             }
             if let Dependency::Fact(f) = d
-                && let Some(state) = self
-                    .cells
-                    .get_mut(&f.cell)
-                    .and_then(|c| c.facts.get_mut(&f.op))
+                && let Some(state) = self.fact_state_mut(*f)
             {
                 state.decoded = None;
             }
@@ -2195,13 +2219,7 @@ impl Graph {
             self.deferred_incidence.finish(f, r.table, true);
             self.changes.retire(r.table, Dependency::Fact(f));
             self.query_versions[r.table] += 1;
-            let s = self
-                .cells
-                .get_mut(&f.cell)
-                .unwrap()
-                .facts
-                .remove(&f.op)
-                .unwrap();
+            let s = self.take_fact_state(f).unwrap();
             #[cfg(feature = "receipt-slots")]
             if s.port_slot != 0 {
                 self.retired_port_slots
@@ -2245,30 +2263,22 @@ impl Graph {
         };
         match row.witness {
             Dependency::Fact(f) => {
-                let born = self.cells[&f.cell].facts[&f.op].born;
+                let born = self.fact_state(f).unwrap().born;
                 if delete {
                     self.retire(f)?;
                     self.changed = true;
-                } else {
-                    let s = self
-                        .cells
-                        .get_mut(&f.cell)
-                        .unwrap()
-                        .facts
-                        .get_mut(&f.op)
-                        .unwrap();
-                    if !s.hidden {
+                } else if !self.fact_state(f).unwrap().hidden {
                         self.query_versions[t] += 1;
+                        let epoch=self.epoch;
+                        let s=self.fact_state_mut(f).unwrap();
                         #[cfg(feature = "receipt-slots")]
-                        if s.port_slot != 0 {
-                            self.retired_port_slots
-                                .insert(row.witness, std::mem::take(&mut s.port_slot));
-                        }
+                        let old_port=std::mem::take(&mut s.port_slot);
                         s.hidden = true;
-                        s.epoch = self.epoch;
+                        s.epoch = epoch;
+                        #[cfg(feature = "receipt-slots")]
+                        if old_port!=0 {self.retired_port_slots.insert(row.witness,old_port);}
                         self.changed = true;
                         self.changes.touch(t, row.witness);
-                    }
                 }
                 Ok(born < self.epoch)
             }
@@ -2341,7 +2351,7 @@ impl Graph {
                     let Some(r) = self.fact(f)? else { continue };
                     let key = &r.values[..r.values.len() - 1];
                     let h = hashkey(r.table, key);
-                    let old = self.cells[&f.cell].facts[&f.op].hash;
+                    let old = self.fact_state(f).unwrap().hash;
                     self.stats.repair_key_hash_changes += u64::from(h != old);
                     if let Some(bucket) = self.intern.get_mut(&old) {
                         bucket.remove(&f);
@@ -2370,20 +2380,14 @@ impl Graph {
                         }
                         if let Dependency::Fact(keep) = other.witness {
                             self.query_versions[r.table] += 1;
-                            let target = self
-                                .cells
-                                .get_mut(&keep.cell)
-                                .unwrap()
-                                .facts
-                                .get_mut(&keep.op)
-                                .unwrap();
+                            let epoch=self.epoch;
+                            let target = self.fact_state_mut(keep).unwrap();
                             #[cfg(feature = "receipt-slots")]
-                            if r.hidden && target.port_slot != 0 {
-                                self.retired_port_slots
-                                    .insert(other.witness, std::mem::take(&mut target.port_slot));
-                            }
+                            let old_port=if r.hidden {std::mem::take(&mut target.port_slot)} else{0};
                             target.hidden |= r.hidden;
-                            target.epoch = self.epoch;
+                            target.epoch = epoch;
+                            #[cfg(feature = "receipt-slots")]
+                            if old_port!=0 {self.retired_port_slots.insert(other.witness,old_port);}
                             self.changes.touch(r.table, other.witness);
                         }
                         if self.receipt_tracking {
@@ -2395,17 +2399,12 @@ impl Graph {
                         self.intern.entry(h).or_default().insert(f);
                         #[cfg(feature = "deferred-incidence")]
                         self.deferred_incidence.finish(f, r.table, false);
-                        let s = self
-                            .cells
-                            .get_mut(&f.cell)
-                            .unwrap()
-                            .facts
-                            .get_mut(&f.op)
-                            .unwrap();
+                        let epoch=self.epoch;
+                        let s = self.fact_state_mut(f).unwrap();
 
                         s.decoded = Some((r.table, r.values.clone()));
                         s.hash = h;
-                        s.epoch = self.epoch;
+                        s.epoch = epoch;
                         self.subscribe(r.table, d, &r.values);
                         self.changes.touch(r.table, d);
                     }
@@ -2523,6 +2522,10 @@ impl Graph {
         self.deferred_incidence.payloads = enabled;
     }
     pub fn release_empty(&mut self, cell: u32) {
+        #[cfg(feature = "port-frames")]
+        self.census_frame(cell);
+        #[cfg(feature = "port-frames")]
+        if self.seal_port_frame(cell){return;}
         #[cfg(feature = "sparse-cells")]
         if self.active_rhs.as_ref().is_some_and(|(id, _)| *id == cell) {
             #[cfg(feature = "sparse-cells")]
@@ -2553,6 +2556,13 @@ impl Graph {
         self.retire_empty(cell);
     }
     fn retire_empty(&mut self, cell: u32) {
+        #[cfg(feature = "port-frames")]
+        if self.parent_users.get(&cell).copied().unwrap_or(0)==0 && self.port_frames.empty(cell) {
+            let parent=self.port_frames.parent(cell);
+            self.port_frames.remove(cell);self.parent_users.remove(&cell);
+            if let Some(parent)=parent {self.release_reference(parent);}
+            self.stats.empty_frames_released+=1;return;
+        }
         if self.parent_users.get(&cell).copied().unwrap_or(0) == 0
             && self.cells.get(&cell).is_some_and(|c| c.facts.is_empty())
         {
@@ -2566,6 +2576,8 @@ impl Graph {
         }
     }
     pub fn collect_garbage(&mut self) {
+        #[cfg(feature = "port-frames")]
+        self.census_repaired();
         while let Some(cell) = self.garbage.pop_first() {
             self.retire_empty(cell);
         }
@@ -2622,6 +2634,14 @@ impl Graph {
 
 #[path = "producer.rs"]
 pub(crate) mod producer;
+
+#[cfg(feature = "port-frames")]
+#[path = "frame_census.rs"]
+mod frame_census;
+
+#[cfg(feature = "port-frames")]
+#[path = "port_frames.rs"]
+pub(crate) mod port_frames;
 
 #[cfg(all(test, feature="sparse-cells", feature="projection-stamps"))]
 mod sealed_input_tests {

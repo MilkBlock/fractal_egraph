@@ -31,6 +31,8 @@ fn deferred_intermediates_preserve_reads_forwarding_and_scheduled_consumers() {
         let run = |enabled| {
             let mut e = Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(), true);
             e.graph.configure_deferred_incidence(enabled);
+            #[cfg(feature="port-frames")]
+            e.graph.configure_port_frames(enabled);
             e.execute().unwrap();
             (e.report(), e.snapshots, e.binding_audit)
         };
@@ -74,6 +76,42 @@ fn deferred_intermediates_preserve_reads_forwarding_and_scheduled_consumers() {
         admitted["sha256"] = json!(eggfuse_cell_runtime::checksum::artifact_digest(&admitted));
         assert!(Program::parse(admitted).unwrap_err().contains("type mismatch"));
     }
+}
+
+#[cfg(feature = "port-frames")]
+#[test]
+fn port_producers_survive_consumers_unions_and_subsumption() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    let tmp=tempfile::tempdir().unwrap();
+    let input=tmp.path().join("ports.egg");let out=tmp.path().join("compiled");
+    fs::write(&input,r#"
+(datatype E (Leaf i64) (Wrap E) (Pair E E) (Seen E))
+(ruleset build) (ruleset consume) (ruleset merge) (ruleset hide)
+(rule ((= x (Leaf n))) ((Wrap x)) :ruleset build)
+(rule ((= w (Wrap x))) ((Pair w x) (Seen w)) :ruleset consume)
+(rule ((= a (Leaf 1)) (= b (Leaf 2))) ((union a b)) :ruleset merge)
+(rule ((= w (Wrap x))) ((subsume (Wrap x))) :ruleset hide)
+(Leaf 1) (Leaf 2)
+(run-schedule (run build) (run consume) (run merge) (run build) (run consume) (run hide))
+"#).unwrap();
+    pass(&["compile","--source",input.to_str().unwrap(),"--output",out.to_str().unwrap()]);
+    let artifact=json_file(&out.join("program.json"));
+    let run=|enabled| {
+        let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+        e.graph.configure_port_frames(enabled);e.execute().unwrap();
+        let ports=e.graph.port_frames_report();
+        (e.snapshots,e.binding_audit,e.graph.stats.cells_created,ports)
+    };
+    let a=run(false);let b=run(true);
+    assert_eq!(a.0,b.0);assert_eq!(a.1,b.1);
+    assert!(b.2<a.2);assert!(b.3["stats"]["installed"].as_u64().unwrap()>0);
+    pass(&["bench","--program",out.join("program.json").to_str().unwrap(),
+        "--reference-program",out.join("program.json").to_str().unwrap(),"--port-frames","on","--repeat","1"]);
+    let mut bad=artifact;
+    let at=bad["port_frames"].as_array().unwrap().iter().position(|v|v.is_array()).unwrap();
+    bad["port_frames"][at]=json!([99999]);
+    bad["sha256"]=json!(eggfuse_cell_runtime::checksum::artifact_digest(&bad));
+    assert!(Program::parse(bad).unwrap_err().contains("port frame certificate"));
 }
 
 const SOURCE: &str = r#"

@@ -229,7 +229,7 @@ impl Ledger {
                 } else {
                     life.visible_forwarded += 1;
                     if let Dependency::Fact(keep) = target
-                        && g.cells[&keep.cell].facts[&keep.op].born < g.epoch
+                        && g.fact_state(keep).is_some_and(|s|s.born < g.epoch)
                     {
                         #[cfg(feature = "keeper-proof")]
                         if !seen.get() {

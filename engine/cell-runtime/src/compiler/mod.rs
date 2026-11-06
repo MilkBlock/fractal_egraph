@@ -203,7 +203,11 @@ pub fn compile(core: J, markers: &BTreeSet<String>) -> Result<J> {
     #[cfg(feature="origin-demand")] let demand=json!(p.origin_required);
     #[cfg(feature = "deferred-incidence")]
     let deferred = json!(p.deferred_incidence);
+    #[cfg(feature = "port-frames")]
+    let ports=json!(crate::graph::port_frames::derive(&p,&known_results));
     j = p.artifact;
+    #[cfg(feature = "port-frames")]
+    {j["port_frames"]=ports;}
     #[cfg(feature = "deferred-incidence")]
     { j["deferred_incidence"] = deferred; }
     #[cfg(feature="origin-demand")] {j["origin_demand"]=demand;}

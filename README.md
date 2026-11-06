@@ -20,6 +20,11 @@ The normal commands select a single CPU execution strategy. For checkpoint/resum
 
 ### Custom programs and training
 
+The opt-in [compact block-port backend](docs/PORT_FRAMES.md) keeps stable logical
+fact identities while moving completed constructor producers into shared-layout
+arrays. It preserves the original Run schedule and provides separate physical
+Cell, compact-record and total-producer counts.
+
 An opt-in [deferred intermediate representation experiment](docs/DEFERRED_CELL_FACTS.md)
 uses compiler-checked instruction positions and pending unions to postpone
 reverse subscriptions and decoded row payloads. Its `off` / `edges` / `on`

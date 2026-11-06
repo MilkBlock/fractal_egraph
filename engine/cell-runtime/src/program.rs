@@ -57,6 +57,9 @@ pub struct Rule {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Program {
+    #[cfg(feature = "port-frames")]
+    #[serde(skip)]
+    pub(crate) port_frames: Vec<Option<Vec<u32>>>,
     #[cfg(feature = "deferred-incidence")]
     #[serde(skip)]
     pub(crate) deferred_incidence: Vec<Vec<bool>>,
@@ -346,6 +349,8 @@ impl Program {
             return Err("invalid register join plan".into());
         }
         let mut p = Self {
+            #[cfg(feature = "port-frames")]
+            port_frames: vec![],
             #[cfg(feature = "deferred-incidence")]
             deferred_incidence: vec![],
             #[cfg(feature="origin-demand")] origin_required:Default::default(),
@@ -490,6 +495,11 @@ impl Program {
         p.merge_programs =
             crate::merge_programs::Programs::parse(&p, &p.artifact["merge_programs"])?;
         p.known_results = crate::known_results::Plans::parse(&p, &p.artifact["known_results"])?;
+        #[cfg(feature = "port-frames")]
+        {
+            p.port_frames=crate::graph::port_frames::derive(&p,&p.known_results);
+            if let Some(raw)=p.artifact.get("port_frames") && *raw!=serde_json::json!(p.port_frames){return Err("invalid port frame certificate".into());}
+        }
         #[cfg(feature = "rhs-locals")]
         {
             p.local_rhs = crate::local_rhs::derive(&p, &p.known_results);

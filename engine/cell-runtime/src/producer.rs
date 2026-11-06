@@ -18,6 +18,8 @@ impl Graph {
     }
     pub fn continuation_context(&self, w: Dependency) -> Option<Context> {
         let actual = self.origin(w)?;
+        #[cfg(feature = "port-frames")]
+        if let Some(c)=self.port_frames.context(actual,self.epoch){return Some(c);}
         #[cfg(feature = "sparse-cells")]
         if let Dependency::Function(i) = w
             && let Some(writer) = self.functions[i].writer.as_ref()
@@ -31,16 +33,13 @@ impl Graph {
             });
         }
         let f = if let Dependency::Fact(f) = w {
-            self.cells
-                .get(&f.cell)?
-                .facts
-                .get(&f.op)?
+            self.fact_state(f)?
                 .entry
                 .unwrap_or(f)
         } else {
             actual
         };
-        let c = self.cells.get(&f.cell)?;
+        let c = self.rhs_frame(f.cell)?;
         Some(Context {
             completed: c.completed,
             cell: f.cell,

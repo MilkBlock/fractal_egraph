@@ -12,6 +12,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--catalog",
             "--program",
             "--repeat",
+            #[cfg(feature="port-frames")]
+            "--port-frames",
             #[cfg(feature = "deferred-incidence")]
             "--deferred-incidence",
             #[cfg(feature = "rhs-locals")]
@@ -25,6 +27,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--reference-program",
         ],
     )?;
+    #[cfg(feature="port-frames")]
+    let ports=match opts.get("--port-frames").map(String::as_str).unwrap_or("off") {
+        "off"=>false,"on"=>true,_=>return Err("--port-frames requires off or on".into())
+    };
     #[cfg(feature = "deferred-incidence")]
     let deferred = match opts.get("--deferred-incidence").map(String::as_str).unwrap_or("off") {
         "off" => (false, false), "edges" => (true, false), "on" => (true, true),
@@ -84,6 +90,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     if let Some(reference) = opts.get("--reference-program") {
         if stage_digests(
             Path::new(reference),
+            #[cfg(feature="port-frames")]
+            false,
             #[cfg(feature = "deferred-incidence")]
             (false, false),
             #[cfg(feature = "rhs-locals")]
@@ -92,6 +100,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             (0, None),
         )? != stage_digests(
             &path,
+            #[cfg(feature="port-frames")]
+            ports,
             #[cfg(feature = "deferred-incidence")]
             deferred,
             #[cfg(feature = "rhs-locals")]
@@ -108,6 +118,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     let mut counts = J::Null;
     for _ in 0..n {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
+        #[cfg(feature="port-frames")]
+        e.graph.configure_port_frames(ports);
         #[cfg(feature = "deferred-incidence")]
         {
             e.graph.configure_deferred_incidence(deferred.0);
@@ -157,6 +169,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "semijoin":r["semijoin"],"view_consumers":r["view_consumers"],"view_storage":r["view_storage"],"publication":r["publication"],"entry_row_reads":r["entry_schedule"]["stats"]["row_decodes"],
             "stage_spine":r["stage_spine"]["stats"],"neighbor_context":r["neighbor_context"],"local_context":r["local_context"],
             "handoff_closed":g.handoff_closed,"handoff_closed_fallback":g.handoff_closed_fallback,"handoff_deep":g.handoff_deep,"handoff_lets":g.handoff_lets});
+        #[cfg(feature="port-frames")]
+        { counts["port_frames"]=e.graph.port_frames_report(); }
         #[cfg(feature = "deferred-incidence")]
         { counts["deferred_incidence"] = r["deferred_incidence"].clone(); }
         #[cfg(feature = "rhs-locals")]
@@ -187,6 +201,8 @@ pub(super) fn stages(path: &Path) -> Result<()> {
         "{}",
         serde_json::to_string(&stage_digests(
             path,
+            #[cfg(feature="port-frames")]
+            false,
             #[cfg(feature = "deferred-incidence")]
             (false, false),
             #[cfg(feature = "rhs-locals")]
@@ -199,11 +215,14 @@ pub(super) fn stages(path: &Path) -> Result<()> {
 }
 fn stage_digests(
     path: &Path,
+    #[cfg(feature="port-frames")] ports:bool,
     #[cfg(feature = "deferred-incidence")] deferred: (bool, bool),
     #[cfg(feature = "rhs-locals")] local: (usize, Option<&J>),
     #[cfg(feature = "structural-depth")] structural: (u8, Option<&J>),
 ) -> Result<Vec<String>> {
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
+    #[cfg(feature="port-frames")]
+    e.graph.configure_port_frames(ports);
     #[cfg(feature = "deferred-incidence")]
     {
         e.graph.configure_deferred_incidence(deferred.0);

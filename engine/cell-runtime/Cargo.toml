@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+port-frames = ["deferred-incidence"]
 deferred-incidence = ["sparse-cells"]
 origin-demand = ["sparse-cells"]
 entry-retirement = ["sparse-cells"]

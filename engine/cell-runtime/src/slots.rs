@@ -10,6 +10,10 @@ impl<K, V> Default for FrameMap<K, V> {
         Self(Vec::new())
     }
 }
+#[cfg(feature = "port-frames")]
+impl<K,V> FrameMap<K,V> {
+    pub(crate) fn into_values(self)->impl Iterator<Item=V>{self.0.into_iter().map(|(_,v)|v)}
+}
 impl<K: Ord + Copy + TryInto<usize>, V> FrameMap<K, V> {
     fn position(&self, k: &K) -> Option<usize> {
         if let Ok(i) = (*k).try_into()
