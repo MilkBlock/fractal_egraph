@@ -2,6 +2,17 @@
 
 The baseline is the standalone single-thread Cell engine at `c8ee1a3f`, with view ports, the frozen 64-unit catalog, and experimental execution routes off. The goal requires at least 2× inference on **each** of sum-bits and Raytrace. The two cases have different size and cost distributions.
 
+## Verified fixed-target checkpoint at 502e29cd
+
+Both frozen inference cutoffs were crossed on the same committed source and build policy. Sum-bits took 16.379 ms against its 16.8375 ms cutoff. Raytrace took 6.140 s against 6.754039 s. Relative to the fixed medians these are **2.056× and 2.200×**. In the same session the SHA-verified original ran faster than the historical reference, giving **1.849× and 1.988×**. Thus the twofold result applies specifically to the fixed reference medians.
+
+| Workload | Inference, pinned original / candidate | Full CLI, original / candidate | Peak RSS, original / candidate | Visits, original / candidate |
+|---|---:|---:|---:|---:|
+| sum-bits | 30.290 / 16.379 ms | 126.885 / 97.974 ms | 161.14 / 152.77 MiB | 18,730 / 18,693 |
+| Raytrace | 12.208 / 6.140 s | 15.361 / 8.493 s | 2,907.45 / 1,978.20 MiB | 6,916,788 / 6,798,165 |
+
+Eleven sum-bits and seven Raytrace pairs followed a separate warm-up for each executable. The candidate used native CPU, fat LTO, one codegen unit and the opposite workload's profile, with a larger value-profile counter pool during offline training. The archived control was checked by executable SHA-256 before any timing. Both sets of full Run digests matched; a separate zero-bit/Sieve-collision sum-bits run also matched. The clean source passed 26 all-feature, 12 default and nine no-default runtime tests and 15 compiler integration tests. [Source, executable and profile hashes, raw paired measurements and exact audit digests](sparse-cell-acceptance.json)
+
 ## Correction to the interim paired controls
 
 The archived standard reference for commit c8ee1a3f is the binary identified in `sparse-cell-results.json` by SHA-256 `f9eea9786662d6993d3fcd5387f4e99ec0b5b088f788329d84284f1262374466` (`original-bin`). The original 33.675 ms and 13,508.078 ms measurements, and their fixed cutoffs, use that reference. A subsequent script instead used a development executable named `base` (SHA-256 `c23d04db683671a02baaa26ca7af99c1aacecfab2a7aa11b37847dd875a086b9`). It does not match the archived reference hash. The interim paired comparisons of that executable below do not establish a same-session speedup against the archived c8ee1a3f executable. Candidate timings, frozen digests, within-experiment ablations and fixed-cutoff comparisons are unaffected. A paired recheck uses the verified archived binary directly.
