@@ -48,6 +48,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  --multi-run-blocks [--port-block-depth 2..8] (early shared input/result ports)");
         #[cfg(feature="two-run-blocks")]
         println!("  --block-lhs (use guarded block postconditions for residual matching)");
+        #[cfg(feature="two-run-blocks")]
+        println!("  --block-receipts (retain original constructor receipts for block LHS ports)");
         #[cfg(feature="two-run-survey")]
         println!("  --two-run-survey (diagnostic owner-to-consumer census)");
         #[cfg(feature = "deferred-incidence")]
@@ -120,6 +122,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             #[cfg(feature="two-run-blocks")]
             "--block-lhs"=>{},
             #[cfg(feature="two-run-blocks")]
+            "--block-receipts"=>{},
+            #[cfg(feature="two-run-blocks")]
             "--port-block-depth"=>{flags.next().ok_or("missing port block depth")?;},
             #[cfg(feature = "deferred-incidence")]
             "--deferred-incidence" => {
@@ -158,6 +162,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut runtime = Executor::new(Graph::new(program)?, audit);
     #[cfg(feature="two-run-blocks")]
     runtime.graph.configure_block_lhs(args.iter().any(|s|s=="--block-lhs"));
+    #[cfg(feature="two-run-blocks")]
+    runtime.configure_block_receipts(args.iter().any(|s|s=="--block-receipts"));
     #[cfg(feature = "port-frames")]
     runtime.graph.configure_frame_census(args.iter().any(|x|x=="--frame-census"));
     #[cfg(feature = "port-frames")]
@@ -289,6 +295,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "keeper-proof")]
     runtime.write_keepers(&out)?;
     let mut report = runtime.report();
+    #[cfg(feature="slot-transfer-audit")]
+    {
+        report["singleton_fast_lookups"]=serde_json::json!(runtime.graph.singleton_fast_lookups.get());
+        report["fact_hash_lookups"]=serde_json::json!(runtime.graph.fact_hash_lookups.get());
+    }
     #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
     if args.iter().any(|s|s=="--block-lhs") {
         std::fs::write(out.join("block-lhs-plans.json"),serde_json::to_vec(&runtime.graph.block_lhs_plans())?)?;

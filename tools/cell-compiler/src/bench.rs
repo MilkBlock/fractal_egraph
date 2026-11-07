@@ -20,6 +20,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             "--port-block-depth",
             #[cfg(feature="two-run-blocks")]
             "--block-lhs",
+            #[cfg(feature="two-run-blocks")]
+            "--block-receipts",
             #[cfg(feature="port-frames")]
             "--port-frames",
             #[cfg(feature = "deferred-incidence")]
@@ -42,6 +44,10 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
     #[cfg(feature="two-run-blocks")]
     let block_lhs=match opts.get("--block-lhs").map(String::as_str).unwrap_or("off") {
         "on"=>true,"off"=>false,_=>return Err("--block-lhs requires on or off".into())
+    };
+    #[cfg(feature="two-run-blocks")]
+    let block_receipts=match opts.get("--block-receipts").map(String::as_str).unwrap_or("off") {
+        "on"=>true,"off"=>false,_=>return Err("--block-receipts requires on or off".into()),
     };
     #[cfg(feature="two-run-blocks")]
     let multi=match opts.get("--multi-run-blocks").map(String::as_str).unwrap_or("off") {
@@ -116,6 +122,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             #[cfg(feature="two-run-blocks")]
             false,
             #[cfg(feature="two-run-blocks")]
+            false,
+            #[cfg(feature="two-run-blocks")]
             None,
             #[cfg(feature="two-run-blocks")]
             false,
@@ -129,6 +137,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
             (0, None),
         )? != stage_digests(
             &path,
+            #[cfg(feature="two-run-blocks")]
+            block_receipts,
             #[cfg(feature="two-run-blocks")]
             block_lhs,
             #[cfg(feature="two-run-blocks")]
@@ -155,6 +165,8 @@ pub(super) fn run(args: Vec<String>) -> Result<()> {
         let mut e = Executor::new(Graph::new(p.clone())?, false);
         #[cfg(feature="two-run-blocks")]
         e.graph.configure_block_lhs(block_lhs);
+        #[cfg(feature="two-run-blocks")]
+        e.configure_block_receipts(block_receipts);
         #[cfg(feature="two-run-blocks")]
         e.configure_two_run(two_run);
         #[cfg(feature="port-frames")]
@@ -249,6 +261,8 @@ pub(super) fn stages(path: &Path) -> Result<()> {
             #[cfg(feature="two-run-blocks")]
             false,
             #[cfg(feature="two-run-blocks")]
+            false,
+            #[cfg(feature="two-run-blocks")]
             None,
             #[cfg(feature="two-run-blocks")]
             false,
@@ -266,6 +280,7 @@ pub(super) fn stages(path: &Path) -> Result<()> {
 }
 fn stage_digests(
     path: &Path,
+    #[cfg(feature="two-run-blocks")] block_receipts:bool,
     #[cfg(feature="two-run-blocks")] block_lhs:bool,
     #[cfg(feature="two-run-blocks")] multi:Option<usize>,
     #[cfg(feature="two-run-blocks")] two_run:bool,
@@ -277,6 +292,8 @@ fn stage_digests(
     let mut e = Executor::new(Graph::new(program(path)?)?, true);
     #[cfg(feature="two-run-blocks")]
     e.graph.configure_block_lhs(block_lhs);
+    #[cfg(feature="two-run-blocks")]
+    e.configure_block_receipts(block_receipts);
     #[cfg(feature="two-run-blocks")]
     e.configure_two_run(two_run);
     #[cfg(feature="port-frames")]

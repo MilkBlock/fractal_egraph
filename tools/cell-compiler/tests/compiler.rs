@@ -6,6 +6,55 @@ use std::{
 };
 #[cfg(feature="two-run-blocks")]
 #[test]
+fn original_block_receipts_cover_imports_aliases_union_and_retirement() {
+    use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program};
+    for nullary in [false,true] {
+    for query_alias in [false,true] {
+    for (name,action) in [("live",""),("deleted","(delete (F x))"),("hidden","(subsume (F x))"),
+        ("recreated","(delete (F x)) (F x)"),("union","(union x (Leaf 0))")] {
+        let source=format!(r#"
+(datatype E (Leaf i64) (F E) (Pair E E) (Out E E))
+(ruleset make) (ruleset change) (ruleset use) (ruleset drop)
+(F (Leaf 0)) (F (Leaf 1))
+(rule ((= x (Leaf 1)) {query}) ((F x) (F x) (Pair x x)) :ruleset make)
+(rule ((= x (Leaf 1))) ({action}) :ruleset change)
+(rule ((= p (Pair x x)) (= f (F x))) ((Out p f)) :ruleset use)
+(rule ((= p (Pair x x))) ((delete (Pair x x))) :ruleset drop)
+(run-schedule (run make) (run change) (run use) (run drop))
+"#,query=if query_alias{"(= f (F x))"}else{""});
+        let source=if nullary {format!(r#"
+(datatype E (Leaf i64) (F) (Pair E E) (Out E E))
+(ruleset make) (ruleset change) (ruleset use) (ruleset drop)
+(F) (Leaf 0) (Leaf 1)
+(rule ((= x (Leaf 1)) {query}) ((F) (Pair x (F))) :ruleset make)
+(rule ((= x (Leaf 1))) ({action}) :ruleset change)
+(rule ((= p (Pair x f)) (= f (F))) ((Out p f)) :ruleset use)
+(rule ((= p (Pair x f))) ((delete (Pair x f))) :ruleset drop)
+(run-schedule (run make) (run change) (run use) (run drop))
+"#,query=if query_alias{"(= f (F))"}else{""},action=action.replace("(F x)","(F)"))}else{source};
+        let core=eggfuse_bake::device_frontend::core("receipts.egg",&source).unwrap();
+        let artifact=eggfuse_cell_runtime::compiler::compile(core,&Default::default()).unwrap();
+        let run=|on|{
+            let mut e=Executor::new(Graph::new(Program::parse(artifact.clone()).unwrap()).unwrap(),true);
+            e.configure_multi_run(8).unwrap();e.graph.configure_block_lhs(true);
+            e.configure_block_receipts(on);e.execute().unwrap();
+            let report=e.graph.block_lhs_report();(e.snapshots,e.binding_audit,report)
+        };
+        let off=run(false);let on=run(true);assert_eq!(off.0,on.0,"{query_alias} {name}");assert_eq!(off.1,on.1,"{query_alias} {name}");
+        if name=="live" {
+            assert!(off.2["stats"]["imported_result_hints"].as_u64().unwrap()>0,"{}",off.2);
+            assert!(on.2["stats"][if nullary{"shared_empty_key_hits"}else{"exact_receipt_hits"}].as_u64().unwrap()>0,"{}",on.2);
+            assert_eq!(on.2["stats"]["imported_result_hints"],0,"{}",on.2);
+            if nullary {assert_eq!(on.2["live_receipts"],0);}else{
+                assert!(on.2["stats"]["retired_receipts"].as_u64().unwrap()>0,"{}",on.2);
+                if query_alias {assert!(on.2["stats"]["alias_receipts"].as_u64().unwrap()>0);}
+            }
+        }
+        if name=="deleted" || name=="hidden" {assert_eq!(on.2["stats"]["exact_receipt_hits"],0);assert_eq!(on.2["stats"]["shared_empty_key_hits"],0);}
+    }}}
+}
+#[cfg(feature="two-run-blocks")]
+#[test]
 fn block_postconditions_close_multiple_atoms_keep_guards_and_feed_rhs() {
     use eggfuse_cell_runtime::{executor::Executor,graph::Graph,program::Program,checksum::artifact_digest};
     let source=r#"

@@ -136,6 +136,10 @@ guards. That last step needs a different validity contract; an RHS proposal is
 not evidence of the value remaining visible after merge. More stage depth alone
 does not solve the observed coverage problem.
 
+The subsequent [exact fact-receipt implementation](BLOCK_FACT_RECEIPTS.md)
+addresses that imported-identity gap and measures its interaction with iterative
+Bake. The results on this page remain the earlier baseline.
+
 ## Validation
 
 The test matrix passes 24 compiler tests and 28 runtime tests with structural

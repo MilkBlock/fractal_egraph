@@ -37,18 +37,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output = PathBuf::from(&args[1]);
     fs::create_dir(&output)?;
     let rounds: usize = args[4].parse()?;
+    let receipts=args.get(5).is_some_and(|s|s=="--block-receipts" || s=="--audit-block-receipts");
+    let combination=args.get(5).is_some_and(|s|s=="--receipt-combination" || s=="--audit-receipt-combination");
     let learned=args.get(5).is_some_and(|s|s=="--iterative-lhs" || s=="--audit-iterative-lhs");
     let catalog=args.get(5).is_some_and(|s|s=="--catalog-pair" || s=="--audit-catalog-pair");
-    if (learned||catalog) && args.len()!=8 {return Err("learned catalog modes require SUM_BASE RAY_BASE after MODE".into())}
+    if (learned||catalog||combination) && args.len()!=8 {return Err("learned catalog modes require SUM_BASE RAY_BASE after MODE".into())}
     let lhs=args.get(5).is_some_and(|s|s=="--block-lhs" || s=="--audit-block-lhs");
     let multi=args.get(5).is_some_and(|s|s=="--multi-run" || s=="--audit-multi-run");
     let fusion = args
         .get(5)
         .is_some_and(|s| s == "--two-run" || s == "--audit-two-run");
-    let audit = args.get(5).is_some_and(|s|s=="--audit-iterative-lhs" || s=="--audit-catalog-pair") || args
+    let audit = args.get(5).is_some_and(|s|s=="--audit-block-receipts" || s=="--audit-receipt-combination" || s=="--audit-iterative-lhs" || s=="--audit-catalog-pair") || args
         .get(5)
         .is_some_and(|s| s == "--audit" || s == "--audit-ports" || s == "--audit-two-run" || s=="--audit-multi-run" || s=="--audit-block-lhs");
-    let ports = learned || catalog || lhs || multi || fusion
+    let ports = receipts || combination || learned || catalog || lhs || multi || fusion
         || args
             .get(5)
             .is_some_and(|s| s == "--ports" || s == "--audit-ports");
@@ -60,7 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut log = fs::File::create(output.join("samples.jsonl"))?;
     let mut samples = vec![];
     for (case, input) in [("sum-bits", &args[2]), ("raytrace", &args[3])] {
-        let base=if learned||catalog {&args[if case=="sum-bits"{6}else{7}]}else{input};
+        let base=if learned||catalog||combination {&args[if case=="sum-bits"{6}else{7}]}else{input};
         let mut original: J = serde_json::from_slice(&fs::read(base)?)?;
         let mut admitted = original
             .as_object_mut()
@@ -73,11 +75,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .remove("two_run_blocks")
             .is_some();
         admitted |= original.as_object_mut().unwrap().remove("multi_run_blocks").is_some();
-        admitted |= learned || catalog;
+        admitted |= learned || catalog || combination;
         original.as_object_mut().unwrap().remove("sha256");
         let original_sha = eggfuse_cell_runtime::checksum::artifact_digest(&original);
         for round in 0..=rounds {
-            let mut modes = if multi {vec!["legacy2","early2","early8"]} else if ports {
+            let mut modes = if combination {vec!["none","receipts","iterative","combined"]}else if multi {vec!["legacy2","early2","early8"]} else if ports {
                 vec!["off", "on"]
             } else {
                 vec!["off", "edges", "on"]
@@ -91,7 +93,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 cmd.args(["--program", program, "--output"])
                     .arg(&run)
                     .args(["--deferred-incidence", if ports { "off" } else { mode }]);
-                if learned || catalog || lhs || multi || fusion || (ports && mode == "on") {
+                if receipts || combination || learned || catalog || lhs || multi || fusion || (ports && mode == "on") {
                     cmd.arg("--port-frames");
                 }
                 if fusion && mode == "on" {
@@ -105,6 +107,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if lhs {cmd.arg("--multi-run-blocks");if mode=="on" {cmd.arg("--block-lhs");}}
                 if learned||catalog {cmd.arg("--multi-run-blocks");}
                 if learned && mode=="off" {cmd.arg("--no-iterative-lhs");}
+                if receipts {cmd.args(["--multi-run-blocks","--block-lhs"]);if mode=="on"{cmd.arg("--block-receipts");}}
+                if combination {
+                    cmd.arg("--multi-run-blocks");
+                    if mode=="none" || mode=="receipts" {cmd.arg("--no-iterative-lhs");}
+                    if mode=="receipts" || mode=="combined" {cmd.arg("--block-receipts");}
+                }
                 for (k, _) in std::env::vars() {
                     if k.starts_with("CELL_CPU_") || k.starts_with("RAYON_") {
                         cmd.env_remove(k);
@@ -181,7 +189,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let sample = json!({"case":case,"round":round,"mode":mode,"audit":audit,
                     "input_sha256":hash(Path::new(program))?,"inference_ms":report["inference_seconds"].as_f64().unwrap()*1000.,"cli_ms":cli_ms,
                     "rss_bytes":report["peak_rss_through_inference_bytes"],"phases_ms":phases,
-                    "stats":report["stats"],"block_lhs":report["block_lhs"],"key_lookup_calls":report["key_lookup_calls"],"deferred_incidence":report["deferred_incidence"],"port_frames":report["port_frames"],"two_run_blocks":report["two_run_blocks"],"storage":report["storage"],
+                    "stats":report["stats"],"block_lhs":report["block_lhs"],"key_lookup_calls":report["key_lookup_calls"],"singleton_fast_lookups":report["singleton_fast_lookups"],"fact_hash_lookups":report["fact_hash_lookups"],"deferred_incidence":report["deferred_incidence"],"port_frames":report["port_frames"],"two_run_blocks":report["two_run_blocks"],"storage":report["storage"],
                     "spine":report["stage_spine"]["stats"],"runs":steps.len(),"digests":digests});
                 writeln!(log, "{sample}")?;
                 log.flush()?;
@@ -204,7 +212,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "inputs":{"sum-bits":hash(Path::new(&args[2]))?,"raytrace":hash(Path::new(&args[3]))?},"cases":{}});
     if rounds > 0 {
         for case in ["sum-bits", "raytrace"] {
-            for mode in if multi {vec!["legacy2","early2","early8"]} else if ports {
+            for mode in if combination {vec!["none","receipts","iterative","combined"]}else if multi {vec!["legacy2","early2","early8"]} else if ports {
                 vec!["off", "on"]
             } else {
                 vec!["off", "edges", "on"]

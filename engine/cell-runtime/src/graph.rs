@@ -256,6 +256,10 @@ pub struct Graph {
     merge_kinds: Vec<Option<String>>,
     equal_keeps_old: Vec<bool>,
     pub key_lookup_calls: std::cell::Cell<u64>,
+    #[cfg(feature="slot-transfer-audit")]
+    pub singleton_fast_lookups:std::cell::Cell<u64>,
+    #[cfg(feature="slot-transfer-audit")]
+    pub fact_hash_lookups:std::cell::Cell<u64>,
     pub program: Program,
 
     #[cfg(not(feature = "sparse-cells"))]
@@ -476,6 +480,10 @@ impl Graph {
             equal_keeps_old,
 
             key_lookup_calls: std::cell::Cell::new(0),
+            #[cfg(feature="slot-transfer-audit")]
+            singleton_fast_lookups:std::cell::Cell::new(0),
+            #[cfg(feature="slot-transfer-audit")]
+            fact_hash_lookups:std::cell::Cell::new(0),
 
             program,
             #[cfg(feature="port-frames")]
@@ -672,7 +680,7 @@ impl Graph {
         values: crate::slots::Slots,
         parent: Option<FactRef>,
         aliases: Option<&[bool]>,
-        #[cfg(feature = "structural-depth")] mut receipts: Option<&mut [Option<Dependency>]>,
+        #[cfg(any(feature = "structural-depth",feature="two-run-blocks"))] mut receipts: Option<&mut [Option<Dependency>]>,
     ) -> Result<Option<(u32, usize)>> {
         let id = self.reserve_cell_id()?;
         #[cfg(feature = "sparse-cells")]
@@ -698,7 +706,7 @@ impl Graph {
             self.stats.constructor_requests += 1;
             if let Some(row) = self.lookup_canonical(table, &key)? {
                 self.stats.constructor_reused += 1;
-                #[cfg(feature = "structural-depth")]
+                #[cfg(any(feature = "structural-depth",feature="two-run-blocks"))]
                 if let Some(ref mut rs) = receipts {
                     rs[op] = Some(row.witness);
                 }
@@ -706,7 +714,7 @@ impl Graph {
             } else {
                 self.store_cell(id, frame);
                 self.insert_constructor(id, op, table, &key, dst)?;
-                #[cfg(feature = "structural-depth")]
+                #[cfg(any(feature = "structural-depth",feature="two-run-blocks"))]
                 if let Some(ref mut rs) = receipts {
                     rs[op] = Some(Dependency::Fact(FactRef {
                         cell: id,
@@ -1272,6 +1280,8 @@ impl Graph {
         if key.is_empty() && self.program.tables[table].schema.len() == 1 {
             let members = &self.members[table];
             if members.len() <= 1 {
+                #[cfg(feature="slot-transfer-audit")]
+                self.singleton_fast_lookups.set(self.singleton_fast_lookups.get()+1);
                 let Some(&word) = members.iter().next() else { return Ok(None); };
                 return if self.program.tables[table].virtual_fact {
                     self.fact(FactRef::from_ordered_id(word))
@@ -1284,6 +1294,8 @@ impl Graph {
                 .and_then(|i| self.function(i)));
         }
         let h = hashkey(table, key);
+        #[cfg(feature="slot-transfer-audit")]
+        self.fact_hash_lookups.set(self.fact_hash_lookups.get()+1);
         if self.dirty_facts[table].is_empty() {
             // Matching observes a repaired snapshot. Avoid allocating/copying
             // a set on every keyed read; retain the original FactRef order.
@@ -2588,11 +2600,15 @@ impl Graph {
             let children=self.port_frames.detach_chain(cell);
             self.port_frames.remove(cell);self.parent_users.remove(&cell);
             #[cfg(feature="two-run-blocks")]
+            self.forget_block_receipts(cell);
+            #[cfg(feature="two-run-blocks")]
             for (id,mut frame) in children {
                 frame.completed_prefix=self.program.templates[frame.template].ops.len();
                 if frame.facts.is_empty() && self.parent_users.get(&id).copied().unwrap_or(0)==0 {
                     self.port_frames.stats.removed+=1;
                     self.parent_users.remove(&id);self.stats.empty_frames_released+=1;
+                    #[cfg(feature="two-run-blocks")]
+                    self.forget_block_receipts(id);
                 }else{
                     match self.port_frames.insert(id,frame){
                         Ok(())=>self.port_frames.stats.installed-=1,
@@ -2607,6 +2623,8 @@ impl Graph {
             && self.cells.get(&cell).is_some_and(|c| c.facts.is_empty())
         {
             if let Some(c) = self.cells.remove(&cell) {
+                #[cfg(feature="two-run-blocks")]
+                self.forget_block_receipts(cell);
                 if let Some(p) = c.parent {
                     self.release_reference(p);
                 }

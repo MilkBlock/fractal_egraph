@@ -1041,6 +1041,17 @@ impl Programs {
         base
     }
     #[cfg(feature="two-run-blocks")]
+    pub(crate) fn request_query_receipts(&mut self,rid:usize,atoms:&[usize],arity:usize) {
+        let base=&mut self.alias_query_facts[rid];
+        for &atom in atoms {
+            match base {
+                QueryFacts::None=>*base=QueryFacts::One(atom,None),
+                QueryFacts::One(old,_) if *old!=atom=>*base=QueryFacts::All(vec![None;arity]),
+                _=>(),
+            }
+        }
+    }
+    #[cfg(feature="two-run-blocks")]
     pub(crate) fn configure_two_run(&mut self,p:&Program,on:bool){
         for (rid,entry) in self.fusion_inputs.iter_mut().enumerate(){
             *entry=if on {p.two_run[rid].as_ref().map(|plan|(plan.pivot,p.rules[rid].query.len()))} else{None};

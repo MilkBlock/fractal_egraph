@@ -238,6 +238,14 @@ fn bind(a: &Arg, v: &Value, env: &mut QueryEnv, g: &Graph) -> bool {
     }
 }
 impl Executor {
+    #[cfg(feature="two-run-blocks")]
+    pub fn configure_block_receipts(&mut self,on:bool) {
+        self.graph.configure_block_receipts(on);
+        if on {for rid in 0..self.graph.program.rules.len(){
+            let atoms=self.graph.block_receipt_queries(rid);
+            self.stage_spine.request_query_receipts(rid,&atoms,self.graph.program.rules[rid].query.len());
+        }}
+    }
     #[cfg(feature = "iterative-bake")]
     pub fn collect_iterative_pairs(&mut self) {
         self.stage_spine.training.collect_pairs = true;
@@ -2118,6 +2126,12 @@ impl Executor {
         #[cfg(not(feature = "structural-depth"))]
         let capture: Option<Vec<Option<Dependency>>> = None;
         let mut effect_receipts = capture;
+        #[cfg(feature="two-run-blocks")]
+        if effect_receipts.is_none() && self.graph.block_capture_required(template) {
+            let n=self.graph.program.templates[template].ops.len();
+            effect_receipts=Some(vec![None;n]);
+            self.graph.note_block_receipt_vector(n);
+        }
         #[cfg(feature = "rhs-locals")]
         let local = if self.local_width > 0
             && self.local_selection.as_ref().is_none_or(|s| s[rid])
@@ -2149,7 +2163,7 @@ impl Executor {
                     values,
                     b.parent,
                     aliases,
-                    #[cfg(feature = "structural-depth")]
+                    #[cfg(any(feature = "structural-depth",feature="two-run-blocks"))]
                     _receipts.as_deref_mut(),
                 )
             } else {
@@ -2446,6 +2460,8 @@ impl Executor {
             }
         }
         self.graph.release_empty(cell);
+        #[cfg(feature="two-run-blocks")]
+        self.graph.seal_block_receipts(cell,rid,completed_prefix,&b.known,effect_receipts.as_deref().unwrap_or(&[]));
         Ok(())
     }
     fn probe(&mut self, set: &str) -> Result<bool> {

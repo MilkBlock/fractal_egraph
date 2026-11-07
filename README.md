@@ -20,6 +20,10 @@ The normal commands select a single CPU execution strategy. For checkpoint/resum
 
 ### Custom programs and training
 
+The [exact block-receipt experiment](docs/BLOCK_FACT_RECEIPTS.md) preserves
+original constructor references, shares nullary ports through the existing
+fact directory, and measures its interaction with iterative LHS Bake.
+
 The [iterative LHS Bake experiment](docs/ITERATIVE_LHS_BAKE.md) learns bounded
 cross-Run combinations from remaining global probes and compiles constructor
 and current function-row references into consumer matching. It reports per-round

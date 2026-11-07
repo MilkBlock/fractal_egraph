@@ -337,6 +337,20 @@ fn plan(
 }
 #[derive(Default, Serialize)]
 struct Stats {
+    capture_plan_ns: u64,
+    receipt_vectors: u64,
+    receipt_vector_slots: u64,
+    retained_receipt_frames: u64,
+    captured_receipts: u64,
+    alias_receipts: u64,
+    missing_capture_receipts: u64,
+    retired_receipts: u64,
+    exact_receipt_attempts: u64,
+    exact_receipt_hits: u64,
+    shared_empty_key_hits: u64,
+    exact_receipt_fallbacks: u64,
+    capture_ns: u64,
+    peak_receipts: usize,
     seeds: u64,
     cache_hits: u64,
     compiled_plans: u64,
@@ -361,6 +375,10 @@ struct Stats {
 }
 pub(crate) struct State {
     pub enabled: bool,
+    receipts_enabled: bool,
+    capture_ops: Vec<Vec<usize>>,
+    receipts: Map<u32, smallvec::SmallVec<[(u32, FactRef); 1]>>,
+    live_receipts: usize,
     eligible: Vec<Vec<bool>>,
     shapes: Map<ShapeKey, Rc<IndexedShape>>,
     plans: Map<(ShapeKey, usize, usize, usize, usize), Option<Rc<Plan>>>,
@@ -374,8 +392,50 @@ impl State {
             p.kernels.get(rid).and_then(|ks|ks.get(pivot)).and_then(Option::as_ref).is_some_and(|k|k.steps.iter().any(|s|matches!(s.access,crate::row_kernel::Access::Key) && constructor(s.atom)))
                 || p.multi_stage.stage_entries.iter().any(|(rule,atom,order)|*rule==rid && *atom==pivot && order.iter().any(|&i|constructor(i)))
         }).collect()).collect();
+        let mut tables = vec![false; p.tables.len()];
+        for (rid, entries) in p.kernels.iter().enumerate() {
+            for k in entries.iter().flatten() {
+                for step in &k.steps {
+                    if matches!(step.access, crate::row_kernel::Access::Key)
+                        && let Call::Table(t) = p.rules[rid].query[step.atom].call
+                    {
+                        tables[t] = true;
+                    }
+                }
+            }
+        }
+        for (rid, _, order) in &p.multi_stage.stage_entries {
+            for &atom in order.iter() {
+                if let Call::Table(t) = p.rules[*rid].query[atom].call {
+                    tables[t] = true;
+                }
+            }
+        }
+        // A one-output frame cannot retain a reused output as its own anchor.
+        // Multi-phase consumers read those outputs through their earlier owner.
+        let capture_ops = p
+            .block_postconditions
+            .iter()
+            .map(|facts| {
+                if facts.len() < 2 {
+                    vec![]
+                } else {
+                    facts
+                        .iter()
+                        // Nullary constructors already have an exact singleton
+                        // receipt in the table directory. Do not copy it per Cell.
+                        .filter(|f| tables[f.table] && f.fields.len() > 1)
+                        .map(|f| f.op)
+                        .collect()
+                }
+            })
+            .collect();
         Self {
             enabled: false,
+            receipts_enabled: false,
+            capture_ops,
+            receipts: Default::default(),
+            live_receipts: 0,
             eligible,
             shapes: Default::default(),
             plans: Default::default(),
@@ -385,6 +445,173 @@ impl State {
     }
 }
 impl Graph {
+    pub fn configure_block_receipts(&mut self, on: bool) {
+        self.block_lhs.receipts_enabled = on;
+        if on {
+            self.block_lhs.enabled = true;
+            let clock = std::time::Instant::now();
+            // Capture only ports that a same-root consumer can actually use.
+            // Shared-phase producers keep their conservative demand until the
+            // concrete multi-phase layout is known; all other misses fall back.
+            let p = &self.program;
+            let mut readers = vec![vec![]; p.tables.len()];
+            for (rid, r) in p.rules.iter().enumerate() {
+                for pivot in 0..r.query.len() {
+                    if !self.block_lhs.eligible[rid][pivot] || !r.query.iter().enumerate().any(|(i,a)|
+                    i!=pivot && matches!(a.call,Call::Table(t) if p.tables[t].constructor && p.tables[t].schema.len()>1)) {continue}
+                    if let Call::Table(t) = r.query[pivot].call {
+                        readers[t].push((rid, pivot));
+                    }
+                }
+            }
+            let mut shared = vec![false; p.templates.len()];
+            for edge in p.multi_run.iter().flatten() {
+                shared[edge.producer_template] = true;
+            }
+            for t in 0..p.templates.len() {
+                if self.block_lhs.capture_ops[t].is_empty() || shared[t] {
+                    continue;
+                }
+                if !p.block_postconditions[t]
+                    .iter()
+                    .any(|f| !readers[f.table].is_empty())
+                {
+                    self.block_lhs.capture_ops[t].clear();
+                    continue;
+                }
+                let shape = IndexedShape::new(
+                    p,
+                    Shape {
+                        phases: vec![Phase {
+                            template: t,
+                            inputs: vec![],
+                        }],
+                    },
+                );
+                let mut needed = BTreeSet::new();
+                for fact in &shape.facts {
+                    for &(rid, pivot) in &readers[fact.table] {
+                        if let Some(q) = plan(p, &shape, fact.port, rid, pivot) {
+                            for port in q.ports.iter().flatten() {
+                                if self.block_lhs.capture_ops[t]
+                                    .binary_search(&port.address.op)
+                                    .is_ok()
+                                {
+                                    needed.insert(port.address.op);
+                                }
+                            }
+                        }
+                    }
+                }
+                self.block_lhs.capture_ops[t] = needed.into_iter().collect();
+            }
+            self.block_lhs.stats.capture_plan_ns += clock.elapsed().as_nanos() as u64;
+        }
+    }
+    pub(crate) fn block_capture_required(&self, template: usize) -> bool {
+        self.block_lhs.receipts_enabled && !self.block_lhs.capture_ops[template].is_empty()
+    }
+    pub(crate) fn block_receipt_queries(&self, rid: usize) -> Vec<usize> {
+        if !self.block_capture_required(self.program.rules[rid].template) {
+            return vec![];
+        }
+        self.block_lhs.capture_ops[self.program.rules[rid].template]
+            .iter()
+            .filter_map(|&op| {
+                match self
+                    .program
+                    .known_results
+                    .static_sources
+                    .get(rid)
+                    .and_then(|s| s[op])
+                {
+                    Some(crate::known_results::Source::Query(i)) => Some(i),
+                    _ => None,
+                }
+            })
+            .collect()
+    }
+    pub(crate) fn note_block_receipt_vector(&mut self, slots: usize) {
+        self.block_lhs.stats.receipt_vectors += 1;
+        self.block_lhs.stats.receipt_vector_slots += slots as u64;
+    }
+    /// Receipts come from the original execution, including reuse and aliases.
+    /// Commit metadata only if that execution left a physical block to query.
+    pub(crate) fn seal_block_receipts(
+        &mut self,
+        cell: u32,
+        rid: usize,
+        prefix: usize,
+        known: &crate::known_results::QueryFacts,
+        effects: &[Option<Dependency>],
+    ) {
+        let template = self.program.rules[rid].template;
+        if !self.block_capture_required(template) || self.frame_template(cell).is_none() {
+            return;
+        }
+        let clock = std::time::Instant::now();
+        let mut rows = smallvec::SmallVec::new();
+        for &op in &self.block_lhs.capture_ops[template] {
+            if op >= prefix {
+                break;
+            }
+            let mut source = op;
+            let mut witness = effects.get(source).copied().flatten();
+            while witness.is_none() {
+                match self
+                    .program
+                    .known_results
+                    .static_sources
+                    .get(rid)
+                    .and_then(|s| s[source])
+                {
+                    Some(crate::known_results::Source::Query(q)) => {
+                        witness = known.dependency(q);
+                        break;
+                    }
+                    Some(crate::known_results::Source::Effect(prev)) if prev < source => {
+                        source = prev;
+                        witness = effects.get(source).copied().flatten();
+                    }
+                    _ => break,
+                }
+            }
+            if let Some(Dependency::Fact(f)) = witness {
+                if f != (FactRef {
+                    cell,
+                    op: op as u32,
+                }) {
+                    rows.push((op as u32, f));
+                    self.block_lhs.stats.alias_receipts +=
+                        u64::from(effects.get(op).copied().flatten().is_none());
+                }
+            } else {
+                self.block_lhs.stats.missing_capture_receipts += 1;
+            }
+        }
+        if !rows.is_empty() {
+            self.block_lhs.stats.captured_receipts += rows.len() as u64;
+            self.block_lhs.live_receipts += rows.len();
+            self.block_lhs.stats.retained_receipt_frames += 1;
+            if let Some(old) = self.block_lhs.receipts.insert(cell, rows) {
+                self.block_lhs.live_receipts -= old.len();
+            }
+            self.block_lhs.stats.peak_receipts = self
+                .block_lhs
+                .stats
+                .peak_receipts
+                .max(self.block_lhs.live_receipts);
+        }
+        self.block_lhs.stats.capture_ns += clock.elapsed().as_nanos() as u64;
+    }
+    pub(crate) fn forget_block_receipts(&mut self, cell: u32) {
+        if self.block_lhs.receipts_enabled
+            && let Some(rows) = self.block_lhs.receipts.remove(&cell)
+        {
+            self.block_lhs.live_receipts -= rows.len();
+            self.block_lhs.stats.retired_receipts += rows.len() as u64;
+        }
+    }
     pub fn configure_block_lhs(&mut self, on: bool) {
         self.block_lhs.enabled = on;
     }
@@ -494,6 +721,54 @@ impl Graph {
                 cell: ctx.input.ids[port.address.phase],
                 op: port.address.op as u32,
             };
+            if self.block_lhs.receipts_enabled
+                && key.is_empty()
+                && self.members[table].len() == 1
+                && let Some(&word) = self.members[table].iter().next()
+                && let Some(row) = self.fact(FactRef::from_ordered_id(word))?
+                && !row.hidden
+                && row.table == table
+                && row.values.len() == 1
+            {
+                self.block_lhs.stats.shared_empty_key_hits += 1;
+                self.block_lhs.stats.provided_atoms += 1;
+                *self
+                    .block_lhs
+                    .stats
+                    .provided_by_phases
+                    .entry(ctx.input.ids.len())
+                    .or_default() += 1;
+                self.block_lhs.stats.cross_phase_reads +=
+                    u64::from(port.address.phase != ctx.input.anchor_phase);
+                self.block_lhs.stats.proof_ns += clock.elapsed().as_nanos() as u64;
+                return Ok(Some(row));
+            }
+            if self.block_lhs.receipts_enabled
+                && let Some(rows) = self.block_lhs.receipts.get(&f.cell)
+                && let Ok(i) = rows.binary_search_by_key(&f.op, |x| x.0)
+            {
+                self.block_lhs.stats.exact_receipt_attempts += 1;
+                let w = self.resolve_receipt(Dependency::Fact(rows[i].1));
+                if let Some(row) = self.row(w)?
+                    && !row.hidden
+                    && row.table == table
+                    && row.values[..row.values.len() - 1] == *key
+                {
+                    self.block_lhs.stats.exact_receipt_hits += 1;
+                    self.block_lhs.stats.provided_atoms += 1;
+                    *self
+                        .block_lhs
+                        .stats
+                        .provided_by_phases
+                        .entry(ctx.input.ids.len())
+                        .or_default() += 1;
+                    self.block_lhs.stats.cross_phase_reads +=
+                        u64::from(port.address.phase != ctx.input.anchor_phase);
+                    self.block_lhs.stats.proof_ns += clock.elapsed().as_nanos() as u64;
+                    return Ok(Some(row));
+                }
+                self.block_lhs.stats.exact_receipt_fallbacks += 1;
+            }
             self.block_lhs.stats.guard_reads += 1;
             let (actual, hint) = match self.fact_state(f) {
                 Some(state) if !state.hidden => (f, false),
@@ -596,6 +871,9 @@ impl Graph {
     }
     pub fn block_lhs_report(&self) -> serde_json::Value {
         serde_json::json!({"enabled":self.block_lhs.enabled,"stats":self.block_lhs.stats,
+            "receipts_enabled":self.block_lhs.receipts_enabled,"live_receipt_frames":self.block_lhs.receipts.len(),
+            "live_receipts":self.block_lhs.live_receipts,
+            "receipt_payload_capacity_bytes":self.block_lhs.receipts.values().map(|v|v.capacity()*std::mem::size_of::<(u32,FactRef)>()).sum::<usize>(),
             "shape_count":self.block_lhs.shapes.len(),"cached_dispatches":self.block_lhs.plans.len(),
             "lease_capacity_bytes":self.block_lhs.leases.capacity()*std::mem::size_of::<Lease>(),
             "scope":"guarded constructor postconditions; only complete-key reads; expansions and residual guards unchanged"})
