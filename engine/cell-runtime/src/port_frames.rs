@@ -235,38 +235,76 @@ impl Store {
         })
     }
     pub fn insert(&mut self, id: u32, c: Cell) -> std::result::Result<(), Cell> {
-        let t = c.template;
+        let Some(i) = self.layout(
+            c.template,
+            c.parent.is_some(),
+            || c.values.keys().copied(),
+            || c.facts.keys().copied(),
+        ) else {
+            return Err(c);
+        };
+        self.append(
+            i,
+            Record {
+                id,
+                depth: c.recipe_depth,
+                born: c.started_epoch,
+            },
+            c.parent,
+            c.values.into_values(),
+            c.facts.into_values().map(Some),
+        );
+        Ok(())
+    }
+    fn layout<I: Iterator<Item = usize>, O: Iterator<Item = u32>>(
+        &mut self,
+        t: usize,
+        parent: bool,
+        slots: impl Fn() -> I,
+        ops: impl Fn() -> O,
+    ) -> Option<usize> {
         if self.by_template.len() <= t {
             self.by_template.resize_with(t + 1, Vec::new);
         }
         let found = self.by_template[t].iter().copied().find(|&i| {
             let b = &self.slabs[i];
-            b.parents.is_some() == c.parent.is_some()
-                && b.slots.iter().eq(c.values.keys())
-                && b.ops.iter().eq(c.facts.keys())
+            b.parents.is_some() == parent
+                && b.slots.iter().copied().eq(slots())
+                && b.ops.iter().copied().eq(ops())
         });
         if found.map_or(self.slabs.len() >= SLAB_LIMIT, |i| {
             self.slabs[i].records.len() >= ROW_LIMIT
         }) {
-            return Err(c);
+            return None;
         }
-        assert_eq!(self.directory.borrow().get(id), 0);
         let i = found.unwrap_or_else(|| {
             let i = self.slabs.len();
             self.slabs.push(Slab {
                 #[cfg(feature = "two-run-blocks")]
                 extension: None,
                 template: t,
-                slots: c.values.keys().copied().collect(),
-                ops: c.facts.keys().copied().collect(),
+                slots: slots().collect(),
+                ops: ops().collect(),
                 records: vec![],
                 values: vec![],
                 facts: vec![],
-                parents: c.parent.map(|_| vec![]),
+                parents: parent.then(Vec::new),
             });
             self.by_template[t].push(i);
             i
         });
+        Some(i)
+    }
+    fn append(
+        &mut self,
+        i: usize,
+        record: Record,
+        parent: Option<FactRef>,
+        values: impl Iterator<Item = Value>,
+        facts: impl Iterator<Item = Option<FactState>>,
+    ) {
+        let id = record.id;
+        assert_eq!(self.directory.borrow().get(id), 0);
         let b = &mut self.slabs[i];
         let r = b.records.len();
         #[cfg(feature = "two-run-blocks")]
@@ -274,19 +312,59 @@ impl Store {
             e.links.push(0);
         }
         if let Some(parents) = &mut b.parents {
-            parents.push(c.parent.unwrap());
+            parents.push(parent.unwrap());
         }
-        b.records.push(Record {
-            id,
-            depth: c.recipe_depth,
-            born: c.started_epoch,
-        });
-        b.values.extend(c.values.into_values());
-        b.facts.extend(c.facts.into_values().map(Some));
+        b.records.push(record);
+        b.values.extend(values);
+        b.facts.extend(facts);
         self.directory.borrow_mut().set(id, address(i, r));
         self.live += 1;
         self.stats.installed += 1;
+    }
+    #[cfg(feature = "two-run-blocks")]
+    pub(super) fn reserve_consumer(
+        &mut self,
+        id: u32,
+        template: usize,
+        epoch: u64,
+        slots: &[usize],
+        op: u32,
+        ports: Vec<Value>,
+        extra: smallvec::SmallVec<[Value; 2]>,
+    ) -> std::result::Result<(), Vec<Value>> {
+        if !self.enabled {
+            return Err(ports);
+        }
+        let Some(layout) = self.layout(
+            template,
+            false,
+            || slots.iter().copied(),
+            || std::iter::once(op),
+        ) else {
+            return Err(ports);
+        };
+        debug_assert_eq!(slots.len(), ports.len() + extra.len());
+        self.append(
+            layout,
+            Record {
+                id,
+                depth: 0,
+                born: epoch,
+            },
+            None,
+            ports.into_iter().chain(extra),
+            std::iter::once(None),
+        );
         Ok(())
+    }
+    #[cfg(feature = "two-run-blocks")]
+    pub(super) fn fill_consumer(&mut self, f: FactRef, state: FactState) {
+        let (i, r, phase) = self.location(f.cell).expect("reserved consumer record");
+        let slab = &mut self.slabs[i];
+        debug_assert_eq!(phase, 0);
+        debug_assert_eq!(slab.ops, [f.op]);
+        debug_assert!(slab.facts[r].is_none());
+        slab.facts[r] = Some(state);
     }
     pub fn remove(&mut self, id: u32) -> bool {
         let Some((i, r, _phase)) = self.location(id) else {

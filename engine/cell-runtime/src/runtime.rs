@@ -10,6 +10,9 @@ mod family_scan;
 use crate::query::QueryIndexes;
 #[path = "free_join.rs"]
 mod free_join;
+#[cfg(feature="two-run-blocks")]
+#[path="baked_execution.rs"]
+mod baked_execution;
 #[cfg(feature = "view-consumers")]
 #[path = "view_exec.rs"]
 mod view_exec;
@@ -85,6 +88,8 @@ impl StagePatch {
     }
 }
 pub struct Executor {
+    #[cfg(feature="two-run-blocks")]
+    baked_consumer: Option<Box<crate::graph::baked_consumer::Trial>>,
     #[cfg(feature = "sparse-cells")]
     work_scratch: Vec<(usize, Vec<Binding>)>,
     #[cfg(feature = "rhs-locals")]
@@ -303,6 +308,8 @@ impl Executor {
         graph.receipt_tracking =
             (stage_spine.enabled && stage_spine.receipts) || entry_schedule.enabled;
         let mut e = Self {
+            #[cfg(feature="two-run-blocks")]
+            baked_consumer: None,
             #[cfg(feature = "sparse-cells")]
             work_scratch: vec![],
             #[cfg(feature = "rhs-locals")]
@@ -1379,12 +1386,16 @@ impl Executor {
                             known.record(i, w);
                         }
 
+                        #[cfg(feature="two-run-blocks")]
+                        let values = self.seal_consumer_values(rid,a.direct.as_ref(),a.values,&rule.inputs);
+                        #[cfg(not(feature="two-run-blocks"))]
+                        let values=rule.inputs.iter().copied().zip(a.values).collect();
                         Binding {
                             #[cfg(feature = "view-consumers")]
                             view_source: None,
                             #[cfg(feature = "iterative-bake")]
                             direct: a.direct,
-                            values: rule.inputs.iter().copied().zip(a.values).collect(),
+                            values,
                             #[cfg(not(feature="two-run-blocks"))]
                             known,
                             #[cfg(feature="two-run-blocks")]
@@ -1870,6 +1881,8 @@ impl Executor {
         self.dedup_rows += n;
         self.dedup_full_elements += n * rule.inputs.len() as u64;
         self.dedup_elements += n * key_slots.len() as u64;
+        #[cfg(feature="two-run-blocks")]
+        if self.dedup_consumer_ports(rid,key_slots,&mut found)? { return Ok(found); }
         #[cfg(feature = "sparse-cells")]
         if found
             .iter()
@@ -1913,6 +1926,10 @@ impl Executor {
         let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Rhs);
         #[cfg(feature = "slot-transfer-audit")]
         crate::transfer_audit::rhs(rid);
+        #[cfg(feature="two-run-blocks")]
+        let ports = self.baked_consumer.as_mut()
+            .filter(|trial| trial.execute && trial.plan.rule == rid)
+            .and_then(|trial| trial.pending.remove(&b.direct.as_ref()?.0));
         let stage_cursor = self.stage_spine.begin_step(
             &self.graph.program,
             rid,
@@ -1945,6 +1962,10 @@ impl Executor {
         }
         let facts = self.graph.stats.logical_facts_created;
         let updates = self.graph.stats.function_updates;
+        #[cfg(feature="two-run-blocks")]
+        if let Some(ports)=ports {
+            return self.apply_consumer_ports(rid,&b.known,stage_cursor.ok_or("missing sealed consumer cursor")?,ports);
+        }
 
         if origin.is_none()
             && let Some(write) = self.graph.program.writes[rid].clone()
@@ -2277,6 +2298,8 @@ impl Executor {
                         _ => unreachable!("validated constructor handoff"),
                     };
                     if let Some(row) = self.graph.handoff_row(f, cell, t, args)? {
+                        #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
+                        self.graph.consumer_audit.record(cell,i,t,&row.values[..row.values.len()-1],row.witness)?;
                         let value = row.values.last().unwrap().clone();
                         match op {
                             Op::Let(dst, ..) => {
@@ -2481,6 +2504,8 @@ impl Executor {
     }
     fn run(&mut self, set: &str, path: Rc<[usize]>, iterations: Rc<[u64]>) -> Result<bool> {
         #[cfg(feature="two-run-blocks")]
+        if let Some(trial)=&mut self.baked_consumer {trial.pending.clear();}
+        #[cfg(feature="two-run-blocks")]
         self.graph.begin_block_match();
         if self.current_stage != set {
             self.current_stage.clear();
@@ -2627,8 +2652,10 @@ impl Executor {
         } else {
             None
         };
-        #[cfg(feature = "slot-transfer-audit")]
+        #[cfg(all(feature = "slot-transfer-audit",not(feature="two-run-blocks")))]
         crate::transfer_audit::record_run(patch.iter().map(|(rid, b)| (rid, &b.values)))?;
+        #[cfg(all(feature="slot-transfer-audit",feature="two-run-blocks"))]
+        crate::transfer_audit::record_run(patch.iter().map(|(rid,b)|(rid,self.audit_consumer_values(*rid,b))))?;
         let matches = patch.len;
         let search_end = Instant::now();
         let search_seconds = search_end.duration_since(start).as_secs_f64();
@@ -2658,7 +2685,16 @@ impl Executor {
         let groups = buffer.drain(..);
         #[cfg(not(feature = "sparse-cells"))]
         let groups = patch.groups.into_iter();
-        for (rid, binding) in groups.flat_map(|(rid, rows)| rows.into_iter().map(move |b| (rid, b))) {
+        for (_ordinal,(rid, binding)) in groups.flat_map(|(rid, rows)| rows.into_iter().map(move |b| (rid, b))).enumerate() {
+            #[cfg(feature="two-run-blocks")]
+            let cohort = self.baked_consumer.as_ref()
+                .filter(|trial| trial.plan.rule == rid)
+                .filter(|trial| binding.direct.as_ref().and_then(|origin| {
+                    self.stage_spine.sealed_unit(origin, &self.graph.program.iterative)
+                }) == Some(trial.plan.unit))
+                .map(|_| (self.graph.stats.constructor_requests, self.graph.stats.logical_facts_created, Instant::now()));
+            #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
+            {self.graph.consumer_audit.active=cohort.is_some();}
             #[cfg(feature = "family-survey")]
             let before = {
                 if rhs_clock.as_ref().is_none_or(|(r, _)| *r != rid) {
@@ -2692,7 +2728,25 @@ impl Executor {
             if applied.is_err() {
                 self.graph.promote_active();
             }
+            #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
+            {self.graph.consumer_audit.active=false;}
             applied?;
+            #[cfg(feature="two-run-blocks")]
+            if let Some((requests,births,clock))=cohort {
+                let trial=self.baked_consumer.as_mut().unwrap();
+                trial.counts.selected_rhs_ns+=clock.elapsed().as_nanos() as u64;
+                let born=self.graph.stats.logical_facts_created-births;
+                debug_assert!(born<=1);
+                trial.counts.applied+=1;
+                trial.counts.constructor_requests+=self.graph.stats.constructor_requests-requests;
+                trial.counts.new_results+=born;
+                trial.counts.existing_results+=1-born;
+                #[cfg(feature="slot-transfer-audit")]
+                {
+                    use sha2::Digest;
+                    for n in [self.steps.len() as u64,_ordinal as u64,rid as u64,born]{trial.trace.update(n.to_le_bytes());}
+                }
+            }
             #[cfg(feature = "rhs-work-audit")]
             {
                 #[cfg(feature = "rhs-locals")]
@@ -3104,6 +3158,29 @@ impl Executor {
         self.graph.configure_multi_run(depth)?;
         self.stage_spine.configure_multi_run(&self.graph.program);
         Ok(())
+    }
+    #[cfg(feature="two-run-blocks")]
+    pub fn configure_baked_consumer(&mut self,unit:usize,execute:bool)->Result<()> {
+        let plan=crate::graph::baked_consumer::Plan::derive(&self.graph.program,unit)?;
+        #[cfg(feature="slot-transfer-audit")]
+        {self.graph.consumer_audit=Default::default();}
+        self.baked_consumer=Some(Box::new(crate::graph::baked_consumer::Trial::new(plan,execute)));
+        Ok(())
+    }
+    #[cfg(feature="two-run-blocks")]
+    pub fn baked_consumer_report(&self)->J {
+        let Some(trial)=&self.baked_consumer else {return J::Null};
+        let report=json!({"plan":trial.plan,"execute":trial.execute,"counts":trial.counts});
+        #[cfg(feature="slot-transfer-audit")]
+        let report={
+            use sha2::Digest;
+            let mut report=report;
+            report["applied_ordinals_sha256"]=format!("{:x}",trial.trace.clone().finalize()).into();
+            report["audited_effects"]=self.graph.consumer_audit.count.into();
+            report["effect_keys_and_receipts_sha256"]=format!("{:x}",self.graph.consumer_audit.digest.clone().finalize()).into();
+            report
+        };
+        report
     }
     pub fn report(&self) -> J {
         #[cfg(feature = "deferred-incidence")]

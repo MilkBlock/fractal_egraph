@@ -270,7 +270,7 @@ struct Context {
 }
 #[cfg(all(feature = "iterative-bake", feature = "sparse-cells"))]
 #[derive(Debug)]
-pub(crate) struct DirectOrigin(usize);
+pub(crate) struct DirectOrigin(pub(crate) usize);
 
 #[cfg(all(feature = "iterative-bake", not(feature = "sparse-cells")))]
 pub(crate) struct DirectOrigin(pub Box<Cursor>);
@@ -722,6 +722,11 @@ impl Context {
     }
 }
 impl Programs {
+    #[cfg(feature = "two-run-blocks")]
+    pub(crate) fn sealed_unit(&self, origin: &DirectOrigin, catalog: &crate::iterative::Catalog) -> Option<usize> {
+        let cursor = self.sealed_cursors.get(origin.0)?.as_ref()?;
+        cursor.state.fused(catalog).then(|| catalog.active_unit(&cursor.state))
+    }
     pub fn new(p: &Program) -> Self {
         #[cfg(feature = "allocation-census")]
         let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Spine);

@@ -1,4 +1,121 @@
 use serde_json::{Value as J, json};
+#[cfg(all(feature = "iterative-bake", feature = "two-run-blocks"))]
+#[test]
+fn frozen_successor_uses_guard_ports_and_preserves_retirement() {
+    use eggfuse_cell_runtime::{
+        checksum::artifact_digest,
+        compiler::bake_spine_blocks,
+        executor::Executor,
+        graph::Graph,
+        iterative::{Catalog, Limits},
+        program::Program,
+    };
+    let source = r#"
+(datatype T (Leaf i64) (Start T) (At T i64))
+(function Limit (T) i64 :merge (min old new))
+(ruleset init) (ruleset seed) (ruleset step) (ruleset change) (ruleset erase)
+(rule ((= x (Leaf n))) ((Start x)) :ruleset init :name "init")
+(rule ((= s (Start x))) ((At x 0)) :ruleset seed :name "seed")
+(rule ((= a (At x i)) (= n (Limit x)) (< (+ i 1) n))
+      ((At x (+ 1 i))) :ruleset step :name "advance")
+(rule ((= x (Leaf 1)) (= y (Leaf 2))) ((union x y) (set (Limit x) 4)) :ruleset change)
+(rule ((= x (Leaf 1))) ((delete (At x 3))) :ruleset erase)
+(Leaf 1) (Leaf 2) (set (Limit (Leaf 1)) 8) (set (Limit (Leaf 2)) 6)
+(run-schedule (seq (run init) (run seed) (run step) (run step) (run step)
+                   (run change) (run erase) (run step)))
+"#;
+    let core = eggfuse_bake::device_frontend::core("frozen-terminal.egg", source).unwrap();
+    let mut raw = eggfuse_cell_runtime::compiler::compile(core, &Default::default()).unwrap();
+    let p = Program::parse(raw.clone()).unwrap();
+    let profile = json!({"schema":"eggfuse-spine-shapes/v1","program_sha256":raw["sha256"],"prefixes":p.multi_stage.stage_entries.iter().map(|(r,a,_)|json!({"edge":[0,0,r,a],"visits":1})).collect::<Vec<_>>()});
+    raw["spine_blocks"] = bake_spine_blocks(&p, &profile, &p, 32).unwrap();
+    let p = Program::parse(raw.clone()).unwrap();
+    let mut cat = Catalog::seed(&p, Limits::default()).unwrap();
+    Catalog::expand_lhs_seed(&p, &mut cat).unwrap();
+    let rid = p.artifact["recipe"]["rules"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|r| r["metadata"]["name"] == "advance")
+        .unwrap();
+    let rule = &p.artifact["recipe"]["rules"][rid];
+    let pivot = rule["query"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|a| a["call"]["table"] == "At")
+        .unwrap();
+    let op = rule["effects"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|a| a["call"]["table"] == "At")
+        .unwrap();
+    let mut entries = raw["spine_blocks"]["entries"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| json!([e["consumer"], e["pivot"]]))
+        .collect::<Vec<_>>();
+    entries.extend(cat["lhs_entries"].as_array().unwrap().iter().cloned());
+    let leaf = entries
+        .iter()
+        .position(|e| *e == json!([rid, pivot]))
+        .unwrap();
+    let unit = entries.len();
+    cat["joins"] = json!([{"left":leaf,"output":op,"right":leaf}]);
+    Catalog::emit_handoffs(&p, &mut cat).unwrap();
+    Catalog::emit_lhs(&p, &mut cat).unwrap();
+    raw["iterative_bake"] = cat;
+    raw.as_object_mut().unwrap().remove("sha256");
+    raw["sha256"] = artifact_digest(&raw).into();
+    let mut incompatible = Program::parse(raw.clone()).unwrap();
+    let template = incompatible.rules[rid].template;
+    let prefix = std::rc::Rc::make_mut(&mut incompatible.templates[template].ops);
+    let constant = prefix
+        .iter_mut()
+        .find_map(|op| match op {
+            eggfuse_cell_runtime::program::Op::Let(
+                _,
+                eggfuse_cell_runtime::program::Call::Primitive(name, _),
+                args,
+            ) if name == "+" => args
+                .iter_mut()
+                .find(|a| matches!(a, eggfuse_cell_runtime::program::Arg::Literal(_))),
+            _ => None,
+        })
+        .unwrap();
+    *constant =
+        eggfuse_cell_runtime::program::Arg::Literal(eggfuse_cell_runtime::value::Value::Int(2));
+    let mut rejected = Executor::new(Graph::new(incompatible).unwrap(), false);
+    assert!(rejected.configure_baked_consumer(unit, true).is_err());
+    let run = |on, compact| {
+        let mut e = Executor::new(
+            Graph::new(Program::parse(raw.clone()).unwrap()).unwrap(),
+            true,
+        );
+        e.graph.configure_port_frames(compact);
+        assert!(e.configure_baked_consumer(leaf, on).is_err());
+        e.configure_baked_consumer(unit, on).unwrap();
+        e.execute().unwrap();
+        (e.baked_consumer_report(), e.snapshots, e.binding_audit)
+    };
+    let control = run(false, true);
+    let switched = run(true, true);
+    let fallback = run(true, false);
+    assert_eq!(control.1, switched.1);
+    assert_eq!(control.2, switched.2);
+    assert_eq!(control.1, fallback.1);
+    assert_eq!(control.2, fallback.2);
+    let n = switched.0["counts"]["new_results"].as_u64().unwrap();
+    assert!(n > 0);
+    assert_eq!(switched.0["counts"]["compact_births"], n);
+    assert_eq!(fallback.0["counts"]["frame_input_maps_at_birth"], n);
+    assert_eq!(
+        control.0["counts"]["applied"],
+        switched.0["counts"]["direct"]
+    );
+}
 use std::{
     fs,
     path::Path,

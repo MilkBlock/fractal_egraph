@@ -219,6 +219,8 @@ mod scalar_keys;
 #[path = "writer_frames.rs"]
 mod writer_frames;
 pub struct Graph {
+    #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
+    pub(crate) consumer_audit: baked_consumer::EffectAudit,
     #[cfg(feature="two-run-blocks")]
     block_lhs:block_lhs::State,
     #[cfg(feature="two-run-blocks")]
@@ -445,6 +447,8 @@ impl Graph {
         #[cfg(feature="port-frames")]
         let cells=arena::Cells::default();
         let mut g = Self {
+            #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
+            consumer_audit: Default::default(),
             #[cfg(feature="two-run-blocks")]
             block_lhs:block_lhs::State::new(&program),
             #[cfg(feature="two-run-blocks")]
@@ -1434,6 +1438,11 @@ impl Graph {
         v: Value,
         hidden: bool,
     ) -> Result<()> {
+        self.activate_into::<false>(f,t,key,v,hidden)
+    }
+    fn activate_into<const COMPACT:bool>(
+        &mut self, f:FactRef, t:usize, key:&[Value], v:Value, hidden:bool,
+    )->Result<()> {
         #[cfg(feature = "allocation-census")]
         let _allocation_scope = crate::allocation_census::scope(crate::allocation_census::Tag::Graph);
         #[cfg(feature = "keeper-proof")]
@@ -1461,7 +1470,7 @@ impl Graph {
         #[cfg(all(feature = "sparse-cells",not(feature = "port-frames")))]
         let port_birth=false;
         #[cfg(feature = "sparse-cells")]
-        if !port_birth {self.promote_owner(f.cell);}
+        if !COMPACT && !port_birth {self.promote_owner(f.cell);}
         #[cfg(feature = "deferred-incidence")]
         let deferred = self.deferred_incidence.enabled && !self.deferred_incidence.repairing
             && self.sealed_generation.is_some() && !hidden && !self.visibility_tainted[t]
@@ -1477,12 +1486,7 @@ impl Graph {
         // Pre-barrier reads can decode them; surviving rows get cached by repair.
         let vs = (!local_payload).then(|| Self::shared_fields(key, &v));
         let epoch=self.epoch;
-        let facts = &mut self.rhs_frame_mut(f.cell).unwrap().facts;
-        #[cfg(feature = "sparse-cells")]
-        facts.reserve_first();
-        facts.insert(
-            f.op,
-            FactState {
+        let state=FactState {
                 #[cfg(feature = "receipt-slots")]
                 port_slot: 0,
                 decoded: vs.as_ref().map(|v| (t, v.clone())),
@@ -1492,8 +1496,18 @@ impl Graph {
                 epoch,
                 born: epoch,
                 hash: h,
-            },
-        );
+            };
+        if COMPACT {
+            #[cfg(feature="two-run-blocks")]
+            self.port_frames.fill_consumer(f,state);
+            #[cfg(not(feature="two-run-blocks"))]
+            unreachable!();
+        } else {
+            let facts=&mut self.rhs_frame_mut(f.cell).unwrap().facts;
+            #[cfg(feature="sparse-cells")]
+            facts.reserve_first();
+            facts.insert(f.op,state);
+        }
         self.members[t].insert(f.ordered_id());
         self.intern.entry(h).or_default().insert(f);
         if deferred {
@@ -1722,6 +1736,8 @@ impl Graph {
         let key = self.inline_arguments(cell, aa)?;
         let row = self.lookup_canonical(t, &key)?;
         if let Some(row) = row {
+            #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
+            self.consumer_audit.record(cell,op,t,&key,row.witness)?;
             #[cfg(feature="two-run-blocks")]
             self.record_two_run_reuse(cell,row.witness);
             if let Some(receipt) = receipt {
@@ -1740,6 +1756,8 @@ impl Graph {
             return Ok(value);
         }
         let value = self.insert_constructor(cell, op, t, &key, dst)?;
+        #[cfg(all(feature="two-run-blocks",feature="slot-transfer-audit"))]
+        self.consumer_audit.record(cell,op,t,&key,Dependency::Fact(FactRef{cell,op:op as u32}))?;
 
         if let Some(receipt) = receipt {
             *receipt = Some(Dependency::Fact(FactRef {
@@ -2709,6 +2727,9 @@ pub(crate) mod two_run;
 #[cfg(feature="two-run-blocks")]
 #[path="block_lhs.rs"]
 pub(crate) mod block_lhs;
+#[cfg(feature = "two-run-blocks")]
+#[path = "baked_consumer.rs"]
+pub(crate) mod baked_consumer;
 
 #[cfg(all(test, feature="sparse-cells", feature="projection-stamps"))]
 mod sealed_input_tests {

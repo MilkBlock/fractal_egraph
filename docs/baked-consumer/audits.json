@@ -1,0 +1,318 @@
+[
+  {
+    "case": "sum-bits",
+    "mode": "off",
+    "runs": 1428,
+    "input_sha256": "22147d70ded930f9eb8547f9537cad3520ce5a48d36b70288c44afe8b7222dd0",
+    "digests": {
+      "resumes": "d6766db41e1b164d751ff13054e24dbf84ef89c90d56e9c4faa978260843291e",
+      "rhs": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+      "schedule": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+      "spine-shapes": "9b20b382837a2b457f1395da5ecbfeffd1d40bf5a1543a08220ccfc83d730dca",
+      "spine-shapes_raw": "3669f46bfe10c656cd11321afa951eccef3b00cc1c3b14c64f7a95d51d29b674",
+      "state": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+      "writes": "f474604bbae6d87bb1dc7265f2a1ca0d137d35e2be88334c64d5624cbeff8b33"
+    },
+    "baked_consumer": {
+      "applied_ordinals_sha256": "505413789f4d4c70bea456463f4443c045a69dc0526f76f47992f02043d7ae7a",
+      "audited_effects": 19,
+      "counts": {
+        "applied": 19,
+        "binding_maps_at_match": 19,
+        "checked_computations_reused": 0,
+        "compact_births": 0,
+        "constructor_requests": 19,
+        "diagnostic_shadow_maps": 0,
+        "direct": 0,
+        "existing_results": 0,
+        "frame_input_maps_at_birth": 0,
+        "keyed_hits": 0,
+        "new_results": 19,
+        "receipt_hits": 0,
+        "sealed": 19,
+        "sealed_values": 133,
+        "selected_rhs_ns": 29126
+      },
+      "effect_keys_and_receipts_sha256": "db5be37e4da0486f147a24c496d5c48d403c8105b1d80b1424f2e8aeacabf123",
+      "execute": false,
+      "plan": {
+        "computed": [
+          [
+            9,
+            5
+          ]
+        ],
+        "dst": 10,
+        "key_ports": [
+          {
+            "Slot": 0
+          },
+          {
+            "Slot": 5
+          }
+        ],
+        "op": 3,
+        "pivot": 2,
+        "retained_slots": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          9
+        ],
+        "rule": 57,
+        "table": 223,
+        "unit": 289
+      }
+    },
+    "key_lookup_calls": 19331,
+    "logical_facts": 3739,
+    "constructor_requests": 11502,
+    "cell_registrations": 968,
+    "live_full_cells": 953,
+    "producer_records": 2875,
+    "resumed_steps": 3034,
+    "max_chain": 12,
+    "served_lhs_reads": 4
+  },
+  {
+    "case": "sum-bits",
+    "mode": "on",
+    "runs": 1428,
+    "input_sha256": "22147d70ded930f9eb8547f9537cad3520ce5a48d36b70288c44afe8b7222dd0",
+    "digests": {
+      "resumes": "d6766db41e1b164d751ff13054e24dbf84ef89c90d56e9c4faa978260843291e",
+      "rhs": "fa55e20d9f323d436c5348dc7de415aa50a90275764e0cd038378d52cf518a5a",
+      "schedule": "f7ad3674677050ec0ddc7c4c6d5f028fa630ee4e553a0e4a50ad14bbd24fb5db",
+      "spine-shapes": "9b20b382837a2b457f1395da5ecbfeffd1d40bf5a1543a08220ccfc83d730dca",
+      "spine-shapes_raw": "3669f46bfe10c656cd11321afa951eccef3b00cc1c3b14c64f7a95d51d29b674",
+      "state": "0f2e40232d0729597837e62956923795bd5926708872b5b8f69144e12f04e5b1",
+      "writes": "f474604bbae6d87bb1dc7265f2a1ca0d137d35e2be88334c64d5624cbeff8b33"
+    },
+    "baked_consumer": {
+      "applied_ordinals_sha256": "505413789f4d4c70bea456463f4443c045a69dc0526f76f47992f02043d7ae7a",
+      "audited_effects": 19,
+      "counts": {
+        "applied": 19,
+        "binding_maps_at_match": 0,
+        "checked_computations_reused": 19,
+        "compact_births": 19,
+        "constructor_requests": 19,
+        "diagnostic_shadow_maps": 0,
+        "direct": 19,
+        "existing_results": 0,
+        "frame_input_maps_at_birth": 0,
+        "keyed_hits": 0,
+        "new_results": 19,
+        "receipt_hits": 0,
+        "sealed": 19,
+        "sealed_values": 133,
+        "selected_rhs_ns": 37168
+      },
+      "effect_keys_and_receipts_sha256": "db5be37e4da0486f147a24c496d5c48d403c8105b1d80b1424f2e8aeacabf123",
+      "execute": true,
+      "plan": {
+        "computed": [
+          [
+            9,
+            5
+          ]
+        ],
+        "dst": 10,
+        "key_ports": [
+          {
+            "Slot": 0
+          },
+          {
+            "Slot": 5
+          }
+        ],
+        "op": 3,
+        "pivot": 2,
+        "retained_slots": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          9
+        ],
+        "rule": 57,
+        "table": 223,
+        "unit": 289
+      }
+    },
+    "key_lookup_calls": 19331,
+    "logical_facts": 3739,
+    "constructor_requests": 11502,
+    "cell_registrations": 949,
+    "live_full_cells": 934,
+    "producer_records": 2875,
+    "resumed_steps": 3034,
+    "max_chain": 12,
+    "served_lhs_reads": 4
+  },
+  {
+    "case": "raytrace",
+    "mode": "off",
+    "runs": 16883,
+    "input_sha256": "7c8b6cd4babb3ce4c30c329029395260c85d557c06a02e3f029672444c83b3de",
+    "digests": {
+      "resumes": "49edbeefc5f2e4330b49f82b773694fd7a21f8a6182a14c86392c3fb95e01e9d",
+      "rhs": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+      "schedule": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5",
+      "spine-shapes": "fea18e15ddcab8010c487f3314819d22727e313ba7913b360fb0ccb61439cb39",
+      "spine-shapes_raw": "9292abb27adb2adefcfe26eaa6538c5a03e33554aa360a834f73762a9a641484",
+      "state": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+      "writes": "48295f40c16c56c057fffd01757d6be752f5a50d774e02e838adc0cd14fbfab0"
+    },
+    "baked_consumer": {
+      "applied_ordinals_sha256": "1c4b98e8a5a1e996da2cd1f8425d4451d299b71b4c242ceaa881b03d3ca7efe4",
+      "audited_effects": 2389,
+      "counts": {
+        "applied": 2389,
+        "binding_maps_at_match": 2389,
+        "checked_computations_reused": 0,
+        "compact_births": 0,
+        "constructor_requests": 2389,
+        "diagnostic_shadow_maps": 0,
+        "direct": 0,
+        "existing_results": 43,
+        "frame_input_maps_at_birth": 0,
+        "keyed_hits": 0,
+        "new_results": 2346,
+        "receipt_hits": 0,
+        "sealed": 2389,
+        "sealed_values": 16723,
+        "selected_rhs_ns": 4223508
+      },
+      "effect_keys_and_receipts_sha256": "cec92a0f34e30511d8adfcf8be895becc93d891c109b2bd1ae002bd17aeec802",
+      "execute": false,
+      "plan": {
+        "computed": [
+          [
+            9,
+            5
+          ]
+        ],
+        "dst": 10,
+        "key_ports": [
+          {
+            "Slot": 0
+          },
+          {
+            "Slot": 5
+          }
+        ],
+        "op": 3,
+        "pivot": 2,
+        "retained_slots": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          9
+        ],
+        "rule": 57,
+        "table": 223,
+        "unit": 288
+      }
+    },
+    "key_lookup_calls": 4422259,
+    "logical_facts": 820439,
+    "constructor_requests": 2064975,
+    "cell_registrations": 319326,
+    "live_full_cells": 300469,
+    "producer_records": 687913,
+    "resumed_steps": 663403,
+    "max_chain": 29,
+    "served_lhs_reads": 260
+  },
+  {
+    "case": "raytrace",
+    "mode": "on",
+    "runs": 16883,
+    "input_sha256": "7c8b6cd4babb3ce4c30c329029395260c85d557c06a02e3f029672444c83b3de",
+    "digests": {
+      "resumes": "49edbeefc5f2e4330b49f82b773694fd7a21f8a6182a14c86392c3fb95e01e9d",
+      "rhs": "9525458df47d9b6ab987d6e657ecb97576453631352c4d762d7e1bc5fa32f58e",
+      "schedule": "2811d5617bb70dcbe4b32d953ce30b7d60608f85ba5606fc3a28bcb74b1fbed5",
+      "spine-shapes": "fea18e15ddcab8010c487f3314819d22727e313ba7913b360fb0ccb61439cb39",
+      "spine-shapes_raw": "9292abb27adb2adefcfe26eaa6538c5a03e33554aa360a834f73762a9a641484",
+      "state": "170ec32923615ded3e643ed852a5a2adbaae92f0cdc4ada0ce1cc469646433d2",
+      "writes": "48295f40c16c56c057fffd01757d6be752f5a50d774e02e838adc0cd14fbfab0"
+    },
+    "baked_consumer": {
+      "applied_ordinals_sha256": "1c4b98e8a5a1e996da2cd1f8425d4451d299b71b4c242ceaa881b03d3ca7efe4",
+      "audited_effects": 2389,
+      "counts": {
+        "applied": 2389,
+        "binding_maps_at_match": 0,
+        "checked_computations_reused": 2389,
+        "compact_births": 2346,
+        "constructor_requests": 2389,
+        "diagnostic_shadow_maps": 0,
+        "direct": 2389,
+        "existing_results": 43,
+        "frame_input_maps_at_birth": 0,
+        "keyed_hits": 43,
+        "new_results": 2346,
+        "receipt_hits": 0,
+        "sealed": 2389,
+        "sealed_values": 16723,
+        "selected_rhs_ns": 3962825
+      },
+      "effect_keys_and_receipts_sha256": "cec92a0f34e30511d8adfcf8be895becc93d891c109b2bd1ae002bd17aeec802",
+      "execute": true,
+      "plan": {
+        "computed": [
+          [
+            9,
+            5
+          ]
+        ],
+        "dst": 10,
+        "key_ports": [
+          {
+            "Slot": 0
+          },
+          {
+            "Slot": 5
+          }
+        ],
+        "op": 3,
+        "pivot": 2,
+        "retained_slots": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          9
+        ],
+        "rule": 57,
+        "table": 223,
+        "unit": 288
+      }
+    },
+    "key_lookup_calls": 4422259,
+    "logical_facts": 820439,
+    "constructor_requests": 2064975,
+    "cell_registrations": 316980,
+    "live_full_cells": 298157,
+    "producer_records": 687913,
+    "resumed_steps": 663403,
+    "max_chain": 29,
+    "served_lhs_reads": 260
+  }
+]

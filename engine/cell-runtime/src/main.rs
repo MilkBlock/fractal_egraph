@@ -50,6 +50,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  --block-lhs (use guarded block postconditions for residual matching)");
         #[cfg(feature="two-run-blocks")]
         println!("  --block-receipts (retain original constructor receipts for block LHS ports)");
+        #[cfg(feature="two-run-blocks")]
+        println!("  --baked-consumer UNIT [--execute-baked-consumer] (survey or execute a typed catalog terminal)");
         #[cfg(feature="two-run-survey")]
         println!("  --two-run-survey (diagnostic owner-to-consumer census)");
         #[cfg(feature = "deferred-incidence")]
@@ -123,6 +125,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--block-lhs"=>{},
             #[cfg(feature="two-run-blocks")]
             "--block-receipts"=>{},
+            #[cfg(feature="two-run-blocks")]
+            "--baked-consumer"=>{flags.next().ok_or("missing catalog unit")?;},
+            #[cfg(feature="two-run-blocks")]
+            "--execute-baked-consumer"=>{},
             #[cfg(feature="two-run-blocks")]
             "--port-block-depth"=>{flags.next().ok_or("missing port block depth")?;},
             #[cfg(feature = "deferred-incidence")]
@@ -236,6 +242,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         eggfuse_cell_runtime::transfer_audit::set_active(true);
         eggfuse_cell_runtime::transfer_audit::enable_write_audit();
     }
+    #[cfg(feature="two-run-blocks")]
+    if let Some(unit)=opt("--baked-consumer") {
+        runtime.configure_baked_consumer(unit.parse()?,args.iter().any(|s|s=="--execute-baked-consumer"))?;
+    } else if args.iter().any(|s|s=="--execute-baked-consumer") {return Err("--baked-consumer UNIT required".into())}
     if let Err(error) = runtime.execute() {
         std::fs::write(
             out.join("failure.json"),
@@ -295,6 +305,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "keeper-proof")]
     runtime.write_keepers(&out)?;
     let mut report = runtime.report();
+    #[cfg(feature="two-run-blocks")]
+    {report["baked_consumer"]=runtime.baked_consumer_report();}
     #[cfg(feature="slot-transfer-audit")]
     {
         report["singleton_fast_lookups"]=serde_json::json!(runtime.graph.singleton_fast_lookups.get());

@@ -20,6 +20,9 @@ The normal commands select a single CPU execution strategy. For checkpoint/resum
 
 ### Custom programs and training
 
+The [frozen Bake consumer experiment](docs/BAKED_CONSUMER_RHS.md) executes a
+selected composition's constructor RHS directly from its checked query ports.
+
 The [exact block-receipt experiment](docs/BLOCK_FACT_RECEIPTS.md) preserves
 original constructor references, shares nullary ports through the existing
 fact directory, and measures its interaction with iterative LHS Bake.

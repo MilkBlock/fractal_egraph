@@ -1,0 +1,67 @@
+{
+  "base": "b0fbe5e0",
+  "backend": "standalone Cell CPU",
+  "hardware": "Apple M3 Max",
+  "rounds": 5,
+  "binary_sha256": "bae54927546e1491cb292fb821a779239077bec9bb559369aed2139aac7260a0",
+  "inputs": {
+    "raytrace": "7c8b6cd4babb3ce4c30c329029395260c85d557c06a02e3f029672444c83b3de",
+    "sum-bits": "22147d70ded930f9eb8547f9537cad3520ce5a48d36b70288c44afe8b7222dd0"
+  },
+  "cases": {
+    "raytrace": {
+      "off": {
+        "inference_ms": 8154.700375000001,
+        "cli_ms": 11510.359958000001,
+        "rss_bytes": 1895743488.0,
+        "phases_ms": {
+          "delivery_gc": 21.677858000000207,
+          "query_update": 1591.280983,
+          "repair": 651.6799279999923,
+          "rhs": 2153.128031999991,
+          "search": 3738.0313749999787
+        }
+      },
+      "on": {
+        "inference_ms": 8143.652250000001,
+        "cli_ms": 11481.670667,
+        "rss_bytes": 1914863616.0,
+        "phases_ms": {
+          "delivery_gc": 21.464202000000377,
+          "query_update": 1608.727606999999,
+          "repair": 641.1439299999965,
+          "rhs": 2144.778421999997,
+          "search": 3716.40985699998
+        }
+      }
+    },
+    "sum-bits": {
+      "off": {
+        "inference_ms": 23.299542,
+        "cli_ms": 137.35454099999998,
+        "rss_bytes": 161398784.0,
+        "phases_ms": {
+          "delivery_gc": 0.2340290000000008,
+          "query_update": 3.9075830000000096,
+          "repair": 1.7992610000000036,
+          "rhs": 5.975195999999985,
+          "search": 10.993725999999931
+        }
+      },
+      "on": {
+        "inference_ms": 23.27375,
+        "cli_ms": 135.707458,
+        "rss_bytes": 161415168.0,
+        "phases_ms": {
+          "delivery_gc": 0.22771100000000077,
+          "query_update": 3.9511210000000108,
+          "repair": 1.763171000000006,
+          "rhs": 5.916126999999989,
+          "search": 11.044792999999945
+        }
+      }
+    }
+  },
+  "collision_case": "sum-bits selected unit 289",
+  "collision_effects": "db5be37e4da0486f147a24c496d5c48d403c8105b1d80b1424f2e8aeacabf123"
+}

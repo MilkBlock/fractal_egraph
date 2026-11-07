@@ -116,6 +116,11 @@ impl State {
     }
 }
 impl Catalog {
+    #[cfg(feature = "two-run-blocks")]
+    pub(crate) fn consumer_entry(&self, id: Id) -> Option<(usize, usize)> {
+        let unit = self.units.get(id)?;
+        (unit.path.len() >= 2 && self.switch.enabled()).then_some(unit.last)
+    }
     /// Transfer learned compositions, never workload identities or receipts.
     /// Every rule is mapped by its complete typed signature, and every new
     /// target join is revalidated before compiling its ports.
